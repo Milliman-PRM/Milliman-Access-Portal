@@ -4,8 +4,8 @@ body {
 }
 
 .accordion {
-    background-color: white;
-    color: #444;
+    background-color: #0095FF;
+    color: white;
     cursor: pointer;
     padding: 18px;
     width: 100%;
@@ -18,7 +18,7 @@ body {
 }
 
 .active, .accordion:hover {
-    background-color: #0095FF;
+    background-color: #0079D1;
     color: white;
 }
 
