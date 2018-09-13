@@ -67,6 +67,13 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
         }
 
+        /// <summary>
+        /// Check the extension of the upload indicated by this info against the initial bytes of the provided file stream
+        /// </summary>
+        /// <param name="resumableInfo">The chunk info to check</param>
+        /// <param name="fileStream">The file stream whose initial bytes to check</param>
+        /// <param name="initialByteCount">The number of bytes to read from the file stream</param>
+        /// <returns>Whether the initial bytes agree with the file extension</returns>
         public static bool MatchesInitialBytes(this ResumableInfo resumableInfo, FileStream fileStream, int initialByteCount = 0x10)
         {
             // Read the initial bytes from the file stream
@@ -74,6 +81,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             fileStream.Read(initialBytes, 0, initialByteCount);
 
             // Represent acceptable starting byte sequences as a list of byte arrays
+            // Expected initial byte sequences referenced from: https://mimesniff.spec.whatwg.org/#matching-a-mime-type-pattern
             List<byte[]> expectedInitialBytes = new List<byte[]>();
             switch(resumableInfo.FileExt.ToLower())
             {
@@ -103,15 +111,5 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             });
         }
 
-    }
-
-    public enum AcceptedFileType
-    {
-        Default = 0,
-        JPEG = 1,
-        PNG = 2,
-        GIF = 3,
-        PDF = 4,
-        QVW = 5,
     }
 }

@@ -204,6 +204,7 @@ namespace MillimanAccessPortal.Services
             #endregion
 
             #region Verify upload
+            // Guess MIME type of uploaded file and compare with provided file extension
             using (var fileStream = File.OpenRead(concatenationFilePath))
             {
                 if (!resumableInfo.MatchesInitialBytes(fileStream))
