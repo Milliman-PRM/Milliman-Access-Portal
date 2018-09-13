@@ -14,6 +14,7 @@ using MapDbContextLib.Context;
 using ContentPublishingLib.JobMonitors;
 using ContentPublishingLib.JobRunners;
 using TestResourcesLib;
+using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Models;
 using Moq;
 using Newtonsoft.Json;
@@ -32,12 +33,12 @@ namespace ContentPublishingServiceTests
         public async Task DoesNotReduce_MasterSelectionGroupExists()
         {
             #region Arrange
-            long ContentItemIdOfThisTest = 1;
-            long PubRequestIdOfThisTest = 1;
+            Guid ContentItemIdOfThisTest = TestUtil.MakeTestGuid(1);
+            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(1);
 
             string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
-            string MasterContentFileName = $"MasterContent.Pub[{ContentItemIdOfThisTest}].Content[{PubRequestIdOfThisTest}].qvw";
-            string UserGuideFileName = $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf";
+            string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
+            string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
             Directory.CreateDirectory(ContentFolder);
 
@@ -120,8 +121,8 @@ namespace ContentPublishingServiceTests
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(2);
 
             string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
-            string MasterContentFileName = $"MasterContent.Pub[{ContentItemIdOfThisTest}].Content[{PubRequestIdOfThisTest}].qvw";
-            string UserGuideFileName = $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf";
+            string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
+            string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
             Directory.CreateDirectory(ContentFolder);
 
@@ -209,8 +210,8 @@ namespace ContentPublishingServiceTests
 
             string ProposedRequestExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuid}\";
             string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
-            string MasterContentFileName = $"MasterContent.Pub[{ContentItemIdOfThisTest}].Content[{PubRequestIdOfThisTest}].qvw";
-            string UserGuideFileName = $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf";
+            string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
+            string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
             Directory.CreateDirectory(ProposedRequestExchangeFolder);
             Directory.CreateDirectory(ContentFolder);

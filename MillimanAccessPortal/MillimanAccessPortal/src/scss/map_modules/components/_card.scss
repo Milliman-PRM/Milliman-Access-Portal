@@ -3,8 +3,9 @@
 .card-container {
     position: relative;
     padding: 0;
+    padding-top: 1em;
     margin-top: 0;
-    margin-bottom: 1.75em;
+    margin-bottom: 1em;
     cursor: pointer;
     border-radius: .25em;
 
@@ -288,6 +289,7 @@
             border-radius: 50%;
             display: flex;
             padding: .25em;
+            border: 2px solid $light-grey;
             margin-top: .25em;
             margin-bottom: .25em;
             transform-origin: center center;
@@ -477,7 +479,7 @@
 .hr {
     height: .1em;
     border: 1px solid $charcoal;
-    margin: 0 0 3em;
+    margin: 0 0 1em;
     padding: 0;
 }
 

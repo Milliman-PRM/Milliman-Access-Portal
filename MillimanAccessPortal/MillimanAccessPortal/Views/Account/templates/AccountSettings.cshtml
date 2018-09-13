@@ -1,0 +1,124 @@
+﻿@model AccountSettingsViewModel;
+
+@{
+    /*
+     * CODE OWNERS: Michael Reisz
+     * OBJECTIVE: Allow the user to view and edit their account settings
+     * DEVELOPER NOTES:
+     */
+
+    ViewData["Title"] = "Account Settings";
+    Layout = "_Layout_w_NB_H_F";
+    ViewData["NavIcon"] = "AccountSettings";
+}
+
+@section CSS {
+  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+  <% } %>
+}
+
+@section Scripts {
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+}
+
+<div id="account-settings-container">
+    <div id="navbar"></div>
+    <div id="account-settings" class="admin-panel-container flex-item-for-phone-only-12-12 flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
+        <div class="loading-wrapper" style="display: none;">
+            @Html.Partial("~/Views/Shared/_Loader.cshtml")
+        </div>
+        <div class="admin-panel-content-container">
+            <form id="account-settings-form" autocomplete="off" class="admin-panel-content">
+                <div class="form-section-container">
+                    <div class="form-section" data-section="username">
+                        <h4 class="form-section-title">User Information</h4>
+                        <div class="form-input-container" style="margin-bottom: 0;">
+                            <div class="form-input form-input-text flex-item-12-12">
+                                <label class="form-input-text-title" asp-for="UserName"></label>
+                                <div>
+                                    <input asp-for="UserName" data-original-value="UserName" readonly />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-section" data-section="account">
+                        <div class="form-input-container">
+                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                                <label class="form-input-text-title" asp-for="FirstName"></label>
+                                <div>
+                                    <input asp-for="FirstName" data-original-value="FirstName" autofocus />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                                <label class="form-input-text-title" asp-for="LastName"></label>
+                                <div>
+                                    <input asp-for="LastName" data-original-value="LastName" />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-input form-input-text flex-item-12-12" style="display: none;">
+                                <label class="form-input-text-title" asp-for="Email"></label>
+                                <div>
+                                    <input asp-for="Email" data-original-value="Email" readonly disabled />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-4-12">
+                                <label class="form-input-text-title" asp-for="PhoneNumber"></label>
+                                <div>
+                                    <input asp-for="PhoneNumber" placeholder="(###) ###-####" data-original-value="PhoneNumber" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-8-12">
+                                <label class="form-input-text-title" asp-for="Employer"></label>
+                                <div>
+                                    <input asp-for="Employer" data-original-value="Employer" />
+                                    <span asp-validation-for="Employer" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-section" data-section="password">
+                        <h4 class="form-section-title">Update Password</h4>
+                        <div class="form-input-container">
+                            <div class="form-input form-input-text flex-item-12-12">
+                                <label class="form-input-text-title" asp-for="CurrentPassword"></label>
+                                <div>
+                                    <input type="password" asp-for="CurrentPassword" />
+                                </div>
+                            </div>
+                            <div class="form-input form-input-text flex-item-12-12">
+                                <label class="form-input-text-title" asp-for="NewPassword"></label>
+                                <div>
+                                    <input type="password" asp-for="NewPassword" />
+                                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-input form-input-text flex-item-12-12">
+                                <label class="form-input-text-title" asp-for="ConfirmNewPassword"></label>
+                                <div>
+                                    <input type="password" asp-for="ConfirmNewPassword" />
+                                    <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-submission-section">
+                        <div class="button-container button-container-update" style="display: none;">
+                            <button type="button" class="button-reset link-button" disabled >Discard Changes</button>
+                            <button type="submit" class="button-submit blue-button" disabled >Update Account</button>
+                        </div>
+                        <div class="form-antiforgery-token" style="display: none;">
+                            @Html.AntiForgeryToken()
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
