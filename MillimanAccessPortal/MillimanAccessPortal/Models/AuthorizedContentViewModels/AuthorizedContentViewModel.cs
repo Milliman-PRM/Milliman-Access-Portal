@@ -1,4 +1,5 @@
-﻿using MapDbContextLib.Context;
+﻿using MapCommonLib.ContentTypeSpecific;
+using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
@@ -36,7 +37,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                     notLive.Add(selectionGroup);
                     continue;
                 }
-                var fileName = ContentAccessSupport.GenerateContentFileName(masterContentFile, selectionGroup.RootContentItemId);
+                var fileName = ContentTypeSpecificApiBase.GenerateContentFileName(masterContentFile.FilePurpose, Path.GetExtension(masterContentFile.FullPath), selectionGroup.RootContentItemId);
                 var filePath = Path.Combine(Path.GetDirectoryName(masterContentFile.FullPath), fileName);
                 if (!File.Exists(filePath))
                 {

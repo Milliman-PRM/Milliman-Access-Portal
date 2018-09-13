@@ -8,6 +8,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Newtonsoft.Json;
@@ -46,7 +47,7 @@ namespace ContentPublishingLib.JobRunners
             ContentReductionHierarchy<ReductionFieldValueSelection> MapSelections = DbTask.SelectionCriteriaObj 
                                                                                     ?? new ContentReductionHierarchy<ReductionFieldValueSelection>();
 
-            return new ReductionJobDetail
+            ReductionJobDetail ReturnObj = new ReductionJobDetail
             {
                 TaskId = DbTask.Id,
                 Request = new ReductionJobRequest
@@ -62,11 +63,13 @@ namespace ContentPublishingLib.JobRunners
                                 : DbTask.TaskAction == TaskActionEnum.HierarchyAndReduction 
                                 ? ReductionJobActionEnum.HierarchyAndReduction
                                 : ReductionJobActionEnum.Unspecified,
-                    RequestedOutputFileName = $"ReducedContent.SelGrp[{DbTask.SelectionGroup.Id}].Content[{DbTask.SelectionGroup.RootContentItemId}]{Path.GetExtension(DbTask.MasterFilePath)}",
+                    RequestedOutputFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(DbTask.SelectionGroup.Id, DbTask.SelectionGroup.RootContentItemId, Path.GetExtension(DbTask.MasterFilePath)),
+                    // if there is any ContentType dependency for the output file name, that can be reassigned after this object construction. 
                 },
                 Result = new ReductionJobResult(),
             };
 
+            return ReturnObj;
         }
 
         public class ReductionJobResult
