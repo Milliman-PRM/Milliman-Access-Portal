@@ -1,3 +1,0 @@
-# Authorized Content
-
-### Description
