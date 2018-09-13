@@ -21,10 +21,10 @@ namespace MapCommonLib.ContentTypeSpecific
         /// <param name="ExtensionWithDot"></param>
         /// <param name="rootContentItemId"></param>
         /// <returns></returns>
-        public static string GenerateContentFileName(string FilePurpose, string ExtensionWithDot, Guid rootContentItemId)
+        public static string GenerateContentFileName(string FilePurpose, string extensionWithDot, Guid rootContentItemId)
         {
-            string PreHashedFileName = $"{FilePurpose}.Content[{rootContentItemId}]{ExtensionWithDot}";
-            return GlobalFunctions.GetStringChecksum(PreHashedFileName);
+            string PreHashedFileName = $"{FilePurpose}.Content[{rootContentItemId}]";
+            return GlobalFunctions.GetStringChecksum(PreHashedFileName) + extensionWithDot;
         }
 
         /// <summary>
@@ -36,8 +36,8 @@ namespace MapCommonLib.ContentTypeSpecific
         /// <returns></returns>
         public static string GenerateReducedContentFileName(Guid selectionGroupId, Guid rootContentItemId, string extensionWithDot)
         {
-            string PreHashedFileName = $"ReducedContent.SelGrp[{selectionGroupId}].Content[{rootContentItemId}]{extensionWithDot}";
-            return GlobalFunctions.GetStringChecksum(PreHashedFileName);
+            string PreHashedFileName = $"ReducedContent.SelGrp[{selectionGroupId}].Content[{rootContentItemId}]";
+            return GlobalFunctions.GetStringChecksum(PreHashedFileName) + extensionWithDot;
         }
 
         /// <summary>
@@ -50,8 +50,8 @@ namespace MapCommonLib.ContentTypeSpecific
         /// <returns></returns>
         public static string GeneratePreliveRelatedFileName(string filePurpose, Guid publicationRequestId, Guid rootContentItemId, string extensionWithDot)
         {
-            string PreHashedFileName = $"{filePurpose}.Pub[{publicationRequestId}].Content[{rootContentItemId}]{extensionWithDot}";
-            return GlobalFunctions.GetStringChecksum(PreHashedFileName);
+            string PreHashedFileName = $"{filePurpose}.Pub[{publicationRequestId}].Content[{rootContentItemId}]";
+            return GlobalFunctions.GetStringChecksum(PreHashedFileName) + extensionWithDot;
         }
 
     }

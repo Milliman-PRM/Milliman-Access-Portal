@@ -161,7 +161,7 @@ namespace MillimanAccessPortal
 
                 #region Validate the file referenced by the FileUpload record
                 // The file must exist
-                if (!System.IO.File.Exists(FileUploadRecord.StoragePath))
+                if (FileUploadRecord == null || !System.IO.File.Exists(FileUploadRecord.StoragePath))
                 {
                     throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
                 }
