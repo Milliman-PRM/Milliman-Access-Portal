@@ -238,7 +238,7 @@ namespace MapTests
 
             // Test that the Message view was returned
             ViewResult viewResult = result as ViewResult;
-            Assert.Equal("Message", viewResult.ViewName);
+            Assert.Equal("ContentMessage", viewResult.ViewName);
             #endregion
         }
 
@@ -455,7 +455,7 @@ namespace MapTests
                 // Test that a content view was not returned
                 Assert.IsType<ViewResult>(result);
                 ViewResult viewResult = result as ViewResult;
-                Assert.Equal("Message", viewResult.ViewName);
+                Assert.Equal("ContentMessage", viewResult.ViewName);
             }
             finally
             {
