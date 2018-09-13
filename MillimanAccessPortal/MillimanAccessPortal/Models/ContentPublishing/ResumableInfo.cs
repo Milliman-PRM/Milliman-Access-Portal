@@ -67,6 +67,21 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
         }
 
+        public static bool ExtensionIsAcceptable(this ResumableInfo resumableInfo)
+        {
+            var acceptableExtensions = new List<string>
+            {
+                ".jpg",
+                ".jpeg",
+                ".png",
+                ".gif",
+                ".pdf",
+                ".qvw",
+            };
+            return acceptableExtensions.Contains(resumableInfo.FileExt.ToLower());
+        }
+
+
         /// <summary>
         /// Check the extension of the upload indicated by this info against the initial bytes of the provided file stream
         /// </summary>
@@ -101,6 +116,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                     break;
                 case ".qvw":
                     expectedInitialBytes.Add(new byte[] { 0x70, 0x17 });
+                    break;
+                default:
                     break;
             }
 

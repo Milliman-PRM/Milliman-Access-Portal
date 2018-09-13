@@ -207,6 +207,10 @@ namespace MillimanAccessPortal.Services
             // Guess MIME type of uploaded file and compare with provided file extension
             using (var fileStream = File.OpenRead(concatenationFilePath))
             {
+                if (!resumableInfo.ExtensionIsAcceptable())
+                {
+                    throw new FileUploadException(StatusCodes.Status415UnsupportedMediaType, $"Files with extension \"{resumableInfo.FileExt}\" are not accepted.");
+                }
                 if (!resumableInfo.MatchesInitialBytes(fileStream))
                 {
                     throw new FileUploadException(StatusCodes.Status415UnsupportedMediaType, "File contents do not match extension.");
