@@ -8,6 +8,7 @@ using AuditLogLib;
 using AuditLogLib.Services;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
+using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -230,7 +231,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     var inheritedRoles = DbContext.UserRoleInClient
                         .Where(r => r.ClientId == rootContentItem.ClientId)
-                        .Where(r => r.RoleId == ApplicationRole.RoleIds[role])
+                        .Where(r => r.Role.RoleEnum == role)
                         .Select(r => new UserRoleInRootContentItem
                         {
                             UserId = r.UserId,
@@ -466,6 +467,12 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "A previous reduction task is pending for this content.");
                 return BadRequest();
             }
+
+            if (!ContentItem.ContentFilesList.Any(f => f.FilePurpose.ToLower() == "mastercontent") && !Arg.RelatedFiles.Any(f => f.FilePurpose.ToLower() == "mastercontent"))
+            {
+                Response.Headers.Add("Warning", "New publications must include a master content file");
+                return BadRequest();
+            }
             #endregion
 
             // Insert the initial publication request (not queued yet)
@@ -477,6 +484,7 @@ namespace MillimanAccessPortal.Controllers
                 RootContentItemId = ContentItem.Id,
                 LiveReadyFilesObj = new List<ContentRelatedFile>(),
                 ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
+                UploadedRelatedFilesObj = Arg.RelatedFiles.ToList(),
             };
             try
             {
@@ -493,9 +501,10 @@ namespace MillimanAccessPortal.Controllers
             string exchangePath = ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
             string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
             ContentPublishSupport.AddPublicationMonitor(Task.Run(() =>
-                ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, Arg.RelatedFiles, CxnString, rootPath, exchangePath)));
+                ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath)));
 
-            return Ok();
+            var rootContentItemDetail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, ContentItem);
+            return Json(rootContentItemDetail);
         }
 
         [HttpPost]
@@ -522,9 +531,14 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            var cancelableStatus = new List<PublicationStatus>
+            {
+                PublicationStatus.Validating,
+                PublicationStatus.Queued,
+            };
             var contentPublicationRequest = DbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
-                .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                .Where(r => cancelableStatus.Contains(r.RequestStatus))
                 .SingleOrDefault();
             if (contentPublicationRequest == null)
             {
@@ -534,6 +548,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             contentPublicationRequest.RequestStatus = PublicationStatus.Canceled;
+            contentPublicationRequest.UploadedRelatedFilesObj = null;
             DbContext.ContentPublicationRequest.Update(contentPublicationRequest);
             try
             {
@@ -725,7 +740,7 @@ namespace MillimanAccessPortal.Controllers
                 foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
                 {
                     // This assignment defines the live file name
-                    string TargetFileName = ContentAccessSupport.GenerateContentFileName(Crf, rootContentItemId);
+                    string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(Crf.FilePurpose, Path.GetExtension(Crf.FullPath), rootContentItemId);
                     string TargetFilePath = Path.Combine(Path.GetDirectoryName(Crf.FullPath), TargetFileName);
 
                     // Move any existing file to backed up name
@@ -745,7 +760,7 @@ namespace MillimanAccessPortal.Controllers
                     FilesToDelete.Add(Crf.FullPath);
 
                     UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
-                    UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum });
+                    UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum, FileOriginalName = Crf.FileOriginalName });
 
                     // Set content URL in each master SelectionGroup
                     if (Crf.FilePurpose.ToLower() == "mastercontent")
@@ -772,7 +787,7 @@ namespace MillimanAccessPortal.Controllers
                 foreach (var ThisTask in RelatedReductionTasks.Where(t => !t.SelectionGroup.IsMaster))
                 {
                     // This assignment defines the live file name for any reduced content file
-                    string TargetFileName = ContentAccessSupport.GenerateReducedContentFileName(ThisTask.SelectionGroupId, PubRequest.RootContentItemId, Path.GetExtension(ThisTask.ResultFilePath));
+                    string TargetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(ThisTask.SelectionGroupId, PubRequest.RootContentItemId, Path.GetExtension(ThisTask.ResultFilePath));
                     string TargetFilePath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], PubRequest.RootContentItemId.ToString(), TargetFileName);
 
                     // Set url in SelectionGroup

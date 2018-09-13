@@ -8,6 +8,7 @@
 using AuditLogLib;
 using AuditLogLib.Event;
 using MapCommonLib;
+using QlikviewLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
@@ -60,14 +61,19 @@ namespace MillimanAccessPortal
             }
         }
 
-        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, UploadedRelatedFile[] files, string connectionString, string contentItemRootPath, string exchangePath)
+        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, string connectionString, string contentItemRootPath, string exchangePath)
         {
             bool validationWindowComplete = false;
 
             DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString);
             DbContextOptions<ApplicationDbContext> ContextOptions = ContextBuilder.Options;
 
-            var fileIds = files.Select(f => f.FileUploadId).ToList();
+            List<Guid> fileIds;
+            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+            {
+                var publicationRequest = Db.ContentPublicationRequest.Single(r => r.Id == publicationRequestId);
+                fileIds = publicationRequest.UploadedRelatedFilesObj.Select(f => f.FileUploadId).ToList();
+            }
             while (!validationWindowComplete)
             {
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
@@ -85,6 +91,12 @@ namespace MillimanAccessPortal
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
                 var publicationRequest = Db.ContentPublicationRequest.Single(r => r.Id == publicationRequestId);
+                if (publicationRequest.RequestStatus == PublicationStatus.Canceled)
+                {
+                    return;
+                }
+
+                var files = publicationRequest.UploadedRelatedFilesObj;
                 var rootContentItem = Db.RootContentItem
                     .Where(i => i.Id == publicationRequest.RootContentItemId)
                     .Include(i => i.ContentType)
@@ -100,11 +112,12 @@ namespace MillimanAccessPortal
 
                         foreach (UploadedRelatedFile UploadedFileRef in files)
                         {
-                            ContentRelatedFile Crf = HandleRelatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath);
+                            ContentRelatedFile Crf = HandleRelatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath, rootContentItem.ContentType.TypeEnum);
 
                             if (Crf != null)
                             {
                                 publicationRequest.LiveReadyFilesObj = publicationRequest.LiveReadyFilesObj.Append(Crf).ToList();
+                                publicationRequest.UploadedRelatedFilesObj = publicationRequest.UploadedRelatedFilesObj.Where(f => f.FileUploadId != UploadedFileRef.FileUploadId).ToList();
 
                                 if (Crf.FilePurpose.ToLower() == "mastercontent")
                                 {
@@ -123,14 +136,22 @@ namespace MillimanAccessPortal
 
                 // Update the request record with file info and Queued status
                 Db.ContentPublicationRequest.Update(publicationRequest);
-                Db.SaveChanges();
+                try
+                {
+                    Db.SaveChanges();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    // PublicationRequest was set to canceled, no extra cleanup needed
+                    return;
+                }
 
                 AuditLogger Logger = new AuditLogger();
                 Logger.Log(AuditEventType.PublicationQueued.ToEvent(rootContentItem, publicationRequest));
             }
         }
 
-        private static ContentRelatedFile HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
+        private static ContentRelatedFile HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath, ContentTypeEnum contentType)
         {
             ContentRelatedFile ReturnObj = null;
 
@@ -140,7 +161,7 @@ namespace MillimanAccessPortal
 
                 #region Validate the file referenced by the FileUpload record
                 // The file must exist
-                if (!System.IO.File.Exists(FileUploadRecord.StoragePath))
+                if (FileUploadRecord == null || !System.IO.File.Exists(FileUploadRecord.StoragePath))
                 {
                     throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
                 }
@@ -154,7 +175,14 @@ namespace MillimanAccessPortal
                 string RootContentFolder = Path.Combine(contentItemRootPath, ContentItem.Id.ToString());
 
                 // Copy uploaded file to root content folder
-                string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{PubRequestId.ToString()}].Content[{ContentItem.Id.ToString()}]{Path.GetExtension(FileUploadRecord.StoragePath)}";
+                string DestinationFileName = QlikviewLibApi.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath));
+                switch (contentType)
+                {  // This is where any dependence on ContentType would be incorporated to override base behavior
+                    case ContentTypeEnum.Qlikview:
+                        break;
+                    default:
+                        break;
+                }
                 string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
 
                 // Create the root content folder if it does not already exist

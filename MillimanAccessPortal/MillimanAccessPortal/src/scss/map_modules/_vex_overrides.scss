@@ -4,6 +4,7 @@
 
 
 .vex-content {
+    background-color: $white !important;
     padding-top: 0 !important;
     border: 2px solid $black;
     overflow: hidden;
@@ -41,6 +42,16 @@
         }
     }
 
-    .vex-custom-message {
+    .vex-dialog-input input {
+        border: none;
+        border-bottom: 1px solid $charcoal !important;
+        border-radius: 0;
+        background-color: transparent;
+
+        &:focus {
+            border-bottom: 1px solid $blue !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
     }
 }

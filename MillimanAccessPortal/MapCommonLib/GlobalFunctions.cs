@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace MapCommonLib
@@ -36,13 +37,21 @@ namespace MapCommonLib
 
         public static string GetFileChecksum(string FilePath)
         {
-            byte[] checksumBytes;
             using (Stream concatStream = File.OpenRead(FilePath))
             using (HashAlgorithm hashAlgorithm = new SHA1Managed())
             {
-                checksumBytes = hashAlgorithm.ComputeHash(concatStream);
+                byte[] checksumBytes = hashAlgorithm.ComputeHash(concatStream);
+                return BitConverter.ToString(checksumBytes).Replace("-", "");
             }
-            return BitConverter.ToString(checksumBytes).Replace("-", "");
+        }
+
+        public static string GetStringChecksum(string Arg)
+        {
+            using (HashAlgorithm hashAlgorithm = new SHA1Managed())
+            {
+                byte[] checksumBytes = hashAlgorithm.ComputeHash(Encoding.ASCII.GetBytes(Arg));
+                return BitConverter.ToString(checksumBytes).Replace("-", "");
+            }
         }
 
         public static string GetAssemblyCopyrightString(Assembly AssemblyArg)

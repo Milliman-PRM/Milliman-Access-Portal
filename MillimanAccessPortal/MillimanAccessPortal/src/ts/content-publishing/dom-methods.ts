@@ -110,6 +110,9 @@ export function rootContentItemCancelClickHandler(event) {
   new CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, cancelContentPublication).open();
 }
 export function openNewRootContentItemForm() {
+  if (formObject && formObject.submissionMode === 'new') {
+    return;
+  }
   const clientId = $('#client-tree [selected]').parent().data().clientId;
   renderRootContentItemForm({
     ClientId: clientId,
@@ -126,6 +129,7 @@ export function openNewRootContentItemForm() {
 }
 
 function setFormReadOnly() {
+  formObject.submissionMode = 'hidden';
   formObject.accessMode = AccessMode.Read;
   $('#root-content-items [selected]').removeAttr('editing');
   $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
@@ -277,6 +281,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     if (item.RelatedFiles) {
       item.RelatedFiles.forEach((relatedFile) => {
         $rootContentItemForm.find(`#${relatedFile.FilePurpose}`)
+          .val('')
           .siblings('label').find('.file-upload')
           .data('originalName', relatedFile.FileOriginalName);
       });
@@ -340,8 +345,8 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     ],
     'ContentPublishing/Publish',
     'POST',
-    () => {
-      renderRootContentItemForm();
+    (itemDetail) => {
+      renderRootContentItemForm(itemDetail);
       toastr.success('Publication request submitted');
     },
     (data) => {
@@ -376,6 +381,11 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
   formObject.bindToDOM($rootContentItemForm[0]);
   formObject.configure(
     [
+      {
+        groups: [],
+        name: 'hidden',
+        sparse: false,
+      },
       {
         groups: [ createContentGroup, submitPublication, readOnlyGroup ],
         name: 'new',
@@ -454,7 +464,7 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
     wrapCardCallback(get(
       'ContentPublishing/RootContentItems',
       [ renderRootContentItemList ],
-    )),
+    ), () => formObject),
   );
   $card.disabled = !client.Value.CanManage;
   $('#client-tree ul.admin-panel-content').append($card.build());

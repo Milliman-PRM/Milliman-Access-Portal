@@ -6,6 +6,18 @@
     ViewData["NavIcon"] = "ClientAdmin";
 }
 
+@section CSS {
+  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+  <% } %>
+}
+
+@section Scripts {
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+}
+
 <div id="navbar"></div>
 <div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
     <div class="loading-wrapper" style="display: none;">
@@ -41,7 +53,7 @@
         </div>
     </div>
     <div class="admin-panel-content-container">
-        <form class="admin-panel-content">
+        <form class="admin-panel-content form-disabled">
             <div class="form-section-container">
                 <div class="form-section">
                     <h4 class="form-section-title">Client Information</h4>
@@ -150,10 +162,10 @@
                     </div>
                 </div>
                 <div class="form-section">
-                    <h4 class="form-section-title">New User Welcome Email Settings</h4>
+                    <h4 class="form-section-title">New User Welcome Text</h4>
                     <div class="form-input-container">
-                        <div class="form-input form-input-nullable-textarea flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
-                            <div class="switch-container">
+                        <div class="form-input-container form-input form-input-nullable-textarea content-item-flex-1">
+                            <div class="switch-container flex-item-for-phone-only-12-12 content-item-flex-none">
                                 <div class="toggle-switch">
                                     <input type="checkbox" class="toggle-switch-checkbox" for="NewUserWelcomeTextToggle" name="NewUserWelcomeTextToggle" id="NewUserWelcomeTextToggle">
                                     <label class="toggle-switch-label" for="NewUserWelcomeTextToggle">
@@ -161,9 +173,9 @@
                                         <span class="toggle-switch-switch"></span>
                                     </label>
                                 </div>
-                                <label class="form-input-nullable-textarea-title" asp-for="NewUserWelcomeText"></label>
+                                <label class="form-input-nullable-textarea-title switch-label" asp-for="NewUserWelcomeText"></label>
                             </div>
-                            <div>
+                            <div class="flex-item-for-phone-only-12-12 content-item-flex-1">
                                 <textarea id="NewUserWelcomeText" name="NewUserWelcomeText" for="NewUserWelcomeText"></textarea>
                             </div>
                         </div>
@@ -171,12 +183,12 @@
                 </div>
                 <div class="form-submission-section">
                     <div class="button-container button-container-new" style="display: none;">
-                        <button type="button" class="button-reset link-button">Reset Form</button>
-                        <button type="button" class="button-submit green-button">Create Client</button>
+                        <button type="button" class="button-reset link-button" disabled>Reset Form</button>
+                        <button type="button" class="button-submit green-button" disabled>Create Client</button>
                     </div>
                     <div class="button-container button-container-edit" style="display: none;">
-                        <button type="button" class="button-reset link-button">Discard Changes</button>
-                        <button type="button" class="button-submit blue-button">Save Changes</button>
+                        <button type="button" class="button-reset link-button" disabled>Discard Changes</button>
+                        <button type="button" class="button-submit blue-button" disabled>Save Changes</button>
                     </div>
                     <div class="form-antiforgery-token" style="display: none;">
                         @Html.AntiForgeryToken()
@@ -209,7 +221,3 @@
         <ul class="admin-panel-content"></ul>
     </div>
 </div>
-
-@section Scripts {
-    <script src="~/js/client-admin.bundle.js"></script>
-}

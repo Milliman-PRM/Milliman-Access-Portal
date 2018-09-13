@@ -5,7 +5,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: $light-grey;
+    background-color: $white;
     width: 35em;
     max-width: 95vw;
     max-height: 95vh;
@@ -70,7 +70,6 @@
 
     .modal-input {
         margin-bottom: 1em;
-        padding: .5em;
 
         &:last-child {
             margin-bottom: 0;
@@ -89,4 +88,9 @@
     right: 0;
     bottom: 0;
     background-color: rgba($charcoal, .5);
+}
+
+.ReactModalPortal {
+    z-index: 10;
+    position: relative;
 }

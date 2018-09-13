@@ -11,6 +11,7 @@ import './check-password';
 
 import $ = require('jquery');
 import toastr = require('toastr');
+import { AccessMode } from './form/form-modes';
 
 require('toastr/toastr.scss');
 require('../scss/map.scss');
@@ -53,6 +54,7 @@ $(document).ready(() => {
       },
     ]);
     formObject.submissionMode = 'update';
+    formObject.accessMode = AccessMode.Write;
     $('#FirstName').change();
   });
 
@@ -66,4 +68,5 @@ $(document).ready(() => {
     },
   ]);
   formObject.submissionMode = 'update';
+  formObject.accessMode = AccessMode.Write;
 });

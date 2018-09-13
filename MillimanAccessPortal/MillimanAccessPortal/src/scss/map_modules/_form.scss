@@ -1,5 +1,24 @@
 ﻿/* Form Elements */
 
+.admin-panel-content-container form {
+    padding: 1em !important;
+    background-color: $white;
+    border-radius: 1em !important;
+    border: 1px solid $charcoal !important;
+    box-shadow: rgba(0, 0, 0, .3) .2em .2em .75em;
+    margin-bottom: .5em !important;
+
+    &.form-disabled {
+        background-color: transparent;
+        border: none !important;
+        box-shadow: none;
+
+        .form-submission-section {
+            display: none;
+        }
+    }
+}
+
 a,
 .link-button {
     color: $blue;
@@ -13,6 +32,10 @@ a,
 
 .link-button {
     text-transform: uppercase;
+
+    &[disabled] {
+        display: none;
+    }
 }
 
 button,
@@ -89,7 +112,25 @@ label {
     font-size: .75em;
     padding-top: .25rem;
     padding-left: .25em;
-    margin-bottom: .25rem;
+    margin-bottom: 0;
+}
+
+
+input,
+select {
+    border: none;
+    height: 2em;
+}
+
+textarea {
+    border: none;
+    border-right: 1px dashed $charcoal;
+    border-bottom: 1px solid $charcoal;
+
+    &:focus {
+        border-right: 1px dashed $blue;
+        border-bottom: 1px solid $blue;
+    }
 }
 
 input,
@@ -98,29 +139,29 @@ select {
     display: block;
     width: 100%;
     padding: .25em .5em;
-    border: solid 1px transparent;
-    border-radius: .25em;
+    outline: none;
+    background-color: transparent;
+    border-bottom: 1px solid $charcoal;
     transition: border 0.2s;
 
     &:focus {
-        border: solid 1px $blue;
+        border-bottom: solid 1px $blue;
     }
 
     &[validated] {
-        border: solid 2px $green;
-        outline-color: $green !important;
+        border-bottom: solid 2px $green;
+        /*outline-color: $green !important;*/
     }
 
     &[warning] {
-        border: solid 2px $red;
-        outline-color: $red !important;
+        border-bottom: solid 2px $red;
+        /*outline-color: $red !important;*/
     }
 
     &[disabled],
     &[readonly] {
-        border: solid 1px $grey;
-        color: $charcoal;
-        background-color: $light-grey;
+        border-bottom: solid 1px $grey;
+        color: $dark-grey;
         box-shadow: none;
         cursor: default;
         -moz-appearance: none;
@@ -145,6 +186,17 @@ input:-webkit-autofill {
     -webkit-transition: color 9999s ease-out, background-color 9999s ease-out;
 }
 
+input[type="search"],
+input.filter-input {
+    border: solid 1px $charcoal;
+    border-radius: .25em;
+    background-color: $white;
+
+    &:focus {
+        border: solid 1px $blue;
+    }
+}
+
 .form-section-container {
     display: flex;
     flex-flow: column nowrap;
@@ -154,13 +206,15 @@ input:-webkit-autofill {
     .form-section-title {
         width: 100%;
         border-bottom: 2px solid $charcoal;
-        padding: .5em .5em 0;
+        padding: 0 .5em;
+        margin-bottom: .25em;
         text-transform: uppercase
     }
 
     .form-input-container {
         display: flex;
         flex-flow: row wrap;
+        align-items: center;
         padding-left: 1.5em;
         margin-bottom: .5em;
         margin-right: -.5em;
@@ -172,6 +226,16 @@ input:-webkit-autofill {
 
         .form-input-file-upload {
             width: 100%;
+        }
+
+        .switch-container.content-item-flex-none {
+            margin-bottom: 0;
+
+            label.switch-label {
+                width: 7em;
+                margin-right: 1em;
+                margin-right: 1em;
+            }
         }
 
         .form-input-flex {
@@ -201,7 +265,7 @@ label.input-with-upload {
         display: flex;
         flex-flow: column nowrap;
         height: 100%;
-        width: 100%;
+        width: 15em;
 
         .image-preview {
             width: 100%;
@@ -216,17 +280,23 @@ label.input-with-upload {
     }
 
     input {
+        font-size: 1rem;
         padding-right: 2.5em;
         position: relative;
         z-index: 1;
+
+        &[disabled] {
+            background-color: $light-grey;
+            padding-right: .25em;
+        }
     }
 
     svg {
         
         &.upload-icon,&.cancel-icon {
             color: $charcoal;
-            height: 2em;
-            width: 2em;
+            height: 1.8em;
+            width: 1.8em;
             position: absolute;
             right: .25em;
             top: 1.9em;
@@ -274,7 +344,8 @@ label.input-with-upload {
 }
 /* Validation Error Styling */
 .input-validation-error {
-    border: solid 2px $red !important;
+    border-bottom: solid 2px $red !important;
+    color: $red;
 }
 
 span.field-validation-error,

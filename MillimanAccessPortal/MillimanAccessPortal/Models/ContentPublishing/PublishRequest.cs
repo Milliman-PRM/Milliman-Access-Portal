@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapDbContextLib.Models;
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -15,17 +16,5 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         [Required]
         public UploadedRelatedFile[] RelatedFiles { get; set; }
-    }
-
-    public class UploadedRelatedFile
-    {
-        public string FileOriginalName { get; set; }
-
-        /// <summary>
-        /// Standard values: MasterContent, UserGuide, Thumbnail, ReleaseNotes
-        /// </summary>
-        public string FilePurpose { get; set; }
-
-        public Guid FileUploadId { get; set; }
     }
 }
