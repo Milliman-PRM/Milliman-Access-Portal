@@ -1,5 +1,6 @@
 import { resumableOptions } from '../lib-options';
 import { FileScanner } from './file-scanner';
+import { FileSniffer } from './file-sniffer';
 import { ProgressMonitor, ProgressSummary } from './progress-monitor';
 
 import $ = require('jquery');
@@ -65,6 +66,11 @@ export class Upload {
 
       this.onChecksumProgress(ProgressSummary.empty());
       this.onUploadProgress(ProgressSummary.empty());
+
+      const sniffer = new FileSniffer(file);
+      if (!await sniffer.extensionMatchesInitialBytes()) {
+        return this.onError('File contents do not match extension.');
+      }
 
       const messageDigest = forge.md.sha1.create();
       this.scanner.open(file);
