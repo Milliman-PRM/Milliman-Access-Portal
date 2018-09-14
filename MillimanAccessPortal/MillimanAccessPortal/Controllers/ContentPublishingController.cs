@@ -8,6 +8,7 @@ using AuditLogLib;
 using AuditLogLib.Services;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
+using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -739,7 +740,7 @@ namespace MillimanAccessPortal.Controllers
                 foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
                 {
                     // This assignment defines the live file name
-                    string TargetFileName = ContentAccessSupport.GenerateContentFileName(Crf, rootContentItemId);
+                    string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(Crf.FilePurpose, Path.GetExtension(Crf.FullPath), rootContentItemId);
                     string TargetFilePath = Path.Combine(Path.GetDirectoryName(Crf.FullPath), TargetFileName);
 
                     // Move any existing file to backed up name
@@ -759,7 +760,7 @@ namespace MillimanAccessPortal.Controllers
                     FilesToDelete.Add(Crf.FullPath);
 
                     UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
-                    UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum });
+                    UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum, FileOriginalName = Crf.FileOriginalName });
 
                     // Set content URL in each master SelectionGroup
                     if (Crf.FilePurpose.ToLower() == "mastercontent")
@@ -786,7 +787,7 @@ namespace MillimanAccessPortal.Controllers
                 foreach (var ThisTask in RelatedReductionTasks.Where(t => !t.SelectionGroup.IsMaster))
                 {
                     // This assignment defines the live file name for any reduced content file
-                    string TargetFileName = ContentAccessSupport.GenerateReducedContentFileName(ThisTask.SelectionGroupId, PubRequest.RootContentItemId, Path.GetExtension(ThisTask.ResultFilePath));
+                    string TargetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(ThisTask.SelectionGroupId, PubRequest.RootContentItemId, Path.GetExtension(ThisTask.ResultFilePath));
                     string TargetFilePath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], PubRequest.RootContentItemId.ToString(), TargetFileName);
 
                     // Set url in SelectionGroup

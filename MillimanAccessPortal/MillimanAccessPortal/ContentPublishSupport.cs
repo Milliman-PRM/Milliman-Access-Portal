@@ -8,6 +8,7 @@
 using AuditLogLib;
 using AuditLogLib.Event;
 using MapCommonLib;
+using QlikviewLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
@@ -111,7 +112,7 @@ namespace MillimanAccessPortal
 
                         foreach (UploadedRelatedFile UploadedFileRef in files)
                         {
-                            ContentRelatedFile Crf = HandleRelatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath);
+                            ContentRelatedFile Crf = HandleRelatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath, rootContentItem.ContentType.TypeEnum);
 
                             if (Crf != null)
                             {
@@ -150,7 +151,7 @@ namespace MillimanAccessPortal
             }
         }
 
-        private static ContentRelatedFile HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
+        private static ContentRelatedFile HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath, ContentTypeEnum contentType)
         {
             ContentRelatedFile ReturnObj = null;
 
@@ -160,7 +161,7 @@ namespace MillimanAccessPortal
 
                 #region Validate the file referenced by the FileUpload record
                 // The file must exist
-                if (!System.IO.File.Exists(FileUploadRecord.StoragePath))
+                if (FileUploadRecord == null || !System.IO.File.Exists(FileUploadRecord.StoragePath))
                 {
                     throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
                 }
@@ -174,7 +175,14 @@ namespace MillimanAccessPortal
                 string RootContentFolder = Path.Combine(contentItemRootPath, ContentItem.Id.ToString());
 
                 // Copy uploaded file to root content folder
-                string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{PubRequestId.ToString()}].Content[{ContentItem.Id.ToString()}]{Path.GetExtension(FileUploadRecord.StoragePath)}";
+                string DestinationFileName = QlikviewLibApi.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath));
+                switch (contentType)
+                {  // This is where any dependence on ContentType would be incorporated to override base behavior
+                    case ContentTypeEnum.Qlikview:
+                        break;
+                    default:
+                        break;
+                }
                 string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
 
                 // Create the root content folder if it does not already exist

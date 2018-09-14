@@ -6,6 +6,7 @@
 
 using AuditLogLib;
 using AuditLogLib.Event;
+using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
@@ -55,29 +56,6 @@ namespace MillimanAccessPortal
                     CleanupTimer = null;
                 }
             }
-        }
-
-        /// <summary>
-        /// Returns a standardized file name for a non-reduced content or related file
-        /// </summary>
-        /// <param name="crf">Must not be null</param>
-        /// <param name="rootContentItemId"></param>
-        /// <returns></returns>
-        internal static string GenerateContentFileName(ContentRelatedFile crf, Guid rootContentItemId)
-        {
-            return $"{crf.FilePurpose}.Content[{rootContentItemId}]{Path.GetExtension(crf.FullPath)}";
-        }
-
-        /// <summary>
-        /// Returns a standard file name for a reduced content file
-        /// </summary>
-        /// <param name="selectionGroupId"></param>
-        /// <param name="rootContentItemId"></param>
-        /// <param name="extensionWithDot"></param>
-        /// <returns></returns>
-        internal static string GenerateReducedContentFileName(Guid selectionGroupId, Guid rootContentItemId, string extensionWithDot)
-        {
-            return $"ReducedContent.SelGrp[{selectionGroupId}].Content[{rootContentItemId}]{extensionWithDot}";
         }
 
         /// <summary>
@@ -176,7 +154,7 @@ namespace MillimanAccessPortal
                 throw new ApplicationException("ContentAccessSupport.PositionReducedContentForGoLive called for ContentReductionTask with null SelectionCriteria");
             }
 
-            string targetFileName = GenerateReducedContentFileName(reductionTask.SelectionGroupId, reductionTask.SelectionGroup.RootContentItemId, Path.GetExtension(reductionTask.ResultFilePath));
+            string targetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(reductionTask.SelectionGroupId, reductionTask.SelectionGroup.RootContentItemId, Path.GetExtension(reductionTask.ResultFilePath));
             string targetFilePath = Path.Combine(contentRootShareFolder, reductionTask.SelectionGroup.RootContentItemId.ToString(), targetFileName);
             string backupFilePath = targetFilePath + ".bak";
 

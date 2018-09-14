@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Xunit;
 using ContentPublishingLib.JobMonitors;
 using TestResourcesLib;
+using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Moq;
@@ -73,8 +74,8 @@ namespace ContentPublishingServiceTests
 
             string ProposedRequestExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuid}\";
             string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
-            string MasterContentFileName = $"MasterContent.Pub[{ContentItemIdOfThisTest}].Content[{PubRequestIdOfThisTest}].qvw";
-            string UserGuideFileName = $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf";
+            string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
+            string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
             Directory.CreateDirectory(ProposedRequestExchangeFolder);
             Directory.CreateDirectory(ContentFolder);
@@ -154,14 +155,14 @@ namespace ContentPublishingServiceTests
         public void CorrectResultsAfterSuccessfulRunDoesReduceTrue()
         {
             #region arrange
-            long ContentItemIdOfThisTest = 4;
-            long PubRequestIdOfThisTest = 4;
+            Guid ContentItemIdOfThisTest = TestUtil.MakeTestGuid(4);
+            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(4);
             Guid RequestGuid = Guid.NewGuid();
 
             string ProposedRequestExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuid}\";
             string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
-            string MasterContentFileName = $"MasterContent.Pub[{ContentItemIdOfThisTest}].Content[{PubRequestIdOfThisTest}].qvw";
-            string UserGuideFileName = $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf";
+            string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
+            string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
             Directory.CreateDirectory(ProposedRequestExchangeFolder);
             Directory.CreateDirectory(ContentFolder);

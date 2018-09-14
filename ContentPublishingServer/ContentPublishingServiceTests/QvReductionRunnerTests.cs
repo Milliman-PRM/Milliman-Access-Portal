@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using ContentPublishingLib.JobRunners;
 using TestResourcesLib;
@@ -27,7 +28,7 @@ namespace ContentPublishingServiceTests
             ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(1));
 
             string ExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{TaskGuid}\";
-            string MasterContentFileName = $"MasterContent.Content[{DbTask.SelectionGroup.RootContentItemId}].qvw";
+            string MasterContentFileName = ContentTypeSpecificApiBase.GenerateContentFileName("MasterContent", ".qvw", DbTask.SelectionGroup.RootContentItemId);
 
             Directory.CreateDirectory(ExchangeFolder);
             File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
@@ -240,7 +241,7 @@ namespace ContentPublishingServiceTests
             Assert.Single(TaskResult.ReducedContentHierarchy.Fields[1].FieldValues);
             Assert.Equal(7, TaskResult.ReducedContentHierarchy.Fields[2].FieldValues.Count);
 
-            Assert.Equal($@"\\indy-syn01\prm_test\Sample Data\Test1\ReducedContent.SelGrp[{DbTask.SelectionGroupId}].Content[{DbTask.SelectionGroup.RootContentItemId}].qvw" , TaskResult.ReducedContentFilePath);
+            Assert.Equal($@"\\indy-syn01\prm_test\Sample Data\Test1\{ContentTypeSpecificApiBase.GenerateReducedContentFileName(DbTask.SelectionGroupId, DbTask.SelectionGroup.RootContentItemId, ".qvw")}" ,TaskResult.ReducedContentFilePath);
             Assert.Equal(40, TaskResult.ReducedContentFileChecksum.Length);
             Assert.True(File.Exists(TaskResult.ReducedContentFilePath));
             #endregion
