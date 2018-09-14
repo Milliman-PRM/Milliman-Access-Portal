@@ -26,6 +26,7 @@
 **/ContentAccessAdmin/*.cshtml
 **/ContentPublishing/*.cshtml
 **/SystemAdmin/*.cshtml
+**/Shared/Message.cshtml
 ####################
 # VS Upgrade stuff #
 ####################
