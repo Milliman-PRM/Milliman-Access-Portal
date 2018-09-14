@@ -431,6 +431,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 Id = user.Id,
                 Code = code,
+                Username = user.UserName,
             };
             return View(model);
         }

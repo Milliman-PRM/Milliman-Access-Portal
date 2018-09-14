@@ -48,6 +48,13 @@
                     <div class="form-section" data-section="account">
                         <h4 class="form-section-title">Activate Account</h4>
                         <div class="form-input-container">
+                            <div class="form-input form-input-text flex-item-12-12">
+                                <label class="form-input-text-title" asp-for="Username"></label>
+                                <div>
+                                    <input asp-for="Username" data-original-value="@Model.Username" readonly />
+                                    <span asp-validation-for="Username" class="text-danger"></span>
+                                </div>
+                            </div>
                             <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                                 <label class="form-input-text-title" asp-for="FirstName"></label>
                                 <div>
