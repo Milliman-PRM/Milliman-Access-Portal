@@ -298,8 +298,9 @@ label.input-with-upload {
     }
 
     svg {
-        
-        &.upload-icon,&.cancel-icon {
+
+        &.upload-icon, 
+        &.cancel-icon {
             color: $charcoal;
             height: 1.8em;
             width: 1.8em;
@@ -327,15 +328,19 @@ label.input-with-upload {
             width: 0;
             height: 100%;
         }
+
         .progress-easing {
             transition: 1.0s linear;
         }
+
         .progress-bar-1 {
             background-color: $blue;
         }
+
         .progress-bar-2 {
             background-color: $green;
         }
+
         .progress-bar-3 {
             background-color: $red;
         }
@@ -344,6 +349,7 @@ label.input-with-upload {
     &:hover:not([disabled]) svg.upload-icon {
         color: $green;
     }
+
     &[disabled] svg.cancel-icon:hover {
         color: $green;
     }
