@@ -318,8 +318,8 @@ label.input-with-upload {
     .progress-bars {
         position: relative;
         display: block;
-        height: 1.5em;
-        margin-top: -0.5em;
+        height: 4px;
+        margin-top: -3px;
         border-radius: 0.25em;
         z-index: 2;
 
@@ -351,7 +351,7 @@ label.input-with-upload {
     }
 
     &[disabled] svg.cancel-icon:hover {
-        color: $green;
+        color: $red;
     }
 }
 /* Validation Error Styling */
