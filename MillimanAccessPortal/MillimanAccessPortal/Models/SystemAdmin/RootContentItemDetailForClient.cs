@@ -20,7 +20,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public string Description { get; set; }
         public DateTime LastUpdated { get; set; }
         public DateTime LastAccessed { get; set; }
-        public bool IsReducing { get; set; }
+        public bool IsPublishing { get; set; }
         public NestedList SelectionGroups { get; set; } = null;
 
         public static explicit operator RootContentItemDetailForClient(RootContentItem item)
@@ -43,7 +43,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
 
         public void QueryRelatedEntities(ApplicationDbContext dbContext, Guid clientId)
         {
-            IsReducing = dbContext.ContentPublicationRequest
+            IsPublishing = dbContext.ContentPublicationRequest
                 .Where(pr => pr.RootContentItemId == Id)
                 .Where(pr => pr.RequestStatus.IsActive())
                 .Any();

@@ -133,7 +133,7 @@ export interface RootContentItemDetailForClient {
     Description: string;
     LastUpdated: string;
     LastAccessed: string;
-    IsReducing: boolean;
+    IsPublishing: boolean;
     SelectionGroups: NestedList;
 }
 export type SecondaryDetail = UserDetailForClient | UserDetailForProfitCenter

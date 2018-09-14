@@ -1,7 +1,7 @@
 import { isEqual } from 'lodash';
 import * as React from 'react';
 
-import { getData } from '../../shared';
+import { getData, postData } from '../../shared';
 import { Entity } from '../shared-components/entity';
 import { ImmediateToggle } from '../shared-components/immediate-toggle';
 import { DataSource, QueryFilter, RoleEnum } from '../shared-components/interfaces';
@@ -59,6 +59,9 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
       detail: null,
       prevQuery: null,
     };
+
+    this.cancelPublicationRequest = this.cancelPublicationRequest.bind(this);
+    this.cancelReductionTask = this.cancelReductionTask.bind(this);
   }
 
   public componentDidMount() {
@@ -248,6 +251,23 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
               );
             case 'rootContentItem':
               const rootContentItemDetailForClient = this.state.detail as RootContentItemDetailForClient;
+              const publishingStatus = rootContentItemDetailForClient.IsPublishing
+                ? (
+                  <span className="detail-value">
+                    Yes (
+                      <span
+                        onClick={this.cancelPublicationRequest}
+                      >
+                        Cancel
+                      </span>
+                    )
+                  </span>
+                )
+                : (
+                  <span className="detail-value">
+                    No
+                  </span>
+                );
               return (
                 <div>
                   <div className="detail-column-container">
@@ -265,6 +285,10 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                         <div className="detail-container">
                           <span className="detail-label">Description</span>
                           <span className="detail-value">{rootContentItemDetailForClient.Description}</span>
+                        </div>
+                        <div className="detail-container">
+                          <span className="detail-label">Reducing</span>
+                          {publishingStatus}
                         </div>
                         <div className="detail-container">
                           <ImmediateToggle
@@ -419,5 +443,20 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
         </div>
       );
     });
+  }
+
+  // These actions could be split out into other components
+  private cancelPublicationRequest() {
+    postData(
+      '/SystemAdmin/CancelPublication',
+      { rootContentItemId: this.props.queryFilter.rootContentItemId },
+    );
+  }
+
+  private cancelReductionTask(id: string) {
+    postData(
+      '/SystemAdmin/CancelReduction',
+      { selectionGroupId: id },
+    );
   }
 }
