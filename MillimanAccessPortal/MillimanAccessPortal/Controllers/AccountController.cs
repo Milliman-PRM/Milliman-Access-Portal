@@ -398,14 +398,18 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> EnableAccount(string userId, string code)
         {
+            string commonErrorText = "An error occured. Please contact <a href=\"mailto:map.support@milliman.com?subject=Account Activation Error\">map.support@milliman.com</a> for assistance.";
+
             if (userId == null || code == null)
             {
-                return View("Error");
+                string WhatHappenedMessage = commonErrorText;
+                return View("Message", WhatHappenedMessage);
             }
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return View("Error");
+                string WhatHappenedMessage = commonErrorText;
+                return View("Message", WhatHappenedMessage);
             }
 
             if (user.EmailConfirmed)  // Account is already activated
