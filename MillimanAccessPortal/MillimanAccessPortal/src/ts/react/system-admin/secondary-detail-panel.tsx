@@ -255,11 +255,12 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                 ? (
                   <span className="detail-value">
                     Yes (
-                      <span
+                      <a
+                        href={''}
                         onClick={this.cancelPublicationRequest}
                       >
                         Cancel
-                      </span>
+                      </a>
                     )
                   </span>
                 )
@@ -433,12 +434,26 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
         >{value}
         </div>
       ));
+      const cancelText = section.Marked
+        ? (
+          <span>
+            (
+            <a
+              href={''}
+              onClick={() => this.cancelReductionTask(section.Id)}
+            >
+              Cancel
+            </a>
+            )
+          </span>
+        )
+        : null;
       return (
         <div
           key={i}
           className="nested-list-section"
         >
-          <h4 className="nested-list-section-title">{section.Name}</h4>
+          <h4 className="nested-list-section-title">{section.Name} {cancelText}</h4>
           {values}
         </div>
       );
@@ -446,17 +461,23 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
   }
 
   // These actions could be split out into other components
-  private cancelPublicationRequest() {
+  private cancelPublicationRequest(event: React.MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
     postData(
       '/SystemAdmin/CancelPublication',
       { rootContentItemId: this.props.queryFilter.rootContentItemId },
-    );
+    ).then(() => {
+      alert('Publication canceled.');
+    });
   }
 
-  private cancelReductionTask(id: string) {
+  private cancelReductionTask(event: React.MouseEvent<HTMLAnchorElement>, id: string) {
+    event.preventDefault();
     postData(
       '/SystemAdmin/CancelReduction',
       { selectionGroupId: id },
-    );
+    ).then(() => {
+      alert('Reduction canceled.');
+    });
   }
 }
