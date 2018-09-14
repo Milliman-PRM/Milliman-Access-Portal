@@ -319,8 +319,8 @@ label.input-with-upload {
         display: block;
         height: 1.5em;
         margin-top: -0.5em;
-        border: 1px solid $dark-grey;
         border-radius: 0.25em;
+        z-index: 2;
 
         .progress-bar {
             position: absolute;
