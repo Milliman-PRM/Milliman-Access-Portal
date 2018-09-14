@@ -67,6 +67,11 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
         }
 
+        /// <summary>
+        /// Check if the chunk indicated by this info has an accepted file extension
+        /// </summary>
+        /// <param name="resumableInfo">The chunk info to check</param>
+        /// <returns>True if the file extension is accepted; false otherwise</returns>
         public static bool ExtensionIsAcceptable(this ResumableInfo resumableInfo)
         {
             var acceptableExtensions = new List<string>
