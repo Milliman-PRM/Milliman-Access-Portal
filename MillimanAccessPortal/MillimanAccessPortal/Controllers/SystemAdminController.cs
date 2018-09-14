@@ -897,7 +897,7 @@ namespace MillimanAccessPortal.Controllers
                 .ToList();
             if (!activePublications.Any())
             {
-                Response.Headers.Add("Warning", "The specified root content item has no active selections.");
+                Response.Headers.Add("Warning", "The specified root content item has no active publications.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -922,6 +922,69 @@ namespace MillimanAccessPortal.Controllers
             foreach (var updatedPublication in activePublications)
             {
                 _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingRecord, updatedPublication));
+            }
+
+            return Json(existingRecord);
+        }
+
+        /// <summary>
+        /// Cancel a content reduction task
+        /// </summary>
+        /// <remarks>This action allows content reduction taks in more statuses to be canceled compared to the content access admin page</remarks>
+        /// <param name="selectionGroupId">The selection group whose reduction is to be canceled</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> CancelReduction(Guid selectionGroupId)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var existingRecord = _dbContext.SelectionGroup.Find(selectionGroupId);
+            if (existingRecord == null)
+            {
+                Response.Headers.Add("Warning", "The specified selection group does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            // The selection group should have an active reduction
+            var activeReductions = _dbContext.ContentReductionTask
+                .Where(rt => rt.SelectionGroupId == selectionGroupId)
+                .Where(rt => rt.ReductionStatus.IsActive())
+                .ToList();
+            if (!activeReductions.Any())
+            {
+                Response.Headers.Add("Warning", "The specified selection group has no active reductions.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            foreach (var activeReduction in activeReductions)
+            {
+                activeReduction.ReductionStatus = ReductionStatusEnum.Canceled;
+                _dbContext.ContentReductionTask.Update(activeReduction);
+            }
+
+            try
+            {
+                _dbContext.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                Response.Headers.Add("Warning", "The reduction record was modified by another process during the request. Please try again.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            foreach (var updatedReduction in activeReductions)
+            {
+                _auditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(existingRecord, updatedReduction));
             }
 
             return Json(existingRecord);
