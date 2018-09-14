@@ -150,11 +150,8 @@ namespace MapTests
             File.Copy(TestFileSourcePath, TestFileTargetPath, true);
             SelectionGroup ThisGroup = TestResources.DbContextObject.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
             RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
-            ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
-            {
-                new MapDbContextLib.Models.ContentRelatedFile { Checksum = GlobalFunctions.GetFileChecksum(TestFileTargetPath), FileOriginalName = "", FilePurpose = "mastercontent", FullPath = TestFileTargetPath, }
-            };
-            ThisGroup.ContentInstanceUrl = $"\\{ThisItem.Id}\\{FileName}";
+            ThisGroup.ReducedContentChecksum = GlobalFunctions.GetFileChecksum(TestFileTargetPath);
+            ThisGroup.ContentInstanceUrl = $@"{ThisItem.Id}\{FileName}";
 
             #endregion
 
@@ -219,11 +216,8 @@ namespace MapTests
             File.Copy(TestFileSourcePath, TestFileTargetPath, true);
             SelectionGroup ThisGroup = TestResources.DbContextObject.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
             RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
-            ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
-            {
-                new MapDbContextLib.Models.ContentRelatedFile { Checksum = "Bad Checksum Will Not Validate", FileOriginalName = "", FilePurpose = "mastercontent", FullPath = TestFileTargetPath, }
-            };
-            ThisGroup.ContentInstanceUrl = $"\\{ThisItem.Id}\\{FileName}";
+            ThisGroup.ReducedContentChecksum = "Bad Checksum Will Not Validate";
+            ThisGroup.ContentInstanceUrl = $@"{ThisItem.Id}\{FileName}";
 
             #endregion
 
