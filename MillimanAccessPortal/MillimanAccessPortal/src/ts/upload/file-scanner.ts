@@ -1,5 +1,9 @@
 import 'promise-polyfill/dist/polyfill';
 
+interface FileReaderOnLoadEventTarget extends EventTarget {
+  result: ArrayBuffer;
+}
+
 class FileSlicer {
   private offset: number = 0;
   constructor(readonly file: File, readonly chunkSize: number) {
@@ -49,13 +53,13 @@ export class FileScanner {
   public scan(chunkLoadedCallback: (result: any) => void) {
     this.active = true;
     return new Promise((resolve, reject) => {
-      this.reader.onload = () => {
+      this.reader.onload = (event) => {
         if (!this.active) {
           this.slicer = undefined;
           reject('Scan cancelled');
           return;
         }
-        const chunk = this.reader.result as ArrayBuffer;
+        const chunk = (event.target as FileReaderOnLoadEventTarget).result;
         const chunkSlicer = new ArrayBufferSlicer(chunk, 1024);
         for (let slice = chunkSlicer.next(); slice.byteLength > 0; slice = chunkSlicer.next()) {
           const binaryString = String.fromCharCode.apply(null, new Uint8Array(slice));
