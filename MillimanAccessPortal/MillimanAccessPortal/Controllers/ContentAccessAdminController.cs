@@ -690,16 +690,10 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // There must be no pending reduction task for this selection group
-            var pendingStatus = new List<ReductionStatusEnum>
-            {
-                ReductionStatusEnum.Queued,
-                ReductionStatusEnum.Reducing,
-                ReductionStatusEnum.Reduced,
-            };
             if (DbContext.ContentReductionTask
                 .Where(task => task.SelectionGroupId == selectionGroup.Id)
                 .Where(task => task.CreateDateTimeUtc > currentLivePublication.CreateDateTimeUtc)
-                .Any(task => pendingStatus.Contains(task.ReductionStatus)))
+                .Any(task => task.ReductionStatus.IsActive()))
             {
                 Response.Headers.Add("Warning", "An unresolved publication or selection change prevents this action.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -839,13 +833,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var CancelableStatus = new List<ReductionStatusEnum>
-            {
-                ReductionStatusEnum.Queued,
-            };
             var CancelableTasks = DbContext.ContentReductionTask
                 .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
-                .Where(crt => CancelableStatus.Contains(crt.ReductionStatus))
+                .Where(crt => crt.ReductionStatus.IsCancelable())
                 .Where(crt => crt.ContentPublicationRequestId == null);
             if (CancelableTasks.Count() == 0)
             {

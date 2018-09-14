@@ -451,13 +451,11 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
-            List<ReductionStatusEnum> BlockingTaskStatusList = new List<ReductionStatusEnum>
-                                                             { ReductionStatusEnum.Reducing, ReductionStatusEnum.Reduced, ReductionStatusEnum.Queued };
             Blocked = DbContext.ContentReductionTask
                                .Where(t => t.ContentPublicationRequestId == null)
                                .Include(t => t.SelectionGroup)
                                .Where(t => t.SelectionGroup.RootContentItemId == Arg.RootContentItemId)
-                               .Any(t => BlockingTaskStatusList.Contains(t.ReductionStatus));
+                               .Any(t => t.ReductionStatus.IsActive());
             if (Blocked)
             {
                 Response.Headers.Add("Warning", "A previous reduction task is pending for this content.");
