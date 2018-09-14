@@ -120,7 +120,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                     expectedInitialBytes.Add(new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D });
                     break;
                 case ".qvw":
-                    expectedInitialBytes.Add(new byte[] { 0x70, 0x17 });
+                    expectedInitialBytes.Add(new byte[] { 0x70, 0x17, 0x01, 0x00, 0xC1, 0x06, 0x00, 0x00 });
                     break;
                 default:
                     break;
