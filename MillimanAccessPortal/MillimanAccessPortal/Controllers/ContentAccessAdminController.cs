@@ -213,12 +213,9 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // reject this request if the RootContentItem has a pending publication request
-            List<PublicationStatus> BlockingStatusList = new List<PublicationStatus> { PublicationStatus.Validating,
-                                                                                       PublicationStatus.Queued,
-                                                                                       PublicationStatus.Processing,
-                                                                                       PublicationStatus.Processed };
-            bool blockedByPendingPublication = DbContext.ContentPublicationRequest.Where(pr => pr.RootContentItemId == rootContentItem.Id)
-                                                                      .Any(pr => BlockingStatusList.Contains(pr.RequestStatus));
+            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
+                .Where(pr => pr.RootContentItemId == rootContentItem.Id)
+                .Any(pr => pr.RequestStatus.IsActive());
             if (blockedByPendingPublication)
             {
                 Response.Headers.Add("Warning", "A new selection group may not be created while this content item has a pending publication.");
@@ -547,12 +544,9 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // reject this request if the RootContentItem has a pending publication request
-            List<PublicationStatus> BlockingStatusList = new List<PublicationStatus> { PublicationStatus.Validating,
-                                                                                       PublicationStatus.Queued,
-                                                                                       PublicationStatus.Processing,
-                                                                                       PublicationStatus.Processed };
-            bool blockedByPendingPublication = DbContext.ContentPublicationRequest.Where(pr => pr.RootContentItemId == selectionGroup.RootContentItem.Id)
-                                                                                  .Any(pr => BlockingStatusList.Contains(pr.RequestStatus));
+            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
+                .Where(pr => pr.RootContentItemId == selectionGroup.RootContentItem.Id)
+                .Any(pr => pr.RequestStatus.IsActive());
             if (blockedByPendingPublication)
             {
                 Response.Headers.Add("Warning", "A selection group may not be deleted while this content item has a pending publication.");
@@ -670,12 +664,9 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // reject this request if the RootContentItem has a pending publication request
-            List<PublicationStatus> BlockingStatusList = new List<PublicationStatus> { PublicationStatus.Validating,
-                                                                                       PublicationStatus.Queued,
-                                                                                       PublicationStatus.Processing,
-                                                                                       PublicationStatus.Processed };
-            bool blockedByPendingPublication = DbContext.ContentPublicationRequest.Where(pr => pr.RootContentItemId == selectionGroup.RootContentItem.Id)
-                                                                                  .Any(pr => BlockingStatusList.Contains(pr.RequestStatus));
+            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
+                .Where(pr => pr.RootContentItemId == selectionGroup.RootContentItem.Id)
+                .Any(pr => pr.RequestStatus.IsActive());
             if (blockedByPendingPublication)
             {
                 Response.Headers.Add("Warning", "Selections may not be updated while this content item has a pending publication.");

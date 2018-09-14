@@ -32,14 +32,6 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 rootContentItem.ContentType = dbContext.ContentType.Find(rootContentItem.ContentTypeId);
             }
 
-            var blockingStatusList = new List<PublicationStatus>
-            {
-                PublicationStatus.Validating,
-                PublicationStatus.Queued,
-                PublicationStatus.Processing,
-                PublicationStatus.Processed,
-            };
-
             var latestPublication = dbContext.ContentPublicationRequest
                 .Include(crt => crt.ApplicationUser)
                 .Where(crt => crt.RootContentItemId == rootContentItem.Id)
@@ -58,7 +50,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 IsSuspended = rootContentItem.IsSuspended,
                 ReadOnly = dbContext.ContentPublicationRequest
                     .Where(pr => pr.RootContentItemId == rootContentItem.Id)
-                    .Where(pr => blockingStatusList.Contains(pr.RequestStatus))
+                    .Where(pr => pr.RequestStatus.IsActive())
                     .Any(),
                 PublicationDetails = publicationDetails,
             };

@@ -337,11 +337,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            List<PublicationStatus> blockingRequestStatusList = new List<PublicationStatus>
-                                                              { PublicationStatus.Processing, PublicationStatus.Processed, PublicationStatus.Queued };
             var blocked = DbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItemId)
-                .Any(r => blockingRequestStatusList.Contains(r.RequestStatus));
+                .Any(r => r.RequestStatus.IsActive());
             if (blocked)
             {
                 Response.Headers.Add("Warning", "The specified root content item cannot be deleted at this time.");
@@ -444,11 +442,9 @@ namespace MillimanAccessPortal.Controllers
             bool Blocked;
 
             // There must be no unresolved ContentPublicationRequest.
-            List<PublicationStatus> BlockingRequestStatusList = new List<PublicationStatus>
-                                                              { PublicationStatus.Processing, PublicationStatus.Processed, PublicationStatus.Queued };
             Blocked = DbContext.ContentPublicationRequest
                                .Where(r => r.RootContentItemId == Arg.RootContentItemId)
-                               .Any(r => BlockingRequestStatusList.Contains(r.RequestStatus));
+                               .Any(r => r.RequestStatus.IsActive());
             if (Blocked)
             {
                 Response.Headers.Add("Warning", "A previous publication is pending for this content.");
@@ -531,14 +527,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var cancelableStatus = new List<PublicationStatus>
-            {
-                PublicationStatus.Validating,
-                PublicationStatus.Queued,
-            };
             var contentPublicationRequest = DbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
-                .Where(r => cancelableStatus.Contains(r.RequestStatus))
+                .Where(r => r.RequestStatus.IsCancelable())
                 .SingleOrDefault();
             if (contentPublicationRequest == null)
             {

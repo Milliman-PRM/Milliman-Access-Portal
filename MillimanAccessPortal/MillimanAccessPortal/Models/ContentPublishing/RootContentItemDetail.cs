@@ -45,16 +45,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();
-            var activeStatuses = new List<PublicationStatus>
-            {
-                PublicationStatus.Validating,
-                PublicationStatus.Queued,
-                PublicationStatus.Processing,
-                PublicationStatus.Processed,
-            };
 
             List<ContentRelatedFile> relatedFiles = rootContentItem.ContentFilesList;
-            if (activeStatuses.Contains(publicationRequest?.RequestStatus ?? PublicationStatus.Unknown))
+            if ((publicationRequest?.RequestStatus ?? PublicationStatus.Unknown).IsActive())
             {
                 var oldFiles = rootContentItem.ContentFilesList;
                 var newFiles = publicationRequest.UploadedRelatedFilesObj.Any()
