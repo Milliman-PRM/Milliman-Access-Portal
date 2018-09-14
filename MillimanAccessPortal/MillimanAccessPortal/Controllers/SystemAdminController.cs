@@ -862,6 +862,70 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(user);
         }
+
+        /// <summary>
+        /// Cancel a content publication request
+        /// </summary>
+        /// <remarks>This action allows publication requests in more statuses to be canceled compared to the content publishing page</remarks>
+        /// <param name="rootContentItemId">The root content item whose publication is to be canceled</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> CancelPublication(Guid rootContentItemId)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var existingRecord = _dbContext.RootContentItem.Find(rootContentItemId);
+            if (existingRecord == null)
+            {
+                Response.Headers.Add("Warning", "The specified root content item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            // The root content item should have an active publication
+            var activePublications = _dbContext.ContentPublicationRequest
+                .Where(pr => pr.RootContentItemId == rootContentItemId)
+                .Where(pr => pr.RequestStatus.IsActive())
+                .ToList();
+            if (!activePublications.Any())
+            {
+                Response.Headers.Add("Warning", "The specified root content item has no active selections.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            foreach (var activePublication in activePublications)
+            {
+                activePublication.RequestStatus = PublicationStatus.Canceled;
+                activePublication.UploadedRelatedFilesObj = null;
+                _dbContext.ContentPublicationRequest.Update(activePublication);
+            }
+
+            try
+            {
+                _dbContext.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                Response.Headers.Add("Warning", "The publication record was modified by another process during the request. Please try again.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            foreach (var updatedPublication in activePublications)
+            {
+                _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingRecord, updatedPublication));
+            }
+
+            return Json(existingRecord);
+        }
         #endregion
 
         #region Immediate toggle actions
