@@ -5,7 +5,9 @@
  *      Must match data sent by resumable.js, which is defined in src/ts/lib-options.ts
  */
 
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -64,5 +66,72 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 return resumableInfo.ChunkSize;
             }
         }
+
+        /// <summary>
+        /// Check if the chunk indicated by this info has an accepted file extension
+        /// </summary>
+        /// <param name="resumableInfo">The chunk info to check</param>
+        /// <returns>True if the file extension is accepted; false otherwise</returns>
+        public static bool ExtensionIsAcceptable(this ResumableInfo resumableInfo)
+        {
+            var acceptableExtensions = new List<string>
+            {
+                ".jpg",
+                ".jpeg",
+                ".png",
+                ".gif",
+                ".pdf",
+                ".qvw",
+            };
+            return acceptableExtensions.Contains(resumableInfo.FileExt.ToLower());
+        }
+
+
+        /// <summary>
+        /// Check the extension of the upload indicated by this info against the initial bytes of the provided file stream
+        /// </summary>
+        /// <param name="resumableInfo">The chunk info to check</param>
+        /// <param name="fileStream">The file stream whose initial bytes to check</param>
+        /// <param name="initialByteCount">The number of bytes to read from the file stream</param>
+        /// <returns>Whether the initial bytes agree with the file extension</returns>
+        public static bool MatchesInitialBytes(this ResumableInfo resumableInfo, FileStream fileStream, int initialByteCount = 0x10)
+        {
+            // Read the initial bytes from the file stream
+            byte[] initialBytes = new byte[initialByteCount];
+            fileStream.Read(initialBytes, 0, initialByteCount);
+
+            // Represent acceptable starting byte sequences as a list of byte arrays
+            // Expected initial byte sequences referenced from: https://mimesniff.spec.whatwg.org/#matching-a-mime-type-pattern
+            List<byte[]> expectedInitialBytes = new List<byte[]>();
+            switch(resumableInfo.FileExt.ToLower())
+            {
+                case ".jpg":
+                case ".jpeg":
+                    expectedInitialBytes.Add(new byte[] { 0xFF, 0xD8, 0xFF });
+                    break;
+                case ".png":
+                    expectedInitialBytes.Add(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+                    break;
+                case ".gif":
+                    expectedInitialBytes.Add(new byte[] { 0x47, 0x49, 0x46, 0x38, 0x37, 0x61 });
+                    expectedInitialBytes.Add(new byte[] { 0x47, 0x49, 0x46, 0x38, 0x39, 0x61 });
+                    break;
+                case ".pdf":
+                    expectedInitialBytes.Add(new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D });
+                    break;
+                case ".qvw":
+                    expectedInitialBytes.Add(new byte[] { 0x70, 0x17, 0x01, 0x00, 0xC1, 0x06, 0x00, 0x00 });
+                    break;
+                default:
+                    break;
+            }
+
+            return expectedInitialBytes.Any((byteSequence) =>
+            {
+                var initialBytesTrimmed = initialBytes.Take(byteSequence.Count());
+                return initialBytesTrimmed.SequenceEqual(byteSequence);
+            });
+        }
+
     }
 }
