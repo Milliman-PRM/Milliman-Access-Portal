@@ -13,6 +13,12 @@
         border: none !important;
         box-shadow: none;
 
+        input[disabled],
+        select[disabled],
+        textarea[disabled] {
+            color: $dark-grey;
+        }
+
         .form-submission-section {
             display: none;
         }
@@ -161,7 +167,7 @@ select {
     &[disabled],
     &[readonly] {
         border-bottom: solid 1px $grey;
-        color: $dark-grey;
+        color: $grey;
         box-shadow: none;
         cursor: default;
         -moz-appearance: none;
@@ -286,7 +292,7 @@ label.input-with-upload {
         z-index: 1;
 
         &[disabled] {
-            background-color: $light-grey;
+            font: $grey;
             padding-right: .25em;
         }
     }
