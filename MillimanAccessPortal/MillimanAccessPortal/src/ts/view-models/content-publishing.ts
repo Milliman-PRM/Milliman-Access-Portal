@@ -69,6 +69,7 @@ export interface RootContentItemSummary {
   ContentTypeName: string;
   GroupCount: number;
   IsSuspended: boolean;
+  ReadOnly: boolean;
   EligibleUserList: UserInfo[];
   PublicationDetails: PublicationSummary;
 }
