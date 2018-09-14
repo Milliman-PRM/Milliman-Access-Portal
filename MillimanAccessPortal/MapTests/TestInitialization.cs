@@ -1017,6 +1017,22 @@ namespace MapTests
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(DbContextObject.UserRoleInRootContentItem, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
+
+            #region Initialize ContentPublicationRequest
+            DbContextObject.ContentPublicationRequest.AddRange(new List<ContentPublicationRequest>
+            {
+                new ContentPublicationRequest { Id = TestUtil.MakeTestGuid(1), RootContentItemId = TestUtil.MakeTestGuid(1), RequestStatus = PublicationStatus.Processing }
+            });
+            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(DbContextObject.ContentPublicationRequest, "RootContentItemId", DbContextObject.RootContentItem);
+            #endregion
+
+            #region Initialize ContentReductionTask
+            DbContextObject.ContentReductionTask.AddRange(new List<ContentReductionTask>
+            {
+                new ContentReductionTask { Id = TestUtil.MakeTestGuid(1), SelectionGroupId = TestUtil.MakeTestGuid(1), ReductionStatus = ReductionStatusEnum.Reducing }
+            });
+            MockDbSet<ContentReductionTask>.AssignNavigationProperty(DbContextObject.ContentReductionTask, "SelectionGroupId", DbContextObject.SelectionGroup);
+            #endregion
         }
 
     }
