@@ -792,6 +792,7 @@ namespace MillimanAccessPortal.Controllers
 
                     // Set url in SelectionGroup
                     ThisTask.SelectionGroup.SetContentUrl(TargetFileName);
+                    ThisTask.SelectionGroup.ReducedContentChecksum = ThisTask.ReducedContentChecksum;
                     DbContext.SelectionGroup.Update(ThisTask.SelectionGroup);
 
                     // Move the existing file to backed up name if exists

@@ -137,10 +137,10 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region File Verification 
-
-            // Get a reference to the file
-            var contentFile = selectionGroup.RootContentItem.ContentFilesList
-                .FirstOrDefault(f => f.FullPath.EndsWith(selectionGroup.ContentInstanceUrl));
+            var contentFile = selectionGroup.IsMaster
+                ? selectionGroup.RootContentItem.ContentFilesList.FirstOrDefault(f => f.FullPath.EndsWith(selectionGroup.ContentInstanceUrl))
+                : new ContentRelatedFile { FullPath = Path.Combine(ApplicationConfig["Storage:ContentItemRootPath"], selectionGroup.ContentInstanceUrl),
+                                           Checksum = selectionGroup.ReducedContentChecksum };
 
             if (contentFile == null)
             {
@@ -148,13 +148,13 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            // Make sure the checksum currently matches the value stored at the time the file was generated or uploaded
+            // Make sure the checksum currently matches the value stored at the time the file went live
             if (!contentFile.ValidateChecksum())
             {
                 var ErrMsg = new List<string>
                 {
-                    $"The system could not validate the content item {selectionGroup.RootContentItem.ContentName} for selection group {selectionGroup.GroupName}.",
-                    $"Try again in a few minutes, and contact MAP Support if this error continues.",
+                    $"The system could not validate the file for content item {selectionGroup.RootContentItem.ContentName}, selection group {selectionGroup.GroupName}.",
+                    $"Please contact MAP Support if this error continues.",
                 };
                 string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Root content: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
                 var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
