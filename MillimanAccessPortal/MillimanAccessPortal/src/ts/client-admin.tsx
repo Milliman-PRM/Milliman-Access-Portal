@@ -511,7 +511,7 @@ function renderClientNode(client, level) {
     ), () => formObject, 2),
     !client.Children.length && clientCardDeleteClickHandler,
     shared.wrapCardIconCallback(($card) => getClientDetail($card.parent(), AccessMode.Write), () => formObject),
-    level < 2 && shared.wrapCardIconCallback(($card) => {
+    level < 1 && shared.wrapCardIconCallback(($card) => {
       setupChildClientForm($card);
       formObject.accessMode = AccessMode.Write;
       $card.removeAttr('editing selected');
