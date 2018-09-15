@@ -282,8 +282,8 @@ namespace MapTests
             switch (environmentName)
             {
                 case "CI":
-                    configurationBuilder.AddJsonFile(path: $"appsettings.{environmentName}.json", optional: false);
-                    break;
+                    //configurationBuilder.AddJsonFile(path: $"appsettings.{environmentName}.json", optional: false);
+                    //break;
                 case "Production": // Get configuration from Azure Key Vault for Production
                     configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
 
@@ -305,7 +305,11 @@ namespace MapTests
             }
 
             var ReturnConfiguration = configurationBuilder.Build();
-            throw new ApplicationException("Built config: " + Newtonsoft.Json.JsonConvert.SerializeObject(ReturnConfiguration));
+
+            string msg = "Built config: " + Newtonsoft.Json.JsonConvert.SerializeObject(ReturnConfiguration);
+            msg += ", contents: " + Newtonsoft.Json.JsonConvert.SerializeObject(ReturnConfiguration.AsEnumerable());
+            throw new ApplicationException(msg);
+
             return ReturnConfiguration;
         }
 
