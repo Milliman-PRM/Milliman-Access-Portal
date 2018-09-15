@@ -284,7 +284,7 @@ function renderUserList(response) {
 
 function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
   const parentClientId = $parentClientDiv.parent().data().clientId;
-  const $template = new card.AddChildInsertCard($parentClientDiv.parent().hasClass('card-100') ? 1 : 2).build();
+  const $template = new card.AddChildInsertCard(1).build();
 
   shared.clearForm($('#client-info'));
   $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
