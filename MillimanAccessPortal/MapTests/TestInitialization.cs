@@ -293,6 +293,8 @@ namespace MapTests
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
+                    throw new ApplicationException("Before AddAzureKeyVault");
+
                     configurationBuilder.AddAzureKeyVault(
                         built["AzureVaultName"],
                         built["AzureClientID"],
