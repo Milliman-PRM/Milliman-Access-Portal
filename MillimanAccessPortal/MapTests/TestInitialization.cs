@@ -282,8 +282,8 @@ namespace MapTests
             switch (environmentName)
             {
                 case "CI":
-                    //configurationBuilder.AddJsonFile(path: $"appsettings.{environmentName}.json", optional: false);
-                    //break;
+                    configurationBuilder.AddJsonFile(path: $"appsettings.{environmentName}.json", optional: false);
+                    break;
                 case "Production": // Get configuration from Azure Key Vault for Production
                     configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
 
