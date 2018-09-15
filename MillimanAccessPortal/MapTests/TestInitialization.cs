@@ -293,12 +293,12 @@ namespace MapTests
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
-                    throw new ApplicationException("Before AddAzureKeyVault");
-
                     configurationBuilder.AddAzureKeyVault(
                         built["AzureVaultName"],
                         built["AzureClientID"],
                         cert.OfType<X509Certificate2>().Single());
+                    throw new ApplicationException("After AddAzureKeyVault");
+
                     break;
 
                 default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
