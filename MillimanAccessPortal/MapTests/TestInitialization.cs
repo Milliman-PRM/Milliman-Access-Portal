@@ -297,7 +297,6 @@ namespace MapTests
                         built["AzureVaultName"],
                         built["AzureClientID"],
                         cert.OfType<X509Certificate2>().Single());
-                    throw new ApplicationException("After AddAzureKeyVault");
 
                     break;
 
@@ -305,6 +304,8 @@ namespace MapTests
                     configurationBuilder.AddUserSecrets<TestInitialization>();
                     break;
             }
+
+            throw new ApplicationException("Before configurationBuilder.Build()");
 
             var ReturnConfiguration = configurationBuilder.Build();
 
