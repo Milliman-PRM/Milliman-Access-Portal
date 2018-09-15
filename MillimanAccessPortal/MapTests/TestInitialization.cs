@@ -305,7 +305,7 @@ namespace MapTests
             }
 
             var ReturnConfiguration = configurationBuilder.Build();
-            throw new ApplicationException("Built config: " + Newtonsoft.Json.JsonConvert.SerializeObject(ReturnConfiguration);
+            throw new ApplicationException("Built config: " + Newtonsoft.Json.JsonConvert.SerializeObject(ReturnConfiguration));
             return ReturnConfiguration;
         }
 
