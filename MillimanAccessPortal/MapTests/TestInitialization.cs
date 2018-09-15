@@ -281,9 +281,7 @@ namespace MapTests
             // Determine location to fetch the configuration
             switch (environmentName)
             {
-                case "CI":
-                    //configurationBuilder.AddJsonFile(path: $"appsettings.{environmentName}.json", optional: false);
-                    //break;
+                case "CI": // Get configuration from Azure Key Vault for CI
                 case "Production": // Get configuration from Azure Key Vault for Production
                     configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
 
@@ -306,12 +304,6 @@ namespace MapTests
             }
 
             var ReturnConfiguration = configurationBuilder.Build();
-
-            throw new ApplicationException("After configurationBuilder.Build()");
-
-            string msg = "Built config: " + Newtonsoft.Json.JsonConvert.SerializeObject(ReturnConfiguration);
-            msg += ", contents: " + Newtonsoft.Json.JsonConvert.SerializeObject(ReturnConfiguration.AsEnumerable());
-            throw new ApplicationException(msg);
 
             return ReturnConfiguration;
         }
