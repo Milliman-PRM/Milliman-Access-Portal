@@ -24,6 +24,8 @@ namespace QlikviewLib
                 ? FilePathRelativeToContentRoot 
                 : Path.Combine(ConfigInfo.QvServerContentUriSubfolder, FilePathRelativeToContentRoot);
 
+            throw new ApplicationException($"QlikviewLibApi line 27, ContentUrl is: {ContentUrl}");
+
             string QvServerUriScheme = "https";  // Scheme of the iframe should match scheme of the top page
 
             // TODO Resolve the user naming convention for the QV server.  
