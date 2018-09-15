@@ -79,6 +79,18 @@ namespace MillimanAccessPortal.Controllers
             Queries = QueryArg;
             UserManager = UserManagerArg;
             ApplicationConfig = AppConfigurationArg;
+
+            string qvoptions;
+            if (QlikviewOptionsAccessorArg == null)
+            {
+                qvoptions = "QlikviewOptionsAccessorArg is null";
+            }
+            else
+            {
+                qvoptions = "QlikviewOptionsAccessorArg is:";
+                qvoptions += $"{Newtonsoft.Json.JsonConvert.SerializeObject(QlikviewOptionsAccessorArg.Value)}";
+            }
+            throw new ApplicationException(qvoptions);
         }
 
         /// <summary>
