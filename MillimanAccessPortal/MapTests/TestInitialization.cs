@@ -304,6 +304,10 @@ namespace MapTests
                     break;
             }
 
+            string msg = "configurationBuilder ready to build. ";
+            msg += Newtonsoft.Json.JsonConvert.SerializeObject(configurationBuilder.Properties);
+            throw new ApplicationException(msg);
+
             return configurationBuilder.Build();
         }
 

@@ -29,8 +29,6 @@ namespace QlikviewLib
             // TODO Resolve the user naming convention for the QV server.  
             string QlikviewWebTicket = await QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ UserName, ConfigInfo as QlikviewConfig);
 
-            throw new ApplicationException($"QlikviewLibApi line 32, WebTicket is: {QlikviewWebTicket}");
-
             string[] QueryStringItems = new string[]
             {
                 $"type=html",
