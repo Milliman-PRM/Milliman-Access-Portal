@@ -181,7 +181,7 @@ if ($IsMerged.ToLower() -eq 'true' -and $env:Action.ToLower() -eq 'closed') {
 
     if ($MergeBase -eq 'develop') {
         $checkoutPath = $rootPath
-    } elseif ($MergeBase -eq 'master' -or $MergeBase -like 'pre-release*') {
+    } elseif ($MergeBase -eq 'master' -or $MergeBase.ToLower() -like 'pre-release*') {
         $checkoutPath = "$env:TEMP\master\"
         Set-Location $env:TEMP
         & $gitExePath clone $CloneURL
