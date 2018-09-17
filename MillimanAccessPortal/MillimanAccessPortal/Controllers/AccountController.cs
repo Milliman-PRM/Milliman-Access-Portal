@@ -400,12 +400,12 @@ namespace MillimanAccessPortal.Controllers
         {
             if (userId == null || code == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
             }
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
             }
 
             if (user.EmailConfirmed)  // Account is already activated
@@ -431,6 +431,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 Id = user.Id,
                 Code = code,
+                Username = user.UserName,
             };
             return View(model);
         }
@@ -448,7 +449,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
             }
 
             if (user.EmailConfirmed)  // Account is already activated
@@ -495,7 +496,7 @@ namespace MillimanAccessPortal.Controllers
 
             string Errors = string.Join($", ", identityResult.Errors.Select(e => e.Description));
             Response.Headers.Add("Warning", $"Error while enabling account: {Errors}");
-            return View("Error");
+            return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
         }
 
         //
@@ -572,7 +573,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser user = await _userManager.FindByEmailAsync(userEmail);
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Password Reset Error"));
             }
 
             DataProtectorTokenProvider<ApplicationUser> passwordResetTokenProvider = (DataProtectorTokenProvider<ApplicationUser>)_serviceProvider.GetService(typeof(DataProtectorTokenProvider<ApplicationUser>));
@@ -750,7 +751,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error"));
             }
             var userFactors = await _userManager.GetValidTwoFactorProvidersAsync(user);
             var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
@@ -772,14 +773,14 @@ namespace MillimanAccessPortal.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error"));
             }
 
             // Generate the token and send it
             var code = await _userManager.GenerateTwoFactorTokenAsync(user, model.SelectedProvider);
             if (string.IsNullOrWhiteSpace(code))
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error"));
             }
 
             var message = "Your security code is: " + code;
@@ -805,7 +806,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Verification Error"));
             }
             return View(new VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
