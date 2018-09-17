@@ -189,13 +189,13 @@ namespace MillimanAccessPortal.Controllers
                 UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig);
 
                 // Now return the appropriate view for the requested content
-                switch (selectionGroup.RootContentItem.ContentType.Name)
+                switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
                 {
-                    case "Qlikview":
+                    case ContentTypeEnum.Qlikview:
                         return Redirect(ContentUri.Uri.AbsoluteUri);
 
-                    //case "Another web hosted type":
-                        //return TheRightThing;
+                    //case ContentTypeEnum.Another:
+                    //return TheRightThing;
 
                     default:
                         // Perhaps this can't happen since this case is handled above
@@ -207,7 +207,7 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (MapException e)
             {
-                TempData["Message"] = $"{e.Message}<br>{e.StackTrace}";
+                TempData["Message"] = GlobalFunctions.LoggableExceptionString(e, "Exception:", true, true, true);
                 TempData["ReturnToController"] = "AuthorizedContent";
                 TempData["ReturnToAction"] = "Index";
                 return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));

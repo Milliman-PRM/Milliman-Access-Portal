@@ -18,7 +18,7 @@ using MapCommonLib;
 
 namespace MapTests
 {
-    public class AuthorizedControllerTests
+    public class AuthorizedContentControllerTests
     {
         /// <summary>
         /// Test that the Index returns a view containing a list of content items the test user can access.
