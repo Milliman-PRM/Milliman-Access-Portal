@@ -173,14 +173,14 @@ namespace MillimanAccessPortal.Controllers
                         ModelState.AddModelError(string.Empty, "User login is not allowed.");
                         _logger.LogWarning(2, $"User login not allowed: {model.Username}");
                         _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
-                        return View("Lockout");  // TODO need a better UX
+                        return View("Lockout");
                     }
                     else if (result.IsLockedOut)
                     {
                         ModelState.AddModelError(string.Empty, "User account is locked out.");
                         _logger.LogWarning(2, "User account locked out.");
                         _auditLogger.Log(AuditEventType.LoginIsLockedOut.ToEvent(), model.Username);
-                        return View("Lockout");  // TODO need a better UX
+                        return View("Lockout");
                     }
                     else
                     {
@@ -612,7 +612,6 @@ namespace MillimanAccessPortal.Controllers
             if (user == null)
             {
                 // Don't reveal that the user does not exist
-                // TODO but do something better than this!
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
             var result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.NewPassword);

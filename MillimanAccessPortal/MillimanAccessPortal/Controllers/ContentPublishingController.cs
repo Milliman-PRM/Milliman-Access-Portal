@@ -933,7 +933,6 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reject(Guid rootContentItemId, Guid publicationRequestId)
         {
-            // TODO Could/should this be handled in the Cancel action?
             #region Authorization
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
             if (!authorization.Succeeded)

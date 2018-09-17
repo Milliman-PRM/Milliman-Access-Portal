@@ -138,7 +138,7 @@ namespace MillimanAccessPortal
                 {
                     options.LoginPath = "/Account/LogIn";
                     options.LogoutPath = "/Account/LogOut";
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // TODO: read from configuration
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                     options.SlidingExpiration = true;
                 }
             );
