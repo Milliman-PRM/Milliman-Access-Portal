@@ -111,6 +111,7 @@ if ($Action.ToLower() -eq 'closed') {
 $BranchName = $env:git_branch_name # Will be used in the version string of the octopus package & appended to database names
 
 $buildType = if($BranchName -eq 'develop' -or $BranchName -eq 'master' -or $BranchName.ToLower() -like 'pre-release*') {"Release"} Else {"Debug"}
+log_statement "Building configuration: $buildType"
 
 $gitExePath = "git"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
@@ -140,6 +141,7 @@ $serviceBuildTarget = "$rootPath\ContentPublishingServer\ContentPublishingServic
 $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
+$runTests = $env:RunTests -ne "False"
 
 mkdir ${rootPath}\_test_results
 #endregion
@@ -258,45 +260,46 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-log_statement "Performing MAP unit tests"
+if($runTests) {
+    log_statement "Performing MAP unit tests"
 
- Set-Location $rootPath\MillimanAccessPortal\MapTests
+    Set-Location $rootPath\MillimanAccessPortal\MapTests
 
- dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
+    dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
 
- if ($LASTEXITCODE -ne 0) {
-     log_statement "ERROR: One or more MAP xUnit tests failed"
-     log_statement "errorlevel was $LASTEXITCODE"
-     exit $LASTEXITCODE
+    if ($LASTEXITCODE -ne 0) {
+        log_statement "ERROR: One or more MAP xUnit tests failed"
+        log_statement "errorlevel was $LASTEXITCODE"
+        exit $LASTEXITCODE
+    }
+
+    log_statement "Peforming Jest tests"
+
+    Set-Location $rootPath\MillimanAccessPortal\MillimanAccessPortal
+
+    $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
+
+    $command = "yarn test --testResultsProcessor='jest-junit'"
+    invoke-expression "&$command"
+
+    if ($LASTEXITCODE -ne 0) {
+        log_statement "ERROR: One or more Jest tests failed"
+        log_statement "errorlevel was $LASTEXITCODE"
+        exit $LASTEXITCODE
+    }
+
+    log_statement "Performing content publishing unit tests"
+
+    Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
+
+    dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
+
+    if ($LASTEXITCODE -ne 0) {
+        log_statement "ERROR: One or more content publishing xUnit tests failed"
+        log_statement "errorlevel was $LASTEXITCODE"
+        exit $LASTEXITCODE
+    }
 }
-
-log_statement "Peforming Jest tests"
-
-Set-Location $rootPath\MillimanAccessPortal\MillimanAccessPortal
-
-$env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
-
-$command = "yarn test --testResultsProcessor='jest-junit'"
-invoke-expression "&$command"
-
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: One or more Jest tests failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
-log_statement "Performing content publishing unit tests"
-
-Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
-
-dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
-
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: One or more content publishing xUnit tests failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
 #endregion
 
 #region Create and update databases

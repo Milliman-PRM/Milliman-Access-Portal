@@ -189,6 +189,7 @@ if ($IsMerged.ToLower() -eq 'true' -and $env:Action.ToLower() -eq 'closed') {
     }
     $env:git_branch_name = $MergeBase
     $env:Action = "opened"
+    $env:RunTests = "False"
     & $gitExePath checkout $MergeBase
     & "$checkoutPath\Publish\CI_Publish.ps1"
 
