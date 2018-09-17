@@ -398,18 +398,14 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> EnableAccount(string userId, string code)
         {
-            string commonErrorText = "An error occured. Please contact <a href=\"mailto:map.support@milliman.com?subject=Account Activation Error\">map.support@milliman.com</a> for assistance.";
-
             if (userId == null || code == null)
             {
-                string WhatHappenedMessage = commonErrorText;
-                return View("Message", WhatHappenedMessage);
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
             }
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                string WhatHappenedMessage = commonErrorText;
-                return View("Message", WhatHappenedMessage);
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
             }
 
             if (user.EmailConfirmed)  // Account is already activated
@@ -453,7 +449,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
             }
 
             if (user.EmailConfirmed)  // Account is already activated
@@ -500,7 +496,7 @@ namespace MillimanAccessPortal.Controllers
 
             string Errors = string.Join($", ", identityResult.Errors.Select(e => e.Description));
             Response.Headers.Add("Warning", $"Error while enabling account: {Errors}");
-            return View("Error");
+            return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
         }
 
         //
@@ -577,7 +573,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser user = await _userManager.FindByEmailAsync(userEmail);
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
             }
 
             DataProtectorTokenProvider<ApplicationUser> passwordResetTokenProvider = (DataProtectorTokenProvider<ApplicationUser>)_serviceProvider.GetService(typeof(DataProtectorTokenProvider<ApplicationUser>));
@@ -756,7 +752,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
             }
             var userFactors = await _userManager.GetValidTwoFactorProvidersAsync(user);
             var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
@@ -778,14 +774,14 @@ namespace MillimanAccessPortal.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
             }
 
             // Generate the token and send it
             var code = await _userManager.GenerateTwoFactorTokenAsync(user, model.SelectedProvider);
             if (string.IsNullOrWhiteSpace(code))
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
             }
 
             var message = "Your security code is: " + code;
@@ -811,7 +807,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
             }
             return View(new VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }

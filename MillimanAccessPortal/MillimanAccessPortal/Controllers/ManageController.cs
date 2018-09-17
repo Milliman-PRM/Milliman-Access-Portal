@@ -18,6 +18,8 @@ using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.ManageViewModels;
 using MillimanAccessPortal.Services;
 using EmailQueue;
+using MapCommonLib;
+using Microsoft.Extensions.Configuration;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -27,17 +29,20 @@ namespace MillimanAccessPortal.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly MailSender _emailSender;
+        private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
 
         public ManageController(
           UserManager<ApplicationUser> userManager,
           SignInManager<ApplicationUser> signInManager,
           MailSender emailSender,
+          IConfiguration configuration,
           ILoggerFactory loggerFactory)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
+            _configuration = configuration;
             _logger = loggerFactory.CreateLogger<ManageController>();
         }
 
@@ -58,7 +63,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await GetCurrentUserAsync();
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
             }
             var model = new IndexViewModel
             {
@@ -113,7 +118,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await GetCurrentUserAsync();
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
             }
             var code = await _userManager.GenerateChangePhoneNumberTokenAsync(user, model.PhoneNumber);
             return RedirectToAction(nameof(VerifyPhoneNumber), new { PhoneNumber = model.PhoneNumber });
@@ -159,11 +164,13 @@ namespace MillimanAccessPortal.Controllers
             var user = await GetCurrentUserAsync();
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
             }
             var code = await _userManager.GenerateChangePhoneNumberTokenAsync(user, phoneNumber);
             // Send an SMS to verify the phone number
-            return phoneNumber == null ? View("Error") : View(new VerifyPhoneNumberViewModel { PhoneNumber = phoneNumber });
+            return phoneNumber == null
+                ? View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""))
+                : View(new VerifyPhoneNumberViewModel { PhoneNumber = phoneNumber });
         }
 
         //
@@ -291,7 +298,7 @@ namespace MillimanAccessPortal.Controllers
         //    var user = await GetCurrentUserAsync();
         //    if (user == null)
         //    {
-        //        return View("Error");
+        //        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
         //    }
         //    var userLogins = await _userManager.GetLoginsAsync(user);
         //    var schemes = await _signInManager.GetExternalAuthenticationSchemesAsync();
@@ -329,7 +336,7 @@ namespace MillimanAccessPortal.Controllers
         //    var user = await GetCurrentUserAsync();
         //    if (user == null)
         //    {
-        //        return View("Error");
+        //        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
         //    }
         //    var info = await _signInManager.GetExternalLoginInfoAsync(await _userManager.GetUserIdAsync(user));
         //    Commented out during transition to .net core 2.0 - error will need addressed if we enable external logins

@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
 
 namespace MapCommonLib
 {
@@ -118,6 +119,12 @@ namespace MapCommonLib
             var linkTimeUtc = epoch.AddSeconds(secondsSince1970);
 
             return linkTimeUtc;
+        }
+
+        public static string GenerateErrorMessage(IConfiguration configuration, string subject)
+        {
+            string messageTemplate = "An error occured. Please contact <a href=\"mailto:map.support@milliman.com?subject={0}\">map.support@milliman.com</a> for assistance.";
+            return String.Format(messageTemplate, subject);
         }
     }
 }
