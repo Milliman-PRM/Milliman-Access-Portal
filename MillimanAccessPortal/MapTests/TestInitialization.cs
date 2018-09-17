@@ -72,7 +72,7 @@ namespace MapTests
         public Mock<IUploadHelper> MockUploadHelper { get; set; }
         public IUploadHelper UploadHelperObject { get => MockUploadHelper.Object; }
 
-        public IConfiguration ConfigurationObject { get; set; }
+        public IConfiguration ConfigurationObject { get { return GenerateConfiguration(); } }
 
         public Mock<IServiceProvider> MockServiceProvider { get; set; }
         public IServiceProvider ServiceProviderObject { get => MockServiceProvider.Object; }
@@ -156,7 +156,6 @@ namespace MapTests
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject, MockAuditLogger.Object);
-            ConfigurationObject = GenerateConfiguration();
             MockServiceProvider = GenerateServiceProvider();
         }
 
@@ -186,17 +185,17 @@ namespace MapTests
 
         private IOptions<QlikviewConfig> BuildQvConfig()
         {
-            ConfigurationObject = GenerateConfiguration();
+            IConfiguration ConfigurationObj = GenerateConfiguration();
 
             return Options.Create(new QlikviewConfig
             {
-                QvServerHost = ConfigurationObject["QvServerHost"],
-                QvServerAdminUserAuthenticationDomain = ConfigurationObject["QvServerAdminUserAuthenticationDomain"],
-                QvServerAdminUserName = ConfigurationObject["QvServerAdminUserName"],
-                QvServerAdminUserPassword = ConfigurationObject["QvServerAdminUserPassword"],
-                QvServerContentUriSubfolder = ConfigurationObject["QvServerContentUriSubfolder"],
-                QdsQmsApiUrl = ConfigurationObject["QdsQmsApiUrl"],
-                QvsQmsApiUrl = ConfigurationObject["QvsQmsApiUrl"]
+                QvServerHost = ConfigurationObj["QvServerHost"],
+                QvServerAdminUserAuthenticationDomain = ConfigurationObj["QvServerAdminUserAuthenticationDomain"],
+                QvServerAdminUserName = ConfigurationObj["QvServerAdminUserName"],
+                QvServerAdminUserPassword = ConfigurationObj["QvServerAdminUserPassword"],
+                QvServerContentUriSubfolder = ConfigurationObj["QvServerContentUriSubfolder"],
+                QdsQmsApiUrl = ConfigurationObj["QdsQmsApiUrl"],
+                QvsQmsApiUrl = ConfigurationObj["QvsQmsApiUrl"]
             });
         }
 
@@ -295,7 +294,7 @@ namespace MapTests
                         built["AzureVaultName"],
                         built["AzureClientID"],
                         cert.OfType<X509Certificate2>().Single());
-
+                    configurationBuilder.AddJsonFile(path: $"appsettings.{environmentName}.json", optional: true);
                     break;
 
                 default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
