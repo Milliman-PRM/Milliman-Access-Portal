@@ -309,6 +309,7 @@ function renderRootContentItem(item: RootContentItemSummary) {
     )),
   );
   rootContentItemCard.disabled = item.ReadOnly;
+  rootContentItemCard.disabledReason = 'Selection Groups cannot be managed during publication.';
   const $rootContentItemCard = rootContentItemCard.build();
   updateCardStatus($rootContentItemCard, item.PublicationDetails);
   $('#root-content-items ul.admin-panel-content').append($rootContentItemCard);
