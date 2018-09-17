@@ -72,7 +72,7 @@ namespace MapTests
         public Mock<IUploadHelper> MockUploadHelper { get; set; }
         public IUploadHelper UploadHelperObject { get => MockUploadHelper.Object; }
 
-        private IConfiguration _AppConfiguration = null;
+        private static IConfiguration _AppConfiguration = null;
         public IConfiguration ConfigurationObject { get { return GenerateConfiguration(); } }
 
         public Mock<IServiceProvider> MockServiceProvider { get; set; }
