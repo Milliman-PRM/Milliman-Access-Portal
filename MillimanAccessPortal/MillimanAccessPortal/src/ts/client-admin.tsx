@@ -68,6 +68,10 @@ function hideClientUsers() {
   $('#client-users').hide(SHOW_DURATION);
 }
 
+function showClientUsers() {
+  $('#client-users').show(SHOW_DURATION);
+}
+
 function showClientDetails() {
   let $clientPanes = $('#client-info');
   if ($('#client-tree [selected]').attr('data-client-id')) {
@@ -483,6 +487,7 @@ function cancelIconClickHandler() {
       $('#client-tree [editing]').removeAttr('editing');
       formObject.accessMode = AccessMode.Read;
       displayActionPanelIcons(true);
+      showClientUsers();
     } else {
       clearClientSelection();
       removeClientInserts();
@@ -604,6 +609,7 @@ $(document).ready(function onReady() {
   $('#client-info .action-icon-edit').click(() => {
     formObject.accessMode = AccessMode.Write;
     displayActionPanelIcons(true);
+    hideClientUsers();
   });
   $('#client-info .action-icon-cancel').click(cancelIconClickHandler);
   $('.action-icon-expand').click(shared.expandAllListener);
