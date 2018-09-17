@@ -417,7 +417,6 @@ export function eligibleUserMatcher(query: string, callback: (matches: any) => v
 }
 
 // Card helpers
-// TODO: consider moving to card.js
 export function updateCardStatus($card, reductionDetails) {
   const $statusContainer = $card.find('.card-status-container');
   const $statusName = $statusContainer.find('strong');
@@ -479,7 +478,6 @@ export function updateFormStatusButtons() {
 }
 
 // Dialog helpers
-// TODO: consider moving to dialog.js
 export function confirmAndContinue(dialogConstructor, form?: FormBase, onContinue?) {
   if (form && form.modified) {
     new dialogConstructor(() => {

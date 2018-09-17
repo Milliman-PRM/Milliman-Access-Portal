@@ -302,7 +302,6 @@ function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
     });
 }
 
-// TODO
 function setupClientForm() {
   shared.clearForm($('#client-info'));
   bindForm();
@@ -615,7 +614,6 @@ $(document).ready(function onReady() {
   $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
   $('.tooltip').tooltipster();
 
-  // TODO
   $('#client-info form.admin-panel-content #AcceptedEmailDomainList').selectize({
     create: function onCreate(input) {
       if (input.match(domainRegex())) {
@@ -637,7 +635,6 @@ $(document).ready(function onReady() {
     plugins: ['remove_button'],
   });
 
-  // TODO
   $('#client-info form.admin-panel-content #AcceptedEmailAddressExceptionList').selectize({
     create: function onCreate(input) {
       if (input.match(emailRegex())) {

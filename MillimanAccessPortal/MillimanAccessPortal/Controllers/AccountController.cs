@@ -612,7 +612,6 @@ namespace MillimanAccessPortal.Controllers
             if (user == null)
             {
                 // Don't reveal that the user does not exist
-                // TODO but do something better than this!
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
             var result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.NewPassword);
