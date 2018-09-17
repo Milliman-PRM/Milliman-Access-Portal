@@ -252,7 +252,7 @@ Set-Location $rootpath\ContentPublishingServer
 
 log_statement "Building content publishing server"
 
-MSBuild /restore:true /verbosity:quiet /nowarn:CS1998 /p:Configuration=$buildType
+MSBuild /restore:true /verbosity:quiet /p:Configuration=$buildType
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Test build or package restore failed for content publishing server solution"
