@@ -366,8 +366,8 @@
 
             &[maximized],
             &.maximized {
-                max-height: 15.5em;
-                overflow: visible;
+                max-height: 42em;
+                overflow-y: auto;
                 transition: .25s all linear;
 
                 .card-button-expansion {
