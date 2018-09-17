@@ -96,7 +96,6 @@ export class Upload {
       );
       this.monitor.activate();
 
-      this.getChunkStatus();
       this.resumable.upload();
     });
 
@@ -239,10 +238,4 @@ export class Upload {
   protected get alertUnload(): boolean {
     return this.checksum !== null || this.fileGUID !== null || this.cancelable;
   }
-
-  // Get request for already-received chunks
-  private getChunkStatus() {
-    // Not implemented, see issue #278
-  }
-
 }
