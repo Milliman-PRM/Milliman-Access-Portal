@@ -591,6 +591,7 @@ export function Card(representation) {
   this.callback = () => undefined;
   this.readonly = false;
   this.disabled = false;
+  this.disabledReason = '';
   this.$representation = $(representation || components.card.html);
 }
 
@@ -647,6 +648,10 @@ Card.prototype.build = function() {
   }
   if (!this.disabled) {
     this.click('body', this.callback);
+  } else if (this.disabledReason) {
+    this.click('body', () => {
+      toastr.error(this.disabledReason);
+    });
   }
   this.$representation.find('stub').remove();
   if (Object.hasOwnProperty.call(this, 'afterBuild')) {

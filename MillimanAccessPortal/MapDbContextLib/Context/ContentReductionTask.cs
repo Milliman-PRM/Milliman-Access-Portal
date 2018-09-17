@@ -31,6 +31,33 @@ namespace MapDbContextLib.Context
         Error = 90,         // An error has occured
     }
 
+    public static class ReductionStatusExtensions
+    {
+        public static bool IsCancelable(this ReductionStatusEnum status)
+        {
+            var blockingStatuses = new List<ReductionStatusEnum>
+            {
+                ReductionStatusEnum.Validating,
+                ReductionStatusEnum.Queued,
+            };
+
+            return blockingStatuses.Contains(status);
+        }
+
+        public static bool IsActive(this ReductionStatusEnum status)
+        {
+            var blockingStatuses = new List<ReductionStatusEnum>
+            {
+                ReductionStatusEnum.Validating,
+                ReductionStatusEnum.Queued,
+                ReductionStatusEnum.Reducing,
+                ReductionStatusEnum.Reduced,
+            };
+
+            return blockingStatuses.Contains(status);
+        }
+    }
+
     /// <summary>
     /// Represent what action MAP is requesting from the reduction server
     /// </summary>

@@ -40,15 +40,6 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 
             #region Build selection comparison
 
-            // Define status that qualify the latest task as an outstanding task.
-            // An outstanding task blocks other reductions for its selection group.
-            var outstandingStatus = new List<ReductionStatusEnum>
-            {
-                ReductionStatusEnum.Queued,
-                ReductionStatusEnum.Reducing,
-                ReductionStatusEnum.Reduced,
-            };
-
             // Build the live hierarchy and list of live selections
             var liveHierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>
                 .GetFieldSelectionsForSelectionGroup(dbContext, selectionGroup.Id);
@@ -57,7 +48,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 
             // Convert the serialized content reduction hierarchy into a list of selected values
             HashSet<Guid> pendingSelectionSet = null;
-            if (latestTask != null && outstandingStatus.Contains(latestTask.ReductionStatus))
+            if ((latestTask?.ReductionStatus ?? ReductionStatusEnum.Unspecified).IsActive())
             {
                 pendingSelectionSet = new HashSet<Guid>();
                 if (latestTask.SelectionCriteria != null)

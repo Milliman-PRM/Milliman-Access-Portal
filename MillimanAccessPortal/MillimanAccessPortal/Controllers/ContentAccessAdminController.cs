@@ -140,7 +140,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            var model = RootContentItemList.Build(DbContext, Client, await Queries.GetCurrentApplicationUser(User), RoleEnum.ContentAccessAdmin);
+            var model = Models.ContentAccessAdmin.RootContentItemList.Build(DbContext, Client, await Queries.GetCurrentApplicationUser(User), RoleEnum.ContentAccessAdmin);
 
             return Json(model);
         }
@@ -212,6 +212,15 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            // reject this request if the RootContentItem has a pending publication request
+            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
+                .Where(pr => pr.RootContentItemId == rootContentItem.Id)
+                .Any(pr => pr.RequestStatus.IsActive());
+            if (blockedByPendingPublication)
+            {
+                Response.Headers.Add("Warning", "A new selection group may not be created while this content item has a pending publication.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             SelectionGroup selectionGroup = new SelectionGroup
@@ -510,13 +519,13 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteSelectionGroup(Guid SelectionGroupId)
         {
-            SelectionGroup SelectionGroup = DbContext.SelectionGroup
+            SelectionGroup selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rci => rci.Client)
                 .SingleOrDefault(sg => sg.Id == SelectionGroupId);
 
             #region Preliminary Validation
-            if (SelectionGroup == null)
+            if (selectionGroup == null)
             {
                 Response.Headers.Add("Warning", "The requested selection group does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -524,7 +533,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
@@ -534,6 +543,15 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            // reject this request if the RootContentItem has a pending publication request
+            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
+                .Where(pr => pr.RootContentItemId == selectionGroup.RootContentItem.Id)
+                .Any(pr => pr.RequestStatus.IsActive());
+            if (blockedByPendingPublication)
+            {
+                Response.Headers.Add("Warning", "A selection group may not be deleted while this content item has a pending publication.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             List<Guid> RemovedUsers = new List<Guid>();
@@ -543,14 +561,14 @@ namespace MillimanAccessPortal.Controllers
                 using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
                 {
                     List<UserInSelectionGroup> UsersToRemove = DbContext.UserInSelectionGroup
-                        .Where(usg => usg.SelectionGroupId == SelectionGroup.Id)
+                        .Where(usg => usg.SelectionGroupId == selectionGroup.Id)
                         .ToList();
                     DbContext.UserInSelectionGroup.RemoveRange(UsersToRemove);
                     DbContext.SaveChanges();
 
                     DbContext.SelectionGroup.Remove(
                         DbContext.SelectionGroup
-                            .Where(sg => sg.Id == SelectionGroup.Id)
+                            .Where(sg => sg.Id == selectionGroup.Id)
                             .Single()
                         );
                     DbContext.SaveChanges();
@@ -570,9 +588,9 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            AuditLogger.Log(AuditEventType.SelectionGroupDeleted.ToEvent(SelectionGroup));
+            AuditLogger.Log(AuditEventType.SelectionGroupDeleted.ToEvent(selectionGroup));
 
-            SelectionGroupList Model = SelectionGroupList.Build(DbContext, SelectionGroup.RootContentItem);
+            SelectionGroupList Model = SelectionGroupList.Build(DbContext, selectionGroup.RootContentItem);
 
             return Json(Model);
         }
@@ -645,6 +663,16 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            // reject this request if the RootContentItem has a pending publication request
+            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
+                .Where(pr => pr.RootContentItemId == selectionGroup.RootContentItem.Id)
+                .Any(pr => pr.RequestStatus.IsActive());
+            if (blockedByPendingPublication)
+            {
+                Response.Headers.Add("Warning", "Selections may not be updated while this content item has a pending publication.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             if (!selectionGroup.RootContentItem.DoesReduce)
             {
                 Response.Headers.Add("Warning", "The requested selection group belongs to a root content item that cannot be reduced.");
@@ -662,16 +690,10 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // There must be no pending reduction task for this selection group
-            var pendingStatus = new List<ReductionStatusEnum>
-            {
-                ReductionStatusEnum.Queued,
-                ReductionStatusEnum.Reducing,
-                ReductionStatusEnum.Reduced,
-            };
             if (DbContext.ContentReductionTask
                 .Where(task => task.SelectionGroupId == selectionGroup.Id)
                 .Where(task => task.CreateDateTimeUtc > currentLivePublication.CreateDateTimeUtc)
-                .Any(task => pendingStatus.Contains(task.ReductionStatus)))
+                .Any(task => task.ReductionStatus.IsActive()))
             {
                 Response.Headers.Add("Warning", "An unresolved publication or selection change prevents this action.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -811,13 +833,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var CancelableStatus = new List<ReductionStatusEnum>
-            {
-                ReductionStatusEnum.Queued,
-            };
             var CancelableTasks = DbContext.ContentReductionTask
                 .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
-                .Where(crt => CancelableStatus.Contains(crt.ReductionStatus))
+                .Where(crt => crt.ReductionStatus.IsCancelable())
                 .Where(crt => crt.ContentPublicationRequestId == null);
             if (CancelableTasks.Count() == 0)
             {
