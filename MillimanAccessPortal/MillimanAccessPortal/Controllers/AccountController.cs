@@ -173,14 +173,14 @@ namespace MillimanAccessPortal.Controllers
                         ModelState.AddModelError(string.Empty, "User login is not allowed.");
                         _logger.LogWarning(2, $"User login not allowed: {model.Username}");
                         _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
-                        return View("Lockout");  // TODO need a better UX
+                        return View("Lockout");
                     }
                     else if (result.IsLockedOut)
                     {
                         ModelState.AddModelError(string.Empty, "User account is locked out.");
                         _logger.LogWarning(2, "User account locked out.");
                         _auditLogger.Log(AuditEventType.LoginIsLockedOut.ToEvent(), model.Username);
-                        return View("Lockout");  // TODO need a better UX
+                        return View("Lockout");
                     }
                     else
                     {
@@ -385,8 +385,8 @@ namespace MillimanAccessPortal.Controllers
             string accountActivationDays = _configuration["AccountActivationTokenTimespanDays"] ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays.ToString();
 
             // Non-configurable portion of email body
-            emailBody += $"To activate your new account please click the below link or paste to your web browser. {Environment.NewLine} This link will expire in {accountActivationDays} days. {Environment.NewLine}{callbackUrl}";
-            string emailSubject = "Welcome to Milliman Access Portal";
+            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}{callbackUrl}{Environment.NewLine}{Environment.NewLine}This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}If you have any questions regarding this email, please contact map.support@milliman.com";
+            string emailSubject = "Welcome to Milliman Access Portal!";
             // Send welcome email
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
         }
@@ -613,7 +613,6 @@ namespace MillimanAccessPortal.Controllers
             if (user == null)
             {
                 // Don't reveal that the user does not exist
-                // TODO but do something better than this!
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
             var result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.NewPassword);

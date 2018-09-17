@@ -172,7 +172,6 @@ function displayActionPanelIcons(canManage: boolean) {
 
 function elevatedRoles(userRoles) {
   return !!$.grep(userRoles, function isElevatedRole(role: {RoleEnum: number, IsAssigned: boolean}) {
-    // FIXME: Definition of 'elevated role' should not live here
     return [1, 3, 4].some(function matchesRole(elevatedRole) {
       return role.RoleEnum === elevatedRole;
     });
@@ -284,7 +283,7 @@ function renderUserList(response) {
 
 function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
   const parentClientId = $parentClientDiv.parent().data().clientId;
-  const $template = new card.AddChildInsertCard($parentClientDiv.parent().hasClass('card-100') ? 1 : 2).build();
+  const $template = new card.AddChildInsertCard(1).build();
 
   shared.clearForm($('#client-info'));
   $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
@@ -302,7 +301,6 @@ function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
     });
 }
 
-// TODO
 function setupClientForm() {
   shared.clearForm($('#client-info'));
   bindForm();
@@ -511,7 +509,7 @@ function renderClientNode(client, level) {
     ), () => formObject, 2),
     !client.Children.length && clientCardDeleteClickHandler,
     shared.wrapCardIconCallback(($card) => getClientDetail($card.parent(), AccessMode.Write), () => formObject),
-    level < 2 && shared.wrapCardIconCallback(($card) => {
+    level < 1 && shared.wrapCardIconCallback(($card) => {
       setupChildClientForm($card);
       formObject.accessMode = AccessMode.Write;
       $card.removeAttr('editing selected');
@@ -615,7 +613,6 @@ $(document).ready(function onReady() {
   $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
   $('.tooltip').tooltipster();
 
-  // TODO
   $('#client-info form.admin-panel-content #AcceptedEmailDomainList').selectize({
     create: function onCreate(input) {
       if (input.match(domainRegex())) {
@@ -637,7 +634,6 @@ $(document).ready(function onReady() {
     plugins: ['remove_button'],
   });
 
-  // TODO
   $('#client-info form.admin-panel-content #AcceptedEmailAddressExceptionList').selectize({
     create: function onCreate(input) {
       if (input.match(emailRegex())) {

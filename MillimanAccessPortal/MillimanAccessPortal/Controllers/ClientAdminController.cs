@@ -268,7 +268,6 @@ namespace MillimanAccessPortal.Controllers
             // 3. The user's email must match address or domain requirement of the client
             if (!Queries.DoesEmailSatisfyClientWhitelists(Model.Email, RequestedClient.AcceptedEmailDomainList, RequestedClient.AcceptedEmailAddressExceptionList))
             {
-                // TODO consider in the future, prompt to edit the whitelist
                 Response.Headers.Add("Warning", $"The requested user email ({Model.Email}) is not permitted for the requested client.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -758,7 +757,6 @@ namespace MillimanAccessPortal.Controllers
             // Make sure current user is allowed by email or domain whitelist
             if (!Queries.DoesEmailSatisfyClientWhitelists(CurrentApplicationUser.Email, Model.AcceptedEmailDomainList, Model.AcceptedEmailAddressExceptionList))
             {
-                // TODO can use a simpler expression after the whitelist fields change to List from array. 
                 Model.AcceptedEmailAddressExceptionList = Model.AcceptedEmailAddressExceptionList.Append(CurrentApplicationUser.Email).ToArray();
             }
 

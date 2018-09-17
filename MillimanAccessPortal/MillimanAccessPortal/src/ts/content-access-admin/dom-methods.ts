@@ -209,7 +209,6 @@ function renderSelections(response: SelectionsDetail) {
     .find('button').hide()
     .filter(`.button-status-${details.StatusEnum}`).show();
   $('#selection-info .blue-button').hide();
-  // TODO: rely on some flag in the response to disable checkboxes
   const readonly = [10, 20, 30].indexOf(details.StatusEnum) !== -1;
   $fieldsetDiv
     .find('input[type="checkbox"]')
@@ -299,7 +298,7 @@ function renderSelectionGroupList(response: SelectionGroupList, selectionGroupId
 }
 
 function renderRootContentItem(item: RootContentItemSummary) {
-  const $rootContentItemCard = new RootContentItemCard(
+  const rootContentItemCard = new RootContentItemCard(
     item,
     wrapCardCallback(get(
       'ContentAccessAdmin/SelectionGroups',
@@ -307,7 +306,10 @@ function renderRootContentItem(item: RootContentItemSummary) {
         renderSelectionGroupList,
       ],
     )),
-  ).build();
+  );
+  rootContentItemCard.disabled = item.ReadOnly;
+  rootContentItemCard.disabledReason = 'Selection Groups cannot be managed during publication.';
+  const $rootContentItemCard = rootContentItemCard.build();
   updateCardStatus($rootContentItemCard, item.PublicationDetails);
   $('#root-content-items ul.admin-panel-content').append($rootContentItemCard);
 }
@@ -371,7 +373,6 @@ export function setup() {
 
   $('#selection-groups ul.admin-panel-content-action')
     .append(new AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
-  // TODO: select by ID or better classes
   $('#selection-info .blue-button').click(submitSelectionForm);
   $('#selection-info .red-button').click(cancelSelectionForm);
 

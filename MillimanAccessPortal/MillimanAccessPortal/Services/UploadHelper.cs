@@ -204,6 +204,20 @@ namespace MillimanAccessPortal.Services
             #endregion
 
             #region Verify upload
+            // Guess MIME type of uploaded file and compare with provided file extension
+            using (var fileStream = File.OpenRead(concatenationFilePath))
+            {
+                if (!resumableInfo.ExtensionIsAcceptable())
+                {
+                    throw new FileUploadException(StatusCodes.Status415UnsupportedMediaType, $"Files with extension \"{resumableInfo.FileExt}\" are not accepted.");
+                }
+                if (!resumableInfo.MatchesInitialBytes(fileStream))
+                {
+                    throw new FileUploadException(StatusCodes.Status415UnsupportedMediaType, "File contents do not match extension.");
+                }
+            }
+
+            // Compute and compare checksum
             var computedChecksum = GlobalFunctions.GetFileChecksum(concatenationFilePath);
             if (!Info.Checksum.Equals(computedChecksum, StringComparison.OrdinalIgnoreCase))
             {

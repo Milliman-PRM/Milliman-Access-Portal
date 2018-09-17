@@ -104,7 +104,6 @@ namespace MillimanAccessPortal
                 switch (rootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.Qlikview:
-                        // TODO move this logic to a class in project QlikviewLib, derived from Interface or base class in MapCommonLib
                         if (files.Select(f => f.FilePurpose).Count(p => p.ToLower() == "mastercontent") > 1)
                         {
                             throw new ApplicationException("Qlikview publication request cannot contain multiple MasterContent files");

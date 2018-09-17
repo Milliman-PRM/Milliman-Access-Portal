@@ -44,10 +44,10 @@ export class FileUploadInput extends FormInput {
       progressBar.width(progress.percentage);
     };
     this.upload.onProgressMessage = () => undefined;
-    this.upload.onError = () => {
+    this.upload.onError = (message: string) => {
       const errorBar = this.$entryPoint.find('div.progress-bar-3');
       errorBar.width('100%');
-      toastr.error('An error occurred during upload.');
+      toastr.error(message);
     };
 
     this.upload.onFileAdded = (resumableFile: any) => {

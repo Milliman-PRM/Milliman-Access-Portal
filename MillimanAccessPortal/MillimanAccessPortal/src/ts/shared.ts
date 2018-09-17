@@ -243,7 +243,7 @@ export function get<T>(url: string, callbacks: Array<(response: T) => void>) {
 export function set<T>(method: string, url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
   return (data: any, onResponse: () => void, buttonText: string) => {
     if (ajaxStatus[url]) {
-      return; // TODO: do something when a request has already been sent
+      return;
     }
     showButtonSpinner($('.vex-first').attr('disabled', ''), buttonText);
     ajaxStatus[url] = true;
@@ -417,7 +417,6 @@ export function eligibleUserMatcher(query: string, callback: (matches: any) => v
 }
 
 // Card helpers
-// TODO: consider moving to card.js
 export function updateCardStatus($card, reductionDetails) {
   const $statusContainer = $card.find('.card-status-container');
   const $statusName = $statusContainer.find('strong');
@@ -479,13 +478,10 @@ export function updateFormStatusButtons() {
 }
 
 // Dialog helpers
-// TODO: consider moving to dialog.js
 export function confirmAndContinue(dialogConstructor, form?: FormBase, onContinue?) {
   if (form && form.modified) {
     new dialogConstructor(() => {
       // Assigning to access mode forces the form to reset
-      // FIXME: this is really unintuitive - use function instead of getters
-      //   and setters since there are side effects
       form.accessMode = form.accessMode;
       if (onContinue) {
         onContinue();
