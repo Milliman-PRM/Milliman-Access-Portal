@@ -53,6 +53,8 @@ namespace MapTests
     /// </summary>
     internal class TestInitialization
     {
+        private static object ConfigLockObject = new object();
+
         #region declarations of managed dependencies
         public Mock<ApplicationDbContext> MockDbContext { get; set; }
         public ApplicationDbContext DbContextObject { get => MockDbContext.Object; }
@@ -72,11 +74,12 @@ namespace MapTests
         public Mock<IUploadHelper> MockUploadHelper { get; set; }
         public IUploadHelper UploadHelperObject { get => MockUploadHelper.Object; }
 
-        public Mock<IConfiguration> MockConfiguration { get; set; }
-        public IConfiguration ConfigurationObject { get => MockConfiguration.Object; }
+        private static IConfiguration _AppConfiguration = null;
+        public IConfiguration ConfigurationObject { get { return GenerateConfiguration(); } }
 
         public Mock<IServiceProvider> MockServiceProvider { get; set; }
         public IServiceProvider ServiceProviderObject { get => MockServiceProvider.Object; }
+
         public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
@@ -108,6 +111,7 @@ namespace MapTests
                 { DataSelection.SystemAdmin, GenerateSystemAdminTestData },
             };
         }
+
         /// <summary>
         /// Initializes a ControllerContext based on a user name. 
         /// </summary>
@@ -156,7 +160,6 @@ namespace MapTests
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject, MockAuditLogger.Object);
-            MockConfiguration = GenerateMockConfiguration();
             MockServiceProvider = GenerateServiceProvider();
         }
 
@@ -186,44 +189,15 @@ namespace MapTests
 
         private IOptions<QlikviewConfig> BuildQvConfig()
         {
-            var configurationBuilder = new ConfigurationBuilder();
-            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
-            // Determine location to fetch the configuration
-            switch (environmentName)
-            {
-                case "CI":
-                case "Production": // Get configuration from Azure Key Vault for Production
-                    configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
-
-                    var built = configurationBuilder.Build();
-
-                    var store = new X509Store(StoreLocation.LocalMachine);
-                    store.Open(OpenFlags.ReadOnly);
-                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
-
-                    configurationBuilder.AddAzureKeyVault(
-                        built["AzureVaultName"],
-                        built["AzureClientID"],
-                        cert.OfType<X509Certificate2>().Single());
-                    break;
-
-                default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
-                    configurationBuilder.AddUserSecrets<TestInitialization>();
-                    break;
-            }
-
-            var configuration = configurationBuilder.Build();
-
             return Options.Create(new QlikviewConfig
             {
-                QvServerHost = configuration["QvServerHost"],
-                QvServerAdminUserAuthenticationDomain = configuration["QvServerAdminUserAuthenticationDomain"],
-                QvServerAdminUserName = configuration["QvServerAdminUserName"],
-                QvServerAdminUserPassword = configuration["QvServerAdminUserPassword"],
-                QvServerContentUriSubfolder = configuration["QvServerContentUriSubfolder"],
-                QdsQmsApiUrl = configuration["QdsQmsApiUrl"],
-                QvsQmsApiUrl = configuration["QvsQmsApiUrl"]
+                QvServerHost = ConfigurationObject["QvServerHost"],
+                QvServerAdminUserAuthenticationDomain = ConfigurationObject["QvServerAdminUserAuthenticationDomain"],
+                QvServerAdminUserName = ConfigurationObject["QvServerAdminUserName"],
+                QvServerAdminUserPassword = ConfigurationObject["QvServerAdminUserPassword"],
+                QvServerContentUriSubfolder = ConfigurationObject["QvServerContentUriSubfolder"],
+                QdsQmsApiUrl = ConfigurationObject["QdsQmsApiUrl"],
+                QvsQmsApiUrl = ConfigurationObject["QvsQmsApiUrl"]
             });
         }
 
@@ -300,11 +274,45 @@ namespace MapTests
             return mock;
         }
 
-        private Mock<IConfiguration> GenerateMockConfiguration()
+        private IConfiguration GenerateConfiguration()
         {
-            Mock<IConfiguration> mock = new Mock<IConfiguration>();
-            mock.SetupGet(m => m[It.IsAny<string>()]).Returns("");
-            return mock;
+            lock(ConfigLockObject)
+            {
+                if (_AppConfiguration == null)
+                {
+                    var configurationBuilder = new ConfigurationBuilder();
+                    string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+                    // Determine location to fetch the configuration
+                    switch (environmentName)
+                    {
+                        case "CI": // Get configuration from Azure Key Vault for CI
+                        case "Production": // Get configuration from Azure Key Vault for Production
+                            configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
+
+                            var built = configurationBuilder.Build();
+
+                            var store = new X509Store(StoreLocation.LocalMachine);
+                            store.Open(OpenFlags.ReadOnly);
+                            var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+
+                            configurationBuilder.AddAzureKeyVault(
+                                built["AzureVaultName"],
+                                built["AzureClientID"],
+                                cert.OfType<X509Certificate2>().Single());
+                            configurationBuilder.AddJsonFile(path: $"appsettings.{environmentName}.json", optional: true);
+                            break;
+
+                        default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
+                            configurationBuilder.AddUserSecrets<TestInitialization>();
+                            break;
+                    }
+
+                    _AppConfiguration = configurationBuilder.Build();
+                }
+            }
+
+            return _AppConfiguration;
         }
 
         private void GenerateBasicTestData()

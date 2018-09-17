@@ -64,6 +64,9 @@
     <Content Update="appsettings.AzureCI.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Update="appsettings.CI.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Update="appsettings.Production.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -72,6 +75,9 @@
     </Content>
     <Content Update="AzureKeyVault.AzureCI.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="AzureKeyVault.CI.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="AzureKeyVault.Production.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

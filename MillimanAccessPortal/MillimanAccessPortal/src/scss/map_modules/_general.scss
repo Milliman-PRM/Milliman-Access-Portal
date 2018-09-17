@@ -14,6 +14,11 @@
     bottom: auto;
     transform: translate(-50%, -50%);
     padding: 40vh 40vw;
+
+    &.screen-center-text {
+        padding: 0;
+        text-align: center;
+    }
 }
 
 @include for-tablet-down {

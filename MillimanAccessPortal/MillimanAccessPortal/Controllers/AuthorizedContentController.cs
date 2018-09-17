@@ -23,8 +23,11 @@ using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AuthorizedContentViewModels;
+using MillimanAccessPortal.Services;
+using MillimanAccessPortal.Utilities;
 using QlikviewLib;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,6 +41,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext DataContext;
+        private readonly IMessageQueue MessageQueue;
         private readonly ILogger Logger;
         private readonly QlikviewConfig QlikviewConfig;
         private readonly StandardQueries Queries;
@@ -59,6 +63,7 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext DataContextArg,
+            IMessageQueue MessageQueueArg,
             ILoggerFactory LoggerFactoryArg,
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             StandardQueries QueryArg,
@@ -68,6 +73,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DataContext = DataContextArg;
+            MessageQueue = MessageQueueArg;
             Logger = LoggerFactoryArg.CreateLogger<AuthorizedContentController>();
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             Queries = QueryArg;
@@ -102,6 +108,8 @@ namespace MillimanAccessPortal.Controllers
             var selectionGroup = DataContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rc => rc.ContentType)
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rc => rc.Client)
                 .Where(sg => sg.Id == selectionGroupId)
                 .Where(sg => !sg.IsSuspended)
                 .Where(sg => !sg.RootContentItem.IsSuspended)
@@ -125,6 +133,35 @@ namespace MillimanAccessPortal.Controllers
 
                 Response.Headers.Add("Warning", "You are not authorized to access the requested content");
                 return Unauthorized();
+            }
+            #endregion
+
+            #region File Verification 
+            var contentFile = selectionGroup.IsMaster
+                ? selectionGroup.RootContentItem.ContentFilesList.FirstOrDefault(f => f.FullPath.EndsWith(selectionGroup.ContentInstanceUrl))
+                : new ContentRelatedFile { FullPath = Path.Combine(ApplicationConfig["Storage:ContentItemRootPath"], selectionGroup.ContentInstanceUrl),
+                                           Checksum = selectionGroup.ReducedContentChecksum };
+
+            if (contentFile == null)
+            {
+                Response.Headers.Add("Warning", "This content could not be found. Try again in a few minutes, and contact MAP Support if this error continues.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            // Make sure the checksum currently matches the value stored at the time the file went live
+            if (!contentFile.ValidateChecksum())
+            {
+                var ErrMsg = new List<string>
+                {
+                    $"The system could not validate the file for content item {selectionGroup.RootContentItem.ContentName}, selection group {selectionGroup.GroupName}.",
+                    $"Please contact MAP Support if this error continues.",
+                };
+                string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Root content: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
+                var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
+
+                notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
+                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
+                return View("ContentMessage", ErrMsg);
             }
             #endregion
 
@@ -152,12 +189,12 @@ namespace MillimanAccessPortal.Controllers
                 UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig);
 
                 // Now return the appropriate view for the requested content
-                switch (selectionGroup.RootContentItem.ContentType.Name)
+                switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
                 {
-                    case "Qlikview":
+                    case ContentTypeEnum.Qlikview:
                         return Redirect(ContentUri.Uri.AbsoluteUri);
 
-                    //case "Another web hosted type":
+                    //case ContentTypeEnum.Another:
                         //return TheRightThing;
 
                     default:
@@ -170,7 +207,7 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (MapException e)
             {
-                TempData["Message"] = $"{e.Message}<br>{e.StackTrace}";
+                TempData["Message"] = GlobalFunctions.LoggableExceptionString(e, "Exception:", true, true, true);
                 TempData["ReturnToController"] = "AuthorizedContent";
                 TempData["ReturnToAction"] = "Index";
                 return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
@@ -299,6 +336,7 @@ namespace MillimanAccessPortal.Controllers
         {
             var selectionGroup = DataContext.SelectionGroup
                                             .Include(sg => sg.RootContentItem)
+                                                .ThenInclude(rc => rc.Client)
                                             .FirstOrDefault(sg => sg.Id == selectionGroupId);
 
             #region Validation
@@ -321,11 +359,32 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+
+            #region File verification
+
+            ContentRelatedFile contentRelatedPdf = selectionGroup.RootContentItem.ContentFilesList.Single(cf => cf.FilePurpose.ToLower() == purpose.ToLower());
+
+            if (!contentRelatedPdf.ValidateChecksum())
+            {
+                
+                var ErrMsg = new List<string>
+                {
+                    $"The system could not validate the {purpose} PDF for selection group {selectionGroup.GroupName}.",
+                    $"Please contact MAP Support if this error continues.",
+                };
+                string MailMsg = $"The {purpose} PDF for the below content item failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Root content: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
+                var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
+
+                notifier.sendSupportMail(MailMsg, $"Checksum verification ({purpose})");
+                Logger.LogError(String.Join(" ", ErrMsg));
+                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
+                return View("ContentMessage", ErrMsg);
+            }
+            #endregion
+
             try
             {
-                ContentRelatedFile contentRelatedPdf = selectionGroup.RootContentItem.ContentFilesList.Single(cf => cf.FilePurpose.ToLower() == purpose.ToLower());
                 FileStream fileStream = System.IO.File.OpenRead(contentRelatedPdf.FullPath);
-
                 return File(fileStream, "application/pdf");
             }
             catch
