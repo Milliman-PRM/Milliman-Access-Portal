@@ -72,6 +72,7 @@ namespace MapTests
         public Mock<IUploadHelper> MockUploadHelper { get; set; }
         public IUploadHelper UploadHelperObject { get => MockUploadHelper.Object; }
 
+        private IConfiguration _AppConfiguration = null;
         public IConfiguration ConfigurationObject { get { return GenerateConfiguration(); } }
 
         public Mock<IServiceProvider> MockServiceProvider { get; set; }
@@ -108,6 +109,7 @@ namespace MapTests
                 { DataSelection.SystemAdmin, GenerateSystemAdminTestData },
             };
         }
+
         /// <summary>
         /// Initializes a ControllerContext based on a user name. 
         /// </summary>
@@ -274,37 +276,40 @@ namespace MapTests
 
         private IConfiguration GenerateConfiguration()
         {
-            var configurationBuilder = new ConfigurationBuilder();
-            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
-            // Determine location to fetch the configuration
-            switch (environmentName)
+            if (_AppConfiguration == null)
             {
-                case "CI": // Get configuration from Azure Key Vault for CI
-                case "Production": // Get configuration from Azure Key Vault for Production
-                    configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
+                var configurationBuilder = new ConfigurationBuilder();
+                string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-                    var built = configurationBuilder.Build();
+                // Determine location to fetch the configuration
+                switch (environmentName)
+                {
+                    case "CI": // Get configuration from Azure Key Vault for CI
+                    case "Production": // Get configuration from Azure Key Vault for Production
+                        configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
 
-                    var store = new X509Store(StoreLocation.LocalMachine);
-                    store.Open(OpenFlags.ReadOnly);
-                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+                        var built = configurationBuilder.Build();
 
-                    configurationBuilder.AddAzureKeyVault(
-                        built["AzureVaultName"],
-                        built["AzureClientID"],
-                        cert.OfType<X509Certificate2>().Single());
-                    configurationBuilder.AddJsonFile(path: $"appsettings.{environmentName}.json", optional: true);
-                    break;
+                        var store = new X509Store(StoreLocation.LocalMachine);
+                        store.Open(OpenFlags.ReadOnly);
+                        var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
-                default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
-                    configurationBuilder.AddUserSecrets<TestInitialization>();
-                    break;
+                        configurationBuilder.AddAzureKeyVault(
+                            built["AzureVaultName"],
+                            built["AzureClientID"],
+                            cert.OfType<X509Certificate2>().Single());
+                        configurationBuilder.AddJsonFile(path: $"appsettings.{environmentName}.json", optional: true);
+                        break;
+
+                    default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
+                        configurationBuilder.AddUserSecrets<TestInitialization>();
+                        break;
+                }
+
+                _AppConfiguration = configurationBuilder.Build();
             }
 
-            var ReturnConfiguration = configurationBuilder.Build();
-
-            return ReturnConfiguration;
+            return _AppConfiguration;
         }
 
         private void GenerateBasicTestData()
