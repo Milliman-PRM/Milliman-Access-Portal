@@ -1,0 +1,36 @@
+@mixin generate-flex-items($label: "") {
+
+    /* Content Item Alignment */
+    .align-self-start#{$label}   { align-self: flex-start; }
+    .align-self-center#{$label}  { align-self: center;     }
+    .align-self-end#{$label}     { align-self: flex-end;   }
+    .align-self-stretch#{$label} { align-self: stretch;    }
+    
+    /* Content Item Flex Growth */
+    .content-item-flex-none#{$label} { flex: none;}
+    .content-item-flex-0#{$label}    { flex: 0;   }
+    .content-item-flex-1#{$label}    { flex: 1;   }
+    .content-item-flex-2#{$label}    { flex: 2;   }
+
+    /* Content Item Order */
+    @for $i from 1 through 10 {
+        .content-item-order-#{$i}#{$label} { order: $i; }
+    }
+
+
+    /* Flex grid */
+    @each $denominator in 10, 12 {
+
+        @for $numerator from 1 through $denominator {
+
+            .flex-item#{$label}-#{$numerator}-#{$denominator} {
+                -ms-flex:      0 0 percentage($numerator/$denominator);
+                flex:          0 0 percentage($numerator/$denominator);
+                max-width:     percentage($numerator/$denominator);
+                min-height:    1px;
+                padding-right: 0;
+                padding-left:  0;
+            }
+        }
+    }
+}

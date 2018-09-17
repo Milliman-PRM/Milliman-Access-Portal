@@ -1,0 +1,30 @@
+﻿/* Flex Containers */
+@include generate-flex-container-classes();
+
+/* Flex Items */
+@include generate-flex-items();
+
+@include for-phone-only {
+    @include generate-flex-container-classes(-for-phone-only);
+    @include generate-flex-items(-for-phone-only);
+}
+
+@include for-tablet-up {
+    @include generate-flex-container-classes(-for-tablet-up);
+    @include generate-flex-items(-for-tablet-up);
+}
+
+@include for-laptop-up {
+    @include generate-flex-container-classes(-for-laptop-up);
+    @include generate-flex-items(-for-laptop-up);
+}
+
+@include for-desktop-up {
+    @include generate-flex-container-classes(-for-desktop-up);
+    @include generate-flex-items(-for-desktop-up);
+}
+
+@include for-big-desktop-up {
+    @include generate-flex-container-classes(-for-big-desktop-up);
+    @include generate-flex-items(-for-big-desktop-up);
+}

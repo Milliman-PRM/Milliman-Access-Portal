@@ -1,0 +1,9 @@
+@using MillimanAccessPortal.Models.ClientAdminViewModels
+
+@model List<SelectableNamedThing>
+
+@for (int Index=0; Index < Model.LongCount(); Index++)
+{
+    @Html.EditorFor(x=>x[Index], "SelectableNamedThing")
+}
+<br />

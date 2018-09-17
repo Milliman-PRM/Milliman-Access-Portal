@@ -1,0 +1,57 @@
+﻿.vex.vex-theme-default.screen-center {
+    padding: 40vh 40vw !important;
+}
+
+
+.vex-content {
+    background-color: $white !important;
+    padding-top: 0 !important;
+    border: 2px solid $black;
+    overflow: hidden;
+
+    .vex-dialog-message {
+        margin-bottom: 1rem !important;
+    }
+
+    .vex-title-wrapper {
+        overflow: hidden;
+        border-radius: 3px;
+        margin: -1px -1em 0 -1em;
+        padding: 0 1em;
+
+        .vex-custom-title {
+            border-bottom: 1px solid $black;
+            line-height: 2em;
+            margin: 0 -1em 1.5rem;
+            padding: 0 1em;
+
+            &.blue {
+                color: $white !important;
+                background-color: $blue !important;
+            }
+
+            &.green {
+                color: $white !important;
+                background-color: $green !important;
+            }
+
+            &.red {
+                color: $white !important;
+                background-color: $red !important;
+            }
+        }
+    }
+
+    .vex-dialog-input input {
+        border: none;
+        border-bottom: 1px solid $charcoal !important;
+        border-radius: 0;
+        background-color: transparent;
+
+        &:focus {
+            border-bottom: 1px solid $blue !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+    }
+}

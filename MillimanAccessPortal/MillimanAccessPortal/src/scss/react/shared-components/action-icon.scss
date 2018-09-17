@@ -1,0 +1,24 @@
+﻿@import "../../map_modules/variables";
+
+
+.action-icon-container,
+.action-icon-container-inline {
+    margin-left: .5em !important;
+
+    .action-icon {
+        height: 1.5em;
+        width: 1.5em;
+
+        &:hover {
+            color: darken($charcoal, 15%);
+        }
+    }
+}
+
+.action-icon-container {
+    display: flex;
+}
+
+.action-icon-container-inline {
+    display: inline;
+}

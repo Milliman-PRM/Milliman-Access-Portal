@@ -1,0 +1,53 @@
+@using System.Collections.Generic
+@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Http.Authentication
+@using MapDbContextLib.Identity
+@model LoginViewModel
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    ViewData["Title"] = "Log in";
+    Layout = "_Layout";
+}
+
+@section CSS {
+  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+  <% } %>
+}
+
+@section Scripts {
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+}
+
+<div id="login-wrapper">
+
+    <section id="login-container">
+        <div id="login-form-container">
+            <div id="login-logo-container">
+                <svg id="login-logo" alt="Milliman Access Portal">
+                    <use xlink:href="#map-logo"></use>
+                </svg>
+            </div>
+            <form id="login-form" autocomplete="off" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+                <div class="login-form-input-container">
+                    <input asp-for="Username" id="username" placeholder="Username" autofocus>
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+                <div class="login-form-input-container">
+                    <input asp-for="Password" id="password" placeholder="Password">
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="login-form-button-container">
+                    <a asp-action="ForgotPassword" class="link-button">Forgot Password</a>
+                    <button type="submit" class="blue-button">Login</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    @Html.Partial("_Footer")
+</div>

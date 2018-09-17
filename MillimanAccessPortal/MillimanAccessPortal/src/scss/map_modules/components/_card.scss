@@ -1,0 +1,505 @@
+﻿/* Card */
+
+.card-container {
+    position: relative;
+    padding: 0;
+    padding-top: 1em;
+    margin-top: 0;
+    margin-bottom: 1em;
+    cursor: pointer;
+    border-radius: .25em;
+
+    .card-status-container {
+        margin-top: -0.5em;
+        padding: 0.5em;
+        padding-top: 0.75em;
+        padding-left: 1em;
+        border-radius: .25em;
+        display: none;
+
+        em:before {
+            content: "(created by ";
+        }
+
+        em:after {
+            content: ")";
+        }
+
+        &.status-9 {
+            display: block;
+        }
+
+        &.status-10 {
+            display: block;
+        }
+
+        &.status-20 {
+            display: block;
+        }
+
+        &.status-30 {
+            display: block;
+        }
+    }
+
+    .card-body-container {
+        position: relative;
+        display: flex;
+        flex-flow: row wrap;
+        justify-content: flex-start;
+        align-content: stretch;
+        background-color: $white;
+        border: 2px solid $charcoal;
+        border-radius: .25em;
+
+        &:hover {
+            box-shadow: rgba(0, 0, 0, .3) .2em .2em .75em;
+        }
+
+        &[disabled] {
+            color: $dark-grey !important;
+            background-color: darken($light-grey, 5%) !important;
+
+            &[selected],
+            &.selected {
+                border-color: $blue;
+                box-shadow: 0 0 0 3px $blue;
+            }
+        }
+
+        &[selected],
+        &.selected {
+            color: $white;
+            background-color: $blue;
+        }
+
+        &.suspended {
+            border-color: $red;
+        }
+
+        .card-body-main-container {
+            position: relative;
+            padding: .25em;
+            margin: 0;
+            width: 100%;
+            flex: 1 0 auto;
+            flex-flow: row nowrap;
+            justify-content: flex-start;
+            align-items: stretch;
+            align-content: stretch;
+            display: flex;
+            min-height: 5em;
+
+            &.full-width {
+                flex: 1 0 auto;
+            }
+
+            .card-body-primary-container {
+                display: inline-block;
+                flex: 1;
+                padding: 0 .5em;
+                margin: auto;
+                width: 100%;
+                overflow: hidden;
+
+                .card-body-primary-text,
+                .card-body-primary-text-box {
+                    margin: 0;
+
+                    h2 {
+                        margin-bottom: 0;
+                        border: 1px solid transparent;
+                    }
+
+                    input {
+                        padding: 0;
+                        border: 1px solid $blue;
+                        font-size: 1.5em;
+                        font-weight: bold;
+                    }
+
+                    &:disabled {
+                        background-color: transparent;
+                        border-color: transparent;
+                    }
+                }
+
+                .card-body-secondary-text {
+                    display: inline-block;
+                    margin: 0;
+                    width: 75%;
+                }
+            }
+
+            .card-body-primary-text,
+            .card-body-primary-text-box {
+
+                &.indent-level-0 {
+                    font-size: 2rem;
+                }
+
+                &.indent-level-1 {
+                    font-size: 1.5rem;
+                }
+
+                &.indent-level-2 {
+                    font-size: 1.17rem;
+                }
+            }
+
+            .card-body-secondary-container {
+                position: relative;
+                text-align: center;
+                flex: 0 1 auto;
+                margin: auto;
+
+                .card-user-icon {
+                    height: 4rem;
+                    width: 4rem;
+                }
+
+                .card-user-role-indicator {
+                    position: absolute;
+                    top: 15%;
+                    left: 70%;
+                    height: 1.25rem;
+                    width: 1.25rem;
+                    color: $green;
+                    stroke: context-fill $green;
+                    stroke-width: 3px;
+                }
+            }
+
+            .card-progress {
+                position: relative;
+                margin-top: 0.5em;
+                margin-bottom: 0.5em;
+
+                .card-progress-status {
+                    display: flex;
+
+                    .card-progress-status-text {
+                        font-style: italic;
+                        font-weight: normal;
+                        flex: 1;
+                        height: 1em;
+                        margin-bottom: 0;
+                        color: $dark-grey;
+                        font-size: 0.8em;
+                    }
+
+                    .card-progress-status-btn {
+                        flex: 0;
+                        margin-left: 0.2em;
+                        height: 1em;
+                        margin-bottom: 0.4em;
+                        visibility: hidden;
+
+                        &:hover {
+                            background-color: hotpink;
+                        }
+
+                        .card-button-icon {
+                            width: 1em;
+                            height: 1em;
+                        }
+                    }
+                }
+
+                .card-progress-bars {
+                    position: relative;
+                    display: block;
+                    height: 0.8em;
+                    border: 1px solid $dark-grey;
+
+                    .card-progress-bar-1 {
+                        position: absolute;
+                        background-color: rgb(100, 200, 255);
+                        width: 0;
+                        height: 100%;
+                    }
+
+                    .card-progress-bar-2 {
+                        position: absolute;
+                        background-color: rgb(0, 235, 0);
+                        width: 0;
+                        height: 100%;
+                    }
+                }
+            }
+        }
+
+        .card-stats-container {
+            display: flex;
+            flex-flow: column nowrap;
+            margin: -0.25em;
+
+            .card-stat-container {
+                flex: 1 0 auto;
+                display: flex;
+                flex-flow: row nowrap;
+                align-items: center;
+                margin: 0;
+                padding: .25em 0;
+                min-width: 6.5em;
+                background-color: $charcoal;
+                color: $white;
+
+                .card-stat-icon {
+                    margin-left: .5em;
+                    height: 2em;
+                    width: 2em;
+                }
+
+                .card-stat-value {
+                    flex: 1;
+                    margin-left: .75em;
+                }
+            }
+        }
+
+        .card-button-side-container {
+            position: absolute;
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: space-between;
+            right: 0;
+            top: 50%;
+            /*text-align: right;*/
+            transform: translate(50%, -50%);
+        }
+
+        .card-button-bottom-container {
+            position: absolute;
+            display: inline;
+            right: 1.5em;
+            bottom: 0;
+            transform: translate(0, 50%);
+            cursor: pointer;
+
+            .card-expansion-button {
+                background-color: $green;
+
+                &:hover {
+                    background-color: darken($green, 5%);
+                }
+            }
+        }
+
+        .card-button-background {
+            border-radius: 50%;
+            display: flex;
+            padding: .25em;
+            border: 2px solid $light-grey;
+            margin-top: .25em;
+            margin-bottom: .25em;
+            transform-origin: center center;
+            color: $white;
+            transition: .2s all linear;
+            position: relative;
+
+            &.card-button-red,
+            &.card-button-delete,
+            &.card-button-remove-user,
+            &.card-button-close {
+                background-color: $red;
+
+                &:hover {
+                    background-color: darken($red, 5%);
+                }
+            }
+
+            &.card-button-blue,
+            &.card-button-edit,
+            &.card-button-options,
+            &.card-button-expansion {
+                background-color: $blue;
+
+                &:hover {
+                    background-color: darken($blue, 5%);
+                }
+            }
+
+            &.card-button-green,
+            &.card-button-add,
+            &.card-button-new-child {
+                background-color: $green;
+
+                &:hover {
+                    background-color: darken($green, 5%);
+                }
+            }
+
+            &:hover {
+                transform: scale(1.25);
+                transform-origin: center center;
+            }
+
+            .card-button-icon {
+                height: 1.3em;
+                width: 1.3em;
+                color: white;
+                line-height: inherit;
+            }
+
+            .card-button-clickable {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 0;
+                bottom: 0;
+            }
+        }
+
+
+        .card-expansion-container {
+            overflow: hidden;
+            padding: .25em .75em;
+            border-top: 1px solid $light-grey;
+            margin: 0 .25em;
+            max-height: 0;
+            width: 100%;
+            border: none;
+            padding: 0 .75em;
+            transition: .25s all linear;
+            cursor: default;
+
+            &[maximized],
+            &.maximized {
+                max-height: 15.5em;
+                overflow: visible;
+                transition: .25s all linear;
+
+                .card-button-expansion {
+                    -webkit-transform: rotateX(180deg);
+                    -moz-transform: rotateX(180deg);
+                    -o-transform: rotateX(180deg);
+                    -ms-transform: rotateX(180deg);
+                    transform: rotateX(180deg);
+                    transition: .25s all linear;
+                }
+            }
+
+            .card-expansion-category-label {
+                font-weight: bold;
+                margin-bottom: .25rem;
+            }
+
+            .detail-item {
+                padding: 0 .25em;
+                margin-left: .75em;
+                border: 1px solid $charcoal;
+                color: $charcoal;
+                background-color: $light-grey;
+
+                &:last-of-type {
+                    margin-bottom: 1.25em;
+                }
+            }
+
+            ul {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+
+                .detail-item-user {
+                    display: flex;
+                    flex-flow: row nowrap;
+                    align-items: center;
+                    margin-bottom: .5em;
+
+                    .detail-item-user-icon {
+                        display: flex;
+                        flex-flow: column nowrap;
+                        justify-content: center;
+
+                        .card-user-icon {
+                            height: 3em;
+                            width: 3em;
+                        }
+                    }
+
+                    .detail-item-user-remove {
+                        display: flex;
+                        flex-flow: column nowrap;
+                        justify-content: center;
+
+                        .card-button-background {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 2em;
+                            height: 2em;
+                            margin: .5em;
+                            cursor: pointer;
+                        }
+                    }
+
+                    .detail-item-user-name {
+                        display: inline-block;
+                        padding: 0 .25em 0 .5em;
+                        border-left: 1px solid $light-grey;
+
+                        .first-last {
+                            margin: 0;
+                        }
+                    }
+                }
+            }
+
+            .detail-item-user-create {
+                display: flex;
+                flex-flow: row nowrap;
+                justify-content: center;
+                white-space: nowrap;
+                margin-bottom: 1.25em;
+
+                .detail-item-user-add {
+                    flex: none;
+
+                    .card-button-background {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 2em;
+                        height: 2em;
+                        margin: .5em;
+                        cursor: pointer;
+                    }
+                }
+
+                .detail-item-user-input {
+                    flex: 1;
+                    padding: .5em;
+                }
+            }
+        }
+    }
+}
+
+.hr {
+    height: .1em;
+    border: 1px solid $charcoal;
+    margin: 0 0 1em;
+    padding: 0;
+}
+
+.action-card,
+.insert-card {
+    .card-body-primary-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .action-card-icon,
+        .new-child-icon {
+            height: 2em;
+            width: 2em;
+            margin: 0 .25em;
+        }
+
+        .new-child-icon {
+            transform: rotate(-90deg);
+        }
+    }
+}

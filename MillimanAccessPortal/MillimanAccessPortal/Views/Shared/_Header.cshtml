@@ -1,0 +1,19 @@
+﻿<header id="page-header">
+    @if (ViewData["Title"] != null)
+    {
+        <h1 id="page-title">@ViewData["Title"]</h1>
+    }
+    <div id="header-logo-container">
+        <a href="@Url.Action("Index", "AuthorizedContent")">
+            <svg id="header-logo" alt="Milliman Access Portal">
+                <use xlink:href="#map-logo"></use>
+            </svg>
+        </a>
+        @{ 
+            if (User.Identity.IsAuthenticated)
+            {
+                <span id="username">@Html.ActionLink(User.Identity.Name, "AccountSettings", "Account")</span>
+            }
+        }
+    </div>
+</header>

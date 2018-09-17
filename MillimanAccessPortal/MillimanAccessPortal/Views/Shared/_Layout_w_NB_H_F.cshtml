@@ -1,0 +1,23 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+@section CSS {
+    @RenderSection("CSS", required: false)
+}
+
+@Html.AntiForgeryToken()
+
+<div id="content-wrapper" class="navbar-offset">
+    @Html.Partial("_Header")
+    <div id="content-container">
+        @RenderBody()
+    </div>
+    @Html.Partial("_Footer")
+</div>
+
+
+
+@section Scripts {
+    @RenderSection("Scripts", required: false)
+}
