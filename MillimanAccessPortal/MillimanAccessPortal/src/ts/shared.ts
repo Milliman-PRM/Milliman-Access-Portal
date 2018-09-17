@@ -243,7 +243,7 @@ export function get<T>(url: string, callbacks: Array<(response: T) => void>) {
 export function set<T>(method: string, url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
   return (data: any, onResponse: () => void, buttonText: string) => {
     if (ajaxStatus[url]) {
-      return; // TODO: do something when a request has already been sent
+      return;
     }
     showButtonSpinner($('.vex-first').attr('disabled', ''), buttonText);
     ajaxStatus[url] = true;
@@ -482,8 +482,6 @@ export function confirmAndContinue(dialogConstructor, form?: FormBase, onContinu
   if (form && form.modified) {
     new dialogConstructor(() => {
       // Assigning to access mode forces the form to reset
-      // FIXME: this is really unintuitive - use function instead of getters
-      //   and setters since there are side effects
       form.accessMode = form.accessMode;
       if (onContinue) {
         onContinue();

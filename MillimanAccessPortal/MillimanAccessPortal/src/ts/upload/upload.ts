@@ -240,10 +240,9 @@ export class Upload {
     return this.checksum !== null || this.fileGUID !== null || this.cancelable;
   }
 
+  // Get request for already-received chunks
   private getChunkStatus() {
-    // Not implemented
-    // TODO: get request for already-received chunks
-    // TODO: set `this.resumable.files[0].chunks[n].tested = true;` for already received
+    // Not implemented, see issue #278
   }
 
 }

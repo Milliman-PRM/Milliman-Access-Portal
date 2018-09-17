@@ -96,7 +96,6 @@ namespace MillimanAccessPortal
 
                 if (DateTime.UtcNow > expireTimeUtc)
                 {
-                    // TODO log something
                     return;
                 }
 

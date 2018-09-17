@@ -172,7 +172,6 @@ function displayActionPanelIcons(canManage: boolean) {
 
 function elevatedRoles(userRoles) {
   return !!$.grep(userRoles, function isElevatedRole(role: {RoleEnum: number, IsAssigned: boolean}) {
-    // FIXME: Definition of 'elevated role' should not live here
     return [1, 3, 4].some(function matchesRole(elevatedRole) {
       return role.RoleEnum === elevatedRole;
     });

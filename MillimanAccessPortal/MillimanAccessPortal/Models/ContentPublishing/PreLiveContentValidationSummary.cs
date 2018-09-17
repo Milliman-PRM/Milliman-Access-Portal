@@ -108,7 +108,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         switch (PubRequest.RootContentItem.ContentType.TypeEnum)
                         {
                             case ContentTypeEnum.Qlikview:
-                                // TODO authorize this document.  This is not the production file name.
                                 await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(Path.GetDirectoryName(Link), ContentTypeConfig as QlikviewConfig, Path.GetFileName(Link));
 
                                 UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, Context.User.Identity.Name, ContentTypeConfig);
