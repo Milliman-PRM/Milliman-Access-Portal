@@ -123,8 +123,8 @@ namespace MapCommonLib
 
         public static string GenerateErrorMessage(IConfiguration configuration, string subject)
         {
-            string messageTemplate = "An error occured. Please contact <a href=\"mailto:map.support@milliman.com?subject={0}\">map.support@milliman.com</a> for assistance.";
-            return String.Format(messageTemplate, subject);
+            string messageTemplate = configuration.GetSection("Global")["ErrorMessageTemplate"];
+            return string.Format(messageTemplate, subject);
         }
     }
 }
