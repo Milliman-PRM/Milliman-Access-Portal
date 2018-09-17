@@ -63,7 +63,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await GetCurrentUserAsync();
             if (user == null)
             {
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Management Error"));
             }
             var model = new IndexViewModel
             {
@@ -118,7 +118,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await GetCurrentUserAsync();
             if (user == null)
             {
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Phone Number Error"));
             }
             var code = await _userManager.GenerateChangePhoneNumberTokenAsync(user, model.PhoneNumber);
             return RedirectToAction(nameof(VerifyPhoneNumber), new { PhoneNumber = model.PhoneNumber });
@@ -164,12 +164,12 @@ namespace MillimanAccessPortal.Controllers
             var user = await GetCurrentUserAsync();
             if (user == null)
             {
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Verify Phone Number Error"));
             }
             var code = await _userManager.GenerateChangePhoneNumberTokenAsync(user, phoneNumber);
             // Send an SMS to verify the phone number
             return phoneNumber == null
-                ? View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""))
+                ? View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Verify Phone Number Error"))
                 : View(new VerifyPhoneNumberViewModel { PhoneNumber = phoneNumber });
         }
 
@@ -298,7 +298,7 @@ namespace MillimanAccessPortal.Controllers
         //    var user = await GetCurrentUserAsync();
         //    if (user == null)
         //    {
-        //        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
+        //        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "External Login Error"));
         //    }
         //    var userLogins = await _userManager.GetLoginsAsync(user);
         //    var schemes = await _signInManager.GetExternalAuthenticationSchemesAsync();
@@ -336,7 +336,7 @@ namespace MillimanAccessPortal.Controllers
         //    var user = await GetCurrentUserAsync();
         //    if (user == null)
         //    {
-        //        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, ""));
+        //        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "External Login Error"));
         //    }
         //    var info = await _signInManager.GetExternalLoginInfoAsync(await _userManager.GetUserIdAsync(user));
         //    Commented out during transition to .net core 2.0 - error will need addressed if we enable external logins
