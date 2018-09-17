@@ -23,6 +23,8 @@ namespace MapQueryAdmin
         public MainWindow()
         {
             InitializeComponent();
+
+            environmentName.Content = Utilities.getEnvironmentName();       
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

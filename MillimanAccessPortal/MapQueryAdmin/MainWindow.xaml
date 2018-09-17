@@ -23,6 +23,6 @@
         <Label Content="Query Result:" HorizontalAlignment="Left" Margin="18,366,0,0" VerticalAlignment="Top"/>
         <Separator HorizontalAlignment="Left" Height="15" Margin="18,180,0,0" VerticalAlignment="Top" Width="764"/>
         <Label Content="Current Environment:" HorizontalAlignment="Left" Margin="481,106,0,0" VerticalAlignment="Top"/>
-        <Label Content="ASPNETCORE_ENVIRONMENT" HorizontalAlignment="Left" Margin="609,106,0,0" VerticalAlignment="Top" Width="177" FontWeight="Bold"/>
+        <Label x:Name="environmentName" Content="ASPNETCORE_ENVIRONMENT" HorizontalAlignment="Left" Margin="609,106,0,0" VerticalAlignment="Top" Width="177" FontWeight="Bold"/>
     </Grid>
 </Window>
