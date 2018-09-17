@@ -35,5 +35,16 @@ namespace MapQueryAdmin
 
             return envName;
         }
+
+        /// <summary>
+        /// Returns the application database's connection string, with the username and password replaced with the credentials provided by the user.
+        /// </summary>
+        /// <param name="username">The username to be used in the connection string</param>
+        /// <param name="password">The user's postgresql password</param>
+        /// <returns></returns>
+        public static string getAppDbConnectionString(string username, string password)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

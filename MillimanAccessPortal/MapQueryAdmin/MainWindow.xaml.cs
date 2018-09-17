@@ -50,6 +50,8 @@ namespace MapQueryAdmin
 
             // Retrieve a connection string for MAP
 
+            string appDbConnString = Utilities.getAppDbConnectionString(pgsqlUserName.Text, pgsqlPassword.Password);
+
             // Execute the query against the target database 
             // Do this in a transaction so that it doesn't get committed unless the audit log record gets written
 
