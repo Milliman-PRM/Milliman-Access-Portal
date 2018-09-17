@@ -25,7 +25,7 @@ namespace MapDbContextLib.Context
         public Guid Id { get; set; }
 
         [Required]
-        [Display(Name = "Client Name")]
+        [Display(Name = "Client Name *")]
         public string Name { get; set; }
 
         [Display(Name = "Client Code")]
@@ -76,7 +76,7 @@ namespace MapDbContextLib.Context
 
         [Required]
         [ForeignKey("ProfitCenter")]
-        [Display(Name = "Profit Center")]
+        [Display(Name = "Profit Center *")]
         public Guid ProfitCenterId { get; set; }
         public ProfitCenter ProfitCenter { get; set; }
     }

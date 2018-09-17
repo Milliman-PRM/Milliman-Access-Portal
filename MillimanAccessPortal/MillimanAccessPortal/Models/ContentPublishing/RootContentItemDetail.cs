@@ -22,10 +22,10 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public Guid ClientId { get; set; }
 
         [Required]
-        [Display(Name = "Content Name")]
+        [Display(Name = "Content Name *")]
         public string ContentName { get; set; }
 
-        [Display(Name = "Content Type")]
+        [Display(Name = "Content Type *")]
         public Guid ContentTypeId { get; set; }
 
         [Display(Name = "Does Reduce")]
