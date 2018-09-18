@@ -199,14 +199,16 @@ export function wrapCardIconCallback(
 }
 
 // AJAX
-export function get<T>(url: string, callbacks: Array<(response: T) => void>) {
+export function get<T>(url: string, callbacks: Array<(response: T) => void>, dataFn: (data: any) => any = null) {
   return ($clickedCard?: JQuery<HTMLElement>) => {
     const $card = $clickedCard && $clickedCard.closest('.card-container');
     const $panel = $card
       ? $card.closest('.admin-panel-container').nextAll().slice(0, callbacks.length)
       : $('.admin-panel-container').first();
     const $loading = $panel.find('.loading-wrapper');
-    const data = $card && $card.data();
+    const data = dataFn
+      ? dataFn($card && $card.data())
+      : $card && $card.data();
 
     ajaxStatus[url] = data; // or some hash of the data
     $loading.show();

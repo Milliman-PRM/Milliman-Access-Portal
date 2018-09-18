@@ -14,7 +14,8 @@ import {
 import { AddSelectionGroupDialog, DeleteSelectionGroupDialog } from '../dialog';
 import {
   collapseAllListener, del, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, post, setExpanded, showButtonSpinner, updateCardStatus, wrapCardCallback, updateToolbarIcons,
+  hideButtonSpinner, post, setExpanded, showButtonSpinner, updateCardStatus, updateToolbarIcons,
+  wrapCardCallback,
 } from '../shared';
 import {
   SelectionDetails, SelectionGroupList, SelectionGroupSummary, SelectionsDetail,
@@ -59,7 +60,7 @@ function selectionGroupDeleteClickHandler(event: Event) {
         $('#selection-groups ul.admin-panel-content').empty();
         renderSelectionGroupList(response);
         const previouslySelected = $('#selection-groups ul.admin-panel-content .card-container')
-          .filter((_, e: HTMLElement) => $(e).data().selectionGroupId === selectedIdPre)
+          .filter((_, e: HTMLElement) => $(e).data().selectionGroupId === selectedIdPre);
         if (previouslySelected.length) {
           previouslySelected.find('.card-body-container').click();
         } else {
@@ -248,6 +249,9 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
       [
         renderSelections,
       ],
+      (data) => ({
+        selectionGroupId: data && data.selectionGroupId,
+      }),
     )),
     selectionGroupDeleteClickHandler,
     // edit selection group click handler
@@ -329,6 +333,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
       [
         renderSelectionGroupList,
       ],
+      (data) => ({
+        rootContentItemId: data && data.rootContentItemId,
+      }),
     )),
   );
   rootContentItemCard.disabled = item.ReadOnly;
@@ -357,6 +364,9 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
     wrapCardCallback(get(
       'ContentAccessAdmin/RootContentItems',
       [ renderRootContentItemList ],
+      (data) => ({
+        clientId: data && data.clientId,
+      }),
     )),
   );
   $card.disabled = !client.Value.CanManage;

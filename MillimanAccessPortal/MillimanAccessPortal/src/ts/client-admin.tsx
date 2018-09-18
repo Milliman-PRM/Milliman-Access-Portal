@@ -520,6 +520,9 @@ function renderClientNode(client, level) {
         (response: any) => displayActionPanelIcons(response.CanManage),
         renderUserList,
       ],
+      (data) => ({
+        clientId: data && data.clientId,
+      }),
     ), () => formObject, 2),
     !client.Children.length && clientCardDeleteClickHandler,
     shared.wrapCardIconCallback(($card) => getClientDetail($card.parent(), AccessMode.Write), () => formObject),

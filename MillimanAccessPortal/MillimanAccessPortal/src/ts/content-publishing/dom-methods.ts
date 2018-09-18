@@ -424,6 +424,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
         renderRootContentItemForm,
         setFormReadOnly,
       ],
+      (data) => ({
+        rootContentItemId: data && data.rootContentItemId,
+      }),
     ), () => formObject),
     wrapCardIconCallback(($card, always) => get(
         'ContentPublishing/RootContentItemDetail',
@@ -431,6 +434,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
           renderRootContentItemForm,
           always,
         ],
+        (data) => ({
+          rootContentItemId: data && data.rootContentItemId,
+        }),
       )($card), () => formObject, {count: 1, offset: 0}, undefined, () => {
       setFormEditOrRepublish();
     }),
@@ -441,6 +447,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
         [
           renderConfirmationPane,
         ],
+        (data) => ({
+          rootContentItemId: data && data.rootContentItemId,
+        }),
       ), () => formObject, {count: 1, offset: 1}, () => false),
   ).build();
   updateCardStatus($rootContentItemCard, item.PublicationDetails);
@@ -468,6 +477,9 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
     wrapCardCallback(get(
       'ContentPublishing/RootContentItems',
       [ renderRootContentItemList ],
+      (data) => ({
+        clientId: data && data.clientId,
+      }),
     ), () => formObject),
   );
   $card.disabled = !client.Value.CanManage;
