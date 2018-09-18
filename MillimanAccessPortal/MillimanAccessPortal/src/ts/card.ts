@@ -402,6 +402,7 @@ const components = Object.assign(
           }
           if (this.readonly || this.disabled) {
             this.attr(component, { disabled: '' });
+            this.addClass(component, this.disabled ? 'card-disabled' : 'card-readonly');
           }
         };
       },
