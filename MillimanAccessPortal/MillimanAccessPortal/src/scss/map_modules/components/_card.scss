@@ -11,24 +11,43 @@
         box-shadow: rgba($charcoal, .42) .2em .2em .75em;
     }
 
-    &[disabled] .card-body-container {
-        background-color: $light-grey;
-        color: $dark-grey;
-        border: 2px solid $dark-grey;
+    &[disabled] {
 
-        &[selected] {
-            border: 2px solid $blue;
-            background-color: $light-grey;
-            color: $dark-grey;
+        &.card-disabled {
+            cursor: default;
 
-            .card-stats-container .card-stat-container {
-                background-color: $blue;
+            &:hover {
+                box-shadow: none;
+            }
+
+            .card-body-main-container{
+                min-height: 0;
+
+                .card-stats-container {
+                    display: none;
+                }
             }
         }
 
-        .card-stats-container .card-stat-container {
-            background-color: $dark-grey;
-            color: $light-grey;
+        .card-body-container {
+            background-color: $light-grey;
+            color: $dark-grey;
+            border: 2px solid $dark-grey;
+
+            &[selected] {
+                border: 2px solid $blue;
+                background-color: $light-grey;
+                color: $dark-grey;
+
+                .card-stats-container .card-stat-container {
+                    background-color: $blue;
+                }
+            }
+
+            .card-stats-container .card-stat-container {
+                background-color: $dark-grey;
+                color: $light-grey;
+            }
         }
     }
 
