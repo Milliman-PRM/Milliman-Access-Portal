@@ -12,8 +12,6 @@ import { PublicationStatus, UserInfo } from './view-models/content-publishing';
 const SHOW_DURATION = 50;
 const ajaxStatus = [];
 
-let updateToolbarIcons;
-
 // Functions with associated event listeners
 
 // Filtering
@@ -50,14 +48,12 @@ export function filterFormListener(event) {
 }
 
 // Card expansion
-updateToolbarIcons = ($panel) => {
-  $panel.find('.action-icon-collapse').hide().filter(function anyMaximized() {
-    return $panel.find('.card-expansion-container[maximized]').length;
-  }).show();
-  $panel.find('.action-icon-expand').hide().filter(function anyMinimized() {
-    return $panel.find('.card-expansion-container:not([maximized])').length;
-  }).show();
-};
+export function updateToolbarIcons($panel: JQuery<HTMLElement>) {
+  $panel.find('.action-icon-collapse').hide().filter(() =>
+    $panel.find('.card-expansion-container[maximized]').length > 0).show();
+  $panel.find('.action-icon-expand').hide().filter(() =>
+    $panel.find('.card-expansion-container:not([maximized])').length > 0).show();
+}
 export function setExpanded($panel: JQuery<HTMLElement>, $this: JQuery<HTMLElement>) {
   const $cardContainer = $this.closest('.card-container');
   $cardContainer

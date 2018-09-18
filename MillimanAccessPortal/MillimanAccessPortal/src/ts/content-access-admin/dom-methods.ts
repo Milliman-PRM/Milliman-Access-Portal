@@ -14,7 +14,7 @@ import {
 import { AddSelectionGroupDialog, DeleteSelectionGroupDialog } from '../dialog';
 import {
   collapseAllListener, del, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, post, setExpanded, showButtonSpinner, updateCardStatus, wrapCardCallback,
+  hideButtonSpinner, post, setExpanded, showButtonSpinner, updateCardStatus, wrapCardCallback, updateToolbarIcons,
 } from '../shared';
 import {
   SelectionDetails, SelectionGroupList, SelectionGroupSummary, SelectionsDetail,
@@ -39,6 +39,7 @@ function selectionGroupAddClickHandler() {
     [
       renderSelectionGroup,
       updateSelectionGroupCount,
+      () => updateToolbarIcons($('#selection-groups')),
       () => statusMonitor.checkStatus,
     ],
   )).open();
@@ -51,10 +52,22 @@ function selectionGroupDeleteClickHandler(event: Event) {
     'Selection group successfully deleted.',
     [
       (response) => {
+        const selectedPre = $('#selection-groups ul.admin-panel-content [selected]').parent();
+        const selectedIdPre = selectedPre.length
+          ? selectedPre.data().selectionGroupId
+          : null;
         $('#selection-groups ul.admin-panel-content').empty();
         renderSelectionGroupList(response);
+        const previouslySelected = $('#selection-groups ul.admin-panel-content .card-container')
+          .filter((_, e: HTMLElement) => $(e).data().selectionGroupId === selectedIdPre)
+        if (previouslySelected.length) {
+          previouslySelected.find('.card-body-container').click();
+        } else {
+          $('#selection-info').hide();
+        }
       },
       updateSelectionGroupCount,
+      () => updateToolbarIcons($('#selection-groups')),
       () => statusMonitor.checkStatus,
     ],
   )).open();
@@ -296,6 +309,8 @@ function renderSelectionGroupList(response: SelectionGroupList, selectionGroupId
   response.SelectionGroups.forEach((selectionGroup) =>
     renderSelectionGroup(selectionGroup));
   $selectionGroupList.find('.tooltip').tooltipster();
+
+  updateToolbarIcons($('#selection-groups'));
 
   $('#selection-groups .admin-panel-action-icons-container .action-icon-add')
     .off('click')
