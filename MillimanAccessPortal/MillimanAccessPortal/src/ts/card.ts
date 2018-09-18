@@ -118,7 +118,7 @@ const components = Object.assign(
       html: [
         '<div class="card-body-primary-text-box">',
         '  <h2></h2>',
-        '  <input placeholder="Untitled" />',
+        '  <input data-lpignore="true" placeholder="Untitled" />',
         '</div>',
         '<stub />',
       ].join(''),
@@ -334,7 +334,7 @@ const components = Object.assign(
         '    </div>',
         '  </div>',
         '  <div class="detail-item-user-input">',
-        '    <input class="typeahead" name="username" placeholder="Add user" required />',
+        '    <input class="typeahead" name="username" data-lpignore="true" placeholder="Add user" required />',
         '  </div>',
         '</span>',
         '<stub />',
