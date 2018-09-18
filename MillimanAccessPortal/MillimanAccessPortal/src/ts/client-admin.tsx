@@ -19,6 +19,7 @@ import toastr = require('toastr');
 import card = require('./card');
 import dialog = require('./dialog');
 import shared = require('./shared');
+import { UserInfo } from './view-models/content-publishing';
 
 require('jquery-mask-plugin');
 require('jquery-validation');
@@ -317,7 +318,7 @@ function clearUserList() {
   $('#client-users .action-icon').hide();
 }
 
-function getClientDetail($clientDiv, accessMode?: AccessMode) {
+function getClientDetail($clientDiv, accessMode?: AccessMode, callback: () => void = null) {
   const data = $clientDiv.data();
   const clientId = data.clientId;
 
@@ -349,14 +350,18 @@ function getClientDetail($clientDiv, accessMode?: AccessMode) {
     $('#client-users .loading-wrapper').hide();
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
+  }).always(() => {
+    if (callback) {
+      callback();
+    }
   });
 }
 
-function openClientCardReadOnly($clientCard) {
+function openClientCardReadOnly($clientCard, callback: () => void = null) {
   removeClientInserts();
   clearClientSelection();
   $clientCard.attr('selected', '');
-  getClientDetail($clientCard.parent(), AccessMode.Read);
+  getClientDetail($clientCard.parent(), AccessMode.Read, callback);
   showClientDetails();
 }
 
@@ -420,8 +425,12 @@ function saveNewUser(username, email, callback) {
     },
     type: 'POST',
     url: 'ClientAdmin/SaveNewUser',
-  }).done(function onDone() {
-    openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"] .card-body-container'));
+  }).done((response: UserInfo) => {
+    openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"] .card-body-container'), () => {
+      if (response && response.Id) {
+        $(`#client-users [data-user-id="${response.Id}"] .card-expansion-container`).attr('maximized', '');
+      }
+    });
     if (typeof callback === 'function') { callback(); }
     toastr.success('User successfully added');
   }).fail(function onFail(response) {
