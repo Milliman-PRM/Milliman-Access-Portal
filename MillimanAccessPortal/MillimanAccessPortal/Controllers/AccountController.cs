@@ -128,19 +128,9 @@ namespace MillimanAccessPortal.Controllers
                                 
                 if (passwordSuccess && user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow)
                 {
-                    string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                    string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
+                    await SendPasswordResetEmail(user, Url);
 
-                    string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
-
-                    string emailBody = $"The password for your Milliman Access Portal account has expired.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}{Environment.NewLine}";
-                    emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
-                    emailBody += $"{linkUrl}";
-                    _messageSender.QueueEmail(user.Email, "MAP password reset", emailBody);
-
-                    _auditLogger.Log(AuditEventType.UserPasswordExpired.ToEvent(user));
                     _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
-
                     string WhatHappenedMessage = "Your password has expired. Check your email for a link to reset your password.";
                     return View("Message", WhatHappenedMessage);
                 }
@@ -391,6 +381,21 @@ namespace MillimanAccessPortal.Controllers
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
         }
 
+        [NonAction]
+        public async Task SendPasswordResetEmail(ApplicationUser RequestedUser, IUrlHelper Url)
+        {
+            string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(RequestedUser);
+            string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = RequestedUser.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
+
+            string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
+
+            string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
+            emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
+            emailBody += $"{linkUrl}";
+            _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
+
+            _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser));
+        }
         
 
         // GET: /Account/EnableAccount
@@ -525,17 +530,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     if (await _userManager.IsEmailConfirmedAsync(user))
                     {
-                        string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                        string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
-
-                        string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
-
-                        string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
-                        emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
-                        emailBody += $"{linkUrl}";
-                        _messageSender.QueueEmail(model.Email, "MAP password reset", emailBody);
-
-                        _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
+                        await SendPasswordResetEmail(user, Url);
                     }
                     else
                     {
@@ -573,11 +568,18 @@ namespace MillimanAccessPortal.Controllers
 
             if (!tokenIsValid)
             {
-                string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
+                if (await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    await SendPasswordResetEmail(user, Url);
+                }
+                else
+                {
+                    string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
+                    Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
 
-                string WhatHappenedMessage = "Your password reset link is invalid or may have expired. A new welcome email has been sent, which contains a new account activation link.";
-                return View("Message", WhatHappenedMessage);
+                    string UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
+                    return View("Message", UserMsg);
+                }
             }
 
             ResetPasswordViewModel model = new ResetPasswordViewModel
@@ -626,11 +628,18 @@ namespace MillimanAccessPortal.Controllers
             }
             else if (result.Errors.Any(e => e.Code == "InvalidToken"))  // Happens when token is expired. I don't know whether it could indicate anything else
             {
-                string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
+                if (await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    await SendPasswordResetEmail(user, Url);
+                }
+                else
+                {
+                    string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
+                    Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
 
-                string WhatHappenedMessage = "Your previous Milliman Access Portal password reset link is invalid and may have expired.";
-                return View("Message", WhatHappenedMessage);
+                    string UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
+                    return View("Message", UserMsg);
+                }
             }
             AddErrors(result);
             model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
