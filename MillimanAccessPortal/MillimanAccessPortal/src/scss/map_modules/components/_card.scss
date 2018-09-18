@@ -20,7 +20,7 @@
                 box-shadow: none;
             }
 
-            .card-body-main-container{
+            .card-body-main-container {
                 min-height: 0;
 
                 .card-stats-container {
@@ -104,6 +104,15 @@
         &.selected {
             color: $white;
             background-color: $blue;
+
+            input {
+                color: $white;
+                border-color: $white;
+
+                &::placeholder {
+                    color: $light-grey;
+                }
+            }
         }
 
         &.suspended {
@@ -146,7 +155,6 @@
 
                     input {
                         padding: 0;
-                        border: 1px solid $blue;
                         font-size: 1.5em;
                         font-weight: bold;
                     }
@@ -391,7 +399,7 @@
             padding: .25em .75em;
             border-top: 1px solid $light-grey;
             margin: 0 .25em;
-            max-height: 0;
+            height: 0;
             width: 100%;
             border: none;
             padding: 0 .75em;
@@ -400,8 +408,8 @@
 
             &[maximized],
             &.maximized {
-                max-height: 42em;
-                overflow-y: auto;
+                height: auto;
+                overflow: visible;
                 transition: .25s all linear;
 
                 .card-button-expansion {
