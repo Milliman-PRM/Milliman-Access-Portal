@@ -32,6 +32,7 @@ using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using AuditLogLib.Event;
+using MillimanAccessPortal.Models.AccountViewModels;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -318,8 +319,9 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            Response.Headers.Add("Warning", $"The requested user was successfully saved");
-            return Ok("New User saved successfully");
+            var model = (UserInfoViewModel)RequestedUser;
+
+            return Json(model);
         }
 
         /// <summary>

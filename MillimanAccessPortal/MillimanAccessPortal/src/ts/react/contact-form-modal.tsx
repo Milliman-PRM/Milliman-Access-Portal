@@ -5,6 +5,11 @@ import * as Modal from 'react-modal';
 
 import { postData } from '../shared';
 
+// Toastr related imports
+import toastr = require('toastr');
+import '../lib-options';
+require('toastr/toastr.scss');
+
 interface ContactFormModalState {
   topic: string;
   message: string;
@@ -94,7 +99,7 @@ export class ContactFormModal extends React.Component<Modal.Props, ContactFormMo
       message: this.state.message,
     }, true)
     .then(() => {
-      alert('Submission received.');
+      toastr.success('Submission received.');
       this.props.onRequestClose(event.nativeEvent);
     });
   }

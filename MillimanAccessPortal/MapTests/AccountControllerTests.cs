@@ -273,10 +273,8 @@ namespace MapTests
             #region Assert
             Assert.IsType<ViewResult>(view);
             ViewResult viewAsViewResult = view as ViewResult;
-            Assert.Equal("ForgotPasswordConfirmation", viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
-            Assert.IsType<ForgotPasswordViewModel>(viewAsViewResult.Model);
-            ForgotPasswordViewModel viewModel = viewAsViewResult.Model as ForgotPasswordViewModel;
-            Assert.Equal(model.Email, viewModel.Email);
+            Assert.Equal("Message", viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
+            Assert.IsType<string>(viewAsViewResult.Model);
             #endregion
         }
 
@@ -308,7 +306,7 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task ResetPasswordGETReturnsMessageWhenTokenIsInalid()
+        public async Task ResetPasswordGETReturnsMessageWhenTokenIsInvalid()
         {
             #region Arrange
             AccountController controller = await GetController("user1");
@@ -346,10 +344,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<RedirectToActionResult>(view);
-            RedirectToActionResult viewAsViewResult = view as RedirectToActionResult;
-            Assert.Equal("ResetPasswordConfirmation", viewAsViewResult.ActionName);
-            Assert.Equal("Account", viewAsViewResult.ControllerName);
+            Assert.IsType<ViewResult>(view);
+            var viewAsViewResult = view as ViewResult;
+            Assert.Equal("Message", viewAsViewResult.ViewName);
             #endregion
         }
 
