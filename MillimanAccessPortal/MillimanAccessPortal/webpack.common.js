@@ -15,7 +15,6 @@ module.exports = {
     'create-initial-user': './src/js/create-initial-user.js',
     'enable-account': './src/js/enable-account.js',
     'forgot-password': './src/js/forgot-password.js',
-    'forgot-password-confirmation': './src/js/forgot-password-confirmation.js',
     'login': './src/js/login.js',
     'message': './src/js/message.js',
     'reset-password': './src/js/reset-password.js',
@@ -90,12 +89,6 @@ module.exports = {
       template: path.resolve(__dirname, 'Views', 'Account', 'templates', 'ForgotPassword.cshtml'),
       inject: false,
       chunks: [ 'commons', 'forgot-password' ],
-    }),
-    new HtmlWebpackPlugin({
-      filename: path.resolve(__dirname, 'Views', 'Account', 'ForgotPasswordConfirmation.cshtml'),
-      template: path.resolve(__dirname, 'Views', 'Account', 'templates', 'ForgotPasswordConfirmation.cshtml'),
-      inject: false,
-      chunks: [ 'commons', 'forgot-password-confirmation' ],
     }),
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'Account', 'ResetPassword.cshtml'),

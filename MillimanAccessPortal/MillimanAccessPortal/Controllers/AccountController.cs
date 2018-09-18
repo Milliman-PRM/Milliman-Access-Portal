@@ -552,16 +552,8 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            return View("ForgotPasswordConfirmation", model);
-        }
-
-        //
-        // GET: /Account/ForgotPasswordConfirmation
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult ForgotPasswordConfirmation()
-        {
-            return View();
+            var passwordConfirmationMessage = "Please check your email inbox for a password reset notification.";
+            return View("Message", passwordConfirmationMessage);
         }
 
         //
