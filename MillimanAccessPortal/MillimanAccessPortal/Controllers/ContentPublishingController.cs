@@ -312,13 +312,19 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId)
+        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId, string password)
         {
             var rootContentItem = DbContext.RootContentItem
                 .Include(x => x.Client)
                 .SingleOrDefault(x => x.Id == rootContentItemId);
 
             #region Preliminary Validation
+            if (!await UserManager.CheckPasswordAsync(await Queries.GetCurrentApplicationUser(User), password))
+            {
+                Response.Headers.Add("Warning", "Incorrect password");
+                return Unauthorized();
+            }
+
             if (rootContentItem == null)
             {
                 Response.Headers.Add("Warning", "The requested root content item does not exist.");
