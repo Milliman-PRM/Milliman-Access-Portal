@@ -440,7 +440,7 @@ export function updateCardStatus($card, reductionDetails) {
     })
     .addClass('status-' + details.StatusEnum);
   $statusName.html(details.StatusName);
-  $statusUser.html(details.User.FirstName);
+  $statusUser.html(`${details.User.FirstName[0]}. ${details.User.LastName}`);
 }
 export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingStatusEnum: PublicationStatus) {
   $card.find('.card-button-dynamic').hide();
