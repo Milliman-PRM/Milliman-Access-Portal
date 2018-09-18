@@ -15,6 +15,9 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string Code { get; set; }
 
         [Required]
+        public string Username { get; set; }
+
+        [Required]
         [Display(Name = "First Name *")]
         public string FirstName { get; set; }
 

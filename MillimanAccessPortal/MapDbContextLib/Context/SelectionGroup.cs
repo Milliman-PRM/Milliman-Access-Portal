@@ -37,6 +37,8 @@ namespace MapDbContextLib.Context
         [Required]
         public bool IsSuspended { get; set; }
 
+        public string ReducedContentChecksum { get; set; }
+
         /// <summary>
         /// ContentType specific assignment of Url field to this SelectionGroup instance
         /// Requires this' navigation properties RootContentItem and RootContentItem.ContentType
