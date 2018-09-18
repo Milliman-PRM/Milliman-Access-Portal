@@ -572,14 +572,14 @@ namespace MillimanAccessPortal.Controllers
                 if (await _userManager.IsEmailConfirmedAsync(user))
                 {
                     await SendPasswordResetEmail(user, Url);
-                    UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
+                    UserMsg = "Your password reset link has expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
                 }
                 else
                 {
                     string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
                     Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
 
-                    UserMsg = "Your password reset link has expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
+                    UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
                 }
                 return View("Message", UserMsg);
             }
@@ -634,14 +634,14 @@ namespace MillimanAccessPortal.Controllers
                 if (await _userManager.IsEmailConfirmedAsync(user))
                 {
                     await SendPasswordResetEmail(user, Url);
-                    UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
+                    UserMsg = "Your password reset link has expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
                 }
                 else
                 {
                     string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
                     Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
 
-                    UserMsg = "Your password reset link has expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
+                    UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
                 }
                 return View("Message", UserMsg);
             }
