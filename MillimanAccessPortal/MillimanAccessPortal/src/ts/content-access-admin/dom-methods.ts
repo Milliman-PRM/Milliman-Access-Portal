@@ -290,6 +290,7 @@ function renderSelectionGroupList(response: SelectionGroupList, selectionGroupId
   $selectionGroupList.find('.tooltip').tooltipster();
 
   $('#selection-groups .admin-panel-action-icons-container .action-icon-add')
+    .off('click')
     .click(selectionGroupAddClickHandler);
 
   if (selectionGroupId) {
