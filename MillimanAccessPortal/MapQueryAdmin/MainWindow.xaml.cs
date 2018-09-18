@@ -62,9 +62,15 @@ namespace MapQueryAdmin
             // If the audit log record was inserted, commit the database change
         }
 
+        /// <summary>
+        /// Takes a list of inputs (either PasswordBox or TextBox) and verifies that they contain text
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         private bool ValidateFieldNotEmpty(object input)
         {
             bool containsText = false;
+            bool allFieldsAreValidTypes = true;
             string inputName = "";
 
             if (input.GetType().Name == nameof(PasswordBox))
@@ -79,14 +85,22 @@ namespace MapQueryAdmin
                 containsText = !string.IsNullOrWhiteSpace(inputAsTextBox.Text);
                 inputName = inputAsTextBox.Name;
             }
+            else
+            {
+                allFieldsAreValidTypes = false;
+            }
 
             // Display an error if the field is empty
-            if (containsText == false)
+            if (allFieldsAreValidTypes == false)
+            {
+                MessageBox.Show($"One of the validated fields is an incorrect type. They must be PasswordBox or TextBox inputs.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else if (containsText == false)
             {
                 MessageBox.Show($"The {inputName} field is required", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            return containsText;
+            return containsText && allFieldsAreValidTypes;
         }
     }
 }
