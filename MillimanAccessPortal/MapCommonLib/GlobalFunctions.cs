@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
 
 namespace MapCommonLib
 {
@@ -69,15 +70,17 @@ namespace MapCommonLib
         /// <param name="LeadingLine"></param>
         /// <param name="RecurseInnerExceptions"></param>
         /// <returns></returns>
-        public static string LoggableExceptionString(Exception e, string LeadingLine="Exception:", bool RecurseInnerExceptions=true, bool IncludeStackTrace = false)
+        public static string LoggableExceptionString(Exception e, string LeadingLine="Exception:", bool RecurseInnerExceptions=true, bool IncludeStackTrace = false, bool UseHtmlBR = false)
         {
             string ErrMsg = LeadingLine;
             for (string Indent = "" ; e != null; e = e.InnerException)
             {
-                ErrMsg += $"{Environment.NewLine}{Indent}{e.Message}";
+                string Break = UseHtmlBR ? "<BR>" : Environment.NewLine;
+
+                ErrMsg += $"{Break}{Indent}{e.Message}";
                 if (IncludeStackTrace && e.StackTrace != null)
                 {
-                    ErrMsg += $"{Environment.NewLine}{Regex.Replace(e.StackTrace, @" {2,}at ", $"{Indent}at ")}";
+                    ErrMsg += $"{Break}{Regex.Replace(e.StackTrace, @" {2,}at ", $"{Indent}at ")}";
                 }
                 if (!RecurseInnerExceptions)
                 {
@@ -118,6 +121,12 @@ namespace MapCommonLib
             var linkTimeUtc = epoch.AddSeconds(secondsSince1970);
 
             return linkTimeUtc;
+        }
+
+        public static string GenerateErrorMessage(IConfiguration configuration, string subject)
+        {
+            string messageTemplate = configuration.GetSection("Global")["ErrorMessageTemplate"];
+            return string.Format(messageTemplate, subject);
         }
     }
 }

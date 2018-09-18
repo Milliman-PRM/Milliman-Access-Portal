@@ -30,6 +30,34 @@ namespace MapDbContextLib.Context
         Error = 90,         // An error has occured
     }
 
+    public static class PublicationStatusExtensions
+    {
+        public static bool IsCancelable(this PublicationStatus status)
+        {
+            var blockingStatuses = new List<PublicationStatus>
+            {
+                PublicationStatus.Validating,
+                PublicationStatus.Queued,
+            };
+
+            return blockingStatuses.Contains(status);
+        }
+
+        public static bool IsActive(this PublicationStatus status)
+        {
+            var blockingStatuses = new List<PublicationStatus>
+            {
+                PublicationStatus.Validating,
+                PublicationStatus.Queued,
+                PublicationStatus.Processing,
+                PublicationStatus.Processed,
+            };
+
+            return blockingStatuses.Contains(status);
+        }
+    }
+
+
     public class ContentPublicationRequest
     {
         [NotMapped]

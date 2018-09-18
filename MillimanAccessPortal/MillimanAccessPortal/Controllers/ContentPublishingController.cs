@@ -337,11 +337,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            List<PublicationStatus> blockingRequestStatusList = new List<PublicationStatus>
-                                                              { PublicationStatus.Processing, PublicationStatus.Processed, PublicationStatus.Queued };
             var blocked = DbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItemId)
-                .Any(r => blockingRequestStatusList.Contains(r.RequestStatus));
+                .Any(r => r.RequestStatus.IsActive());
             if (blocked)
             {
                 Response.Headers.Add("Warning", "The specified root content item cannot be deleted at this time.");
@@ -444,24 +442,20 @@ namespace MillimanAccessPortal.Controllers
             bool Blocked;
 
             // There must be no unresolved ContentPublicationRequest.
-            List<PublicationStatus> BlockingRequestStatusList = new List<PublicationStatus>
-                                                              { PublicationStatus.Processing, PublicationStatus.Processed, PublicationStatus.Queued };
             Blocked = DbContext.ContentPublicationRequest
                                .Where(r => r.RootContentItemId == Arg.RootContentItemId)
-                               .Any(r => BlockingRequestStatusList.Contains(r.RequestStatus));
+                               .Any(r => r.RequestStatus.IsActive());
             if (Blocked)
             {
                 Response.Headers.Add("Warning", "A previous publication is pending for this content.");
                 return BadRequest();
             }
 
-            List<ReductionStatusEnum> BlockingTaskStatusList = new List<ReductionStatusEnum>
-                                                             { ReductionStatusEnum.Reducing, ReductionStatusEnum.Reduced, ReductionStatusEnum.Queued };
             Blocked = DbContext.ContentReductionTask
                                .Where(t => t.ContentPublicationRequestId == null)
                                .Include(t => t.SelectionGroup)
                                .Where(t => t.SelectionGroup.RootContentItemId == Arg.RootContentItemId)
-                               .Any(t => BlockingTaskStatusList.Contains(t.ReductionStatus));
+                               .Any(t => t.ReductionStatus.IsActive());
             if (Blocked)
             {
                 Response.Headers.Add("Warning", "A previous reduction task is pending for this content.");
@@ -531,14 +525,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var cancelableStatus = new List<PublicationStatus>
-            {
-                PublicationStatus.Validating,
-                PublicationStatus.Queued,
-            };
             var contentPublicationRequest = DbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
-                .Where(r => cancelableStatus.Contains(r.RequestStatus))
+                .Where(r => r.RequestStatus.IsCancelable())
                 .SingleOrDefault();
             if (contentPublicationRequest == null)
             {
@@ -792,6 +781,7 @@ namespace MillimanAccessPortal.Controllers
 
                     // Set url in SelectionGroup
                     ThisTask.SelectionGroup.SetContentUrl(TargetFileName);
+                    ThisTask.SelectionGroup.ReducedContentChecksum = ThisTask.ReducedContentChecksum;
                     DbContext.SelectionGroup.Update(ThisTask.SelectionGroup);
 
                     // Move the existing file to backed up name if exists
@@ -933,7 +923,6 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reject(Guid rootContentItemId, Guid publicationRequestId)
         {
-            // TODO Could/should this be handled in the Cancel action?
             #region Authorization
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
             if (!authorization.Succeeded)

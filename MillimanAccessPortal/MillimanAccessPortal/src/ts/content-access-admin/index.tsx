@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 $(document).ready(() => {
   setup();
-  toastr.info('Page loaded');  // TODO: Remove for production
 });
 
 if (module.hot) {

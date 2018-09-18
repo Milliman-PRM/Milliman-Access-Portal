@@ -72,11 +72,11 @@ namespace MapTests
         public Mock<IUploadHelper> MockUploadHelper { get; set; }
         public IUploadHelper UploadHelperObject { get => MockUploadHelper.Object; }
 
-        public Mock<IConfiguration> MockConfiguration { get; set; }
-        public IConfiguration ConfigurationObject { get => MockConfiguration.Object; }
+        public IConfiguration ConfigurationObject { get; set; }
 
         public Mock<IServiceProvider> MockServiceProvider { get; set; }
         public IServiceProvider ServiceProviderObject { get => MockServiceProvider.Object; }
+
         public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
@@ -156,7 +156,7 @@ namespace MapTests
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject, MockAuditLogger.Object);
-            MockConfiguration = GenerateMockConfiguration();
+            ConfigurationObject = GenerateConfiguration();
             MockServiceProvider = GenerateServiceProvider();
         }
 
@@ -300,11 +300,16 @@ namespace MapTests
             return mock;
         }
 
-        private Mock<IConfiguration> GenerateMockConfiguration()
+        private IConfiguration GenerateConfiguration()
         {
-            Mock<IConfiguration> mock = new Mock<IConfiguration>();
-            mock.SetupGet(m => m[It.IsAny<string>()]).Returns("");
-            return mock;
+            var configurationBuilder = new ConfigurationBuilder();
+            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            configurationBuilder.AddJsonFile("appsettings.json", true);
+            configurationBuilder.AddJsonFile($"appsettings.{environmentName}.json", true);
+            configurationBuilder.AddUserSecrets<TestInitialization>();
+
+            return configurationBuilder.Build();
         }
 
         private void GenerateBasicTestData()

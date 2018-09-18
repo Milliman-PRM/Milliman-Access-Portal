@@ -34,7 +34,6 @@ namespace MillimanAccessPortal.Authorization
                 return MapAuthorizationRequirementResult.Fail;
             }
 
-            // TODO Some day, convert this to query through injected UserManager service instead of DataContext, no need to pass that as argument
             IQueryable<UserRoleInProfitCenter> Query = 
                 DataContext.UserRoleInProfitCenter
                            .Include(urc => urc.Role)
