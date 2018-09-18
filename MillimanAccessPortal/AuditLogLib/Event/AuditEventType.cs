@@ -32,6 +32,16 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType Logout = new AuditEventType(1004, "Logout success");
         public static readonly AuditEventType AccountLockByUser = new AuditEventType(1005, "Account lock by user");
         public static readonly AuditEventType UserPasswordChanged = new AuditEventType(1006, "User password changed");
+        public static readonly AuditEventType<string, string, string, string, int> ManualDatabaseCommand = 
+            new AuditEventType<string, string, string, string, int>(1007, "Manual database command",
+            (userName, githubUrl, approverName, queryText, rows) => new
+            {
+                UserName = userName,
+                GitHubIssue = githubUrl,
+                Approver = approverName,
+                QueryText = queryText,
+                RowsAffected = rows,
+            });
         #endregion
 
         #region Client Admin [2000 - 2999]
@@ -453,4 +463,37 @@ namespace AuditLogLib.Event
         }
     }
 
+    public sealed class AuditEventType<P1, P2, P3, P4, P5> : AuditEventTypeBase
+    {
+        private readonly Func<P1, P2, P3, P4, P5, object> logObjectTransform;
+
+        /// <summary>
+        /// Represents a class of loggable event.
+        /// </summary>
+        /// <param name="id">AuditEvent ID. This value is logged and is used to uniquely identify this event type.</param>
+        /// <param name="name">Name of the event type.</param>
+        /// <param name="logObjectTransform">Defines the log object for this event type.</param>
+        public AuditEventType(int id, string name, Func<P1, P2, P3, P4, P5, object> logObjectTransform) : base(id, name)
+        {
+            this.logObjectTransform = logObjectTransform;
+        }
+
+        /// <summary>
+        /// Create an audit event based on this event type.
+        /// </summary>
+        /// <param name="callerName">Calling method or property. Determined by the compiler if not supplied.</param>
+        /// <param name="callerPath">Absolute path of the calling file. Determined by the compiler if not supplied.</param>
+        /// <param name="callerLine">Line of the calling file. Determined by the compiler if not supplied.</param>
+        /// <returns>AuditEvent</returns>
+        public AuditEvent ToEvent(P1 param1, P2 param2, P3 param3, P4 param4, P5 param5,
+            [CallerMemberName] string callerName = "",
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0)
+        {
+            var auditEvent = ToEvent(callerName, callerPath, callerLine);
+            auditEvent.EventDataObject = logObjectTransform(param1, param2, param3, param4, param5);
+
+            return auditEvent;
+        }
+    }
 }
