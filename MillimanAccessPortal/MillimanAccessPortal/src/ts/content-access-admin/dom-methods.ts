@@ -39,6 +39,7 @@ function selectionGroupAddClickHandler() {
     [
       renderSelectionGroup,
       updateSelectionGroupCount,
+      () => statusMonitor.checkStatus,
     ],
   )).open();
 }
@@ -54,6 +55,7 @@ function selectionGroupDeleteClickHandler(event: Event) {
         renderSelectionGroupList(response);
       },
       updateSelectionGroupCount,
+      () => statusMonitor.checkStatus,
     ],
   )).open();
 }
@@ -82,6 +84,8 @@ function cancelSelectionForm() {
     hideButtonSpinner($button);
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
+  }).always(() => {
+    statusMonitor.checkStatus();
   });
 }
 function submitSelectionForm() {
@@ -116,6 +120,8 @@ function submitSelectionForm() {
     hideButtonSpinner($button);
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
+  }).always(() => {
+    statusMonitor.checkStatus();
   });
 }
 
@@ -276,6 +282,8 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
       }).fail((response) => {
         toastr.warning(response.getResponseHeader('Warning')
           || 'An unknown error has occurred.');
+      }).always(() => {
+        statusMonitor.checkStatus();
       });
     },
   ).build();

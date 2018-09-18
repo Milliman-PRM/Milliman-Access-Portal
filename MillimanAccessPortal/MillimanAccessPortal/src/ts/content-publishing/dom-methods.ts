@@ -57,6 +57,8 @@ function deleteRootContentItem(
     callback();
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
+  }).always(() => {
+    statusMonitor.checkStatus();
   });
 }
 export function rootContentItemDeleteClickHandler(event) {
@@ -99,6 +101,8 @@ function cancelContentPublication(data, callback) {
     if (typeof callback === 'function') { callback(); }
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
+  }).always(() => {
+    statusMonitor.checkStatus();
   });
 }
 
@@ -543,10 +547,12 @@ export function setup() {
     } else {
       setFormReadOnly();
     }
+    statusMonitor.checkStatus();
   });
 
   $('#report-confirmation .admin-panel-toolbar .action-icon-cancel').click(() => {
     $('#root-content-items [selected]').click();
+    statusMonitor.checkStatus();
   });
   $('#report-confirmation input[type="checkbox"]').change(() =>
     $('#confirmation-section-attestation .button-approve')
