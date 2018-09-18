@@ -903,7 +903,7 @@ export function RootContentItemCard(
   });
   this.addComponent('button', {
     callback: goLiveCallback,
-    color: 'blue',
+    color: 'green',
     dynamic: true,
     icon: 'checkmark',
     tooltip: 'Go Live',

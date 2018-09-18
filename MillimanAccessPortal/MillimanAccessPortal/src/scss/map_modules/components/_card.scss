@@ -37,6 +37,8 @@
         padding-left: 1em;
         border-radius: .25em;
         display: none;
+        color: $white;
+        border: 2px solid $charcoal;
 
         em:before {
             content: "(created by ";
@@ -48,18 +50,22 @@
 
         &.status-9 {
             display: block;
+            background-color: $orange;
         }
 
         &.status-10 {
             display: block;
+            background-color: $orange;
         }
 
         &.status-20 {
             display: block;
+            background-color: $blue;
         }
 
         &.status-30 {
             display: block;
+            background-color: $green;
         }
     }
 
@@ -332,7 +338,8 @@
 
             &.card-button-green,
             &.card-button-add,
-            &.card-button-new-child {
+            &.card-button-new-child,
+            &.card-button-checkmark {
                 background-color: $green;
 
                 &:hover {
