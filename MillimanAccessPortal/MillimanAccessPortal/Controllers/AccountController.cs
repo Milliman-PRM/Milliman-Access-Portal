@@ -609,11 +609,12 @@ namespace MillimanAccessPortal.Controllers
                 model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
                 return View(model);
             }
+            var passwordResetMessage = "Your password has been reset. <a href=\"/Account/Login\">Click here to log in</a>.";
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
-                return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
+                return View("Message", passwordResetMessage);
             }
             var result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.NewPassword);
             if (result.Succeeded)
@@ -629,7 +630,7 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user));
-                return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
+                return View("Message", passwordResetMessage);
             }
             else if (result.Errors.Any(e => e.Code == "InvalidToken"))  // Happens when token is expired. I don't know whether it could indicate anything else
             {
@@ -642,15 +643,6 @@ namespace MillimanAccessPortal.Controllers
             AddErrors(result);
             model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
             return View(model);
-        }
-
-        //
-        // GET: /Account/ResetPasswordConfirmation
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult ResetPasswordConfirmation()
-        {
-            return View();
         }
 
         //
