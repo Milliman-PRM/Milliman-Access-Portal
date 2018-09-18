@@ -440,7 +440,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
             (
             <a
               href={''}
-              onClick={() => this.cancelReductionTask(section.Id)}
+              onClick={(event) => this.cancelReductionTask(event, section.Id)}
             >
               Cancel
             </a>

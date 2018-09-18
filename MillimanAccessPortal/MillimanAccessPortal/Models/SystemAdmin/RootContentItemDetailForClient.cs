@@ -67,6 +67,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                         Marked =  dbContext.ContentReductionTask
                             .Where(rt => rt.SelectionGroupId == group.SelectionGroup.Id)
                             .Where(rt => rt.ReductionStatus.IsActive())
+                            .Where(rt => rt.ContentPublicationRequestId == null)
                             .Any(),
                     });
                 }
