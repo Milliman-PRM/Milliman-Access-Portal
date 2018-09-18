@@ -9,6 +9,27 @@
     cursor: pointer;
     border-radius: .25em;
 
+    &[disabled] .card-body-container {
+        background-color: $light-grey;
+        color: $dark-grey;
+        border: 2px solid $dark-grey;
+
+        &[selected] {
+            border: 2px solid $blue;
+            background-color: $light-grey;
+            color: $dark-grey;
+
+            .card-stats-container .card-stat-container {
+                background-color: $blue;
+            }
+        }
+
+        .card-stats-container .card-stat-container {
+            background-color: $dark-grey;
+            color: $light-grey;
+        }
+    }
+
     .card-status-container {
         margin-top: -0.5em;
         padding: 0.5em;
@@ -54,17 +75,6 @@
 
         &:hover {
             box-shadow: rgba(0, 0, 0, .3) .2em .2em .75em;
-        }
-
-        &[disabled] {
-            color: $dark-grey !important;
-            background-color: darken($light-grey, 5%) !important;
-
-            &[selected],
-            &.selected {
-                border-color: $blue;
-                box-shadow: 0 0 0 3px $blue;
-            }
         }
 
         &[selected],
