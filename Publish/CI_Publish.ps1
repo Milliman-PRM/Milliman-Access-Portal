@@ -216,7 +216,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\MillimanAccessPortal\
 
-MSBuild /restore:true /verbosity:quiet /p:Configuration=$buildType
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Initial build of MAP solution failed"
