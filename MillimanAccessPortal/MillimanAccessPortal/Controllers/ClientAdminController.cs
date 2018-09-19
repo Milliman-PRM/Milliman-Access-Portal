@@ -506,7 +506,11 @@ namespace MillimanAccessPortal.Controllers
                 // Remove role.  There should be only one, but act to remove any number
                 if (RequestedRole.RoleEnum == RoleEnum.Admin)
                 {
-                    ExistingRecords = ExistingRecordsQuery.Where(urc => (urc.RoleId == RequestedRole.Id) || (urc.Role.RoleEnum == RoleEnum.UserCreator)).ToList();
+                    ExistingRecords = ExistingRecordsQuery.Where(urc => (urc.RoleId == RequestedRole.Id) || (urc.Role.RoleEnum == RoleEnum.UserCreator))
+                        .Include(urc => urc.Client)
+                        .Include(urc => urc.User)
+                        .Include(urc => urc.Role)
+                        .ToList();
                 }
                 if (RequestedRole.RoleEnum == RoleEnum.ContentAccessAdmin || RequestedRole.RoleEnum == RoleEnum.ContentPublisher)
                 {
