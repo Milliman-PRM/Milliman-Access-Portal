@@ -700,20 +700,6 @@ namespace MillimanAccessPortal.Controllers
                 });
             }
 
-            // Conditionally add the Content Access Element
-            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
-            if (ContentAccessResult.Succeeded)
-            {
-                NavBarElements.Add(new NavBarElementModel
-                {
-                    Order = order++,
-                    Label = "Manage Access",
-                    URL = nameof(ContentAccessAdminController).Replace("Controller", ""),
-                    View = "ContentAccessAdmin",
-                    Icon = "content-access",
-                });
-            }
-
             // Conditionally add the Content Publishing Element
             AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
             if (ContentPublishResult.Succeeded)
@@ -725,6 +711,20 @@ namespace MillimanAccessPortal.Controllers
                     URL = nameof(ContentPublishingController).Replace("Controller", ""),
                     View = "ContentPublishing",
                     Icon = "content-publishing",
+                });
+            }
+
+            // Conditionally add the Content Access Element
+            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+            if (ContentAccessResult.Succeeded)
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "Manage Access",
+                    URL = nameof(ContentAccessAdminController).Replace("Controller", ""),
+                    View = "ContentAccessAdmin",
+                    Icon = "content-access",
                 });
             }
 
