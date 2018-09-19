@@ -672,8 +672,8 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveNewClient([Bind("Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                                 "ConsultantOffice,AcceptedEmailDomainList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
-        // Members intentionally not bound: Id, AcceptedEmailAddressExceptionList
+                                                 "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
+        // Members intentionally not bound: Id
         {
             ApplicationUser CurrentApplicationUser = await Queries.GetCurrentApplicationUser(User);
 
