@@ -110,7 +110,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             case ContentTypeEnum.Qlikview:
                                 await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(Path.GetDirectoryName(Link), ContentTypeConfig as QlikviewConfig, Path.GetFileName(Link));
 
-                                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, Context.User.Identity.Name, ContentTypeConfig);
+                                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, Context.User.Identity.Name, ContentTypeConfig, Context.Request);
                                 ReturnObj.MasterContentLink = QvwUri.Uri.AbsoluteUri;
                                 break;
 

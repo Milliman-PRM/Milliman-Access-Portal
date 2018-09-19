@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using MapCommonLib.ContentTypeSpecific;
+using Microsoft.AspNetCore.Http;
 using QlikviewLib.Internal;
 using QlikviewLib.Qms;
 
@@ -17,7 +18,7 @@ namespace QlikviewLib
 {
     public class QlikviewLibApi : ContentTypeSpecificApiBase
     {
-        public override async Task<UriBuilder> GetContentUri(string FilePathRelativeToContentRoot, string UserName, object ConfigInfoArg)
+        public override async Task<UriBuilder> GetContentUri(string FilePathRelativeToContentRoot, string UserName, object ConfigInfoArg, HttpRequest thisHttpRequest)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
             string ContentUrl = string.IsNullOrWhiteSpace(ConfigInfo.QvServerContentUriSubfolder) 
@@ -29,11 +30,16 @@ namespace QlikviewLib
             // TODO Resolve the user naming convention for the QV server.  
             string QlikviewWebTicket = await QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ UserName, ConfigInfo as QlikviewConfig);
 
+            UriBuilder backUriBuilder = new UriBuilder
+            {
+                Scheme = thisHttpRequest.Scheme,
+                Host = thisHttpRequest.Host.Host,
+            };
             string[] QueryStringItems = new string[]
             {
                 $"type=html",
                 $"try=/qvajaxzfc/opendoc.htm?document={ContentUrl}",  // TODO use the relative document path/name in the following
-                $"back=/",  // TODO probably use something other than "/" (such as a proper error page)
+                $"back={backUriBuilder.Uri.AbsoluteUri}",
                 $"webticket={QlikviewWebTicket}",
             };
 
