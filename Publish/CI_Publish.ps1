@@ -265,7 +265,7 @@ if($runTests) {
 
     Set-Location $rootPath\MillimanAccessPortal\MapTests
 
-    dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
+    dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
 
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: One or more MAP xUnit tests failed"
@@ -292,7 +292,7 @@ if($runTests) {
 
     Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
 
-    dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
+    dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
 
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: One or more content publishing xUnit tests failed"
