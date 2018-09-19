@@ -41,10 +41,7 @@ namespace ContentPublishingLib.JobMonitors
                 int TaskAgeSec;
                 try
                 {
-                    if (!int.TryParse(Configuration.ApplicationConfiguration["TaskAgeBeforeExecutionSeconds"], out TaskAgeSec))
-                    {
-                        throw new Exception();
-                    }
+                    TaskAgeSec = int.Parse(Configuration.ApplicationConfiguration["TaskAgeBeforeExecutionSeconds"]);
                 }
                 catch
                 {
@@ -58,16 +55,16 @@ namespace ContentPublishingLib.JobMonitors
         {
             get
             {
+                int MaxTasks;
                 try
                 {
-                    if (int.TryParse(Configuration.ApplicationConfiguration["MaxParallelTasks"], out int MaxTasks))
-                    {
-                        return MaxTasks;
-                    }
+                    MaxTasks = int.Parse(Configuration.ApplicationConfiguration["MaxParallelTasks"]);
                 }
                 catch
-                { }
-                return 1;
+                {
+                    MaxTasks = 1;
+                }
+                return MaxTasks;
             }
         }
 
@@ -242,8 +239,8 @@ namespace ContentPublishingLib.JobMonitors
                 }
                 catch (Exception e)
                 {
-                    GlobalFunctions.TraceWriteLine($"Failed to query MAP database for available tasks.  Exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
-                    throw;
+                    GlobalFunctions.TraceWriteLine(GlobalFunctions.LoggableExceptionString(e, $"Failed to query MAP database for available tasks:"));
+                    return new List<ContentPublicationRequest>();
                 }
             }
         }
@@ -273,10 +270,20 @@ namespace ContentPublishingLib.JobMonitors
                 {
                     ContentPublicationRequest DbRequest = Db.ContentPublicationRequest.Find(JobDetail.JobId);
 
-                    // Canceled here implies that the application does not want the update
-                    if (DbRequest == null || DbRequest.RequestStatus == PublicationStatus.Canceled)
+                    if (DbRequest == null)
                     {
                         return false;
+                    }
+
+                    // Canceled here implies that the application does not want the update
+                    if (DbRequest.RequestStatus == PublicationStatus.Canceled)
+                    {
+                        List<ContentReductionTask> RelatedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id).ToList();
+                        RelatedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
+                        Db.ContentReductionTask.UpdateRange(RelatedTasks);
+                        Db.SaveChanges();
+                        Transaction.Commit();
+                        return true;
                     }
 
                     switch (JobDetail.Status)
@@ -298,7 +305,8 @@ namespace ContentPublishingLib.JobMonitors
                             DbRequest.RequestStatus = PublicationStatus.Canceled;
                             break;
                         default:
-                            throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
+                            GlobalFunctions.TraceWriteLine("Unsupported job result status in MapDbPublishJobMonitor.UpdateTask().");
+                            return false;
                     }
 
                     DbRequest.StatusMessage = JobDetail.Result.StatusMessage;
@@ -312,7 +320,7 @@ namespace ContentPublishingLib.JobMonitors
             }
             catch (Exception e)
             {
-                GlobalFunctions.TraceWriteLine("Failed to update task in database" + Environment.NewLine + e.Message);
+                GlobalFunctions.TraceWriteLine(GlobalFunctions.LoggableExceptionString(e, "Failed to update ContentPublishRequest in database:", true, true));
                 return false;
             }
         }
