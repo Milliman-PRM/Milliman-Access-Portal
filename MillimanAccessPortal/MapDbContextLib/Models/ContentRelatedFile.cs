@@ -12,7 +12,7 @@ namespace MapDbContextLib.Models
         public string Checksum
         {
             get { return _Checksum; }
-            set { _Checksum = value.ToLower(); }
+            set { _Checksum = value?.ToLower(); }
         }
 
         public bool ValidateChecksum()

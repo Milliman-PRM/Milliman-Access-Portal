@@ -7,7 +7,6 @@ require('typeahead.js');
 require('vex-js/sass/vex.sass');
 require('vex-js/sass/vex-theme-default.sass');
 
-// TODO: move to types file
 interface User {
   UserName: string;
   Email: string;
@@ -19,7 +18,6 @@ interface User {
 // Better separation of functionality would allow this to exist in one place
 // This is a temporary solution only.
 const userSubstringMatcher = (users) => {
-  // TODO: this is a duplicate, refactor so there is only one substring matcher
   return function findMatches(query, callback) {
     const matches = [];
     const regex = new RegExp(query, 'i');

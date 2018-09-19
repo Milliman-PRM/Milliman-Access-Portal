@@ -173,14 +173,14 @@ namespace MillimanAccessPortal.Controllers
                         ModelState.AddModelError(string.Empty, "User login is not allowed.");
                         _logger.LogWarning(2, $"User login not allowed: {model.Username}");
                         _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
-                        return View("Lockout");  // TODO need a better UX
+                        return View("Lockout");
                     }
                     else if (result.IsLockedOut)
                     {
                         ModelState.AddModelError(string.Empty, "User account is locked out.");
                         _logger.LogWarning(2, "User account locked out.");
                         _auditLogger.Log(AuditEventType.LoginIsLockedOut.ToEvent(), model.Username);
-                        return View("Lockout");  // TODO need a better UX
+                        return View("Lockout");
                     }
                     else
                     {
@@ -385,8 +385,8 @@ namespace MillimanAccessPortal.Controllers
             string accountActivationDays = _configuration["AccountActivationTokenTimespanDays"] ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays.ToString();
 
             // Non-configurable portion of email body
-            emailBody += $"To activate your new account please click the below link or paste to your web browser. {Environment.NewLine} This link will expire in {accountActivationDays} days. {Environment.NewLine}{callbackUrl}";
-            string emailSubject = "Welcome to Milliman Access Portal";
+            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}{callbackUrl}{Environment.NewLine}{Environment.NewLine}This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}If you have any questions regarding this email, please contact map.support@milliman.com";
+            string emailSubject = "Welcome to Milliman Access Portal!";
             // Send welcome email
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
         }
@@ -400,12 +400,12 @@ namespace MillimanAccessPortal.Controllers
         {
             if (userId == null || code == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
             }
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
             }
 
             if (user.EmailConfirmed)  // Account is already activated
@@ -431,6 +431,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 Id = user.Id,
                 Code = code,
+                Username = user.UserName,
             };
             return View(model);
         }
@@ -448,7 +449,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
             }
 
             if (user.EmailConfirmed)  // Account is already activated
@@ -495,7 +496,7 @@ namespace MillimanAccessPortal.Controllers
 
             string Errors = string.Join($", ", identityResult.Errors.Select(e => e.Description));
             Response.Headers.Add("Warning", $"Error while enabling account: {Errors}");
-            return View("Error");
+            return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
         }
 
         //
@@ -572,7 +573,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser user = await _userManager.FindByEmailAsync(userEmail);
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Password Reset Error"));
             }
 
             DataProtectorTokenProvider<ApplicationUser> passwordResetTokenProvider = (DataProtectorTokenProvider<ApplicationUser>)_serviceProvider.GetService(typeof(DataProtectorTokenProvider<ApplicationUser>));
@@ -612,7 +613,6 @@ namespace MillimanAccessPortal.Controllers
             if (user == null)
             {
                 // Don't reveal that the user does not exist
-                // TODO but do something better than this!
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
             var result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.NewPassword);
@@ -751,7 +751,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error"));
             }
             var userFactors = await _userManager.GetValidTwoFactorProvidersAsync(user);
             var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
@@ -773,14 +773,14 @@ namespace MillimanAccessPortal.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error"));
             }
 
             // Generate the token and send it
             var code = await _userManager.GenerateTwoFactorTokenAsync(user, model.SelectedProvider);
             if (string.IsNullOrWhiteSpace(code))
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error"));
             }
 
             var message = "Your security code is: " + code;
@@ -806,7 +806,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("Error");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Verification Error"));
             }
             return View(new VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }

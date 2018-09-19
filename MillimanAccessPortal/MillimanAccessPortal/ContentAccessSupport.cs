@@ -96,7 +96,6 @@ namespace MillimanAccessPortal
 
                 if (DateTime.UtcNow > expireTimeUtc)
                 {
-                    // TODO log something
                     return;
                 }
 
@@ -175,6 +174,7 @@ namespace MillimanAccessPortal
             reductionTask.SelectionGroup.SelectedHierarchyFieldValueList = ValueIdList.ToArray();
             reductionTask.SelectionGroup.IsMaster = false;
             reductionTask.SelectionGroup.SetContentUrl(Path.GetFileName(targetFileName));
+            reductionTask.SelectionGroup.ReducedContentChecksum = reductionTask.ReducedContentChecksum;
 
             // update reduction tasks status (previous: Live -> Replaced, new: Reduced -> Live
             ContentReductionTask PreviousLiveTask = Db.ContentReductionTask.SingleOrDefault(t => t.SelectionGroupId == reductionTask.SelectionGroupId && 

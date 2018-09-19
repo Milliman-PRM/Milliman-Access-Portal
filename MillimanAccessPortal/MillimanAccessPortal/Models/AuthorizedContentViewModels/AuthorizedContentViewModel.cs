@@ -37,7 +37,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                     notLive.Add(selectionGroup);
                     continue;
                 }
-                var fileName = ContentTypeSpecificApiBase.GenerateContentFileName(masterContentFile.FilePurpose, Path.GetExtension(masterContentFile.FullPath), selectionGroup.RootContentItemId);
+                var fileName = Path.GetFileName(selectionGroup.ContentInstanceUrl);
                 var filePath = Path.Combine(Path.GetDirectoryName(masterContentFile.FullPath), fileName);
                 if (!File.Exists(filePath))
                 {
