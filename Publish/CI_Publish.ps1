@@ -292,6 +292,7 @@ if($runTests) {
 
     Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
 
+    
     dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
 
     if ($LASTEXITCODE -ne 0) {
