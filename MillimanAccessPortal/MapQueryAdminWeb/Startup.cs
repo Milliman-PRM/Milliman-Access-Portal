@@ -57,12 +57,12 @@ namespace MapQueryAdminWeb
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-            
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Query}/{action=Index}/{id?}");
+                    template: "{controller=Query}/{action=RunQuery}/{id?}");
             });
 
             #region Configure Audit Logger connection string
