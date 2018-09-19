@@ -154,6 +154,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
+                    var lockoutMessage = "This account has been locked out, please try again later.";
                     if (result.RequiresTwoFactor)
                     {
                         return RedirectToAction(nameof(SendCode), new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
@@ -163,14 +164,14 @@ namespace MillimanAccessPortal.Controllers
                         ModelState.AddModelError(string.Empty, "User login is not allowed.");
                         _logger.LogWarning(2, $"User login not allowed: {model.Username}");
                         _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
-                        return View("Lockout");
+                        return View("Message", lockoutMessage);
                     }
                     else if (result.IsLockedOut)
                     {
                         ModelState.AddModelError(string.Empty, "User account is locked out.");
                         _logger.LogWarning(2, "User account locked out.");
                         _auditLogger.Log(AuditEventType.LoginIsLockedOut.ToEvent(), model.Username);
-                        return View("Lockout");
+                        return View("Message", lockoutMessage);
                     }
                     else
                     {
@@ -315,7 +316,8 @@ namespace MillimanAccessPortal.Controllers
             }
             if (result.IsLockedOut)
             {
-                return View("Lockout");
+                var lockoutMessage = "This account has been locked out, please try again later.";
+                return View("Message", lockoutMessage);
             }
             else
             {
@@ -831,7 +833,8 @@ namespace MillimanAccessPortal.Controllers
             if (result.IsLockedOut)
             {
                 _logger.LogWarning(7, "User account locked out.");
-                return View("Lockout");
+                var lockoutMessage = "This account has been locked out, please try again later.";
+                return View("Message", lockoutMessage);
             }
             else
             {
