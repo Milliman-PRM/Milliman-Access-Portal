@@ -104,9 +104,10 @@ export function clearForm($panel) {
     this.selectize.clear();
     this.selectize.clearOptions();
   });
-  $panel.find('input[name!="__RequestVerificationToken"],select')
+  $panel.find('input[name!="__RequestVerificationToken"],select,textarea')
     .not('.selectize-input input')
     .attr('data-original-value', '').val('');
+  $panel.find('input[type="checkbox"]').prop('checked', false);
   resetValidation($panel);
 }
 
