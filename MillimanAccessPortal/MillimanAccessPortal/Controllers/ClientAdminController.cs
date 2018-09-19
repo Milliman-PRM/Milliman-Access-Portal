@@ -1050,7 +1050,7 @@ namespace MillimanAccessPortal.Controllers
                 .Count();
             if (ItemCount > 0)
             {
-                Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has root content items.");
+                Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has content items.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion Validation

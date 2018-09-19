@@ -396,7 +396,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<UnauthorizedResult>(view);
-            Assert.Contains(controller.Response.Headers, h => h.Value == "You are not authorized to publish content for this root content item.");
+            Assert.Contains(controller.Response.Headers, h => h.Value == "You are not authorized to publish content for this content item.");
             #endregion
         }
 
@@ -441,7 +441,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<UnauthorizedResult>(view);
-            Assert.Contains(controller.Response.Headers, h => h.Value == "You are not authorized to publish content for this root content item.");
+            Assert.Contains(controller.Response.Headers, h => h.Value == "You are not authorized to publish content for this content item.");
             #endregion
         }
 

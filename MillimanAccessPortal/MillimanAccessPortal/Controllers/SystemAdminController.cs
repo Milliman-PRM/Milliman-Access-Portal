@@ -439,7 +439,7 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault(i => i.Id == (filter.RootContentItemId ?? Guid.Empty));
             if (item == null)
             {
-                Response.Headers.Add("Warning", "The specified root content item does not exist.");
+                Response.Headers.Add("Warning", "The specified content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -1294,7 +1294,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (rootContentItem == null)
             {
-                Response.Headers.Add("Warning", "The specified root content item does not exist.");
+                Response.Headers.Add("Warning", "The specified content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -1326,7 +1326,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (rootContentItem == null)
             {
-                Response.Headers.Add("Warning", "The specified root content item does not exist.");
+                Response.Headers.Add("Warning", "The specified content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion

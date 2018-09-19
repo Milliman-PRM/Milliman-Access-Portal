@@ -773,7 +773,7 @@ AddUserActionCard.prototype = Object.create(ActionCard.prototype);
 AddUserActionCard.prototype.constructor = AddUserActionCard;
 
 export function AddRootContentItemActionCard(callback) {
-  ActionCard.call(this, 'add', 'Add Root Content Item', callback);
+  ActionCard.call(this, 'add', 'Add Content Item', callback);
 }
 AddRootContentItemActionCard.prototype = Object.create(ActionCard.prototype);
 AddRootContentItemActionCard.prototype.constructor = AddRootContentItemActionCard;
@@ -886,7 +886,7 @@ export function RootContentItemCard(
     color: 'red',
     dynamic: true,
     icon: 'delete',
-    tooltip: 'Delete root content item',
+    tooltip: 'Delete content item',
   });
   this.addComponent('button', {
     callback: publishCallback,

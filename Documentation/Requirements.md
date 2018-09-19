@@ -49,9 +49,9 @@ Two staff incentives milestone have been defined as follows:
 
 - Profit Center - An entity in the system information model that represents a Milliman profit center. Users with authorization to administer a Profit Center have elevated rights in the system to administer Clients associated with the Profit Center in ways that have financial implications for Milliman and its customers.
 
-- Content Definition - The act of creating a root content item record in the database, for which content file(s) can be subsequently published.  The application implementation may provide the user perception that these acts occur together.
+- Content Definition - The act of creating a content item record in the database, for which content file(s) can be subsequently published.  The application implementation may provide the user perception that these acts occur together.
 
-- Content Publication - The act of populating file(s) associated with a root content item record into the system.  This is distinguished from content definition.
+- Content Publication - The act of populating file(s) associated with a content item record into the system.  This is distinguished from content definition.
 
 - Hierarchy - Applicable to content items that are intended to support reduced versions of the content.  Refers to a specific set of fields in the data model of a content item that represent a scheme for categorizing and filtering data records.  The hierarchy also includes the set of available values for each field in the hierarchy, and is presented visually as a tree structure by convention.
 
@@ -176,7 +176,7 @@ A role is the authorization requirement for the page view or action.
 
 #### 2.1.7 Content Access Authorization (ContentAccessAdmin role - any RootContentItem)
 
-- Create user with association with client and one root content item (UserCreator role on client or global)
+- Create user with association with client and one content item (UserCreator role on client or global)
 - Remove a user from access to a content item (ContentAdmin role - RootContentItem)
   - **Question:** Does this mean removing the user's ContentUser role for the content item or only eliminating the user's selections?
   - **Question:** If this content item is the user's only authorized content in the related client, does this mean removing the user's ContentUser role for the client?

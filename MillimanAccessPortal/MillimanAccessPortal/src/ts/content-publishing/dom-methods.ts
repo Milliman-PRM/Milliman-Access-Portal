@@ -315,7 +315,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       // Update the root content item count stat on the client card
       addToDocumentCount(response.detail.ClientId, 1);
 
-      toastr.success('Root content item created');
+      toastr.success('content item created');
     },
     (data) => data.indexOf('DoesReduce=') === -1
       ? data + '&DoesReduce=False'
@@ -336,7 +336,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
         .filter((_, card) => $(card).data().rootContentItemId === response.detail.Id);
       $card.find('.card-body-primary-text').html(response.summary.ContentName);
       $card.find('.card-body-secondary-text').html(response.summary.ContentTypeName);
-      toastr.success('Root content item updated');
+      toastr.success('content item updated');
     },
     (data) => data.indexOf('DoesReduce=') === -1
       ? data + '&DoesReduce=False'
