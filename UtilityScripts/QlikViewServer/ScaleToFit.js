@@ -1,7 +1,17 @@
-const boundaryElementClassName = "Document_imgQlikViewLogo";
+let boundaryElementClassName;
+const possibleBoundaryElements = [
+    "Document_Boundary",
+    "Document_imgQlikViewLogo"
+]
 
 const observer = new MutationObserver(function(mutations) {
-    var boundaryElement = document.getElementsByClassName(boundaryElementClassName)[0];
+    let boundaryElement;
+    possibleBoundaryElements.forEach(function(element) {
+        if (!boundaryElementClassName && document.getElementsByClassName(element)[0]) {
+            boundaryElementClassName = element;
+            boundaryElement = document.getElementsByClassName(boundaryElementClassName)[0];
+        }
+    });
     if (boundaryElement && boundaryElement.offsetLeft && boundaryElement.offsetWidth) {
         scaleDocument();
         observer.disconnect();
@@ -16,8 +26,7 @@ observer.observe(document.body, {
 });
 
 setTimeout(function() {
-    var boundaryElement = document.getElementsByClassName(boundaryElementClassName)[0];
-    if (observer && !boundaryElement) {
+    if (observer && !boundaryElementClassName) {
         observer.disconnect();
         console.log("Scaling failed");
     }
