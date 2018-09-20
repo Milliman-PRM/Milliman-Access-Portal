@@ -357,6 +357,10 @@ namespace MillimanAccessPortal.Controllers
                 string ContentFolderPath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], rootContentItem.Id.ToString());
                 Directory.Delete(ContentFolderPath, true);
             }
+            catch (DirectoryNotFoundException)
+            {
+                // The root content item doesn't have any publications, this is fine so continue
+            }
             catch
             {
                 if (! (new StackTrace()).GetFrames().Any(f => f.GetMethod().DeclaringType.Namespace == "MapTests"))

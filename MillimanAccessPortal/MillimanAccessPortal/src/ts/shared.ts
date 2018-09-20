@@ -12,8 +12,6 @@ import { PublicationStatus, UserInfo } from './view-models/content-publishing';
 const SHOW_DURATION = 50;
 const ajaxStatus = [];
 
-let updateToolbarIcons;
-
 // Functions with associated event listeners
 
 // Filtering
@@ -50,14 +48,12 @@ export function filterFormListener(event) {
 }
 
 // Card expansion
-updateToolbarIcons = ($panel) => {
-  $panel.find('.action-icon-collapse').hide().filter(function anyMaximized() {
-    return $panel.find('.card-expansion-container[maximized]').length;
-  }).show();
-  $panel.find('.action-icon-expand').hide().filter(function anyMinimized() {
-    return $panel.find('.card-expansion-container:not([maximized])').length;
-  }).show();
-};
+export function updateToolbarIcons($panel: JQuery<HTMLElement>) {
+  $panel.find('.action-icon-collapse').hide().filter(() =>
+    $panel.find('.card-expansion-container[maximized]').length > 0).show();
+  $panel.find('.action-icon-expand').hide().filter(() =>
+    $panel.find('.card-expansion-container:not([maximized])').length > 0).show();
+}
 export function setExpanded($panel: JQuery<HTMLElement>, $this: JQuery<HTMLElement>) {
   const $cardContainer = $this.closest('.card-container');
   $cardContainer
@@ -203,14 +199,16 @@ export function wrapCardIconCallback(
 }
 
 // AJAX
-export function get<T>(url: string, callbacks: Array<(response: T) => void>) {
+export function get<T>(url: string, callbacks: Array<(response: T) => void>, dataFn: (data: any) => any = null) {
   return ($clickedCard?: JQuery<HTMLElement>) => {
     const $card = $clickedCard && $clickedCard.closest('.card-container');
     const $panel = $card
       ? $card.closest('.admin-panel-container').nextAll().slice(0, callbacks.length)
       : $('.admin-panel-container').first();
     const $loading = $panel.find('.loading-wrapper');
-    const data = $card && $card.data();
+    const data = dataFn
+      ? dataFn($card && $card.data())
+      : $card && $card.data();
 
     ajaxStatus[url] = data; // or some hash of the data
     $loading.show();
@@ -442,7 +440,7 @@ export function updateCardStatus($card, reductionDetails) {
     })
     .addClass('status-' + details.StatusEnum);
   $statusName.html(details.StatusName);
-  $statusUser.html(details.User.FirstName);
+  $statusUser.html(`${details.User.FirstName[0]}. ${details.User.LastName}`);
 }
 export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingStatusEnum: PublicationStatus) {
   $card.find('.card-button-dynamic').hide();

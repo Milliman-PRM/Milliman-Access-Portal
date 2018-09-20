@@ -57,6 +57,8 @@ function deleteRootContentItem(
     callback();
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
+  }).always(() => {
+    statusMonitor.checkStatus();
   });
 }
 export function rootContentItemDeleteClickHandler(event) {
@@ -99,6 +101,8 @@ function cancelContentPublication(data, callback) {
     if (typeof callback === 'function') { callback(); }
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
+  }).always(() => {
+    statusMonitor.checkStatus();
   });
 }
 
@@ -420,6 +424,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
         renderRootContentItemForm,
         setFormReadOnly,
       ],
+      (data) => ({
+        rootContentItemId: data && data.rootContentItemId,
+      }),
     ), () => formObject),
     wrapCardIconCallback(($card, always) => get(
         'ContentPublishing/RootContentItemDetail',
@@ -427,6 +434,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
           renderRootContentItemForm,
           always,
         ],
+        (data) => ({
+          rootContentItemId: data && data.rootContentItemId,
+        }),
       )($card), () => formObject, {count: 1, offset: 0}, undefined, () => {
       setFormEditOrRepublish();
     }),
@@ -437,6 +447,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
         [
           renderConfirmationPane,
         ],
+        (data) => ({
+          rootContentItemId: data && data.rootContentItemId,
+        }),
       ), () => formObject, {count: 1, offset: 1}, () => false),
   ).build();
   updateCardStatus($rootContentItemCard, item.PublicationDetails);
@@ -464,6 +477,9 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
     wrapCardCallback(get(
       'ContentPublishing/RootContentItems',
       [ renderRootContentItemList ],
+      (data) => ({
+        clientId: data && data.clientId,
+      }),
     ), () => formObject),
   );
   $card.disabled = !client.Value.CanManage;
@@ -543,10 +559,12 @@ export function setup() {
     } else {
       setFormReadOnly();
     }
+    statusMonitor.checkStatus();
   });
 
   $('#report-confirmation .admin-panel-toolbar .action-icon-cancel').click(() => {
     $('#root-content-items [selected]').click();
+    statusMonitor.checkStatus();
   });
   $('#report-confirmation input[type="checkbox"]').change(() =>
     $('#confirmation-section-attestation .button-approve')
