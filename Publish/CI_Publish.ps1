@@ -514,4 +514,14 @@ log_statement "Creating MAP Query Admin release"
 
 octo create-release --project "MAP Query Admin" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
 
+if ($LASTEXITCODE -eq 0) {
+    log_statement "MAP Query Admin release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for MAP Query Admin"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
 #endregion
