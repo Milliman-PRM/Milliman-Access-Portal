@@ -12,3 +12,7 @@ body {
 #QvAjaxToolbar-right {
     display: hidden !important;
 }
+
+#PageContainer {
+    border: none !important;
+}
