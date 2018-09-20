@@ -215,13 +215,20 @@ namespace AuditLogLib.Event
             6003, "Root content item updated", (rootContentItem) => new
             {
             });
-        public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> PublicationQueued = new AuditEventType<RootContentItem, ContentPublicationRequest>(
-            6101, "Publication request queued", (rootContentItem, publicationRequest) => new
+        public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> PublicationRequestInitiated = new AuditEventType<RootContentItem, ContentPublicationRequest>(
+            6101, "Publication request initiated", (rootContentItem, publicationRequest) => new
             {
+                PublicationRequestId = publicationRequest.Id,
+                ContentItemId = rootContentItem.Id,
+                ContentItemName = rootContentItem.ContentName,
+                Uploads = publicationRequest.UploadedRelatedFilesObj,
             });
         public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> PublicationCanceled = new AuditEventType<RootContentItem, ContentPublicationRequest>(
             6102, "Publication request canceled", (rootContentItem, publicationRequest) => new
             {
+                PublicationRequestId = publicationRequest.Id,
+                ContentItemId = rootContentItem.Id,
+                ContentItemName = rootContentItem.ContentName,
             });
         public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> GoLiveValidationFailed = new AuditEventType<RootContentItem, ContentPublicationRequest>(
             6103, "GoLive Validation Failed", (rootContentItem, publicationRequest) => new

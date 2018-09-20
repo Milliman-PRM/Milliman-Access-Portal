@@ -61,7 +61,7 @@ namespace MillimanAccessPortal
             }
         }
 
-        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, string connectionString, string contentItemRootPath, string exchangePath, string requestingUserName, string sessionId)
+        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, string connectionString, string contentItemRootPath, string exchangePath)
         {
             bool validationWindowComplete = false;
 
@@ -144,9 +144,6 @@ namespace MillimanAccessPortal
                     // PublicationRequest was set to canceled, no extra cleanup needed
                     return;
                 }
-
-                AuditLogger Logger = new AuditLogger();
-                Logger.Log(AuditEventType.PublicationQueued.ToEvent(rootContentItem, publicationRequest), requestingUserName, sessionId);
             }
         }
 
