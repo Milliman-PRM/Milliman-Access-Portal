@@ -495,7 +495,7 @@ namespace MillimanAccessPortal.Controllers
             string exchangePath = ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
             string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
             ContentPublishSupport.AddPublicationMonitor(Task.Run(() =>
-                ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath)));
+                ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath, currentApplicationUser.UserName, HttpContext.Session.Id)));
 
             var rootContentItemDetail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, ContentItem);
             return Json(rootContentItemDetail);

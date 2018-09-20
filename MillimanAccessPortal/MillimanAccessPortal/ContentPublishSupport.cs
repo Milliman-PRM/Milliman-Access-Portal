@@ -61,7 +61,7 @@ namespace MillimanAccessPortal
             }
         }
 
-        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, string connectionString, string contentItemRootPath, string exchangePath)
+        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, string connectionString, string contentItemRootPath, string exchangePath, string requestingUserName, string sessionId)
         {
             bool validationWindowComplete = false;
 
@@ -146,7 +146,7 @@ namespace MillimanAccessPortal
                 }
 
                 AuditLogger Logger = new AuditLogger();
-                Logger.Log(AuditEventType.PublicationQueued.ToEvent(rootContentItem, publicationRequest));
+                Logger.Log(AuditEventType.PublicationQueued.ToEvent(rootContentItem, publicationRequest), requestingUserName, sessionId);
             }
         }
 
