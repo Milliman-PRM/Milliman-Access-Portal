@@ -16,4 +16,4 @@ write-output "Setting BRANCH_NAME to $branch"
 
 Set-OctopusVariable -name "BRANCH_NAME" -value $branch
 
-Set-OctopusVariable -name "BRANCH_NAME_TRIMMED" -value $branch.Replace("_","").Replace("-","").ToLower()
+Set-OctopusVariable -name "BRANCH_NAME_TRIMMED" -value $branch.Replace("_","").Replace("-","").Replace(".","").ToLower()

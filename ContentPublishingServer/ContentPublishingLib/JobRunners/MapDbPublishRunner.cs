@@ -155,9 +155,23 @@ namespace ContentPublishingLib.JobRunners
                         PublicationRequestId = JobDetail.JobId,
                         JobDetail.Request.DoesReduce,
                         RequestingUser = JobDetail.Request.ApplicationUserId,
-                        ReductionTasks = AllRelatedReductionTasks.Select(t => t.Id.ToString("D")).ToArray(),
+                        ReductionTasks = AllRelatedReductionTasks.Select(t => t.Id.ToString("D")).ToList(),
                     };
                     AuditLog.Log(AuditEventType.PublicationRequestProcessingSuccess.ToEvent(DetailObj));
+                    #endregion
+
+                }
+                else if (AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Canceled))
+                {
+                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
+
+                    #region Log audit event
+                    var DetailObj = new
+                    {
+                        PublicationRequestId = JobDetail.JobId,
+                        JobDetail.Request.DoesReduce,
+                    };
+                    AuditLog.Log(AuditEventType.ContentPublicationRequestCanceled.ToEvent(DetailObj));
                     #endregion
 
                 }
@@ -188,12 +202,14 @@ namespace ContentPublishingLib.JobRunners
         {
             using (ApplicationDbContext Db = GetDbContext())
             {
+                PublicationStatus RequestStatus = Db.ContentPublicationRequest.Where(r => r.Id == JobDetail.JobId)
+                                                                              .Select(r => r.RequestStatus)
+                                                                              .FirstOrDefault();  // default is PublicationStatus.Unknown
                 List<ContentReductionTask> AllRelatedReductionTasks = await Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToListAsync();
 
-                if (_CancellationToken.IsCancellationRequested)
+                if (_CancellationToken.IsCancellationRequested || RequestStatus == PublicationStatus.Canceled)
                 {
-                    List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
-                    await CancelReductionTasks(QueuedTasks);
+                    await CancelReductionTasks(AllRelatedReductionTasks);
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
                     _CancellationToken.ThrowIfCancellationRequested();
                 }
