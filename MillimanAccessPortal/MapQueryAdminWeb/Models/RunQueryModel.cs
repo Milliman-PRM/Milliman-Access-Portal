@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace MapQueryAdminWeb.Pages
+namespace MapQueryAdminWeb.Models
 {
-    public class QueryModel : PageModel
+    public class RunQueryModel
     {
         [Display(Name="Database Username")]
         [Required]

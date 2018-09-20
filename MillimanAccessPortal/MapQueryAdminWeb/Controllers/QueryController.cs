@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using MapQueryAdminWeb.Models;
 using MapQueryAdminWeb.Pages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -25,17 +26,18 @@ namespace MapQueryAdminWeb.Controllers
         [HttpGet]
         public IActionResult RunQuery()
         {
-            return View();
+            RunQueryModel model = new RunQueryModel();
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult RunQuery(QueryModel model)
+        public IActionResult RunQuery(RunQueryModel model)
         {
             NpgsqlConnection conn = new NpgsqlConnection(getAppDbConnectionString(model.pgsqlUsername, model.pgsqlPassword));
             conn.Open();
             NpgsqlTransaction transaction = conn.BeginTransaction();
-            NpgsqlCommand command = new NpgsqlCommand(model.queryText);
+            NpgsqlCommand command = new NpgsqlCommand(model.queryText, conn);
 
             try
             {
@@ -52,7 +54,7 @@ namespace MapQueryAdminWeb.Controllers
                 transaction.Commit();
 
                 // TODO: Give the user an indication of success
-                ViewData["result"] = $"The query executed successfully.";
+                ViewData["result"] = $"The query executed successfully. {rows} rows were affected.";
             }
             catch (Exception ex)
             {
