@@ -7,7 +7,9 @@ const possibleBoundaryElements = [
 const observer = new MutationObserver(function(mutations) {
     let boundaryElement;
     possibleBoundaryElements.forEach(function(element) {
-        if (!boundaryElementClassName && document.getElementsByClassName(element)[0]) {
+        if (!boundaryElementClassName 
+            && document.getElementsByClassName(element)[0] 
+            && document.getElementsByClassName(element)[0].offsetLeft) {
             boundaryElementClassName = element;
             boundaryElement = document.getElementsByClassName(boundaryElementClassName)[0];
         }
