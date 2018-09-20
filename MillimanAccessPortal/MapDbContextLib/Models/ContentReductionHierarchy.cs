@@ -50,6 +50,15 @@ namespace MapDbContextLib.Models
             return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
 
+        public void Sort()
+        {
+            Fields = Fields.OrderBy(hf => hf.DisplayName).ToList();
+            foreach (var field in Fields)
+            {
+                field.Values = field.Values.OrderBy(hfv => hfv.Value).ToList();
+            }
+        }
+
         /// <summary>Build hierarchy of selections for a selection group</summary>
         /// <remarks>This builds a nested data structure to represent a hierarchy from several flat tables.</remarks>
         /// <param name="SelectionGroupId">The selection group whose selections are to be gathered</param>

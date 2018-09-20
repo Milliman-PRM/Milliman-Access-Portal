@@ -81,8 +81,11 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 }
                 #endregion
 
+                var newHierarchy = AllTasks.FirstOrDefault()?.MasterContentHierarchyObj;
+                newHierarchy?.Sort();
+
                 ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
-                ReturnObj.NewHierarchy = AllTasks.Any() ? AllTasks[0].MasterContentHierarchyObj : null;  // null == there was no hierarchy extraction
+                ReturnObj.NewHierarchy = newHierarchy;  // null == there was no hierarchy extraction
                 ReturnObj.SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary
                     {
                         Name = t.SelectionGroup.GroupName,
