@@ -21,8 +21,8 @@ export class StatusMonitor<T> {
     this.monitor();
   }
 
-  public stop(response: JQueryXHR) {
-    if (response.status === 401) {
+  public stop(response?: JQueryXHR) {
+    if (response && response.status === 401) {
       // session timed out, reload the page
       window.location.reload();
     }
