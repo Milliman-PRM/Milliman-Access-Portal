@@ -26,13 +26,12 @@ namespace QlikviewLib
 
             string QvServerUriScheme = "https";  // Scheme of the iframe should match scheme of the top page
 
-            // TODO Resolve the user naming convention for the QV server.  
             string QlikviewWebTicket = await QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ UserName, ConfigInfo as QlikviewConfig);
 
             string[] QueryStringItems = new string[]
             {
                 $"type=html",
-                $"try=/qvajaxzfc/opendoc.htm?document={ContentUrl}",  // TODO use the relative document path/name in the following
+                $"try=/qvajaxzfc/opendoc.htm?document={ContentUrl}",
                 $"back=/",  // TODO probably use something other than "/" (such as a proper error page)
                 $"webticket={QlikviewWebTicket}",
             };

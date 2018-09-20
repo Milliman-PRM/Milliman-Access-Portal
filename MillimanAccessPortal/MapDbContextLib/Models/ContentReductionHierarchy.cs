@@ -92,7 +92,6 @@ namespace MapDbContextLib.Models
                     })
                     .ToList();
 
-                // TODO: Create ReductionFieldBase and extend for each content type
                 ReductionField<ReductionFieldValueSelection> ReductionField;
                 switch (SelectionGroup.RootContentItem.ContentType.TypeEnum)
                 {
