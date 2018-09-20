@@ -12,9 +12,12 @@ import './check-password';
 import $ = require('jquery');
 import toastr = require('toastr');
 import { AccessMode } from './form/form-modes';
+import { StatusMonitor } from './status-monitor';
 
 require('toastr/toastr.scss');
 require('../scss/map.scss');
+
+let statusMonitor: StatusMonitor<null>;
 
 document.addEventListener('DOMContentLoaded', () => {
   const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');
@@ -69,4 +72,7 @@ $(document).ready(() => {
   ]);
   formObject.submissionMode = 'update';
   formObject.accessMode = AccessMode.Write;
+
+  statusMonitor = new StatusMonitor('/Account/SessionStatus');
+  statusMonitor.start();
 });

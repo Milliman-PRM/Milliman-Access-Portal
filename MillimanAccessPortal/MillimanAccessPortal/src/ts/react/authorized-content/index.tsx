@@ -3,6 +3,7 @@ import '../../../images/map-logo.svg';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
+import { StatusMonitor } from '../../status-monitor';
 import { AuthorizedContent } from './authorized-content';
 
 require('jquery');
@@ -20,3 +21,6 @@ require('../../../scss/map.scss');
 document.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(<AuthorizedContent />, document.getElementById('content-container'));
 });
+
+const statusMonitor = new StatusMonitor('/Account/SessionStatus');
+statusMonitor.start();

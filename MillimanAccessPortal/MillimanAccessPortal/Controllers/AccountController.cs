@@ -29,6 +29,7 @@ using AuditLogLib.Event;
 using MillimanAccessPortal.Authorization;
 using Microsoft.Extensions.Configuration;
 using MapCommonLib;
+using MapCommonLib.ActionFilters;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -991,6 +992,13 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", $"Password update failed");
                 return BadRequest();
             }
+        }
+
+        [HttpGet]
+        [PreventAuthRefresh]
+        public IActionResult SessionStatus()
+        {
+            return Ok();
         }
 
         #region Helpers

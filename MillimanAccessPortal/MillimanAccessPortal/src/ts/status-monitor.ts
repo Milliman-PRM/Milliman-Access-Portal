@@ -6,7 +6,7 @@ export class StatusMonitor<T> {
 
   constructor(
     readonly url: string,
-    readonly callback: (response: T) => void,
+    readonly callback: (response: T) => void = () => null,
     interval?: number,
   ) {
     if (!isNaN(interval)) {
@@ -21,7 +21,11 @@ export class StatusMonitor<T> {
     this.monitor();
   }
 
-  public stop() {
+  public stop(response: JQueryXHR) {
+    if (response.status === 401) {
+      // session timed out, reload the page
+      window.location.reload();
+    }
     this.active = false;
   }
 
