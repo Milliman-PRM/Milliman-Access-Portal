@@ -69,7 +69,7 @@ namespace ContentPublishingService
                     EvtMsg += $"No configured Tracelog directory, or directory {TraceLogDirectory} does not exist. ";
                     EvtType = EventLogEntryType.Warning;
 
-                    // Get the full path of the assembly in which ContentReductionService declared
+                    // Get the full path of the assembly in which ContentPublishingService is declared
                     string fullPath = System.Reflection.Assembly.GetAssembly(typeof(ContentPublishingService)).Location;
                     TraceLogDirectory = Path.GetDirectoryName(fullPath);
                 }
