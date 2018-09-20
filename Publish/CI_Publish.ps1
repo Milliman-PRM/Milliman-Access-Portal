@@ -137,7 +137,8 @@ $env:ASPNETCORE_ENVIRONMENT=$testEnvironment
 $env:PATH = $env:PATH+";C:\Program Files (x86)\OctopusCLI\;$env:appdata\npm\"
 $rootPath = (get-location).Path
 $webBuildTarget = "$rootPath\WebDeploy"
-$serviceBuildTarget = "$rootPath\ContentPublishingServer\ContentPublishingService\bin\debug"
+$serviceBuildTarget = "$rootPath\ContentPublishingServer\ContentPublishingService\bin\$buildType"
+$queryAppBuildTarget = "$rootPath\MillimanAccessPortal\MapQueryAdminWeb\bin\$buildType\netcoreapp2.1"
 $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
@@ -433,13 +434,32 @@ if ($LASTEXITCODE -ne 0) {
 
 #endregion
 
+#region Package MAP Query Admin for nuget
+log_statement "Packaging MAP Query Admin"
+
+Set-Location $queryAppBuildTarget
+
+$queryVersion = get-childitem "MapQueryAdminWeb.dll" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
+$queryVersion = "$queryVersion-$branchName"
+
+octo pack --id MapQueryAdmin --version $queryVersion --outfolder $nugetDestination\QueryApp
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package MAP Query Admin for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+#endregion 
+
 #region Deploy releases to Octopus
 
 log_statement "Deploying packages to Octopus"
 
 Set-Location $nugetDestination
 
-octo push --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -489,5 +509,9 @@ else {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
+
+log_statement "Creating MAP Query Admin release"
+
+octo create-release --project "MAP Query Admin" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
 
 #endregion
