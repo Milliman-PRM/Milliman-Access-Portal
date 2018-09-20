@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapQueryAdminWeb.Models;
-using MapQueryAdminWeb.Pages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Npgsql;

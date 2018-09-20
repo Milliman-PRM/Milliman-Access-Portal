@@ -61,8 +61,9 @@ namespace MapQueryAdminWeb
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Query}/{action=RunQuery}/{id?}");
+                    name: "Default",
+                    template: "{controller}/{action}/{id?}",
+                    defaults: new { controller = "Query", action = "RunQuery", id = "" });
             });
 
             #region Configure Audit Logger connection string
