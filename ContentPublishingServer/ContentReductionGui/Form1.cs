@@ -72,13 +72,6 @@ namespace QvReportReductionGui
                     Manager = null;
                 }
             }
-
-            if (CurrentTraceListener != null)
-            {
-                Trace.Listeners.Remove(CurrentTraceListener);
-                CurrentTraceListener.Close();
-                CurrentTraceListener = null;
-            }
         }
 
         private void timer1_Tick(object sender, EventArgs e)

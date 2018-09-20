@@ -88,7 +88,6 @@ namespace ContentPublishingLib.JobRunners
 
             MethodBase Method = MethodBase.GetCurrentMethod();
             object DetailObj;
-            AuditEvent Event;
 
             ReductionJobActionEnum[] SupportedJobActions = new ReductionJobActionEnum[] 
             {
@@ -108,6 +107,7 @@ namespace ContentPublishingLib.JobRunners
                     _CancellationToken.ThrowIfCancellationRequested();
 
                     await PreTaskSetup();
+                    _CancellationToken.ThrowIfCancellationRequested();
 
                     #region Extract master content hierarchy
                     JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
@@ -116,6 +116,7 @@ namespace ContentPublishingLib.JobRunners
                         ReductionJobId = JobDetail.TaskId.ToString(),
                         JobAction = JobDetail.Request.JobAction,
                         Hierarchy = JobDetail.Result.MasterContentHierarchy,
+                        ContentFile = "Master",
                     };
                     AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj));
                     #endregion
@@ -131,7 +132,7 @@ namespace ContentPublishingLib.JobRunners
                             ReductionJobId = JobDetail.TaskId.ToString(),
                             RequestedSelections = JobDetail.Request.SelectionCriteria,
                         };
-                        AuditLog.Log(AuditEventType.ContentReductionSucceeded.ToEvent(DetailObj));
+                        AuditLog.Log(AuditEventType.ContentFileReductionSucceeded.ToEvent(DetailObj));
                         #endregion
 
                         _CancellationToken.ThrowIfCancellationRequested();
@@ -143,6 +144,7 @@ namespace ContentPublishingLib.JobRunners
                             ReductionJobId = JobDetail.TaskId.ToString(),
                             JobAction = JobDetail.Request.JobAction,
                             Hierarchy = JobDetail.Result.ReducedContentHierarchy,
+                            ContentFile = "Reduced",
                         };
                         AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj));
                         #endregion
@@ -160,18 +162,26 @@ namespace ContentPublishingLib.JobRunners
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Canceled;
                 GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
+                AuditLog.Log(AuditEventType.ContentReductionTaskCanceled.ToEvent(new { ReductionTaskId = JobDetail.TaskId }));
             }
             catch (ApplicationException e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
                 GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
+                // Security related audit logs are generated at the time ApplicationException is thrown, where appropriate.  Don't repeat that here. 
             }
             catch (System.Exception e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
                 GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
+                DetailObj = new
+                {
+                    ReductionJobId = JobDetail.TaskId.ToString(),
+                    ExceptionMessage = GlobalFunctions.LoggableExceptionString(e),
+                };
+                AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
             }
             finally
             {
@@ -387,7 +397,7 @@ namespace ContentPublishingLib.JobRunners
                         Error = Msg,
                     };
 
-                    AuditLog.Log(AuditEventType.ContentReductionFailed.ToEvent(DetailObj));
+                    AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
                     GlobalFunctions.TraceWriteLine(Msg);
                     throw new ApplicationException(Msg);
                 }
@@ -405,7 +415,7 @@ namespace ContentPublishingLib.JobRunners
                     Error = Msg,
                 };
 
-                AuditLog.Log(AuditEventType.ContentReductionFailed.ToEvent(DetailObj));
+                AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
                 GlobalFunctions.TraceWriteLine(Msg);
                 throw new ApplicationException(Msg);
             }

@@ -197,19 +197,30 @@ namespace AuditLogLib.Event
 
         #endregion
 
-        #region Reduction Server [5000 - 5999]
+        #region Publishing Server [5000 - 5999]
+        // 50xx - Preliminary events
         public static readonly AuditEventType<object> ReductionValidationFailed = new AuditEventType<object>(
-            5001, "Reduction Validation Failed", (logObject) => logObject);
+            5001, "Reduction validation Failed", (logObject) => logObject);
+
+        // 51xx - Hierarchy extraction and content reduction events
         public static readonly AuditEventType<object> HierarchyExtractionSucceeded = new AuditEventType<object>(
             5101, "Content hierarchy extraction completed", (logObject) => logObject);
         public static readonly AuditEventType<object> HierarchyExtractionFailed = new AuditEventType<object>(
             5102, "Content hierarchy extraction failed", (logObject) => logObject);
-        public static readonly AuditEventType<object> ContentReductionSucceeded = new AuditEventType<object>(
-            5201, "Content reduction completed", (logObject) => logObject);
-        public static readonly AuditEventType<object> ContentReductionFailed = new AuditEventType<object>(
-            5202, "Content reduction failed", (logObject) => logObject);
+        public static readonly AuditEventType<object> ContentFileReductionSucceeded = new AuditEventType<object>(
+            5103, "Content file reduction completed", (logObject) => logObject);
+        public static readonly AuditEventType<object> ContentFileReductionFailed = new AuditEventType<object>(
+            5104, "Content file reduction failed", (logObject) => logObject);
+        
+        // 52xx - Reduction task aggregate outcome events
+        public static readonly AuditEventType<object> ContentReductionTaskCanceled = new AuditEventType<object>(
+            5201, "Content reduction task canceled", (logObject) => logObject);
         public static readonly AuditEventType<object> PublicationRequestProcessingSuccess = new AuditEventType<object>(
-            5301, "Content PublicationRequest Succeeded", (logObject) => logObject);
+            5202, "Content publication request success", (logObject) => logObject);
+        
+        // 53xx - Publication request aggregate outcome events
+        public static readonly AuditEventType<object> ContentPublicationRequestCanceled = new AuditEventType<object>(
+            5301, "Content publication request canceled", (logObject) => logObject);
         #endregion
 
         #region Content Publishing [6000 - 6999]
