@@ -213,7 +213,7 @@ DeleteClientDialog.prototype = Object.create(Dialog.prototype);
 DeleteClientDialog.prototype.constructor = DeleteClientDialog;
 
 export function DeleteRootContentItemDialog(rootContentItemName, _, submitHandler) {
-  const title = 'Delete RootContentItem';
+  const title = 'Delete Content Item';
   const buttons = [
     { type: vex.dialog.buttons.yes, text: 'Delete' },
     { type: vex.dialog.buttons.no, text: 'Cancel' },
