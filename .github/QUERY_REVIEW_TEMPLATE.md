@@ -29,7 +29,9 @@ Paste the UPDATE or DELETE statement which will be executed:
     DELETE FROM "TableName" WHERE 1 = 0;
 ```
 
-## Attestation for Reviewer
+## Peer Review Process
+
+Sign-off can be performed only by individuals with Approved Professional status or higher. Other staff may assist in verifying that the data changes are necessary and appropriate.
 
 _Before the modification statement is executed, the peer reviewer must reply with a comment that states the following:_
 
