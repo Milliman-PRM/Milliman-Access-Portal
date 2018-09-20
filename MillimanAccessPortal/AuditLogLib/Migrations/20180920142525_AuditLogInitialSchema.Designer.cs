@@ -11,8 +11,8 @@ using System;
 namespace AuditLogLib.Migrations
 {
     [DbContext(typeof(AuditLogDbContext))]
-    [Migration("20180917205131_InitialV1.0")]
-    partial class InitialV10
+    [Migration("20180920142525_AuditLogInitialSchema")]
+    partial class AuditLogInitialSchema
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -27,6 +27,8 @@ namespace AuditLogLib.Migrations
                         .ValueGeneratedOnAdd();
 
                     b.Property<string>("Assembly");
+
+                    b.Property<int>("EventCode");
 
                     b.Property<string>("EventData")
                         .HasColumnType("jsonb");

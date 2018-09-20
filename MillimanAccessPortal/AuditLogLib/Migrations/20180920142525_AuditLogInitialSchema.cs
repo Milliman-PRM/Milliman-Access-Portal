@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace AuditLogLib.Migrations
 {
-    public partial class InitialV10 : Migration
+    public partial class AuditLogInitialSchema : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -16,6 +16,7 @@ namespace AuditLogLib.Migrations
                     Id = table.Column<long>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
                     Assembly = table.Column<string>(nullable: true),
+                    EventCode = table.Column<int>(nullable: false),
                     EventData = table.Column<string>(type: "jsonb", nullable: true),
                     EventType = table.Column<string>(nullable: true),
                     SessionId = table.Column<string>(nullable: true),
