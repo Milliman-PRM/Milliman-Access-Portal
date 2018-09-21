@@ -144,9 +144,6 @@ namespace MillimanAccessPortal
                     // PublicationRequest was set to canceled, no extra cleanup needed
                     return;
                 }
-
-                AuditLogger Logger = new AuditLogger();
-                Logger.Log(AuditEventType.PublicationQueued.ToEvent(rootContentItem, publicationRequest));
             }
         }
 
