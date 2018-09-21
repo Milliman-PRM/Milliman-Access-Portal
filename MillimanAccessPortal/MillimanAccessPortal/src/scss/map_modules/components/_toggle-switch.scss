@@ -18,6 +18,19 @@
 
         .toggle-switch-checkbox {
             display: none;
+
+            &[disabled] {
+                cursor: default;
+
+                & + .toggle-switch-label > .toggle-switch-inner {
+
+                    &:before,
+                    &:after {
+                        background-color: $grey;
+                        color: $charcoal;
+                    }
+                }
+            }
         }
 
         .toggle-switch-label {
