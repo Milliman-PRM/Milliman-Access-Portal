@@ -13,8 +13,8 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20180904212441_PublicationRequestUploadedRelatedFiles")]
-    partial class PublicationRequestUploadedRelatedFiles
+    [Migration("20180917205229_InitialV1.0")]
+    partial class InitialV10
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -330,6 +330,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<bool>("IsMaster");
 
                     b.Property<bool>("IsSuspended");
+
+                    b.Property<string>("ReducedContentChecksum");
 
                     b.Property<Guid>("RootContentItemId");
 

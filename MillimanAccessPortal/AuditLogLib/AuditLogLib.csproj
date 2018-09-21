@@ -42,5 +42,8 @@
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
     <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
 
 </Project>
