@@ -434,6 +434,22 @@ if ($LASTEXITCODE -ne 0) {
 
 #endregion
 
+#region Publish MAP Query Admin to a folder
+log_statement "Publishing MAP Query Admin to a folder"
+
+Set-Location $rootpath\MapQueryAdminWeb
+
+msbuild /t:publish /p:PublishDir=$queryAppBuildTarget /verbosity:quiet /p:Configuration=$buildType
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to publish query admin app application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+#endregion
+
 #region Package MAP Query Admin for nuget
 log_statement "Packaging MAP Query Admin"
 
