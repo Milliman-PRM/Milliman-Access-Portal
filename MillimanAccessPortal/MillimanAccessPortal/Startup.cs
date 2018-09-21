@@ -36,6 +36,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NetEscapades.AspNetCore.SecurityHeaders;
 
 namespace MillimanAccessPortal
 {
@@ -233,6 +234,12 @@ namespace MillimanAccessPortal
                     }
                 },
             });
+
+            // Send header to prevent IE from going into compatibility mode
+            // Should work for internal and external users
+            var policyCollection = new HeaderPolicyCollection()
+                .AddCustomHeader("X-UA-Compatible", "IE=Edge");
+            app.UseSecurityHeaders(policyCollection);
 
             // Conditionally omit auth cookie
             app.Use(next => context =>
