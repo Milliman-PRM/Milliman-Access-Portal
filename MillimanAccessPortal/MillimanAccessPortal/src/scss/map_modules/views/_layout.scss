@@ -16,7 +16,7 @@
     #content-container {
         display: flex;
         flex-flow: row nowrap;
-        flex: 1;
+        flex: 1 1 auto;
         overflow: auto;
 
         @include for-tablet-down() {

@@ -47,7 +47,7 @@
             .content-card-title {
                 margin: 0 0 .25em;
                 line-height: 1em;
-                flex: 1;
+                flex: 1 0 auto;
             }
 
             .content-card-icons {
@@ -62,7 +62,7 @@
         }
 
         .content-card-body {
-            flex: 1;
+            flex: 1 0 auto;
 
             .content-card-image {
                 width: 10em;

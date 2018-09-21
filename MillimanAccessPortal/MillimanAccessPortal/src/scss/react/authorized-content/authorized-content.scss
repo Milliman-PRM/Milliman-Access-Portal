@@ -29,7 +29,7 @@
     }
 
     #authorized-content-items {
-        flex: 1;
+        flex: 1 1 auto;
         overflow: auto;
 
         .client-content-container {

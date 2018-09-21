@@ -138,7 +138,7 @@
 
             .card-body-primary-container {
                 display: inline-block;
-                flex: 1;
+                flex: 1 1 auto;
                 padding: 0 .5em;
                 margin: auto;
                 width: 100%;
@@ -222,7 +222,7 @@
                     .card-progress-status-text {
                         font-style: italic;
                         font-weight: normal;
-                        flex: 1;
+                        flex: 1 0 auto;
                         height: 1em;
                         margin-bottom: 0;
                         color: $dark-grey;
@@ -293,7 +293,7 @@
                 }
 
                 .card-stat-value {
-                    flex: 1;
+                    flex: 1 0 auto;
                     margin-left: .75em;
                 }
             }
@@ -511,7 +511,7 @@
                 }
 
                 .detail-item-user-input {
-                    flex: 1;
+                    flex: 1 0 auto;
                     padding: .5em;
                 }
             }
