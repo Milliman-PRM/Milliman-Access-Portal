@@ -32,8 +32,14 @@ namespace QlikviewLib
 
             UriBuilder backUriBuilder = new UriBuilder
             {
-                Scheme = string.IsNullOrWhiteSpace(thisHttpRequest.Scheme) ? "https" : thisHttpRequest.Scheme,
-                Host = string.IsNullOrWhiteSpace(thisHttpRequest.Host.ToString()) ? "localhost" : thisHttpRequest.Host.ToString(),
+                Scheme = QvServerUriScheme,
+                Host = thisHttpRequest.Host.HasValue
+                    ? thisHttpRequest.Host.Host
+                    : $"localhost",  // result is probably error in production but won't crash
+                Port = thisHttpRequest.Host.HasValue
+                    ? thisHttpRequest.Host.Port.Value
+                    : -1,
+                Path = $"/Shared/Message",
             };
             string[] QueryStringItems = new string[]
             {
@@ -45,8 +51,6 @@ namespace QlikviewLib
 
             UriBuilder QvServerUri = new UriBuilder
             {
-                // Note that the UriBuilder manages the insertion of literal '?' before the query string.  
-                // Don't include a query string with '?' in the Path property because the '?' gets UrlEncoded.  
                 Scheme = QvServerUriScheme,
                 Host = ConfigInfo.QvServerHost,
                 Path = "/qvajaxzfc/Authenticate.aspx",
