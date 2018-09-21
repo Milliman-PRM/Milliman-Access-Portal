@@ -437,7 +437,7 @@ if ($LASTEXITCODE -ne 0) {
 #region Publish MAP Query Admin to a folder
 log_statement "Publishing MAP Query Admin to a folder"
 
-Set-Location $rootpath\MapQueryAdminWeb
+Set-Location $rootpath\MillimanAccessPortal\MapQueryAdminWeb
 
 msbuild /t:publish /p:PublishDir=$queryAppBuildTarget /verbosity:quiet /p:Configuration=$buildType
 
