@@ -1,0 +1,18 @@
+body {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#QvAjaxToolbar {
+    width: 100vw !important;
+}
+
+#QvAjaxToolbar-right {
+    display: hidden !important;
+}
+
+#PageContainer {
+    border: none !important;
+}

@@ -123,7 +123,7 @@ namespace ContentPublishingLib
         /// <summary>
         /// Entry point intended for the main application to request this object to gracefully stop all processing under its control
         /// </summary>
-        /// <param name="WaitMs">if negative, use configured parameter "StopWaitTimeSeconds" or default to hard coded value</param>
+        /// <param name="WaitSec">if negative, use configured parameter "StopWaitTimeSeconds" or default to hard coded value</param>
         /// <returns></returns>
         public bool Stop(int WaitSec = -1)
         {

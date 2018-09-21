@@ -32,8 +32,8 @@ namespace QlikviewLib
 
             UriBuilder backUriBuilder = new UriBuilder
             {
-                Scheme = thisHttpRequest.Scheme,
-                Host = thisHttpRequest.Host.Host,
+                Scheme = string.IsNullOrWhiteSpace(thisHttpRequest.Scheme) ? "https" : thisHttpRequest.Scheme,
+                Host = string.IsNullOrWhiteSpace(thisHttpRequest.Host.ToString()) ? "localhost" : thisHttpRequest.Host.ToString(),
             };
             string[] QueryStringItems = new string[]
             {

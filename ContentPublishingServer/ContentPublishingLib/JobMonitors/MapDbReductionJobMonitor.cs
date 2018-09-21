@@ -78,8 +78,7 @@ namespace ContentPublishingLib.JobMonitors
 
         /// <summary>
         /// Main long running thread of the job monitor
-        /// TODO It should not be necessary to pass the cancellation token here since the Task.Run method has the token as second argument. 
-        /// Follow up when there is an answer at: https://github.com/dotnet/docs/issues/5085
+        /// It is necessary to pass the cancellation token both here and in Task.Run().  See: https://github.com/dotnet/docs/issues/5085
         /// </summary>
         /// <param name="Token"></param>
         public override void JobMonitorThreadMain(CancellationToken Token)
@@ -87,6 +86,23 @@ namespace ContentPublishingLib.JobMonitors
             MethodBase Method = MethodBase.GetCurrentMethod();
             while (!Token.IsCancellationRequested)
             {
+                // Request to cancel active runners for canceled (in db) ContentReductionTasks. 
+                using (ApplicationDbContext Db = MockContext != null
+                                               ? MockContext.Object
+                                               : new ApplicationDbContext(ContextOptions))
+                {
+                    List<Guid> AllActiveReductionTaskIdList = ActiveReductionRunnerItems.Select(i => i.dbTask.Id).ToList();
+
+                    List<Guid> CanceledTaskIdList = Db.ContentReductionTask.Where(t => AllActiveReductionTaskIdList.Contains(t.Id))
+                                                                           .Where(t => t.ReductionStatus == ReductionStatusEnum.Canceled)
+                                                                           .Select(t => t.Id)
+                                                                           .ToList();
+
+                    ActiveReductionRunnerItems.Where(i => CanceledTaskIdList.Contains(i.dbTask.Id))
+                                              .ToList()
+                                              .ForEach(i => i.tokenSource.Cancel());
+                }
+
                 // Remove completed tasks from the RunningTasks collection. 
                 foreach (ReductionJobTrackingItem CompletedReductionRunnerItem in ActiveReductionRunnerItems.Where(t => t.task.IsCompleted).ToList())
                 {

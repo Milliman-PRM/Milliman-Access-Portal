@@ -119,7 +119,7 @@ $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
-$TrimmedBranch = $BranchName.Replace("_","").Replace("-","").ToLower()
+$TrimmedBranch = $BranchName.Replace("_","").Replace("-","").Replace(".","").ToLower()
 log_statement "$BranchName trimmed to $TrimmedBranch"
 $appDbName = "appdb_$TrimmedBranch"
 $appDbTemplateName = "appdb_ci_template"
@@ -137,7 +137,7 @@ $env:ASPNETCORE_ENVIRONMENT=$testEnvironment
 $env:PATH = $env:PATH+";C:\Program Files (x86)\OctopusCLI\;$env:appdata\npm\"
 $rootPath = (get-location).Path
 $webBuildTarget = "$rootPath\WebDeploy"
-$serviceBuildTarget = "$rootPath\ContentPublishingServer\ContentPublishingService\bin\debug"
+$serviceBuildTarget = "$rootPath\ContentPublishingServer\ContentPublishingService\bin\$buildType"
 $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
@@ -167,7 +167,7 @@ $codeChangeFound = $false
 foreach ($diff in $diffOutput)
 {
   # If both of these are true, the line being examined is likely a change to the software that needs testing
-  if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike '.github/*')
+  if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike '.github/*' -and $diff -notlike 'UtilityScripts/*')
   {
     log_statement "Code change found in $diff"
     $codeChangeFound = $true
@@ -216,7 +216,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\MillimanAccessPortal\
 
-MSBuild /restore:true /verbosity:quiet /p:Configuration=$buildType
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Initial build of MAP solution failed"
@@ -265,7 +265,7 @@ if($runTests) {
 
     Set-Location $rootPath\MillimanAccessPortal\MapTests
 
-    dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
+    dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
 
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: One or more MAP xUnit tests failed"
@@ -292,7 +292,7 @@ if($runTests) {
 
     Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
 
-    dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
+    dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
 
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: One or more content publishing xUnit tests failed"
