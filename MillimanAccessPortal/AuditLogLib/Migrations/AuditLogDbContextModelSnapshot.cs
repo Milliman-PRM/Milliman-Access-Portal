@@ -27,6 +27,8 @@ namespace AuditLogLib.Migrations
 
                     b.Property<string>("Assembly");
 
+                    b.Property<int>("EventCode");
+
                     b.Property<string>("EventData")
                         .HasColumnType("jsonb");
 

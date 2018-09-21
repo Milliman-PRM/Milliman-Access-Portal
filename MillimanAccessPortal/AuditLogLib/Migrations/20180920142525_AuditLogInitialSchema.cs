@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.EntityFrameworkCore.Metadata;
+using System;
+using System.Collections.Generic;
 
 namespace AuditLogLib.Migrations
 {
-    public partial class Initial : Migration
+    public partial class AuditLogInitialSchema : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -15,9 +15,13 @@ namespace AuditLogLib.Migrations
                 {
                     Id = table.Column<long>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
-                    EventDetailJsonb = table.Column<string>(type: "jsonb", nullable: true),
+                    Assembly = table.Column<string>(nullable: true),
+                    EventCode = table.Column<int>(nullable: false),
+                    EventData = table.Column<string>(type: "jsonb", nullable: true),
                     EventType = table.Column<string>(nullable: true),
-                    TimeStamp = table.Column<DateTime>(nullable: false),
+                    SessionId = table.Column<string>(nullable: true),
+                    Source = table.Column<string>(nullable: true),
+                    TimeStampUtc = table.Column<DateTime>(nullable: false),
                     User = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
