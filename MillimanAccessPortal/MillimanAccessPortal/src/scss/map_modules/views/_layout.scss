@@ -17,6 +17,7 @@
         display: flex;
         flex-flow: row nowrap;
         flex: 1;
+        overflow: auto;
 
         @include for-tablet-down() {
             flex-flow: column nowrap !important;
