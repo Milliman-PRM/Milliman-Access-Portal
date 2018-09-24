@@ -191,6 +191,7 @@ namespace MillimanAccessPortal.Controllers
             RootContentItem rootContentItem = DbContext.RootContentItem
                 .Where(item => item.Id == RootContentItemId)
                 .Include(item => item.Client)
+                .Include(item => item.ContentType)
                 .SingleOrDefault();
 
             #region Preliminary validation
@@ -242,6 +243,7 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 selectionGroup.IsMaster = true;
+                selectionGroup.RootContentItem = rootContentItem;
                 selectionGroup.SetContentUrl(Path.GetFileName(liveMasterFile.FullPath));
             }
 
