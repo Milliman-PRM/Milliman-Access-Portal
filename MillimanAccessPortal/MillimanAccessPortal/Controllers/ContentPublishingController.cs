@@ -823,8 +823,7 @@ namespace MillimanAccessPortal.Controllers
                 PubRequest.RequestStatus = PublicationStatus.Confirmed;
 
                 //3.2  ContentReductionTask.Status
-                foreach (ContentReductionTask PreviousLiveTask in DbContext.ContentReductionTask.Include(t => t.SelectionGroup)
-                                                                                                .Where(r => r.SelectionGroup.RootContentItemId == PubRequest.RootContentItemId)
+                foreach (ContentReductionTask PreviousLiveTask in DbContext.ContentReductionTask.Where(r => r.SelectionGroup.RootContentItemId == PubRequest.RootContentItemId)
                                                                                                 .Where(r => r.ReductionStatus == ReductionStatusEnum.Live))
                 {
                     PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
