@@ -150,6 +150,8 @@ namespace MillimanAccessPortal
             services.AddMemoryCache();
             services.AddSession();
 
+            services.AddResponseCaching();
+
             services.AddMvc(config =>
             {
                 var policy = new AuthorizationPolicyBuilder()
@@ -233,6 +235,27 @@ namespace MillimanAccessPortal
                     }
                 },
             });
+
+            // Configure response caching to not cache requests
+            // CSRF protection disables caching for unsafe HTTP methods only, so this additional configuration
+            // is required to prevent some browsers (IE, ) from caching Ajax requests
+            app.UseResponseCaching();
+
+            app.Use(async (context, next) =>
+            {
+                context.Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue
+                {
+                    NoCache = true,
+                };
+
+                await next();
+            });
+
+            // Send header to prevent IE from going into compatibility mode
+            // Should work for internal and external users
+            var policyCollection = new HeaderPolicyCollection()
+                .AddCustomHeader("X-UA-Compatible", "IE=Edge");
+            app.UseSecurityHeaders(policyCollection);
 
             // Conditionally omit auth cookie
             app.Use(next => context =>
