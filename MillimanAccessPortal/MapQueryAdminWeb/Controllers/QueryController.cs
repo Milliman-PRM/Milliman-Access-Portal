@@ -26,6 +26,12 @@ namespace MapQueryAdminWeb.Controllers
         public IActionResult RunQuery()
         {
             RunQueryModel model = new RunQueryModel();
+
+            // Get connection string info for display
+            NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder(_config.GetConnectionString("DefaultConnection"));
+            ViewData["Server"] = builder.Host;
+            ViewData["Database"] = builder.Database;
+
             return View(model);
         }
 
@@ -33,6 +39,12 @@ namespace MapQueryAdminWeb.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult RunQuery(RunQueryModel model)
         {
+            // Get connection string info for display
+            NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder(_config.GetConnectionString("DefaultConnection"));
+            ViewData["Server"] = builder.Host;
+            ViewData["Database"] = builder.Database;
+
+            // Initialize connection
             NpgsqlConnection conn = new NpgsqlConnection(getAppDbConnectionString(model.pgsqlUsername, model.pgsqlPassword));
             conn.Open();
             NpgsqlTransaction transaction = conn.BeginTransaction();
@@ -40,6 +52,7 @@ namespace MapQueryAdminWeb.Controllers
 
             try
             {
+                // Execute query
                 int rows = command.ExecuteNonQuery();
 
                 _logger.Log(AuditEventType.ManualDatabaseCommand.ToEvent(
@@ -50,15 +63,15 @@ namespace MapQueryAdminWeb.Controllers
                     rows
                     ));
 
+                // Only commit the transaction after the action is logged
                 transaction.Commit();
 
-                // TODO: Give the user an indication of success
+                // Give the user an indication of success
                 ViewData["result"] = $"The query executed successfully. {rows} rows were affected.";
             }
             catch (Exception ex)
             {
-                // TODO: Give the user an indication of failure
-
+                // Give the user an indication of failure
                 transaction.Rollback();
                 ViewData["result"] = $"The query failed.<br />Message: {ex.Message}<br />Stack Trace:<br />{ex.StackTrace}";
             }

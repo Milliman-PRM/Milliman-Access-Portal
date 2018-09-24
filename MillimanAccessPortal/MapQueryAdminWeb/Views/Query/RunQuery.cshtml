@@ -5,8 +5,11 @@
 
 <h2>Query</h2>
 
-<form  method="post">
-
+<form action="/Query/RunQuery" method="post">
+    <div>
+        Server: @ViewData["Server"]<br />
+        Database: @ViewData["Database"]
+    </div>
     <div>
         Database Username: <input asp-for="pgsqlUsername" name="pgsqlUsername" type="text" data-original-value="@Model.pgsqlUsername" />
                                                  <span asp-validation-for="pgsqlUsername" class="text-danger"></span>
