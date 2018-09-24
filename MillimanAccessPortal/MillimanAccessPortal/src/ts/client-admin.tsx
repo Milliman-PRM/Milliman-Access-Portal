@@ -670,6 +670,6 @@ $(document).ready(function onReady() {
     plugins: ['remove_button'],
   });
 
-  statusMonitor = new StatusMonitor('/Account/SessionStatus');
+  statusMonitor = new StatusMonitor('/Account/SessionStatus', () => null, 60);
   statusMonitor.start();
 });

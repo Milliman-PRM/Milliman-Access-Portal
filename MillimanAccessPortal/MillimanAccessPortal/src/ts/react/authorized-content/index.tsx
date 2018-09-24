@@ -22,5 +22,5 @@ document.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(<AuthorizedContent />, document.getElementById('content-container'));
 });
 
-const statusMonitor = new StatusMonitor('/Account/SessionStatus');
+const statusMonitor = new StatusMonitor('/Account/SessionStatus', () => null, 60);
 statusMonitor.start();
