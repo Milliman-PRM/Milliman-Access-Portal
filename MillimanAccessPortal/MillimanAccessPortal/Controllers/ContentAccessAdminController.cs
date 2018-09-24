@@ -191,6 +191,7 @@ namespace MillimanAccessPortal.Controllers
             RootContentItem rootContentItem = DbContext.RootContentItem
                 .Where(item => item.Id == RootContentItemId)
                 .Include(item => item.Client)
+                .Include(item => item.ContentType)
                 .SingleOrDefault();
 
             #region Preliminary validation
@@ -235,14 +236,14 @@ namespace MillimanAccessPortal.Controllers
             {
                 ContentRelatedFile liveMasterFile = rootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
                 if (liveMasterFile == null 
-                 || !System.IO.File.Exists(liveMasterFile.FullPath)
-                 || !liveMasterFile.ValidateChecksum())
+                 || !System.IO.File.Exists(liveMasterFile.FullPath))
                 {
                     Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
 
                 selectionGroup.IsMaster = true;
+                selectionGroup.RootContentItem = rootContentItem;
                 selectionGroup.SetContentUrl(Path.GetFileName(liveMasterFile.FullPath));
             }
 
@@ -749,8 +750,7 @@ namespace MillimanAccessPortal.Controllers
             // Require that the live master file path is stored in the RootContentItem and the file exists
             ContentRelatedFile LiveMasterFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
             if (LiveMasterFile == null 
-             || !System.IO.File.Exists(LiveMasterFile.FullPath)
-             || !LiveMasterFile.ValidateChecksum())
+             || !System.IO.File.Exists(LiveMasterFile.FullPath))
             {
                 Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
