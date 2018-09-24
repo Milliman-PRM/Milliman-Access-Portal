@@ -231,6 +231,21 @@ namespace MillimanAccessPortal.Controllers
                 ContentInstanceUrl = ""
             };
 
+            if (!rootContentItem.DoesReduce)
+            {
+                ContentRelatedFile liveMasterFile = rootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
+                if (liveMasterFile == null 
+                 || !System.IO.File.Exists(liveMasterFile.FullPath)
+                 || !liveMasterFile.ValidateChecksum())
+                {
+                    Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+
+                selectionGroup.IsMaster = true;
+                selectionGroup.SetContentUrl(Path.GetFileName(liveMasterFile.FullPath));
+            }
+
             try
             {
                 DbContext.SelectionGroup.Add(selectionGroup);
