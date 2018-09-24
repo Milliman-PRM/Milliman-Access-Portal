@@ -51,6 +51,10 @@ ol li ol li {
     list-style-type: lower-alpha;
 }
 
+ol li ul li {
+    list-style-type: disc;
+}
+
 ul li {
     list-style: none;
 }

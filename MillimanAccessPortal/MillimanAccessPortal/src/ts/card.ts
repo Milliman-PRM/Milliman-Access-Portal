@@ -790,11 +790,8 @@ export function InsertCard(icon, text, level, callback) {
   this.addComponent('card', {
     class: [
       'card-container',
-      'flex-container',
-      'flex-row-no-wrap',
-      'items-align-center',
-      'insert-card',
       'card-' + (100 - (10 * level)),
+      'insert-card',
     ].join(' '),
   });
   this.addComponent('insert', {

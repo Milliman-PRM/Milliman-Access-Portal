@@ -507,6 +507,8 @@ namespace MillimanAccessPortal.Controllers
             ContentPublishSupport.AddPublicationMonitor(Task.Run(() =>
                 ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath)));
 
+            AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(NewContentPublicationRequest.RootContentItem, NewContentPublicationRequest));
+
             var rootContentItemDetail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, ContentItem);
             return Json(rootContentItemDetail);
         }

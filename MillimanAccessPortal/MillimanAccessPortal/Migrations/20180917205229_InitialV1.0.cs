@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Migrations
 {
-    public partial class InitialWithGuidKeys : Migration
+    public partial class InitialV10 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -358,6 +358,7 @@ namespace MillimanAccessPortal.Migrations
                     ResultHierarchy = table.Column<string>(type: "jsonb", nullable: true),
                     RootContentItemId = table.Column<Guid>(nullable: false),
                     StatusMessage = table.Column<string>(nullable: true),
+                    UploadedRelatedFiles = table.Column<string>(type: "jsonb", nullable: true),
                     xmin = table.Column<uint>(type: "xid", nullable: false)
                 },
                 constraints: table =>
@@ -408,6 +409,7 @@ namespace MillimanAccessPortal.Migrations
                     GroupName = table.Column<string>(nullable: false),
                     IsMaster = table.Column<bool>(nullable: false),
                     IsSuspended = table.Column<bool>(nullable: false),
+                    ReducedContentChecksum = table.Column<string>(nullable: true),
                     RootContentItemId = table.Column<Guid>(nullable: false),
                     SelectedHierarchyFieldValueList = table.Column<Guid[]>(nullable: true)
                 },

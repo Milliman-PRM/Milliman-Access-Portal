@@ -14,10 +14,23 @@
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
-        flex: 0 1 65px;
+        flex: 0 0 auto;
 
         .toggle-switch-checkbox {
             display: none;
+
+            &[disabled] {
+                cursor: default;
+
+                & + .toggle-switch-label > .toggle-switch-inner {
+
+                    &:before,
+                    &:after {
+                        background-color: $grey;
+                        color: $charcoal;
+                    }
+                }
+            }
         }
 
         .toggle-switch-label {
@@ -90,7 +103,7 @@
 
     .switch-label {
         margin-left: 10px;
-        flex: 2;
+        flex: 2 0 7em;
         cursor: pointer;
         font-size: 1em;
     }
