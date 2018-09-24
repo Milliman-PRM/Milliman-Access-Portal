@@ -150,7 +150,7 @@ namespace MillimanAccessPortal.DataQueries
                                                             .Include(urc => urc.Role)
                                                             .Where(urc => urc.UserId == UserId
                                                                        && urc.ClientId == ClientId)
-                                                            .Distinct()
+                                                            .Distinct(new UserRoleInClientComparer())
                                                             .Select(urc =>
                                                                 new AssignedRoleInfo
                                                                 {

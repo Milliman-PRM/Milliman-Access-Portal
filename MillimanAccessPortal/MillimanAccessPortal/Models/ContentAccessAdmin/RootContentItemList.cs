@@ -27,7 +27,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 .Where(urc => urc.UserId == User.Id)
                 .Where(urc => urc.Role.RoleEnum == roleInRootContentItem)
                 .Select(urc => urc.RootContentItem)
-                .Distinct()
+                .Distinct(new RootContentItemComparer())
                 .ToList();
 
             foreach (var rootContentItem in rootContentItems)
