@@ -814,7 +814,8 @@ namespace MillimanAccessPortal.Controllers
 
                 //3 Update db:
                 //3.1  ContentPublicationRequest.Status
-                foreach (ContentPublicationRequest PreviousLiveRequest in DbContext.ContentPublicationRequest.Where(r => r.RequestStatus == PublicationStatus.Confirmed))
+                foreach (ContentPublicationRequest PreviousLiveRequest in DbContext.ContentPublicationRequest.Where(r => r.RootContentItemId == PubRequest.RootContentItemId)
+                                                                                                             .Where(r => r.RequestStatus == PublicationStatus.Confirmed))
                 {
                     PreviousLiveRequest.RequestStatus = PublicationStatus.Replaced;
                     DbContext.ContentPublicationRequest.Update(PreviousLiveRequest);
