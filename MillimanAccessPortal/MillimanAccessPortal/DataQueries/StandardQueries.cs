@@ -146,33 +146,20 @@ namespace MillimanAccessPortal.DataQueries
         /// <returns></returns>
         public List<AssignedRoleInfo> GetUserRolesForClient(Guid UserId, Guid ClientId)
         {
-            var Query = DbContext.UserRoleInClient
-                .Include(urc => urc.Role)
-                .Where(urc => urc.UserId == UserId)
-                .Where(urc => urc.ClientId == ClientId)
-                .OrderBy(urc => urc.UserId)
-                    .ThenBy(urc => urc.ClientId)
-                .ToList();
+            IQueryable<AssignedRoleInfo> Query = DbContext.UserRoleInClient
+                                                            .Include(urc => urc.Role)
+                                                            .Where(urc => urc.UserId == UserId
+                                                                       && urc.ClientId == ClientId)
+                                                            .Distinct()
+                                                            .Select(urc =>
+                                                                new AssignedRoleInfo
+                                                                {
+                                                                    RoleEnum = urc.Role.RoleEnum,
+                                                                    RoleDisplayValue = ApplicationRole.RoleDisplayNames[urc.Role.RoleEnum],
+                                                                    IsAssigned = true,
+                                                                });
 
-            // LINQ's .Distinct() with custom comparer is not supported
-            // Sort and compare with last element to avoid quadratic runtime
-            var DistinctQuery = new List<UserRoleInClient>();
-            foreach (var role in Query)
-            {
-                var lastQuery = DistinctQuery.LastOrDefault();
-                if (lastQuery?.UserId == role.UserId && lastQuery?.ClientId == role.ClientId)
-                {
-                    continue;
-                }
-                DistinctQuery.Add(role);
-            }
-
-            var ReturnVal = DistinctQuery.Select(urc => new AssignedRoleInfo
-            {
-                RoleEnum = urc.Role.RoleEnum,
-                RoleDisplayValue = ApplicationRole.RoleDisplayNames[urc.Role.RoleEnum],
-                IsAssigned = true,
-            }).ToList();
+            List<AssignedRoleInfo> ReturnVal = Query.ToList();
 
             return ReturnVal;
         }

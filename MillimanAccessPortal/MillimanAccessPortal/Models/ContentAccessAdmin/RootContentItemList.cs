@@ -26,28 +26,11 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 .Where(urc => urc.RootContentItem.ClientId == client.Id)
                 .Where(urc => urc.UserId == User.Id)
                 .Where(urc => urc.Role.RoleEnum == roleInRootContentItem)
-                .OrderBy(urc => urc.RootContentItem.ContentName)
                 .Select(urc => urc.RootContentItem)
+                .Distinct()
                 .ToList();
 
-            // LINQ's .Distinct() with custom comparer is not supported
-            // Sort and compare with last element to avoid quadratic runtime
-            var distinctRootContentItems = new List<RootContentItem>();
             foreach (var rootContentItem in rootContentItems)
-            {
-                // Id is definitive for whether two records are the same, but the query is sorted by content name
-                var lastItem = distinctRootContentItems.LastOrDefault();
-                if (lastItem?.ContentName == rootContentItem.ContentName)
-                {
-                    if (lastItem?.Id == rootContentItem.Id)
-                    {
-                        continue;
-                    }
-                }
-                distinctRootContentItems.Add(rootContentItem);
-            }
-
-            foreach (var rootContentItem in distinctRootContentItems)
             {
                 model.SummaryList.Add(RootContentItemSummary.Build(dbContext, rootContentItem));
             }
