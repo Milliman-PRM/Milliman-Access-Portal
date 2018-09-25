@@ -35,7 +35,7 @@ namespace QlikviewLib
                 Host = thisHttpRequest.Host.HasValue
                     ? thisHttpRequest.Host.Host
                     : $"localhost",  // result is probably error in production but won't crash
-                Port = thisHttpRequest.Host.HasValue
+                Port = thisHttpRequest.Host.Port.HasValue
                     ? thisHttpRequest.Host.Port.Value
                     : -1,
                 Path = $"/Shared/Message",
