@@ -180,7 +180,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         {
           name: 'user',
           overrides: {
-            displayName: 'Authorized Content',
+            displayName: 'Content',
           },
         },
         'client',
