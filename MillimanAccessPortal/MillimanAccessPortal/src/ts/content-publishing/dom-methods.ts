@@ -267,6 +267,13 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   // populate attestation
   $('#confirmation-section-attestation .attestation-language').html(response.AttestationLanguage);
 
+  const anyEnabled = $('#report-confirmation input[type="checkbox"]')
+    .filter((_, element) => $(element).attr('disabled') === undefined).length;
+  if (!anyEnabled) {
+    $('#confirmation-section-attestation .button-approve')
+      .removeAttr('disabled');
+  }
+
   preLiveObject = response;
 }
 
