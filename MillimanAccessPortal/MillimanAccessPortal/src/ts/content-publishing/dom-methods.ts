@@ -211,7 +211,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       .attr('disabled', '');
   });
 
-  if (!response.DoesReduce) {
+  if (!response.DoesReduce || !response.SelectionGroups) {
     $('#confirmation-section-hierarchy-diff')
       .hide()
       .find('input[type="checkbox"]')
