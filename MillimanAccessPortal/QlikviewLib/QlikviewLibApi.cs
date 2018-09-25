@@ -45,7 +45,7 @@ namespace QlikviewLib
             {
                 $"type=html",
                 $"try=/qvajaxzfc/opendoc.htm?document={ContentUrl}",
-                $"back='{Uri.EscapeUriString(backUriBuilder.Uri.AbsoluteUri)}'",
+                $"back='{backUriBuilder.Uri.AbsoluteUri}'",
                 $"webticket={QlikviewWebTicket}",
             };
 
