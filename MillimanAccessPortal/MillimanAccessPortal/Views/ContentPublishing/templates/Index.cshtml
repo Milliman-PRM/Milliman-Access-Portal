@@ -272,8 +272,9 @@
                     </svg>
                 </a>
             </div>
-            <label for="confirmation-master-content">
-                <input type="checkbox" name="master-content" value="confirmation-master-content" id="confirmation-master-content">
+            <label for="confirmation-master-content" class="selection-option-label">
+                <input type="checkbox" name="master-content" value="confirmation-master-content" id="confirmation-master-content" class="selection-option-value">
+                <span class="selection-option-checkmark"></span>
                 Content is as expected
             </label>
         </div>
@@ -287,8 +288,9 @@
                     </svg>
                 </a>
             </div>
-            <label for="confirmation-user-guide">
-                <input type="checkbox" name="user-guide" value="confirmation-user-guide" id="confirmation-user-guide">
+            <label for="confirmation-user-guide" class="selection-option-label">
+                <input type="checkbox" name="user-guide" value="confirmation-user-guide" id="confirmation-user-guide" class="selection-option-value">
+                <span class="selection-option-checkmark"></span>
                 User guide is as expected
             </label>
         </div>
@@ -302,8 +304,9 @@
                     </svg>
                 </a>
             </div>
-            <label for="confirmation-release-notes">
-                <input type="checkbox" name="release-notes" value="confirmation-release-notes" id="confirmation-release-notes">
+            <label for="confirmation-release-notes" class="selection-option-label">
+                <input type="checkbox" name="release-notes" value="confirmation-release-notes" id="confirmation-release-notes" class="selection-option-value">
+                <span class="selection-option-checkmark"></span>
                 Release notes are as expected
             </label>
         </div>
@@ -312,15 +315,16 @@
             <div class="hierarchy-container">
                 <div class="hierarchy hierarchy-left">
                     <h5>Old Hierarchy Values</h5>
-                    <ul></ul>
+                    <ul class="hierarchy-list"></ul>
                 </div>
                 <div class="hierarchy hierarchy-right">
                     <h5>New Hierarchy Values</h5>
-                    <ul></ul>
+                    <ul class="hierarchy-list"></ul>
                 </div>
             </div>
-            <label for="confirmation-hierarchy-diff">
-                <input type="checkbox" name="hierarchy-diff" value="confirmation-hierarchy-diff" id="confirmation-hierarchy-diff">
+            <label for="confirmation-hierarchy-diff" class="selection-option-label">
+                <input type="checkbox" name="hierarchy-diff" value="confirmation-hierarchy-diff" id="confirmation-hierarchy-diff" class="selection-option-value">
+                <span class="selection-option-checkmark"></span>
                 Hierarchy changes are as expected
             </label>
         </div>
@@ -329,15 +333,15 @@
             <div>
                 <ul></ul>
             </div>
-            <label for="confirmation-hierarchy-stats">
-                <input type="checkbox" name="hierarchy-stats" value="confirmation-hierarchy-stats" id="confirmation-hierarchy-stats">
+            <label for="confirmation-hierarchy-stats" class="selection-option-label">
+                <input type="checkbox" name="hierarchy-stats" value="confirmation-hierarchy-stats" id="confirmation-hierarchy-stats" class="selection-option-value">
+                <span class="selection-option-checkmark"></span>
                 Reduction results are as expected
             </label>
         </div>
         <div class="confirmation-section" id="confirmation-section-attestation">
-            <h4>Report Confirmation</h4>
-            <div>
-                <p></p>
+            <h4>Attestations</h4>
+            <div class="attestation-language">
             </div>
             <div class="confirmation-section-button-container">
                 <button type="button" class="button-reject red-button">Reject</button>

@@ -211,7 +211,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       .attr('disabled', '');
   });
 
-  if (!response.DoesReduce) {
+  if (!response.DoesReduce || !response.SelectionGroups) {
     $('#confirmation-section-hierarchy-diff')
       .hide()
       .find('input[type="checkbox"]')
@@ -231,7 +231,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       $('#confirmation-section-hierarchy-diff .hierarchy-left > ul').append('<div>None</div>');
     } else {
       response.LiveHierarchy.Fields.forEach((field) => {
-        const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
+        const subList = $(`<li><h6>${field.DisplayName}</h6><ul class="hierarchy-list"></ul></li>`);
         field.Values.forEach((value) =>
             subList.find('ul').append(`<li>${value.Value}</li>`));
         $('#confirmation-section-hierarchy-diff .hierarchy-left > ul')
@@ -242,7 +242,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       $('#confirmation-section-hierarchy-diff .hierarchy-right > ul').append('<div>None</div>');
     } else {
       response.NewHierarchy.Fields.forEach((field) => {
-        const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
+        const subList = $(`<li><h6>${field.DisplayName}</h6><ul class="hierarchy-list"></ul></li>`);
         field.Values.forEach((value) =>
             subList.find('ul').append(`<li>${value.Value}</li>`));
         $('#confirmation-section-hierarchy-diff .hierarchy-right > ul')
@@ -265,7 +265,14 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     });
   }
   // populate attestation
-  $('#confirmation-section-attestation p').html(response.AttestationLanguage);
+  $('#confirmation-section-attestation .attestation-language').html(response.AttestationLanguage);
+
+  const anyEnabled = $('#report-confirmation input[type="checkbox"]')
+    .filter((_, element) => $(element).attr('disabled') === undefined).length;
+  if (!anyEnabled) {
+    $('#confirmation-section-attestation .button-approve')
+      .removeAttr('disabled');
+  }
 
   preLiveObject = response;
 }
