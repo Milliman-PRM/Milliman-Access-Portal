@@ -231,7 +231,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       $('#confirmation-section-hierarchy-diff .hierarchy-left > ul').append('<div>None</div>');
     } else {
       response.LiveHierarchy.Fields.forEach((field) => {
-        const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
+        const subList = $(`<li><h6>${field.DisplayName}</h6><ul class="hierarchy-list"></ul></li>`);
         field.Values.forEach((value) =>
             subList.find('ul').append(`<li>${value.Value}</li>`));
         $('#confirmation-section-hierarchy-diff .hierarchy-left > ul')
@@ -242,7 +242,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       $('#confirmation-section-hierarchy-diff .hierarchy-right > ul').append('<div>None</div>');
     } else {
       response.NewHierarchy.Fields.forEach((field) => {
-        const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
+        const subList = $(`<li><h6>${field.DisplayName}</h6><ul class="hierarchy-list"></ul></li>`);
         field.Values.forEach((value) =>
             subList.find('ul').append(`<li>${value.Value}</li>`));
         $('#confirmation-section-hierarchy-diff .hierarchy-right > ul')
