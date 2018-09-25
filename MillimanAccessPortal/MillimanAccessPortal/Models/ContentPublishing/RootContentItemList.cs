@@ -35,9 +35,14 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             var distinctRootContentItems = new List<RootContentItem>();
             foreach (var rootContentItem in rootContentItems)
             {
-                if (distinctRootContentItems.LastOrDefault()?.Id == rootContentItem.Id)
+                // Id is definitive for whether two records are the same, but the query is sorted by content name
+                var lastItem = distinctRootContentItems.LastOrDefault();
+                if (lastItem?.ContentName == rootContentItem.ContentName)
                 {
-                    continue;
+                    if (lastItem?.Id == rootContentItem.Id)
+                    {
+                        continue;
+                    }
                 }
                 distinctRootContentItems.Add(rootContentItem);
             }
