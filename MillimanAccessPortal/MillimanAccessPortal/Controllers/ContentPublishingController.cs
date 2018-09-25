@@ -312,13 +312,19 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId)
+        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId, string password)
         {
             var rootContentItem = DbContext.RootContentItem
                 .Include(x => x.Client)
                 .SingleOrDefault(x => x.Id == rootContentItemId);
 
             #region Preliminary Validation
+            if (!await UserManager.CheckPasswordAsync(await Queries.GetCurrentApplicationUser(User), password))
+            {
+                Response.Headers.Add("Warning", "Incorrect password");
+                return Unauthorized();
+            }
+
             if (rootContentItem == null)
             {
                 Response.Headers.Add("Warning", "The requested root content item does not exist.");
@@ -808,7 +814,8 @@ namespace MillimanAccessPortal.Controllers
 
                 //3 Update db:
                 //3.1  ContentPublicationRequest.Status
-                foreach (ContentPublicationRequest PreviousLiveRequest in DbContext.ContentPublicationRequest.Where(r => r.RequestStatus == PublicationStatus.Confirmed))
+                foreach (ContentPublicationRequest PreviousLiveRequest in DbContext.ContentPublicationRequest.Where(r => r.RootContentItemId == PubRequest.RootContentItemId)
+                                                                                                             .Where(r => r.RequestStatus == PublicationStatus.Confirmed))
                 {
                     PreviousLiveRequest.RequestStatus = PublicationStatus.Replaced;
                     DbContext.ContentPublicationRequest.Update(PreviousLiveRequest);
@@ -816,7 +823,8 @@ namespace MillimanAccessPortal.Controllers
                 PubRequest.RequestStatus = PublicationStatus.Confirmed;
 
                 //3.2  ContentReductionTask.Status
-                foreach (ContentReductionTask PreviousLiveTask in DbContext.ContentReductionTask.Where(r => r.ReductionStatus == ReductionStatusEnum.Live))
+                foreach (ContentReductionTask PreviousLiveTask in DbContext.ContentReductionTask.Where(r => r.SelectionGroup.RootContentItemId == PubRequest.RootContentItemId)
+                                                                                                .Where(r => r.ReductionStatus == ReductionStatusEnum.Live))
                 {
                     PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
                     DbContext.ContentReductionTask.Update(PreviousLiveTask);

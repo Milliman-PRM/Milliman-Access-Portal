@@ -81,8 +81,11 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 }
                 #endregion
 
+                var newHierarchy = AllTasks.FirstOrDefault()?.MasterContentHierarchyObj;
+                newHierarchy?.Sort();
+
                 ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
-                ReturnObj.NewHierarchy = AllTasks.Any() ? AllTasks[0].MasterContentHierarchyObj : null;  // null == there was no hierarchy extraction
+                ReturnObj.NewHierarchy = newHierarchy;  // null == there was no hierarchy extraction
                 ReturnObj.SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary
                     {
                         Name = t.SelectionGroup.GroupName,
@@ -110,7 +113,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             case ContentTypeEnum.Qlikview:
                                 await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(Path.GetDirectoryName(Link), ContentTypeConfig as QlikviewConfig, Path.GetFileName(Link));
 
-                                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, Context.User.Identity.Name, ContentTypeConfig);
+                                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, Context.User.Identity.Name, ContentTypeConfig, Context.Request);
                                 ReturnObj.MasterContentLink = QvwUri.Uri.AbsoluteUri;
                                 break;
 

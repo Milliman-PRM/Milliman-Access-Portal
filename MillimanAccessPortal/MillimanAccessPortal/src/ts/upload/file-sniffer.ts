@@ -44,7 +44,11 @@ export class FileSniffer {
           return true;
         }
         const match = expectedInitialBytes.map((byteSequence) => {
-          const initialBytesTrimmed = initialBytes.slice(0, byteSequence.length);
+          // use a for loop to support IE11
+          const initialBytesTrimmed = new Uint8Array(10);
+          for (let i = 0; i < byteSequence.length; i += 1) {
+            initialBytesTrimmed[i] = initialBytes[i];
+          }
           return sequenceEqual(byteSequence, initialBytesTrimmed);
         }).reduce((cum, cur) => cum || cur, false);
 

@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using MapCommonLib.ContentTypeSpecific;
+using Microsoft.AspNetCore.Http;
 using QlikviewLib.Internal;
 using QlikviewLib.Qms;
 
@@ -17,7 +18,7 @@ namespace QlikviewLib
 {
     public class QlikviewLibApi : ContentTypeSpecificApiBase
     {
-        public override async Task<UriBuilder> GetContentUri(string FilePathRelativeToContentRoot, string UserName, object ConfigInfoArg)
+        public override async Task<UriBuilder> GetContentUri(string FilePathRelativeToContentRoot, string UserName, object ConfigInfoArg, HttpRequest thisHttpRequest)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
             string ContentUrl = string.IsNullOrWhiteSpace(ConfigInfo.QvServerContentUriSubfolder) 
@@ -29,18 +30,27 @@ namespace QlikviewLib
             // TODO Resolve the user naming convention for the QV server.  
             string QlikviewWebTicket = await QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ UserName, ConfigInfo as QlikviewConfig);
 
+            UriBuilder backUriBuilder = new UriBuilder
+            {
+                Scheme = QvServerUriScheme,
+                Host = thisHttpRequest.Host.HasValue
+                    ? thisHttpRequest.Host.Host
+                    : $"localhost",  // result is probably error in production but won't crash
+                Port = thisHttpRequest.Host.HasValue
+                    ? thisHttpRequest.Host.Port.Value
+                    : -1,
+                Path = $"/Shared/Message",
+            };
             string[] QueryStringItems = new string[]
             {
                 $"type=html",
                 $"try=/qvajaxzfc/opendoc.htm?document={ContentUrl}",  // TODO use the relative document path/name in the following
-                $"back=/",  // TODO probably use something other than "/" (such as a proper error page)
+                $"back={backUriBuilder.Uri.AbsoluteUri}",
                 $"webticket={QlikviewWebTicket}",
             };
 
             UriBuilder QvServerUri = new UriBuilder
             {
-                // Note that the UriBuilder manages the insertion of literal '?' before the query string.  
-                // Don't include a query string with '?' in the Path property because the '?' gets UrlEncoded.  
                 Scheme = QvServerUriScheme,
                 Host = ConfigInfo.QvServerHost,
                 Path = "/qvajaxzfc/Authenticate.aspx",

@@ -50,6 +50,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             List<ApplicationUser> memberClients = dbContext.UserInSelectionGroup
                 .Where(usg => usg.SelectionGroupId == selectionGroup.Id)
                 .Select(usg => usg.User)
+                .OrderBy(u => u.LastName)
+                    .ThenBy(u => u.FirstName)
                 .ToList();
 
             foreach (var memberClient in memberClients)

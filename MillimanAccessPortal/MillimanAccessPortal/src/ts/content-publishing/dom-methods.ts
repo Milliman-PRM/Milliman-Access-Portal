@@ -270,7 +270,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   preLiveObject = response;
 }
 
-function renderRootContentItemForm(item?: RootContentItemDetail) {
+function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: boolean = false) {
   const $panel = $('#content-publishing-form');
   const $rootContentItemForm = $panel.find('form.admin-panel-content');
 
@@ -282,7 +282,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       }
     });
     $rootContentItemForm.find('.file-upload').data('originalName', '');
-    if (item.RelatedFiles) {
+    if (item.RelatedFiles && !ignoreFiles) {
       item.RelatedFiles.forEach((relatedFile) => {
         $rootContentItemForm.find(`#${relatedFile.FilePurpose}`)
           .val('')
@@ -330,7 +330,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     'ContentPublishing/UpdateRootContentItem',
     'POST',
     (response) => {
-      renderRootContentItemForm(response.detail);
+      renderRootContentItemForm(response.detail, true);
       // Update related root content item card
       const $card = $('#root-content-items .card-container')
         .filter((_, card) => $(card).data().rootContentItemId === response.detail.Id);
