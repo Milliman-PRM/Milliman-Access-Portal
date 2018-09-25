@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(<SystemAdmin />, document.getElementById('content-container'));
 });
 
-const statusMonitor = new StatusMonitor('/Account/SessionStatus', () => null, 60);
+const statusMonitor = new StatusMonitor('/Account/SessionStatus', () => null, 60000);
 statusMonitor.start();
 
 if (module.hot) {

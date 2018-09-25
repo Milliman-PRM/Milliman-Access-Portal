@@ -73,6 +73,6 @@ $(document).ready(() => {
   formObject.submissionMode = 'update';
   formObject.accessMode = AccessMode.Write;
 
-  statusMonitor = new StatusMonitor('/Account/SessionStatus', () => null, 60);
+  statusMonitor = new StatusMonitor('/Account/SessionStatus', () => null, 60000);
   statusMonitor.start();
 });
