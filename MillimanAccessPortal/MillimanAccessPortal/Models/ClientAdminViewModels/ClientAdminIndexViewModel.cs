@@ -57,7 +57,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                                                             .Include(urpc => urpc.ProfitCenter)
                                                             .Where(urpc => urpc.Role.RoleEnum == RoleEnum.Admin
                                                                         && urpc.UserId == CurrentUser.Id)
-                                                            .Distinct(new UserRoleInProfitCenterComparer())
+                                                            .Distinct()
                                                             .Select(urpc => urpc.ProfitCenter))
             {
                 ModelToReturn.AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
