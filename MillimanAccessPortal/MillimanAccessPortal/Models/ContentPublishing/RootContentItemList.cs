@@ -26,11 +26,23 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 .Where(urc => urc.RootContentItem.ClientId == client.Id)
                 .Where(urc => urc.UserId == User.Id)
                 .Where(urc => urc.Role.RoleEnum == roleInRootContentItem)
+                .OrderBy(urc => urc.RootContentItem.ContentName)
                 .Select(urc => urc.RootContentItem)
-                .Distinct(new RootContentItemComparer())
                 .ToList();
 
+            // LINQ's .Distinct() with custom comparer is not supported
+            // Sort and compare with last element to avoid quadratic runtime
+            var distinctRootContentItems = new List<RootContentItem>();
             foreach (var rootContentItem in rootContentItems)
+            {
+                if (distinctRootContentItems.LastOrDefault()?.Id == rootContentItem.Id)
+                {
+                    continue;
+                }
+                distinctRootContentItems.Add(rootContentItem);
+            }
+
+            foreach (var rootContentItem in distinctRootContentItems)
             {
                 model.SummaryList.Add(RootContentItemSummary.Build(dbContext, rootContentItem));
             }
