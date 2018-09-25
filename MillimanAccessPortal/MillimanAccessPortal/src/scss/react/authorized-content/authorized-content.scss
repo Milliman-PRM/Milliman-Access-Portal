@@ -4,7 +4,6 @@
 #authorized-content-container {
     display: flex;
     flex-flow: column nowrap;
-    height: 100%;
     width: 100%;
     padding: 1em;
     overflow: hidden;
@@ -29,7 +28,7 @@
     }
 
     #authorized-content-items {
-        flex: 1;
+        flex: 1 1 auto;
         overflow: auto;
 
         .client-content-container {

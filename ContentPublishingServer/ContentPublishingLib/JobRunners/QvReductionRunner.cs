@@ -719,9 +719,9 @@ namespace ContentPublishingLib.JobRunners
                 } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
                 GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} finished running after {DateTime.Now - RunningStartTime}");
 
-                if (Status.General.Status == TaskStatusValue.Failed)
+                if (Status.General.Status == TaskStatusValue.Failed || Status.General.Status == TaskStatusValue.Warning)
                 {
-                    throw new ApplicationException($"Qlikview server error while processing task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
+                    throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
                 }
             }
             finally

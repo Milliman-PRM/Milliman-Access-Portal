@@ -30,12 +30,12 @@ namespace AuditLogLib.Event
             }
         }
 
-        protected readonly int id;
+        protected readonly int code;
         protected readonly string name;
 
-        public AuditEventTypeBase(int id, string name)
+        public AuditEventTypeBase(int code, string name)
         {
-            this.id = id;
+            this.code = code;
             this.name = name;
         }
 
@@ -50,6 +50,7 @@ namespace AuditLogLib.Event
             return new AuditEvent
             {
                 TimeStampUtc = DateTime.UtcNow,
+                EventCode = code,
                 EventType = name,
                 Source = $"{callerPath}:{callerLine} {callerName}",
             };
@@ -57,7 +58,7 @@ namespace AuditLogLib.Event
 
         public override string ToString()
         {
-            return $"{id}:{name}";
+            return $"{code}:{name}";
         }
     }
 }

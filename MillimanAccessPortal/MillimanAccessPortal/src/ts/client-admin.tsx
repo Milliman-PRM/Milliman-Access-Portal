@@ -13,13 +13,14 @@ import { AccessMode } from './form/form-modes';
 import { SubmissionGroup } from './form/form-submission';
 import { globalSettings } from './lib-options';
 import { NavBar } from './react/shared-components/navbar';
+import { StatusMonitor } from './status-monitor';
+import { UserInfo } from './view-models/content-publishing';
 
 import $ = require('jquery');
 import toastr = require('toastr');
 import card = require('./card');
 import dialog = require('./dialog');
 import shared = require('./shared');
-import { UserInfo } from './view-models/content-publishing';
 
 require('jquery-mask-plugin');
 require('jquery-validation');
@@ -39,6 +40,7 @@ const SHOW_DURATION = 50;
 let eligibleUsers;
 let formObject: FormBase;
 let defaultWelcomeText: string;
+let statusMonitor: StatusMonitor<null>;
 
 document.addEventListener('DOMContentLoaded', () => {
   const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');
@@ -667,4 +669,7 @@ $(document).ready(function onReady() {
     persist: false,
     plugins: ['remove_button'],
   });
+
+  statusMonitor = new StatusMonitor('/Account/SessionStatus', () => null, 60000);
+  statusMonitor.start();
 });
