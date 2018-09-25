@@ -39,12 +39,13 @@ namespace QlikviewLib
                     ? thisHttpRequest.Host.Port.Value
                     : -1,
                 Path = $"/Shared/Message",
+                Query = "Msg=An error occurred while loading this content. Please contact MAP support if this problem persists",
             };
             string[] QueryStringItems = new string[]
             {
                 $"type=html",
                 $"try=/qvajaxzfc/opendoc.htm?document={ContentUrl}",
-                $"back={Uri.EscapeUriString(backUriBuilder.Uri.AbsoluteUri)}",
+                $"back={backUriBuilder.Uri.AbsoluteUri.Replace("/",Uri.HexEscape('/'))}",
                 $"webticket={QlikviewWebTicket}",
             };
 
