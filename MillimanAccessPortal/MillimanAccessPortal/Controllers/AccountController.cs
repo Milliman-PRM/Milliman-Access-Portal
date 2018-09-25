@@ -666,7 +666,7 @@ namespace MillimanAccessPortal.Controllers
             NavBarElements.Add(new NavBarElementModel
             {
                 Order = order++,
-                Label = "Authorized Content",
+                Label = "Content",
                 URL = nameof(AuthorizedContentController).Replace("Controller", ""),
                 View = "AuthorizedContent",
                 Icon = "content-grid",
