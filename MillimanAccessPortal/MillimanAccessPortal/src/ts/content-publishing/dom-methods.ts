@@ -265,7 +265,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     });
   }
   // populate attestation
-  $('#confirmation-section-attestation p').html(response.AttestationLanguage);
+  $('#confirmation-section-attestation .attestation-language').html(response.AttestationLanguage);
 
   preLiveObject = response;
 }
