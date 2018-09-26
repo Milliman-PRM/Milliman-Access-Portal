@@ -185,7 +185,7 @@ export class FormBase extends FormElement {
         : allInputs;
     })();
     return filteredInputs
-      .map((kvp) => `${kvp.name}=${kvp.value}`)
+      .map((kvp) => `${encodeURIComponent(kvp.name)}=${encodeURIComponent(kvp.value)}`)
       .join('&');
   }
 
