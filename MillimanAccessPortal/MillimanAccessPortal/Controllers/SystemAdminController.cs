@@ -1368,10 +1368,8 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                ApplicationRole roleToMatch = _dbContext.Roles.First(rl => rl.RoleEnum == role);
-
                 var rolesInClientToRemove = roleQuery
-                    .Where(ur => ur.RoleId == roleToMatch.Id)
+                    .Where(ur => userClientAssignments[role].Contains(ur.Role.RoleEnum))
                     .ToList();
 
                 // Remove all assignable roles for the specified role
@@ -1381,13 +1379,13 @@ namespace MillimanAccessPortal.Controllers
                     _dbContext.UserRoleInClient.Remove(roleInClientToRemove);
 
                     // Remove root content item role if applicable
-                    if (rolesToApplyToRootContentItems.Contains(roleToMatch.RoleEnum))
+                    if (rolesToApplyToRootContentItems.Contains(roleInClientToRemove.Role.RoleEnum))
                     {
                         // Remove all matching roles in case there are duplicates
                         var rootContentItemRoles = _dbContext.UserRoleInRootContentItem
                             .Where(r => r.RootContentItem.ClientId == client.Id)
                             .Where(r => r.UserId == user.Id)
-                            .Where(r => r.Role.RoleEnum == roleToMatch.RoleEnum)
+                            .Where(r => r.Role == roleInClientToRemove.Role)
                             .ToList();
                         _dbContext.UserRoleInRootContentItem.RemoveRange(rootContentItemRoles);
                     }
