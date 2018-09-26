@@ -17,8 +17,6 @@ namespace AuditLogLib
 {
     public class AuditLogger : IAuditLogger
     {
-        // TODO instead of an in-process queue, switch to use an out of process asynchronous message queue.
-        // The issue here is that if the process is terminated or crashes, any unprocessed log messages in the queue could be lost.  
         private static ConcurrentQueue<AuditEvent> LogEventQueue = new ConcurrentQueue<AuditEvent>();
         private static Task WorkerTask = null;
         private static int InstanceCount = 0;

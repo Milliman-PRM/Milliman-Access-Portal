@@ -42,7 +42,7 @@ namespace ContentPublishingLib.JobRunners
             }
         }
 
-        internal TimeSpan TimeLimit { get; set; } = new TimeSpan(6, 0, 0);  // TODO Get the timeout from configuration)
+        internal TimeSpan TimeLimit { get; set; } = new TimeSpan(6, 0, 0);
 
         /// <summary>
         /// Initializes data used to construct database context instances.
@@ -306,7 +306,7 @@ namespace ContentPublishingLib.JobRunners
                             Id = Guid.NewGuid(),  // In normal operation db could generate a value; this is done for unit tests
                             ApplicationUserId = JobDetail.Request.ApplicationUserId,
                             ContentPublicationRequestId = JobDetail.JobId,
-                            CreateDateTimeUtc = DateTime.UtcNow,  // TODO later: Figure out how to avoid delay in starting the reduction task. 
+                            CreateDateTimeUtc = DateTime.UtcNow,
                             MasterFilePath = contentRelatedFile.FullPath,
                             MasterContentChecksum = contentRelatedFile.Checksum,
                             ReductionStatus = ReductionStatusEnum.Queued,

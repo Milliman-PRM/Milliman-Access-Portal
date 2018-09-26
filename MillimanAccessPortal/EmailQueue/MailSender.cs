@@ -158,7 +158,7 @@ namespace EmailQueue
 
                 if (message.sendAttempts > smtpConfig.MaximumSendAttempts)
                 {
-                    // TODO what is the semantics of 2 here?
+                    // what is the semantics of 2 here?
                     _logger.LogError(2, ex, $"Failed to send email on attempt #{message.sendAttempts}, limit exceed, message discarded.");
                     return false;
                 }

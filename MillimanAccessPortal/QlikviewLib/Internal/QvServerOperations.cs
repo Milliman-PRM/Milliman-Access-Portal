@@ -24,7 +24,6 @@ namespace QlikviewLib.Internal
                 Path = "qvajaxzfc/getwebticket.aspx",
             };
 
-            // TODO if a group name(s) is relevant it should be encoded in the xml appropriately
             string RequestBodyString = $"<Global method=\"GetWebTicket\"><UserId>{UserId}</UserId></Global>";
             Uri x = QvServerUri.Uri;
 

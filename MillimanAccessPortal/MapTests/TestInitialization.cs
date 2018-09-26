@@ -521,7 +521,6 @@ namespace MapTests
             #region Initialize UserRoles
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
                 { 
-                // TODO Undo this
                     //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
                     new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
                 });
@@ -610,7 +609,7 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
             {
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1), DoesReduce=true },
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 2", ContentTypeId=TestUtil.MakeTestGuid(1) },
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 3", ContentTypeId=TestUtil.MakeTestGuid(1) },
             });
@@ -663,7 +662,6 @@ namespace MapTests
             #region Initialize UserRoles
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
                 {
-                // TODO Undo this
                     //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
                     new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
                 });
@@ -857,7 +855,6 @@ namespace MapTests
             #region Initialize UserRoles
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
                 {
-                // TODO Undo this
                     //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
                     new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
                 });
@@ -1008,7 +1005,6 @@ namespace MapTests
             #region Initialize UserRoles
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
             { 
-                // TODO Undo this
                     //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
                     new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
             });

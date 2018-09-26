@@ -88,6 +88,11 @@
             display: block;
             background-color: $green;
         }
+
+        &.status-90 {
+            display: block;
+            background-color: $red;
+        }
     }
 
     .card-body-container {

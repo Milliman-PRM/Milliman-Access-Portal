@@ -49,7 +49,7 @@ export class ContactFormModal extends React.Component<Modal.Props, ContactFormMo
             >
               <option value="">Please Select a Topic</option>
               <option value="Account Inquiry">Account Inquiry</option>
-              <option value="Bug Report">Report a Bug</option>
+              <option value="Technical Issue">Technical Issue</option>
               <option value="Other Support Question">Other</option>
             </select>
             <textarea

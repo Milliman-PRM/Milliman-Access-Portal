@@ -136,7 +136,7 @@ namespace ContentPublishingLib.JobMonitors
                         Task<PublishJobDetail> NewTask = null;
                         CancellationTokenSource cancelSource = new CancellationTokenSource();
 
-                        // TODO Do I need a switch on ContentType?  (example in MapDbReductionJobMonitor)
+                        // Do I need a switch on ContentType?  (example in MapDbReductionJobMonitor)
                         MapDbPublishRunner Runner;
                         using (ApplicationDbContext Db = MockContext != null
                                                          ? MockContext.Object

@@ -66,6 +66,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ThumbnailLink = null,
             };
 
+            ReturnObj.LiveHierarchy = null;
+            ReturnObj.NewHierarchy = null;
+            ReturnObj.SelectionGroups = null;
             if (PubRequest.RootContentItem.DoesReduce)
             {
                 List<ContentReductionTask> AllTasks = Db.ContentReductionTask
@@ -81,21 +84,22 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 }
                 #endregion
 
-                ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
-                ReturnObj.NewHierarchy = AllTasks.Any() ? AllTasks[0].MasterContentHierarchyObj : null;  // null == there was no hierarchy extraction
-                ReturnObj.SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary
-                    {
-                        Name = t.SelectionGroup.GroupName,
-                        IsMaster = t.SelectionGroup.IsMaster,
-                        UserCount = Db.UserInSelectionGroup.Count(usg => usg.SelectionGroupId == t.SelectionGroup.Id),
-                    }
-                ).ToList();
-            }
-            else
-            {
-                ReturnObj.LiveHierarchy = null;
-                ReturnObj.NewHierarchy = null;
-                ReturnObj.SelectionGroups = null;
+                var newHierarchy = AllTasks.FirstOrDefault()?.MasterContentHierarchyObj;
+
+                if (newHierarchy != null)
+                {
+                    newHierarchy.Sort();
+
+                    ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
+                    ReturnObj.NewHierarchy = newHierarchy;
+                    ReturnObj.SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary
+                        {
+                            Name = t.SelectionGroup.GroupName,
+                            IsMaster = t.SelectionGroup.IsMaster,
+                            UserCount = Db.UserInSelectionGroup.Count(usg => usg.SelectionGroupId == t.SelectionGroup.Id),
+                        }
+                    ).ToList();
+                }
             }
 
             string ContentRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");            
@@ -110,7 +114,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             case ContentTypeEnum.Qlikview:
                                 await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(Path.GetDirectoryName(Link), ContentTypeConfig as QlikviewConfig, Path.GetFileName(Link));
 
-                                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, Context.User.Identity.Name, ContentTypeConfig);
+                                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, Context.User.Identity.Name, ContentTypeConfig, Context.Request);
                                 ReturnObj.MasterContentLink = QvwUri.Uri.AbsoluteUri;
                                 break;
 

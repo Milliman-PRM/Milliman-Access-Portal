@@ -117,7 +117,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (selectionGroup?.RootContentItem?.ContentType == null)
             {
-                string ErrMsg = $"Failed to obtain the requested selection group, root content item, or content type";
+                string ErrMsg = $"Failed to obtain the requested selection group, content item, or content type";
                 Logger.LogError(ErrMsg);
 
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
@@ -156,7 +156,7 @@ namespace MillimanAccessPortal.Controllers
                     $"The system could not validate the file for content item {selectionGroup.RootContentItem.ContentName}, selection group {selectionGroup.GroupName}.",
                     $"Please contact MAP Support if this error continues.",
                 };
-                string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Root content: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
+                string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Content item: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
                 var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
                 notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
@@ -186,7 +186,7 @@ namespace MillimanAccessPortal.Controllers
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
 
-                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig);
+                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig, HttpContext.Request);
 
                 // Now return the appropriate view for the requested content
                 switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
@@ -230,7 +230,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
             {
-                string Msg = $"Failed to obtain the requested selection group, root content item, or content type";
+                string Msg = $"Failed to obtain the requested selection group, content item, or content type";
                 Logger.LogError(Msg);
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
@@ -288,7 +288,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (PubRequest == null || PubRequest.RootContentItem == null || PubRequest.RootContentItem.ContentType == null)
             {
-                string Msg = $"Failed to obtain the requested publication request, root content item, or content type";
+                string Msg = $"Failed to obtain the requested publication request, content item, or content type";
                 Logger.LogError(Msg);
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
@@ -342,7 +342,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (selectionGroup == null || selectionGroup.RootContentItem == null)
             {
-                string Msg = $"Failed to obtain the requested selection group or root content item";
+                string Msg = $"Failed to obtain the requested selection group or content item";
                 Logger.LogError(Msg);
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
@@ -372,7 +372,7 @@ namespace MillimanAccessPortal.Controllers
                     $"The system could not validate the {purpose} PDF for selection group {selectionGroup.GroupName}.",
                     $"Please contact MAP Support if this error continues.",
                 };
-                string MailMsg = $"The {purpose} PDF for the below content item failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Root content: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
+                string MailMsg = $"The {purpose} PDF for the below content item failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Content item: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
                 var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
                 notifier.sendSupportMail(MailMsg, $"Checksum verification ({purpose})");
@@ -406,7 +406,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (PubRequest == null || PubRequest.RootContentItem == null)
             {
-                string Msg = $"Failed to obtain the requested publication request or related root content item";
+                string Msg = $"Failed to obtain the requested publication request or related content item";
                 Logger.LogError(Msg);
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
