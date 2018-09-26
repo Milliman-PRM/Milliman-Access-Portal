@@ -1,4 +1,7 @@
-﻿import toastr = require('toastr');
+﻿import 'promise-polyfill/dist/polyfill';
+import 'whatwg-fetch';
+
+import toastr = require('toastr');
 
 import './lib-options';
 
