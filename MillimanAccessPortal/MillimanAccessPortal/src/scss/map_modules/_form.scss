@@ -218,6 +218,10 @@ input.filter-input {
         text-transform: uppercase
     }
 
+    .form-section {
+        min-height: 1px;
+    }
+
     .form-input-container {
         display: flex;
         flex-flow: row wrap;
@@ -277,6 +281,7 @@ label.input-with-upload {
         .image-preview {
             width: 100%;
             height: auto;
+            min-height: 1px;
             padding-top: 0.5em;
         }
     }
