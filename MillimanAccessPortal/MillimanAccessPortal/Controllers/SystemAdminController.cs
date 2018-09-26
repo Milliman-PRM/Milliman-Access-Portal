@@ -1370,6 +1370,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 var rolesInClientToRemove = roleQuery
                     .Where(ur => userClientAssignments[role].Contains(ur.Role.RoleEnum))
+                    .Include(ur => ur.Role)
                     .ToList();
 
                 // Remove all assignable roles for the specified role
