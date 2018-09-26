@@ -277,6 +277,7 @@ label.input-with-upload {
         .image-preview {
             width: 100%;
             height: auto;
+            min-height: 1px;
             padding-top: 0.5em;
         }
     }
