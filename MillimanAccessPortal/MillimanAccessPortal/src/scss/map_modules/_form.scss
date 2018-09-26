@@ -218,6 +218,10 @@ input.filter-input {
         text-transform: uppercase
     }
 
+    .form-section {
+        min-height: 1px;
+    }
+
     .form-input-container {
         display: flex;
         flex-flow: row wrap;
