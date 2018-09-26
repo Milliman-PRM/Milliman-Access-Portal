@@ -47,13 +47,19 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   }
 
   public selectContentItem = (contentURL: string) => {
+
     this.setState({ selectedContentURL: contentURL }, () => {
       const display = (this.state.selectedContentURL) ? 'none' : null;
       document.getElementById('page-header').style.display = display;
       document.getElementById('page-footer').style.display = display;
       document.getElementById('authorized-content-container').style.display = display;
       if (!contentURL) {
-        history.back();
+        const is_ie = navigator.userAgent.indexOf("MSIE ") > -1 || navigator.userAgent.indexOf("Trident/") > -1;
+        if (!is_ie) {
+          history.back();
+        } else {
+          location.reload();
+        }
       }
     });
   }
