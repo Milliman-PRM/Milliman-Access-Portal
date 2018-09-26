@@ -57,7 +57,7 @@ export function Dialog(
         const data = {};
         if (self.options.input) {
           $.each($('.vex-dialog-input input').serializeArray(), (_, obj) => {
-            data[obj.name] = obj.value;
+            data[obj.name] = encodeURIComponent(obj.value);
           });
         }
         return submitHandler(data, () => {
