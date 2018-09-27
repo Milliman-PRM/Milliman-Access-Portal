@@ -602,7 +602,7 @@ namespace MillimanAccessPortal.Controllers
                 switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.Qlikview:
-                        if (!selectionGroup.IsMaster)
+                        if (!selectionGroup.IsMaster && !string.IsNullOrWhiteSpace(selectionGroup.ContentInstanceUrl))
                         {
                             string ContentFileFullPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), selectionGroup.ContentInstanceUrl);
 

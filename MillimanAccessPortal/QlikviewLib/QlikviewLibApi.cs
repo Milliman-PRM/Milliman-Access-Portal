@@ -64,6 +64,11 @@ namespace QlikviewLib
 
         public async Task<bool> AssignDocumentUserLicense(string DocumentFilePathRelativeToStorageContentRoot, string UserName, QlikviewConfig ConfigInfo)
         {
+            if (string.IsNullOrWhiteSpace(DocumentFilePathRelativeToStorageContentRoot))
+            {
+                return false;
+            }
+
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
@@ -116,6 +121,11 @@ namespace QlikviewLib
 
         public async Task<bool> ReclaimAllDocCalsForFile(string DocumentFilePathRelativeToStorageContentRoot, QlikviewConfig ConfigInfo)
         {
+            if (string.IsNullOrWhiteSpace(DocumentFilePathRelativeToStorageContentRoot))
+            {
+                return false;
+            }
+
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
@@ -146,6 +156,11 @@ namespace QlikviewLib
 
         public async Task<bool> ReclaimUserDocCalForFile(string DocumentFilePathRelativeToStorageContentRoot, string UserName, QlikviewConfig ConfigInfo)
         {
+            if (string.IsNullOrWhiteSpace(DocumentFilePathRelativeToStorageContentRoot))
+            {
+                return false;
+            }
+
             bool ReturnBool = false;
 
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
