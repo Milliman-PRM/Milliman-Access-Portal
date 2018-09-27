@@ -138,7 +138,22 @@ namespace QlikviewLib
             CurrentDocCals.Add(NewDocCal);
 
             DocMetadata.Licensing.AssignedCALs = CurrentDocCals.ToArray();
-            await Client.SaveDocumentMetaDataAsync(DocMetadata);
+
+            try
+            {
+                await Client.SaveDocumentMetaDataAsync(DocMetadata);
+            }
+            catch (System.Exception e)
+            {
+                if (e.Message.Contains("Too many document CALs allocated"))
+                {
+                    return false;
+                }
+                else  // Handle specific errors on case by case basis as we learn about them
+                {
+                    throw;
+                }
+            }
 
             return true;
         }

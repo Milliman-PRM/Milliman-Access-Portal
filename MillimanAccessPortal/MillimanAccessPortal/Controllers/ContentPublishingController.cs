@@ -363,11 +363,12 @@ namespace MillimanAccessPortal.Controllers
             switch (rootContentItem.ContentType.TypeEnum)
             {
                 case ContentTypeEnum.Qlikview:
-                    string MasterFilePath = rootContentItem.ContentFilesList.First(f => f.FilePurpose.ToLower() == "master").FullPath;
-                    List<string> AllQvwFiles = Directory.GetFiles(Path.GetDirectoryName(MasterFilePath), "*.qvw").ToList();
+                    string ContentFolderFullPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), rootContentItem.Id.ToString());
+
+                    List<string> AllQvwFiles = Directory.GetFiles(ContentFolderFullPath, "*.qvw").ToList();
                     AllQvwFiles.ForEach(async f =>
                     {
-                        string FileFullPath = Path.Combine(Path.GetDirectoryName(MasterFilePath), f);
+                        string FileFullPath = Path.Combine(ContentFolderFullPath, f);
                         string FileRelativePath = Path.GetRelativePath(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), FileFullPath);
                         await new QlikviewLibApi().ReclaimAllDocCalsForFile("", QlikviewConfig);
                     });
