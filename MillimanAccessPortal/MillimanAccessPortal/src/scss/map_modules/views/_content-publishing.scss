@@ -30,6 +30,8 @@
             width: 2em;
             height: 2em;
             z-index: 1;
+            // Temporarily hide this button until this functionality is completely implemented.
+            display: none;
 
             &:hover {
                 color: $green;
