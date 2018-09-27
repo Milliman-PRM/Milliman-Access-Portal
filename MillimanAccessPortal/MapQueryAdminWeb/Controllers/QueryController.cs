@@ -39,6 +39,11 @@ namespace MapQueryAdminWeb.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult RunQuery(RunQueryModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
             // Get connection string info for display
             NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder(_config.GetConnectionString("DefaultConnection"));
             ViewData["Server"] = builder.Host;
@@ -49,7 +54,7 @@ namespace MapQueryAdminWeb.Controllers
             conn.Open();
             NpgsqlTransaction transaction = conn.BeginTransaction();
             NpgsqlCommand command = new NpgsqlCommand(model.queryText, conn);
-
+            
             try
             {
                 // Execute query
