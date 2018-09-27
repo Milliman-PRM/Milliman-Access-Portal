@@ -538,6 +538,8 @@ namespace MillimanAccessPortal.Controllers
             SelectionGroup selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rci => rci.Client)
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rci => rci.ContentType)
                 .SingleOrDefault(sg => sg.Id == SelectionGroupId);
 
             #region Preliminary Validation
@@ -594,6 +596,35 @@ namespace MillimanAccessPortal.Controllers
                     RemovedUsers = UsersToRemove
                         .Select(uug => uug.UserId)
                         .ToList();
+                }
+
+                // ContentType specific handling after successful transaction
+                switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
+                {
+                    case ContentTypeEnum.Qlikview:
+                        if (!selectionGroup.IsMaster)
+                        {
+                            string ContentFileFullPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), selectionGroup.ContentInstanceUrl);
+
+                            await new QlikviewLibApi().ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl, QvConfig);
+
+                            if (System.IO.File.Exists(ContentFileFullPath))
+                            {
+                                System.IO.File.Delete(ContentFileFullPath);
+                            }
+                            if (System.IO.File.Exists(ContentFileFullPath + ".Shared"))
+                            {
+                                System.IO.File.Delete(ContentFileFullPath + ".Shared");
+                            }
+                            if (System.IO.File.Exists(ContentFileFullPath + ".Meta"))
+                            {
+                                System.IO.File.Delete(ContentFileFullPath + ".Meta");
+                            }
+                        }
+                        break;
+
+                    default:
+                        break;
                 }
             }
             catch (Exception ex)

@@ -57,7 +57,138 @@ namespace QlikviewLib
                 Query = string.Join("&", QueryStringItems),
             };
 
+            await AssignDocumentUserLicense(FilePathRelativeToContentRoot, UserName, ConfigInfo);
+
             return QvServerUri;
+        }
+
+        public async Task<bool> AssignDocumentUserLicense(string DocumentFilePathRelativeToStorageContentRoot, string UserName, QlikviewConfig ConfigInfo)
+        {
+            string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
+            string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
+
+            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+
+            ServiceInfo[] QvsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
+            ServiceInfo QvsServiceInfo = QvsServices[0];
+
+            DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
+            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
+
+            DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+            DocumentNode RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
+
+            if (RequestedDocNode == null)
+            {
+                return false;
+            }
+
+            DocumentMetaData DocMetadata = await Client.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
+            List<AssignedNamedCAL> CurrentDocCals = DocMetadata.Licensing.AssignedCALs.ToList();
+
+            foreach (AssignedNamedCAL AssignedCal in CurrentDocCals)
+            {
+                if (string.Compare(AssignedCal.UserName, UserName, true) == 0)
+                {
+                    return true; //already has a doc license for this file, dont assign another
+                }
+            }
+
+            if (CurrentDocCals.Count >= DocMetadata.Licensing.CALsAllocated)
+            {
+                DocMetadata.Licensing.CALsAllocated = CurrentDocCals.Count + 1;
+            }
+
+            AssignedNamedCAL NewDocCal = new AssignedNamedCAL
+            {
+                UserName = UserName,
+                LastUsed = DateTime.Now,
+                QuarantinedUntil = DateTime.Now.AddDays(1),
+                MachineID = "",
+            };
+            CurrentDocCals.Add(NewDocCal);
+
+            DocMetadata.Licensing.AssignedCALs = CurrentDocCals.ToArray();
+            await Client.SaveDocumentMetaDataAsync(DocMetadata);
+
+            return true;
+        }
+
+        public async Task<bool> ReclaimAllDocCalsForFile(string DocumentFilePathRelativeToStorageContentRoot, QlikviewConfig ConfigInfo)
+        {
+            string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
+            string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
+
+            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+
+            ServiceInfo[] QvsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
+            ServiceInfo QvsServiceInfo = QvsServices[0];
+
+            DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
+            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
+
+            DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+            DocumentNode RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
+
+            if (RequestedDocNode == null)
+            {
+                return false;
+            }
+
+            DocumentMetaData DocMetadata = await Client.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
+            DocMetadata.Licensing.RemovedAssignedCALs = DocMetadata.Licensing.AssignedCALs.ToList().ToArray();
+            DocMetadata.Licensing.AssignedCALs = new AssignedNamedCAL[0];
+            DocMetadata.Licensing.CALsAllocated = 0;
+            await Client.SaveDocumentMetaDataAsync(DocMetadata);
+
+            return true;
+        }
+
+        public async Task<bool> ReclaimUserDocCalForFile(string DocumentFilePathRelativeToStorageContentRoot, string UserName, QlikviewConfig ConfigInfo)
+        {
+            bool ReturnBool = false;
+
+            string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
+            string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
+
+            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+
+            ServiceInfo[] QvsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
+            ServiceInfo QvsServiceInfo = QvsServices[0];
+
+            DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
+            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
+
+            DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+            DocumentNode RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
+
+            if (RequestedDocNode == null)
+            {
+                return false;
+            }
+
+            DocumentMetaData DocMetadata = await Client.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
+            List<AssignedNamedCAL> CurrentDocCals = DocMetadata.Licensing.AssignedCALs.ToList();
+            List<AssignedNamedCAL> RemovableCALs = new List<AssignedNamedCAL>();
+
+            for (int CalCounter = 0; CalCounter < CurrentDocCals.Count; CalCounter++)
+            {
+                if (string.Compare(CurrentDocCals.ElementAt(CalCounter).UserName, UserName, true) == 0)
+                {
+                    RemovableCALs.Add(CurrentDocCals.ElementAt(CalCounter));
+                    CurrentDocCals.RemoveAt(CalCounter);
+                    // Log this removal
+                    ReturnBool = true;
+                }
+            }
+
+            DocMetadata.Licensing.CALsAllocated = CurrentDocCals.Count;
+            DocMetadata.Licensing.AssignedCALs = CurrentDocCals.ToArray();
+            DocMetadata.Licensing.RemovedAssignedCALs = RemovableCALs.ToArray();
+
+            await Client.SaveDocumentMetaDataAsync(DocMetadata);
+
+            return ReturnBool;
         }
 
         /// <summary>

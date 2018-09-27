@@ -316,6 +316,7 @@ namespace MillimanAccessPortal.Controllers
         {
             var rootContentItem = DbContext.RootContentItem
                 .Include(x => x.Client)
+                .Include(x => x.ContentType)
                 .SingleOrDefault(x => x.Id == rootContentItemId);
 
             #region Preliminary Validation
@@ -357,6 +358,24 @@ namespace MillimanAccessPortal.Controllers
 
             DbContext.RootContentItem.Remove(rootContentItem);
             DbContext.SaveChanges();
+
+            // ContentType specific handling after database operation completes
+            switch (rootContentItem.ContentType.TypeEnum)
+            {
+                case ContentTypeEnum.Qlikview:
+                    string MasterFilePath = rootContentItem.ContentFilesList.First(f => f.FilePurpose.ToLower() == "master").FullPath;
+                    List<string> AllQvwFiles = Directory.GetFiles(Path.GetDirectoryName(MasterFilePath), "*.qvw").ToList();
+                    AllQvwFiles.ForEach(async f =>
+                    {
+                        string FileFullPath = Path.Combine(Path.GetDirectoryName(MasterFilePath), f);
+                        string FileRelativePath = Path.GetRelativePath(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), FileFullPath);
+                        await new QlikviewLibApi().ReclaimAllDocCalsForFile("", QlikviewConfig);
+                    });
+                    break;
+
+                default:
+                    break;
+            }
 
             try
             {
