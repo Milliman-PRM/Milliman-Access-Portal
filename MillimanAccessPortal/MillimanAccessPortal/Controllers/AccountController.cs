@@ -914,7 +914,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> CheckPasswordValidity([FromBody] CheckPasswordViewModel Model)
+        public async Task<ActionResult> CheckPasswordValidity(CheckPasswordViewModel Model)
         {
             var passwordValidationErrors = new List<string>();
 
