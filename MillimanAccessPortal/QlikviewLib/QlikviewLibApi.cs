@@ -74,14 +74,38 @@ namespace QlikviewLib
 
             IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
-            ServiceInfo[] QvsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
-            ServiceInfo QvsServiceInfo = QvsServices[0];
+            ServiceInfo QvsServiceInfo = null;
+            try
+            {
+                ServiceInfo[] QvsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
+                QvsServiceInfo = QvsServices[0];
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
 
-            DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
-            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
+            DocumentFolder QvsUserDocFolder = null;
+            try
+            {
+                DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
+                QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
 
-            DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
-            DocumentNode RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
+            DocumentNode RequestedDocNode = null;
+            try
+            {
+                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
 
             if (RequestedDocNode == null)
             {
@@ -131,14 +155,38 @@ namespace QlikviewLib
 
             IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
-            ServiceInfo[] QvsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
-            ServiceInfo QvsServiceInfo = QvsServices[0];
+            ServiceInfo QvsServiceInfo = null;
+            try
+            {
+                ServiceInfo[] QvsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
+                QvsServiceInfo = QvsServices[0];
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
 
-            DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
-            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
+            DocumentFolder QvsUserDocFolder = null;
+            try
+            {
+                DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
+                QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
 
-            DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
-            DocumentNode RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
+            DocumentNode RequestedDocNode = null;
+            try
+            {
+                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
 
             if (RequestedDocNode == null)
             {
@@ -168,14 +216,38 @@ namespace QlikviewLib
 
             IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
-            ServiceInfo[] QvsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
-            ServiceInfo QvsServiceInfo = QvsServices[0];
+            ServiceInfo QvsServiceInfo = null;
+            try
+            {
+                ServiceInfo[] QvsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
+                QvsServiceInfo = QvsServices[0];
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
 
-            DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
-            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
+            DocumentFolder QvsUserDocFolder = null;
+            try
+            {
+                DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
+                QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
 
-            DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
-            DocumentNode RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
+            DocumentNode RequestedDocNode = null;
+            try
+            {
+                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
 
             if (RequestedDocNode == null)
             {
