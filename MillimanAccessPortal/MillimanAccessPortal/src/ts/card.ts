@@ -848,7 +848,7 @@ export function ClientCard(
   });
   this.data = {
     'client-id': client.Id,
-    'filter-string': [client.Name, client.ClientCode].join('|').toUpperCase(),
+    'filter-string': [client.Name, client.ClientCode].join('~').toUpperCase(),
   };
   this.callback = callback;
 }
@@ -913,7 +913,7 @@ export function RootContentItemCard(
     'filter-string': [
       rootContentItemDetail.ContentName,
       rootContentItemDetail.ContentTypeName,
-    ].join('|').toUpperCase(),
+    ].join('~').toUpperCase(),
     'root-content-item-id': rootContentItemDetail.Id,
   };
 
@@ -1036,7 +1036,7 @@ export function SelectionGroupCard(
   this.addComponent('status', {});
 
   this.data = {
-    'filter-string': memberInfo.concat([selectionGroup.Name]).join('|').toUpperCase(),
+    'filter-string': memberInfo.concat([selectionGroup.Name]).join('~').toUpperCase(),
     'member-list': JSON.stringify(selectionGroup.MemberList),
     'selection-group-id': selectionGroup.Id,
   };
@@ -1111,7 +1111,7 @@ export function UserCard(
   }, this);
   this.data = {
     'client-id': client.Id,
-    'filter-string': names.join('|').toUpperCase(),
+    'filter-string': names.join('~').toUpperCase(),
     'user-id': user.Id,
   };
   if (canManage) {

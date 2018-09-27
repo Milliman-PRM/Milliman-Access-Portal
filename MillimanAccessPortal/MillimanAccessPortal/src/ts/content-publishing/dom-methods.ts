@@ -368,7 +368,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       const publishRequest: PublishRequest = {
         RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
           .map((file) => {
-            const fileData = dataArray[file].split('|');
+            const fileData = dataArray[file].split('~');
             return {
               FileOriginalName: fileData[0],
               FilePurpose: file,

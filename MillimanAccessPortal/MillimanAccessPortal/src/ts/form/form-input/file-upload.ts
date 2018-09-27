@@ -62,7 +62,7 @@ export class FileUploadInput extends FormInput {
       }
     };
     this.upload.onFileSuccess = (fileGUID: string) => {
-      this.value = `${this.originalName}|${fileGUID}`;
+      this.value = `${this.originalName}~${fileGUID}`;
       toastr.success('File uploaded successfully.');
     };
     this.upload.onStateChange = (alertUnload: boolean) => {
