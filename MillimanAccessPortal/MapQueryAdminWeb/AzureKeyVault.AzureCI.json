@@ -1,5 +1,5 @@
 ﻿{
-  "AzureVaultName": "https://local-map-ci-vault.vault.azure.net/",
+  "AzureVaultName": "https://mapcikeyvault.vault.azure.net/",
   "AzureClientID": "8c4d35be-59cb-4a15-8919-55530e197ee3",
   "AzureCertificateThumbprint": "22DB70BA618DD28989187067E32777E153146DF9"
 }

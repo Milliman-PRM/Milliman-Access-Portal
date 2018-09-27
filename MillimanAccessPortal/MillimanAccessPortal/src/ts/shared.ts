@@ -525,7 +525,7 @@ export function postData(url: string = '', data: object = {}, rawResponse: boole
   const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
   const formData = Object.keys(data).map((key) => {
     if (Object.prototype.hasOwnProperty.call(data, key)) {
-      return `${key}=${data[key]}`;
+      return `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`;
     }
     return null;
   }).filter((kvp) => kvp !== null).join('&');

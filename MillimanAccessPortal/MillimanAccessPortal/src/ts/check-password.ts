@@ -4,6 +4,7 @@ import 'whatwg-fetch';
 import toastr = require('toastr');
 
 import './lib-options';
+import { postData } from './shared';
 
 require('toastr/toastr.scss');
 
@@ -15,35 +16,22 @@ document.addEventListener('DOMContentLoaded', () => {
       newPasswordInput.removeAttribute('Warning');
       newPasswordInput.removeAttribute('Validated');
       confirmPasswordInput.removeAttribute('Validated');
-  })
+  });
 
-  newPasswordInput.addEventListener('blur', () => {
+  newPasswordInput.addEventListener('blur', async () => {
     const proposedPassword = (newPasswordInput as HTMLInputElement).value;
 
     if (proposedPassword) {
       if (!newPasswordInput.hasAttribute('Validated')) {
-        const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
-
-        fetch('/Account/CheckPasswordValidity', {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'RequestVerificationToken': antiforgeryToken,
-          },
-          credentials: 'same-origin',
-          body: JSON.stringify({ ProposedPassword: proposedPassword }),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              toastr.warning(response.headers.get('Warning') || 'Unknown error');
-              newPasswordInput.removeAttribute('Validated');
-              newPasswordInput.setAttribute('Warning', 'Warning');
-            } else {
-              newPasswordInput.removeAttribute('Warning');
-              newPasswordInput.setAttribute('Validated', 'Validated');
-            }
-          });
+        try {
+          await postData('/Account/CheckPasswordValidity', { proposedPassword }, true);
+          newPasswordInput.removeAttribute('Warning');
+          newPasswordInput.setAttribute('Validated', 'Validated');
+        } catch (err) {
+          toastr.warning(err.message);
+          newPasswordInput.removeAttribute('Validated');
+          newPasswordInput.setAttribute('Warning', 'Warning');
+        }
       }
     } else {
       newPasswordInput.removeAttribute('Validated');
