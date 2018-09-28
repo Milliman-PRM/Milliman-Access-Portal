@@ -486,7 +486,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Creating web app release"
 
-octo create-release --project "Milliman Access Portal" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
+octo create-release --project "Milliman Access Portal" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
@@ -500,7 +500,7 @@ else {
 
 log_statement "Deploying web app release"
 
-octo deploy-release --project "Milliman Access Portal" --deployto "Development" --channel "Development" --version $webVersion --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
+octo deploy-release --project "Milliman Access Portal" --deployto "Development"--version $webVersion --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release deployed successfully"
