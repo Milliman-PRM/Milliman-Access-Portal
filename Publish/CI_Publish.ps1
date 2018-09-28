@@ -305,7 +305,7 @@ if($runTests) {
 
 #region Create and update databases
 
-<#log_statement "Preparing branch databases"
+log_statement "Preparing branch databases"
 
 $env:PGPASSWORD = $dbPassword
 
@@ -371,7 +371,7 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Failed to apply audit log database migrations"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
-}#>
+}
 
 #endregion
 
