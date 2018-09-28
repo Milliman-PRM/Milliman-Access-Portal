@@ -503,10 +503,10 @@ log_statement "Determining target environment for web app deployment"
 $projects = (invoke-restmethod $octopusURL/api/projects?apikey=$octopusAPIKey).items
 $MAPProject = $projects | where {$_.Name -eq "Milliman Access Portal"}
 $releases = (invoke-restmethod "$octopusURL/api/projects/$($mapProject.Id)/releases?apikey=$octopusAPIKey").items
-$BranchRelease = $releases | where {$_.Version -eq "1.0.0-ci-update"}
+$BranchRelease = $releases | where {$_.Version -eq "$webVersion"}
 $channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey).Name
 $lifecycle = (Invoke-RestMethod $octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$octopusAPIKey).phases 
-$targetEnvId = if ($lifecycle.AutomaticDeploymentTargets) {$lifecycle.AutomaticDeploymentTargets | select -first 1} else {$lifecycle.OptionalDeploymentTargets | select -first 1}
+$targetEnvId = if ($lifecycle.AutomaticDeploymentTargets) {$lifecycle.AutomaticDeploymentTargets | select-object -first 1} else {$lifecycle.OptionalDeploymentTargets | select-object -first 1}
 $targetEnv = if ($lifecycle.AutomaticDeploymentTargets -or $lifecycle.optionalDeploymentTargets) { (Invoke-RestMethod $octopusURL/api/environments/$($TargetEnvId)?apikey=$octopusAPIKey).name} else {"Development"}
 
 if ($targetEnv){
