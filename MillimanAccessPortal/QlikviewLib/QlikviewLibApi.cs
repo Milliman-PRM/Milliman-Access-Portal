@@ -32,7 +32,7 @@ namespace QlikviewLib
             return ServiceInfo;
         }
 
-        public async Task<DocumentFolder> SafeGetUserDocFolder(IQMS Client, QlikviewConfig Cfg, int ServiceIndex = 0)
+        public async Task<(ServiceInfo, DocumentFolder)> SafeGetUserDocFolder(IQMS Client, QlikviewConfig Cfg, int ServiceIndex = 0)
         {
             ServiceInfo SvcInfo = await SafeGetServiceInfo(Client, ServiceTypes.QlikViewServer, ServiceIndex);
             DocumentFolder QvsUserDocFolder = null;
@@ -44,7 +44,7 @@ namespace QlikviewLib
             catch (System.Exception)
             {}
 
-            return QvsUserDocFolder;
+            return (SvcInfo, QvsUserDocFolder);
         }
 
         public override async Task<UriBuilder> GetContentUri(string FilePathRelativeToContentRoot, string UserName, object ConfigInfoArg, HttpRequest thisHttpRequest)
@@ -103,7 +103,7 @@ namespace QlikviewLib
 
             IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
-            DocumentFolder QvsUserDocFolder = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
+            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
             if (QvsUserDocFolder == null)
             {
                 return false;
@@ -112,7 +112,7 @@ namespace QlikviewLib
             DocumentNode RequestedDocNode = null;
             try
             {
-                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
                 RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
             }
             catch (System.Exception)
@@ -183,7 +183,7 @@ namespace QlikviewLib
 
             IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
-            DocumentFolder QvsUserDocFolder = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
+            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
             if (QvsUserDocFolder == null)
             {
                 return false;
@@ -192,7 +192,7 @@ namespace QlikviewLib
             DocumentNode RequestedDocNode = null;
             try
             {
-                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
                 RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
             }
             catch (System.Exception)
@@ -228,7 +228,7 @@ namespace QlikviewLib
 
             IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
-            DocumentFolder QvsUserDocFolder = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
+            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
             if (QvsUserDocFolder == null)
             {
                 return false;
@@ -237,7 +237,7 @@ namespace QlikviewLib
             DocumentNode RequestedDocNode = null;
             try
             {
-                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
                 RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
             }
             catch (System.Exception)
