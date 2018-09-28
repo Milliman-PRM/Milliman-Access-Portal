@@ -372,7 +372,7 @@ namespace MillimanAccessPortal.Controllers
                         {
                             string FileFullPath = Path.Combine(ContentFolderFullPath, f);
                             string FileRelativePath = Path.GetRelativePath(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), FileFullPath);
-                            await new QlikviewLibApi().ReclaimAllDocCalsForFile("", QlikviewConfig);
+                            await new QlikviewLibApi().ReclaimAllDocCalsForFile(FileRelativePath, QlikviewConfig);
                         });
                     }
                     break;
