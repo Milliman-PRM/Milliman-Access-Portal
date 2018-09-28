@@ -266,19 +266,19 @@ if($runTests) {
 
     Set-Location $rootPath\MillimanAccessPortal\MapTests
 
-    dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
+    <# dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
 
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: One or more MAP xUnit tests failed"
         log_statement "errorlevel was $LASTEXITCODE"
         exit $LASTEXITCODE
-    }
+    } #>
 
     log_statement "Peforming Jest tests"
 
     Set-Location $rootPath\MillimanAccessPortal\MillimanAccessPortal
 
-    $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
+    <# $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
 
     $command = "yarn test --testResultsProcessor='jest-junit'"
     invoke-expression "&$command"
@@ -287,25 +287,25 @@ if($runTests) {
         log_statement "ERROR: One or more Jest tests failed"
         log_statement "errorlevel was $LASTEXITCODE"
         exit $LASTEXITCODE
-    }
+    }#>
 
     log_statement "Performing content publishing unit tests"
 
     Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
 
-    dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
+   <# dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
 
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: One or more content publishing xUnit tests failed"
         log_statement "errorlevel was $LASTEXITCODE"
         exit $LASTEXITCODE
-    }
+    }#>
 }
 #endregion
 
 #region Create and update databases
 
-log_statement "Preparing branch databases"
+<#log_statement "Preparing branch databases"
 
 $env:PGPASSWORD = $dbPassword
 
@@ -371,7 +371,7 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Failed to apply audit log database migrations"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
-}
+}#>
 
 #endregion
 
