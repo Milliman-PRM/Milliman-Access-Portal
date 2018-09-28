@@ -198,12 +198,14 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   ];
   linkPairs.forEach((pair) => {
     $(`#confirmation-section-${pair.sectionName} iframe`)
+      .removeAttr('srcdoc')
       .attr('src', pair.link)
       .siblings('a')
       .attr('href', pair.link)
       .filter(() => pair.link === null)
       .hide()
       .siblings('iframe')
+      .removeAttr('src')
       .attr('srcdoc', 'This file has not changed.')
       .closest('.confirmation-section').find('label')
       .hide()
