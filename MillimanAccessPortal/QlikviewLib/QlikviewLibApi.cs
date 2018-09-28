@@ -18,6 +18,35 @@ namespace QlikviewLib
 {
     public class QlikviewLibApi : ContentTypeSpecificApiBase
     {
+        public async Task<ServiceInfo> SafeGetServiceInfo(IQMS Client, ServiceTypes Type, int Index = 0)
+        {
+            ServiceInfo ServiceInfo = null;
+            try
+            {
+                ServiceInfo[] Services = await Client.GetServicesAsync(Type);
+                ServiceInfo = Services[Index];
+            }
+            catch (System.Exception)
+            {}
+
+            return ServiceInfo;
+        }
+
+        public async Task<DocumentFolder> SafeGetUserDocFolder(IQMS Client, QlikviewConfig Cfg, int ServiceIndex = 0)
+        {
+            ServiceInfo SvcInfo = await SafeGetServiceInfo(Client, ServiceTypes.QlikViewServer, ServiceIndex);
+            DocumentFolder QvsUserDocFolder = null;
+            try
+            {
+                DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(SvcInfo.ID, DocumentFolderScope.General);
+                QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == Cfg.QvServerContentUriSubfolder);
+            }
+            catch (System.Exception)
+            {}
+
+            return QvsUserDocFolder;
+        }
+
         public override async Task<UriBuilder> GetContentUri(string FilePathRelativeToContentRoot, string UserName, object ConfigInfoArg, HttpRequest thisHttpRequest)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
@@ -74,24 +103,8 @@ namespace QlikviewLib
 
             IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
-            ServiceInfo QvsServiceInfo = null;
-            try
-            {
-                ServiceInfo[] QvsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
-                QvsServiceInfo = QvsServices[0];
-            }
-            catch (System.Exception)
-            {
-                return false;
-            }
-
-            DocumentFolder QvsUserDocFolder = null;
-            try
-            {
-                DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
-                QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
-            }
-            catch (System.Exception)
+            DocumentFolder QvsUserDocFolder = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
+            if (QvsUserDocFolder == null)
             {
                 return false;
             }
@@ -170,24 +183,8 @@ namespace QlikviewLib
 
             IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
-            ServiceInfo QvsServiceInfo = null;
-            try
-            {
-                ServiceInfo[] QvsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
-                QvsServiceInfo = QvsServices[0];
-            }
-            catch (System.Exception)
-            {
-                return false;
-            }
-
-            DocumentFolder QvsUserDocFolder = null;
-            try
-            {
-                DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
-                QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
-            }
-            catch (System.Exception)
+            DocumentFolder QvsUserDocFolder = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
+            if (QvsUserDocFolder == null)
             {
                 return false;
             }
@@ -231,24 +228,8 @@ namespace QlikviewLib
 
             IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
-            ServiceInfo QvsServiceInfo = null;
-            try
-            {
-                ServiceInfo[] QvsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
-                QvsServiceInfo = QvsServices[0];
-            }
-            catch (System.Exception)
-            {
-                return false;
-            }
-
-            DocumentFolder QvsUserDocFolder = null;
-            try
-            {
-                DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
-                QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
-            }
-            catch (System.Exception)
+            DocumentFolder QvsUserDocFolder = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
+            if (QvsUserDocFolder == null)
             {
                 return false;
             }
