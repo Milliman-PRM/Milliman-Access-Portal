@@ -519,7 +519,7 @@ else {
 
 log_statement "Deploying web app release"
 
-octo deploy-release --project "Milliman Access Portal" --version $webVersion --apiKey "$octopusAPIKey" --server $octopusURL --waitfordeployment --cancelontimeout --progress
+octo deploy-release --project "Milliman Access Portal" --version $webVersion --apiKey "$octopusAPIKey" --channel=$channel --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release deployed successfully"
