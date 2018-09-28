@@ -111,7 +111,7 @@ namespace QlikviewLib
 
             // If user has a named CAL then don't allocate a document CAL.
             CALConfiguration CalConfig = await Client.GetCALConfigurationAsync(SvcInfo.ID, CALConfigurationScope.NamedCALs);
-            if (CalConfig.NamedCALs.AssignedCALs.Any(c => c.UserName == UserName))
+            if (CalConfig.NamedCALs.AssignedCALs.Any(c => string.Compare(c.UserName, UserName, true) == 0))
             {
                 return true;
             }
@@ -135,12 +135,9 @@ namespace QlikviewLib
             DocumentMetaData DocMetadata = await Client.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
             List<AssignedNamedCAL> CurrentDocCals = DocMetadata.Licensing.AssignedCALs.ToList();
 
-            foreach (AssignedNamedCAL AssignedCal in CurrentDocCals)
+            if (CurrentDocCals.Any(c => string.Compare(c.UserName, UserName, true) == 0))
             {
-                if (string.Compare(AssignedCal.UserName, UserName, true) == 0)
-                {
-                    return true; //already has a doc license for this file, dont assign another
-                }
+                return true; // user already has a doc CAL for this file, dont assign another
             }
 
             if (CurrentDocCals.Count >= DocMetadata.Licensing.CALsAllocated)
@@ -267,7 +264,6 @@ namespace QlikviewLib
                 {
                     RemovableCALs.Add(CurrentDocCals.ElementAt(CalCounter));
                     CurrentDocCals.RemoveAt(CalCounter);
-                    // Log this removal
                     ReturnBool = true;
                 }
             }
