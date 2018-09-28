@@ -272,7 +272,7 @@ if($runTests) {
         log_statement "ERROR: One or more MAP xUnit tests failed"
         log_statement "errorlevel was $LASTEXITCODE"
         exit $LASTEXITCODE
-    }
+    } 
 
     log_statement "Peforming Jest tests"
 
@@ -293,7 +293,7 @@ if($runTests) {
 
     Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
 
-    dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
+   dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
 
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: One or more content publishing xUnit tests failed"
@@ -486,7 +486,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Creating web app release"
 
-octo create-release --project "Milliman Access Portal" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
+octo create-release --project "Milliman Access Portal" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
@@ -498,9 +498,27 @@ else {
     exit $error_code
 }
 
+log_statement "Determining target environment for web app deployment"
+$projects = (invoke-restmethod $octopusURL/api/projects?apikey=$octopusAPIKey).items
+$MAPProject = $projects | where {$_.Name -eq "Milliman Access Portal"}
+$releases = (invoke-restmethod "$octopusURL/api/projects/$($mapProject.Id)/releases?apikey=$octopusAPIKey").items
+$BranchRelease = $releases | where {$_.Version -eq "$webVersion"}
+$channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey)
+$channelName = $channel.Name
+$lifecycle = (Invoke-RestMethod $octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$octopusAPIKey).phases 
+$targetEnvId = if ($lifecycle.AutomaticDeploymentTargets) {$lifecycle.AutomaticDeploymentTargets | select-object -first 1} else {$lifecycle.OptionalDeploymentTargets | select-object -first 1}
+$targetEnv = if ($lifecycle.AutomaticDeploymentTargets -or $lifecycle.optionalDeploymentTargets) { (Invoke-RestMethod $octopusURL/api/environments/$($TargetEnvId)?apikey=$octopusAPIKey).name} else {"Development"}
+if ($targetEnv){
+    log_statement "Deploying to $targetEnv"
+}
+else {
+    log_statement "ERROR: Failed to determine deployment environment"
+    exit -42
+}
+
 log_statement "Deploying web app release"
 
-octo deploy-release --project "Milliman Access Portal" --deployto "Development" --channel "Development" --version $webVersion --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
+octo deploy-release --project "Milliman Access Portal" --version $webVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release deployed successfully"
@@ -514,7 +532,7 @@ else {
 
 log_statement "Creating Content Publishing Server release"
 
-octo create-release --project "Content Publication Server" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
+octo create-release --project "Content Publication Server" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Publishing service application release created successfully"
@@ -528,7 +546,7 @@ else {
 
 log_statement "Creating MAP Query Admin release"
 
-octo create-release --project "MAP Query Admin" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
+octo create-release --project "MAP Query Admin" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "MAP Query Admin release created successfully"

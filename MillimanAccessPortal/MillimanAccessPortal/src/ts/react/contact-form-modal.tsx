@@ -97,7 +97,7 @@ export class ContactFormModal extends React.Component<Modal.Props, ContactFormMo
   private handleSubmit(event: React.MouseEvent<HTMLFormElement> | React.KeyboardEvent<HTMLFormElement>) {
     event.preventDefault();
     event.persist();
-    postData('Message/SendSupportEmail', {
+    postData('/Message/SendSupportEmail', {
       subject: this.state.topic,
       message: this.state.message,
     }, true)
