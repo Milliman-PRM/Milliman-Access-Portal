@@ -136,7 +136,8 @@ namespace QlikviewLib
             DocumentMetaData DocMetadata = await Client.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
             List<AssignedNamedCAL> CurrentDocCals = DocMetadata.Licensing.AssignedCALs.ToList();
 
-            if (CurrentDocCals.Any(c => string.Compare(c.UserName, UserName, true) == 0))
+            if (CurrentDocCals.Any(c => string.Compare(c.UserName, UserName, true) == 0
+                                     && c.QuarantinedUntil == DateTime.MinValue))
             {
                 return true; // user already has a doc CAL for this file, dont assign another
             }
