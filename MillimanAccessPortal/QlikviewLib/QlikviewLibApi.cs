@@ -109,9 +109,10 @@ namespace QlikviewLib
                 return false;
             }
 
-            // If user has a named CAL then don't allocate a document CAL.
+            // If user has an available named CAL then don't allocate a document CAL.
             CALConfiguration CalConfig = await Client.GetCALConfigurationAsync(SvcInfo.ID, CALConfigurationScope.NamedCALs);
-            if (CalConfig.NamedCALs.AssignedCALs.Any(c => string.Compare(c.UserName, UserName, true) == 0))
+            if (CalConfig.NamedCALs.AssignedCALs.Any(c => string.Compare(c.UserName, UserName, true) == 0 
+                                                       && c.QuarantinedUntil == DateTime.MinValue))
             {
                 return true;
             }
