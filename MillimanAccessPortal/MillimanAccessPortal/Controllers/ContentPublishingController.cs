@@ -316,6 +316,7 @@ namespace MillimanAccessPortal.Controllers
         {
             var rootContentItem = DbContext.RootContentItem
                 .Include(x => x.Client)
+                .Include(x => x.ContentType)
                 .SingleOrDefault(x => x.Id == rootContentItemId);
 
             #region Preliminary Validation
@@ -357,6 +358,28 @@ namespace MillimanAccessPortal.Controllers
 
             DbContext.RootContentItem.Remove(rootContentItem);
             DbContext.SaveChanges();
+
+            // ContentType specific handling after database operation completes
+            switch (rootContentItem.ContentType.TypeEnum)
+            {
+                case ContentTypeEnum.Qlikview:
+                    string ContentFolderFullPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), rootContentItem.Id.ToString());
+
+                    if (Directory.Exists(ContentFolderFullPath))  // unlikely but could happen if nothing was ever published
+                    {
+                        List<string> AllQvwFiles = Directory.GetFiles(ContentFolderFullPath, "*.qvw").ToList();
+                        AllQvwFiles.ForEach(async f =>
+                        {
+                            string FileFullPath = Path.Combine(ContentFolderFullPath, f);
+                            string FileRelativePath = Path.GetRelativePath(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), FileFullPath);
+                            await new QlikviewLibApi().ReclaimAllDocCalsForFile(FileRelativePath, QlikviewConfig);
+                        });
+                    }
+                    break;
+
+                default:
+                    break;
+            }
 
             try
             {
@@ -754,6 +777,21 @@ namespace MillimanAccessPortal.Controllers
                         }
                         System.IO.File.Move(TargetFilePath, BackupFilePath);
                         FilesToDelete.Add(BackupFilePath);
+                    }
+
+                    // Deallocate any temporary document licenses for preview file(s)
+                    switch (PubRequest.RootContentItem.ContentType.TypeEnum)
+                    {
+                        case ContentTypeEnum.Qlikview:
+                            foreach (ContentRelatedFile Qvw in PubRequest.LiveReadyFilesObj.Where(f => string.Compare(Path.GetExtension(f.FullPath), ".qvw", true) == 0))
+                            {
+                                string FileRelativePath = Path.GetRelativePath(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), Qvw.FullPath);
+                                await new QlikviewLibApi().ReclaimAllDocCalsForFile(FileRelativePath, QlikviewConfig);
+                            }
+                            break;
+
+                        default:
+                            break;
                     }
 
                     // Can't move between different volumes

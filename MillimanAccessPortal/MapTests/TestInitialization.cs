@@ -197,10 +197,13 @@ namespace MapTests
                     configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
 
                     var built = configurationBuilder.Build();
+                    configurationBuilder = new ConfigurationBuilder();
 
                     var store = new X509Store(StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+
+                    configurationBuilder.AddJsonFile($"appsettings.{environmentName}.json");
 
                     configurationBuilder.AddAzureKeyVault(
                         built["AzureVaultName"],
