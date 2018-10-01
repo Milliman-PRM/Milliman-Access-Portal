@@ -280,7 +280,7 @@ if($runTests) {
 
     $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
 
-    $command = "yarn test --testResultsProcessor='jest-junit'"
+    $command = "yarn test --ci --testResultsProcessor='jest-junit'"
     invoke-expression "&$command"
 
     if ($LASTEXITCODE -ne 0) {

@@ -77,10 +77,22 @@
     "test": "jest",
     "test-browsers": "testcafe chrome,firefox,ie src/browser_tests/"
   },
+  "jest-junit": {
+    "output": "../../_test_results/jest-test-results.xml"
+  },
   "jest": {
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/*.{ts,tsx}",
+      "!**/dom-methods.ts",
+      "!ts/form/**/*",
+      "!ts/*.tsx"
+    ],
+    "coverageDirectory": "../../_test_results/_jest_coverage",
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
+    "testResultsProcessor": "jest-junit",
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/src/browser_tests/"
