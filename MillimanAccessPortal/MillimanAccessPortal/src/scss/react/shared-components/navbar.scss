@@ -1,0 +1,69 @@
+﻿@import "../../map_modules/variables";
+
+
+nav {
+    position: fixed;
+    display: flex !important;
+    flex-flow: column nowrap;
+    justify-content: center;
+    top: 0;
+    left: -18.5em;
+    width: 18.5rem;
+    bottom: 0;
+    transition: all 0.3s;
+    background-color: $charcoal;
+    color: $white;
+    padding: 0;
+    z-index: 101;
+
+    &.loaded {
+        left: -14.5em;
+    }
+
+    &:hover {
+        left: 0;
+    }
+
+    a {
+        color: inherit;
+    }
+
+    .nav-element {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: flex-end;
+        align-items: center;
+        width: 100%;
+        cursor: pointer;
+        margin-bottom: .25em;
+
+        &:hover {
+            color: $blue;
+        }
+
+        &.selected {
+            background-color: $blue;
+
+            &:hover {
+                color: $charcoal;
+            }
+        }
+
+        .nav-element-label {
+            flex: 1 0 auto;
+            margin: 0 0 0 1em;
+            font-weight: bold;
+            order: 1;
+        }
+
+        .nav-element-icon {
+            flex: none;
+            width: 4em;
+            height: 4em;
+            padding: .5rem;
+            order: 2;
+        }
+    }
+
+
+}

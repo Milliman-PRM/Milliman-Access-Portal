@@ -1,0 +1,57 @@
+﻿header {
+    display: flex;
+    flex-flow: row wrap;
+    flex: none;
+    align-items: center;
+    padding: 0 1em;
+
+    #page-title {
+        display: inline-block;
+        flex: 1 0 auto;
+        order: 1;
+    }
+
+    @include for-phone-only {
+        #page-title {
+            order: 2;
+            text-align: center;
+        }
+    }
+
+    #header-logo-container {
+        order: 2;
+        padding: 1em 1em 0;
+        max-width: 95vw;
+        text-align: right;
+
+        #header-logo {
+            display: block;
+            max-height: 3rem;
+            width: 25rem;
+            max-width: 100%;
+        }
+
+        #username {
+            font-size: .75rem;
+            font-style: italic;
+        }
+    }
+
+    @include for-phone-only {
+        #header-logo-container {
+            order: 1;
+
+            #username {
+                display: none;
+            }
+        }
+    }
+}
+
+#map-logo_brand {
+    fill: $charcoal;
+}
+
+#map-logo_product {
+    fill: $blue;
+}

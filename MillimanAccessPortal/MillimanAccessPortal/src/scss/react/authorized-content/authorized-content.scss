@@ -1,0 +1,49 @@
+﻿@import "../../map_modules/variables";
+@import "../../map_modules/mixins";
+
+#authorized-content-container {
+    display: flex;
+    flex-flow: column nowrap;
+    width: 100%;
+    padding: 1em;
+    overflow: hidden;
+
+    #authorized-content-header {
+        display: flex;
+        flex: none;
+        justify-content: flex-end;
+        padding: 1em 1em 2em;
+
+        .filter-container {
+            align-self: flex-end;
+
+            @include for-phone-only() {
+                width: 100%;
+            }
+
+            @include for-tablet-up() {
+                width: 25em;
+            }
+        }
+    }
+
+    #authorized-content-items {
+        flex: 1 1 auto;
+        overflow: auto;
+
+        .client-content-container {
+            display: flex;
+            flex-flow: row wrap;
+            align-content: flex-start;
+            align-items: flex-start;
+            margin-bottom: 2em;
+
+            .client-name {
+                width: 100%;
+                margin-bottom: 1em;
+                margin-right: .5em;
+                border-bottom: 2px solid $charcoal;
+            }
+        }
+    }
+}

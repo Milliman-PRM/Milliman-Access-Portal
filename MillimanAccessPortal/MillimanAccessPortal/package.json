@@ -1,0 +1,109 @@
+{
+  "name": "milliman-access-portal",
+  "version": "1.0.0",
+  "description": "Milliman Access Portal",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bootstrap": "4.0.0",
+    "jquery": "2.2.0",
+    "jquery-mask-plugin": "1.14.13",
+    "jquery-validation": "1.14.0",
+    "jquery-validation-unobtrusive": "3.2.6",
+    "node-forge": "^0.7.5",
+    "popper.js": "^1.14.1",
+    "promise-polyfill": "8.1.0",
+    "react": "^16.3.0",
+    "react-dom": "^16.3.0",
+    "react-modal": "^3.5.1",
+    "resumablejs": "^1.1.0",
+    "selectize": "v0.12.4",
+    "toastr": "2.1.4",
+    "tooltipster": "4.2.5",
+    "typeahead.js": "v0.11.1",
+    "vex-js": "v4.1.0",
+    "whatwg-fetch": "2.0.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^22.2.2",
+    "@types/jquery": "^3.3.1",
+    "@types/jquery-mask-plugin": "^1.14.3",
+    "@types/jquery-validation-unobtrusive": "^3.2.32",
+    "@types/jquery.validation": "^1.16.4",
+    "@types/lodash": "^4.14.106",
+    "@types/node": "8.9.4",
+    "@types/node-forge": "^0.7.2",
+    "@types/react": "^16.3.14",
+    "@types/react-dom": "^16.0.5",
+    "@types/react-modal": "^3.2.1",
+    "@types/selectize": "^0.12.33",
+    "@types/toastr": "^2.1.35",
+    "@types/tooltipster": "^0.0.29",
+    "@types/typeahead": "^0.11.32",
+    "@types/vex-js": "^2.3.29",
+    "@types/webpack-env": "^1.13.5",
+    "aspnet-webpack": "^2.0.3",
+    "awesome-typescript-loader": "^4.0.1",
+    "clean-webpack-plugin": "^0.1.19",
+    "copy-webpack-plugin": "^4.5.1",
+    "css-loader": "^0.28.11",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "html-webpack-plugin": "^3.0.7",
+    "jest": "^22.4.3",
+    "jest-junit": "^3.7.0",
+    "less": "^3.0.1",
+    "less-loader": "^4.1.0",
+    "mini-css-extract-plugin": "^0.4.2",
+    "node-sass": "^4.7.2",
+    "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "sass-loader": "^6.0.7",
+    "source-map-loader": "^0.2.3",
+    "style-loader": "^0.20.3",
+    "svg-sprite-loader": "^3.8.0",
+    "svgo": "^1.0.5",
+    "svgo-loader": "^2.1.0",
+    "testcafe": "^0.19.1",
+    "ts-jest": "^22.4.2",
+    "tslint": "^5.10.0",
+    "tslint-react": "^3.6.0",
+    "typescript": "^2.7.2",
+    "webpack": "^4.4.0",
+    "webpack-cli": "^2.0.13",
+    "webpack-hot-middleware": "^2.21.2",
+    "webpack-merge": "^4.1.4"
+  },
+  "scripts": {
+    "build-dev": "tsc & webpack --config=webpack.dev.js",
+    "build-prod": "tsc & webpack --config=webpack.prod.js",
+    "test": "jest",
+    "test-browsers": "testcafe chrome,firefox,ie src/browser_tests/"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/src/browser_tests/"
+    ],
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "moduleNameMapper": {
+      "\\.(css|less|sass|scss)$": "<rootDir>/src/ts/__mocks__/styleMock.ts"
+    }
+  },
+  "-vs-binding": {
+    "AfterBuild": [
+      "install"
+    ]
+  },
+  "engines": {
+    "node": "8.9.4"
+  }
+}

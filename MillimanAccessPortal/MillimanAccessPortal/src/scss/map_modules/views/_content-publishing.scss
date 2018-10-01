@@ -1,0 +1,133 @@
+.confirmation-section {
+    margin-bottom: 2em;
+
+    ul.hierarchy-list {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    label.selection-option-label {
+        margin-top: 1em;
+    }
+
+    .content-preview {
+        width: 100%;
+        height: 20em;
+        position: relative;
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: 1px solid $charcoal;
+        }
+
+        svg {
+            color: $charcoal;
+            position: absolute;
+            top: 0.2em;
+            right: 0.2em;
+            width: 2em;
+            height: 2em;
+            z-index: 1;
+            // Temporarily hide this button until this functionality is completely implemented.
+            display: none;
+
+            &:hover {
+                color: $green;
+            }
+        }
+    }
+
+    .hierarchy-container {
+        display: flex;
+        flex-flow: row nowrap;
+        width: 100%;
+        white-space: nowrap;
+
+        .hierarchy {
+            background-color: $white;
+            padding: 1.0em;
+            border: 1px solid $charcoal;
+            box-sizing: border-box;
+            flex: 1 0 50%;
+
+            &.hierarchy-left {
+                border-radius: 1em 0 0 1em;
+            }
+
+            &.hierarchy-right {
+                border-left: none;
+                border-radius: 0 1em 1em 0;
+            }
+
+            & > ul {
+                margin-left: 0.5em;
+
+                h6 {
+                    margin: 0;
+                }
+
+                & > li + li {
+                    margin-top: 0.5em;
+                }
+
+                ul {
+                    margin-left: 0.5em;
+                }
+            }
+        }
+    }
+
+    &#confirmation-section-hierarchy-stats {
+
+        ul {
+            list-style: none;
+        }
+
+        li + li {
+            margin-top: 0.5em;
+        }
+    }
+
+    .selection-group-summary {
+        display: block;
+        background-color: $white;
+        border-radius: 1em;
+        border: 1px solid $charcoal;
+        padding: 1.0em;
+
+        .selection-group-stat {
+            .selection-group-stat-label {
+                width: 20%;
+                display: inline-block;
+            }
+
+            .selection-group-stat-value {
+                color: red;
+            }
+        }
+    }
+
+    .attestation-language {
+        background-color: $white;
+        border: 1px solid $charcoal;
+        border-radius: 1em;
+        padding: 1em;
+        margin-bottom: 1em;
+
+        .attestation {
+            font-weight: 600;
+        }
+
+        .attestation-items li {
+            margin-bottom: .5em;
+        }
+    }
+
+    .confirmation-section-button-container {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: center;
+    }
+}

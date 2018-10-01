@@ -1,0 +1,58 @@
+/* Typeahead */
+
+.twitter-typeahead {
+  display: block !important;
+}
+
+.tt-input,
+.tt-hint {
+    width: 100%;
+    margin: 0;
+    outline: none;
+}
+
+.tt-input {
+    box-shadow: none;
+}
+
+.tt-hint {
+    color: $grey;
+}
+
+.tt-menu {
+    width: 100%;
+    background-color: $white;
+    border: 1px solid $black;
+    overflow: hidden;
+}
+
+.tt-suggestion {
+    padding: .1em .5em;
+    font-size: 1rem;
+    border-bottom: 1px solid $grey;
+    color: $black;
+
+    .secondary-text {
+        font-size: .8em;
+        font-style: italic;
+    }
+
+    &:first-child {
+        border-top: none !important;
+    }
+
+    &:last-child {
+        border-bottom: none !important;
+    }
+
+    &.tt-cursor {
+        color: $white;
+        background-color: $blue !important;
+        border-top: 1px solid $black;
+        border-bottom: 1px solid $black;
+    }
+
+    p {
+        margin: 0;
+    }
+}

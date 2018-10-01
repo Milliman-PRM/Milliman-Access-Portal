@@ -1,0 +1,314 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.6.3
+-- Dumped by pg_dump version 9.6.3
+
+-- Started on 2017-09-12 11:37:13
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'SQL_ASCII';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+SET search_path = public, pg_catalog;
+
+--
+-- TOC entry 2309 (class 0 OID 16944)
+-- Dependencies: 199
+-- Data for Name: AspNetRoleClaims; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "AspNetRoleClaims" ("Id", "ClaimType", "ClaimValue", "RoleId") FROM stdin;
+\.
+
+
+--
+-- TOC entry 2342 (class 0 OID 0)
+-- Dependencies: 198
+-- Name: AspNetRoleClaims_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"AspNetRoleClaims_Id_seq"', 1, false);
+
+
+--
+-- TOC entry 2301 (class 0 OID 16873)
+-- Dependencies: 191
+-- Data for Name: AspNetRoles; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "AspNetRoles" ("Id", "ConcurrencyStamp", "Name", "NormalizedName") FROM stdin;
+1	c21aa771-f3df-44eb-a63c-3cebc002a171	Super User	SUPER USER
+2	25d728a2-000f-45f6-83df-ae2b7d03eb1f	Client Administrator	CLIENT ADMINISTRATOR
+3	1c715533-8ead-44ec-b014-ded671d11e38	User Manager	USER MANAGER
+4	6efd2317-d33c-4874-87ff-6923bde5ad3b	Content Publisher	CONTENT PUBLISHER
+5	a18688f0-7d19-4625-83d0-f053fae6c313	Content User	CONTENT USER
+\.
+
+
+--
+-- TOC entry 2343 (class 0 OID 0)
+-- Dependencies: 190
+-- Name: AspNetRoles_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"AspNetRoles_Id_seq"', 5, true);
+
+
+--
+-- TOC entry 2304 (class 0 OID 16892)
+-- Dependencies: 194
+-- Data for Name: AspNetUserClaims; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "AspNetUserClaims" ("Id", "ClaimType", "ClaimValue", "UserId") FROM stdin;
+\.
+
+
+--
+-- TOC entry 2344 (class 0 OID 0)
+-- Dependencies: 193
+-- Name: AspNetUserClaims_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"AspNetUserClaims_Id_seq"', 1, false);
+
+
+--
+-- TOC entry 2305 (class 0 OID 16906)
+-- Dependencies: 195
+-- Data for Name: AspNetUserLogins; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "AspNetUserLogins" ("LoginProvider", "ProviderKey", "ProviderDisplayName", "UserId") FROM stdin;
+\.
+
+
+--
+-- TOC entry 2310 (class 0 OID 16958)
+-- Dependencies: 200
+-- Data for Name: AspNetUserRoles; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "AspNetUserRoles" ("UserId", "RoleId") FROM stdin;
+\.
+
+
+--
+-- TOC entry 2302 (class 0 OID 16882)
+-- Dependencies: 192
+-- Data for Name: AspNetUserTokens; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "AspNetUserTokens" ("UserId", "LoginProvider", "Name", "Value") FROM stdin;
+\.
+
+
+--
+-- TOC entry 2299 (class 0 OID 16862)
+-- Dependencies: 189
+-- Data for Name: AspNetUsers; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "AspNetUsers" ("Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName") FROM stdin;
+1	0	1174e63b-9245-4834-b420-ee45aed2f203	tom.puckett@milliman.com	f	t	\N	TOM.PUCKETT@MILLIMAN.COM	TOM.PUCKETT@MILLIMAN.COM	AQAAAAEAACcQAAAAEGKMa+EUwyuW6+175UtR0LYl9xAVaEedeJdf3lwBPcILqk8G+O1qRRZ3/Kp2LcLaPA==	\N	f	9678057a-aa10-444e-8325-2a30bea9143d	f	tom.puckett@milliman.com
+\.
+
+
+--
+-- TOC entry 2345 (class 0 OID 0)
+-- Dependencies: 188
+-- Name: AspNetUsers_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"AspNetUsers_Id_seq"', 1, true);
+
+
+--
+-- TOC entry 2297 (class 0 OID 16846)
+-- Dependencies: 187
+-- Data for Name: Client; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "Client" ("Id", "AcceptedEmailDomainList", "Name", "ParentClientId") FROM stdin;
+1	{milliman.com}	Client 1	\N
+2	{milliman.com}	Client 2	\N
+\.
+
+
+--
+-- TOC entry 2346 (class 0 OID 0)
+-- Dependencies: 186
+-- Name: Client_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"Client_Id_seq"', 1, true);
+
+
+--
+-- TOC entry 2314 (class 0 OID 17002)
+-- Dependencies: 204
+-- Data for Name: ContentItemUserGroup; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "ContentItemUserGroup" ("Id", "ClientId", "GroupName", "RootContentItemId", "SelectedHierarchyFieldValueList", "ContentInstanceUrl") FROM stdin;
+1	1	Group 1	1	{}	Test/HelloWorld.qvw
+2	2	Group 2	2	{1}	0273WOH01/Medicaid/CCR/ReducedCachedQVWs/2dd7bfaae1e6401db27a169cf3d5c0aa.qvw
+\.
+
+
+--
+-- TOC entry 2347 (class 0 OID 0)
+-- Dependencies: 203
+-- Name: ContentItemUserGroup_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"ContentItemUserGroup_Id_seq"', 5, true);
+
+
+--
+-- TOC entry 2322 (class 0 OID 17115)
+-- Dependencies: 212
+-- Data for Name: ContentType; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "ContentType" ("Id", "CanReduce", "Name") FROM stdin;
+1	t	Qlikview
+\.
+
+
+--
+-- TOC entry 2348 (class 0 OID 0)
+-- Dependencies: 211
+-- Name: ContentType_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"ContentType_Id_seq"', 1, false);
+
+
+--
+-- TOC entry 2316 (class 0 OID 17023)
+-- Dependencies: 206
+-- Data for Name: HierarchyField; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "HierarchyField" ("Id", "FieldNameList", "HierarchyLevel", "RootContentItemId") FROM stdin;
+\.
+
+
+--
+-- TOC entry 2318 (class 0 OID 17039)
+-- Dependencies: 208
+-- Data for Name: HierarchyFieldValue; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "HierarchyFieldValue" ("Id", "HierarchyLevel", "ParentHierarchyFieldValueId", "RootContentItemId", "Value") FROM stdin;
+\.
+
+
+--
+-- TOC entry 2349 (class 0 OID 0)
+-- Dependencies: 207
+-- Name: HierarchyFieldValue_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"HierarchyFieldValue_Id_seq"', 1, false);
+
+
+--
+-- TOC entry 2350 (class 0 OID 0)
+-- Dependencies: 205
+-- Name: HierarchyField_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"HierarchyField_Id_seq"', 1, false);
+
+
+--
+-- TOC entry 2312 (class 0 OID 16986)
+-- Dependencies: 202
+-- Data for Name: RootContentItem; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "RootContentItem" ("Id", "ContentTypeId", "ContentName", "ClientIdList", "TypeSpecificDetail") FROM stdin;
+1	1	FirstRootContentName	{1,2}	\N
+2	1	Root Content 2	{1}	\N
+\.
+
+
+--
+-- TOC entry 2351 (class 0 OID 0)
+-- Dependencies: 201
+-- Name: RootContentItem_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"RootContentItem_Id_seq"', 1, true);
+
+
+--
+-- TOC entry 2307 (class 0 OID 16921)
+-- Dependencies: 197
+-- Data for Name: UserRoleForClient; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "UserRoleForClient" ("Id", "ClientId", "RoleId", "UserId") FROM stdin;
+\.
+
+
+--
+-- TOC entry 2352 (class 0 OID 0)
+-- Dependencies: 196
+-- Name: UserRoleForClient_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"UserRoleForClient_Id_seq"', 1, false);
+
+
+--
+-- TOC entry 2320 (class 0 OID 17081)
+-- Dependencies: 210
+-- Data for Name: UserRoleForContentItemUserGroup; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "UserRoleForContentItemUserGroup" ("Id", "ContentItemUserGroupId", "RoleId", "UserId") FROM stdin;
+1	1	5	1
+2	2	4	1
+3	2	5	1
+\.
+
+
+--
+-- TOC entry 2353 (class 0 OID 0)
+-- Dependencies: 209
+-- Name: UserRoleForContentItemUserGroup_Id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"UserRoleForContentItemUserGroup_Id_seq"', 1, false);
+
+
+--
+-- TOC entry 2295 (class 0 OID 16839)
+-- Dependencies: 185
+-- Data for Name: __EFMigrationsHistory; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "__EFMigrationsHistory" ("MigrationId", "ProductVersion") FROM stdin;
+20170808151454_Inital	1.1.2
+20170816190750_AddCustomSchema	1.1.2
+20170816204807_AddContentTypeEntity	1.1.2
+20170817171039_ConsolidateTablesAndOtherTweaks	1.1.2
+\.
+
+
+-- Completed on 2017-09-12 11:37:14
+
+--
+-- PostgreSQL database dump complete
+--
+

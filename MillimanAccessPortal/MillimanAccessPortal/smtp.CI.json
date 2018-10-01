@@ -1,0 +1,6 @@
+﻿{
+  "SmtpServer": "smtp.milliman.com",
+  "SmtpPort": 25,
+  "SmtpFromAddress": "map.support@milliman.com",
+  "SmtpFromName": "Milliman Access Portal Support"
+}

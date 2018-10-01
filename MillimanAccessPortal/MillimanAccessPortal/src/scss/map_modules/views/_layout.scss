@@ -1,0 +1,34 @@
+﻿#content-wrapper {
+    display: flex;
+    flex-flow: column nowrap;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+
+    @include for-tablet-down() {
+        overflow: auto !important;
+    }
+
+    &.navbar-offset {
+        padding-left: 4rem;
+    }
+
+    #content-container {
+        display: flex;
+        flex-flow: row nowrap;
+        flex: 1 1 auto;
+        overflow: hidden;
+
+        @include for-tablet-down() {
+            flex-flow: column nowrap !important;
+            overflow: auto !important;
+            padding: 0 !important;
+        }
+    }
+}
+
+@include for-tablet-down() {
+    .hide-on-tablet-down {
+        display: none !important;
+    }
+}

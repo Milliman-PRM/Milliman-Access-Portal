@@ -1,0 +1,352 @@
+﻿@model MillimanAccessPortal.Models.ContentPublishing.RootContentItemDetail;
+
+@{
+    /*
+     * CODE OWNERS: Mike Reisz, Kelsie Stevenson
+     * OBJECTIVE: Provide an interface for uploading and updating content
+     * DEVELOPER NOTES:
+     */
+
+    ViewData["Title"] = "Content Publishing";
+    Layout = "_Layout_w_NB_H_F";
+    ViewData["NavIcon"] = "ContentPublishing";
+}
+
+@section CSS {
+  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+  <% } %>
+}
+
+@section Scripts {
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+}
+
+<div id="navbar"></div>
+<div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12">
+    <div class="loading-wrapper">
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
+    </div>
+    <h3 class="admin-panel-header">Client Tree</h3>
+    <div class="admin-panel-toolbar">
+        <input class="admin-panel-searchbar-tree" type="search" placeholder="Filter Clients" />
+        <div class="admin-panel-action-icons-container">
+        </div>
+    </div>
+    <div class="admin-panel-content-container">
+        <ul class="admin-panel-content"></ul>
+    </div>
+</div>
+<div id="root-content-items" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
+    <div class="loading-wrapper">
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
+    </div>
+    <h3 class="admin-panel-header">Content Items</h3>
+    <div class="admin-panel-toolbar">
+        <input class="admin-panel-searchbar-tree" type="search" placeholder="Filter Content" />
+        <div class="admin-panel-action-icons-container">
+            <svg class="action-icon-add action-icon tooltip" title="Add content item">
+                <use xlink:href="#add"></use>
+            </svg>
+        </div>
+    </div>
+    <div class="admin-panel-content-container">
+        <ul class="admin-panel-content"></ul>
+        <ul class="admin-panel-content-action"></ul>
+    </div>
+</div>
+<div id="content-publishing-form" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-6-12" style="display: none;">
+    <div class="loading-wrapper" style="display: none;">
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
+    </div>
+    <h3 class="admin-panel-header">Content Item</h3>
+    <div class="admin-panel-toolbar">
+        <div class="admin-panel-action-icons-container">
+            <div class="form-status-container form-status-edit">
+                <svg class="action-icon-edit action-icon tooltip" title="Edit content item">
+                    <use xlink:href="#edit"></use>
+                </svg>
+            </div>
+            <div class="form-status-container form-status-edit-or-republish">
+                <svg class="action-icon-file-upload action-icon tooltip" title="Submit new publication">
+                    <use xlink:href="#upload"></use>
+                </svg>
+            </div>
+            <svg class="action-icon-cancel action-icon tooltip" title="Cancel edit">
+                <use xlink:href="#cancel"></use>
+            </svg>
+        </div>
+    </div>
+    <div class="admin-panel-content-container">
+        <form class="admin-panel-content form-disabled" autocomplete="off">
+            <div class="form-section-container">
+                <div class="form-section" data-section="common" style="display: none;">
+                    <div class="form-input-container">
+                        <div class="form-input form-input-hidden">
+                            <input asp-for="Id" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section" data-section="root-content-item-info">
+                    <h4 class="form-section-title">Content Item Information</h4>
+                    <div class="form-input-container">
+                        <div class="form-input form-input-hidden" style="display: none;">
+                            <input asp-for="ClientId" />
+                        </div>
+                        <div class="form-input form-input-text flex-item-12-12">
+                            <label asp-for="ContentName"></label>
+                            <div>
+                                <input asp-for="ContentName" />
+                                <span asp-validation-for="ContentName" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section" data-section="root-content-item-content-type">
+                    <div class="form-input-container">
+                        <div class="form-input form-input-dropdown content-item-flex-1">
+                            <label asp-for="ContentTypeId"></label>
+                            <div>
+                                <select asp-for="ContentTypeId">
+                                    <option value="0">Make a Selection</option>
+                                </select>
+                                <span asp-validation-for="ContentTypeId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-input form-input-toggle form-input-flex content-item-flex-none align-self-end">
+                            <div class="switch-container">
+                                <div class="toggle-switch">
+                                    <input type="checkbox" class="toggle-switch-checkbox" name="DoesReduce" id="DoesReduce" value="true">
+                                    <label class="toggle-switch-label" for="DoesReduce">
+                                        <span class="toggle-switch-inner"></span>
+                                        <span class="toggle-switch-switch"></span>
+                                    </label>
+                                </div>
+                                <label class="switch-label" for="DoesReduce">Reducible</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section form-section-valid-files" data-section="publication-files">
+                    <h4 class="form-section-title">Files</h4>
+                    <div class="form-input-container">
+                        <div class="form-input-container content-item-flex-none align-self-start">
+                            <div class="form-input form-input-file-upload">
+                                <label for="Thumbnail" class="input-with-upload image">
+                                    Thumbnail Image
+                                    <input class="file-upload" type="text" readonly />
+                                    <svg class="upload-icon tooltip" title="Upload thumbnail image">
+                                        <use xlink:href="#upload"></use>
+                                    </svg>
+                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
+                                        <use xlink:href="#cancel"></use>
+                                    </svg>
+                                    <div class="progress-bars" style="visibility: hidden;">
+                                        <div class="progress-bar progress-bar-1"></div>
+                                        <div class="progress-bar progress-bar-2"></div>
+                                        <div class="progress-bar progress-bar-3"></div>
+                                    </div>
+                                    <img class="image-preview" />
+                                </label>
+                                <input class="file-upload-guid" type="text" id="Thumbnail" name="Thumbnail" style="display: none;" />
+                            </div>
+                        </div>
+                        <div class="form-input-container content-item-flex-1 form-input-flex align-self-start">
+                            <div class="form-input form-input-file-upload">
+                                <label for="MasterContent" class="input-with-upload">
+                                    File
+                                    <input class="file-upload" type="text" readonly />
+                                    <svg class="upload-icon tooltip" title="Upload master content">
+                                        <use xlink:href="#upload"></use>
+                                    </svg>
+                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
+                                        <use xlink:href="#cancel"></use>
+                                    </svg>
+                                    <div class="progress-bars" style="visibility: hidden;">
+                                        <div class="progress-bar progress-bar-1"></div>
+                                        <div class="progress-bar progress-bar-2"></div>
+                                        <div class="progress-bar progress-bar-3"></div>
+                                    </div>
+                                </label>
+                                <input class="file-upload-guid" type="text" id="MasterContent" name="MasterContent" style="display: none;" />
+                            </div>
+                            <div class="form-input form-input-file-upload">
+                                <label for="UserGuide" class="input-with-upload">
+                                    Userguide
+                                    <input class="file-upload" type="text" readonly />
+                                    <svg class="upload-icon tooltip" title="Upload user guide">
+                                        <use xlink:href="#upload"></use>
+                                    </svg>
+                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
+                                        <use xlink:href="#cancel"></use>
+                                    </svg>
+                                    <div class="progress-bars" style="visibility: hidden;">
+                                        <div class="progress-bar progress-bar-1"></div>
+                                        <div class="progress-bar progress-bar-2"></div>
+                                        <div class="progress-bar progress-bar-3"></div>
+                                    </div>
+                                </label>
+                                <input class="file-upload-guid" type="text" id="UserGuide" name="UserGuide" style="display: none;" />
+                            </div>
+                            <div class="form-input form-input-file-upload">
+                                <label for="ReleaseNotes" class="input-with-upload">
+                                    Release Notes
+                                    <input class="file-upload" type="text" readonly />
+                                    <svg class="upload-icon tooltip" title="Upload release notes">
+                                        <use xlink:href="#upload"></use>
+                                    </svg>
+                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
+                                        <use xlink:href="#cancel"></use>
+                                    </svg>
+                                    <div class="progress-bars" style="visibility: hidden;">
+                                        <div class="progress-bar progress-bar-1"></div>
+                                        <div class="progress-bar progress-bar-2"></div>
+                                        <div class="progress-bar progress-bar-3"></div>
+                                    </div>
+                                </label>
+                                <input class="file-upload-guid" type="text" id="ReleaseNotes" name="ReleaseNotes" style="display: none;" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section" data-section="root-content-item-description">
+                    <h4 class="form-section-title">Content Description</h4>
+                    <div class="form-input-container">
+                        <div class="form-input form-input-textarea flex-item-12-12">
+                            <label class="form-input-textarea-title" for="Description">Description</label>
+                            <div class="form-input-textarea-contents">
+                                <textarea id="Description" name="Description" for="Description"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-input form-input-textarea flex-item-12-12">
+                            <label class="form-input-textarea-title" for="Notes">Notes</label>
+                            <div class="form-input-textarea-contents">
+                                <textarea id="Notes" name="Notes" for="Notes"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-submission-section">
+                    <div class="button-container button-container-new" style="display: none;">
+                        <button type="button" class="button-reset link-button" disabled>Reset Form</button>
+                        <button type="button" class="button-submit green-button" disabled>Create Content Item</button>
+                    </div>
+                    <div class="button-container button-container-edit" style="display: none;">
+                        <button type="button" class="button-reset link-button" disabled>Cancel</button>
+                        <button type="button" class="button-submit blue-button" disabled>Update</button>
+                    </div>
+                    <div class="button-container button-container-edit-or-republish" style="display: none;">
+                        <button type="button" class="button-reset link-button" disabled>Cancel</button>
+                        <button type="button" class="button-submit blue-button" disabled>Republish</button>
+                    </div>
+                    <div class="form-antiforgery-token" style="display: none;">
+                        @Html.AntiForgeryToken()
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="report-confirmation" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-6-12" style="display: none;">
+    <div class="loading-wrapper" style="display: none;">
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
+    </div>
+    <h3 class="admin-panel-header">Report Confirmation</h3>
+    <div class="admin-panel-toolbar">
+        <div class="admin-panel-action-icons-container">
+            <svg class="action-icon action-icon-cancel tooltip" title="Close preview">
+                <use xlink:href="#cancel"></use>
+            </svg>
+        </div>
+    </div>
+    <div class="admin-panel-content-container">
+        <div class="confirmation-section requires-confirmation" id="confirmation-section-master-content">
+            <h4>Master Content</h4>
+            <div class="content-preview">
+                <iframe src="about:blank"></iframe>
+                <a href="about:blank" target="_blank">
+                    <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
+                        <use xlink:href="#upload"></use>
+                    </svg>
+                </a>
+            </div>
+            <label for="confirmation-master-content" class="selection-option-label">
+                <input type="checkbox" name="master-content" value="confirmation-master-content" id="confirmation-master-content" class="selection-option-value">
+                <span class="selection-option-checkmark"></span>
+                Content is as expected
+            </label>
+        </div>
+        <div class="confirmation-section requires-confirmation" id="confirmation-section-user-guide">
+            <h4>User Guide</h4>
+            <div class="content-preview">
+                <iframe src="about:blank"></iframe>
+                <a href="about:blank" target="_blank">
+                    <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
+                        <use xlink:href="#upload"></use>
+                    </svg>
+                </a>
+            </div>
+            <label for="confirmation-user-guide" class="selection-option-label">
+                <input type="checkbox" name="user-guide" value="confirmation-user-guide" id="confirmation-user-guide" class="selection-option-value">
+                <span class="selection-option-checkmark"></span>
+                User guide is as expected
+            </label>
+        </div>
+        <div class="confirmation-section requires-confirmation" id="confirmation-section-release-notes">
+            <h4>Release Notes</h4>
+            <div class="content-preview">
+                <iframe src="about:blank"></iframe>
+                <a href="about:blank" target="_blank">
+                    <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
+                        <use xlink:href="#upload"></use>
+                    </svg>
+                </a>
+            </div>
+            <label for="confirmation-release-notes" class="selection-option-label">
+                <input type="checkbox" name="release-notes" value="confirmation-release-notes" id="confirmation-release-notes" class="selection-option-value">
+                <span class="selection-option-checkmark"></span>
+                Release notes are as expected
+            </label>
+        </div>
+        <div class="confirmation-section requires-confirmation" id="confirmation-section-hierarchy-diff">
+            <h4>Hierarchy Changes</h4>
+            <div class="hierarchy-container">
+                <div class="hierarchy hierarchy-left">
+                    <h5>Old Hierarchy Values</h5>
+                    <ul class="hierarchy-list"></ul>
+                </div>
+                <div class="hierarchy hierarchy-right">
+                    <h5>New Hierarchy Values</h5>
+                    <ul class="hierarchy-list"></ul>
+                </div>
+            </div>
+            <label for="confirmation-hierarchy-diff" class="selection-option-label">
+                <input type="checkbox" name="hierarchy-diff" value="confirmation-hierarchy-diff" id="confirmation-hierarchy-diff" class="selection-option-value">
+                <span class="selection-option-checkmark"></span>
+                Hierarchy changes are as expected
+            </label>
+        </div>
+        <div class="confirmation-section requires-confirmation" id="confirmation-section-hierarchy-stats">
+            <h4>Reduction Results</h4>
+            <div>
+                <ul></ul>
+            </div>
+            <label for="confirmation-hierarchy-stats" class="selection-option-label">
+                <input type="checkbox" name="hierarchy-stats" value="confirmation-hierarchy-stats" id="confirmation-hierarchy-stats" class="selection-option-value">
+                <span class="selection-option-checkmark"></span>
+                Reduction results are as expected
+            </label>
+        </div>
+        <div class="confirmation-section" id="confirmation-section-attestation">
+            <h4>Attestations</h4>
+            <div class="attestation-language">
+            </div>
+            <div class="confirmation-section-button-container">
+                <button type="button" class="button-reject red-button">Reject</button>
+                <button type="button" class="button-approve green-button" disabled>Approve</button>
+            </div>
+        </div>
+    </div>
+</div>

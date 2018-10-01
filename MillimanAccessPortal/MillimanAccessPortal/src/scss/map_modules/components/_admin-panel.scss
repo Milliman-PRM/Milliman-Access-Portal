@@ -1,0 +1,187 @@
+﻿/* Admin Panel */
+
+.admin-panel-container {
+    position: relative;
+    display: flex;
+    flex-flow: column nowrap;
+    overflow: hidden;
+    padding: 0 1em 1em;
+
+    @include for-tablet-down() {
+        flex: none;
+        margin-bottom: 3em;
+    }
+
+
+    .admin-panel-header {
+        text-align: center;
+
+        @include for-tablet-down() {
+            text-align: left;
+            text-decoration: underline;
+            padding: 0;
+            margin-bottom: 1em;
+        }
+    }
+
+    .admin-panel-toolbar {
+        display: flex;
+        flex-flow: row nowrap;
+        flex: none;
+        align-items: center;
+        padding-bottom: .25em;
+
+        .admin-panel-searchbar {
+            width: 60%;
+        }
+
+        .admin-panel-action-icons-container {
+            display: flex;
+            justify-content: flex-end;
+            align-content: center;
+            flex: 1 0 auto;
+
+            .action-icon {
+                color: $charcoal;
+                cursor: pointer;
+                padding: 0 .25em;
+                height: 2.0em;
+                width: 2.0em;
+
+                &:hover {
+                    color: lighten($charcoal, 20%);
+                }
+            }
+        }
+    }
+
+    .admin-panel-content-container {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 1em;
+        padding-left: 3px;
+        padding-top: 0;
+
+        .admin-panel-content-action,
+        .admin-panel-content {
+            position: relative;
+            list-style: none;
+            padding: 0;
+            margin-bottom: 0;
+
+            .card-100 {
+                width: 100%;
+            }
+
+            .card-90 {
+                width: 90%;
+                margin-left: 10%;
+            }
+
+            .action-card {
+                display: flex;
+                flex-flow: row nowrap;
+                align-items: center;
+                text-align: center;
+                height: 5em;
+                text-transform: uppercase;
+
+                &:hover {
+                    color: lighten($charcoal, 20%);
+                }
+
+                &[selected] {
+                    &:hover {
+                        color: $white;
+                    }
+                }
+
+                h2.card-body-primary-text {
+                    width: 100%;
+                    margin: 0;
+                }
+            }
+
+            .fieldset-container {
+
+                fieldset {
+
+                    legend {
+                        border-bottom: 1px solid $black;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/* Checkboxes */
+.selection-option-container {
+    padding-left: .5em;
+    cursor: pointer;
+}
+
+.selection-option-label {
+    display: block;
+    position: relative;
+    padding-left: 2.5em;
+    margin-bottom: 1em;
+    cursor: pointer;
+    user-select: none;
+
+    .selection-option-value {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        width: 0;
+    }
+
+    .selection-option-checkmark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 1.75em;
+        width: 1.75em;
+        background-color: $grey;
+
+        &:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: .7em;
+            top: .4em;
+            width: .5em;
+            height: 1em;
+            border: solid $white;
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+        }
+    }
+
+    &:hover .selection-option-value ~ .selection-option-checkmark {
+        background-color: $dark-grey;
+    }
+
+    .selection-option-value:checked ~ .selection-option-checkmark {
+        background-color: $blue;
+
+        &:after {
+            display: block;
+        }
+    }
+}
+
+
+
+/* Action Icons */
+
+.action-icon {
+    color: $charcoal;
+    cursor: pointer;
+
+    &:hover {
+        color: lighten($charcoal, 10%);
+    }
+}
