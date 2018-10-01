@@ -57,6 +57,8 @@ function deleteRootContentItem(
     callback();
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
+  }).always(() => {
+    statusMonitor.checkStatus();
   });
 }
 export function rootContentItemDeleteClickHandler(event) {
@@ -99,6 +101,8 @@ function cancelContentPublication(data, callback) {
     if (typeof callback === 'function') { callback(); }
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
+  }).always(() => {
+    statusMonitor.checkStatus();
   });
 }
 
@@ -194,12 +198,14 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   ];
   linkPairs.forEach((pair) => {
     $(`#confirmation-section-${pair.sectionName} iframe`)
+      .removeAttr('srcdoc')
       .attr('src', pair.link)
       .siblings('a')
       .attr('href', pair.link)
       .filter(() => pair.link === null)
       .hide()
       .siblings('iframe')
+      .removeAttr('src')
       .attr('srcdoc', 'This file has not changed.')
       .closest('.confirmation-section').find('label')
       .hide()
@@ -207,7 +213,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       .attr('disabled', '');
   });
 
-  if (!response.DoesReduce) {
+  if (!response.DoesReduce || !response.SelectionGroups) {
     $('#confirmation-section-hierarchy-diff')
       .hide()
       .find('input[type="checkbox"]')
@@ -227,7 +233,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       $('#confirmation-section-hierarchy-diff .hierarchy-left > ul').append('<div>None</div>');
     } else {
       response.LiveHierarchy.Fields.forEach((field) => {
-        const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
+        const subList = $(`<li><h6>${field.DisplayName}</h6><ul class="hierarchy-list"></ul></li>`);
         field.Values.forEach((value) =>
             subList.find('ul').append(`<li>${value.Value}</li>`));
         $('#confirmation-section-hierarchy-diff .hierarchy-left > ul')
@@ -238,7 +244,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       $('#confirmation-section-hierarchy-diff .hierarchy-right > ul').append('<div>None</div>');
     } else {
       response.NewHierarchy.Fields.forEach((field) => {
-        const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
+        const subList = $(`<li><h6>${field.DisplayName}</h6><ul class="hierarchy-list"></ul></li>`);
         field.Values.forEach((value) =>
             subList.find('ul').append(`<li>${value.Value}</li>`));
         $('#confirmation-section-hierarchy-diff .hierarchy-right > ul')
@@ -261,12 +267,19 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     });
   }
   // populate attestation
-  $('#confirmation-section-attestation p').html(response.AttestationLanguage);
+  $('#confirmation-section-attestation .attestation-language').html(response.AttestationLanguage);
+
+  const anyEnabled = $('#report-confirmation input[type="checkbox"]')
+    .filter((_, element) => $(element).attr('disabled') === undefined).length;
+  if (!anyEnabled) {
+    $('#confirmation-section-attestation .button-approve')
+      .removeAttr('disabled');
+  }
 
   preLiveObject = response;
 }
 
-function renderRootContentItemForm(item?: RootContentItemDetail) {
+function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: boolean = false) {
   const $panel = $('#content-publishing-form');
   const $rootContentItemForm = $panel.find('form.admin-panel-content');
 
@@ -278,7 +291,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       }
     });
     $rootContentItemForm.find('.file-upload').data('originalName', '');
-    if (item.RelatedFiles) {
+    if (item.RelatedFiles && !ignoreFiles) {
       item.RelatedFiles.forEach((relatedFile) => {
         $rootContentItemForm.find(`#${relatedFile.FilePurpose}`)
           .val('')
@@ -311,7 +324,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       // Update the root content item count stat on the client card
       addToDocumentCount(response.detail.ClientId, 1);
 
-      toastr.success('Root content item created');
+      toastr.success('content item created');
     },
     (data) => data.indexOf('DoesReduce=') === -1
       ? data + '&DoesReduce=False'
@@ -326,13 +339,13 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     'ContentPublishing/UpdateRootContentItem',
     'POST',
     (response) => {
-      renderRootContentItemForm(response.detail);
+      renderRootContentItemForm(response.detail, true);
       // Update related root content item card
       const $card = $('#root-content-items .card-container')
         .filter((_, card) => $(card).data().rootContentItemId === response.detail.Id);
       $card.find('.card-body-primary-text').html(response.summary.ContentName);
       $card.find('.card-body-secondary-text').html(response.summary.ContentTypeName);
-      toastr.success('Root content item updated');
+      toastr.success('content item updated');
     },
     (data) => data.indexOf('DoesReduce=') === -1
       ? data + '&DoesReduce=False'
@@ -357,7 +370,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       const publishRequest: PublishRequest = {
         RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
           .map((file) => {
-            const fileData = dataArray[file].split('|');
+            const fileData = dataArray[file].split('~');
             return {
               FileOriginalName: fileData[0],
               FilePurpose: file,
@@ -420,6 +433,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
         renderRootContentItemForm,
         setFormReadOnly,
       ],
+      (data) => ({
+        rootContentItemId: data && data.rootContentItemId,
+      }),
     ), () => formObject),
     wrapCardIconCallback(($card, always) => get(
         'ContentPublishing/RootContentItemDetail',
@@ -427,6 +443,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
           renderRootContentItemForm,
           always,
         ],
+        (data) => ({
+          rootContentItemId: data && data.rootContentItemId,
+        }),
       )($card), () => formObject, {count: 1, offset: 0}, undefined, () => {
       setFormEditOrRepublish();
     }),
@@ -437,6 +456,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
         [
           renderConfirmationPane,
         ],
+        (data) => ({
+          rootContentItemId: data && data.rootContentItemId,
+        }),
       ), () => formObject, {count: 1, offset: 1}, () => false),
   ).build();
   updateCardStatus($rootContentItemCard, item.PublicationDetails);
@@ -464,6 +486,9 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
     wrapCardCallback(get(
       'ContentPublishing/RootContentItems',
       [ renderRootContentItemList ],
+      (data) => ({
+        clientId: data && data.clientId,
+      }),
     ), () => formObject),
   );
   $card.disabled = !client.Value.CanManage;
@@ -543,10 +568,12 @@ export function setup() {
     } else {
       setFormReadOnly();
     }
+    statusMonitor.checkStatus();
   });
 
   $('#report-confirmation .admin-panel-toolbar .action-icon-cancel').click(() => {
     $('#root-content-items [selected]').click();
+    statusMonitor.checkStatus();
   });
   $('#report-confirmation input[type="checkbox"]').change(() =>
     $('#confirmation-section-attestation .button-approve')

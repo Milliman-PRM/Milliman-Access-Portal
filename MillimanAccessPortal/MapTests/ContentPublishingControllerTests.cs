@@ -15,6 +15,7 @@ using TestResourcesLib;
 using MapDbContextLib.Models;
 using System.Linq;
 using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 
 namespace MapTests
 {
@@ -194,12 +195,14 @@ namespace MapTests
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("user1");
+            ApplicationUser user = await TestResources.UserManagerObject.FindByNameAsync("user1");
+            await TestResources.UserManagerObject.AddPasswordAsync(user, "password");
             #endregion
 
             #region Act
             Guid rootContentItemId = TestUtil.MakeTestGuid(rootContentItemIdArg);
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.DeleteRootContentItem(rootContentItemId);
+            var view = await controller.DeleteRootContentItem(rootContentItemId, "password");
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -217,12 +220,14 @@ namespace MapTests
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser(userName);
+            ApplicationUser user = await TestResources.UserManagerObject.FindByNameAsync("user1");
+            await TestResources.UserManagerObject.AddPasswordAsync(user, "password");
             #endregion
 
             #region Act
             Guid rootContentItemId = TestUtil.MakeTestGuid(rootContentItemIdArg);
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.DeleteRootContentItem(rootContentItemId);
+            var view = await controller.DeleteRootContentItem(rootContentItemId, "password");
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -237,10 +242,12 @@ namespace MapTests
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("user1");
+            ApplicationUser user = await TestResources.UserManagerObject.FindByNameAsync("user1");
+            await TestResources.UserManagerObject.AddPasswordAsync(user, "password");
             #endregion
 
             #region Act
-            var view = await controller.DeleteRootContentItem(TestUtil.MakeTestGuid(3));
+            var view = await controller.DeleteRootContentItem(TestUtil.MakeTestGuid(3), "password");
             #endregion
 
             #region Assert
@@ -253,11 +260,13 @@ namespace MapTests
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("user1");
+            ApplicationUser user = await TestResources.UserManagerObject.FindByNameAsync("user1");
+            await TestResources.UserManagerObject.AddPasswordAsync(user, "password");
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.DeleteRootContentItem(TestUtil.MakeTestGuid(3));
+            var view = await controller.DeleteRootContentItem(TestUtil.MakeTestGuid(3), "password");
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -396,7 +405,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<UnauthorizedResult>(view);
-            Assert.Contains(controller.Response.Headers, h => h.Value == "You are not authorized to publish content for this root content item.");
+            Assert.Contains(controller.Response.Headers, h => h.Value == "You are not authorized to publish content for this content item.");
             #endregion
         }
 
@@ -441,7 +450,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<UnauthorizedResult>(view);
-            Assert.Contains(controller.Response.Headers, h => h.Value == "You are not authorized to publish content for this root content item.");
+            Assert.Contains(controller.Response.Headers, h => h.Value == "You are not authorized to publish content for this content item.");
             #endregion
         }
 

@@ -6,6 +6,7 @@
  *      nested lists.
  */
 
+using System;
 using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
@@ -18,6 +19,8 @@ namespace MillimanAccessPortal.Models.SystemAdmin
     public class NestedListSection
     {
         public string Name { get; set; }
+        public bool Marked { get; set; }
+        public Guid Id { get; set; }
         public List<string> Values { get; set; } = new List<string>();
     }
 }

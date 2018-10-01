@@ -32,6 +32,7 @@ using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using AuditLogLib.Event;
+using MillimanAccessPortal.Models.AccountViewModels;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -318,8 +319,9 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            Response.Headers.Add("Warning", $"The requested user was successfully saved");
-            return Ok("New User saved successfully");
+            var model = (UserInfoViewModel)RequestedUser;
+
+            return Json(model);
         }
 
         /// <summary>
@@ -504,7 +506,11 @@ namespace MillimanAccessPortal.Controllers
                 // Remove role.  There should be only one, but act to remove any number
                 if (RequestedRole.RoleEnum == RoleEnum.Admin)
                 {
-                    ExistingRecords = ExistingRecordsQuery.Where(urc => (urc.RoleId == RequestedRole.Id) || (urc.Role.RoleEnum == RoleEnum.UserCreator)).ToList();
+                    ExistingRecords = ExistingRecordsQuery.Where(urc => (urc.RoleId == RequestedRole.Id) || (urc.Role.RoleEnum == RoleEnum.UserCreator))
+                        .Include(urc => urc.Client)
+                        .Include(urc => urc.User)
+                        .Include(urc => urc.Role)
+                        .ToList();
                 }
                 if (RequestedRole.RoleEnum == RoleEnum.ContentAccessAdmin || RequestedRole.RoleEnum == RoleEnum.ContentPublisher)
                 {
@@ -670,8 +676,8 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveNewClient([Bind("Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                                 "ConsultantOffice,AcceptedEmailDomainList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
-        // Members intentionally not bound: Id, AcceptedEmailAddressExceptionList
+                                                 "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
+        // Members intentionally not bound: Id
         {
             ApplicationUser CurrentApplicationUser = await Queries.GetCurrentApplicationUser(User);
 
@@ -1048,7 +1054,7 @@ namespace MillimanAccessPortal.Controllers
                 .Count();
             if (ItemCount > 0)
             {
-                Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has root content items.");
+                Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has content items.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion Validation

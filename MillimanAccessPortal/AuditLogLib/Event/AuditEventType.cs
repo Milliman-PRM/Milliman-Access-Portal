@@ -32,6 +32,16 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType Logout = new AuditEventType(1004, "Logout success");
         public static readonly AuditEventType AccountLockByUser = new AuditEventType(1005, "Account lock by user");
         public static readonly AuditEventType UserPasswordChanged = new AuditEventType(1006, "User password changed");
+        public static readonly AuditEventType<string, string, string, string, int> ManualDatabaseCommand = 
+            new AuditEventType<string, string, string, string, int>(1007, "Manual database command",
+            (userName, githubUrl, approverName, queryText, rows) => new
+            {
+                UserName = userName,
+                GitHubIssue = githubUrl,
+                Approver = approverName,
+                QueryText = queryText,
+                RowsAffected = rows,
+            });
         #endregion
 
         #region Client Admin [2000 - 2999]
@@ -187,19 +197,30 @@ namespace AuditLogLib.Event
 
         #endregion
 
-        #region Reduction Server [5000 - 5999]
+        #region Publishing Server [5000 - 5999]
+        // 50xx - Preliminary events
         public static readonly AuditEventType<object> ReductionValidationFailed = new AuditEventType<object>(
-            5001, "Reduction Validation Failed", (logObject) => logObject);
+            5001, "Reduction validation Failed", (logObject) => logObject);
+
+        // 51xx - Hierarchy extraction and content reduction events
         public static readonly AuditEventType<object> HierarchyExtractionSucceeded = new AuditEventType<object>(
             5101, "Content hierarchy extraction completed", (logObject) => logObject);
         public static readonly AuditEventType<object> HierarchyExtractionFailed = new AuditEventType<object>(
             5102, "Content hierarchy extraction failed", (logObject) => logObject);
-        public static readonly AuditEventType<object> ContentReductionSucceeded = new AuditEventType<object>(
-            5201, "Content reduction completed", (logObject) => logObject);
-        public static readonly AuditEventType<object> ContentReductionFailed = new AuditEventType<object>(
-            5202, "Content reduction failed", (logObject) => logObject);
+        public static readonly AuditEventType<object> ContentFileReductionSucceeded = new AuditEventType<object>(
+            5103, "Content file reduction completed", (logObject) => logObject);
+        public static readonly AuditEventType<object> ContentFileReductionFailed = new AuditEventType<object>(
+            5104, "Content file reduction failed", (logObject) => logObject);
+        
+        // 52xx - Reduction task aggregate outcome events
+        public static readonly AuditEventType<object> ContentReductionTaskCanceled = new AuditEventType<object>(
+            5201, "Content reduction task canceled", (logObject) => logObject);
         public static readonly AuditEventType<object> PublicationRequestProcessingSuccess = new AuditEventType<object>(
-            5301, "Content PublicationRequest Succeeded", (logObject) => logObject);
+            5202, "Content publication request success", (logObject) => logObject);
+        
+        // 53xx - Publication request aggregate outcome events
+        public static readonly AuditEventType<object> ContentPublicationRequestCanceled = new AuditEventType<object>(
+            5301, "Content publication request canceled", (logObject) => logObject);
         #endregion
 
         #region Content Publishing [6000 - 6999]
@@ -215,13 +236,20 @@ namespace AuditLogLib.Event
             6003, "Root content item updated", (rootContentItem) => new
             {
             });
-        public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> PublicationQueued = new AuditEventType<RootContentItem, ContentPublicationRequest>(
-            6101, "Publication request queued", (rootContentItem, publicationRequest) => new
+        public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> PublicationRequestInitiated = new AuditEventType<RootContentItem, ContentPublicationRequest>(
+            6101, "Publication request initiated", (rootContentItem, publicationRequest) => new
             {
+                PublicationRequestId = publicationRequest.Id,
+                ContentItemId = rootContentItem.Id,
+                ContentItemName = rootContentItem.ContentName,
+                Uploads = publicationRequest.UploadedRelatedFilesObj,
             });
         public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> PublicationCanceled = new AuditEventType<RootContentItem, ContentPublicationRequest>(
             6102, "Publication request canceled", (rootContentItem, publicationRequest) => new
             {
+                PublicationRequestId = publicationRequest.Id,
+                ContentItemId = rootContentItem.Id,
+                ContentItemName = rootContentItem.ContentName,
             });
         public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> GoLiveValidationFailed = new AuditEventType<RootContentItem, ContentPublicationRequest>(
             6103, "GoLive Validation Failed", (rootContentItem, publicationRequest) => new
@@ -453,4 +481,37 @@ namespace AuditLogLib.Event
         }
     }
 
+    public sealed class AuditEventType<P1, P2, P3, P4, P5> : AuditEventTypeBase
+    {
+        private readonly Func<P1, P2, P3, P4, P5, object> logObjectTransform;
+
+        /// <summary>
+        /// Represents a class of loggable event.
+        /// </summary>
+        /// <param name="id">AuditEvent ID. This value is logged and is used to uniquely identify this event type.</param>
+        /// <param name="name">Name of the event type.</param>
+        /// <param name="logObjectTransform">Defines the log object for this event type.</param>
+        public AuditEventType(int id, string name, Func<P1, P2, P3, P4, P5, object> logObjectTransform) : base(id, name)
+        {
+            this.logObjectTransform = logObjectTransform;
+        }
+
+        /// <summary>
+        /// Create an audit event based on this event type.
+        /// </summary>
+        /// <param name="callerName">Calling method or property. Determined by the compiler if not supplied.</param>
+        /// <param name="callerPath">Absolute path of the calling file. Determined by the compiler if not supplied.</param>
+        /// <param name="callerLine">Line of the calling file. Determined by the compiler if not supplied.</param>
+        /// <returns>AuditEvent</returns>
+        public AuditEvent ToEvent(P1 param1, P2 param2, P3 param3, P4 param4, P5 param5,
+            [CallerMemberName] string callerName = "",
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0)
+        {
+            var auditEvent = ToEvent(callerName, callerPath, callerLine);
+            auditEvent.EventDataObject = logObjectTransform(param1, param2, param3, param4, param5);
+
+            return auditEvent;
+        }
+    }
 }

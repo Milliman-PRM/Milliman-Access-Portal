@@ -934,6 +934,90 @@ namespace MapTests
             Assert.Equal(preCount - 1, postCount);
             #endregion
         }
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(2)]
+        public async Task CancelPublication_Invalid(int rootContentItemId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ContentPublicationRequest.Where(pr => pr.RequestStatus.IsActive()).Count();
+            var json = await controller.CancelPublication(TestUtil.MakeTestGuid(rootContentItemId));
+            var postCount = _testResources.DbContextObject.ContentPublicationRequest.Where(pr => pr.RequestStatus.IsActive()).Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(1)]
+        public async Task CancelPublication_Success(int rootContentItemId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ContentPublicationRequest.Where(pr => pr.RequestStatus.IsActive()).Count();
+            var json = await controller.CancelPublication(TestUtil.MakeTestGuid(rootContentItemId));
+            var postCount = _testResources.DbContextObject.ContentPublicationRequest.Where(pr => pr.RequestStatus.IsActive()).Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount - 1, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(2)]
+        public async Task CancelReduction_Invalid(int selectionGroupId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ContentReductionTask.Where(rt => rt.ReductionStatus.IsActive()).Count();
+            var json = await controller.CancelReduction(TestUtil.MakeTestGuid(selectionGroupId));
+            var postCount = _testResources.DbContextObject.ContentReductionTask.Where(rt => rt.ReductionStatus.IsActive()).Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(1)]
+        public async Task CancelReduction_Success(int selectionGroupId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ContentReductionTask.Where(rt => rt.ReductionStatus.IsActive()).Count();
+            var json = await controller.CancelReduction(TestUtil.MakeTestGuid(selectionGroupId));
+            var postCount = _testResources.DbContextObject.ContentReductionTask.Where(rt => rt.ReductionStatus.IsActive()).Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount - 1, postCount);
+            #endregion
+        }
         #endregion
 
         #region Immediate toggle action tests

@@ -172,7 +172,7 @@ export function PasswordDialog(title, message, buttons, color, submitHandler) {
     message,
     buttons,
     color,
-    '<input name="password" type="password" placeholder="Password" required />',
+    '<input name="password" type="password" placeholder="Password" required autofocus />',
     null,
     submitHandler,
   );
@@ -213,7 +213,7 @@ DeleteClientDialog.prototype = Object.create(Dialog.prototype);
 DeleteClientDialog.prototype.constructor = DeleteClientDialog;
 
 export function DeleteRootContentItemDialog(rootContentItemName, _, submitHandler) {
-  const title = 'Delete RootContentItem';
+  const title = 'Delete Content Item';
   const buttons = [
     { type: vex.dialog.buttons.yes, text: 'Delete' },
     { type: vex.dialog.buttons.no, text: 'Cancel' },
@@ -254,7 +254,7 @@ export function AddUserDialog(eligibleUsers, submitHandler) {
       { type: vex.dialog.buttons.no, text: 'Cancel' },
     ],
     'blue',
-    '<input class="typeahead" name="username" placeholder="Email" required />',
+    '<input class="typeahead" name="username" placeholder="Email" required autofocus />',
     null,
     submitHandler,
   );
@@ -306,7 +306,7 @@ export function AddSelectionGroupDialog(submitHandler) {
     [
       `<input name="RootContentItemId" type="hidden"
         value="${$('#root-content-items [selected]').closest('.card-container').data('root-content-item-id')}">`,
-      '<input name="SelectionGroupName" required />',
+      '<input name="SelectionGroupName" required autofocus />',
     ].join(''),
     null,
     submitHandler,

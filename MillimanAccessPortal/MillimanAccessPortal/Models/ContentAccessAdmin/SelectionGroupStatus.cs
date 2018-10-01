@@ -22,10 +22,13 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         {
             SelectionGroupStatus model = new SelectionGroupStatus();
 
-            List<SelectionGroup> selectionGroups = dbContext.UserInSelectionGroup
-                .Where(s => s.UserId == user.Id)
-                .Select(s => s.SelectionGroup)
-                .ToHashSet()
+            var rootContentItemIds = dbContext.UserRoleInRootContentItem
+                .Where(urc => urc.UserId == user.Id)
+                .Where(urc => urc.Role.RoleEnum == RoleEnum.ContentAccessAdmin)
+                .Select(urc => urc.RootContentItemId)
+                .ToList();
+            List<SelectionGroup> selectionGroups = dbContext.SelectionGroup
+                .Where(s => rootContentItemIds.Contains(s.RootContentItemId))
                 .ToList();
 
             foreach (var selectionGroup in selectionGroups)

@@ -16,6 +16,7 @@ This architecture is intended to conform to the following objectives, roughly pr
 * Data backups must be regularly tested to verify that they are valid and usable for running the application.
 * Recovery process to a secondary Azure zone must be documented in sufficient detail that any staff with the necessary permissions in Azure can perform the process.
 * Backups should have as little impact on production performance as possible.
+* All data changes must be logged in the audit log database. To that end, a standalone query runner application has been built. Its architecture and security measures are described in this document as well.
 
 ## Data Centers
 
@@ -354,3 +355,17 @@ We will configure availability alerts to notify the infrastructure team of any A
 ### External monitors
 
 We will utilize an external monitoring & notification service to check that the application is available to the public and alert the PRM infrastructure team if it becomes unavailable.
+
+## Manual Query Application
+
+In order to facilitate appropriate logging of manually executed database changes, we have developed an additional web application accessible from the production web server.
+
+### Security Measures
+
+* The application is only available locally on the web server VM itself.
+    * It runs as a separate web application, in a separate app pool on the server
+    * The application listens on port 44330, which is not open in the local VM firewall and is not reachable from the Internet
+* The application requires the user to enter their own database credentials in order to execute any queries
+    * This prevents non-DBA users of the web server from being able to execute queries on their own
+* Access to the web server is limited
+    * Only the PRM Infrastructure team has access to log in to the web server, although others may be granted temporary access on occasion.

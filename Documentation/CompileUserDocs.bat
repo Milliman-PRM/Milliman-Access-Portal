@@ -20,7 +20,7 @@ xcopy /I /D /Y "_JS" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Docum
 
 echo Copying user guides
 for %%x in (
-	AuthorizedContent
+	Content
  	AccountSettings
  	ContentAccessAdmin
  	ContentPublishing

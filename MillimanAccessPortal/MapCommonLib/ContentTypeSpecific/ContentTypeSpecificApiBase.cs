@@ -4,15 +4,15 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Microsoft.AspNetCore.Http;
 using System;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace MapCommonLib.ContentTypeSpecific
 {
     public abstract class ContentTypeSpecificApiBase
     {
-        public abstract Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfo);
+        public abstract Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfo, HttpRequest thisHttpRequest);
 
         /// <summary>
         /// Returns a standardized file name for a non-reduced content or related file

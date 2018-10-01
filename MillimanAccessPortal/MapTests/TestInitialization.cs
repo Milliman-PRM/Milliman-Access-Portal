@@ -197,10 +197,13 @@ namespace MapTests
                     configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
 
                     var built = configurationBuilder.Build();
+                    configurationBuilder = new ConfigurationBuilder();
 
                     var store = new X509Store(StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+
+                    configurationBuilder.AddJsonFile($"appsettings.{environmentName}.json");
 
                     configurationBuilder.AddAzureKeyVault(
                         built["AzureVaultName"],
@@ -521,7 +524,6 @@ namespace MapTests
             #region Initialize UserRoles
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
                 { 
-                // TODO Undo this
                     //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
                     new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
                 });
@@ -610,7 +612,7 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
             {
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1), DoesReduce=true },
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 2", ContentTypeId=TestUtil.MakeTestGuid(1) },
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 3", ContentTypeId=TestUtil.MakeTestGuid(1) },
             });
@@ -663,7 +665,6 @@ namespace MapTests
             #region Initialize UserRoles
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
                 {
-                // TODO Undo this
                     //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
                     new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
                 });
@@ -857,7 +858,6 @@ namespace MapTests
             #region Initialize UserRoles
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
                 {
-                // TODO Undo this
                     //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
                     new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
                 });
@@ -1008,7 +1008,6 @@ namespace MapTests
             #region Initialize UserRoles
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
             { 
-                // TODO Undo this
                     //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
                     new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
             });
@@ -1021,6 +1020,22 @@ namespace MapTests
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(DbContextObject.UserRoleInRootContentItem, "RootContentItemId", DbContextObject.RootContentItem);
+            #endregion
+
+            #region Initialize ContentPublicationRequest
+            DbContextObject.ContentPublicationRequest.AddRange(new List<ContentPublicationRequest>
+            {
+                new ContentPublicationRequest { Id = TestUtil.MakeTestGuid(1), RootContentItemId = TestUtil.MakeTestGuid(1), RequestStatus = PublicationStatus.Processing }
+            });
+            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(DbContextObject.ContentPublicationRequest, "RootContentItemId", DbContextObject.RootContentItem);
+            #endregion
+
+            #region Initialize ContentReductionTask
+            DbContextObject.ContentReductionTask.AddRange(new List<ContentReductionTask>
+            {
+                new ContentReductionTask { Id = TestUtil.MakeTestGuid(1), SelectionGroupId = TestUtil.MakeTestGuid(1), ReductionStatus = ReductionStatusEnum.Reducing }
+            });
+            MockDbSet<ContentReductionTask>.AssignNavigationProperty(DbContextObject.ContentReductionTask, "SelectionGroupId", DbContextObject.SelectionGroup);
             #endregion
         }
 

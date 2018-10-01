@@ -151,7 +151,7 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary validation
             if (rootContentItem == null)
             {
-                Response.Headers.Add("Warning", "The requested root content item does not exist.");
+                Response.Headers.Add("Warning", "The requested content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -161,7 +161,7 @@ namespace MillimanAccessPortal.Controllers
                 User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
             if (!roleInClientResult.Succeeded)
             {
-                Response.Headers.Add("Warning", "You are not authorized to publish content to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to publish content to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -194,7 +194,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleInClientResult.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
-                Response.Headers.Add("Warning", "You are not authorized to create root content items for the specified client.");
+                Response.Headers.Add("Warning", "You are not authorized to create content items for the specified client.");
                 return Unauthorized();
             }
             #endregion
@@ -211,7 +211,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (rootContentItem.ContentName == null)
             {
-                Response.Headers.Add("Warning", "You must supply a name for the root content item.");
+                Response.Headers.Add("Warning", "You must supply a name for the content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -263,7 +263,7 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault();
             if (currentRootContentItem == null)
             {
-                Response.Headers.Add("Warning", "The specified root content item does not exist.");
+                Response.Headers.Add("Warning", "The specified content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -273,7 +273,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleInRootContentItemResult.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
-                Response.Headers.Add("Warning", "You are not authorized to update this root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to update this content item.");
                 return Unauthorized();
             }
             #endregion
@@ -287,7 +287,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (rootContentItem.ContentName == null)
             {
-                Response.Headers.Add("Warning", "You must supply a name for the root content item.");
+                Response.Headers.Add("Warning", "You must supply a name for the content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -312,16 +312,23 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId)
+        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId, string password)
         {
             var rootContentItem = DbContext.RootContentItem
                 .Include(x => x.Client)
+                .Include(x => x.ContentType)
                 .SingleOrDefault(x => x.Id == rootContentItemId);
 
             #region Preliminary Validation
+            if (!await UserManager.CheckPasswordAsync(await Queries.GetCurrentApplicationUser(User), password))
+            {
+                Response.Headers.Add("Warning", "Incorrect password");
+                return Unauthorized();
+            }
+
             if (rootContentItem == null)
             {
-                Response.Headers.Add("Warning", "The requested root content item does not exist.");
+                Response.Headers.Add("Warning", "The requested content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -331,7 +338,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleInRootContentItemResult.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
-                Response.Headers.Add("Warning", "You are not authorized to administer the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to administer the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -342,7 +349,7 @@ namespace MillimanAccessPortal.Controllers
                 .Any(r => r.RequestStatus.IsActive());
             if (blocked)
             {
-                Response.Headers.Add("Warning", "The specified root content item cannot be deleted at this time.");
+                Response.Headers.Add("Warning", "The specified content item cannot be deleted at this time.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -352,10 +359,36 @@ namespace MillimanAccessPortal.Controllers
             DbContext.RootContentItem.Remove(rootContentItem);
             DbContext.SaveChanges();
 
+            // ContentType specific handling after database operation completes
+            switch (rootContentItem.ContentType.TypeEnum)
+            {
+                case ContentTypeEnum.Qlikview:
+                    string ContentFolderFullPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), rootContentItem.Id.ToString());
+
+                    if (Directory.Exists(ContentFolderFullPath))  // unlikely but could happen if nothing was ever published
+                    {
+                        List<string> AllQvwFiles = Directory.GetFiles(ContentFolderFullPath, "*.qvw").ToList();
+                        AllQvwFiles.ForEach(async f =>
+                        {
+                            string FileFullPath = Path.Combine(ContentFolderFullPath, f);
+                            string FileRelativePath = Path.GetRelativePath(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), FileFullPath);
+                            await new QlikviewLibApi().ReclaimAllDocCalsForFile(FileRelativePath, QlikviewConfig);
+                        });
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+
             try
             {
                 string ContentFolderPath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], rootContentItem.Id.ToString());
                 Directory.Delete(ContentFolderPath, true);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                // The root content item doesn't have any publications, this is fine so continue
             }
             catch
             {
@@ -497,6 +530,8 @@ namespace MillimanAccessPortal.Controllers
             ContentPublishSupport.AddPublicationMonitor(Task.Run(() =>
                 ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath)));
 
+            AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(NewContentPublicationRequest.RootContentItem, NewContentPublicationRequest));
+
             var rootContentItemDetail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, ContentItem);
             return Json(rootContentItemDetail);
         }
@@ -509,7 +544,7 @@ namespace MillimanAccessPortal.Controllers
             var rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
             if (rootContentItem == null)
             {
-                Response.Headers.Add("Warning", "The specified root content item does not exist.");
+                Response.Headers.Add("Warning", "The specified content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -519,7 +554,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleInRootContentItem.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
-                Response.Headers.Add("Warning", "You are not authorized to cancel content publication requests for this root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to cancel content publication requests for this content item.");
                 return Unauthorized();
             }
             #endregion
@@ -531,7 +566,7 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault();
             if (contentPublicationRequest == null)
             {
-                Response.Headers.Add("Warning", "No cancelable requests for this root content item exist.");
+                Response.Headers.Add("Warning", "No cancelable requests for this content item exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -575,7 +610,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult roleInRootContentItem = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, RootContentItemId));
             if (!roleInRootContentItem.Succeeded)
             {
-                Response.Headers.Add("Warning", "You are not authorized to view the publication certification summary for this root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to view the publication certification summary for this content item.");
                 return Unauthorized();
             }
             #endregion
@@ -583,7 +618,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (!DbContext.RootContentItem.Any(c => c.Id == RootContentItemId))
             {
-                Response.Headers.Add("Warning", "The requested root content item was not found.");
+                Response.Headers.Add("Warning", "The requested content item was not found.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -617,7 +652,7 @@ namespace MillimanAccessPortal.Controllers
             if (!authorization.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
-                Response.Headers.Add("Warning", "You are not authorized to publish content for this root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to publish content for this content item.");
                 return Unauthorized();
             }
             #endregion
@@ -744,6 +779,21 @@ namespace MillimanAccessPortal.Controllers
                         FilesToDelete.Add(BackupFilePath);
                     }
 
+                    // Deallocate any temporary document licenses for preview file(s)
+                    switch (PubRequest.RootContentItem.ContentType.TypeEnum)
+                    {
+                        case ContentTypeEnum.Qlikview:
+                            foreach (ContentRelatedFile Qvw in PubRequest.LiveReadyFilesObj.Where(f => string.Compare(Path.GetExtension(f.FullPath), ".qvw", true) == 0))
+                            {
+                                string FileRelativePath = Path.GetRelativePath(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), Qvw.FullPath);
+                                await new QlikviewLibApi().ReclaimAllDocCalsForFile(FileRelativePath, QlikviewConfig);
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
+
                     // Can't move between different volumes
                     System.IO.File.Copy(Crf.FullPath, TargetFilePath);
                     FilesToDelete.Add(Crf.FullPath);
@@ -802,7 +852,8 @@ namespace MillimanAccessPortal.Controllers
 
                 //3 Update db:
                 //3.1  ContentPublicationRequest.Status
-                foreach (ContentPublicationRequest PreviousLiveRequest in DbContext.ContentPublicationRequest.Where(r => r.RequestStatus == PublicationStatus.Confirmed))
+                foreach (ContentPublicationRequest PreviousLiveRequest in DbContext.ContentPublicationRequest.Where(r => r.RootContentItemId == PubRequest.RootContentItemId)
+                                                                                                             .Where(r => r.RequestStatus == PublicationStatus.Confirmed))
                 {
                     PreviousLiveRequest.RequestStatus = PublicationStatus.Replaced;
                     DbContext.ContentPublicationRequest.Update(PreviousLiveRequest);
@@ -810,7 +861,8 @@ namespace MillimanAccessPortal.Controllers
                 PubRequest.RequestStatus = PublicationStatus.Confirmed;
 
                 //3.2  ContentReductionTask.Status
-                foreach (ContentReductionTask PreviousLiveTask in DbContext.ContentReductionTask.Where(r => r.ReductionStatus == ReductionStatusEnum.Live))
+                foreach (ContentReductionTask PreviousLiveTask in DbContext.ContentReductionTask.Where(r => r.SelectionGroup.RootContentItemId == PubRequest.RootContentItemId)
+                                                                                                .Where(r => r.ReductionStatus == ReductionStatusEnum.Live))
                 {
                     PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
                     DbContext.ContentReductionTask.Update(PreviousLiveTask);
@@ -928,7 +980,7 @@ namespace MillimanAccessPortal.Controllers
             if (!authorization.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
-                Response.Headers.Add("Warning", "You are not authorized to publish content for this root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to publish content for this content item.");
                 return Unauthorized();
             }
             #endregion

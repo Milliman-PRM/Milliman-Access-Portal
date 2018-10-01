@@ -110,13 +110,16 @@ if ($Action.ToLower() -eq 'closed') {
 #region Configure environment properties
 $BranchName = $env:git_branch_name # Will be used in the version string of the octopus package & appended to database names
 
+$buildType = if($BranchName -eq 'develop' -or $BranchName -eq 'master' -or $BranchName.ToLower() -like 'pre-release*') {"Release"} Else {"Debug"}
+log_statement "Building configuration: $buildType"
+
 $gitExePath = "git"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
-$TrimmedBranch = $BranchName.Replace("_","").Replace("-","").ToLower()
+$TrimmedBranch = $BranchName.Replace("_","").Replace("-","").Replace(".","").ToLower()
 log_statement "$BranchName trimmed to $TrimmedBranch"
 $appDbName = "appdb_$TrimmedBranch"
 $appDbTemplateName = "appdb_ci_template"
@@ -134,10 +137,12 @@ $env:ASPNETCORE_ENVIRONMENT=$testEnvironment
 $env:PATH = $env:PATH+";C:\Program Files (x86)\OctopusCLI\;$env:appdata\npm\"
 $rootPath = (get-location).Path
 $webBuildTarget = "$rootPath\WebDeploy"
-$serviceBuildTarget = "$rootPath\ContentPublishingServer\ContentPublishingService\bin\debug"
+$serviceBuildTarget = "$rootPath\ContentPublishingServer\ContentPublishingService\bin\$buildType"
+$queryAppBuildTarget = "$rootPath\MillimanAccessPortal\MapQueryAdminWeb\bin\$buildType\netcoreapp2.1"
 $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
+$runTests = $env:RunTests -ne "False"
 
 mkdir ${rootPath}\_test_results
 #endregion
@@ -163,7 +168,7 @@ $codeChangeFound = $false
 foreach ($diff in $diffOutput)
 {
   # If both of these are true, the line being examined is likely a change to the software that needs testing
-  if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike '.github/*')
+  if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike '.github/*' -and $diff -notlike 'UtilityScripts/*')
   {
     log_statement "Code change found in $diff"
     $codeChangeFound = $true
@@ -212,7 +217,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\MillimanAccessPortal\
 
-MSBuild /restore:true /verbosity:quiet
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Initial build of MAP solution failed"
@@ -248,7 +253,7 @@ Set-Location $rootpath\ContentPublishingServer
 
 log_statement "Building content publishing server"
 
-MSBuild /restore:true /verbosity:quiet /nowarn:CS1998
+MSBuild /restore:true /verbosity:quiet /p:Configuration=$buildType
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Test build or package restore failed for content publishing server solution"
@@ -256,45 +261,46 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-log_statement "Performing MAP unit tests"
+if($runTests) {
+    log_statement "Performing MAP unit tests"
 
- Set-Location $rootPath\MillimanAccessPortal\MapTests
+    Set-Location $rootPath\MillimanAccessPortal\MapTests
 
- dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
+    dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
 
- if ($LASTEXITCODE -ne 0) {
-     log_statement "ERROR: One or more MAP xUnit tests failed"
-     log_statement "errorlevel was $LASTEXITCODE"
-     exit $LASTEXITCODE
+    if ($LASTEXITCODE -ne 0) {
+        log_statement "ERROR: One or more MAP xUnit tests failed"
+        log_statement "errorlevel was $LASTEXITCODE"
+        exit $LASTEXITCODE
+    } 
+
+    log_statement "Peforming Jest tests"
+
+    Set-Location $rootPath\MillimanAccessPortal\MillimanAccessPortal
+
+    $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
+
+    $command = "yarn test --testResultsProcessor='jest-junit'"
+    invoke-expression "&$command"
+
+    if ($LASTEXITCODE -ne 0) {
+        log_statement "ERROR: One or more Jest tests failed"
+        log_statement "errorlevel was $LASTEXITCODE"
+        exit $LASTEXITCODE
+    }
+
+    log_statement "Performing content publishing unit tests"
+
+    Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
+
+   dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
+
+    if ($LASTEXITCODE -ne 0) {
+        log_statement "ERROR: One or more content publishing xUnit tests failed"
+        log_statement "errorlevel was $LASTEXITCODE"
+        exit $LASTEXITCODE
+    }
 }
-
-log_statement "Peforming Jest tests"
-
-Set-Location $rootPath\MillimanAccessPortal\MillimanAccessPortal
-
-$env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
-
-$command = "yarn test --testResultsProcessor='jest-junit'"
-invoke-expression "&$command"
-
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: One or more Jest tests failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
-log_statement "Performing content publishing unit tests"
-
-Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
-
-dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
-
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: One or more content publishing xUnit tests failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
 #endregion
 
 #region Create and update databases
@@ -375,7 +381,7 @@ log_statement "Publishing and packaging web application"
 
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
-msbuild /t:publish /p:PublishDir=$webBuildTarget /verbosity:quiet
+msbuild /t:publish /p:PublishDir=$webBuildTarget /verbosity:quiet /p:Configuration=$buildType
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -428,13 +434,48 @@ if ($LASTEXITCODE -ne 0) {
 
 #endregion
 
+#region Publish MAP Query Admin to a folder
+log_statement "Publishing MAP Query Admin to a folder"
+
+Set-Location $rootpath\MillimanAccessPortal\MapQueryAdminWeb
+
+msbuild /t:publish /p:PublishDir=$queryAppBuildTarget /verbosity:quiet /p:Configuration=$buildType
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to publish query admin app application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+#endregion
+
+#region Package MAP Query Admin for nuget
+log_statement "Packaging MAP Query Admin"
+
+Set-Location $queryAppBuildTarget
+
+$queryVersion = get-childitem "MapQueryAdminWeb.dll" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
+$queryVersion = "$queryVersion-$branchName"
+
+octo pack --id MapQueryAdmin --version $queryVersion --outfolder $nugetDestination\QueryApp
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package MAP Query Admin for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+#endregion 
+
 #region Deploy releases to Octopus
 
 log_statement "Deploying packages to Octopus"
 
 Set-Location $nugetDestination
 
-octo push --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -445,7 +486,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Creating web app release"
 
-octo create-release --project "Milliman Access Portal" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
+octo create-release --project "Milliman Access Portal" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
@@ -457,9 +498,27 @@ else {
     exit $error_code
 }
 
+log_statement "Determining target environment for web app deployment"
+$projects = (invoke-restmethod $octopusURL/api/projects?apikey=$octopusAPIKey).items
+$MAPProject = $projects | where {$_.Name -eq "Milliman Access Portal"}
+$releases = (invoke-restmethod "$octopusURL/api/projects/$($mapProject.Id)/releases?apikey=$octopusAPIKey").items
+$BranchRelease = $releases | where {$_.Version -eq "$webVersion"}
+$channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey)
+$channelName = $channel.Name
+$lifecycle = (Invoke-RestMethod $octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$octopusAPIKey).phases 
+$targetEnvId = if ($lifecycle.AutomaticDeploymentTargets) {$lifecycle.AutomaticDeploymentTargets | select-object -first 1} else {$lifecycle.OptionalDeploymentTargets | select-object -first 1}
+$targetEnv = if ($lifecycle.AutomaticDeploymentTargets -or $lifecycle.optionalDeploymentTargets) { (Invoke-RestMethod $octopusURL/api/environments/$($TargetEnvId)?apikey=$octopusAPIKey).name} else {"Development"}
+if ($targetEnv){
+    log_statement "Deploying to $targetEnv"
+}
+else {
+    log_statement "ERROR: Failed to determine deployment environment"
+    exit -42
+}
+
 log_statement "Deploying web app release"
 
-octo deploy-release --project "Milliman Access Portal" --deployto "Development" --channel "Development" --version $webVersion --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
+octo deploy-release --project "Milliman Access Portal" --version $webVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release deployed successfully"
@@ -473,7 +532,7 @@ else {
 
 log_statement "Creating Content Publishing Server release"
 
-octo create-release --project "Content Publication Server" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
+octo create-release --project "Content Publication Server" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Publishing service application release created successfully"
@@ -481,6 +540,20 @@ if ($LASTEXITCODE -eq 0) {
 else {
     $error_code = $LASTEXITCODE
     log_statement "ERROR: Failed to create Octopus release for the publishing service application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+log_statement "Creating MAP Query Admin release"
+
+octo create-release --project "MAP Query Admin" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "MAP Query Admin release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for MAP Query Admin"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }

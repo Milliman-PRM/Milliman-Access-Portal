@@ -118,7 +118,7 @@ const components = Object.assign(
       html: [
         '<div class="card-body-primary-text-box">',
         '  <h2></h2>',
-        '  <input placeholder="Untitled" />',
+        '  <input data-lpignore="true" placeholder="Untitled" />',
         '</div>',
         '<stub />',
       ].join(''),
@@ -334,7 +334,7 @@ const components = Object.assign(
         '    </div>',
         '  </div>',
         '  <div class="detail-item-user-input">',
-        '    <input class="typeahead" name="username" placeholder="Add user" required />',
+        '    <input class="typeahead" name="username" data-lpignore="true" placeholder="Add user" required />',
         '  </div>',
         '</span>',
         '<stub />',
@@ -402,6 +402,7 @@ const components = Object.assign(
           }
           if (this.readonly || this.disabled) {
             this.attr(component, { disabled: '' });
+            this.addClass(component, this.disabled ? 'card-disabled' : 'card-readonly');
           }
         };
       },
@@ -772,7 +773,7 @@ AddUserActionCard.prototype = Object.create(ActionCard.prototype);
 AddUserActionCard.prototype.constructor = AddUserActionCard;
 
 export function AddRootContentItemActionCard(callback) {
-  ActionCard.call(this, 'add', 'Add Root Content Item', callback);
+  ActionCard.call(this, 'add', 'Add Content Item', callback);
 }
 AddRootContentItemActionCard.prototype = Object.create(ActionCard.prototype);
 AddRootContentItemActionCard.prototype.constructor = AddRootContentItemActionCard;
@@ -789,11 +790,8 @@ export function InsertCard(icon, text, level, callback) {
   this.addComponent('card', {
     class: [
       'card-container',
-      'flex-container',
-      'flex-row-no-wrap',
-      'items-align-center',
-      'insert-card',
       'card-' + (100 - (10 * level)),
+      'insert-card',
     ].join(' '),
   });
   this.addComponent('insert', {
@@ -850,7 +848,7 @@ export function ClientCard(
   });
   this.data = {
     'client-id': client.Id,
-    'filter-string': [client.Name, client.ClientCode].join('|').toUpperCase(),
+    'filter-string': [client.Name, client.ClientCode].join('~').toUpperCase(),
   };
   this.callback = callback;
 }
@@ -885,7 +883,7 @@ export function RootContentItemCard(
     color: 'red',
     dynamic: true,
     icon: 'delete',
-    tooltip: 'Delete root content item',
+    tooltip: 'Delete content item',
   });
   this.addComponent('button', {
     callback: publishCallback,
@@ -903,7 +901,7 @@ export function RootContentItemCard(
   });
   this.addComponent('button', {
     callback: goLiveCallback,
-    color: 'blue',
+    color: 'green',
     dynamic: true,
     icon: 'checkmark',
     tooltip: 'Go Live',
@@ -915,7 +913,7 @@ export function RootContentItemCard(
     'filter-string': [
       rootContentItemDetail.ContentName,
       rootContentItemDetail.ContentTypeName,
-    ].join('|').toUpperCase(),
+    ].join('~').toUpperCase(),
     'root-content-item-id': rootContentItemDetail.Id,
   };
 
@@ -1038,7 +1036,7 @@ export function SelectionGroupCard(
   this.addComponent('status', {});
 
   this.data = {
-    'filter-string': memberInfo.concat([selectionGroup.Name]).join('|').toUpperCase(),
+    'filter-string': memberInfo.concat([selectionGroup.Name]).join('~').toUpperCase(),
     'member-list': JSON.stringify(selectionGroup.MemberList),
     'selection-group-id': selectionGroup.Id,
   };
@@ -1113,7 +1111,7 @@ export function UserCard(
   }, this);
   this.data = {
     'client-id': client.Id,
-    'filter-string': names.join('|').toUpperCase(),
+    'filter-string': names.join('~').toUpperCase(),
     'user-id': user.Id,
   };
   if (canManage) {

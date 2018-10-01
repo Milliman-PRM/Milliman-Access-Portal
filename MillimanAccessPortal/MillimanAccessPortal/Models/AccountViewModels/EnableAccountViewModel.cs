@@ -18,28 +18,29 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string Username { get; set; }
 
         [Required]
-        [Display(Name = "First Name")]
+        [Display(Name = "First Name *")]
         public string FirstName { get; set; }
 
         [Required]
-        [Display(Name = "Last Name")]
+        [Display(Name = "Last Name *")]
         public string LastName { get; set; }
 
         [Required]
-        [Display(Name = "Phone Number")]
+        [Display(Name = "Phone Number *")]
         public string Phone { get; set; }
 
         [Required]
+        [Display(Name = "Employer *")]
         public string Employer { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
-        [Display(Name = "New Password")]
+        [Display(Name = "New Password *")]
         public string NewPassword { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
+        [Display(Name = "Confirm password *")]
         [Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmNewPassword { get; set; }
     }

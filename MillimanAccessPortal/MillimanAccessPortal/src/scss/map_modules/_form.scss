@@ -7,6 +7,7 @@
     border: 1px solid $charcoal !important;
     box-shadow: rgba(0, 0, 0, .3) .2em .2em .75em;
     margin-bottom: .5em !important;
+    margin-top: 1em;
 
     &.form-disabled {
         background-color: transparent;
@@ -217,6 +218,10 @@ input.filter-input {
         text-transform: uppercase
     }
 
+    .form-section {
+        min-height: 1px;
+    }
+
     .form-input-container {
         display: flex;
         flex-flow: row wrap;
@@ -276,6 +281,7 @@ label.input-with-upload {
         .image-preview {
             width: 100%;
             height: auto;
+            min-height: 1px;
             padding-top: 0.5em;
         }
     }

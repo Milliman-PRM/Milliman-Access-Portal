@@ -3,11 +3,53 @@
 .card-container {
     position: relative;
     padding: 0;
-    padding-top: 1em;
-    margin-top: 0;
-    margin-bottom: 1em;
+    margin: 1em 0;
     cursor: pointer;
     border-radius: .25em;
+
+    &:hover {
+        box-shadow: rgba($charcoal, .42) .2em .2em .75em;
+    }
+
+    &[disabled] {
+
+        &.card-disabled {
+            cursor: default;
+
+            &:hover {
+                box-shadow: none;
+            }
+
+            .card-body-main-container {
+                min-height: 0;
+
+                .card-stats-container {
+                    display: none;
+                }
+            }
+        }
+
+        .card-body-container {
+            background-color: $light-grey;
+            color: $dark-grey;
+            border: 2px solid $dark-grey;
+
+            &[selected] {
+                border: 2px solid $blue;
+                background-color: $light-grey;
+                color: $dark-grey;
+
+                .card-stats-container .card-stat-container {
+                    background-color: $blue;
+                }
+            }
+
+            .card-stats-container .card-stat-container {
+                background-color: $dark-grey;
+                color: $light-grey;
+            }
+        }
+    }
 
     .card-status-container {
         margin-top: -0.5em;
@@ -16,6 +58,8 @@
         padding-left: 1em;
         border-radius: .25em;
         display: none;
+        color: $white;
+        border: 2px solid $charcoal;
 
         em:before {
             content: "(created by ";
@@ -27,18 +71,27 @@
 
         &.status-9 {
             display: block;
+            background-color: $orange;
         }
 
         &.status-10 {
             display: block;
+            background-color: $orange;
         }
 
         &.status-20 {
             display: block;
+            background-color: $blue;
         }
 
         &.status-30 {
             display: block;
+            background-color: $green;
+        }
+
+        &.status-90 {
+            display: block;
+            background-color: $red;
         }
     }
 
@@ -52,25 +105,19 @@
         border: 2px solid $charcoal;
         border-radius: .25em;
 
-        &:hover {
-            box-shadow: rgba(0, 0, 0, .3) .2em .2em .75em;
-        }
-
-        &[disabled] {
-            color: $dark-grey !important;
-            background-color: darken($light-grey, 5%) !important;
-
-            &[selected],
-            &.selected {
-                border-color: $blue;
-                box-shadow: 0 0 0 3px $blue;
-            }
-        }
-
         &[selected],
         &.selected {
             color: $white;
             background-color: $blue;
+
+            input {
+                color: $white;
+                border-color: $white;
+
+                &::placeholder {
+                    color: $light-grey;
+                }
+            }
         }
 
         &.suspended {
@@ -96,7 +143,7 @@
 
             .card-body-primary-container {
                 display: inline-block;
-                flex: 1;
+                flex: 1 1 auto;
                 padding: 0 .5em;
                 margin: auto;
                 width: 100%;
@@ -113,7 +160,6 @@
 
                     input {
                         padding: 0;
-                        border: 1px solid $blue;
                         font-size: 1.5em;
                         font-weight: bold;
                     }
@@ -181,7 +227,7 @@
                     .card-progress-status-text {
                         font-style: italic;
                         font-weight: normal;
-                        flex: 1;
+                        flex: 1 0 auto;
                         height: 1em;
                         margin-bottom: 0;
                         color: $dark-grey;
@@ -252,7 +298,7 @@
                 }
 
                 .card-stat-value {
-                    flex: 1;
+                    flex: 1 0 auto;
                     margin-left: .75em;
                 }
             }
@@ -322,7 +368,8 @@
 
             &.card-button-green,
             &.card-button-add,
-            &.card-button-new-child {
+            &.card-button-new-child,
+            &.card-button-checkmark {
                 background-color: $green;
 
                 &:hover {
@@ -357,7 +404,7 @@
             padding: .25em .75em;
             border-top: 1px solid $light-grey;
             margin: 0 .25em;
-            max-height: 0;
+            height: 0;
             width: 100%;
             border: none;
             padding: 0 .75em;
@@ -366,7 +413,7 @@
 
             &[maximized],
             &.maximized {
-                max-height: 15.5em;
+                height: auto;
                 overflow: visible;
                 transition: .25s all linear;
 
@@ -469,7 +516,7 @@
                 }
 
                 .detail-item-user-input {
-                    flex: 1;
+                    flex: 1 0 auto;
                     padding: .5em;
                 }
             }

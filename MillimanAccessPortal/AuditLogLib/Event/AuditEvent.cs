@@ -18,6 +18,8 @@ namespace AuditLogLib.Event
 
         public string Source { get; set; }
 
+        public int EventCode { get; set; }
+
         public string EventType { get; set; }
 
         [Column(TypeName = "jsonb")]

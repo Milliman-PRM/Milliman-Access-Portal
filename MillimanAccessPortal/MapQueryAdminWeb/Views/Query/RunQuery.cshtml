@@ -1,0 +1,44 @@
+﻿@model MapQueryAdminWeb.Models.RunQueryModel
+@{
+    ViewData["Title"] = "Query";
+}
+
+<h2>Query</h2>
+
+<form action="/Query/RunQuery" method="post">
+    <div>
+        Server: @ViewData["Server"]<br />
+        Database: @ViewData["Database"]
+    </div>
+    <div>
+        Database Username: <input asp-for="pgsqlUsername" name="pgsqlUsername" type="text" data-original-value="@Model.pgsqlUsername" />
+                                                 <span asp-validation-for="pgsqlUsername" class="text-danger"></span>
+</div>
+
+    <div>
+        Database Password: <input asp-for="pgsqlPassword" name="pgsqlPassword" type="password" data-original-value="@Model.pgsqlPassword" />
+                                                 <span asp-validation-for="pgsqlPassword" class="text-danger"></span>
+    </div>
+
+    <div>
+        Github Issue: <input asp-for="referenceUrl" name="referenceUrl" type="url" data-original-value="@Model.referenceUrl" />
+                                                <span asp-validation-for="referenceUrl" class="text-danger"></span>
+    </div>
+
+    <div>
+        Approver Name: <input asp-for="approverName" name="approverName" type="text" data-original-value="@Model.approverName"/>
+                                                <span asp-validation-for="approverName" class="text-danger"></span>
+    </div>
+    <br />
+    <div>
+        <span asp-validation-for="queryText" class="text-danger"></span>
+        Query Text:<br /><textarea asp-for="queryText" name="queryText" rows="10" cols="100">@Model.queryText</textarea>
+    </div>
+    @Html.AntiForgeryToken()
+    <div>
+        <input type="submit" value="Execute Now" />
+    </div>
+    <div>
+        @ViewData["result"]
+    </div>
+</form>

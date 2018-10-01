@@ -14,6 +14,8 @@ export interface NestedList {
 }
 export interface NestedListSection {
   Name: string;
+  Id?: string;
+  Marked?: boolean;
   Values: string[];
 }
 
@@ -131,6 +133,7 @@ export interface RootContentItemDetailForClient {
     Description: string;
     LastUpdated: string;
     LastAccessed: string;
+    IsPublishing: boolean;
     SelectionGroups: NestedList;
 }
 export type SecondaryDetail = UserDetailForClient | UserDetailForProfitCenter

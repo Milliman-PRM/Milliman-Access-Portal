@@ -62,4 +62,26 @@ namespace MapDbContextLib.Context
             }
         }
     }
+
+
+    /// <summary>
+    /// Comparer for the above entity class, used to ensure proper operation of `.distinct()` function
+    /// </summary>
+    public class RootContentItemComparer : IEqualityComparer<RootContentItem>
+    {
+        public bool Equals(RootContentItem x, RootContentItem y)
+        {
+            if (x == null && y == null)
+                return true;
+            else if (x == null || y == null)
+                return false;
+            else
+                return x.Id == y.Id;
+        }
+
+        public int GetHashCode(RootContentItem obj)
+        {
+            return obj.Id.ToString().GetHashCode();
+        }
+    }
 }

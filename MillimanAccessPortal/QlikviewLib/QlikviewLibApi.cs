@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using MapCommonLib.ContentTypeSpecific;
+using Microsoft.AspNetCore.Http;
 using QlikviewLib.Internal;
 using QlikviewLib.Qms;
 
@@ -17,7 +18,36 @@ namespace QlikviewLib
 {
     public class QlikviewLibApi : ContentTypeSpecificApiBase
     {
-        public override async Task<UriBuilder> GetContentUri(string FilePathRelativeToContentRoot, string UserName, object ConfigInfoArg)
+        public async Task<ServiceInfo> SafeGetServiceInfo(IQMS Client, ServiceTypes Type, int Index = 0)
+        {
+            ServiceInfo ServiceInfo = null;
+            try
+            {
+                ServiceInfo[] Services = await Client.GetServicesAsync(Type);
+                ServiceInfo = Services[Index];
+            }
+            catch (System.Exception)
+            {}
+
+            return ServiceInfo;
+        }
+
+        public async Task<(ServiceInfo, DocumentFolder)> SafeGetUserDocFolder(IQMS Client, QlikviewConfig Cfg, int ServiceIndex = 0)
+        {
+            ServiceInfo SvcInfo = await SafeGetServiceInfo(Client, ServiceTypes.QlikViewServer, ServiceIndex);
+            DocumentFolder QvsUserDocFolder = null;
+            try
+            {
+                DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(SvcInfo.ID, DocumentFolderScope.General);
+                QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == Cfg.QvServerContentUriSubfolder);
+            }
+            catch (System.Exception)
+            {}
+
+            return (SvcInfo, QvsUserDocFolder);
+        }
+
+        public override async Task<UriBuilder> GetContentUri(string FilePathRelativeToContentRoot, string UserName, object ConfigInfoArg, HttpRequest thisHttpRequest)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
             string ContentUrl = string.IsNullOrWhiteSpace(ConfigInfo.QvServerContentUriSubfolder) 
@@ -26,28 +56,227 @@ namespace QlikviewLib
 
             string QvServerUriScheme = "https";  // Scheme of the iframe should match scheme of the top page
 
-            // TODO Resolve the user naming convention for the QV server.  
             string QlikviewWebTicket = await QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ UserName, ConfigInfo as QlikviewConfig);
 
+            UriBuilder backUriBuilder = new UriBuilder
+            {
+                Scheme = QvServerUriScheme,
+                Host = thisHttpRequest.Host.HasValue
+                    ? thisHttpRequest.Host.Host
+                    : $"localhost",  // result is probably error in production but won't crash
+                Port = thisHttpRequest.Host.Port.HasValue
+                    ? thisHttpRequest.Host.Port.Value
+                    : -1,
+                Path = $"/Shared/Message",
+                Query = "Msg=An error occurred while loading this content. Please contact MAP support if this problem persists",
+            };
             string[] QueryStringItems = new string[]
             {
                 $"type=html",
-                $"try=/qvajaxzfc/opendoc.htm?document={ContentUrl}",  // TODO use the relative document path/name in the following
-                $"back=/",  // TODO probably use something other than "/" (such as a proper error page)
+                $"try=/qvajaxzfc/opendoc.htm?document={ContentUrl}",
+                $"back='{backUriBuilder.Uri.OriginalString}'",
                 $"webticket={QlikviewWebTicket}",
             };
 
             UriBuilder QvServerUri = new UriBuilder
             {
-                // Note that the UriBuilder manages the insertion of literal '?' before the query string.  
-                // Don't include a query string with '?' in the Path property because the '?' gets UrlEncoded.  
                 Scheme = QvServerUriScheme,
                 Host = ConfigInfo.QvServerHost,
                 Path = "/qvajaxzfc/Authenticate.aspx",
                 Query = string.Join("&", QueryStringItems),
             };
 
+            await AssignDocumentUserLicense(FilePathRelativeToContentRoot, UserName, ConfigInfo);
+
             return QvServerUri;
+        }
+
+        public async Task<bool> AssignDocumentUserLicense(string DocumentFilePathRelativeToStorageContentRoot, string UserName, QlikviewConfig ConfigInfo)
+        {
+            if (string.IsNullOrWhiteSpace(DocumentFilePathRelativeToStorageContentRoot))
+            {
+                return false;
+            }
+
+            string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
+            string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
+
+            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+
+            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
+            if (QvsUserDocFolder == null)
+            {
+                return false;
+            }
+
+            // If user has an available named CAL then don't allocate a document CAL.
+            CALConfiguration CalConfig = await Client.GetCALConfigurationAsync(SvcInfo.ID, CALConfigurationScope.NamedCALs);
+            if (CalConfig.NamedCALs.AssignedCALs.Any(c => string.Compare(c.UserName, UserName, true) == 0 
+                                                       && c.QuarantinedUntil == DateTime.MinValue))
+            {
+                return true;
+            }
+
+            DocumentNode RequestedDocNode = null;
+            try
+            {
+                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
+
+            if (RequestedDocNode == null)
+            {
+                return false;
+            }
+
+            DocumentMetaData DocMetadata = await Client.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
+            List<AssignedNamedCAL> CurrentDocCals = DocMetadata.Licensing.AssignedCALs.ToList();
+
+            if (CurrentDocCals.Any(c => string.Compare(c.UserName, UserName, true) == 0
+                                     && c.QuarantinedUntil == DateTime.MinValue))
+            {
+                return true; // user already has a doc CAL for this file, dont assign another
+            }
+
+            if (CurrentDocCals.Count >= DocMetadata.Licensing.CALsAllocated)
+            {
+                DocMetadata.Licensing.CALsAllocated = CurrentDocCals.Count + 1;
+            }
+
+            AssignedNamedCAL NewDocCal = new AssignedNamedCAL
+            {
+                UserName = UserName,
+                LastUsed = DateTime.Now,
+                QuarantinedUntil = DateTime.Now.AddDays(1),
+                MachineID = "",
+            };
+            CurrentDocCals.Add(NewDocCal);
+
+            DocMetadata.Licensing.AssignedCALs = CurrentDocCals.ToArray();
+
+            try
+            {
+                await Client.SaveDocumentMetaDataAsync(DocMetadata);
+            }
+            catch (System.Exception e)
+            {
+                if (e.Message.Contains("Too many document CALs allocated"))
+                {
+                    return false;
+                }
+                else  // Handle specific errors on case by case basis as we learn about them
+                {
+                    throw;
+                }
+            }
+
+            return true;
+        }
+
+        public async Task<bool> ReclaimAllDocCalsForFile(string DocumentFilePathRelativeToStorageContentRoot, QlikviewConfig ConfigInfo)
+        {
+            if (string.IsNullOrWhiteSpace(DocumentFilePathRelativeToStorageContentRoot))
+            {
+                return false;
+            }
+
+            string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
+            string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
+
+            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+
+            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
+            if (QvsUserDocFolder == null)
+            {
+                return false;
+            }
+
+            DocumentNode RequestedDocNode = null;
+            try
+            {
+                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
+
+            if (RequestedDocNode == null)
+            {
+                return false;
+            }
+
+            DocumentMetaData DocMetadata = await Client.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
+            DocMetadata.Licensing.RemovedAssignedCALs = DocMetadata.Licensing.AssignedCALs.ToList().ToArray();
+            DocMetadata.Licensing.AssignedCALs = new AssignedNamedCAL[0];
+            DocMetadata.Licensing.CALsAllocated = 0;
+            await Client.SaveDocumentMetaDataAsync(DocMetadata);
+
+            return true;
+        }
+
+        public async Task<bool> ReclaimUserDocCalForFile(string DocumentFilePathRelativeToStorageContentRoot, string UserName, QlikviewConfig ConfigInfo)
+        {
+            if (string.IsNullOrWhiteSpace(DocumentFilePathRelativeToStorageContentRoot))
+            {
+                return false;
+            }
+
+            bool ReturnBool = false;
+
+            string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
+            string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
+
+            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+
+            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
+            if (QvsUserDocFolder == null)
+            {
+                return false;
+            }
+
+            DocumentNode RequestedDocNode = null;
+            try
+            {
+                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
+
+            if (RequestedDocNode == null)
+            {
+                return false;
+            }
+
+            DocumentMetaData DocMetadata = await Client.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
+            List<AssignedNamedCAL> CurrentDocCals = DocMetadata.Licensing.AssignedCALs.ToList();
+            List<AssignedNamedCAL> RemovableCALs = new List<AssignedNamedCAL>();
+
+            for (int CalCounter = 0; CalCounter < CurrentDocCals.Count; CalCounter++)
+            {
+                if (string.Compare(CurrentDocCals.ElementAt(CalCounter).UserName, UserName, true) == 0)
+                {
+                    RemovableCALs.Add(CurrentDocCals.ElementAt(CalCounter));
+                    CurrentDocCals.RemoveAt(CalCounter);
+                    ReturnBool = true;
+                }
+            }
+
+            DocMetadata.Licensing.CALsAllocated = CurrentDocCals.Count;
+            DocMetadata.Licensing.AssignedCALs = CurrentDocCals.ToArray();
+            DocMetadata.Licensing.RemovedAssignedCALs = RemovableCALs.ToArray();
+
+            await Client.SaveDocumentMetaDataAsync(DocMetadata);
+
+            return ReturnBool;
         }
 
         /// <summary>

@@ -1,9 +1,17 @@
+import 'promise-polyfill/dist/polyfill';
+import 'whatwg-fetch';
+
 import '../../scss/react/shared-components/modal.scss';
 
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import { postData } from '../shared';
+
+// Toastr related imports
+import toastr = require('toastr');
+import '../lib-options';
+require('toastr/toastr.scss');
 
 interface ContactFormModalState {
   topic: string;
@@ -44,7 +52,7 @@ export class ContactFormModal extends React.Component<Modal.Props, ContactFormMo
             >
               <option value="">Please Select a Topic</option>
               <option value="Account Inquiry">Account Inquiry</option>
-              <option value="Bug Report">Report a Bug</option>
+              <option value="Technical Issue">Technical Issue</option>
               <option value="Other Support Question">Other</option>
             </select>
             <textarea
@@ -89,12 +97,12 @@ export class ContactFormModal extends React.Component<Modal.Props, ContactFormMo
   private handleSubmit(event: React.MouseEvent<HTMLFormElement> | React.KeyboardEvent<HTMLFormElement>) {
     event.preventDefault();
     event.persist();
-    postData('Message/SendSupportEmail', {
+    postData('/Message/SendSupportEmail', {
       subject: this.state.topic,
       message: this.state.message,
     }, true)
     .then(() => {
-      alert('Submission received.');
+      toastr.success('Submission received.');
       this.props.onRequestClose(event.nativeEvent);
     });
   }

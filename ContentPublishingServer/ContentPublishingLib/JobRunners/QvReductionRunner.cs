@@ -88,7 +88,6 @@ namespace ContentPublishingLib.JobRunners
 
             MethodBase Method = MethodBase.GetCurrentMethod();
             object DetailObj;
-            AuditEvent Event;
 
             ReductionJobActionEnum[] SupportedJobActions = new ReductionJobActionEnum[] 
             {
@@ -108,6 +107,7 @@ namespace ContentPublishingLib.JobRunners
                     _CancellationToken.ThrowIfCancellationRequested();
 
                     await PreTaskSetup();
+                    _CancellationToken.ThrowIfCancellationRequested();
 
                     #region Extract master content hierarchy
                     JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
@@ -116,6 +116,7 @@ namespace ContentPublishingLib.JobRunners
                         ReductionJobId = JobDetail.TaskId.ToString(),
                         JobAction = JobDetail.Request.JobAction,
                         Hierarchy = JobDetail.Result.MasterContentHierarchy,
+                        ContentFile = "Master",
                     };
                     AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj));
                     #endregion
@@ -131,7 +132,7 @@ namespace ContentPublishingLib.JobRunners
                             ReductionJobId = JobDetail.TaskId.ToString(),
                             RequestedSelections = JobDetail.Request.SelectionCriteria,
                         };
-                        AuditLog.Log(AuditEventType.ContentReductionSucceeded.ToEvent(DetailObj));
+                        AuditLog.Log(AuditEventType.ContentFileReductionSucceeded.ToEvent(DetailObj));
                         #endregion
 
                         _CancellationToken.ThrowIfCancellationRequested();
@@ -143,6 +144,7 @@ namespace ContentPublishingLib.JobRunners
                             ReductionJobId = JobDetail.TaskId.ToString(),
                             JobAction = JobDetail.Request.JobAction,
                             Hierarchy = JobDetail.Result.ReducedContentHierarchy,
+                            ContentFile = "Reduced",
                         };
                         AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj));
                         #endregion
@@ -160,18 +162,26 @@ namespace ContentPublishingLib.JobRunners
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Canceled;
                 GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
+                AuditLog.Log(AuditEventType.ContentReductionTaskCanceled.ToEvent(new { ReductionTaskId = JobDetail.TaskId }));
             }
             catch (ApplicationException e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
                 GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
+                // Security related audit logs are generated at the time ApplicationException is thrown, where appropriate.  Don't repeat that here. 
             }
             catch (System.Exception e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
                 GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
+                DetailObj = new
+                {
+                    ReductionJobId = JobDetail.TaskId.ToString(),
+                    ExceptionMessage = GlobalFunctions.LoggableExceptionString(e),
+                };
+                AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
             }
             finally
             {
@@ -340,7 +350,6 @@ namespace ContentPublishingLib.JobRunners
             {
                 GlobalFunctions.TraceWriteLine($"Error converting file {ReductionSchemeFilePath} to json output.  Details:" + Environment.NewLine + e.Message);
 
-                // TODO may need to log more issues, like if the Qlikview task processing fails
                 object DetailObj = new {
                     ReductionJobId = JobDetail.TaskId.ToString(),
                     ExceptionMessage = e.Message,
@@ -387,14 +396,13 @@ namespace ContentPublishingLib.JobRunners
                         Error = Msg,
                     };
 
-                    AuditLog.Log(AuditEventType.ContentReductionFailed.ToEvent(DetailObj));
+                    AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
                     GlobalFunctions.TraceWriteLine(Msg);
                     throw new ApplicationException(Msg);
                 }
             }
 
             // Validate that there is at least one selected value that exists in the hierarchy. 
-            // TODO Is this right?  It might be legit to request no selections for some content
             if (!JobDetail.Request.SelectionCriteria.Any(s => s.Selected &&
                                                               JobDetail.Result.MasterContentHierarchy.Fields.Any(f => f.FieldName == s.FieldName && f.FieldValues.Contains(s.FieldValue))))
             {
@@ -405,7 +413,7 @@ namespace ContentPublishingLib.JobRunners
                     Error = Msg,
                 };
 
-                AuditLog.Log(AuditEventType.ContentReductionFailed.ToEvent(DetailObj));
+                AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
                 GlobalFunctions.TraceWriteLine(Msg);
                 throw new ApplicationException(Msg);
             }
@@ -558,7 +566,6 @@ namespace ContentPublishingLib.JobRunners
         /// <returns></returns>
         private DocumentTask CreateReductionQdsTask(IEnumerable<FieldValueSelection> Selections)
         {
-            //TODO debug this function
             string TaskDateTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             // Create new task object
@@ -588,7 +595,6 @@ namespace ContentPublishingLib.JobRunners
             int Index = 0;
             foreach (FieldValueSelection FieldVal in Selections.Where(v => v.Selected))
             {
-                GlobalFunctions.TraceWriteLine(string.Format($"Reduction task: assigning selection for field <{FieldVal.FieldName}> with value <{FieldVal.FieldValue}>")); // TODO delete this
                 NewDocumentTask.Reduce.Static.Reductions[Index] = new TaskReduction();
                 NewDocumentTask.Reduce.Static.Reductions[Index].Type = TaskReductionType.ByField;
                 NewDocumentTask.Reduce.Static.Reductions[Index].Field = new TaskReduction.TaskReductionField();
@@ -664,7 +670,6 @@ namespace ContentPublishingLib.JobRunners
         /// <returns></returns>
         private async Task RunQdsTask(DocumentTask DocTask)
         {
-            // TODO make these configurable?
             TimeSpan MaxStartDelay = new TimeSpan(0, 5, 0);
             TimeSpan MaxElapsedRun = new TimeSpan(0, 5, 0);
             int PublisherPollingIntervalMs = 250;
@@ -714,9 +719,9 @@ namespace ContentPublishingLib.JobRunners
                 } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
                 GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} finished running after {DateTime.Now - RunningStartTime}");
 
-                if (Status.General.Status == TaskStatusValue.Failed)
+                if (Status.General.Status == TaskStatusValue.Failed || Status.General.Status == TaskStatusValue.Warning)
                 {
-                    throw new ApplicationException($"Qlikview server error while processing task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
+                    throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
                 }
             }
             finally

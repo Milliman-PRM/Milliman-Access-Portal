@@ -14,7 +14,8 @@ import {
 import { AddSelectionGroupDialog, DeleteSelectionGroupDialog } from '../dialog';
 import {
   collapseAllListener, del, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, post, setExpanded, showButtonSpinner, updateCardStatus, wrapCardCallback,
+  hideButtonSpinner, post, setExpanded, showButtonSpinner, updateCardStatus, updateToolbarIcons,
+  wrapCardCallback,
 } from '../shared';
 import {
   SelectionDetails, SelectionGroupList, SelectionGroupSummary, SelectionsDetail,
@@ -39,6 +40,8 @@ function selectionGroupAddClickHandler() {
     [
       renderSelectionGroup,
       updateSelectionGroupCount,
+      () => updateToolbarIcons($('#selection-groups')),
+      () => statusMonitor.checkStatus,
     ],
   )).open();
 }
@@ -50,10 +53,23 @@ function selectionGroupDeleteClickHandler(event: Event) {
     'Selection group successfully deleted.',
     [
       (response) => {
+        const selectedPre = $('#selection-groups ul.admin-panel-content [selected]').parent();
+        const selectedIdPre = selectedPre.length
+          ? selectedPre.data().selectionGroupId
+          : null;
         $('#selection-groups ul.admin-panel-content').empty();
         renderSelectionGroupList(response);
+        const previouslySelected = $('#selection-groups ul.admin-panel-content .card-container')
+          .filter((_, e: HTMLElement) => $(e).data().selectionGroupId === selectedIdPre);
+        if (previouslySelected.length) {
+          previouslySelected.find('.card-body-container').click();
+        } else {
+          $('#selection-info').hide();
+        }
       },
       updateSelectionGroupCount,
+      () => updateToolbarIcons($('#selection-groups')),
+      () => statusMonitor.checkStatus,
     ],
   )).open();
 }
@@ -82,6 +98,8 @@ function cancelSelectionForm() {
     hideButtonSpinner($button);
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
+  }).always(() => {
+    statusMonitor.checkStatus();
   });
 }
 function submitSelectionForm() {
@@ -116,6 +134,8 @@ function submitSelectionForm() {
     hideButtonSpinner($button);
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
+  }).always(() => {
+    statusMonitor.checkStatus();
   });
 }
 
@@ -229,6 +249,9 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
       [
         renderSelections,
       ],
+      (data) => ({
+        selectionGroupId: data && data.selectionGroupId,
+      }),
     )),
     selectionGroupDeleteClickHandler,
     // edit selection group click handler
@@ -276,6 +299,8 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
       }).fail((response) => {
         toastr.warning(response.getResponseHeader('Warning')
           || 'An unknown error has occurred.');
+      }).always(() => {
+        statusMonitor.checkStatus();
       });
     },
   ).build();
@@ -289,7 +314,10 @@ function renderSelectionGroupList(response: SelectionGroupList, selectionGroupId
     renderSelectionGroup(selectionGroup));
   $selectionGroupList.find('.tooltip').tooltipster();
 
+  updateToolbarIcons($('#selection-groups'));
+
   $('#selection-groups .admin-panel-action-icons-container .action-icon-add')
+    .off('click')
     .click(selectionGroupAddClickHandler);
 
   if (selectionGroupId) {
@@ -305,6 +333,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
       [
         renderSelectionGroupList,
       ],
+      (data) => ({
+        rootContentItemId: data && data.rootContentItemId,
+      }),
     )),
   );
   rootContentItemCard.disabled = item.ReadOnly;
@@ -333,6 +364,9 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
     wrapCardCallback(get(
       'ContentAccessAdmin/RootContentItems',
       [ renderRootContentItemList ],
+      (data) => ({
+        clientId: data && data.clientId,
+      }),
     )),
   );
   $card.disabled = !client.Value.CanManage;

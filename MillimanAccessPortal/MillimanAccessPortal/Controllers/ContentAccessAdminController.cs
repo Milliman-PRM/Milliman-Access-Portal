@@ -157,7 +157,7 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary validation
             if (RootContentItem == null)
             {
-                Response.Headers.Add("Warning", "The requested root content item does not exist.");
+                Response.Headers.Add("Warning", "The requested content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -166,7 +166,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -191,12 +191,13 @@ namespace MillimanAccessPortal.Controllers
             RootContentItem rootContentItem = DbContext.RootContentItem
                 .Where(item => item.Id == RootContentItemId)
                 .Include(item => item.Client)
+                .Include(item => item.ContentType)
                 .SingleOrDefault();
 
             #region Preliminary validation
             if (rootContentItem == null)
             {
-                Response.Headers.Add("Warning", "The requested root content item does not exist.");
+                Response.Headers.Add("Warning", "The requested content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -206,7 +207,7 @@ namespace MillimanAccessPortal.Controllers
             if (!RoleInRootContentItemResult.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -230,6 +231,21 @@ namespace MillimanAccessPortal.Controllers
                 SelectedHierarchyFieldValueList = new Guid[] { },
                 ContentInstanceUrl = ""
             };
+
+            if (!rootContentItem.DoesReduce)
+            {
+                ContentRelatedFile liveMasterFile = rootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
+                if (liveMasterFile == null 
+                 || !System.IO.File.Exists(liveMasterFile.FullPath))
+                {
+                    Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+
+                selectionGroup.IsMaster = true;
+                selectionGroup.RootContentItem = rootContentItem;
+                selectionGroup.SetContentUrl(Path.GetFileName(liveMasterFile.FullPath));
+            }
 
             try
             {
@@ -278,7 +294,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleInRootContentItemResult.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -321,7 +337,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleInRootContentItemResult.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -368,7 +384,7 @@ namespace MillimanAccessPortal.Controllers
             if (!RoleInRootContentItemResult.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -495,7 +511,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleInRootContentItemResult.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -522,6 +538,8 @@ namespace MillimanAccessPortal.Controllers
             SelectionGroup selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rci => rci.Client)
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rci => rci.ContentType)
                 .SingleOrDefault(sg => sg.Id == SelectionGroupId);
 
             #region Preliminary Validation
@@ -537,7 +555,7 @@ namespace MillimanAccessPortal.Controllers
             if (!RoleInRootContentItemResult.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -579,6 +597,35 @@ namespace MillimanAccessPortal.Controllers
                         .Select(uug => uug.UserId)
                         .ToList();
                 }
+
+                // ContentType specific handling after successful transaction
+                switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
+                {
+                    case ContentTypeEnum.Qlikview:
+                        if (!selectionGroup.IsMaster && !string.IsNullOrWhiteSpace(selectionGroup.ContentInstanceUrl))
+                        {
+                            string ContentFileFullPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), selectionGroup.ContentInstanceUrl);
+
+                            await new QlikviewLibApi().ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl, QvConfig);
+
+                            if (System.IO.File.Exists(ContentFileFullPath))
+                            {
+                                System.IO.File.Delete(ContentFileFullPath);
+                            }
+                            if (System.IO.File.Exists(ContentFileFullPath + ".Shared"))
+                            {
+                                System.IO.File.Delete(ContentFileFullPath + ".Shared");
+                            }
+                            if (System.IO.File.Exists(ContentFileFullPath + ".Meta"))
+                            {
+                                System.IO.File.Delete(ContentFileFullPath + ".Meta");
+                            }
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
             }
             catch (Exception ex)
             {
@@ -616,7 +663,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -657,7 +704,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleInRootContentItemResult.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -675,7 +722,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (!selectionGroup.RootContentItem.DoesReduce)
             {
-                Response.Headers.Add("Warning", "The requested selection group belongs to a root content item that cannot be reduced.");
+                Response.Headers.Add("Warning", "The requested selection group belongs to a content item that cannot be reduced.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
@@ -734,8 +781,7 @@ namespace MillimanAccessPortal.Controllers
             // Require that the live master file path is stored in the RootContentItem and the file exists
             ContentRelatedFile LiveMasterFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
             if (LiveMasterFile == null 
-             || !System.IO.File.Exists(LiveMasterFile.FullPath)
-             || !LiveMasterFile.ValidateChecksum())
+             || !System.IO.File.Exists(LiveMasterFile.FullPath))
             {
                 Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -827,7 +873,7 @@ namespace MillimanAccessPortal.Controllers
             if (!RoleInRootContentItemResult.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -839,7 +885,7 @@ namespace MillimanAccessPortal.Controllers
                 .Where(crt => crt.ContentPublicationRequestId == null);
             if (CancelableTasks.Count() == 0)
             {
-                Response.Headers.Add("Warning", "There are no cancelable tasks for this root content item.");
+                Response.Headers.Add("Warning", "There are no cancelable tasks for this content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion

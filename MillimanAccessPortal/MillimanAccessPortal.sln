@@ -12,8 +12,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuditLogLib", "AuditLogLib\
 		{163FEB0A-5083-4D7A-B7B3-A1B2171B4515} = {163FEB0A-5083-4D7A-B7B3-A1B2171B4515}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuditLogLibTest", "AuditLogLibTest\AuditLogLibTest.csproj", "{0B3B4358-ED7F-4301-B3A7-6571A021C804}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapCommonLib", "MapCommonLib\MapCommonLib.csproj", "{0E2593ED-77F8-4122-81F8-AD0B98DBC3A2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmailQueue", "EmailQueue\EmailQueue.csproj", "{ED4DD9CE-1D7C-41AB-AF3A-C02A624ADCD8}"
@@ -23,6 +21,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestResourcesLib", "TestResourcesLib\TestResourcesLib.csproj", "{3029A47F-C746-4A8F-803E-D5FAC84D000D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QlikviewLib", "QlikviewLib\QlikviewLib.csproj", "{881F681E-648F-40CB-92DD-B1A013AD38F3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapQueryAdminWeb", "MapQueryAdminWeb\MapQueryAdminWeb.csproj", "{E9DD181F-7C57-467F-938B-7AB106B8BE28}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,10 +42,6 @@ Global
 		{2052F76B-E724-4CB3-BE4C-7318F18E5D44}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2052F76B-E724-4CB3-BE4C-7318F18E5D44}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2052F76B-E724-4CB3-BE4C-7318F18E5D44}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0B3B4358-ED7F-4301-B3A7-6571A021C804}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0B3B4358-ED7F-4301-B3A7-6571A021C804}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0B3B4358-ED7F-4301-B3A7-6571A021C804}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0B3B4358-ED7F-4301-B3A7-6571A021C804}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0E2593ED-77F8-4122-81F8-AD0B98DBC3A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0E2593ED-77F8-4122-81F8-AD0B98DBC3A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E2593ED-77F8-4122-81F8-AD0B98DBC3A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -66,6 +62,10 @@ Global
 		{881F681E-648F-40CB-92DD-B1A013AD38F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{881F681E-648F-40CB-92DD-B1A013AD38F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{881F681E-648F-40CB-92DD-B1A013AD38F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9DD181F-7C57-467F-938B-7AB106B8BE28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9DD181F-7C57-467F-938B-7AB106B8BE28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9DD181F-7C57-467F-938B-7AB106B8BE28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9DD181F-7C57-467F-938B-7AB106B8BE28}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,21 +4,9 @@
 #authorized-content-container {
     display: flex;
     flex-flow: column nowrap;
-    height: 100%;
     width: 100%;
+    padding: 1em;
     overflow: hidden;
-
-    @include for-phone-only() {
-        padding: 1em;
-    }
-
-    @include for-tablet-up() {
-        padding: 1em 3em;
-    }
-
-    @include for-desktop-up() {
-        padding: 1em 5em;
-    }
 
     #authorized-content-header {
         display: flex;
@@ -40,7 +28,7 @@
     }
 
     #authorized-content-items {
-        flex: 1;
+        flex: 1 1 auto;
         overflow: auto;
 
         .client-content-container {

@@ -29,6 +29,7 @@ using AuditLogLib.Event;
 using MillimanAccessPortal.Authorization;
 using Microsoft.Extensions.Configuration;
 using MapCommonLib;
+using MapCommonLib.ActionFilters;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -128,19 +129,9 @@ namespace MillimanAccessPortal.Controllers
                                 
                 if (passwordSuccess && user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow)
                 {
-                    string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                    string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
+                    await SendPasswordResetEmail(user, Url);
 
-                    string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
-
-                    string emailBody = $"The password for your Milliman Access Portal account has expired.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}{Environment.NewLine}";
-                    emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
-                    emailBody += $"{linkUrl}";
-                    _messageSender.QueueEmail(user.Email, "MAP password reset", emailBody);
-
-                    _auditLogger.Log(AuditEventType.UserPasswordExpired.ToEvent(user));
                     _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
-
                     string WhatHappenedMessage = "Your password has expired. Check your email for a link to reset your password.";
                     return View("Message", WhatHappenedMessage);
                 }
@@ -164,6 +155,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
+                    var lockoutMessage = "This account has been locked out, please try again later.";
                     if (result.RequiresTwoFactor)
                     {
                         return RedirectToAction(nameof(SendCode), new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
@@ -173,14 +165,14 @@ namespace MillimanAccessPortal.Controllers
                         ModelState.AddModelError(string.Empty, "User login is not allowed.");
                         _logger.LogWarning(2, $"User login not allowed: {model.Username}");
                         _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
-                        return View("Lockout");
+                        return View("Message", lockoutMessage);
                     }
                     else if (result.IsLockedOut)
                     {
                         ModelState.AddModelError(string.Empty, "User account is locked out.");
                         _logger.LogWarning(2, "User account locked out.");
                         _auditLogger.Log(AuditEventType.LoginIsLockedOut.ToEvent(), model.Username);
-                        return View("Lockout");
+                        return View("Message", lockoutMessage);
                     }
                     else
                     {
@@ -325,7 +317,8 @@ namespace MillimanAccessPortal.Controllers
             }
             if (result.IsLockedOut)
             {
-                return View("Lockout");
+                var lockoutMessage = "This account has been locked out, please try again later.";
+                return View("Message", lockoutMessage);
             }
             else
             {
@@ -391,6 +384,21 @@ namespace MillimanAccessPortal.Controllers
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
         }
 
+        [NonAction]
+        public async Task SendPasswordResetEmail(ApplicationUser RequestedUser, IUrlHelper Url)
+        {
+            string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(RequestedUser);
+            string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = RequestedUser.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
+
+            string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
+
+            string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
+            emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
+            emailBody += $"{linkUrl}";
+            _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
+
+            _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser));
+        }
         
 
         // GET: /Account/EnableAccount
@@ -525,17 +533,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     if (await _userManager.IsEmailConfirmedAsync(user))
                     {
-                        string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                        string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
-
-                        string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
-
-                        string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
-                        emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
-                        emailBody += $"{linkUrl}";
-                        _messageSender.QueueEmail(model.Email, "MAP password reset", emailBody);
-
-                        _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
+                        await SendPasswordResetEmail(user, Url);
                     }
                     else
                     {
@@ -552,16 +550,8 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            return View("ForgotPasswordConfirmation", model);
-        }
-
-        //
-        // GET: /Account/ForgotPasswordConfirmation
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult ForgotPasswordConfirmation()
-        {
-            return View();
+            var passwordConfirmationMessage = "Please check your email inbox for a password reset notification.";
+            return View("Message", passwordConfirmationMessage);
         }
 
         //
@@ -581,11 +571,20 @@ namespace MillimanAccessPortal.Controllers
 
             if (!tokenIsValid)
             {
-                string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
+                string UserMsg = "";
+                if (await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    await SendPasswordResetEmail(user, Url);
+                    UserMsg = "Your password reset link has expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
+                }
+                else
+                {
+                    string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
+                    Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
 
-                string WhatHappenedMessage = "Your password reset link is invalid or may have expired. A new welcome email has been sent, which contains a new account activation link.";
-                return View("Message", WhatHappenedMessage);
+                    UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
+                }
+                return View("Message", UserMsg);
             }
 
             ResetPasswordViewModel model = new ResetPasswordViewModel
@@ -609,11 +608,12 @@ namespace MillimanAccessPortal.Controllers
                 model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
                 return View(model);
             }
+            var passwordResetMessage = "Your password has been reset. <a href=\"/Account/Login\">Click here to log in</a>.";
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
-                return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
+                return View("Message", passwordResetMessage);
             }
             var result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.NewPassword);
             if (result.Succeeded)
@@ -629,28 +629,28 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user));
-                return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
+                return View("Message", passwordResetMessage);
             }
             else if (result.Errors.Any(e => e.Code == "InvalidToken"))  // Happens when token is expired. I don't know whether it could indicate anything else
             {
-                string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
+                string UserMsg = "";
+                if (await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    await SendPasswordResetEmail(user, Url);
+                    UserMsg = "Your password reset link has expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
+                }
+                else
+                {
+                    string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
+                    Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
 
-                string WhatHappenedMessage = "Your previous Milliman Access Portal password reset link is invalid and may have expired.";
-                return View("Message", WhatHappenedMessage);
+                    UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
+                }
+                return View("Message", UserMsg);
             }
             AddErrors(result);
             model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
             return View(model);
-        }
-
-        //
-        // GET: /Account/ResetPasswordConfirmation
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult ResetPasswordConfirmation()
-        {
-            return View();
         }
 
         //
@@ -662,13 +662,13 @@ namespace MillimanAccessPortal.Controllers
             List<NavBarElementModel> NavBarElements = new List<NavBarElementModel> { };
             long order = 1;
 
-            // Add the Authorized Content Element
+            // Add the Content Element
             NavBarElements.Add(new NavBarElementModel
             {
                 Order = order++,
-                Label = "Authorized Content",
+                Label = "Content",
                 URL = nameof(AuthorizedContentController).Replace("Controller", ""),
-                View = "AuthorizedContent",
+                View = "Content",
                 Icon = "content-grid",
             });
 
@@ -701,20 +701,6 @@ namespace MillimanAccessPortal.Controllers
                 });
             }
 
-            // Conditionally add the Content Access Element
-            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
-            if (ContentAccessResult.Succeeded)
-            {
-                NavBarElements.Add(new NavBarElementModel
-                {
-                    Order = order++,
-                    Label = "Manage Access",
-                    URL = nameof(ContentAccessAdminController).Replace("Controller", ""),
-                    View = "ContentAccessAdmin",
-                    Icon = "content-access",
-                });
-            }
-
             // Conditionally add the Content Publishing Element
             AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
             if (ContentPublishResult.Succeeded)
@@ -726,6 +712,20 @@ namespace MillimanAccessPortal.Controllers
                     URL = nameof(ContentPublishingController).Replace("Controller", ""),
                     View = "ContentPublishing",
                     Icon = "content-publishing",
+                });
+            }
+
+            // Conditionally add the Content Access Element
+            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+            if (ContentAccessResult.Succeeded)
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "Manage Access",
+                    URL = nameof(ContentAccessAdminController).Replace("Controller", ""),
+                    View = "ContentAccessAdmin",
+                    Icon = "content-access",
                 });
             }
 
@@ -834,7 +834,8 @@ namespace MillimanAccessPortal.Controllers
             if (result.IsLockedOut)
             {
                 _logger.LogWarning(7, "User account locked out.");
-                return View("Lockout");
+                var lockoutMessage = "This account has been locked out, please try again later.";
+                return View("Message", lockoutMessage);
             }
             else
             {
@@ -913,7 +914,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> CheckPasswordValidity([FromBody] CheckPasswordViewModel Model)
+        public async Task<ActionResult> CheckPasswordValidity(CheckPasswordViewModel Model)
         {
             var passwordValidationErrors = new List<string>();
 
@@ -991,6 +992,13 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", $"Password update failed");
                 return BadRequest();
             }
+        }
+
+        [HttpGet]
+        [PreventAuthRefresh]
+        public IActionResult SessionStatus()
+        {
+            return Ok();
         }
 
         #region Helpers

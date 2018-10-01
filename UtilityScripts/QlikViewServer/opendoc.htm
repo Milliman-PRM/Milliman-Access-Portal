@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:zfp="http://www.qliktech.com/zfp" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>QlikView</title>
+    <meta charset="utf-8" http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" type="image/x-icon" href="/QvAjaxZfc/htc/Images/favicon.ico" />
+    <link rel="stylesheet" type="text/css"  href="/QvAjaxZfc/htc/default.css" />
+    <link rel="stylesheet" type="text/css"  href="/QvAjaxZfc/htc/map-overrides.css" />
+    <link rel="apple-touch-icon" href="/QvAjaxZfc/htc/Images/Touch/touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/QvAjaxZfc/htc/Images/Touch/touch-icon_72x72.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/QvAjaxZfc/htc/Images/Touch/touch-icon_114x114.png" />
+	<script type="text/javascript" src="/QvAjaxZfc/htc/QvAjax.js"></script>
+</head>
+
+	<body class="QvPageBody" avq="background:.SheetBackground">
+		<div avq="toolbar:.StandardActions" id="QvAjaxToolbar">
+			<ul id="QvAjaxToolbar-right" class="ctx-menu ui-helper-clearfix">
+				<li class="cf" style="list-style:none">
+					<a id="Close">
+						<span class="cell-icon cell-CLOSE-icon"></span>
+						<span class="ctx-menu-text">Close</span>
+					</a>
+				</li>
+			</ul>
+
+			<div id="InitialLoader">
+				<img alt="" src="/QvAjaxZfc/htc/Images/Working.gif"/>
+				<span class="ctx-menu-text">Loading...</span>
+			</div>
+		</div>
+		<div id="Tabrow" avq="tabrow2:.TabRow" class="use-new-tabrow shadetabs2"></div>
+		<div id="PageContainer">
+			<div id="MainContainer"></div>
+		</div>
+		<img alt="" id="WorkingGif" src="/QvAjaxZfc/htc/Images/Working.gif" style="display:none;"/>
+		<script type="text/javascript">
+			var qva;
+
+			function Init() {
+				var doc = Qva.ExtractProperty("document", null);
+				var re = new RegExp("^(//[^:/]+(?::\\d+)?/)?([^#]+)");
+				var segm = re.exec(doc);
+				doc = segm && segm[2];
+				var invite = Qva.ExtractProperty("invite", null);
+				if(invite) doc = "";
+
+				if(doc != null) {
+					qva = new Qva.PageBinding();
+					qva.View = doc;
+					qva.Autoview = "";
+					qva.ShowDocumentTitle = true;
+					qva.AuthenticateUrl = '/QvAjaxZfc/Authenticate.aspx';
+                
+					new Qva.Modal();
+					new Qva.Scanner(qva);
+                
+					qva.AutoViewAppend (null, qva.DefaultScope, 'servercontrol');
+					new Qva.Collaboration(qva, document.getElementById("MainContainer"));
+					Qva.DragDrop.DropDefault = {
+						'Inside': function(pos, type) {
+							if (type == 'Field' || type == 'Dimension' || type == 'ObjectType') {                            
+								return { 'Element': 'Document.ActiveSheet' };
+							} else if (type == 'Object') {                            
+								return { 'Element': 'Document.ActiveSheet', 'Dialog': 'Drop.qvpp' };
+							} else {
+								return null;
+							}
+						}
+					};
+					new Qva.Extensions(qva);
+
+					qva.AddManager({
+						'Name': qva.DefaultScope + ".Modal",
+						'Paint': function (mode, node) {
+							var width = parseInt(node.getAttribute('width'));
+							var height = parseInt(node.getAttribute('height'));
+							var name = node.getAttribute('value');
+							var url = Qva.Remote + '?public=only&name=' + Qva.EncodeComponent(name) + '.htm';
+							var params = node.getElementsByTagName("param");
+							for(var i = 0; i < params.length; ++i) {
+								var key = params[i].getAttribute("key");
+								var value = params[i].getAttribute("value");
+								url += "&" + Qva.EncodeComponent(key) + "=" + Qva.EncodeComponent(value);
+							}
+							Qva.Modal.instance.Show(qva, url, width, height, true, "QvModal_SessionCollaboration");
+						}
+					});
+
+					qva._Send("add", "Document.ActiveSheet", false);
+				} else {
+					alert("No Document");
+				}
+				Qva.SetContextMenu (document, function(event) { return qva.OnContextMenu(event); });
+				Qva.Start();
+                
+                // Add event handler for close-btn
+                Qva.Events.AddClickEvent($('#Close'), CloseSession);
+			}
+			function CloseSession(e) {
+				document.body.style.background = "";
+				$('#MainContainer, #Tabrow, #QvAjaxToolbar > ul:last').html("");
+				$('body > script').nextAll().remove();
+            
+				qva.Enabled = false;
+            
+				qva.Ready = function () {};
+				qva.OnContextMenu = function () { };
+				qva.SendClose();
+            
+                // Replace text and event for button
+				var closebtn = $('#Close');
+				if (closebtn.length) {
+				    Qva.Events.RemoveClickEvent(closebtn);
+				    Qva.Events.AddClickEvent(closebtn, RestoreSession);
+				    closebtn.find('.ctx-menu-text')
+                        .text(closebtn[0].RestoreText || "Restore");
+				}
+			}
+			function RestoreSession() {
+				window.location = window.location;
+			}
+			function Assert(exp, message) {
+				if (!exp) { 
+					if(message) { alert(message); }
+					debugger;
+				}
+				return exp;
+			}
+            if (typeof(Qva.Mgr) === "undefined") { 
+				Qva.GetDebugFiles(Init);
+			} else { Init(); }
+		</script>
+		<script type="text/javascript" src="/QvAjaxZfc/htc/ScaleToFit.js"></script>
+	</body>
+</html>
