@@ -20,13 +20,7 @@
 ########################
 # Compiled Razor pages #
 ########################
-**/Account/*.cshtml
-**/AuthorizedContent/*.cshtml
-**/ClientAdmin/*.cshtml
-**/ContentAccessAdmin/*.cshtml
-**/ContentPublishing/*.cshtml
-**/SystemAdmin/*.cshtml
-**/Shared/Message.cshtml
+Views/
 ####################
 # VS Upgrade stuff #
 ####################
