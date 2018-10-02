@@ -21,6 +21,7 @@ namespace AuditLogLib
         private static Task WorkerTask = null;
         private static int InstanceCount = 0;
         private static object ThreadSafetyLock = new object();
+        private static int RetryCount = 0;
         public static AuditLoggerConfiguration Config
         {
             set;
@@ -48,9 +49,10 @@ namespace AuditLogLib
             lock (ThreadSafetyLock)
             {
                 InstanceCount--;
-                if (InstanceCount == 0 && WaitForWorkerThreadEnd(1000))  // Not the best stategy
+                if (InstanceCount == 0 && WaitForWorkerThreadEnd(3000))  // Not the best stategy
                 {
                     WorkerTask = null;
+                    RetryCount = 0;
                 }
             }
         }
@@ -169,12 +171,6 @@ namespace AuditLogLib
                         }
                         catch (Exception e)
                         {
-                            // Re-queue the messages to be logged
-                            foreach (AuditEvent RecoveredEvent in NewEventsToStore)
-                            {
-                                LogEventQueue.Enqueue(RecoveredEvent);
-                            }
-
                             string ErrorLogFolder = System.IO.Path.Combine(Config.ErrorLogRootFolder, "ErrorLog");
                             System.IO.Directory.CreateDirectory(ErrorLogFolder);
                             string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyy-MM-ddThh-mm-ss")}.AuditLogException.txt");
@@ -185,7 +181,20 @@ namespace AuditLogLib
                             }
                             System.IO.File.WriteAllText(ErrorLogFile, Msg);
 
-                            Thread.Sleep(2000);
+                            if (RetryCount < 5)
+                            {
+                                foreach (AuditEvent RecoveredEvent in NewEventsToStore)
+                                {
+                                    LogEventQueue.Enqueue(RecoveredEvent);
+                                }
+                                RetryCount++;
+                                Thread.Sleep(2000);
+                            }
+                            else
+                            {
+                                RetryCount = 0;
+                            }
+                            // Re-queue the messages to be logged
                         }
                     }
                 }
