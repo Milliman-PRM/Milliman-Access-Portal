@@ -175,8 +175,6 @@ if ($IsMerged.ToLower() -eq 'true' -and $env:Action.ToLower() -eq 'closed') {
 
     log_statement "Deploying $MergeBase to dev infrastructure"
 
-    Remove-Item -path $nugetDestination -Recurse -Force
-
     $checkoutPath = "$env:TEMP\Milliman-Access-Portal\"
     Set-Location $env:TEMP
     & $gitExePath clone $CloneURL
