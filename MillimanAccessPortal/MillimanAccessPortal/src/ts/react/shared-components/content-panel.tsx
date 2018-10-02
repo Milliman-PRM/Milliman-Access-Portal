@@ -10,7 +10,7 @@ import { AddUserToProfitCenterModal } from '../system-admin/modals/add-user-to-p
 import { CreateProfitCenterModal } from '../system-admin/modals/create-profit-center';
 import { CreateUserModal } from '../system-admin/modals/create-user';
 import { ActionIcon } from './action-icon';
-import { Card, withActivated } from './card';
+import { Card } from './card';
 import { ColumnSelector } from './column-selector';
 import { Entity, EntityHelper } from './entity';
 import { Filter } from './filter';
@@ -53,9 +53,6 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     }
     return null;
   }
-
-  // tslint:disable-next-line:variable-name
-  private UserCard = withActivated(Card);
 
   private get url() {
     return this.props.selectedDataSource.infoAction
@@ -140,7 +137,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         <li
           key={entity.id}
         >
-          <this.UserCard
+          <Card
             {...entity}
             selected={entity.id === this.props.selectedCard}
             // tslint:disable-next-line:jsx-no-lambda

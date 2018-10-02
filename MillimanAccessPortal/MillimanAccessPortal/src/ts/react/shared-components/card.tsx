@@ -15,6 +15,7 @@ export interface CardProps extends Entity {
   setSelected: () => void;
   resetButton?: boolean;
   resetButtonText?: string;
+  activated?: boolean;
   sublistInfo: {
     title: string;
     icon: string;
@@ -71,7 +72,7 @@ export class Card extends React.Component<CardProps, CardState> {
       ? (
         <div
           className="card-button-background card-button-blue"
-          title={this.props.resetButtonText || 'Send password reset email'}
+          title={this.props.activated ? 'Send password reset email' : 'Resend account activation email'}
           onClick={this.sendPasswordReset}
         >
           <svg className="card-button-icon">
@@ -181,7 +182,8 @@ export class Card extends React.Component<CardProps, CardState> {
             <div className="card-body-main-container">
               <div className="card-body-primary-container">
                 <h2 className="card-body-primary-text">
-                  {this.props.primaryText + (this.props.suspended ? ' (Suspended)' : '')}
+                  {this.props.activated ? this.props.primaryText : '(Unactivated)'}
+                  {this.props.suspended ? ' (Suspended)' : ''}
                 </h2>
                 <p className="card-body-secondary-text">
                   {this.props.secondaryText}
@@ -269,27 +271,4 @@ export class Card extends React.Component<CardProps, CardState> {
       this.closeModal();
     });
   }
-}
-
-interface WithActivatedProps {
-  activated: boolean;
-}
-
-// tslint:disable-next-line:variable-name
-export function withActivated(Component: React.ComponentType<CardProps>) {
-  return class extends React.Component<CardProps & WithActivatedProps> {
-    public render() {
-      const { activated } = this.props as WithActivatedProps;
-      const props = this.props as CardProps;
-      return activated
-        ? <Component {...props} />
-        : (
-          <Component
-            {...props}
-            primaryText={'(Unactivated)'}
-            resetButtonText={'Resend account activation email'}
-          />
-        );
-    }
-  };
 }
