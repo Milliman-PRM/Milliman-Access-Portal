@@ -111,8 +111,15 @@ namespace AuditLogLib
                     Event.User = UserNameArg ?? _contextAccessor.HttpContext?.User?.Identity?.Name;
                     Event.SessionId = SessionIdArg ?? _contextAccessor.HttpContext?.Session?.Id;
                 }
-                catch (Exception) // Nothing should stop this from proceding
-                {}
+                catch (Exception e) // Nothing should stop this from proceding
+                {
+                    string ErrorLogFolder = System.IO.Path.Combine(Config.ErrorLogRootFolder, "ErrorLog");
+                    System.IO.Directory.CreateDirectory(ErrorLogFolder);
+                    string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyy-MM-ddThh-mm-ss")}.AuditLogException.txt");
+                    string Msg = $"{GlobalFunctions.LoggableExceptionString(e, "AuditLog User/SessionId assignment from injected services exception:", true, true)}";
+                    Msg += $"{Environment.NewLine}UserNameArg was: {UserNameArg}, SessionIdArg was: {SessionIdArg}";
+                    System.IO.File.WriteAllText(ErrorLogFile, Msg);
+                }
             }
 
             Event.Assembly = _assemblyName;
@@ -150,13 +157,36 @@ namespace AuditLogLib
                     {
                         List<AuditEvent> NewEventsToStore = new List<AuditEvent>();
 
-                        while (LogEventQueue.TryDequeue(out AuditEvent NextEvent))
+                        try
                         {
-                            NewEventsToStore.Add(NextEvent);
-                        }
+                            while (LogEventQueue.TryDequeue(out AuditEvent NextEvent))
+                            {
+                                NewEventsToStore.Add(NextEvent);
+                            }
 
-                        Db.AuditEvent.AddRange(NewEventsToStore);
-                        Db.SaveChanges();
+                            Db.AuditEvent.AddRange(NewEventsToStore);
+                            Db.SaveChanges();
+                        }
+                        catch (Exception e)
+                        {
+                            // Re-queue the messages to be logged
+                            foreach (AuditEvent RecoveredEvent in NewEventsToStore)
+                            {
+                                LogEventQueue.Enqueue(RecoveredEvent);
+                            }
+
+                            string ErrorLogFolder = System.IO.Path.Combine(Config.ErrorLogRootFolder, "ErrorLog");
+                            System.IO.Directory.CreateDirectory(ErrorLogFolder);
+                            string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyy-MM-ddThh-mm-ss")}.AuditLogException.txt");
+                            string Msg = $"{GlobalFunctions.LoggableExceptionString(e, "AuditLog persistence exception:", true, true)}";
+                            if (NewEventsToStore != null)
+                            {
+                                Msg += $"{Environment.NewLine}NewEventsToStore was:{Environment.NewLine}{Newtonsoft.Json.JsonConvert.SerializeObject(NewEventsToStore)}";
+                            }
+                            System.IO.File.WriteAllText(ErrorLogFile, Msg);
+
+                            Thread.Sleep(2000);
+                        }
                     }
                 }
 
