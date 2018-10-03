@@ -18,6 +18,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public string StatusName { get; set; }
         public Guid SelectionGroupId { get; set; }
         public Guid? RootContentItemId { get; set; }
+        public TimeSpan QueuedDuration { get; set; }
+        public int QueuePosition { get; set; } = -1;
 
         public static explicit operator ReductionSummary(ContentReductionTask contentReductionTask)
         {
@@ -27,11 +29,12 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             }
             return new ReductionSummary
             {
-                User = ((UserInfoViewModel) contentReductionTask.ApplicationUser),
+                User = ((UserInfoViewModel)contentReductionTask.ApplicationUser),
                 StatusEnum = contentReductionTask.ReductionStatus,
                 StatusName = ContentReductionTask.ReductionStatusDisplayNames[contentReductionTask.ReductionStatus],
                 SelectionGroupId = contentReductionTask.SelectionGroupId,
                 RootContentItemId = contentReductionTask.ContentPublicationRequest?.RootContentItemId,
+                QueuedDuration = DateTime.UtcNow - contentReductionTask.CreateDateTimeUtc,
             };
         }
     }
