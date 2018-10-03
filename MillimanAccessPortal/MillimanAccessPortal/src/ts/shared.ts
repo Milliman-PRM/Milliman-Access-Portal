@@ -416,6 +416,22 @@ export function eligibleUserMatcher(query: string, callback: (matches: any) => v
 }
 
 // Card helpers
+function msToTimeReferenceString(timeMs: number) {
+  // Approximate days, hours, and months
+  const days = Math.round(timeMs / 1000 / 60 / 60 / 24);
+  const hours = Math.round(timeMs / 1000 / 60 / 60 % 24);
+  const minutes = Math.round(timeMs / 1000 / 60 % 60);
+  if (days) {
+    return ` ${days} day${days - 1 ? 's' : ''} ago`;
+  } else if (hours) {
+    return ` ${hours} hour${days - 1 ? 's' : ''} ago`;
+  } else if (minutes) {
+    return ` ${minutes} minute${days - 1 ? 's' : ''} ago`;
+  } else {
+    return ' just now';
+  }
+}
+
 export function updateCardStatus($card, reductionDetails) {
   const $statusContainer = $card.find('.card-status-container');
   const $statusTop = $statusContainer.find('.status-top');
@@ -446,22 +462,9 @@ export function updateCardStatus($card, reductionDetails) {
     .addClass('status-' + details.StatusEnum);
   let statusTop = `<strong>${details.StatusName}</strong>`;
   let statusBot = `Initiated by ${details.User.FirstName[0]}. ${details.User.LastName}`;
-  let durationText = '';
-  if (details.QueuedDuration >= 0) {
-    // These are approximations but are good enough for basic uses
-    const days = Math.round(details.QueuedDuration / 1000 / 60 / 60 / 24);
-    const hours = Math.round(details.QueuedDuration / 1000 / 60 / 60 % 24);
-    const minutes = Math.round(details.QueuedDuration / 1000 / 60 % 60);
-    if (days) {
-      durationText = ` ${days} day${days - 1 ? 's' : ''} ago`;
-    } else if (hours) {
-      durationText = ` ${hours} hour${days - 1 ? 's' : ''} ago`;
-    } else if (minutes) {
-      durationText = ` ${minutes} minute${days - 1 ? 's' : ''} ago`;
-    } else {
-      durationText = ' just now';
-    }
-  }
+  const durationText = details.QueuedDuration > 0
+    ? msToTimeReferenceString(details.QueuedDuration)
+    : '';
   if (!details.SelectionGroupId) {
     // Publication status
     if (details.StatusName === 'Queued') {
