@@ -21,6 +21,7 @@ namespace AuditLogLib
         private static Task WorkerTask = null;
         private static int InstanceCount = 0;
         private static object ThreadSafetyLock = new object();
+        private static int RetryCount = 0;
         public static AuditLoggerConfiguration Config
         {
             set;
@@ -48,9 +49,10 @@ namespace AuditLogLib
             lock (ThreadSafetyLock)
             {
                 InstanceCount--;
-                if (InstanceCount == 0 && WaitForWorkerThreadEnd(1000))  // Not the best stategy
+                if (InstanceCount == 0 && WaitForWorkerThreadEnd(3000))  // Not the best stategy
                 {
                     WorkerTask = null;
+                    RetryCount = 0;
                 }
             }
         }
@@ -111,8 +113,15 @@ namespace AuditLogLib
                     Event.User = UserNameArg ?? _contextAccessor.HttpContext?.User?.Identity?.Name;
                     Event.SessionId = SessionIdArg ?? _contextAccessor.HttpContext?.Session?.Id;
                 }
-                catch (Exception) // Nothing should stop this from proceding
-                {}
+                catch (Exception e) // Nothing should stop this from proceding
+                {
+                    string ErrorLogFolder = System.IO.Path.Combine(Config.ErrorLogRootFolder, "ErrorLog");
+                    System.IO.Directory.CreateDirectory(ErrorLogFolder);
+                    string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyy-MM-ddThh-mm-ss")}.AuditLogException.txt");
+                    string Msg = $"{GlobalFunctions.LoggableExceptionString(e, "AuditLog User/SessionId assignment from injected services exception:", true, true)}";
+                    Msg += $"{Environment.NewLine}UserNameArg was: {UserNameArg}, SessionIdArg was: {SessionIdArg}";
+                    System.IO.File.WriteAllText(ErrorLogFile, Msg);
+                }
             }
 
             Event.Assembly = _assemblyName;
@@ -150,13 +159,43 @@ namespace AuditLogLib
                     {
                         List<AuditEvent> NewEventsToStore = new List<AuditEvent>();
 
-                        while (LogEventQueue.TryDequeue(out AuditEvent NextEvent))
+                        try
                         {
-                            NewEventsToStore.Add(NextEvent);
-                        }
+                            while (LogEventQueue.TryDequeue(out AuditEvent NextEvent))
+                            {
+                                NewEventsToStore.Add(NextEvent);
+                            }
 
-                        Db.AuditEvent.AddRange(NewEventsToStore);
-                        Db.SaveChanges();
+                            Db.AuditEvent.AddRange(NewEventsToStore);
+                            Db.SaveChanges();
+                        }
+                        catch (Exception e)
+                        {
+                            string ErrorLogFolder = System.IO.Path.Combine(Config.ErrorLogRootFolder, "ErrorLog");
+                            System.IO.Directory.CreateDirectory(ErrorLogFolder);
+                            string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyy-MM-ddThh-mm-ss")}.AuditLogException.txt");
+                            string Msg = $"{GlobalFunctions.LoggableExceptionString(e, "AuditLog persistence exception:", true, true)}";
+                            if (NewEventsToStore != null)
+                            {
+                                Msg += $"{Environment.NewLine}NewEventsToStore was:{Environment.NewLine}{Newtonsoft.Json.JsonConvert.SerializeObject(NewEventsToStore)}";
+                            }
+                            System.IO.File.WriteAllText(ErrorLogFile, Msg);
+
+                            if (RetryCount < 5)
+                            {
+                                foreach (AuditEvent RecoveredEvent in NewEventsToStore)
+                                {
+                                    LogEventQueue.Enqueue(RecoveredEvent);
+                                }
+                                RetryCount++;
+                                Thread.Sleep(2000);
+                            }
+                            else
+                            {
+                                RetryCount = 0;
+                            }
+                            // Re-queue the messages to be logged
+                        }
                     }
                 }
 
