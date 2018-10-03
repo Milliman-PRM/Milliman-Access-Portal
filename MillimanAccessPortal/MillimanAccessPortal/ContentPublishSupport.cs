@@ -90,8 +90,9 @@ namespace MillimanAccessPortal
 
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
-                var publicationRequest = Db.ContentPublicationRequest.Single(r => r.Id == publicationRequestId);
-                if (publicationRequest.RequestStatus == PublicationStatus.Canceled)
+                var publicationRequest = Db.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
+                var publicationStatus = publicationRequest?.RequestStatus ?? PublicationStatus.Canceled;
+                if (publicationStatus == PublicationStatus.Canceled)
                 {
                     return;
                 }
