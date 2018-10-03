@@ -2,9 +2,15 @@
 
 ## Release Notes
 
-## v1.0.0
+## v1.0.2
 
-- Intitial Release of the Milliman Access Portal (MAP)
+### User-visible Changes
+
+- None
+
+### Lower-Level Changes
+
+- Improved stability of publishing server
 
 ## v1.0.1
 
@@ -15,3 +21,8 @@
 ### Lower-Level Changes
 
 - Improved exception handing in the audit logger
+
+## v1.0.0
+
+- Intitial Release of the Milliman Access Portal (MAP)
+
