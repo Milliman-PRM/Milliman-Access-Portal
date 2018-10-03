@@ -61,12 +61,12 @@
         color: $white;
         border: 2px solid $charcoal;
 
-        em:before {
-            content: "(created by ";
+        span {
+            display: block;
         }
 
-        em:after {
-            content: ")";
+        .status-bot {
+            font-size: 0.8rem;
         }
 
         &.status-9 {
