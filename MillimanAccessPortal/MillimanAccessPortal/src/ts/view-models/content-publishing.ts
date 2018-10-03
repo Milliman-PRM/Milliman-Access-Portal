@@ -62,6 +62,9 @@ export interface PublicationSummary {
   StatusName: string;
   SelectionGroupId: string;
   RootContentItemId: string;
+  QueuedDuration?: Date;
+  QueuePosition?: number;
+  QueueTotal?: number;
 }
 export interface RootContentItemSummary {
   Id: string;
