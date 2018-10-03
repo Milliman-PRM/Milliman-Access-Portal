@@ -28,7 +28,7 @@ namespace ContentPublishingLib.JobMonitors
         {
             internal Task<PublishJobDetail> task;
             internal CancellationTokenSource tokenSource;
-            internal ContentPublicationRequest dbRequest;
+            internal Guid requestId;
         }
 
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
@@ -161,7 +161,7 @@ namespace ContentPublishingLib.JobMonitors
 
                         if (NewTask != null)
                         {
-                            ActivePublicationRunnerItems.Add(new PublishJobTrackingItem { dbRequest = DbRequest, task = NewTask, tokenSource = cancelSource });
+                            ActivePublicationRunnerItems.Add(new PublishJobTrackingItem { requestId = DbRequest.Id, task = NewTask, tokenSource = cancelSource });
                         }
                     }
                 }
@@ -195,7 +195,7 @@ namespace ContentPublishingLib.JobMonitors
 
                 foreach (var Item in ActivePublicationRunnerItems)
                 {
-                    GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.dbRequest.Id.ToString()} not completed");
+                    GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.requestId.ToString()} not completed");
                 }
             }
 
