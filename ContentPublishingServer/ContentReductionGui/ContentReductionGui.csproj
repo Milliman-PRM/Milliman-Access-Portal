@@ -85,11 +85,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ContentPublishingLib\ContentPublishingLib.csproj">
       <Project>{c9e25bdc-e5bd-4499-8a16-6d251b6c0558}</Project>
       <Name>ContentPublishingLib</Name>
