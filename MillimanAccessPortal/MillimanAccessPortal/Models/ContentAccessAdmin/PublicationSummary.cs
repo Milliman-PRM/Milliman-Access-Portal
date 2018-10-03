@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Linq;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.AccountViewModels;
@@ -34,8 +35,41 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 StatusEnum = contentPublicationRequest.RequestStatus,
                 RootContentItemId = contentPublicationRequest.RootContentItemId,
                 StatusMessage = contentPublicationRequest.StatusMessage,
-                QueuedDuration = DateTime.UtcNow - contentPublicationRequest.CreateDateTimeUtc,
+                QueuedDuration = contentPublicationRequest.RequestStatus.IsActive()
+                    ? DateTime.UtcNow - contentPublicationRequest.CreateDateTimeUtc
+                    : TimeSpan.Zero,
             };
+        }
+    }
+
+    public static class PublicationSummaryExtensions
+    {
+        public static PublicationSummary ToSummaryWithQueueInformation(this ContentPublicationRequest publicationRequest, ApplicationDbContext dbContext)
+        {
+            var publicationSummary = (PublicationSummary)publicationRequest;
+
+            if (publicationRequest.RequestStatus.IsCancelable())
+            {
+                var precedingPublicationRequestCount = dbContext.ContentPublicationRequest
+                    .Where(r => r.CreateDateTimeUtc < publicationRequest.CreateDateTimeUtc)
+                    .Where(r => r.RequestStatus.IsCancelable())
+                    .Count();
+                publicationSummary.QueuePosition = precedingPublicationRequestCount;
+            }
+            else if (publicationRequest.RequestStatus.IsActive())
+            {
+                var relatedReductionTaskCount = dbContext.ContentReductionTask
+                    .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
+                    .Count();
+                var completedReductionTaskCount = dbContext.ContentReductionTask
+                    .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
+                    .Where(t => !t.ReductionStatus.IsCancelable())
+                    .Count();
+                publicationSummary.QueuePosition = completedReductionTaskCount;
+                publicationSummary.QueueTotal = relatedReductionTaskCount;
+            }
+
+            return publicationSummary;
         }
     }
 }

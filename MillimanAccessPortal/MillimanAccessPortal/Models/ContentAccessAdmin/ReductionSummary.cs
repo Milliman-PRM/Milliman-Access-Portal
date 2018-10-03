@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Linq;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.AccountViewModels;
@@ -34,8 +35,29 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 StatusName = ContentReductionTask.ReductionStatusDisplayNames[contentReductionTask.ReductionStatus],
                 SelectionGroupId = contentReductionTask.SelectionGroupId,
                 RootContentItemId = contentReductionTask.ContentPublicationRequest?.RootContentItemId,
-                QueuedDuration = DateTime.UtcNow - contentReductionTask.CreateDateTimeUtc,
+                QueuedDuration = contentReductionTask.ReductionStatus.IsActive()
+                    ? DateTime.UtcNow - contentReductionTask.CreateDateTimeUtc
+                    : TimeSpan.Zero,
             };
+        }
+    }
+
+    public static class ReductionSummaryExtensions
+    {
+        public static ReductionSummary ToSummaryWithQueueInformation(this ContentReductionTask reductionTask, ApplicationDbContext dbContext)
+        {
+            var reductionSummary = (ReductionSummary)reductionTask;
+
+            if (reductionTask.ReductionStatus.IsCancelable())
+            {
+                var precedingReductionTaskCount = dbContext.ContentReductionTask
+                    .Where(r => r.CreateDateTimeUtc < reductionTask.CreateDateTimeUtc)
+                    .Where(r => r.ReductionStatus.IsCancelable())
+                    .Count();
+                reductionSummary.QueuePosition = precedingReductionTaskCount;
+            }
+
+            return reductionSummary;
         }
     }
 }
