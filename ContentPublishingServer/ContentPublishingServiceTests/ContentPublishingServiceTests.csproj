@@ -4,6 +4,12 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <Version>1.0.2</Version>
+
+    <Authors>Milliman PRM Analytics Team</Authors>
+
+    <Company>Milliman Inc.</Company>
   </PropertyGroup>
 
   <ItemGroup>

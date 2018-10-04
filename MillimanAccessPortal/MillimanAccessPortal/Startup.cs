@@ -315,6 +315,7 @@ namespace MillimanAccessPortal
             AuditLogger.Config = new AuditLoggerConfiguration
             {
                 AuditLogConnectionString = auditLogConnectionString,
+                ErrorLogRootFolder = Configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"),
             };
             #endregion
 
