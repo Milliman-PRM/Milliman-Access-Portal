@@ -419,8 +419,8 @@ export function eligibleUserMatcher(query: string, callback: (matches: any) => v
 function msToTimeReferenceString(timeMs: number) {
   // Approximate days, hours, and months
   const days = Math.round(timeMs / 1000 / 60 / 60 / 24);
-  const hours = Math.round(timeMs / 1000 / 60 / 60 % 24);
-  const minutes = Math.round(timeMs / 1000 / 60 % 60);
+  const hours = Math.round(timeMs / 1000 / 60 / 60) % 24;
+  const minutes = Math.round(timeMs / 1000 / 60) % 60;
   if (days) {
     return ` ${days} day${days - 1 ? 's' : ''} ago`;
   } else if (hours) {
@@ -468,10 +468,8 @@ export function updateCardStatus($card, reductionDetails) {
   if (!details.SelectionGroupId) {
     // Publication status
     if (details.StatusName === 'Queued') {
-      if (details.QueuePosition > 0) {
-        statusTop += ` (behind ${details.QueuePosition} other publication${details.QueuePosition - 1 ? 's' : ''})`;
-      } else {
-        statusTop += ' (next in queue)';
+      if (details.QueuePosition >= 0) {
+        statusTop += ` (behind ${details.QueuePosition + 1} other publication${details.QueuePosition ? 's' : ''})`;
       }
       statusBot += durationText;
     } else if (details.StatusName === 'Processing') {
