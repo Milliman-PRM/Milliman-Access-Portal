@@ -424,9 +424,9 @@ function msToTimeReferenceString(timeMs: number) {
   if (days) {
     return ` ${days} day${days - 1 ? 's' : ''} ago`;
   } else if (hours) {
-    return ` ${hours} hour${days - 1 ? 's' : ''} ago`;
+    return ` ${hours} hour${hours - 1 ? 's' : ''} ago`;
   } else if (minutes) {
-    return ` ${minutes} minute${days - 1 ? 's' : ''} ago`;
+    return ` ${minutes} minute${minutes - 1 ? 's' : ''} ago`;
   } else {
     return ' just now';
   }
@@ -483,10 +483,8 @@ export function updateCardStatus($card, reductionDetails) {
   } else {
     // Reduction status
     if (details.StatusName === 'Queued') {
-      if (details.QueuePosition > 0) {
-        statusTop += ` (behind ${details.QueuePosition} other reduction${details.QueuePosition - 1 ? 's' : ''})`;
-      } else {
-        statusTop += ' (next in queue)';
+      if (details.QueuePosition >= 0) {
+        statusTop += ` (behind ${details.QueuePosition + 1} other reduction${details.QueuePosition ? 's' : ''})`;
       }
       statusBot += durationText;
     } else if (details.StatusName === 'Processing' || details.StatusName === 'Processed') {
