@@ -209,7 +209,7 @@ export class Card extends React.Component<CardProps, CardState> {
     event.stopPropagation();
     postData('Account/ForgotPassword', {
       Email: this.props.email,
-    })
+    }, true)
     .then(() => {
       alert('Password reset email sent.');
     });
@@ -219,7 +219,7 @@ export class Card extends React.Component<CardProps, CardState> {
     event.stopPropagation();
     postData('SystemAdmin/DeleteProfitCenter', {
       profitCenterId: this.props.id,
-    })
+    }, true)
     .then(() => {
       alert('Profit center deleted.');
     });
