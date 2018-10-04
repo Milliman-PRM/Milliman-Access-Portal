@@ -86,9 +86,9 @@
       "src/ts/status-monitor.ts",
       "src/ts/shared.ts",
       "src/ts/check-password.ts",
-      "src/ts/react/status-monitor.ts",
-      "src/ts/upload/status-monitor.ts",
-      "src/ts/view-models/status-monitor.ts",
+      "src/ts/react/**/*.{ts,tsx}",
+      "src/ts/upload/**/*.{ts,tsx}",
+      "src/ts/view-models/**/*.{ts,tsx}",
       "src/ts/content-access-admin/selection-status-monitor.ts",
       "src/ts/content-publishing/publication-status-monitor.ts"
     ],
