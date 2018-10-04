@@ -366,7 +366,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       const dataArray: { [key: string]: string } = {};
       data.split('&')
         .map((kvp) => kvp.split('='))
-        .forEach((kvp) => dataArray[kvp[0]] = kvp[1]);
+        .forEach((kvp) => dataArray[decodeURIComponent(kvp[0])] = decodeURIComponent(kvp[1]));
       const publishRequest: PublishRequest = {
         RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
           .map((file) => {
