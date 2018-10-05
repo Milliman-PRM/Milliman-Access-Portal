@@ -2,6 +2,16 @@
 
 ## Release Notes
 
+## v1.0.3
+
+### User-visible Changes
+
+- None
+
+### Lower-Level Changes
+
+- Account enablement now occurs transactionally with error logging in case of failure.
+
 ## v1.0.2
 
 ### User-visible Changes
