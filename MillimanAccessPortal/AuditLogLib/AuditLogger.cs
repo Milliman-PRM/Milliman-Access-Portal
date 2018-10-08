@@ -116,11 +116,9 @@ namespace AuditLogLib
                 catch (Exception e) // Nothing should stop this from proceding
                 {
                     string ErrorLogFolder = System.IO.Path.Combine(Config.ErrorLogRootFolder, "ErrorLog");
-                    System.IO.Directory.CreateDirectory(ErrorLogFolder);
-                    string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyy-MM-ddThh-mm-ss")}.AuditLogException.txt");
                     string Msg = $"{GlobalFunctions.LoggableExceptionString(e, "AuditLog User/SessionId assignment from injected services exception:", true, true)}";
                     Msg += $"{Environment.NewLine}UserNameArg was: {UserNameArg}, SessionIdArg was: {SessionIdArg}";
-                    System.IO.File.WriteAllText(ErrorLogFile, Msg);
+                    GlobalFunctions.LogApplicationMessage(ErrorLogFolder, Msg, "AuditLogException");
                 }
             }
 
@@ -172,14 +170,12 @@ namespace AuditLogLib
                         catch (Exception e)
                         {
                             string ErrorLogFolder = System.IO.Path.Combine(Config.ErrorLogRootFolder, "ErrorLog");
-                            System.IO.Directory.CreateDirectory(ErrorLogFolder);
-                            string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.AuditLogException.txt");
                             string Msg = $"{GlobalFunctions.LoggableExceptionString(e, "AuditLog persistence exception:", true, true)}";
                             if (NewEventsToStore != null)
                             {
                                 Msg += $"{Environment.NewLine}NewEventsToStore was:{Environment.NewLine}{Newtonsoft.Json.JsonConvert.SerializeObject(NewEventsToStore)}";
                             }
-                            System.IO.File.WriteAllText(ErrorLogFile, Msg);
+                            GlobalFunctions.LogApplicationMessage(ErrorLogFolder, Msg, "AuditLogException");
 
                             if (RetryCount < 5)
                             {

@@ -22,6 +22,8 @@ namespace MapCommonLib
         public static readonly int fallbackAccountActivationTokenTimespanDays = 7;
         public static readonly int fallbackPasswordResetTokenTimespanHours = 4;
 
+        private static readonly string _DefaultErrorLogPath = ".";
+
         static Regex EmailAddressValidationRegex = new Regex (emailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
         public static bool IsValidEmail(string TestAddress)
@@ -127,6 +129,30 @@ namespace MapCommonLib
         {
             string messageTemplate = configuration.GetSection("Global")["ErrorMessageTemplate"];
             return string.Format(messageTemplate, subject);
+        }
+
+        /// <summary>
+        /// Writes a single message to a file named semantically for useful sorting/identification.
+        /// </summary>
+        /// <param name="LogFolder">The folder that a log file should be written</param>
+        /// <param name="Message">Text to write to the file</param>
+        /// <param name="Source">Becomes part of the log file name, useful to later identify a file of interest</param>
+        public static void LogApplicationMessage(string LogFolder, string Message, string Source = "NoSource")
+        {
+            try
+            {
+                Directory.CreateDirectory(LogFolder);
+            }
+            catch
+            {
+                LogFolder = _DefaultErrorLogPath;
+            }
+            string LogFilePath = Path.Combine(LogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.{Source}.txt");
+            try
+            {
+                File.WriteAllText(LogFilePath, Message);
+            }
+            catch { };
         }
     }
 }

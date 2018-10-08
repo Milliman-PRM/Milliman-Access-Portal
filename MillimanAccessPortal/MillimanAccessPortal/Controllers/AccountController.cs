@@ -485,11 +485,9 @@ namespace MillimanAccessPortal.Controllers
                         Response.Headers.Add("Warning", confirmEmailErrors);
 
                         // temporary
-                        string ErrorLogFolder = System.IO.Path.Combine(_configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), "ErrorLog");
-                        System.IO.Directory.CreateDirectory(ErrorLogFolder);
-                        string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.EnableAccocuntError.txt");
+                        string ErrorLogFolder = System.IO.Path.Combine(_configuration.GetValue<string>("Storage:ApplicationLog"), "ErrorLog");
                         string Msg = $"ConfirmEmail.Succeeded = false for user {user.UserName}, errors: {confirmEmailErrors}";
-                        System.IO.File.WriteAllText(ErrorLogFile, Msg);
+                        GlobalFunctions.LogApplicationMessage(ErrorLogFolder, Msg, "EnableAccocuntError");
 
                         return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
 
@@ -505,11 +503,9 @@ namespace MillimanAccessPortal.Controllers
                     Response.Headers.Add("Warning", addPasswordErrors);
 
                     // temporary
-                    string ErrorLogFolder = System.IO.Path.Combine(_configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), "ErrorLog");
-                    System.IO.Directory.CreateDirectory(ErrorLogFolder);
-                    string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.AddPasswordError.txt");
+                    string ErrorLogFolder = System.IO.Path.Combine(_configuration.GetValue<string>("Storage:ApplicationLog"), "ErrorLog");
                     string Msg = $"AddPassword.Succeeded = false for user {user.UserName}, errors: {addPasswordErrors}";
-                    System.IO.File.WriteAllText(ErrorLogFile, Msg);
+                    GlobalFunctions.LogApplicationMessage(ErrorLogFolder, Msg, "AddPasswordError");
 
                     return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
                 }
@@ -524,11 +520,9 @@ namespace MillimanAccessPortal.Controllers
                     Response.Headers.Add("Warning", addPasswordHistoryErrors);
 
                     // temporary
-                    string ErrorLogFolder = System.IO.Path.Combine(_configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), "ErrorLog");
-                    System.IO.Directory.CreateDirectory(ErrorLogFolder);
-                    string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.AddPasswordHistoryError.txt");
+                    string ErrorLogFolder = System.IO.Path.Combine(_configuration.GetValue<string>("Storage:ApplicationLog"), "ErrorLog");
                     string Msg = $"AddPassword.Succeeded = false for user {user.UserName}, errors: {addPasswordHistoryErrors}";
-                    System.IO.File.WriteAllText(ErrorLogFile, Msg);
+                    GlobalFunctions.LogApplicationMessage(ErrorLogFolder, Msg, "AddPasswordHistoryError");
 
                     return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
                 }
@@ -545,11 +539,9 @@ namespace MillimanAccessPortal.Controllers
                     Response.Headers.Add("Warning", updateAccountSettingsErrors);
 
                     // temporary
-                    string ErrorLogFolder = System.IO.Path.Combine(_configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), "ErrorLog");
-                    System.IO.Directory.CreateDirectory(ErrorLogFolder);
-                    string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.UpdateAccountSettingsError.txt");
+                    string ErrorLogFolder = System.IO.Path.Combine(_configuration.GetValue<string>("Storage:ApplicationLog"), "ErrorLog");
                     string Msg = $"UpdateAccountSettings.Succeeded = false for user {user.UserName}, errors: {updateAccountSettingsErrors}";
-                    System.IO.File.WriteAllText(ErrorLogFile, Msg);
+                    GlobalFunctions.LogApplicationMessage(ErrorLogFolder, Msg, "UpdateAccountSettingsError");
 
                     return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
                 }
