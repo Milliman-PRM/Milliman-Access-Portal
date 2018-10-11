@@ -27,6 +27,7 @@ export class ImmediateToggle extends React.Component<ImmediateToggleProps> {
             className="toggle-switch-checkbox"
             name={this.props.label}
             checked={this.props.checked}
+            onChange={() => null}
           />
           <label className="toggle-switch-label" htmlFor={this.props.label}>
             <span className="toggle-switch-inner" />

@@ -16,6 +16,7 @@ export interface CardProps extends Entity {
   resetButton?: boolean;
   resetButtonText?: string;
   activated?: boolean;
+  suspended?: boolean;
   sublistInfo: {
     title: string;
     icon: string;
@@ -182,7 +183,7 @@ export class Card extends React.Component<CardProps, CardState> {
             <div className="card-body-main-container">
               <div className="card-body-primary-container">
                 <h2 className="card-body-primary-text">
-                  {this.props.activated ? this.props.primaryText : '(Unactivated)'}
+                  {this.props.activated === false ? '(Unactivated)' : this.props.primaryText}
                   {this.props.suspended ? ' (Suspended)' : ''}
                 </h2>
                 <p className="card-body-secondary-text">
