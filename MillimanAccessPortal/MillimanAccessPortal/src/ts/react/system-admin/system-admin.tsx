@@ -9,13 +9,16 @@ import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
-import { getData } from '../../shared';
+import { getData, postData } from '../../shared';
 import { BasicNode, BasicTree } from '../../view-models/content-publishing';
 import { ContentPanel } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
 import { DataSource, Structure } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
-import { ClientInfo, ProfitCenterInfo, RootContentItemInfo, UserInfo } from './interfaces';
+import {
+  ClientInfo, Detail, PrimaryDetail, ProfitCenterInfo, RootContentItemInfo, SecondaryDetail,
+  UserInfo,
+} from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
@@ -28,6 +31,8 @@ export interface SystemAdminState {
   secondaryDataSource: string;
   primarySelectedCard: string;
   secondarySelectedCard: string;
+  primaryDetail: PrimaryDetail;
+  secondaryDetail: SecondaryDetail;
 }
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
@@ -236,6 +241,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       secondaryDataSource: null,
       primarySelectedCard: null,
       secondarySelectedCard: null,
+      primaryDetail: null,
+      secondaryDetail: null,
     };
 
     this.setPrimaryDataSource = this.setPrimaryDataSource.bind(this);
@@ -244,6 +251,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     this.setSecondarySelectedCard = this.setSecondarySelectedCard.bind(this);
     this.fetchPrimaryEntities = this.fetchPrimaryEntities.bind(this);
     this.fetchSecondaryEntities = this.fetchSecondaryEntities.bind(this);
+    this.cancelPublicationRequest = this.cancelPublicationRequest.bind(this);
+    this.cancelReductionTask = this.cancelReductionTask.bind(this);
   }
 
   public componentDidMount() {
@@ -254,8 +263,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     if (this.state.data.primaryEntities === null) {
       this.fetchPrimaryEntities();
     }
+    if (this.state.primaryDetail === null && this.state.primarySelectedCard) {
+      this.fetchPrimaryDetail();
+    }
     if (this.state.data.secondaryEntities === null && this.state.secondaryDataSource) {
       this.fetchSecondaryEntities();
+    }
+    if (this.state.secondaryDetail === null && this.state.secondarySelectedCard) {
+      this.fetchSecondaryDetail();
     }
   }
 
@@ -314,6 +329,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             selectedDataSource={primaryDataSource}
             selectedCard={this.state.primarySelectedCard}
             queryFilter={secondaryQueryFilter}
+            detail={this.state.primaryDetail}
           />
           <SecondaryDetailPanel
             controller={this.controller}
@@ -321,6 +337,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             secondarySelectedDataSource={secondaryDataSource}
             selectedCard={this.state.secondarySelectedCard}
             queryFilter={finalQueryFilter}
+            detail={this.state.secondaryDetail}
+            onCancelPublication={this.cancelPublicationRequest}
+            onCancelReduction={this.cancelReductionTask}
           />
         </div>
       </>
@@ -380,6 +399,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           : cardId,
         secondaryDataSource: prevState.secondaryDataSource || defaultSecondaryDataSource,
         secondarySelectedCard: null,
+        primaryDetail: null,
+        secondaryDetail: null,
       };
     });
   }
@@ -389,6 +410,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       secondarySelectedCard: prevState.secondarySelectedCard === cardId
         ? null
         : cardId,
+      secondaryDetail: null,
     }));
   }
 
@@ -451,6 +473,74 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           secondaryEntities: dataSource.processInfo(response),
         },
+      }));
+    });
+  }
+
+  private fetchPrimaryDetail() {
+    if (!this.state.primarySelectedCard) {
+      return;
+    }
+
+    const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
+    const queryFilter = dataSource.assignQueryFilter(this.state.primarySelectedCard);
+    getData(`/SystemAdmin/${dataSource.detailAction}`, queryFilter)
+    .then((response) => this.setState({
+      primaryDetail: response,
+    }));
+  }
+
+  private fetchSecondaryDetail() {
+    if (!this.state.secondarySelectedCard) {
+      return;
+    }
+
+    const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
+    const dataSource = this.getDataSourceByName(
+      this.getDataSources(this.state.primaryDataSource),
+      this.state.secondaryDataSource);
+    const queryFilter = {
+      ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
+      ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
+    };
+    getData(`/SystemAdmin/${dataSource.detailAction}`, queryFilter)
+    .then((response) => this.setState({
+      secondaryDetail: response,
+    }));
+  }
+
+  private cancelPublicationRequest(event: React.MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+    const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
+    const dataSource = this.getDataSourceByName(
+      this.getDataSources(this.state.primaryDataSource),
+      this.state.secondaryDataSource);
+    const queryFilter = {
+      ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
+      ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
+    };
+    postData(
+      '/SystemAdmin/CancelPublication',
+      { rootContentItemId: queryFilter.rootContentItemId },
+    ).then(() => {
+      alert('Publication canceled.');
+      this.setState((prevState) => ({
+        ...prevState,
+        secondaryDetail: null,
+      }));
+    });
+  }
+
+  private cancelReductionTask(event: React.MouseEvent<HTMLAnchorElement>, id: string) {
+    event.preventDefault();
+    postData(
+      '/SystemAdmin/CancelReduction',
+      { selectionGroupId: id },
+    ).then(() => {
+      alert('Reduction canceled.');
+      this.setState((prevState) => ({
+        ...prevState,
+        secondaryDetail: null,
       }));
     });
   }

@@ -14,70 +14,20 @@ interface PrimaryDetailPanelProps {
   selectedDataSource: DataSource<Entity>;
   selectedCard: string;
   queryFilter: QueryFilter;
-}
-
-interface PrimaryDetailPanelState {
   detail: PrimaryDetail;
-  prevQuery: {
-    dataSource: string;
-    entityId: string;
-  };
 }
 
-export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps, PrimaryDetailPanelState> {
-
-  // see https://github.com/reactjs/rfcs/issues/26#issuecomment-365744134
-  public static getDerivedStateFromProps(
-    nextProps: PrimaryDetailPanelProps, prevState: PrimaryDetailPanelState,
-  ): Partial<PrimaryDetailPanelState> {
-    const nextQuery = {
-      dataSource: nextProps.selectedDataSource.name,
-      entityId: nextProps.selectedCard,
-    };
-
-    if (!isEqual(nextQuery, prevState.prevQuery)) {
-      return {
-        prevQuery: nextQuery,
-        detail: null,
-      };
-    }
-
-    return null;
-  }
-
-  private get url() {
-    return this.props.selectedCard
-      && `/${this.props.controller}/${this.props.selectedDataSource.detailAction}`;
-  }
-
-  public constructor(props) {
-    super(props);
-
-    this.state = {
-      detail: null,
-      prevQuery: null,
-    };
-  }
-
-  public componentDidMount() {
-    this.fetch();
-  }
-
-  public componentDidUpdate() {
-    if (this.state.detail === null) {
-      this.fetch();
-    }
-  }
+export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps> {
 
   public render() {
     // populate detail panel
     const primaryDetail = (() => {
-      if (!this.state.detail) {
+      if (!this.props.detail) {
         return null;
       }
       switch (this.props.selectedDataSource.name) {
         case 'user':
-          const userDetail = this.state.detail as UserDetail;
+          const userDetail = this.props.detail as UserDetail;
           return (
             <div>
               <h2>User Details</h2>
@@ -141,7 +91,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
             </div>
           );
         case 'client':
-          const clientDetail = this.state.detail as ClientDetail;
+          const clientDetail = this.props.detail as ClientDetail;
           return (
             <div>
               <h2>Client Details</h2>
@@ -196,7 +146,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
             </div>
           );
         case 'profitCenter':
-          const profitCenterDetail = this.state.detail as ProfitCenterDetail;
+          const profitCenterDetail = this.props.detail as ProfitCenterDetail;
           return (
             <div>
               <h2>Profit Center Details</h2>
@@ -240,7 +190,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
 
     const detail = !this.props.selectedCard
       ? null
-      : this.state.detail === null
+      : this.props.detail === null
         ? (<div>Loading...</div>)
         : primaryDetail;
     return (
@@ -248,16 +198,5 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
         {detail}
       </div>
     );
-  }
-
-  private fetch() {
-    if (!this.url) {
-      return;
-    }
-
-    getData(this.url, this.props.queryFilter)
-    .then((response) => this.setState({
-      detail: response,
-    }));
   }
 }

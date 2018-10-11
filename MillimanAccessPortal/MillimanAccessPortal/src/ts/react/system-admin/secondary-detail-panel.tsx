@@ -16,75 +16,23 @@ interface SecondaryDetailPanelProps {
   secondarySelectedDataSource: DataSource<Entity>;
   selectedCard: string;
   queryFilter: QueryFilter;
-}
-
-interface SecondaryDetailPanelState {
   detail: SecondaryDetail;
-  prevQuery: {
-    dataSource: string;
-    entityId: string;
-  };
+  onCancelPublication: (event: React.MouseEvent<HTMLElement>) => void;
+  onCancelReduction: (event: React.MouseEvent<HTMLElement>, id: string) => void;
 }
 
-export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelProps, SecondaryDetailPanelState> {
-
-  // see https://github.com/reactjs/rfcs/issues/26#issuecomment-365744134
-  public static getDerivedStateFromProps(
-    nextProps: SecondaryDetailPanelProps, prevState: SecondaryDetailPanelState,
-  ): Partial<SecondaryDetailPanelState> {
-    const nextQuery = {
-      dataSource: nextProps.secondarySelectedDataSource.name,
-      entityId: nextProps.selectedCard,
-    };
-
-    if (!isEqual(nextQuery, prevState.prevQuery)) {
-      return {
-        prevQuery: nextQuery,
-        detail: null,
-      };
-    }
-
-    return null;
-  }
-
-  private get url() {
-    return this.props.selectedCard
-      && `/${this.props.controller}/${this.props.secondarySelectedDataSource.detailAction}`;
-  }
-
-  public constructor(props) {
-    super(props);
-
-    this.state = {
-      detail: null,
-      prevQuery: null,
-    };
-
-    this.cancelPublicationRequest = this.cancelPublicationRequest.bind(this);
-    this.cancelReductionTask = this.cancelReductionTask.bind(this);
-  }
-
-  public componentDidMount() {
-    this.fetch();
-  }
-
-  public componentDidUpdate() {
-    if (this.state.detail === null) {
-      this.fetch();
-    }
-  }
-
+export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelProps> {
   public render() {
     // populate detail panel
     const secondaryDetail = (() => {
-      if (!this.state.detail) {
+      if (!this.props.detail) {
         return null;
       }
       switch (this.props.primarySelectedDataSource.name) {
         case 'user':
           switch (this.props.secondarySelectedDataSource.name) {
             case 'client':
-              const clientDetailForUser = this.state.detail as ClientDetailForUser;
+              const clientDetailForUser = this.props.detail as ClientDetailForUser;
               return (
                 <div>
                   <div className="detail-column-container">
@@ -146,7 +94,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                 </div>
               );
             case 'rootContentItem':
-              const rootContentItemDetailForUser = this.state.detail as RootContentItemDetailForUser;
+              const rootContentItemDetailForUser = this.props.detail as RootContentItemDetailForUser;
               return (
                 <div>
                   <div className="detail-column-container">
@@ -172,7 +120,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
         case 'client':
           switch (this.props.secondarySelectedDataSource.name) {
             case 'user':
-              const userDetailForClient = this.state.detail as UserDetailForClient;
+              const userDetailForClient = this.props.detail as UserDetailForClient;
               return (
                 <div>
                   <div className="detail-column-container">
@@ -250,14 +198,14 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                 </div>
               );
             case 'rootContentItem':
-              const rootContentItemDetailForClient = this.state.detail as RootContentItemDetailForClient;
+              const rootContentItemDetailForClient = this.props.detail as RootContentItemDetailForClient;
               const publishingStatus = rootContentItemDetailForClient.IsPublishing
                 ? (
                   <span className="detail-value">
                     Yes (
                       <a
                         href={''}
-                        onClick={this.cancelPublicationRequest}
+                        onClick={this.props.onCancelPublication}
                       >
                         Cancel
                       </a>
@@ -319,7 +267,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
         case 'profitCenter':
           switch (this.props.secondarySelectedDataSource.name) {
             case 'user':
-              const userDetailForProfitCenter = this.state.detail as UserDetailForProfitCenter;
+              const userDetailForProfitCenter = this.props.detail as UserDetailForProfitCenter;
               return (
                 <div>
                   <div className="detail-column-container">
@@ -352,7 +300,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                 </div>
               );
             case 'client':
-              const clientDetailForProfitCenter = this.state.detail as ClientDetailForProfitCenter;
+              const clientDetailForProfitCenter = this.props.detail as ClientDetailForProfitCenter;
               return (
                 <div>
                   <div className="detail-column-container">
@@ -402,7 +350,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
 
     const detail = !this.props.selectedCard
       ? null
-      : this.state.detail === null
+      : this.props.detail === null
         ? (<div>Loading...</div>)
         : secondaryDetail;
     return (
@@ -410,19 +358,6 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
         {detail}
       </div>
     );
-  }
-
-  private fetch() {
-    if (!this.url) {
-      return this.setState({ detail: undefined });
-    }
-
-    getData(this.url, this.props.queryFilter)
-    .then((response) => {
-      this.setState({
-        detail: response,
-      });
-    });
   }
 
   private renderNestedList(list: NestedList): JSX.Element[] {
@@ -440,7 +375,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
             (
             <a
               href={''}
-              onClick={(event) => this.cancelReductionTask(event, section.Id)}
+              onClick={(event) => this.props.onCancelReduction(event, section.Id)}
             >
               Cancel
             </a>
@@ -457,27 +392,6 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
           {values}
         </div>
       );
-    });
-  }
-
-  // These actions could be split out into other components
-  private cancelPublicationRequest(event: React.MouseEvent<HTMLAnchorElement>) {
-    event.preventDefault();
-    postData(
-      '/SystemAdmin/CancelPublication',
-      { rootContentItemId: this.props.queryFilter.rootContentItemId },
-    ).then(() => {
-      alert('Publication canceled.');
-    });
-  }
-
-  private cancelReductionTask(event: React.MouseEvent<HTMLAnchorElement>, id: string) {
-    event.preventDefault();
-    postData(
-      '/SystemAdmin/CancelReduction',
-      { selectionGroupId: id },
-    ).then(() => {
-      alert('Reduction canceled.');
     });
   }
 }
