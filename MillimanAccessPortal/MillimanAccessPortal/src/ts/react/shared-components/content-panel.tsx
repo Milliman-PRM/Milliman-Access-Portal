@@ -24,36 +24,14 @@ export interface ContentPanelProps {
   setSelectedCard: (cardId: string) => void;
   selectedCard: string;
   queryFilter: QueryFilter;
+  entities: Entity[];
 }
 interface ContentPanelState {
-  entities: Entity[];
   filterText: string;
-  prevQuery: {
-    queryFilter: QueryFilter;
-    sourceName: string;
-  };
   modalOpen: boolean;
 }
 
 export class ContentPanel extends React.Component<ContentPanelProps, ContentPanelState> {
-
-  // see https://github.com/reactjs/rfcs/issues/26#issuecomment-365744134
-  public static getDerivedStateFromProps(
-    nextProps: ContentPanelProps, prevState: ContentPanelState,
-  ): Partial<ContentPanelState> {
-    const nextQuery = {
-      queryFilter: nextProps.queryFilter,
-      sourceName: nextProps.selectedDataSource.name,
-    };
-    if (!isEqual(nextQuery, prevState.prevQuery)) {
-      return {
-        prevQuery: nextQuery,
-        entities: null,
-      };
-    }
-    return null;
-  }
-
   private get url() {
     return this.props.selectedDataSource.infoAction
       && `/${this.props.controller}/${this.props.selectedDataSource.infoAction}`;
@@ -68,9 +46,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     super(props);
 
     this.state = {
-      entities: null,
       filterText: '',
-      prevQuery: null,
       modalOpen: false,
     };
 
@@ -80,22 +56,8 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     this.handleCreate = this.handleCreate.bind(this);
   }
 
-  public componentDidMount() {
-    this.props.setSelectedDataSource(this.props.dataSources[0] && this.props.dataSources[0].name);
-    this.fetch();
-  }
-
-  public componentDidUpdate() {
-    if (this.state.entities === null) {
-      this.fetch();
-    }
-    if (this.props.selectedDataSource.name === null) {
-      this.props.setSelectedDataSource(this.props.dataSources[0] && this.props.dataSources[0].name);
-    }
-  }
-
   public render() {
-    const filteredCards = this.state.entities && this.state.entities
+    const filteredCards = this.props.entities && this.props.entities
       .filter((entity) => EntityHelper.applyFilter(entity, this.state.filterText));
     let cards = null;
     if (filteredCards === null) {
@@ -265,21 +227,6 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         {modal}
       </div>
     );
-  }
-
-  private fetch() {
-    if (!this.url) {
-      return this.setState({ entities: [] });
-    }
-
-    getData(this.url, this.props.queryFilter)
-    .then((response) => {
-      if (this.props.selectedDataSource) {
-        this.setState({
-          entities: this.props.selectedDataSource.processInfo(response),
-        });
-      }
-    });
   }
 
   private setFilterText(filterText: string) {

@@ -9,6 +9,7 @@ import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
+import { getData } from '../../shared';
 import { BasicNode, BasicTree } from '../../view-models/content-publishing';
 import { ContentPanel } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
@@ -19,6 +20,10 @@ import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
 export interface SystemAdminState {
+  data: {
+    primaryEntities: Entity[];
+    secondaryEntities: Entity[];
+  };
   primaryDataSource: string;
   secondaryDataSource: string;
   primarySelectedCard: string;
@@ -223,7 +228,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     super(props);
 
     this.state = {
-      primaryDataSource: 'user',
+      data: {
+        primaryEntities: [],
+        secondaryEntities: [],
+      },
+      primaryDataSource: null,
       secondaryDataSource: null,
       primarySelectedCard: null,
       secondarySelectedCard: null,
@@ -233,6 +242,21 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     this.setSecondaryDataSource = this.setSecondaryDataSource.bind(this);
     this.setPrimarySelectedCard = this.setPrimarySelectedCard.bind(this);
     this.setSecondarySelectedCard = this.setSecondarySelectedCard.bind(this);
+    this.fetchPrimaryEntities = this.fetchPrimaryEntities.bind(this);
+    this.fetchSecondaryEntities = this.fetchSecondaryEntities.bind(this);
+  }
+
+  public componentDidMount() {
+    this.setPrimaryDataSource('user');
+  }
+
+  public componentDidUpdate() {
+    if (this.state.data.primaryEntities === null) {
+      this.fetchPrimaryEntities();
+    }
+    if (this.state.data.secondaryEntities === null && this.state.secondaryDataSource) {
+      this.fetchSecondaryEntities();
+    }
   }
 
   public render() {
@@ -261,6 +285,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           setSelectedCard={this.setSecondarySelectedCard}
           selectedCard={this.state.secondarySelectedCard}
           queryFilter={secondaryQueryFilter}
+          entities={this.state.data.secondaryEntities}
         />
       )
       : null;
@@ -277,6 +302,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           setSelectedCard={this.setPrimarySelectedCard}
           selectedCard={this.state.primarySelectedCard}
           queryFilter={{}}
+          entities={this.state.data.primaryEntities}
         />
         {secondaryColumnComponent}
         <div
@@ -303,36 +329,59 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   // callbacks for child components
   private setPrimaryDataSource(sourceName: string) {
-    this.setState((prevState) => ({
-      primaryDataSource: sourceName,
-      secondaryDataSource: sourceName === prevState.primaryDataSource
-        ? prevState.secondaryDataSource
-        : null,
-      primarySelectedCard: sourceName === prevState.primaryDataSource
-        ? prevState.primarySelectedCard
-        : null,
-      secondarySelectedCard: sourceName === prevState.primaryDataSource
-        ? prevState.secondarySelectedCard
-        : null,
-    }));
+    this.setState((prevState) => {
+      if (sourceName === prevState.primaryDataSource) {
+        return {};
+      }
+
+      return {
+        ...prevState,
+        data: {
+          ...prevState.data,
+          primaryEntities: null,
+          secondaryEntities: null,
+        },
+        primaryDataSource: sourceName,
+        secondaryDataSource: null,
+        primarySelectedCard: null,
+        secondarySelectedCard: null,
+      };
+    });
   }
 
   private setSecondaryDataSource(sourceName: string) {
-    this.setState((prevState) => ({
-      secondaryDataSource: sourceName,
-      secondarySelectedCard: sourceName === prevState.secondaryDataSource
-        ? prevState.secondarySelectedCard
-        : null,
-    }));
+    this.setState((prevState) => {
+      if (sourceName === prevState.secondaryDataSource) {
+        return {};
+      }
+
+      return {
+        ...prevState,
+        data: {
+          ...prevState.data,
+          secondaryEntities: null,
+        },
+        secondaryDataSource: sourceName,
+        secondarySelectedCard: null,
+      };
+    });
   }
 
   private setPrimarySelectedCard(cardId: string) {
-    this.setState((prevState) => ({
-      primarySelectedCard: prevState.primarySelectedCard === cardId
-        ? null
-        : cardId,
-      secondarySelectedCard: null,
-    }));
+    this.setState((prevState) => {
+      const defaultSecondaryDataSource = this.getDataSources(prevState.primaryDataSource)[0].name;
+      return {
+        data: {
+          ...prevState.data,
+          secondaryEntities: null,
+        },
+        primarySelectedCard: prevState.primarySelectedCard === cardId
+          ? null
+          : cardId,
+        secondaryDataSource: prevState.secondaryDataSource || defaultSecondaryDataSource,
+        secondarySelectedCard: null,
+      };
+    });
   }
 
   private setSecondarySelectedCard(cardId: string) {
@@ -370,5 +419,39 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private getDataSourceByName(dataSources: Array<DataSource<Entity>>, name: string): DataSource<Entity> {
     return dataSources.filter((dataSource) => dataSource.name === name)[0]
       || this.nullDataSource;
+  }
+
+  // more callbacks
+  private fetchPrimaryEntities() {
+    const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
+    getData(`/SystemAdmin/${dataSource.infoAction}`, {})
+    .then((response) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          primaryEntities: dataSource.processInfo(response),
+        },
+      }));
+    });
+  }
+
+  private fetchSecondaryEntities() {
+    const dataSource = this.getDataSourceByName(
+      this.getDataSources(this.state.primaryDataSource),
+      this.state.secondaryDataSource);
+    const queryFilter = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource)
+      .assignQueryFilter(this.state.primarySelectedCard);
+
+    getData(`/SystemAdmin/${dataSource.infoAction}`, queryFilter)
+    .then((response) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          secondaryEntities: dataSource.processInfo(response),
+        },
+      }));
+    });
   }
 }
