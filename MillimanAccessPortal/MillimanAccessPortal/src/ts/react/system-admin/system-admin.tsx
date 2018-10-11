@@ -13,7 +13,7 @@ import { getData, postData } from '../../shared';
 import { BasicNode, BasicTree } from '../../view-models/content-publishing';
 import { ContentPanel } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
-import { DataSource, Structure } from '../shared-components/interfaces';
+import { DataSource, RoleEnum, Structure } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
   ClientInfo, Detail, PrimaryDetail, ProfitCenterInfo, RootContentItemInfo, SecondaryDetail,
@@ -22,6 +22,10 @@ import {
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
+interface ToggleInfo {
+  checked: boolean;
+  disabled: boolean;
+}
 export interface SystemAdminState {
   data: {
     primaryEntities: Entity[];
@@ -33,6 +37,14 @@ export interface SystemAdminState {
   secondarySelectedCard: string;
   primaryDetail: PrimaryDetail;
   secondaryDetail: SecondaryDetail;
+  toggles: {
+    systemAdmin: ToggleInfo;
+    userSuspend: ToggleInfo;
+    userClient: {
+      [index: number]: ToggleInfo;
+    };
+    contentSuspend: ToggleInfo;
+  };
 }
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
@@ -243,6 +255,38 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       secondarySelectedCard: null,
       primaryDetail: null,
       secondaryDetail: null,
+      toggles: {
+        systemAdmin: {
+          checked: false,
+          disabled: true,
+        },
+        userSuspend: {
+          checked: false,
+          disabled: true,
+        },
+        userClient: {
+          1: {
+            checked: false,
+            disabled: true,
+          },
+          3: {
+            checked: false,
+            disabled: true,
+          },
+          4: {
+            checked: false,
+            disabled: true,
+          },
+          5: {
+            checked: false,
+            disabled: true,
+          },
+        },
+        contentSuspend: {
+          checked: false,
+          disabled: true,
+        },
+      },
     };
 
     this.setPrimaryDataSource = this.setPrimaryDataSource.bind(this);
@@ -265,12 +309,26 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }
     if (this.state.primaryDetail === null && this.state.primarySelectedCard) {
       this.fetchPrimaryDetail();
+      if (this.state.primaryDataSource === 'user') {
+        this.fetchSystemAdmin();
+        this.fetchSuspendUser();
+      }
     }
     if (this.state.data.secondaryEntities === null && this.state.secondaryDataSource) {
       this.fetchSecondaryEntities();
     }
     if (this.state.secondaryDetail === null && this.state.secondarySelectedCard) {
       this.fetchSecondaryDetail();
+      if ((this.state.primaryDataSource === 'client' && this.state.secondaryDataSource === 'user')
+      || (this.state.primaryDataSource === 'user' && this.state.secondaryDataSource === 'client')) {
+        this.fetchUserClient(RoleEnum.Admin);
+        this.fetchUserClient(RoleEnum.ContentPublisher);
+        this.fetchUserClient(RoleEnum.ContentAccessAdmin);
+        this.fetchUserClient(RoleEnum.ContentUser);
+      }
+      if (this.state.secondaryDataSource === 'rootContentItem') {
+        this.fetchSuspendContent();
+      }
     }
   }
 
@@ -330,6 +388,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             selectedCard={this.state.primarySelectedCard}
             queryFilter={secondaryQueryFilter}
             detail={this.state.primaryDetail}
+            onFetchSystemAdmin={this.fetchSystemAdmin}
+            onPushSystemAdmin={this.pushSystemAdmin}
+            checkedSystemAdmin={this.state.toggles.systemAdmin.checked}
+            onFetchSuspend={this.fetchSuspendUser}
+            onPushSuspend={this.pushSuspendUser}
+            checkedSuspended={this.state.toggles.userSuspend.checked}
           />
           <SecondaryDetailPanel
             controller={this.controller}
@@ -340,6 +404,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             detail={this.state.secondaryDetail}
             onCancelPublication={this.cancelPublicationRequest}
             onCancelReduction={this.cancelReductionTask}
+            checkedClientAdmin={this.state.toggles.userClient[RoleEnum.Admin].checked}
+            checkedContentPublisher={this.state.toggles.userClient[RoleEnum.ContentPublisher].checked}
+            checkedAccessAdmin={this.state.toggles.userClient[RoleEnum.ContentAccessAdmin].checked}
+            checkedContentUser={this.state.toggles.userClient[RoleEnum.ContentUser].checked}
+            checkedSuspended={this.state.toggles.contentSuspend.checked}
+            onFetchUserClient={this.fetchUserClient}
+            onPushUserClient={this.pushUserClient}
+            onFetchSuspend={this.fetchSuspendContent}
+            onPushSuspend={this.pushSuspendContent}
           />
         </div>
       </>
@@ -364,6 +437,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         secondaryDataSource: null,
         primarySelectedCard: null,
         secondarySelectedCard: null,
+        primaryDetail: null,
+        secondaryDetail: null,
       };
     });
   }
@@ -382,6 +457,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         },
         secondaryDataSource: sourceName,
         secondarySelectedCard: null,
+        secondaryDetail: null,
       };
     });
   }
@@ -541,6 +617,254 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       this.setState((prevState) => ({
         ...prevState,
         secondaryDetail: null,
+      }));
+    });
+  }
+
+  private fetchSystemAdmin = () => {
+    const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
+    const queryFilter = dataSource.assignQueryFilter(this.state.primarySelectedCard);
+    getData('/SystemAdmin/SystemRole', Object.assign({}, queryFilter, { role: RoleEnum.Admin }))
+    .then((response: boolean) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        toggles: {
+          ...prevState.toggles,
+          systemAdmin: {
+            checked: response,
+            disabled: false,
+          },
+        },
+      }));
+    });
+  }
+
+  private pushSystemAdmin = () => {
+    const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
+    const queryFilter = dataSource.assignQueryFilter(this.state.primarySelectedCard);
+    if (this.state.toggles.systemAdmin.disabled) {
+      return;
+    }
+
+    this.setState((prevState) => ({
+      ...prevState,
+      toggles: {
+        ...prevState.toggles,
+        systemAdmin: {
+          ...prevState.toggles.systemAdmin,
+          disabled: true,
+        },
+      },
+    }));
+
+    postData('/SystemAdmin/SystemRole', Object.assign({}, queryFilter, { role: RoleEnum.Admin }, {
+      value: !this.state.toggles.systemAdmin.checked,
+    }))
+    .then((response: boolean) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        toggles: {
+          ...prevState.toggles,
+          systemAdmin: {
+            checked: response,
+            disabled: false,
+          },
+        },
+      }));
+    });
+  }
+
+  private fetchSuspendUser = () => {
+    const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
+    const queryFilter = dataSource.assignQueryFilter(this.state.primarySelectedCard);
+    getData('/SystemAdmin/UserSuspendedStatus', Object.assign({}, queryFilter))
+    .then((response: boolean) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        toggles: {
+          ...prevState.toggles,
+          userSuspend: {
+            checked: response,
+            disabled: false,
+          },
+        },
+      }));
+    });
+  }
+
+  private pushSuspendUser = () => {
+    const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
+    const queryFilter = dataSource.assignQueryFilter(this.state.primarySelectedCard);
+    if (this.state.toggles.userSuspend.disabled) {
+      return;
+    }
+
+    this.setState((prevState) => ({
+      ...prevState,
+      toggles: {
+        ...prevState.toggles,
+        userSuspend: {
+          ...prevState.toggles.userSuspend,
+          disabled: true,
+        },
+      },
+    }));
+
+    postData('/SystemAdmin/UserSuspendedStatus', Object.assign({}, queryFilter, {
+      value: !this.state.toggles.userSuspend.checked,
+    }))
+    .then((response: boolean) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        toggles: {
+          ...prevState.toggles,
+          userSuspend: {
+            checked: response,
+            disabled: false,
+          },
+        },
+      }));
+    });
+  }
+
+  private fetchUserClient = (role: RoleEnum) => {
+    const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
+    const dataSource = this.getDataSourceByName(
+      this.getDataSources(this.state.primaryDataSource),
+      this.state.secondaryDataSource);
+    const queryFilter = {
+      ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
+      ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
+    };
+    getData('/SystemAdmin/UserClientRoleAssignment', Object.assign({}, queryFilter, { role }))
+    .then((response: boolean) => {
+      this.setState((prevState) => {
+        const userClient = {...prevState.toggles.userClient};
+        userClient[role] = {
+          checked: response,
+          disabled: false,
+        };
+        return {
+          ...prevState,
+          toggles: {
+            ...prevState.toggles,
+            userClient,
+          },
+        };
+      });
+    });
+  }
+
+  private pushUserClient = (role: RoleEnum) => {
+    const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
+    const dataSource = this.getDataSourceByName(
+      this.getDataSources(this.state.primaryDataSource),
+      this.state.secondaryDataSource);
+    const queryFilter = {
+      ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
+      ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
+    };
+    if (this.state.toggles.userClient[role].disabled) {
+      return;
+    }
+
+    this.setState((prevState) => {
+      const userClient = {...prevState.toggles.userClient};
+      userClient[role] = {
+        ...userClient[role],
+        disabled: true,
+      };
+      return {
+        ...prevState,
+        toggles: {
+          ...prevState.toggles,
+          userClient,
+        },
+      };
+    });
+
+    postData('/SystemAdmin/UserClientRoleAssignment', Object.assign({}, queryFilter, { role }, {
+      value: !this.state.toggles.userClient[role].checked,
+    }))
+    .then((response: boolean) => {
+      this.setState((prevState) => {
+        const userClient = {...prevState.toggles.userClient};
+        userClient[role] = {
+          checked: response,
+          disabled: false,
+        };
+        return {
+          ...prevState,
+          toggles: {
+            ...prevState.toggles,
+            userClient,
+          },
+        };
+      });
+    });
+  }
+
+  private fetchSuspendContent = () => {
+    const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
+    const dataSource = this.getDataSourceByName(
+      this.getDataSources(this.state.primaryDataSource),
+      this.state.secondaryDataSource);
+    const queryFilter = {
+      ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
+      ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
+    };
+    getData('/SystemAdmin/ContentSuspendedStatus', Object.assign({}, queryFilter))
+    .then((response: boolean) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        toggles: {
+          ...prevState.toggles,
+          contentSuspend: {
+            checked: response,
+            disabled: false,
+          },
+        },
+      }));
+    });
+  }
+
+  private pushSuspendContent = () => {
+    const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
+    const dataSource = this.getDataSourceByName(
+      this.getDataSources(this.state.primaryDataSource),
+      this.state.secondaryDataSource);
+    const queryFilter = {
+      ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
+      ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
+    };
+    if (this.state.toggles.contentSuspend.disabled) {
+      return;
+    }
+
+    this.setState((prevState) => ({
+      ...prevState,
+      toggles: {
+        ...prevState.toggles,
+        contentSuspend: {
+          ...prevState.toggles.contentSuspend,
+          disabled: true,
+        },
+      },
+    }));
+
+    postData('/SystemAdmin/ContentSuspendedStatus', Object.assign({}, queryFilter, {
+      value: !this.state.toggles.contentSuspend.checked,
+    }))
+    .then((response: boolean) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        toggles: {
+          ...prevState.toggles,
+          contentSuspend: {
+            checked: response,
+            disabled: false,
+          },
+        },
       }));
     });
   }

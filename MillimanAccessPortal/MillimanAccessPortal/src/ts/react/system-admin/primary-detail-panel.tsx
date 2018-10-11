@@ -15,6 +15,12 @@ interface PrimaryDetailPanelProps {
   selectedCard: string;
   queryFilter: QueryFilter;
   detail: PrimaryDetail;
+  onFetchSystemAdmin: (data?: object) => void;
+  onPushSystemAdmin: (data?: object) => void;
+  checkedSystemAdmin: boolean;
+  onFetchSuspend: (data?: object) => void;
+  onPushSuspend: (data?: object) => void;
+  checkedSuspended: boolean;
 }
 
 export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps> {
@@ -66,11 +72,11 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     <h3 className="detail-section-title">System Permissions</h3>
                     <div className="detail-container">
                       <ImmediateToggle
-                        controller={this.props.controller}
-                        action={'SystemRole'}
                         queryFilter={this.props.queryFilter}
                         label={'System Admin'}
-                        data={{ role: RoleEnum.Admin }}
+                        onFetch={this.props.onFetchSystemAdmin}
+                        onPush={this.props.onPushSystemAdmin}
+                        checked={this.props.checkedSystemAdmin}
                       />
                     </div>
                   </div>
@@ -78,11 +84,11 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     <h3 className="detail-section-title">User Settings</h3>
                     <div className="detail-container">
                       <ImmediateToggle
-                        controller={this.props.controller}
-                        action={'UserSuspendedStatus'}
                         queryFilter={this.props.queryFilter}
                         label={'Suspended'}
-                        data={{ }}
+                        onFetch={this.props.onFetchSuspend}
+                        onPush={this.props.onPushSuspend}
+                        checked={this.props.checkedSuspended}
                       />
                     </div>
                   </div>

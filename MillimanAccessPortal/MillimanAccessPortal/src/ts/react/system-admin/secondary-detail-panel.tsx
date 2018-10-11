@@ -19,6 +19,15 @@ interface SecondaryDetailPanelProps {
   detail: SecondaryDetail;
   onCancelPublication: (event: React.MouseEvent<HTMLElement>) => void;
   onCancelReduction: (event: React.MouseEvent<HTMLElement>, id: string) => void;
+  onFetchUserClient: (role: RoleEnum) => void;
+  onPushUserClient: (role: RoleEnum) => void;
+  checkedClientAdmin: boolean;
+  checkedContentPublisher: boolean;
+  checkedAccessAdmin: boolean;
+  checkedContentUser: boolean;
+  onFetchSuspend: (role: RoleEnum) => void;
+  onPushSuspend: (role: RoleEnum) => void;
+  checkedSuspended: boolean;
 }
 
 export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelProps> {
@@ -54,38 +63,42 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                         <h3 className="detail-section-title">Client/User Roles</h3>
                         <div className="detail-container">
                           <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
                             queryFilter={this.props.queryFilter}
                             label={'Client Admin'}
-                            data={{ role: RoleEnum.Admin }}
+                            data={RoleEnum.Admin}
+                            checked={this.props.checkedClientAdmin}
+                            onFetch={this.props.onFetchUserClient}
+                            onPush={this.props.onPushUserClient}
                           />
                         </div>
                         <div className="detail-container">
                           <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
                             queryFilter={this.props.queryFilter}
                             label={'Content Access Admin'}
-                            data={{ role: RoleEnum.ContentAccessAdmin }}
+                            data={RoleEnum.ContentAccessAdmin}
+                            checked={this.props.checkedAccessAdmin}
+                            onFetch={this.props.onFetchUserClient}
+                            onPush={this.props.onPushUserClient}
                           />
                         </div>
                         <div className="detail-container">
                           <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
                             queryFilter={this.props.queryFilter}
                             label={'Content Publisher'}
-                            data={{ role: RoleEnum.ContentPublisher }}
+                            data={RoleEnum.ContentPublisher}
+                            checked={this.props.checkedContentPublisher}
+                            onFetch={this.props.onFetchUserClient}
+                            onPush={this.props.onPushUserClient}
                           />
                         </div>
                         <div className="detail-container">
                           <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
                             queryFilter={this.props.queryFilter}
                             label={'Content Eligible'}
-                            data={{ role: RoleEnum.ContentUser }}
+                            data={RoleEnum.ContentUser}
+                            checked={this.props.checkedContentUser}
+                            onFetch={this.props.onFetchUserClient}
+                            onPush={this.props.onPushUserClient}
                           />
                         </div>
                       </div>
@@ -158,38 +171,42 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                         <h3 className="detail-section-title">Client/User Roles</h3>
                         <div className="detail-container">
                           <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
                             queryFilter={this.props.queryFilter}
                             label={'Client Admin'}
-                            data={{ role: RoleEnum.Admin }}
+                            data={RoleEnum.Admin}
+                            checked={this.props.checkedClientAdmin}
+                            onFetch={this.props.onFetchUserClient}
+                            onPush={this.props.onPushUserClient}
                           />
                         </div>
                         <div className="detail-container">
                           <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
                             queryFilter={this.props.queryFilter}
                             label={'Content Access Admin'}
-                            data={{ role: RoleEnum.ContentAccessAdmin }}
+                            data={RoleEnum.ContentAccessAdmin}
+                            checked={this.props.checkedAccessAdmin}
+                            onFetch={this.props.onFetchUserClient}
+                            onPush={this.props.onPushUserClient}
                           />
                         </div>
                         <div className="detail-container">
                           <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
                             queryFilter={this.props.queryFilter}
                             label={'Content Publisher'}
-                            data={{ role: RoleEnum.ContentPublisher }}
+                            data={RoleEnum.ContentPublisher}
+                            checked={this.props.checkedContentPublisher}
+                            onFetch={this.props.onFetchUserClient}
+                            onPush={this.props.onPushUserClient}
                           />
                         </div>
                         <div className="detail-container">
                           <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
                             queryFilter={this.props.queryFilter}
                             label={'Content Eligible'}
-                            data={{ role: RoleEnum.ContentUser }}
+                            data={RoleEnum.ContentUser}
+                            checked={this.props.checkedContentUser}
+                            onFetch={this.props.onFetchUserClient}
+                            onPush={this.props.onPushUserClient}
                           />
                         </div>
                       </div>
@@ -241,11 +258,12 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                         </div>
                         <div className="detail-container">
                           <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'ContentSuspendedStatus'}
                             queryFilter={this.props.queryFilter}
                             label={'Suspended'}
                             data={{ }}
+                            checked={this.props.checkedSuspended}
+                            onFetch={this.props.onFetchSuspend}
+                            onPush={this.props.onPushSuspend}
                           />
                         </div>
                       </div>
