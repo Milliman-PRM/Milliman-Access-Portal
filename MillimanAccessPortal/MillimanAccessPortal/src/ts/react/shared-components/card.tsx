@@ -7,21 +7,22 @@ import '../../../images/remove-circle.svg';
 import * as React from 'react';
 
 import { postData } from '../../shared';
+import {
+  EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo, UserInfo,
+} from '../system-admin/interfaces';
 import { UpdateProfitCenterModal } from '../system-admin/modals/update-profit-center';
+import CardButton, { CardButtonColor } from './card-button';
 import { Entity } from './entity';
 
-export interface CardProps extends Entity {
+export interface CardProps {
+  entity: EntityInfo;
   selected: boolean;
-  setSelected: () => void;
+  onSelect: () => void;
   resetButton?: boolean;
   resetButtonText?: string;
   activated?: boolean;
   suspended?: boolean;
-  sublistInfo: {
-    title: string;
-    icon: string;
-    emptyText: string;
-  };
+  isUserInProfitCenter?: boolean;
 }
 
 interface CardState {
@@ -55,96 +56,208 @@ export class Card extends React.Component<CardProps, CardState> {
   }
 
   public render() {
-    const stats = [this.props.primaryStat, this.props.secondaryStat]
-      .filter((stat) => stat)
-      .map((stat) => (
-        <div
-          key={stat.icon}
-          className="card-stat-container"
-          title={stat.name}
-        >
+    const cardBodyClass = 'card-body-container'
+      + (this.props.selected ? ' selected' : '')
+      + (this.props.suspended ? ' suspended' : '');
+    return (
+      <div className={'card-container'} onClick={this.props.onSelect}>
+        <div className={cardBodyClass}>
+          <div className="card-body-main-container">
+            {this.renderPrimaryContainer()}
+            {this.renderStats()}
+            {this.renderSideButtons()}
+          </div>
+          {this.renderExpansion()}
+        </div>
+      </div>
+    );
+  }
+
+  private renderPrimaryContainer() {
+    return (
+      <div className="card-body-primary-container">
+        {this.renderPrimaryText()}
+        {this.renderSecondaryText()}
+      </div>
+    );
+  }
+
+  private renderPrimaryText() {
+    const { entity } = this.props;
+    let text: string;
+    if (isUserInfo(entity)) {
+      const { FirstName, LastName } = entity;
+      text = this.props.activated ? `${FirstName} ${LastName}` : '(Unactivated)';
+    } else {
+      text = entity.Name;
+    }
+    return (
+      <h2 className="card-body-primary-text">
+        {`${text}${this.props.suspended ? ' (Suspended)' : ''}`}
+      </h2>
+    );
+  }
+
+  private renderSecondaryText() {
+    const { entity } = this.props;
+    let text: string;
+    if (isUserInfo(entity)) {
+      text = entity.UserName;
+    } else if (isRootContentItemInfo(entity)) {
+      text = entity.ClientName;
+    } else {
+      text = entity.Code;
+    }
+    return <p className="card-body-secondary-text">{text}</p>;
+  }
+
+  private renderStats() {
+    const { entity } = this.props;
+    const cardStats: Array<{
+      name: string;
+      value: number;
+      icon: string;
+    }> = [];
+    if (isUserInfo(entity)) {
+      const { ClientCount: clients, RootContentItemCount: items } = entity;
+      if (clients !== null) {
+        cardStats.push({
+          name: 'Clients',
+          value: clients,
+          icon: 'client-admin',
+        });
+      }
+      if (items !== null) {
+        cardStats.push({
+          name: 'Reports',
+          value: items,
+          icon: 'reports',
+        });
+      }
+    } else if (isClientInfo(entity)) {
+      const { UserCount: users, RootContentItemCount: items } = entity;
+      if (users !== null) {
+        cardStats.push({
+          name: 'Users',
+          value: users,
+          icon: 'user',
+        });
+      }
+      if (items !== null) {
+        cardStats.push({
+          name: 'Reports',
+          value: items,
+          icon: 'reports',
+        });
+      }
+    } else if (isProfitCenterInfo(entity)) {
+      const { UserCount: users, ClientCount: clients } = entity;
+      if (users !== null) {
+        cardStats.push({
+          name: 'Authorized users',
+          value: users,
+          icon: 'user',
+        });
+      }
+      if (clients !== null) {
+        cardStats.push({
+          name: 'Clients',
+          value: clients,
+          icon: 'client-admin',
+        });
+      }
+    } else if (isRootContentItemInfo(entity)) {
+      const { UserCount: users, SelectionGroupCount: groups } = entity;
+      if (users !== null) {
+        cardStats.push({
+          name: 'Users',
+          value: users,
+          icon: 'user',
+        });
+      }
+      if (groups !== null) {
+        cardStats.push({
+          name: 'Selection Groups',
+          value: groups,
+          icon: 'group',
+        });
+      }
+    }
+    if (cardStats.length === 0) {
+      return null;
+    }
+
+    const stats = cardStats
+      .map(({ name, value, icon }, i) => (
+        <div key={i} className="card-stat-container" title={name}>
           <svg className="card-stat-icon">
-            <use xlinkHref={`#${stat.icon}`} />
+            <use xlinkHref={`#${icon}`} />
           </svg>
-          <h4 className="card-stat-value">{stat.value}</h4>
+          <h4 className="card-stat-value">{value}</h4>
         </div>
       ));
-    const resetButton = this.props.resetButton
-      ? (
-        <div
-          className="card-button-background card-button-blue"
-          title={this.props.activated ? 'Send password reset email' : 'Resend account activation email'}
-          onClick={this.sendPasswordReset}
-        >
-          <svg className="card-button-icon">
-            <use xlinkHref="#email" />
-          </svg>
-        </div>
-      )
-      : null;
-    const deleteAsProfitCenterButton = this.props.isProfitCenter
-      ? (
-        <div
-          className="card-button-background card-button-red"
-          title="Delete profit center"
-          onClick={this.deleteAsProfitCenter}
-        >
-          <svg className="card-button-icon">
-            <use xlinkHref="#delete" />
-          </svg>
-        </div>
-      )
-      : null;
-    const editAsProfitCenterButton = this.props.isProfitCenter
-      ? (
-        <div
-          className="card-button-background card-button-blue"
-          title="Update profit center"
-          onClick={this.editAsProfitCenter}
-        >
-          <svg className="card-button-icon">
-            <use xlinkHref="#edit" />
-          </svg>
-        </div>
-      )
-      : null;
-    const removeAsUserButton = this.props.isUserInProfitCenter
-      ? (
-        <div
-          className="card-button-background card-button-red"
-          title="Remove from profit center"
-          onClick={this.removeAsUser}
-        >
-          <svg className="card-button-icon">
-            <use xlinkHref="#remove-circle" />
-          </svg>
-        </div>
-      )
-      : null;
-    const detailList = this.props.sublist && this.props.sublist.map((subitem, i) => (
-      <li
-        key={i}
-      >
-        <span className="detail-item-user">
-          <div className="detail-item-user-icon">
-            <svg className="card-user-icon">
-              <use xlinkHref={`#${this.props.sublistInfo.icon}`} />
-            </svg>
-          </div>
-          <div className="detail-item-user-name">
-            <h4 className="first-last">{subitem.primaryText}</h4>
-            <span className="user-name">{subitem.secondaryText}</span>
-          </div>
-        </span>
-      </li>
-    ));
-    const expansion = this.props.sublist && this.props.sublist.length
-      ? (
+    return <div className="card-stats-container">{stats}</div>;
+  }
+
+  private renderSideButtons() {
+    const { entity } = this.props;
+    if (isUserInfo(entity) || isProfitCenterInfo(entity)) {
+      const buttons: JSX.Element[] = [];
+      if (isUserInfo(entity)) {
+        buttons.push((
+          <CardButton
+            color={CardButtonColor.BLUE}
+            tooltip={this.props.activated ? 'Send password reset email' : 'Resend account activation email'}
+            onClick={this.sendPasswordReset}
+            icon={'email'}
+          />
+        ));
+        if (this.props.isUserInProfitCenter) {
+          buttons.push((
+            <CardButton
+              color={CardButtonColor.RED}
+              tooltip={'Remove from profit center'}
+              onClick={this.removeAsUser}
+              icon={'remove-circle'}
+            />
+          ));
+        }
+      } else {
+        buttons.push((
+          <CardButton
+            color={CardButtonColor.RED}
+            tooltip={'Delete profit center'}
+            onClick={this.deleteAsProfitCenter}
+            icon={'delete'}
+          />
+        ));
+        buttons.push((
+          <CardButton
+            color={CardButtonColor.BLUE}
+            tooltip={'Update profit center'}
+            onClick={this.editAsProfitCenter}
+            icon={'edit'}
+          />
+        ));
+      }
+      return <div className="card-button-side-container">{buttons}</div>;
+    }
+    return null;
+  }
+
+  private renderExpansion() {
+    const { entity } = this.props;
+    if (isUserInfo(entity) || isRootContentItemInfo(entity)) {
+      let title: string;
+      if (isUserInfo(entity)) {
+        title = 'Content Items';
+      } else {
+        title = 'Members';
+      }
+      return (
         <div className={'card-expansion-container' + (this.state.expanded ? ' maximized' : '')}>
-          <h4 className="card-expansion-category-label">{this.props.sublistInfo.title}</h4>
-          <ul>
-            {detailList}
-          </ul>
+          <h4 className="card-expansion-category-label">{title}</h4>
+          {this.renderExpansionList()}
           <div className="card-button-bottom-container">
             <div
               className="card-button-background card-button-expansion"
@@ -156,62 +269,64 @@ export class Card extends React.Component<CardProps, CardState> {
             </div>
           </div>
         </div>
-      )
-      : null;
-    const additionalClasses = [
-      this.props.selected ? ' selected' : '',
-      this.props.suspended ? ' suspended' : '',
-    ].join('');
-    const updateProfitCenterModal = this.props.isProfitCenter
-      ? (
-        <UpdateProfitCenterModal
-          isOpen={this.state.updateProfitCenterModalOpen}
-          onRequestClose={this.closeModal}
-          profitCenterId={this.props.id}
-        />
-      )
-      : null;
-    return (
-      <>
-        <div
-          className={`card-container ${this.indentClasses[this.props.indent] || ''}`}
-          onClick={this.props.setSelected}
-        >
-          <div
-            className={`card-body-container${additionalClasses}`}
-          >
-            <div className="card-body-main-container">
-              <div className="card-body-primary-container">
-                <h2 className="card-body-primary-text">
-                  {this.props.activated === false ? '(Unactivated)' : this.props.primaryText}
-                  {this.props.suspended ? ' (Suspended)' : ''}
-                </h2>
-                <p className="card-body-secondary-text">
-                  {this.props.secondaryText}
-                </p>
-              </div>
-              <div className="card-stats-container">
-                {stats}
-              </div>
-              <div className="card-button-side-container">
-                {deleteAsProfitCenterButton}
-                {editAsProfitCenterButton}
-                {removeAsUserButton}
-                {resetButton}
-              </div>
+      );
+    }
+    return null;
+  }
+
+  private renderExpansionList() {
+    const { entity } = this.props;
+    if (isUserInfo(entity) || isRootContentItemInfo(entity)) {
+      let icon: string;
+      let textList: Array<{
+        primaryText: string;
+        secondaryText: string;
+      }>;
+      if (isUserInfo(entity)) {
+        if (entity.RootContentItems && entity.RootContentItems.length) {
+          icon = 'reports';
+          textList = entity.RootContentItems.map((itemInfo) => ({
+            primaryText: itemInfo.Name,
+            secondaryText: itemInfo.ClientName,
+          }));
+        } else {
+          return <div>This user does not have access to any reports.</div>;
+        }
+      } else {
+        if (entity.Users && entity.Users.length) {
+          icon = 'user';
+          textList = entity.Users.map((userInfo) => ({
+            primaryText: `${userInfo.FirstName} ${userInfo.LastName}`,
+            secondaryText: userInfo.UserName,
+          }));
+        } else {
+          return <div>No users have access to this report.</div>;
+        }
+      }
+      const list = textList.map(({ primaryText, secondaryText }, i) => (
+        <li key={i}>
+          <span className="detail-item-user">
+            <div className="detail-item-user-icon">
+              <svg className="card-user-icon">
+                <use xlinkHref={`#${icon}`} />
+              </svg>
             </div>
-            {expansion}
-          </div>
-        </div>
-        {updateProfitCenterModal}
-      </>
-    );
+            <div className="detail-item-user-name">
+              <h4 className="first-last">{primaryText}</h4>
+              <span className="user-name">{secondaryText}</span>
+            </div>
+          </span>
+        </li>
+      ));
+      return <ul>{list}</ul>;
+    }
+    return null;
   }
 
   private sendPasswordReset(event: React.MouseEvent<HTMLDivElement>) {
     event.stopPropagation();
     postData('Account/ForgotPassword', {
-      Email: this.props.email,
+      Email: (this.props.entity as UserInfo).Email,
     })
     .then(() => {
       alert('Password reset email sent.');
@@ -221,7 +336,7 @@ export class Card extends React.Component<CardProps, CardState> {
   private deleteAsProfitCenter(event: React.MouseEvent<HTMLDivElement>) {
     event.stopPropagation();
     postData('SystemAdmin/DeleteProfitCenter', {
-      profitCenterId: this.props.id,
+      profitCenterId: this.props.entity.Id,
     })
     .then(() => {
       alert('Profit center deleted.');
@@ -238,7 +353,7 @@ export class Card extends React.Component<CardProps, CardState> {
   private removeAsUser(event: React.MouseEvent<HTMLDivElement>) {
     event.stopPropagation();
     postData('SystemAdmin/RemoveUserFromProfitCenter', {
-      userId: this.props.id,
+      userId: this.props.entity.Id,
       profitCenterId: this.props.isUserInProfitCenter,
     })
     .then(() => {

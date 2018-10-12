@@ -5,6 +5,7 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import { getData, postData } from '../../shared';
+import { ClientInfo, EntityInfo, isClientInfo, isUserInfo } from '../system-admin/interfaces';
 import { AddUserToClientModal } from '../system-admin/modals/add-user-to-client';
 import { AddUserToProfitCenterModal } from '../system-admin/modals/add-user-to-profit-center';
 import { CreateProfitCenterModal } from '../system-admin/modals/create-profit-center';
@@ -16,7 +17,14 @@ import { Entity, EntityHelper } from './entity';
 import { Filter } from './filter';
 import { DataSource, QueryFilter, Structure } from './interfaces';
 
-export interface ContentPanelProps {
+export interface ContentPanelAttributes {
+  filterText: string;
+  onFilterTextChange: (text: string) => void;
+  modalOpen: boolean;
+  onModalOpen: () => void;
+  onModalClose: () => void;
+}
+export interface ContentPanelProps extends ContentPanelAttributes {
   controller: string;
   dataSources: Array<DataSource<Entity>>;
   setSelectedDataSource: (sourceName: string) => void;
@@ -24,14 +32,10 @@ export interface ContentPanelProps {
   setSelectedCard: (cardId: string) => void;
   selectedCard: string;
   queryFilter: QueryFilter;
-  entities: Entity[];
-}
-interface ContentPanelState {
-  filterText: string;
-  modalOpen: boolean;
+  entities: EntityInfo[];
 }
 
-export class ContentPanel extends React.Component<ContentPanelProps, ContentPanelState> {
+export class ContentPanel extends React.Component<ContentPanelProps> {
   private get url() {
     return this.props.selectedDataSource.infoAction
       && `/${this.props.controller}/${this.props.selectedDataSource.infoAction}`;
@@ -42,34 +46,18 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
       && `/${this.props.controller}/${this.props.selectedDataSource.createAction}`;
   }
 
-  public constructor(props) {
-    super(props);
-
-    this.state = {
-      filterText: '',
-      modalOpen: false,
-    };
-
-    this.setFilterText = this.setFilterText.bind(this);
-    this.addAction = this.addAction.bind(this);
-    this.closeModal = this.closeModal.bind(this);
-    this.handleCreate = this.handleCreate.bind(this);
-  }
-
   public render() {
     const filteredCards = this.props.entities && this.props.entities
-      .filter((entity) => EntityHelper.applyFilter(entity, this.state.filterText));
+      .filter((entity) => EntityHelper.applyFilter(entity, this.props.filterText));
     let cards = null;
     if (filteredCards === null) {
-      cards = (<div>Loading...</div>);
+      cards = <div>Loading...</div>;
     } else if (filteredCards.length === 0) {
-      cards = (
-        <div>No {this.props.selectedDataSource.displayName.toLowerCase()} found.</div>
-      );
-    } else if (this.props.selectedDataSource.structure === Structure.Tree) {
+      cards = <div>No {this.props.selectedDataSource.displayName.toLowerCase()} found.</div>;
+    } else if (isClientInfo(filteredCards[0])) {
       const rootIndices = [];
-      filteredCards.forEach((entity, i) => {
-        if (entity.indent === 1) {
+      filteredCards.forEach((entity: ClientInfo, i) => {
+        if (!entity.ParentId) {
           rootIndices.push(i);
         }
       });
@@ -77,15 +65,11 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
       cards = cardGroups.map((group, i) => {
         const groupCards = group.map((entity) => (
-          <li
-            key={entity.id}
-          >
+          <li key={entity.Id}>
             <Card
-              {...entity}
-              selected={entity.id === this.props.selectedCard}
-              // tslint:disable-next-line:jsx-no-lambda
-              setSelected={() => this.props.setSelectedCard(entity.id)}
-              sublistInfo={this.props.selectedDataSource.sublistInfo}
+              entity={entity}
+              selected={entity.Id === this.props.selectedCard}
+              onSelect={() => this.props.setSelectedCard(entity.Id)}
             />
           </li>
         ));
@@ -94,33 +78,15 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         }
         return groupCards;
       });
-    } else if (this.props.selectedDataSource.name === 'user') {
-      cards = filteredCards.map((entity) => (
-        <li
-          key={entity.id}
-        >
-          <Card
-            {...entity}
-            selected={entity.id === this.props.selectedCard}
-            // tslint:disable-next-line:jsx-no-lambda
-            setSelected={() => this.props.setSelectedCard(entity.id)}
-            activated={entity.activated}
-            resetButton={true}
-            sublistInfo={this.props.selectedDataSource.sublistInfo}
-          />
-        </li>
-      ));
     } else {
       cards = filteredCards.map((entity) => (
-        <li
-          key={entity.id}
-        >
+        <li key={entity.Id}>
           <Card
-            {...entity}
-            selected={entity.id === this.props.selectedCard}
-            // tslint:disable-next-line:jsx-no-lambda
-            setSelected={() => this.props.setSelectedCard(entity.id)}
-            sublistInfo={this.props.selectedDataSource.sublistInfo}
+            entity={entity}
+            selected={entity.Id === this.props.selectedCard}
+            onSelect={() => this.props.setSelectedCard(entity.Id)}
+            activated={isUserInfo(entity) ? entity.Activated : null}
+            resetButton={isUserInfo(entity)}
           />
         </li>
       ));
@@ -132,71 +98,45 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
       && (
         <ActionIcon
           title={'Add'}
-          action={this.addAction}
+          action={this.props.onModalOpen}
           icon={'add'}
         />
       );
-
-    const modalStyle = {
-      overlay: {
-        zIndex: 200,
-      },
-    };
 
     const modal = (() => {
       switch (this.props.selectedDataSource.createAction) {
         case 'CreateUser':
           return (
             <CreateUserModal
-              isOpen={this.state.modalOpen}
-              onRequestClose={this.closeModal}
-              style={modalStyle}
+              isOpen={this.props.modalOpen}
+              onRequestClose={this.props.onModalClose}
             />
           );
         case 'CreateProfitCenter':
           return (
             <CreateProfitCenterModal
-              isOpen={this.state.modalOpen}
-              onRequestClose={this.closeModal}
-              style={modalStyle}
+              isOpen={this.props.modalOpen}
+              onRequestClose={this.props.onModalClose}
             />
           );
         case 'AddUserToClient':
           return (
             <AddUserToClientModal
-              isOpen={this.state.modalOpen}
-              onRequestClose={this.closeModal}
-              style={modalStyle}
+              isOpen={this.props.modalOpen}
+              onRequestClose={this.props.onModalClose}
               clientId={this.props.queryFilter.clientId}
             />
           );
         case 'AddUserToProfitCenter':
           return (
             <AddUserToProfitCenterModal
-              isOpen={this.state.modalOpen}
-              onRequestClose={this.closeModal}
-              style={modalStyle}
+              isOpen={this.props.modalOpen}
+              onRequestClose={this.props.onModalClose}
               profitCenterId={this.props.queryFilter.profitCenterId}
             />
           );
         default:
-          return (
-            <Modal
-              isOpen={this.state.modalOpen}
-              onRequestClose={this.closeModal}
-              ariaHideApp={false}
-              style={modalStyle}
-            >
-              <div>Please press the button</div>
-              <button
-                type="button"
-                className="button-submit blue-button"
-                onClick={this.handleCreate}
-              >
-                Click Me
-              </button>
-            </Modal>
-          );
+          return null;
       }
     })();
 
@@ -213,8 +153,8 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
           <div className="admin-panel-toolbar">
             <Filter
               placeholderText={filterPlaceholder}
-              setFilterText={this.setFilterText}
-              filterText={this.state.filterText}
+              setFilterText={this.props.onFilterTextChange}
+              filterText={this.props.filterText}
             />
             <div className="admin-panel-action-icons-container">
               {actionIcon}
@@ -229,28 +169,5 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         {modal}
       </div>
     );
-  }
-
-  private setFilterText(filterText: string) {
-    this.setState({ filterText });
-  }
-
-  private addAction() {
-    this.setState({
-      modalOpen: true,
-    });
-  }
-
-  private closeModal() {
-    this.setState({
-      modalOpen: false,
-    });
-  }
-
-  private handleCreate() {
-    postData(this.createUrl)
-    .then(() => {
-      throw new Error('Not implemented');
-    });
   }
 }

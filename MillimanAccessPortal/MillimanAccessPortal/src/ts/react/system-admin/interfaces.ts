@@ -56,6 +56,19 @@ export interface RootContentItemInfo {
   Users?: UserInfo[];
   IsSuspended: boolean;
 }
+export type EntityInfo = UserInfo | ClientInfo | ProfitCenterInfo | RootContentItemInfo;
+export function isUserInfo(info: EntityInfo): info is UserInfo {
+  return (info as UserInfo).UserName !== undefined;
+}
+export function isClientInfo(info: EntityInfo): info is ClientInfo {
+  return (info as ClientInfo).ParentOnly !== undefined;
+}
+export function isProfitCenterInfo(info: EntityInfo): info is ProfitCenterInfo {
+  return (info as ProfitCenterInfo).Office !== undefined;
+}
+export function isRootContentItemInfo(info: EntityInfo): info is RootContentItemInfo {
+  return (info as RootContentItemInfo).ClientName !== undefined;
+}
 
 export interface UserDetail {
   Id: string;

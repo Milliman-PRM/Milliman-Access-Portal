@@ -1,3 +1,5 @@
+import { EntityInfo, isRootContentItemInfo, isUserInfo } from '../system-admin/interfaces';
+
 // Represents an object displayable on a card
 
 export interface CardStat {
@@ -23,13 +25,21 @@ export interface Entity {
 }
 
 export class EntityHelper {
-  public static applyFilter(entity: Entity, filterText: string): boolean {
+  public static applyFilter(entity: EntityInfo, filterText: string): boolean {
     const filterTextLower = filterText.toLowerCase();
-    const primaryMatch = entity.primaryText
-      ? entity.primaryText.toLowerCase().indexOf(filterTextLower) !== -1
+    const primaryText = isUserInfo(entity)
+      ? `${entity.FirstName} ${entity.LastName}`
+      : entity.Name;
+    const secondaryText = isUserInfo(entity)
+      ? entity.UserName
+      : isRootContentItemInfo(entity)
+        ? entity.ClientName
+        : entity.Code;
+    const primaryMatch = primaryText
+      ? primaryText.toLowerCase().indexOf(filterTextLower) !== -1
       : false;
-    const secondaryMatch = entity.secondaryText
-      ? entity.secondaryText.toLowerCase().indexOf(filterTextLower) !== -1
+    const secondaryMatch = secondaryText
+      ? secondaryText.toLowerCase().indexOf(filterTextLower) !== -1
       : false;
     return primaryMatch || secondaryMatch;
   }

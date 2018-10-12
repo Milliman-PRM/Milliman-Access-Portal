@@ -11,13 +11,13 @@ import * as React from 'react';
 
 import { getData, postData } from '../../shared';
 import { BasicNode, BasicTree } from '../../view-models/content-publishing';
-import { ContentPanel } from '../shared-components/content-panel';
+import { ContentPanel, ContentPanelAttributes } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
 import { DataSource, RoleEnum, Structure } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
-  ClientInfo, Detail, PrimaryDetail, ProfitCenterInfo, RootContentItemInfo, SecondaryDetail,
-  UserInfo,
+  ClientInfo, Detail, EntityInfo, PrimaryDetail, ProfitCenterInfo, RootContentItemInfo,
+  SecondaryDetail, UserInfo,
 } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
@@ -28,13 +28,21 @@ interface ToggleInfo {
 }
 export interface SystemAdminState {
   data: {
-    primaryEntities: Entity[];
-    secondaryEntities: Entity[];
+    primaryEntities: EntityInfo[];
+    secondaryEntities: EntityInfo[];
   };
   primaryDataSource: string;
   secondaryDataSource: string;
   primarySelectedCard: string;
   secondarySelectedCard: string;
+  primaryContentPanel: {
+    filterText: string;
+    modalOpen: boolean;
+  };
+  secondaryContentPanel: {
+    filterText: string;
+    modalOpen: boolean;
+  };
   primaryDetail: PrimaryDetail;
   secondaryDetail: SecondaryDetail;
   toggles: {
@@ -253,6 +261,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       secondaryDataSource: null,
       primarySelectedCard: null,
       secondarySelectedCard: null,
+      primaryContentPanel: {
+        filterText: '',
+        modalOpen: false,
+      },
+      secondaryContentPanel: {
+        filterText: '',
+        modalOpen: false,
+      },
       primaryDetail: null,
       secondaryDetail: null,
       toggles: {
@@ -351,6 +367,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     const secondaryColumnComponent = this.state.primarySelectedCard
       ? (
         <ContentPanel
+          {...this.state.secondaryContentPanel}
+          onFilterTextChange={this.handleSecondaryFilterKeyup}
+          onModalOpen={this.handleSecondaryModalOpen}
+          onModalClose={this.handleSecondaryModalClose}
           controller={this.controller}
           dataSources={secondaryDataSources}
           setSelectedDataSource={this.setSecondaryDataSource}
@@ -368,6 +388,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           currentView={this.currentView}
         />
         <ContentPanel
+          {...this.state.primaryContentPanel}
+          onFilterTextChange={this.handlePrimaryFilterKeyup}
+          onModalOpen={this.handlePrimaryModalOpen}
+          onModalClose={this.handlePrimaryModalClose}
           controller={this.controller}
           dataSources={primaryDataSources}
           setSelectedDataSource={this.setPrimaryDataSource}
@@ -521,10 +545,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     getData(`/SystemAdmin/${dataSource.infoAction}`, {})
     .then((response) => {
       this.setState((prevState) => ({
-        ...prevState,
         data: {
           ...prevState.data,
-          primaryEntities: dataSource.processInfo(response),
+          primaryEntities: response,
         },
       }));
     });
@@ -543,7 +566,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         ...prevState,
         data: {
           ...prevState.data,
-          secondaryEntities: dataSource.processInfo(response),
+          secondaryEntities: response,
         },
       }));
     });
@@ -863,5 +886,59 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         },
       }));
     });
+  }
+
+  private handlePrimaryFilterKeyup = (filterText: string) => {
+    this.setState((prevState) => ({
+      primaryContentPanel: {
+        ...prevState.primaryContentPanel,
+        filterText,
+      },
+    }));
+  }
+
+  private handleSecondaryFilterKeyup = (filterText: string) => {
+    this.setState((prevState) => ({
+      secondaryContentPanel: {
+        ...prevState.secondaryContentPanel,
+        filterText,
+      },
+    }));
+  }
+
+  private handlePrimaryModalOpen = () => {
+    this.setState((prevState) => ({
+      primaryContentPanel: {
+        ...prevState.primaryContentPanel,
+        modalOpen: true,
+      },
+    }));
+  }
+
+  private handlePrimaryModalClose = () => {
+    this.setState((prevState) => ({
+      primaryContentPanel: {
+        ...prevState.primaryContentPanel,
+        modalOpen: false,
+      },
+    }));
+  }
+
+  private handleSecondaryModalOpen = () => {
+    this.setState((prevState) => ({
+      secondaryContentPanel: {
+        ...prevState.secondaryContentPanel,
+        modalOpen: true,
+      },
+    }));
+  }
+
+  private handleSecondaryModalClose = () => {
+    this.setState((prevState) => ({
+      secondaryContentPanel: {
+        ...prevState.secondaryContentPanel,
+        modalOpen: false,
+      },
+    }));
   }
 }
