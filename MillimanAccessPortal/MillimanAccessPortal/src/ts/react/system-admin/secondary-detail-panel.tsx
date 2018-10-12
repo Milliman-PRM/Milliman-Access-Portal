@@ -3,8 +3,8 @@ import * as React from 'react';
 
 import { getData, postData } from '../../shared';
 import { Entity } from '../shared-components/entity';
-import { ImmediateToggle } from '../shared-components/immediate-toggle';
 import { DataSource, QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { Toggle } from '../shared-components/toggle';
 import {
   ClientDetailForProfitCenter, ClientDetailForUser, NestedList, RootContentItemDetailForClient,
   RootContentItemDetailForUser, SecondaryDetail, UserDetailForClient, UserDetailForProfitCenter,
@@ -19,14 +19,12 @@ interface SecondaryDetailPanelProps {
   detail: SecondaryDetail;
   onCancelPublication: (event: React.MouseEvent<HTMLElement>) => void;
   onCancelReduction: (event: React.MouseEvent<HTMLElement>, id: string) => void;
-  onFetchUserClient: (role: RoleEnum) => void;
-  onPushUserClient: (role: RoleEnum) => void;
+  onPushUserClient: (event: React.ChangeEvent<HTMLInputElement>, role: RoleEnum) => void;
   checkedClientAdmin: boolean;
   checkedContentPublisher: boolean;
   checkedAccessAdmin: boolean;
   checkedContentUser: boolean;
-  onFetchSuspend: (role: RoleEnum) => void;
-  onPushSuspend: (role: RoleEnum) => void;
+  onPushSuspend: (event: React.ChangeEvent<HTMLInputElement>) => void;
   checkedSuspended: boolean;
 }
 
@@ -62,43 +60,31 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div className="detail-section">
                         <h3 className="detail-section-title">Client/User Roles</h3>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Client Admin'}
-                            data={RoleEnum.Admin}
                             checked={this.props.checkedClientAdmin}
-                            onFetch={this.props.onFetchUserClient}
-                            onPush={this.props.onPushUserClient}
+                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.Admin)}
                           />
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Content Access Admin'}
-                            data={RoleEnum.ContentAccessAdmin}
                             checked={this.props.checkedAccessAdmin}
-                            onFetch={this.props.onFetchUserClient}
-                            onPush={this.props.onPushUserClient}
+                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.ContentAccessAdmin)}
                           />
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Content Publisher'}
-                            data={RoleEnum.ContentPublisher}
                             checked={this.props.checkedContentPublisher}
-                            onFetch={this.props.onFetchUserClient}
-                            onPush={this.props.onPushUserClient}
+                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.ContentPublisher)}
                           />
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Content Eligible'}
-                            data={RoleEnum.ContentUser}
                             checked={this.props.checkedContentUser}
-                            onFetch={this.props.onFetchUserClient}
-                            onPush={this.props.onPushUserClient}
+                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
                           />
                         </div>
                       </div>
@@ -170,43 +156,31 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div className="detail-section">
                         <h3 className="detail-section-title">Client/User Roles</h3>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Client Admin'}
-                            data={RoleEnum.Admin}
                             checked={this.props.checkedClientAdmin}
-                            onFetch={this.props.onFetchUserClient}
-                            onPush={this.props.onPushUserClient}
+                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.Admin)}
                           />
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Content Access Admin'}
-                            data={RoleEnum.ContentAccessAdmin}
                             checked={this.props.checkedAccessAdmin}
-                            onFetch={this.props.onFetchUserClient}
-                            onPush={this.props.onPushUserClient}
+                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.ContentAccessAdmin)}
                           />
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Content Publisher'}
-                            data={RoleEnum.ContentPublisher}
                             checked={this.props.checkedContentPublisher}
-                            onFetch={this.props.onFetchUserClient}
-                            onPush={this.props.onPushUserClient}
+                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.ContentPublisher)}
                           />
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Content Eligible'}
-                            data={RoleEnum.ContentUser}
                             checked={this.props.checkedContentUser}
-                            onFetch={this.props.onFetchUserClient}
-                            onPush={this.props.onPushUserClient}
+                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
                           />
                         </div>
                       </div>
@@ -257,13 +231,10 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                           {publishingStatus}
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Suspended'}
-                            data={{ }}
                             checked={this.props.checkedSuspended}
-                            onFetch={this.props.onFetchSuspend}
-                            onPush={this.props.onPushSuspend}
+                            onChange={this.props.onPushSuspend}
                           />
                         </div>
                       </div>

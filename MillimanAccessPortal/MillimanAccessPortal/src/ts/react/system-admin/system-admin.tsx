@@ -388,10 +388,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             selectedCard={this.state.primarySelectedCard}
             queryFilter={secondaryQueryFilter}
             detail={this.state.primaryDetail}
-            onFetchSystemAdmin={this.fetchSystemAdmin}
             onPushSystemAdmin={this.pushSystemAdmin}
             checkedSystemAdmin={this.state.toggles.systemAdmin.checked}
-            onFetchSuspend={this.fetchSuspendUser}
             onPushSuspend={this.pushSuspendUser}
             checkedSuspended={this.state.toggles.userSuspend.checked}
           />
@@ -409,9 +407,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             checkedAccessAdmin={this.state.toggles.userClient[RoleEnum.ContentAccessAdmin].checked}
             checkedContentUser={this.state.toggles.userClient[RoleEnum.ContentUser].checked}
             checkedSuspended={this.state.toggles.contentSuspend.checked}
-            onFetchUserClient={this.fetchUserClient}
             onPushUserClient={this.pushUserClient}
-            onFetchSuspend={this.fetchSuspendContent}
             onPushSuspend={this.pushSuspendContent}
           />
         </div>
@@ -755,7 +751,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
-  private pushUserClient = (role: RoleEnum) => {
+  private pushUserClient = (_, role: RoleEnum) => {
     const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
     const dataSource = this.getDataSourceByName(
       this.getDataSources(this.state.primaryDataSource),

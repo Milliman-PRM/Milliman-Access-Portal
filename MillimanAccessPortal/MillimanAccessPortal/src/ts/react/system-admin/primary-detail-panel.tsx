@@ -5,8 +5,8 @@ import * as React from 'react';
 
 import { getData } from '../../shared';
 import { Entity } from '../shared-components/entity';
-import { ImmediateToggle } from '../shared-components/immediate-toggle';
 import { DataSource, QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { Toggle } from '../shared-components/toggle';
 import { ClientDetail, PrimaryDetail, ProfitCenterDetail, UserDetail } from './interfaces';
 
 interface PrimaryDetailPanelProps {
@@ -15,11 +15,9 @@ interface PrimaryDetailPanelProps {
   selectedCard: string;
   queryFilter: QueryFilter;
   detail: PrimaryDetail;
-  onFetchSystemAdmin: (data?: object) => void;
-  onPushSystemAdmin: (data?: object) => void;
+  onPushSystemAdmin: (event: React.ChangeEvent<HTMLInputElement>) => void;
   checkedSystemAdmin: boolean;
-  onFetchSuspend: (data?: object) => void;
-  onPushSuspend: (data?: object) => void;
+  onPushSuspend: (event: React.ChangeEvent<HTMLInputElement>) => void;
   checkedSuspended: boolean;
 }
 
@@ -71,24 +69,20 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                   <div className="detail-section">
                     <h3 className="detail-section-title">System Permissions</h3>
                     <div className="detail-container">
-                      <ImmediateToggle
-                        queryFilter={this.props.queryFilter}
+                      <Toggle
                         label={'System Admin'}
-                        onFetch={this.props.onFetchSystemAdmin}
-                        onPush={this.props.onPushSystemAdmin}
                         checked={this.props.checkedSystemAdmin}
+                        onChange={this.props.onPushSystemAdmin}
                       />
                     </div>
                   </div>
                   <div className="detail-section">
                     <h3 className="detail-section-title">User Settings</h3>
                     <div className="detail-container">
-                      <ImmediateToggle
-                        queryFilter={this.props.queryFilter}
+                      <Toggle
                         label={'Suspended'}
-                        onFetch={this.props.onFetchSuspend}
-                        onPush={this.props.onPushSuspend}
                         checked={this.props.checkedSuspended}
+                        onChange={this.props.onPushSuspend}
                       />
                     </div>
                   </div>

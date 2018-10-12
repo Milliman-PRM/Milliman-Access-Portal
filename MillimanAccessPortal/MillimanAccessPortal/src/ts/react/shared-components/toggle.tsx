@@ -5,29 +5,23 @@ import * as React from 'react';
 import { getData, postData } from '../../shared';
 import { QueryFilter } from './interfaces';
 
-interface ImmediateToggleProps {
-  queryFilter: QueryFilter;
+interface ToggleProps {
   label: string;
-  data?: any;
   checked: boolean;
-  onFetch: (data?: any) => void;
-  onPush: (data?: any) => void;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export class ImmediateToggle extends React.Component<ImmediateToggleProps> {
+export class Toggle extends React.Component<ToggleProps> {
   public render() {
     return (
       <div className="switch-container">
-        <div
-          className="toggle-switch"
-          onClick={() => this.props.onPush(this.props.data)}
-        >
+        <div className="toggle-switch">
           <input
             type="checkbox"
             className="toggle-switch-checkbox"
             name={this.props.label}
             checked={this.props.checked}
-            onChange={() => null}
+            onChange={this.props.onChange}
           />
           <label className="toggle-switch-label" htmlFor={this.props.label}>
             <span className="toggle-switch-inner" />
