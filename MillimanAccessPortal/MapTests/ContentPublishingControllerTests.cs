@@ -40,7 +40,6 @@ namespace MapTests
                 TestResources.AuditLoggerObject,
                 TestResources.AuthorizationService,
                 TestResources.DbContextObject,
-                TestResources.LoggerFactory,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,

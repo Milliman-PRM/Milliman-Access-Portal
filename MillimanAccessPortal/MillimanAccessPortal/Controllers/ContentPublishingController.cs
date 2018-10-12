@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
@@ -41,7 +40,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly IConfiguration ApplicationConfig;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext DbContext;
-        private readonly ILogger Logger;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly QlikviewConfig QlikviewConfig;
@@ -59,7 +57,6 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext ContextArg,
-            ILoggerFactory LoggerFactoryArg,
             StandardQueries QueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
@@ -69,7 +66,6 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DbContext = ContextArg;
-            Logger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
             Queries = QueriesArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;

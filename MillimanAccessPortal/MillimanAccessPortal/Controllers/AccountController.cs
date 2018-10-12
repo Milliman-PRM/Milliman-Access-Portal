@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
@@ -30,6 +29,7 @@ using MillimanAccessPortal.Authorization;
 using Microsoft.Extensions.Configuration;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
+using Serilog;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -41,7 +41,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IMessageQueue _messageSender;
-        private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
         private readonly StandardQueries Queries;
         private readonly IAuthorizationService AuthorizationService;
@@ -54,7 +53,6 @@ namespace MillimanAccessPortal.Controllers
             RoleManager<ApplicationRole> roleManager,
             SignInManager<ApplicationUser> signInManager,
             IMessageQueue messageSender,
-            ILoggerFactory loggerFactory,
             IAuditLogger AuditLoggerArg,
             StandardQueries QueriesArg,
             IAuthorizationService AuthorizationServiceArg,
@@ -66,7 +64,6 @@ namespace MillimanAccessPortal.Controllers
             _roleManager = roleManager;
             _signInManager = signInManager;
             _messageSender = messageSender;
-            _logger = loggerFactory.CreateLogger<AccountController>();
             _auditLogger = AuditLoggerArg;
             Queries = QueriesArg;
             AuthorizationService = AuthorizationServiceArg;
@@ -105,7 +102,7 @@ namespace MillimanAccessPortal.Controllers
                 if (user == null || user.IsSuspended)
                 {
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    _logger.LogWarning(2, "User login failed.");
+                    Log.Warning($"User {model.Username} suspended or not found, login failed.");
                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
                     return View(model);
                 }
@@ -124,7 +121,7 @@ namespace MillimanAccessPortal.Controllers
                 catch
                 {
                     expirationDays = defaultExpirationDays;
-                    _logger.LogWarning($"PasswordExpirationDays value not found or cannot be cast to an integer. The default value of { expirationDays } will be used.");
+                    Log.Warning($"PasswordExpirationDays value not found or cannot be cast to an integer. The default value of {expirationDays} will be used.");
                 }
                                 
                 if (passwordSuccess && user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow)
@@ -142,6 +139,7 @@ namespace MillimanAccessPortal.Controllers
                     HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
 
                     _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(), model.Username);
+                    Log.Information($"User {model.Username} logged in");
 
                     // The default route is /AuthorizedContent/Index as configured in startup.cs
                     if (!string.IsNullOrEmpty(returnUrl))
@@ -163,21 +161,21 @@ namespace MillimanAccessPortal.Controllers
                     else if (result.IsNotAllowed)
                     {
                         ModelState.AddModelError(string.Empty, "User login is not allowed.");
-                        _logger.LogWarning(2, $"User login not allowed: {model.Username}");
+                        Log.Warning($"User {model.Username} login not allowed: {model.Username}");
                         _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
                         return View("Message", lockoutMessage);
                     }
                     else if (result.IsLockedOut)
                     {
                         ModelState.AddModelError(string.Empty, "User account is locked out.");
-                        _logger.LogWarning(2, "User account locked out.");
+                        Log.Warning($"User {model.Username} account locked out.");
                         _auditLogger.Log(AuditEventType.LoginIsLockedOut.ToEvent(), model.Username);
                         return View("Message", lockoutMessage);
                     }
                     else
                     {
                         ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                        _logger.LogWarning(2, "User login failed.");
+                        Log.Warning($"User {model.Username} login failed.");
                         _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
                         return View(model);
                     }
@@ -238,7 +236,7 @@ namespace MillimanAccessPortal.Controllers
 
                         _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(newUser));
                         _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(newUser, RoleEnum.Admin));
-                        _logger.LogInformation(3, "User created a new account with password.");
+                        Log.Information($"Initial user {model.Email} account created new with password.");
 
                         // Send the confirmation message
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
@@ -266,7 +264,7 @@ namespace MillimanAccessPortal.Controllers
             await _signInManager.SignOutAsync();
 
             _auditLogger.Log(AuditEventType.Logout.ToEvent(), appUser?.UserName);
-            _logger.LogInformation(4, "User logged out.");
+            Log.Information($"User {appUser?.UserName ?? ""} logged out.");
 
             Response.Cookies.Delete(".AspNetCore.Session");
             HttpContext.Session.Clear();
@@ -308,7 +306,7 @@ namespace MillimanAccessPortal.Controllers
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
             if (result.Succeeded)
             {
-                _logger.LogInformation(5, "User logged in with {Name} provider.", info.LoginProvider);
+                Log.Information($"User logged in with {info.LoginProvider} provider.");
                 return RedirectToLocal(returnUrl);
             }
             if (result.RequiresTwoFactor)
@@ -353,7 +351,7 @@ namespace MillimanAccessPortal.Controllers
                     if (result.Succeeded)
                     {
                         await _signInManager.SignInAsync(user, isPersistent: false);
-                        _logger.LogInformation(6, "User created an account using {Name} provider.", info.LoginProvider);
+                        Log.Information($"User created an account using {info.LoginProvider} provider.");
                         return RedirectToLocal(returnUrl);
                     }
                 }
@@ -672,7 +670,7 @@ namespace MillimanAccessPortal.Controllers
 
                 if (!addHistoryResult.Succeeded)
                 {
-                    _logger.LogError($"Failed to save password history for {user.UserName }");
+                    Log.Error($"Failed to save password history for {user.UserName }");
                 }
 
                 _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user));
@@ -880,7 +878,7 @@ namespace MillimanAccessPortal.Controllers
             }
             if (result.IsLockedOut)
             {
-                _logger.LogWarning(7, "User account locked out.");
+                Log.Warning("User account locked out.");
                 var lockoutMessage = "This account has been locked out, please try again later.";
                 return View("Message", lockoutMessage);
             }
@@ -1021,7 +1019,7 @@ namespace MillimanAccessPortal.Controllers
 
                     if (!addHistoryResult.Succeeded)
                     {
-                        _logger.LogError($"Failed to save password history for {user.UserName }");
+                        Log.Error($"Failed to save password history for {user.UserName }");
                     }
 
                     return Ok();

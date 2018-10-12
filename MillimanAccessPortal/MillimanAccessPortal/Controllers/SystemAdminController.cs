@@ -28,7 +28,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AccountViewModels;
@@ -48,7 +47,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService _authService;
         private readonly ApplicationDbContext _dbContext;
         private readonly IConfiguration _configuration;
-        private readonly ILogger _logger;
         private readonly StandardQueries _queries;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -59,7 +57,6 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService authService,
             IConfiguration configuration,
             ApplicationDbContext dbContext,
-            ILoggerFactory loggerFactory,
             StandardQueries queries,
             RoleManager<ApplicationRole> roleManager,
             UserManager<ApplicationUser> userManager
@@ -70,7 +67,6 @@ namespace MillimanAccessPortal.Controllers
             _authService = authService;
             _configuration = configuration;
             _dbContext = dbContext;
-            _logger = loggerFactory.CreateLogger<SystemAdminController>();
             _queries = queries;
             _roleManager = roleManager;
             _userManager = userManager;

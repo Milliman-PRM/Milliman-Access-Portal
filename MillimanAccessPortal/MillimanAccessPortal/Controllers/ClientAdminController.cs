@@ -4,12 +4,12 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -43,7 +43,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly ApplicationDbContext DbContext;
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
-        private readonly ILogger Logger;
         private readonly IMessageQueue MessageQueueService;
         private readonly RoleManager<ApplicationRole> RoleManager;
         private readonly StandardQueries Queries;
@@ -55,7 +54,6 @@ namespace MillimanAccessPortal.Controllers
             ApplicationDbContext context,
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
-            ILoggerFactory LoggerFactoryArg,
             IMessageQueue MessageQueueServiceArg,
             RoleManager<ApplicationRole> RoleManagerArg,
             StandardQueries QueryArg,
@@ -67,7 +65,6 @@ namespace MillimanAccessPortal.Controllers
             DbContext = context;
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
-            Logger = LoggerFactoryArg.CreateLogger<ClientAdminController>();
             MessageQueueService = MessageQueueServiceArg;
             RoleManager = RoleManagerArg;
             Queries = QueryArg;
@@ -314,7 +311,7 @@ namespace MillimanAccessPortal.Controllers
             catch (Exception e)
             {
                 string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating new user \"{Model.UserName}\" or assigning user membership in client(s): [{Model.MemberOfClientId.ToString()}]");
-                Logger.LogError(ErrMsg);
+                Log.Error(ErrMsg);
                 Response.Headers.Add("Warning", "Failed to complete operation");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -398,7 +395,7 @@ namespace MillimanAccessPortal.Controllers
                 if (ResultOfAddClaim != IdentityResult.Success)
                 {
                     string ErrMsg = $"Failed to add claim for user {RequestedUser.UserName}: Claim={ThisClientMembershipClaim.Type}.{ThisClientMembershipClaim.Value}";
-                    Logger.LogError(ErrMsg);
+                    Log.Error(ErrMsg);
                     return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 }
 
@@ -652,7 +649,7 @@ namespace MillimanAccessPortal.Controllers
             catch (Exception e)
             {
                 string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to remove user {RequestedUser.UserName} from client {RequestedClient.Name}");
-                Logger.LogError(ErrMsg);
+                Log.Error(ErrMsg);
                 Response.Headers.Add("Warning", "Error processing request.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -797,7 +794,7 @@ namespace MillimanAccessPortal.Controllers
                 catch (Exception e)
                 {
                     string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to store new client \"{Model.Name}\" to database, or assign client administrator role");
-                    Logger.LogError(ErrMsg);
+                    Log.Error(ErrMsg);
                     Response.Headers.Add("Warning", "Error processing request.");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
@@ -989,7 +986,7 @@ namespace MillimanAccessPortal.Controllers
             catch (Exception ex)
             {
                 string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to update client {Model.Id} to database");
-                Logger.LogError(ErrMsg);
+                Log.Error(ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -1084,7 +1081,7 @@ namespace MillimanAccessPortal.Controllers
                 catch (Exception ex)
                 {
                     string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to delete client from database");
-                    Logger.LogError(ErrMsg);
+                    Log.Error(ErrMsg);
                     Response.Headers.Add("Warning", "Error processing request.");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }

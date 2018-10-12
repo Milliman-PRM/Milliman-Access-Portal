@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
@@ -26,6 +25,7 @@ using MillimanAccessPortal.Models.AuthorizedContentViewModels;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
 using QlikviewLib;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,7 +42,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext DataContext;
         private readonly IMessageQueue MessageQueue;
-        private readonly ILogger Logger;
         private readonly QlikviewConfig QlikviewConfig;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
@@ -64,7 +63,6 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext DataContextArg,
             IMessageQueue MessageQueueArg,
-            ILoggerFactory LoggerFactoryArg,
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             StandardQueries QueryArg,
             UserManager<ApplicationUser> UserManagerArg,
@@ -74,7 +72,6 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationService = AuthorizationServiceArg;
             DataContext = DataContextArg;
             MessageQueue = MessageQueueArg;
-            Logger = LoggerFactoryArg.CreateLogger<AuthorizedContentController>();
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             Queries = QueryArg;
             UserManager = UserManagerArg;
@@ -118,7 +115,7 @@ namespace MillimanAccessPortal.Controllers
             if (selectionGroup?.RootContentItem?.ContentType == null)
             {
                 string ErrMsg = $"Failed to obtain the requested selection group, content item, or content type";
-                Logger.LogError(ErrMsg);
+                Log.Error(ErrMsg);
 
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 // something that appropriately returns to a logical next view
@@ -231,7 +228,7 @@ namespace MillimanAccessPortal.Controllers
             if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
             {
                 string Msg = $"Failed to obtain the requested selection group, content item, or content type";
-                Logger.LogError(Msg);
+                Log.Error(Msg);
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -268,7 +265,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 // ControllerBase.File does not throw, but the Stream can throw all sorts of things.
                 string ErrMsg = $"Failed to obtain image for SelectionGroup {selectionGroupId}";
-                Logger.LogError(ErrMsg);
+                Log.Error(ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
         }
@@ -289,7 +286,7 @@ namespace MillimanAccessPortal.Controllers
             if (PubRequest == null || PubRequest.RootContentItem == null || PubRequest.RootContentItem.ContentType == null)
             {
                 string Msg = $"Failed to obtain the requested publication request, content item, or content type";
-                Logger.LogError(Msg);
+                Log.Error(Msg);
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -326,7 +323,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 // ControllerBase.File does not throw, but the Stream can throw all sorts of things.
                 string ErrMsg = $"Failed to obtain preview image for ContentPublicationRequest {publicationRequestId}";
-                Logger.LogError(ErrMsg);
+                Log.Error(ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
         }
@@ -343,7 +340,7 @@ namespace MillimanAccessPortal.Controllers
             if (selectionGroup == null || selectionGroup.RootContentItem == null)
             {
                 string Msg = $"Failed to obtain the requested selection group or content item";
-                Logger.LogError(Msg);
+                Log.Error(Msg);
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -376,7 +373,7 @@ namespace MillimanAccessPortal.Controllers
                 var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
                 notifier.sendSupportMail(MailMsg, $"Checksum verification ({purpose})");
-                Logger.LogError(String.Join(" ", ErrMsg));
+                Log.Error(String.Join(" ", ErrMsg));
                 AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
                 return View("ContentMessage", ErrMsg);
             }
@@ -390,7 +387,7 @@ namespace MillimanAccessPortal.Controllers
             catch
             {
                 string ErrMsg = $"Failed to load requested {purpose} PDF for SelectionGroup {selectionGroupId}";
-                Logger.LogError(ErrMsg);
+                Log.Error(ErrMsg);
                 Response.Headers.Add("Warning", ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -407,7 +404,7 @@ namespace MillimanAccessPortal.Controllers
             if (PubRequest == null || PubRequest.RootContentItem == null)
             {
                 string Msg = $"Failed to obtain the requested publication request or related content item";
-                Logger.LogError(Msg);
+                Log.Error(Msg);
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -437,7 +434,7 @@ namespace MillimanAccessPortal.Controllers
             catch (Exception e)
             {
                 string ErrMsg = $"Failed to load requested PDF for RootContentItem {PubRequest.RootContentItemId}";
-                Logger.LogError(GlobalFunctions.LoggableExceptionString(e, ErrMsg, true));
+                Log.Error(GlobalFunctions.LoggableExceptionString(e, ErrMsg, true));
                 Response.Headers.Add("Warning", ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }

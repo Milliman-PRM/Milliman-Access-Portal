@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
@@ -27,6 +26,7 @@ using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Models.ContentPublishing;
 using Newtonsoft.Json;
 using QlikviewLib;
+using Serilog;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -41,7 +41,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService AuthorizationService;
         private readonly IConfiguration ApplicationConfig;
         private readonly ApplicationDbContext DbContext;
-        private readonly ILogger Logger;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly QlikviewConfig QvConfig;
@@ -50,7 +49,6 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext DbContextArg,
-            ILoggerFactory LoggerFactoryArg,
             StandardQueries QueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
@@ -60,7 +58,6 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DbContext = DbContextArg;
-            Logger = LoggerFactoryArg.CreateLogger<ContentAccessAdminController>();
             Queries = QueriesArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
@@ -255,7 +252,7 @@ namespace MillimanAccessPortal.Controllers
             catch (Exception ex)
             {
                 string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating selection group \"{selectionGroup.Id}\"");
-                Logger.LogError(ErrMsg);
+                Log.Error(ErrMsg);
                 Response.Headers.Add("Warning", $"Failed to complete transaction.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -463,7 +460,7 @@ namespace MillimanAccessPortal.Controllers
             catch (Exception ex)
             {
                 string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while updating selection group \"{SelectionGroupId}\" user assignments");
-                Logger.LogError(ErrMsg);
+                Log.Error(ErrMsg);
                 Response.Headers.Add("Warning", $"Failed to complete transaction.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -630,7 +627,7 @@ namespace MillimanAccessPortal.Controllers
             catch (Exception ex)
             {
                 string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while deleting selection group \"{SelectionGroupId}\" or removing members: [{string.Join(",", RemovedUsers)}]");
-                Logger.LogError(ErrMsg);
+                Log.Error(ErrMsg);
                 Response.Headers.Add("Warning", $"Failed to complete transaction.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
