@@ -5,38 +5,36 @@ import * as React from 'react';
 import { Entity } from './entity';
 import { DataSource } from './interfaces';
 
-interface ColumnSelectorProps {
-  dataSources: Array<DataSource<Entity>>;
-  setSelectedDataSource: (sourceName: string) => void;
-  selectedDataSource: DataSource<Entity>;
+interface ColumnIndicator {
+  id: string;
+  name: string;
 }
 
-export class ColumnSelector extends React.Component<ColumnSelectorProps, {}> {
-  public constructor(props) {
-    super(props);
-  }
+interface ColumnSelectorProps {
+  columns: ColumnIndicator[];
+  onColumnSelect: (id: string) => void;
+  selectedColumn: ColumnIndicator;
+}
 
+export class ColumnSelector extends React.Component<ColumnSelectorProps> {
   public render() {
-    const options = this.props.dataSources.map((dataSource) => {
-      const selectedDataSourceName = this.props.selectedDataSource && this.props.selectedDataSource.name;
-      const selectorClass = (selectedDataSourceName === dataSource.name)
-        ? 'selected'
-        : null;
-      return (
-        <div
-          key={dataSource.name}
-          className={`content-option ${selectorClass}`}
-          // tslint:disable-next-line:jsx-no-lambda
-          onClick={() => this.props.setSelectedDataSource(dataSource.name)}
-        >
-          {dataSource.displayName}
-        </div>
-      );
-    });
     return (
       <div className="content-options">
-        {options}
+        {this.renderColumns()}
       </div>
     );
+  }
+
+  private renderColumns() {
+    const { columns, onColumnSelect, selectedColumn } = this.props;
+    return columns.map((column) => (
+      <div
+        key={column.id}
+        className={`content-option${column.id === selectedColumn.id ? ' selected' : ''}`}
+        onClick={() => onColumnSelect(column.id)}
+      >
+        {column.name}
+      </div>
+    ));
   }
 }

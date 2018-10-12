@@ -205,7 +205,9 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
       >
         <ColumnSelector
-          {...this.props}
+          columns={this.props.dataSources.map(({name: id, displayName: name}) => ({id, name}))}
+          onColumnSelect={this.props.setSelectedDataSource}
+          selectedColumn={{id: this.props.selectedDataSource.name, name: this.props.selectedDataSource.displayName}}
         />
         <div className="admin-panel-list">
           <div className="admin-panel-toolbar">
