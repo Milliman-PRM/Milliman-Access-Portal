@@ -77,10 +77,27 @@
     "test": "jest",
     "test-browsers": "testcafe chrome,firefox,ie src/browser_tests/"
   },
+  "jest-junit": {
+    "output": "../../_test_results/jest-test-results.xml"
+  },
   "jest": {
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/ts/status-monitor.ts",
+      "src/ts/shared.ts",
+      "src/ts/check-password.ts",
+      "src/ts/react/**/*.{ts,tsx}",
+      "src/ts/upload/**/*.{ts,tsx}",
+      "!src/ts/upload/upload.ts",
+      "src/ts/view-models/**/*.{ts,tsx}",
+      "src/ts/content-access-admin/selection-status-monitor.ts",
+      "src/ts/content-publishing/publication-status-monitor.ts"
+    ],
+    "coverageDirectory": "../../_test_results/_jest_coverage",
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
+    "testResultsProcessor": "jest-junit",
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/src/browser_tests/"
