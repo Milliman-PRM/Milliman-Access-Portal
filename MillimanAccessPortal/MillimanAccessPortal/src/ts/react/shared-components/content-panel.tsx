@@ -27,6 +27,7 @@ export interface ContentPanelAttributes {
   modalOpen: boolean;
   onModalOpen: () => void;
   onModalClose: () => void;
+  createAction: string;
 }
 export interface ContentPanelProps extends ContentPanelAttributes {
   dataSources: Array<DataSource<Entity>>;
@@ -44,7 +45,7 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
     const filterPlaceholder = this.props.selectedDataSource.displayName
       ? `Filter ${this.props.selectedDataSource.displayName}...`
       : '';
-    const actionIcon = this.props.selectedDataSource.createAction
+    const actionIcon = this.props.createAction
       && (
         <ActionIcon
           title={'Add'}
@@ -54,7 +55,7 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
       );
 
     const modal = (() => {
-      switch (this.props.selectedDataSource.createAction) {
+      switch (this.props.createAction) {
         case 'CreateUser':
           return (
             <CreateUserModal

@@ -1,4 +1,6 @@
-﻿export interface QueryFilter {
+﻿import { SystemAdminColumn } from '../system-admin/system-admin';
+
+export interface QueryFilter {
   userId?: string;
   clientId?: string;
   profitCenterId?: string;
@@ -11,17 +13,14 @@ export enum Structure {
 }
 
 export interface DataSource<T> {
-  name: string;
-  parentSources: Array<string | DataSourceOverride<T>>;
+  name: SystemAdminColumn;
+  parentSources: Array<SystemAdminColumn | DataSourceOverride<T>>;
   displayName: string;
-  infoAction: string;
-  detailAction: string;
-  createAction: string;
   assignQueryFilter: (id: string) => Partial<QueryFilter>;
 }
 
 export interface DataSourceOverride<T> {
-  name: string;
+  name: SystemAdminColumn;
   overrides: Partial<DataSource<T>>;
 }
 

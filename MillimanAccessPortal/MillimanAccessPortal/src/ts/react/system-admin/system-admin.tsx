@@ -31,8 +31,8 @@ export interface SystemAdminState {
     primaryEntities: EntityInfoCollection;
     secondaryEntities: EntityInfoCollection;
   };
-  primaryDataSource: string;
-  secondaryDataSource: string;
+  primaryDataSource: SystemAdminColumn;
+  secondaryDataSource: SystemAdminColumn;
   primarySelectedCard: string;
   secondarySelectedCard: string;
   primaryContentPanel: {
@@ -55,6 +55,13 @@ export interface SystemAdminState {
   };
 }
 
+export enum SystemAdminColumn {
+  USER = 'user',
+  CLIENT = 'client',
+  PROFIT_CENTER = 'profitCenter',
+  ROOT_CONTENT_ITEM = 'rootContentItem',
+}
+
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private controller: string = 'SystemAdmin';
   private readonly currentView: string = document
@@ -63,75 +70,58 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     name: null,
     parentSources: [],
     displayName: '',
-    infoAction: '',
-    detailAction: '',
-    createAction: null,
     assignQueryFilter: () => null,
   };
   private dataSources: Array<DataSource<Entity>> = [
     {
-      name: 'user',
+      name: SystemAdminColumn.USER,
       parentSources: [
         null,
         {
-          name: 'client',
+          name: SystemAdminColumn.CLIENT,
           overrides: {
-            createAction: 'AddUserToClient',
           },
         },
         {
-          name: 'profitCenter',
+          name: SystemAdminColumn.PROFIT_CENTER,
           overrides: {
-            createAction: 'AddUserToProfitCenter',
             displayName: 'Authorized Users',
           },
         },
       ],
       displayName: 'Users',
-      infoAction: 'Users',
-      detailAction: 'UserDetail',
-      createAction: 'CreateUser',
       assignQueryFilter: (userId: string) => ({ userId }),
     },
     {
-      name: 'client',
+      name: SystemAdminColumn.CLIENT,
       parentSources: [
         null,
-        'user',
-        'profitCenter',
+        SystemAdminColumn.USER,
+        SystemAdminColumn.PROFIT_CENTER,
       ],
       displayName: 'Clients',
-      infoAction: 'Clients',
-      detailAction: 'ClientDetail',
-      createAction: null,
       assignQueryFilter: (clientId: string) => ({ clientId }),
     },
     {
-      name: 'profitCenter',
+      name: SystemAdminColumn.PROFIT_CENTER,
       parentSources: [
         null,
       ],
       displayName: 'Profit Center',
-      infoAction: 'ProfitCenters',
-      detailAction: 'ProfitCenterDetail',
-      createAction: 'CreateProfitCenter',
       assignQueryFilter: (profitCenterId: string) => ({ profitCenterId }),
     },
     {
-      name: 'rootContentItem',
+      name: SystemAdminColumn.ROOT_CONTENT_ITEM,
       parentSources: [
         {
-          name: 'user',
+          name: SystemAdminColumn.USER,
           overrides: {
             displayName: 'Content',
           },
         },
-        'client',
+        SystemAdminColumn.CLIENT,
       ],
       displayName: 'Content Items',
-      infoAction: 'RootContentItems',
-      detailAction: 'RootContentItemDetail',
-      createAction: null,
       assignQueryFilter: (rootContentItemId: string) => ({ rootContentItemId }),
     },
   ];
@@ -258,6 +248,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onFilterTextChange={this.handleSecondaryFilterKeyup}
           onModalOpen={this.handleSecondaryModalOpen}
           onModalClose={this.handleSecondaryModalClose}
+          createAction={this.getCreateAction(this.state.secondaryDataSource, this.state.primaryDataSource)}
           dataSources={secondaryDataSources}
           setSelectedDataSource={this.setSecondaryDataSource}
           selectedDataSource={secondaryDataSource}
@@ -278,6 +269,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onFilterTextChange={this.handlePrimaryFilterKeyup}
           onModalOpen={this.handlePrimaryModalOpen}
           onModalClose={this.handlePrimaryModalClose}
+          createAction={this.getCreateAction(this.state.primaryDataSource)}
           dataSources={primaryDataSources}
           setSelectedDataSource={this.setPrimaryDataSource}
           selectedDataSource={primaryDataSource}
@@ -424,10 +416,66 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       || this.nullDataSource;
   }
 
+  private getDataAction(column: SystemAdminColumn) {
+    switch (column) {
+      case SystemAdminColumn.USER:
+        return 'Users';
+      case SystemAdminColumn.CLIENT:
+        return 'Clients';
+      case SystemAdminColumn.PROFIT_CENTER:
+        return 'ProfitCenters';
+      case SystemAdminColumn.ROOT_CONTENT_ITEM:
+        return 'RootContentItems';
+      default:
+        throw new Error(`'${column}' is not a valid column.`);
+    }
+  }
+
+  private getDetailAction(column: SystemAdminColumn) {
+    switch (column) {
+      case SystemAdminColumn.USER:
+        return 'UserDetail';
+      case SystemAdminColumn.CLIENT:
+        return 'ClientDetail';
+      case SystemAdminColumn.PROFIT_CENTER:
+        return 'ProfitCenterDetail';
+      case SystemAdminColumn.ROOT_CONTENT_ITEM:
+        return 'RootContentItemDetail';
+      default:
+        throw new Error(`'${column}' is not a valid column.`);
+    }
+  }
+
+  private getCreateAction(column: SystemAdminColumn, context: SystemAdminColumn = null) {
+    switch (column) {
+      case SystemAdminColumn.USER:
+        switch (context) {
+          case SystemAdminColumn.CLIENT:
+            return 'AddUserToClient';
+          case SystemAdminColumn.PROFIT_CENTER:
+            return 'AddUserToProfitCenter';
+          case null:
+            return 'CreateUser';
+          case SystemAdminColumn.USER:
+          case SystemAdminColumn.ROOT_CONTENT_ITEM:
+            return null;
+          default:
+            throw new Error(`'${column}' is not a valid column in context of column ${context}.`);
+        }
+      case SystemAdminColumn.PROFIT_CENTER:
+        return 'CreateProfitCenter';
+      case SystemAdminColumn.CLIENT:
+      case SystemAdminColumn.ROOT_CONTENT_ITEM:
+      case null:
+        return null;
+      default:
+        throw new Error(`'${column}' is not a valid column.`);
+    }
+  }
+
   // more callbacks
   private fetchPrimaryEntities() {
-    const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
-    getData(`/SystemAdmin/${dataSource.infoAction}`, {})
+    getData(`/SystemAdmin/${this.getDataAction(this.state.primaryDataSource)}`, {})
     .then((response) => {
       this.setState((prevState) => ({
         data: {
@@ -439,13 +487,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSecondaryEntities() {
-    const dataSource = this.getDataSourceByName(
-      this.getDataSources(this.state.primaryDataSource),
-      this.state.secondaryDataSource);
     const queryFilter = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource)
       .assignQueryFilter(this.state.primarySelectedCard);
 
-    getData(`/SystemAdmin/${dataSource.infoAction}`, queryFilter)
+    getData(`/SystemAdmin/${this.getDataAction(this.state.secondaryDataSource)}`, queryFilter)
     .then((response) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -464,7 +509,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
     const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
     const queryFilter = dataSource.assignQueryFilter(this.state.primarySelectedCard);
-    getData(`/SystemAdmin/${dataSource.detailAction}`, queryFilter)
+    getData(`/SystemAdmin/${this.getDetailAction(this.state.primaryDataSource)}`, queryFilter)
     .then((response) => this.setState({
       primaryDetail: response,
     }));
@@ -483,7 +528,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
       ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
     };
-    getData(`/SystemAdmin/${dataSource.detailAction}`, queryFilter)
+    getData(`/SystemAdmin/${this.getDetailAction(this.state.secondaryDataSource)}`, queryFilter)
     .then((response) => this.setState({
       secondaryDetail: response,
     }));
