@@ -20,7 +20,7 @@ export interface ReductionSummary {
   StatusName: string;
   SelectionGroupId: string;
   RootContentItemId?: string;
-  QueuedDuration?: Date;
+  QueuedDurationMs?: number;
   QueuePosition?: number;
 }
 export interface SelectionGroupStatus {

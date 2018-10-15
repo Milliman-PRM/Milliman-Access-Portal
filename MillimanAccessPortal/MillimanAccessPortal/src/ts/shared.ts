@@ -6,8 +6,8 @@ import * as toastr from 'toastr';
 
 import { DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
 import { FormBase } from './form/form-base';
-import { SelectionGroupSummary } from './view-models/content-access-admin';
-import { PublicationStatus, UserInfo } from './view-models/content-publishing';
+import { ReductionStatus, SelectionGroupSummary, ReductionSummary } from './view-models/content-access-admin';
+import { PublicationStatus, UserInfo, PublicationSummary } from './view-models/content-publishing';
 
 const SHOW_DURATION = 50;
 const ajaxStatus = [];
@@ -432,11 +432,11 @@ function msToTimeReferenceString(timeMs: number) {
   }
 }
 
-export function updateCardStatus($card, reductionDetails) {
+export function updateCardStatus($card, reductionDetails: ReductionSummary | PublicationSummary) {
   const $statusContainer = $card.find('.card-status-container');
   const $statusTop = $statusContainer.find('.status-top');
   const $statusBot = $statusContainer.find('.status-bot');
-  const details = $.extend({
+  const details = {
     User: {
       FirstName: '',
       LastName: '',
@@ -445,10 +445,11 @@ export function updateCardStatus($card, reductionDetails) {
     StatusName: '',
     SelectionGroupId: 0,
     RootContentItemId: 0,
-    QueuedDuration: -1,
+    QueuedDurationMs: -1,
     QueuePosition: -1,
     QueueTotal: -1,
-  }, reductionDetails);
+    ...reductionDetails,
+  };
 
   $statusContainer
     .removeClass((_, classString) => {
@@ -462,8 +463,8 @@ export function updateCardStatus($card, reductionDetails) {
     .addClass('status-' + details.StatusEnum);
   let statusTop = `<strong>${details.StatusName}</strong>`;
   let statusBot = `Initiated by ${details.User.FirstName[0]}. ${details.User.LastName}`;
-  const durationText = details.QueuedDuration > 0
-    ? msToTimeReferenceString(details.QueuedDuration)
+  const durationText = details.QueuedDurationMs > 0
+    ? msToTimeReferenceString(details.QueuedDurationMs)
     : '';
   if (!details.SelectionGroupId) {
     // Publication status

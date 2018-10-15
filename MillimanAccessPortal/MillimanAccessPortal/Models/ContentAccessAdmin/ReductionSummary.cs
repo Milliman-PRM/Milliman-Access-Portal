@@ -19,7 +19,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public string StatusName { get; set; }
         public Guid SelectionGroupId { get; set; }
         public Guid? RootContentItemId { get; set; }
-        public int QueuedDuration { get; set; }
+        public int QueuedDurationMs { get; set; }
         public int QueuePosition { get; set; } = -1;
 
         public static explicit operator ReductionSummary(ContentReductionTask contentReductionTask)
@@ -35,7 +35,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 StatusName = ContentReductionTask.ReductionStatusDisplayNames[contentReductionTask.ReductionStatus],
                 SelectionGroupId = contentReductionTask.SelectionGroupId,
                 RootContentItemId = contentReductionTask.ContentPublicationRequest?.RootContentItemId,
-                QueuedDuration = (int)(contentReductionTask.ReductionStatus.IsActive()
+                QueuedDurationMs = (int)(contentReductionTask.ReductionStatus.IsActive()
                     ? DateTime.UtcNow - contentReductionTask.CreateDateTimeUtc
                     : TimeSpan.Zero).TotalMilliseconds,
             };

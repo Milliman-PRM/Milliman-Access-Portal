@@ -19,7 +19,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public string StatusName { get => ContentPublicationRequest.PublicationStatusString[StatusEnum]; }
         public string StatusMessage { get; set; } = string.Empty;
         public Guid RootContentItemId { get; set; }
-        public int QueuedDuration { get; set; }
+        public int QueuedDurationMs { get; set; }
         public int QueuePosition { get; set; } = -1;
         public int QueueTotal { get; set; } = -1;
 
@@ -35,7 +35,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 StatusEnum = contentPublicationRequest.RequestStatus,
                 RootContentItemId = contentPublicationRequest.RootContentItemId,
                 StatusMessage = contentPublicationRequest.StatusMessage,
-                QueuedDuration = (int)(contentPublicationRequest.RequestStatus.IsActive()
+                QueuedDurationMs = (int)(contentPublicationRequest.RequestStatus.IsActive()
                     ? DateTime.UtcNow - contentPublicationRequest.CreateDateTimeUtc
                     : TimeSpan.Zero).TotalMilliseconds,
             };
