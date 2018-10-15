@@ -61,19 +61,16 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
   private nullDataSource: DataSource<Entity> = {
     name: null,
-    structure: 0,
     parentSources: [],
     displayName: '',
     infoAction: '',
     detailAction: '',
     createAction: null,
-    processInfo: () => null,
     assignQueryFilter: () => null,
   };
   private dataSources: Array<DataSource<Entity>> = [
     {
       name: 'user',
-      structure: Structure.List,
       parentSources: [
         null,
         {
@@ -91,42 +88,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         },
       ],
       displayName: 'Users',
-      sublistInfo: {
-        title: 'Content Items',
-        icon: 'reports',
-        emptyText: 'This user does not have access to any reports.',
-      },
       infoAction: 'Users',
       detailAction: 'UserDetail',
       createAction: 'CreateUser',
-      processInfo: (response: UserInfo[]) => response.map((user) => ({
-        id: user.Id,
-        primaryText: `${user.LastName}, ${user.FirstName}`,
-        secondaryText: user.UserName,
-        primaryStat: user.ClientCount !== null && {
-          name: 'Clients',
-          value: user.ClientCount,
-          icon: 'client-admin',
-        },
-        secondaryStat: user.RootContentItemCount !== null && {
-          name: 'Reports',
-          value: user.RootContentItemCount,
-          icon: 'reports',
-        },
-        sublist: user.RootContentItems && user.RootContentItems.map((item) => ({
-          id: item.Id,
-          primaryText: item.Name,
-        })),
-        activated: user.Activated,
-        email: user.Email,
-        suspended: user.IsSuspended,
-        isUserInProfitCenter: user.ProfitCenterId,
-      })),
       assignQueryFilter: (userId: string) => ({ userId }),
     },
     {
       name: 'client',
-      structure: Structure.Tree,
       parentSources: [
         null,
         'user',
@@ -136,48 +104,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       infoAction: 'Clients',
       detailAction: 'ClientDetail',
       createAction: null,
-      processInfo: (response: BasicTree<ClientInfo>) => {
-        interface ClientDepth {
-          client: ClientInfo;
-          depth: number;
-        }
-        function traverse(node: BasicNode<ClientInfo>, list: ClientDepth[] = [], depth = 0): ClientDepth[] {
-          if (node.Value !== null) {
-            const clientDepth = {
-              client: node.Value,
-              depth,
-            };
-            list.push(clientDepth);
-          }
-          if (node.Children.length) {
-            node.Children.forEach((child) => list = traverse(child, list, depth + 1));
-          }
-          return list;
-        }
-        const clientDepthList = traverse(response.Root);
-        return clientDepthList.map((cd) => ({
-          id: cd.client.Id,
-          primaryText: cd.client.Name,
-          secondaryText: cd.client.Code,
-          primaryStat: cd.client.UserCount !== null && {
-            name: 'Users',
-            value: cd.client.UserCount,
-            icon: 'user',
-          },
-          secondaryStat: cd.client.RootContentItemCount !== null && {
-            name: 'Reports',
-            value: cd.client.RootContentItemCount,
-            icon: 'reports',
-          },
-          indent: cd.depth,
-          readOnly: cd.client.ParentOnly,
-        }));
-      },
       assignQueryFilter: (clientId: string) => ({ clientId }),
     },
     {
       name: 'profitCenter',
-      structure: Structure.List,
       parentSources: [
         null,
       ],
@@ -185,27 +115,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       infoAction: 'ProfitCenters',
       detailAction: 'ProfitCenterDetail',
       createAction: 'CreateProfitCenter',
-      processInfo: (response: ProfitCenterInfo[]) => response.map((profitCenter) => ({
-        id: profitCenter.Id,
-        primaryText: profitCenter.Name,
-        secondaryText: profitCenter.Office,
-        primaryStat: {
-          name: 'Authorized users',
-          value: profitCenter.UserCount,
-          icon: 'user',
-        },
-        secondaryStat: {
-          name: 'Clients',
-          value: profitCenter.ClientCount,
-          icon: 'client-admin',
-        },
-        isProfitCenter: true,
-      })),
       assignQueryFilter: (profitCenterId: string) => ({ profitCenterId }),
     },
     {
       name: 'rootContentItem',
-      structure: Structure.List,
       parentSources: [
         {
           name: 'user',
@@ -216,35 +129,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         'client',
       ],
       displayName: 'Content Items',
-      sublistInfo: {
-        title: 'Members',
-        icon: 'user',
-        emptyText: 'No users have access to this report.',
-      },
       infoAction: 'RootContentItems',
       detailAction: 'RootContentItemDetail',
       createAction: null,
-      processInfo: (response: RootContentItemInfo[]) => response.map((item) => ({
-        id: item.Id,
-        primaryText: item.Name,
-        secondaryText: item.ClientName,
-        primaryStat: item.UserCount !== null && {
-          name: 'Users',
-          value: item.UserCount,
-          icon: 'user',
-        },
-        secondaryStat: item.SelectionGroupCount !== null && {
-          name: 'Selection Groups',
-          value: item.SelectionGroupCount,
-          icon: 'group',
-        },
-        sublist: item.Users && item.Users.map((user) => ({
-          id: user.Id,
-          primaryText: `${user.FirstName} ${user.LastName}`,
-          secondaryText: user.UserName,
-        })),
-        suspended: item.IsSuspended,
-      })),
       assignQueryFilter: (rootContentItemId: string) => ({ rootContentItemId }),
     },
   ];
@@ -371,7 +258,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onFilterTextChange={this.handleSecondaryFilterKeyup}
           onModalOpen={this.handleSecondaryModalOpen}
           onModalClose={this.handleSecondaryModalClose}
-          controller={this.controller}
           dataSources={secondaryDataSources}
           setSelectedDataSource={this.setSecondaryDataSource}
           selectedDataSource={secondaryDataSource}
@@ -392,7 +278,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onFilterTextChange={this.handlePrimaryFilterKeyup}
           onModalOpen={this.handlePrimaryModalOpen}
           onModalClose={this.handlePrimaryModalClose}
-          controller={this.controller}
           dataSources={primaryDataSources}
           setSelectedDataSource={this.setPrimaryDataSource}
           selectedDataSource={primaryDataSource}
