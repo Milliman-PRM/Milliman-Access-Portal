@@ -4,14 +4,15 @@ import { isEqual } from 'lodash';
 import * as React from 'react';
 
 import { getData } from '../../shared';
+import { ColumnIndicator } from '../shared-components/column-selector';
 import { Entity } from '../shared-components/entity';
-import { DataSource, QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { Toggle } from '../shared-components/toggle';
 import { ClientDetail, PrimaryDetail, ProfitCenterDetail, UserDetail } from './interfaces';
+import { SystemAdminColumn } from './system-admin';
 
 interface PrimaryDetailPanelProps {
-  controller: string;
-  selectedDataSource: DataSource<Entity>;
+  selectedColumn: SystemAdminColumn;
   selectedCard: string;
   queryFilter: QueryFilter;
   detail: PrimaryDetail;
@@ -29,8 +30,8 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
       if (!this.props.detail) {
         return null;
       }
-      switch (this.props.selectedDataSource.name) {
-        case 'user':
+      switch (this.props.selectedColumn) {
+        case SystemAdminColumn.USER:
           const userDetail = this.props.detail as UserDetail;
           return (
             <div>
@@ -90,7 +91,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
               </div>
             </div>
           );
-        case 'client':
+        case SystemAdminColumn.CLIENT:
           const clientDetail = this.props.detail as ClientDetail;
           return (
             <div>
@@ -145,7 +146,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
               </div>
             </div>
           );
-        case 'profitCenter':
+        case SystemAdminColumn.PROFIT_CENTER:
           const profitCenterDetail = this.props.detail as ProfitCenterDetail;
           return (
             <div>

@@ -3,17 +3,17 @@ import * as React from 'react';
 
 import { getData, postData } from '../../shared';
 import { Entity } from '../shared-components/entity';
-import { DataSource, QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { Toggle } from '../shared-components/toggle';
 import {
   ClientDetailForProfitCenter, ClientDetailForUser, NestedList, RootContentItemDetailForClient,
   RootContentItemDetailForUser, SecondaryDetail, UserDetailForClient, UserDetailForProfitCenter,
 } from './interfaces';
+import { SystemAdminColumn } from './system-admin';
 
 interface SecondaryDetailPanelProps {
-  controller: string;
-  primarySelectedDataSource: DataSource<Entity>;
-  secondarySelectedDataSource: DataSource<Entity>;
+  primarySelectedColumn: SystemAdminColumn;
+  secondarySelectedColumn: SystemAdminColumn;
   selectedCard: string;
   queryFilter: QueryFilter;
   detail: SecondaryDetail;
@@ -35,10 +35,10 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
       if (!this.props.detail) {
         return null;
       }
-      switch (this.props.primarySelectedDataSource.name) {
-        case 'user':
-          switch (this.props.secondarySelectedDataSource.name) {
-            case 'client':
+      switch (this.props.primarySelectedColumn) {
+        case SystemAdminColumn.USER:
+          switch (this.props.secondarySelectedColumn) {
+            case SystemAdminColumn.CLIENT:
               const clientDetailForUser = this.props.detail as ClientDetailForUser;
               return (
                 <div>
@@ -92,7 +92,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                   </div>
                 </div>
               );
-            case 'rootContentItem':
+            case SystemAdminColumn.ROOT_CONTENT_ITEM:
               const rootContentItemDetailForUser = this.props.detail as RootContentItemDetailForUser;
               return (
                 <div>
@@ -116,9 +116,9 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
             default:
               return null;
           }
-        case 'client':
-          switch (this.props.secondarySelectedDataSource.name) {
-            case 'user':
+        case SystemAdminColumn.CLIENT:
+          switch (this.props.secondarySelectedColumn) {
+            case SystemAdminColumn.USER:
               const userDetailForClient = this.props.detail as UserDetailForClient;
               return (
                 <div>
@@ -188,7 +188,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                   </div>
                 </div>
               );
-            case 'rootContentItem':
+            case SystemAdminColumn.ROOT_CONTENT_ITEM:
               const rootContentItemDetailForClient = this.props.detail as RootContentItemDetailForClient;
               const publishingStatus = rootContentItemDetailForClient.IsPublishing
                 ? (
@@ -253,9 +253,9 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
             default:
               return null;
           }
-        case 'profitCenter':
-          switch (this.props.secondarySelectedDataSource.name) {
-            case 'user':
+        case SystemAdminColumn.PROFIT_CENTER:
+          switch (this.props.secondarySelectedColumn) {
+            case SystemAdminColumn.USER:
               const userDetailForProfitCenter = this.props.detail as UserDetailForProfitCenter;
               return (
                 <div>
@@ -288,7 +288,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                   </div>
                 </div>
               );
-            case 'client':
+            case SystemAdminColumn.CLIENT:
               const clientDetailForProfitCenter = this.props.detail as ClientDetailForProfitCenter;
               return (
                 <div>

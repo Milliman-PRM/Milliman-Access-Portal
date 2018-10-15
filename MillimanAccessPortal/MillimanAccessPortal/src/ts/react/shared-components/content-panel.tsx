@@ -16,10 +16,10 @@ import { CreateProfitCenterModal } from '../system-admin/modals/create-profit-ce
 import { CreateUserModal } from '../system-admin/modals/create-user';
 import { ActionIcon } from './action-icon';
 import { Card } from './card';
-import { ColumnSelector } from './column-selector';
+import { ColumnIndicator, ColumnSelector } from './column-selector';
 import { Entity, EntityHelper } from './entity';
 import { Filter } from './filter';
-import { DataSource, QueryFilter, Structure } from './interfaces';
+import { QueryFilter } from './interfaces';
 
 export interface ContentPanelAttributes {
   filterText: string;
@@ -30,10 +30,10 @@ export interface ContentPanelAttributes {
   createAction: string;
 }
 export interface ContentPanelProps extends ContentPanelAttributes {
-  dataSources: Array<DataSource<Entity>>;
-  setSelectedDataSource: (sourceName: string) => void;
-  selectedDataSource: DataSource<Entity>;
-  setSelectedCard: (cardId: string) => void;
+  columns: ColumnIndicator[];
+  onColumnSelect: (id: string) => void;
+  selectedColumn: ColumnIndicator;
+  onCardSelect: (id: string) => void;
   selectedCard: string;
   queryFilter: QueryFilter;
   entities: EntityInfoCollection;
@@ -42,8 +42,8 @@ export interface ContentPanelProps extends ContentPanelAttributes {
 export class ContentPanel extends React.Component<ContentPanelProps> {
   public render() {
 
-    const filterPlaceholder = this.props.selectedDataSource.displayName
-      ? `Filter ${this.props.selectedDataSource.displayName}...`
+    const filterPlaceholder = this.props.selectedColumn
+      ? `Filter ${this.props.selectedColumn.name}...`
       : '';
     const actionIcon = this.props.createAction
       && (
@@ -96,9 +96,9 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
         className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
       >
         <ColumnSelector
-          columns={this.props.dataSources.map(({name: id, displayName: name}) => ({id, name}))}
-          onColumnSelect={this.props.setSelectedDataSource}
-          selectedColumn={{id: this.props.selectedDataSource.name, name: this.props.selectedDataSource.displayName}}
+          columns={this.props.columns}
+          onColumnSelect={this.props.onColumnSelect}
+          selectedColumn={this.props.selectedColumn}
         />
         <div className="admin-panel-list">
           <div className="admin-panel-toolbar">
@@ -153,7 +153,9 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
         EntityHelper.applyFilter(entity, this.props.filterText));
 
     if (filteredCards.length === 0) {
-      return <div>No {this.props.selectedDataSource.displayName.toLowerCase()} found.</div>;
+      return this.props.selectedColumn
+        ? <div>No {this.props.selectedColumn.name.toLowerCase()} found.</div>
+        : null;
     } else if (isClientInfo(filteredCards[0])) {
       const rootIndices = [];
       filteredCards.forEach((entity: ClientInfoWithDepth, i) => {
@@ -169,7 +171,7 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
             <Card
               entity={entity}
               selected={entity.Id === this.props.selectedCard}
-              onSelect={() => this.props.setSelectedCard(entity.Id)}
+              onSelect={() => this.props.onCardSelect(entity.Id)}
               indentation={entity.depth}
             />
           </li>
@@ -185,7 +187,7 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
           <Card
             entity={entity}
             selected={entity.Id === this.props.selectedCard}
-            onSelect={() => this.props.setSelectedCard(entity.Id)}
+            onSelect={() => this.props.onCardSelect(entity.Id)}
             activated={isUserInfo(entity) ? entity.Activated : null}
             resetButton={isUserInfo(entity)}
           />

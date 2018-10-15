@@ -11,9 +11,10 @@ import * as React from 'react';
 
 import { getData, postData } from '../../shared';
 import { BasicNode, BasicTree } from '../../view-models/content-publishing';
+import { ColumnIndicator } from '../shared-components/column-selector';
 import { ContentPanel, ContentPanelAttributes } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
-import { DataSource, RoleEnum, Structure } from '../shared-components/interfaces';
+import { QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
   ClientInfo, Detail, EntityInfo, EntityInfoCollection, PrimaryDetail, ProfitCenterInfo,
@@ -66,65 +67,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private controller: string = 'SystemAdmin';
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
-  private nullDataSource: DataSource<Entity> = {
-    name: null,
-    parentSources: [],
-    displayName: '',
-    assignQueryFilter: () => null,
-  };
-  private dataSources: Array<DataSource<Entity>> = [
-    {
-      name: SystemAdminColumn.USER,
-      parentSources: [
-        null,
-        {
-          name: SystemAdminColumn.CLIENT,
-          overrides: {
-          },
-        },
-        {
-          name: SystemAdminColumn.PROFIT_CENTER,
-          overrides: {
-            displayName: 'Authorized Users',
-          },
-        },
-      ],
-      displayName: 'Users',
-      assignQueryFilter: (userId: string) => ({ userId }),
-    },
-    {
-      name: SystemAdminColumn.CLIENT,
-      parentSources: [
-        null,
-        SystemAdminColumn.USER,
-        SystemAdminColumn.PROFIT_CENTER,
-      ],
-      displayName: 'Clients',
-      assignQueryFilter: (clientId: string) => ({ clientId }),
-    },
-    {
-      name: SystemAdminColumn.PROFIT_CENTER,
-      parentSources: [
-        null,
-      ],
-      displayName: 'Profit Center',
-      assignQueryFilter: (profitCenterId: string) => ({ profitCenterId }),
-    },
-    {
-      name: SystemAdminColumn.ROOT_CONTENT_ITEM,
-      parentSources: [
-        {
-          name: SystemAdminColumn.USER,
-          overrides: {
-            displayName: 'Content',
-          },
-        },
-        SystemAdminColumn.CLIENT,
-      ],
-      displayName: 'Content Items',
-      assignQueryFilter: (rootContentItemId: string) => ({ rootContentItemId }),
-    },
-  ];
 
   public constructor(props) {
     super(props);
@@ -226,20 +168,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   public render() {
-
-    // pass available data sources as props based on defined data sources
-    const primaryDataSources = this.getDataSources(null);
-    const primaryDataSource = this.getDataSourceByName(primaryDataSources, this.state.primaryDataSource);
-    const secondaryDataSources = this.getDataSources(this.state.primaryDataSource);
-    const secondaryDataSource = this.getDataSourceByName(secondaryDataSources, this.state.secondaryDataSource);
-
-    const secondaryQueryFilter = Object.assign(
-      {}, primaryDataSource.assignQueryFilter(this.state.primarySelectedCard));
-    const finalQueryFilter = Object.assign(
-      {},
-      primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
-      secondaryDataSource.assignQueryFilter(this.state.secondarySelectedCard),
-    );
+    const secondaryQueryFilter = this.getSecondaryQueryFilter();
 
     const secondaryColumnComponent = this.state.primarySelectedCard
       ? (
@@ -249,10 +178,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onModalOpen={this.handleSecondaryModalOpen}
           onModalClose={this.handleSecondaryModalClose}
           createAction={this.getCreateAction(this.state.secondaryDataSource, this.state.primaryDataSource)}
-          dataSources={secondaryDataSources}
-          setSelectedDataSource={this.setSecondaryDataSource}
-          selectedDataSource={secondaryDataSource}
-          setSelectedCard={this.setSecondarySelectedCard}
+          columns={this.getColumns(this.state.primaryDataSource)}
+          onColumnSelect={this.setSecondaryDataSource}
+          selectedColumn={this.getColumns(this.state.primaryDataSource).filter((c) => c.id === this.state.secondaryDataSource)[0]}
+          onCardSelect={this.setSecondarySelectedCard}
           selectedCard={this.state.secondarySelectedCard}
           queryFilter={secondaryQueryFilter}
           entities={this.state.data.secondaryEntities}
@@ -270,12 +199,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onModalOpen={this.handlePrimaryModalOpen}
           onModalClose={this.handlePrimaryModalClose}
           createAction={this.getCreateAction(this.state.primaryDataSource)}
-          dataSources={primaryDataSources}
-          setSelectedDataSource={this.setPrimaryDataSource}
-          selectedDataSource={primaryDataSource}
-          setSelectedCard={this.setPrimarySelectedCard}
+          columns={this.getColumns()}
+          onColumnSelect={this.setPrimaryDataSource}
+          selectedColumn={this.getColumns().filter((c) => c.id === this.state.primaryDataSource)[0]}
+          onCardSelect={this.setPrimarySelectedCard}
           selectedCard={this.state.primarySelectedCard}
-          queryFilter={{}}
+          queryFilter={this.getPrimaryQueryFilter()}
           entities={this.state.data.primaryEntities}
         />
         {secondaryColumnComponent}
@@ -284,9 +213,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           style={{overflowY: 'auto'}}
         >
           <PrimaryDetailPanel
-            controller={this.controller}
-            selectedDataSource={primaryDataSource}
             selectedCard={this.state.primarySelectedCard}
+            selectedColumn={this.state.primaryDataSource}
             queryFilter={secondaryQueryFilter}
             detail={this.state.primaryDetail}
             onPushSystemAdmin={this.pushSystemAdmin}
@@ -295,11 +223,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             checkedSuspended={this.state.toggles.userSuspend.checked}
           />
           <SecondaryDetailPanel
-            controller={this.controller}
-            primarySelectedDataSource={primaryDataSource}
-            secondarySelectedDataSource={secondaryDataSource}
             selectedCard={this.state.secondarySelectedCard}
-            queryFilter={finalQueryFilter}
+            primarySelectedColumn={this.state.primaryDataSource}
+            secondarySelectedColumn={this.state.secondaryDataSource}
+            queryFilter={this.getFinalQueryFilter()}
             detail={this.state.secondaryDetail}
             onCancelPublication={this.cancelPublicationRequest}
             onCancelReduction={this.cancelReductionTask}
@@ -359,18 +286,18 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
-  private setPrimarySelectedCard(cardId: string) {
+  private setPrimarySelectedCard(id: string) {
     this.setState((prevState) => {
-      const defaultSecondaryDataSource = this.getDataSources(prevState.primaryDataSource)[0].name;
+      const defaultSecondaryDataSource = this.getColumns(prevState.primaryDataSource)[0].id;
       return {
         data: {
           ...prevState.data,
           secondaryEntities: null,
         },
-        primarySelectedCard: prevState.primarySelectedCard === cardId
+        primarySelectedCard: prevState.primarySelectedCard === id
           ? null
-          : cardId,
-        secondaryDataSource: prevState.secondaryDataSource || defaultSecondaryDataSource,
+          : id,
+        secondaryDataSource: prevState.secondaryDataSource || (defaultSecondaryDataSource as SystemAdminColumn),
         secondarySelectedCard: null,
         primaryDetail: null,
         secondaryDetail: null,
@@ -388,32 +315,59 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   // utility methods
-  private getDataSources(parentName: string): Array<DataSource<Entity>> {
-    return this.dataSources
-      // strip non-matching parent sources
-      .map((dataSource) => {
-        const filteredDataSource = {...dataSource};
-        filteredDataSource.parentSources = filteredDataSource.parentSources.filter((parentSource) =>
-          parentSource === null || typeof parentSource === 'string'
-            ? parentSource === parentName
-            : parentSource.name === parentName);
-        return filteredDataSource;
-      })
-      // filter out data sources without the parent source
-      .filter((dataSource) => dataSource.parentSources.length)
-      // apply overrides if present
-      .map((dataSource) => {
-        const parentSource = dataSource.parentSources[0];
-        if (parentSource !== null && typeof parentSource !== 'string') {
-          Object.assign(dataSource, parentSource.overrides);
-        }
-        return dataSource;
-      });
-  }
-
-  private getDataSourceByName(dataSources: Array<DataSource<Entity>>, name: string): DataSource<Entity> {
-    return dataSources.filter((dataSource) => dataSource.name === name)[0]
-      || this.nullDataSource;
+  private getColumns(parent: SystemAdminColumn = null): ColumnIndicator[] {
+    switch (parent) {
+      case null:
+        return [
+          {
+            id: SystemAdminColumn.USER,
+            name: 'Users',
+          },
+          {
+            id: SystemAdminColumn.CLIENT,
+            name: 'Clients',
+          },
+          {
+            id: SystemAdminColumn.PROFIT_CENTER,
+            name: 'Profit Centers',
+          },
+        ];
+      case SystemAdminColumn.USER:
+        return [
+          {
+            id: SystemAdminColumn.CLIENT,
+            name: 'Clients',
+          },
+          {
+            id: SystemAdminColumn.ROOT_CONTENT_ITEM,
+            name: 'Content',
+          },
+        ];
+      case SystemAdminColumn.CLIENT:
+        return [
+          {
+            id: SystemAdminColumn.USER,
+            name: 'Users',
+          },
+          {
+            id: SystemAdminColumn.ROOT_CONTENT_ITEM,
+            name: 'Content Items',
+          },
+        ];
+      case SystemAdminColumn.PROFIT_CENTER:
+        return [
+          {
+            id: SystemAdminColumn.USER,
+            name: 'Authorized Users',
+          },
+          {
+            id: SystemAdminColumn.CLIENT,
+            name: 'Clients',
+          },
+        ];
+      default:
+        return [];
+    }
   }
 
   private getDataAction(column: SystemAdminColumn) {
@@ -473,6 +427,33 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }
   }
 
+  private assignQueryFilter(column: SystemAdminColumn, queryFilter: QueryFilter, id: string): QueryFilter {
+    switch (column) {
+      case SystemAdminColumn.USER:
+        return {...queryFilter, userId: id};
+      case SystemAdminColumn.CLIENT:
+        return {...queryFilter, clientId: id};
+      case SystemAdminColumn.PROFIT_CENTER:
+        return {...queryFilter, profitCenterId: id};
+      case SystemAdminColumn.ROOT_CONTENT_ITEM:
+        return {...queryFilter, userId: id};
+      default:
+        return queryFilter;
+    }
+  }
+
+  private getPrimaryQueryFilter = () => ({});
+  private getSecondaryQueryFilter = () => this.assignQueryFilter(
+    this.state.primaryDataSource,
+    this.getPrimaryQueryFilter(),
+    this.state.primarySelectedCard,
+  )
+  private getFinalQueryFilter = () => this.assignQueryFilter(
+    this.state.secondaryDataSource,
+    this.getSecondaryQueryFilter(),
+    this.state.secondarySelectedCard,
+  )
+
   // more callbacks
   private fetchPrimaryEntities() {
     getData(`/SystemAdmin/${this.getDataAction(this.state.primaryDataSource)}`, {})
@@ -487,10 +468,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSecondaryEntities() {
-    const queryFilter = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource)
-      .assignQueryFilter(this.state.primarySelectedCard);
-
-    getData(`/SystemAdmin/${this.getDataAction(this.state.secondaryDataSource)}`, queryFilter)
+    getData(`/SystemAdmin/${this.getDataAction(this.state.secondaryDataSource)}`, this.getSecondaryQueryFilter())
     .then((response) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -507,9 +485,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       return;
     }
 
-    const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
-    const queryFilter = dataSource.assignQueryFilter(this.state.primarySelectedCard);
-    getData(`/SystemAdmin/${this.getDetailAction(this.state.primaryDataSource)}`, queryFilter)
+    getData(`/SystemAdmin/${this.getDetailAction(this.state.primaryDataSource)}`, this.getSecondaryQueryFilter())
     .then((response) => this.setState({
       primaryDetail: response,
     }));
@@ -519,16 +495,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     if (!this.state.secondarySelectedCard) {
       return;
     }
-
-    const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
-    const dataSource = this.getDataSourceByName(
-      this.getDataSources(this.state.primaryDataSource),
-      this.state.secondaryDataSource);
-    const queryFilter = {
-      ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
-      ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
-    };
-    getData(`/SystemAdmin/${this.getDetailAction(this.state.secondaryDataSource)}`, queryFilter)
+    getData(`/SystemAdmin/${this.getDetailAction(this.state.secondaryDataSource)}`, this.getFinalQueryFilter())
     .then((response) => this.setState({
       secondaryDetail: response,
     }));
@@ -536,17 +503,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   private cancelPublicationRequest(event: React.MouseEvent<HTMLAnchorElement>) {
     event.preventDefault();
-    const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
-    const dataSource = this.getDataSourceByName(
-      this.getDataSources(this.state.primaryDataSource),
-      this.state.secondaryDataSource);
-    const queryFilter = {
-      ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
-      ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
-    };
     postData(
       '/SystemAdmin/CancelPublication',
-      { rootContentItemId: queryFilter.rootContentItemId },
+      { rootContentItemId: this.getFinalQueryFilter().rootContentItemId },
     ).then(() => {
       alert('Publication canceled.');
       this.setState((prevState) => ({
@@ -571,9 +530,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSystemAdmin = () => {
-    const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
-    const queryFilter = dataSource.assignQueryFilter(this.state.primarySelectedCard);
-    getData('/SystemAdmin/SystemRole', Object.assign({}, queryFilter, { role: RoleEnum.Admin }))
+    getData('/SystemAdmin/SystemRole', Object.assign({}, this.getSecondaryQueryFilter(), { role: RoleEnum.Admin }))
     .then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -589,8 +546,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private pushSystemAdmin = () => {
-    const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
-    const queryFilter = dataSource.assignQueryFilter(this.state.primarySelectedCard);
     if (this.state.toggles.systemAdmin.disabled) {
       return;
     }
@@ -606,7 +561,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       },
     }));
 
-    postData('/SystemAdmin/SystemRole', Object.assign({}, queryFilter, { role: RoleEnum.Admin }, {
+    postData('/SystemAdmin/SystemRole', Object.assign({}, this.getSecondaryQueryFilter(), { role: RoleEnum.Admin }, {
       value: !this.state.toggles.systemAdmin.checked,
     }))
     .then((response: boolean) => {
@@ -624,9 +579,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSuspendUser = () => {
-    const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
-    const queryFilter = dataSource.assignQueryFilter(this.state.primarySelectedCard);
-    getData('/SystemAdmin/UserSuspendedStatus', Object.assign({}, queryFilter))
+    getData('/SystemAdmin/UserSuspendedStatus', Object.assign({}, this.getSecondaryQueryFilter()))
     .then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -642,8 +595,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private pushSuspendUser = () => {
-    const dataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
-    const queryFilter = dataSource.assignQueryFilter(this.state.primarySelectedCard);
     if (this.state.toggles.userSuspend.disabled) {
       return;
     }
@@ -659,7 +610,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       },
     }));
 
-    postData('/SystemAdmin/UserSuspendedStatus', Object.assign({}, queryFilter, {
+    postData('/SystemAdmin/UserSuspendedStatus', Object.assign({}, this.getSecondaryQueryFilter(), {
       value: !this.state.toggles.userSuspend.checked,
     }))
     .then((response: boolean) => {
@@ -677,15 +628,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchUserClient = (role: RoleEnum) => {
-    const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
-    const dataSource = this.getDataSourceByName(
-      this.getDataSources(this.state.primaryDataSource),
-      this.state.secondaryDataSource);
-    const queryFilter = {
-      ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
-      ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
-    };
-    getData('/SystemAdmin/UserClientRoleAssignment', Object.assign({}, queryFilter, { role }))
+    getData('/SystemAdmin/UserClientRoleAssignment', Object.assign({}, this.getFinalQueryFilter(), { role }))
     .then((response: boolean) => {
       this.setState((prevState) => {
         const userClient = {...prevState.toggles.userClient};
@@ -705,14 +648,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private pushUserClient = (_, role: RoleEnum) => {
-    const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
-    const dataSource = this.getDataSourceByName(
-      this.getDataSources(this.state.primaryDataSource),
-      this.state.secondaryDataSource);
-    const queryFilter = {
-      ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
-      ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
-    };
     if (this.state.toggles.userClient[role].disabled) {
       return;
     }
@@ -732,7 +667,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       };
     });
 
-    postData('/SystemAdmin/UserClientRoleAssignment', Object.assign({}, queryFilter, { role }, {
+    postData('/SystemAdmin/UserClientRoleAssignment', Object.assign({}, this.getFinalQueryFilter(), { role }, {
       value: !this.state.toggles.userClient[role].checked,
     }))
     .then((response: boolean) => {
@@ -754,15 +689,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSuspendContent = () => {
-    const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
-    const dataSource = this.getDataSourceByName(
-      this.getDataSources(this.state.primaryDataSource),
-      this.state.secondaryDataSource);
-    const queryFilter = {
-      ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
-      ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
-    };
-    getData('/SystemAdmin/ContentSuspendedStatus', Object.assign({}, queryFilter))
+    getData('/SystemAdmin/ContentSuspendedStatus', Object.assign({}, this.getFinalQueryFilter()))
     .then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -778,14 +705,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private pushSuspendContent = () => {
-    const primaryDataSource = this.getDataSourceByName(this.getDataSources(null), this.state.primaryDataSource);
-    const dataSource = this.getDataSourceByName(
-      this.getDataSources(this.state.primaryDataSource),
-      this.state.secondaryDataSource);
-    const queryFilter = {
-      ...primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
-      ...dataSource.assignQueryFilter(this.state.secondarySelectedCard),
-    };
     if (this.state.toggles.contentSuspend.disabled) {
       return;
     }
@@ -801,7 +720,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       },
     }));
 
-    postData('/SystemAdmin/ContentSuspendedStatus', Object.assign({}, queryFilter, {
+    postData('/SystemAdmin/ContentSuspendedStatus', Object.assign({}, this.getFinalQueryFilter(), {
       value: !this.state.toggles.contentSuspend.checked,
     }))
     .then((response: boolean) => {

@@ -3,14 +3,13 @@
 import * as React from 'react';
 
 import { Entity } from './entity';
-import { DataSource } from './interfaces';
 
-interface ColumnIndicator {
+export interface ColumnIndicator {
   id: string;
   name: string;
 }
 
-interface ColumnSelectorProps {
+export interface ColumnSelectorProps {
   columns: ColumnIndicator[];
   onColumnSelect: (id: string) => void;
   selectedColumn: ColumnIndicator;
@@ -30,7 +29,7 @@ export class ColumnSelector extends React.Component<ColumnSelectorProps> {
     return columns.map((column) => (
       <div
         key={column.id}
-        className={`content-option${column.id === selectedColumn.id ? ' selected' : ''}`}
+        className={`content-option${column.id === (selectedColumn && selectedColumn.id) ? ' selected' : ''}`}
         onClick={() => onColumnSelect(column.id)}
       >
         {column.name}
