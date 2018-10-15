@@ -23,6 +23,7 @@ export interface CardProps {
   activated?: boolean;
   suspended?: boolean;
   isUserInProfitCenter?: boolean;
+  indentation?: number;
 }
 
 interface CardState {
@@ -56,11 +57,13 @@ export class Card extends React.Component<CardProps, CardState> {
   }
 
   public render() {
+    const cardClass = 'card-container'
+      + (this.props.indentation ? ` ${this.indentClasses[this.props.indentation] || this.indentClasses[1]}` : '');
     const cardBodyClass = 'card-body-container'
       + (this.props.selected ? ' selected' : '')
       + (this.props.suspended ? ' suspended' : '');
     return (
-      <div className={'card-container'} onClick={this.props.onSelect}>
+      <div className={cardClass} onClick={this.props.onSelect}>
         <div className={cardBodyClass}>
           <div className="card-body-main-container">
             {this.renderPrimaryContainer()}
@@ -206,6 +209,7 @@ export class Card extends React.Component<CardProps, CardState> {
       if (isUserInfo(entity)) {
         buttons.push((
           <CardButton
+            key={1}
             color={CardButtonColor.BLUE}
             tooltip={this.props.activated ? 'Send password reset email' : 'Resend account activation email'}
             onClick={this.sendPasswordReset}
@@ -215,6 +219,7 @@ export class Card extends React.Component<CardProps, CardState> {
         if (this.props.isUserInProfitCenter) {
           buttons.push((
             <CardButton
+              key={2}
               color={CardButtonColor.RED}
               tooltip={'Remove from profit center'}
               onClick={this.removeAsUser}
@@ -225,6 +230,7 @@ export class Card extends React.Component<CardProps, CardState> {
       } else {
         buttons.push((
           <CardButton
+            key={1}
             color={CardButtonColor.RED}
             tooltip={'Delete profit center'}
             onClick={this.deleteAsProfitCenter}
@@ -233,6 +239,7 @@ export class Card extends React.Component<CardProps, CardState> {
         ));
         buttons.push((
           <CardButton
+            key={2}
             color={CardButtonColor.BLUE}
             tooltip={'Update profit center'}
             onClick={this.editAsProfitCenter}

@@ -16,8 +16,8 @@ import { Entity } from '../shared-components/entity';
 import { DataSource, RoleEnum, Structure } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
-  ClientInfo, Detail, EntityInfo, PrimaryDetail, ProfitCenterInfo, RootContentItemInfo,
-  SecondaryDetail, UserInfo,
+  ClientInfo, Detail, EntityInfo, EntityInfoCollection, PrimaryDetail, ProfitCenterInfo,
+  RootContentItemInfo, SecondaryDetail, UserInfo,
 } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
@@ -28,8 +28,8 @@ interface ToggleInfo {
 }
 export interface SystemAdminState {
   data: {
-    primaryEntities: EntityInfo[];
-    secondaryEntities: EntityInfo[];
+    primaryEntities: EntityInfoCollection;
+    secondaryEntities: EntityInfoCollection;
   };
   primaryDataSource: string;
   secondaryDataSource: string;

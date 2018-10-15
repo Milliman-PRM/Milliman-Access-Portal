@@ -1,4 +1,4 @@
-﻿import { Nestable } from '../../view-models/content-publishing';
+﻿import { BasicTree, Nestable } from '../../view-models/content-publishing';
 import { QueryFilter } from '../shared-components/interfaces';
 
 export interface ContentPanelProps<T> {
@@ -39,6 +39,9 @@ export interface ClientInfo extends Nestable {
   RootContentItemCount?: number;
   ParentOnly: boolean;
 }
+export interface ClientInfoWithDepth extends ClientInfo {
+  depth: number;
+}
 export interface ProfitCenterInfo {
   Id: string;
   Name: string;
@@ -68,6 +71,29 @@ export function isProfitCenterInfo(info: EntityInfo): info is ProfitCenterInfo {
 }
 export function isRootContentItemInfo(info: EntityInfo): info is RootContentItemInfo {
   return (info as RootContentItemInfo).ClientName !== undefined;
+}
+
+export type EntityInfoCollection =
+  UserInfo[] | ClientInfo[] | BasicTree<ClientInfo> | ProfitCenterInfo[] | RootContentItemInfo[];
+export function isUserInfoArray(info: EntityInfoCollection): info is UserInfo[] {
+  const userInfo = info as UserInfo[];
+  return userInfo.length === 0 || isUserInfo(userInfo[0]);
+}
+export function isClientInfoArray(info: EntityInfoCollection): info is ClientInfo[] {
+  const clientInfo = info as ClientInfo[];
+  return clientInfo.length === 0 || isClientInfo(clientInfo[0]);
+}
+export function isClientInfoTree(info: EntityInfoCollection): info is BasicTree<ClientInfo> {
+  const clientInfo = info as BasicTree<ClientInfo>;
+  return clientInfo.Root !== undefined;
+}
+export function isProfitCenterInfoArray(info: EntityInfoCollection): info is ProfitCenterInfo[] {
+  const profitCenterInfo = info as ProfitCenterInfo[];
+  return profitCenterInfo.length === 0 || isProfitCenterInfo(profitCenterInfo[0]);
+}
+export function isRootContentItemInfoArray(info: EntityInfoCollection): info is RootContentItemInfo[] {
+  const rootContentItemInfo = info as RootContentItemInfo[];
+  return rootContentItemInfo.length === 0 || isRootContentItemInfo(rootContentItemInfo[0]);
 }
 
 export interface UserDetail {

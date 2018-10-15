@@ -5,7 +5,11 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import { getData, postData } from '../../shared';
-import { ClientInfo, EntityInfo, isClientInfo, isUserInfo } from '../system-admin/interfaces';
+import { BasicNode } from '../../view-models/content-publishing';
+import {
+  ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo, isClientInfoTree,
+  isUserInfo,
+} from '../system-admin/interfaces';
 import { AddUserToClientModal } from '../system-admin/modals/add-user-to-client';
 import { AddUserToProfitCenterModal } from '../system-admin/modals/add-user-to-profit-center';
 import { CreateProfitCenterModal } from '../system-admin/modals/create-profit-center';
@@ -32,7 +36,7 @@ export interface ContentPanelProps extends ContentPanelAttributes {
   setSelectedCard: (cardId: string) => void;
   selectedCard: string;
   queryFilter: QueryFilter;
-  entities: EntityInfo[];
+  entities: EntityInfoCollection;
 }
 
 export class ContentPanel extends React.Component<ContentPanelProps> {
@@ -47,50 +51,7 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
   }
 
   public render() {
-    const filteredCards = this.props.entities && this.props.entities
-      .filter((entity) => EntityHelper.applyFilter(entity, this.props.filterText));
-    let cards = null;
-    if (filteredCards === null) {
-      cards = <div>Loading...</div>;
-    } else if (filteredCards.length === 0) {
-      cards = <div>No {this.props.selectedDataSource.displayName.toLowerCase()} found.</div>;
-    } else if (isClientInfo(filteredCards[0])) {
-      const rootIndices = [];
-      filteredCards.forEach((entity: ClientInfo, i) => {
-        if (!entity.ParentId) {
-          rootIndices.push(i);
-        }
-      });
-      const cardGroups = rootIndices.map((_, i) =>
-        filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
-      cards = cardGroups.map((group, i) => {
-        const groupCards = group.map((entity) => (
-          <li key={entity.Id}>
-            <Card
-              entity={entity}
-              selected={entity.Id === this.props.selectedCard}
-              onSelect={() => this.props.setSelectedCard(entity.Id)}
-            />
-          </li>
-        ));
-        if (i + 1 !== cardGroups.length) {
-          groupCards.push((<div key="hr-{i}" className="hr" />));
-        }
-        return groupCards;
-      });
-    } else {
-      cards = filteredCards.map((entity) => (
-        <li key={entity.Id}>
-          <Card
-            entity={entity}
-            selected={entity.Id === this.props.selectedCard}
-            onSelect={() => this.props.setSelectedCard(entity.Id)}
-            activated={isUserInfo(entity) ? entity.Activated : null}
-            resetButton={isUserInfo(entity)}
-          />
-        </li>
-      ));
-    }
+
     const filterPlaceholder = this.props.selectedDataSource.displayName
       ? `Filter ${this.props.selectedDataSource.displayName}...`
       : '';
@@ -162,12 +123,84 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
           </div>
           <div className="admin-panel-content-container">
             <ul className="admin-panel-content">
-              {cards}
+              {this.renderCards()}
             </ul>
           </div>
         </div>
         {modal}
       </div>
     );
+  }
+
+  private renderCards() {
+    if (this.props.entities === null) {
+      return <div>Loading...</div>;
+    }
+
+    let filteredCards: EntityInfo[];
+    if (isClientInfoTree(this.props.entities)) {
+      // flatten basic tree into an array
+      const traverse = (node: BasicNode<ClientInfo>, list: ClientInfoWithDepth[] = [], depth = 0) => {
+        if (node.Value !== null) {
+          const clientDepth = {
+            ...node.Value,
+            depth,
+          };
+          list.push(clientDepth);
+        }
+        if (node.Children.length) {
+          node.Children.forEach((child) => list = traverse(child, list, depth + 1));
+        }
+        return list;
+      };
+      filteredCards = traverse(this.props.entities.Root);
+    } else {
+      filteredCards = this.props.entities;
+    }
+
+    // apply filter
+    filteredCards = filteredCards.filter((entity) =>
+        EntityHelper.applyFilter(entity, this.props.filterText));
+
+    if (filteredCards.length === 0) {
+      return <div>No {this.props.selectedDataSource.displayName.toLowerCase()} found.</div>;
+    } else if (isClientInfo(filteredCards[0])) {
+      const rootIndices = [];
+      filteredCards.forEach((entity: ClientInfoWithDepth, i) => {
+        if (!entity.ParentId) {
+          rootIndices.push(i);
+        }
+      });
+      const cardGroups = rootIndices.map((_, i) =>
+        filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
+      return cardGroups.map((group, i) => {
+        const groupCards = group.map((entity: ClientInfoWithDepth) => (
+          <li key={entity.Id}>
+            <Card
+              entity={entity}
+              selected={entity.Id === this.props.selectedCard}
+              onSelect={() => this.props.setSelectedCard(entity.Id)}
+              indentation={entity.depth}
+            />
+          </li>
+        ));
+        if (i + 1 !== cardGroups.length) {
+          groupCards.push((<div key="hr-{i}" className="hr" />));
+        }
+        return groupCards;
+      });
+    } else {
+      return filteredCards.map((entity) => (
+        <li key={entity.Id}>
+          <Card
+            entity={entity}
+            selected={entity.Id === this.props.selectedCard}
+            onSelect={() => this.props.setSelectedCard(entity.Id)}
+            activated={isUserInfo(entity) ? entity.Activated : null}
+            resetButton={isUserInfo(entity)}
+          />
+        </li>
+      ));
+    }
   }
 }
