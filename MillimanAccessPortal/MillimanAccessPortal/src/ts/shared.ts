@@ -417,7 +417,7 @@ export function eligibleUserMatcher(query: string, callback: (matches: any) => v
 
 // Card helpers
 function msToTimeReferenceString(timeMs: number) {
-  // Approximate days, hours, and months
+  // Approximate days, hours, and minutes
   const days = Math.round(timeMs / 1000 / 60 / 60 / 24);
   const hours = Math.round(timeMs / 1000 / 60 / 60) % 24;
   const minutes = Math.round(timeMs / 1000 / 60) % 60;
