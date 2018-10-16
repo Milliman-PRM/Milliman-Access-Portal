@@ -37,7 +37,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 .Where(crt => crt.RootContentItemId == rootContentItem.Id)
                 .OrderByDescending(crt => crt.CreateDateTimeUtc)
                 .FirstOrDefault();
-            PublicationSummary publicationDetails = (PublicationSummary) latestPublication;
+            PublicationSummary publicationDetails = latestPublication.ToSummaryWithQueueInformation(dbContext);
 
             var model = new RootContentItemSummary
             {

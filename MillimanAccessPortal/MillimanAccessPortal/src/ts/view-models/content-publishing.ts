@@ -62,6 +62,9 @@ export interface PublicationSummary {
   StatusName: string;
   SelectionGroupId: string;
   RootContentItemId: string;
+  QueuedDurationMs?: number;
+  QueuePosition?: number;
+  QueueTotal?: number;
 }
 export interface RootContentItemSummary {
   Id: string;
@@ -102,14 +105,8 @@ export interface RootContentItemSummaryAndDetail {
   detail: RootContentItemDetail;
 }
 
-export interface PublicationDetails {
-  User: UserInfo;
-  StatusEnum: PublicationStatus;
-  StatusName: string;
-  RootContentItemId: string;
-}
 export interface RootContentItemStatus {
-  Status: PublicationDetails[];
+  Status: PublicationSummary[];
 }
 
 export interface ContentRelatedFile {

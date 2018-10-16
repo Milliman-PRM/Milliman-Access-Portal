@@ -109,7 +109,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             {
                 SelectionGroupName = selectionGroup.GroupName,
                 RootContentItemName = selectionGroup.RootContentItem.ContentName,
-                ReductionSummary = ((ReductionSummary) latestTask),
+                ReductionSummary = latestTask.ToSummaryWithQueueInformation(dbContext),
                 SelectionComparison = new SelectionComparison
                 {
                     Hierarchy = liveHierarchy,
