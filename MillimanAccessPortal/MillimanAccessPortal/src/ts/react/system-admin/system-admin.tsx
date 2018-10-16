@@ -111,27 +111,32 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     if (primaryEntities === null) {
       this.fetchPrimaryEntities();
     }
-    if (primaryDetail === null && primaryCard) {
-      this.fetchPrimaryDetail();
-      if (primaryColumn === SystemAdminColumn.USER) {
-        this.fetchSystemAdmin();
-        this.fetchSuspendUser();
+    if (primaryCard) {
+      if (primaryDetail === null) {
+        this.fetchPrimaryDetail();
+      } else {
+        if (isUserDetail(primaryDetail) && primaryDetail.IsSuspended === null) {
+          this.fetchSystemAdmin();
+          this.fetchSuspendUser();
+        }
       }
     }
     if (secondaryEntities === null && secondaryColumn) {
       this.fetchSecondaryEntities();
     }
-    if (secondaryDetail === null && secondaryCard) {
-      this.fetchSecondaryDetail();
-      if ((primaryColumn === SystemAdminColumn.CLIENT && secondaryColumn === SystemAdminColumn.USER)
-        || (primaryColumn === SystemAdminColumn.USER && secondaryColumn === SystemAdminColumn.CLIENT)) {
-        this.fetchUserClient(RoleEnum.Admin);
-        this.fetchUserClient(RoleEnum.ContentPublisher);
-        this.fetchUserClient(RoleEnum.ContentAccessAdmin);
-        this.fetchUserClient(RoleEnum.ContentUser);
-      }
-      if (secondaryColumn === SystemAdminColumn.ROOT_CONTENT_ITEM) {
-        this.fetchSuspendContent();
+    if (secondaryCard) {
+      if (secondaryDetail === null) {
+        this.fetchSecondaryDetail();
+      } else {
+        if (isUserClientRoles(secondaryDetail) && secondaryDetail.IsClientAdmin === null) {
+          this.fetchUserClient(RoleEnum.Admin);
+          this.fetchUserClient(RoleEnum.ContentPublisher);
+          this.fetchUserClient(RoleEnum.ContentAccessAdmin);
+          this.fetchUserClient(RoleEnum.ContentUser);
+        }
+        if (isRootContentItemDetail(secondaryDetail) && secondaryDetail.IsSuspended === null) {
+          this.fetchSuspendContent();
+        }
       }
     }
   }
@@ -526,8 +531,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       if (isUserDetail(response)) {
         responseWithDefaults = {
           ...response,
-          IsSystemAdmin: false,
-          IsSuspended: false,
+          IsSystemAdmin: null,
+          IsSuspended: null,
         };
       } else {
         responseWithDefaults = response;
@@ -553,15 +558,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       if (isUserClientRoles(response)) {
         responseWithDefaults = {
           ...response,
-          IsClientAdmin: false,
-          IsContentPublisher: false,
-          IsAccessAdmin: false,
-          IsContentUser: false,
+          IsClientAdmin: null,
+          IsContentPublisher: null,
+          IsAccessAdmin: null,
+          IsContentUser: null,
         };
       } else if (isRootContentItemDetail(response)) {
         responseWithDefaults = {
           ...response,
-          IsSuspended: false,
+          IsSuspended: null,
         };
       } else {
         responseWithDefaults = response;
