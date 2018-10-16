@@ -16,12 +16,12 @@ interface SecondaryDetailPanelProps {
   detail: SecondaryDetail;
   onCancelPublication: (event: React.MouseEvent<HTMLElement>) => void;
   onCancelReduction: (event: React.MouseEvent<HTMLElement>, id: Guid) => void;
-  onPushUserClient: (event: React.ChangeEvent<HTMLInputElement>, role: RoleEnum) => void;
+  onPushUserClient: (event: React.MouseEvent<HTMLDivElement>, role: RoleEnum) => void;
   checkedClientAdmin: boolean;
   checkedContentPublisher: boolean;
   checkedAccessAdmin: boolean;
   checkedContentUser: boolean;
-  onPushSuspend: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSuspended: boolean;
 }
 
@@ -60,28 +60,28 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                           <Toggle
                             label={'Client Admin'}
                             checked={this.props.checkedClientAdmin}
-                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.Admin)}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.Admin)}
                           />
                         </div>
                         <div className="detail-container">
                           <Toggle
                             label={'Content Access Admin'}
                             checked={this.props.checkedAccessAdmin}
-                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.ContentAccessAdmin)}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentAccessAdmin)}
                           />
                         </div>
                         <div className="detail-container">
                           <Toggle
                             label={'Content Publisher'}
                             checked={this.props.checkedContentPublisher}
-                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.ContentPublisher)}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentPublisher)}
                           />
                         </div>
                         <div className="detail-container">
                           <Toggle
                             label={'Content Eligible'}
                             checked={this.props.checkedContentUser}
-                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
                           />
                         </div>
                       </div>
@@ -156,28 +156,28 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                           <Toggle
                             label={'Client Admin'}
                             checked={this.props.checkedClientAdmin}
-                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.Admin)}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.Admin)}
                           />
                         </div>
                         <div className="detail-container">
                           <Toggle
                             label={'Content Access Admin'}
                             checked={this.props.checkedAccessAdmin}
-                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.ContentAccessAdmin)}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentAccessAdmin)}
                           />
                         </div>
                         <div className="detail-container">
                           <Toggle
                             label={'Content Publisher'}
                             checked={this.props.checkedContentPublisher}
-                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.ContentPublisher)}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentPublisher)}
                           />
                         </div>
                         <div className="detail-container">
                           <Toggle
                             label={'Content Eligible'}
                             checked={this.props.checkedContentUser}
-                            onChange={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
                           />
                         </div>
                       </div>
@@ -231,7 +231,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                           <Toggle
                             label={'Suspended'}
                             checked={this.props.checkedSuspended}
-                            onChange={this.props.onPushSuspend}
+                            onClick={this.props.onPushSuspend}
                           />
                         </div>
                       </div>

@@ -12,9 +12,9 @@ interface PrimaryDetailPanelProps {
   selectedCard: string;
   queryFilter: QueryFilter;
   detail: PrimaryDetail;
-  onPushSystemAdmin: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onPushSystemAdmin: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSystemAdmin: boolean;
-  onPushSuspend: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSuspended: boolean;
 }
 
@@ -69,7 +69,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                       <Toggle
                         label={'System Admin'}
                         checked={this.props.checkedSystemAdmin}
-                        onChange={this.props.onPushSystemAdmin}
+                        onClick={this.props.onPushSystemAdmin}
                       />
                     </div>
                   </div>
@@ -79,7 +79,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                       <Toggle
                         label={'Suspended'}
                         checked={this.props.checkedSuspended}
-                        onChange={this.props.onPushSuspend}
+                        onClick={this.props.onPushSuspend}
                       />
                     </div>
                   </div>

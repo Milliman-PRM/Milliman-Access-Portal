@@ -18,8 +18,8 @@ import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
   ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfoTree,
-  isRootContentItemDetail, isUserClientRoles, isUserDetail, PrimaryDetail, SecondaryDetail,
-  UserClientRoles,
+  isRootContentItemDetail, isUserClientRoles, isUserDetail, PrimaryDetail, PrimaryDetailData,
+  SecondaryDetail, SecondaryDetailData, Suspendable, UserClientRoles, UserDetail,
 } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
@@ -43,8 +43,8 @@ export interface SystemAdminState {
   data: {
     primaryEntities: EntityInfoCollection;
     secondaryEntities: EntityInfoCollection;
-    primaryDetail: PrimaryDetail;
-    secondaryDetail: SecondaryDetail;
+    primaryDetail: PrimaryDetailData;
+    secondaryDetail: SecondaryDetailData;
   };
   primaryPanel: ContentPanelAttributes;
   secondaryPanel: ContentPanelAttributes;
@@ -521,12 +521,22 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }
 
     getData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getSecondaryQueryFilter())
-    .then((response) => {
+    .then((response: PrimaryDetail) => {
+      let responseWithDefaults: PrimaryDetailData;
+      if (isUserDetail(response)) {
+        responseWithDefaults = {
+          ...response,
+          IsSystemAdmin: false,
+          IsSuspended: false,
+        };
+      } else {
+        responseWithDefaults = response;
+      }
       this.setState((prevState) => ({
         ...prevState,
         data: {
           ...prevState.data,
-          primaryDetail: response,
+          primaryDetail: responseWithDefaults,
         },
       }));
     });
@@ -538,12 +548,29 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       return;
     }
     getData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getFinalQueryFilter())
-    .then((response) => {
+    .then((response: SecondaryDetail) => {
+      let responseWithDefaults: SecondaryDetailData;
+      if (isUserClientRoles(response)) {
+        responseWithDefaults = {
+          ...response,
+          IsClientAdmin: false,
+          IsContentPublisher: false,
+          IsAccessAdmin: false,
+          IsContentUser: false,
+        };
+      } else if (isRootContentItemDetail(response)) {
+        responseWithDefaults = {
+          ...response,
+          IsSuspended: false,
+        };
+      } else {
+        responseWithDefaults = response;
+      }
       this.setState((prevState) => ({
         ...prevState,
         data: {
           ...prevState.data,
-          secondaryDetail: response,
+          secondaryDetail: responseWithDefaults,
         },
       }));
     });
@@ -671,15 +698,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       role,
     }).then((response: boolean) => {
       let roleAssignment: Partial<UserClientRoles> = {};
-      switch (role) {
-        case RoleEnum.Admin:
-          roleAssignment = { IsClientAdmin: response };
-        case RoleEnum.ContentPublisher:
-          roleAssignment = { IsContentPublisher: response };
-        case RoleEnum.ContentAccessAdmin:
-          roleAssignment = { IsAccessAdmin: response };
-        case RoleEnum.ContentUser:
-          roleAssignment = { IsContentUser: response };
+      if (role === RoleEnum.Admin) {
+        roleAssignment = { IsClientAdmin: response };
+      } else if (role === RoleEnum.ContentPublisher) {
+        roleAssignment = { IsContentPublisher: response };
+      } else if (role === RoleEnum.ContentAccessAdmin) {
+        roleAssignment = { IsAccessAdmin: response };
+      } else if (role === RoleEnum.ContentUser) {
+        roleAssignment = { IsContentUser: response };
       }
       this.setState((prevState) => ({
         ...prevState,
@@ -701,15 +727,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }
 
     let prevValue = false;
-    switch (role) {
-      case RoleEnum.Admin:
-        prevValue = secondaryDetail.IsClientAdmin;
-      case RoleEnum.ContentPublisher:
-        prevValue = secondaryDetail.IsContentPublisher;
-      case RoleEnum.ContentAccessAdmin:
-        prevValue = secondaryDetail.IsAccessAdmin;
-      case RoleEnum.ContentUser:
-        prevValue = secondaryDetail.IsContentUser;
+    if (role === RoleEnum.Admin) {
+      prevValue = secondaryDetail.IsClientAdmin;
+    } else if (role === RoleEnum.ContentPublisher) {
+      prevValue = secondaryDetail.IsContentPublisher;
+    } else if (role === RoleEnum.ContentAccessAdmin) {
+      prevValue = secondaryDetail.IsAccessAdmin;
+    } else if (role === RoleEnum.ContentUser) {
+      prevValue = secondaryDetail.IsContentUser;
     }
     postData('/SystemAdmin/UserClientRoleAssignment', {
       ...this.getFinalQueryFilter(),
@@ -717,15 +742,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       value: !prevValue,
     }).then((response: boolean) => {
       let roleAssignment: Partial<UserClientRoles> = {};
-      switch (role) {
-        case RoleEnum.Admin:
-          roleAssignment = { IsClientAdmin: response };
-        case RoleEnum.ContentPublisher:
-          roleAssignment = { IsContentPublisher: response };
-        case RoleEnum.ContentAccessAdmin:
-          roleAssignment = { IsAccessAdmin: response };
-        case RoleEnum.ContentUser:
-          roleAssignment = { IsContentUser: response };
+      if (role === RoleEnum.Admin) {
+        roleAssignment = { IsClientAdmin: response };
+      } else if (role === RoleEnum.ContentPublisher) {
+        roleAssignment = { IsContentPublisher: response };
+      } else if (role === RoleEnum.ContentAccessAdmin) {
+        roleAssignment = { IsAccessAdmin: response };
+      } else if (role === RoleEnum.ContentUser) {
+        roleAssignment = { IsContentUser: response };
       }
       this.setState((prevState) => ({
         ...prevState,

@@ -88,10 +88,13 @@ export function isRootContentItemInfoArray(info: EntityInfoCollection): info is 
   return rootContentItemInfo && rootContentItemInfo.length === 0 || isRootContentItemInfo(rootContentItemInfo[0]);
 }
 
-interface Suspendable {
+export interface SystemRoles {
+  IsSystemAdmin: boolean;
+}
+export interface Suspendable {
   IsSuspended: boolean;
 }
-export interface UserDetail extends Suspendable {
+export interface UserDetail {
   Id: Guid;
   FirstName: string;
   LastName: string;
@@ -99,10 +102,9 @@ export interface UserDetail extends Suspendable {
   UserName: string;
   Email: string;
   Phone: string;
-  IsSystemAdmin: boolean;
 }
 export function isUserDetail(detail: PrimaryDetail): detail is UserDetail {
-  return detail && (detail as UserDetail).IsSystemAdmin !== undefined;
+  return detail && (detail as UserDetail).Employer !== undefined;
 }
 export interface ClientDetail {
   Id: Guid;
@@ -126,6 +128,7 @@ export interface ProfitCenterDetail {
   ContactPhone: string;
 }
 export type PrimaryDetail = UserDetail | ClientDetail | ProfitCenterDetail;
+export type PrimaryDetailData = (UserDetail & SystemRoles & Suspendable) | ClientDetail | ProfitCenterDetail;
 
 export interface UserClientRoles {
   IsClientAdmin: boolean;
@@ -134,9 +137,11 @@ export interface UserClientRoles {
   IsContentUser: boolean;
 }
 export function isUserClientRoles(detail: SecondaryDetail): detail is UserDetailForClient | ClientDetailForUser {
-  return detail && (detail as UserClientRoles).IsClientAdmin !== undefined;
+  return detail
+    && ((detail as UserDetailForClient).Employer !== undefined
+    || (detail as ClientDetailForUser).ClientName !== undefined);
 }
-export interface UserDetailForClient extends UserClientRoles {
+export interface UserDetailForClient {
   Id: Guid;
   FirstName: string;
   LastName: string;
@@ -153,7 +158,7 @@ export interface UserDetailForProfitCenter {
     Phone: string;
     AssignedClients: NestedList;
 }
-export interface ClientDetailForUser extends UserClientRoles {
+export interface ClientDetailForUser {
     Id: Guid;
     ClientName: string;
     ClientCode: string;
@@ -167,12 +172,12 @@ export interface ClientDetailForProfitCenter {
     ContactPhone: string;
     AuthorizedUsers: NestedList;
 }
-export interface RootContentItemDetailForUser extends Suspendable {
+export interface RootContentItemDetailForUser {
     Id: Guid;
     ContentName: string;
     ContentType: string;
 }
-export interface RootContentItemDetailForClient extends Suspendable {
+export interface RootContentItemDetailForClient {
     Id: Guid;
     ContentName: string;
     ContentType: string;
@@ -182,12 +187,22 @@ export interface RootContentItemDetailForClient extends Suspendable {
     IsPublishing: boolean;
     SelectionGroups: NestedList;
 }
-export function isRootContentItemDetail(detail: SecondaryDetail):
-    detail is RootContentItemDetailForClient | RootContentItemDetailForUser {
-  return detail && (detail as Suspendable).IsSuspended !== undefined;
+export function isRootContentItemDetail(detail: SecondaryDetail)
+    : detail is RootContentItemDetailForClient | RootContentItemDetailForUser {
+  return detail
+    && (detail as RootContentItemDetailForClient | RootContentItemDetailForUser).ContentName !== undefined;
 }
-export type SecondaryDetail = UserDetailForClient | UserDetailForProfitCenter
-  | ClientDetailForUser | ClientDetailForProfitCenter
-  | RootContentItemDetailForUser | RootContentItemDetailForClient;
+export type SecondaryDetail = UserDetailForClient
+  | UserDetailForProfitCenter
+  | ClientDetailForUser
+  | ClientDetailForProfitCenter
+  | RootContentItemDetailForUser
+  | RootContentItemDetailForClient;
+export type SecondaryDetailData = (UserDetailForClient & UserClientRoles)
+  | UserDetailForProfitCenter
+  | (ClientDetailForUser & UserClientRoles)
+  | ClientDetailForProfitCenter
+  | (RootContentItemDetailForUser & Suspendable)
+  | (RootContentItemDetailForClient & Suspendable);
 
 export type Detail = PrimaryDetail | SecondaryDetail;

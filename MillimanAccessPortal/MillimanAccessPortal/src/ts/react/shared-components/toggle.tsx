@@ -5,22 +5,16 @@ import * as React from 'react';
 interface ToggleProps {
   label: string;
   checked: boolean;
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 export class Toggle extends React.Component<ToggleProps> {
   public render() {
+    const labelClass = 'toggle-switch-label' + (this.props.checked ? ' checked' : '');
     return (
-      <div className="switch-container">
-        <div className="toggle-switch">
-          <input
-            type="checkbox"
-            className="toggle-switch-checkbox"
-            name={this.props.label}
-            checked={this.props.checked}
-            onChange={this.props.onChange}
-          />
-          <label className="toggle-switch-label" htmlFor={this.props.label}>
+      <div className="switch-container-react">
+        <div className="toggle-switch" onClick={this.props.onClick}>
+          <label className={labelClass}>
             <span className="toggle-switch-inner" />
             <span className="toggle-switch-switch" />
           </label>
