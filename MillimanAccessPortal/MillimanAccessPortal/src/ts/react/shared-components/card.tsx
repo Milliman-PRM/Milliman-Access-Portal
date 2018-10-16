@@ -12,10 +12,16 @@ import {
 } from '../system-admin/interfaces';
 import CardButton, { CardButtonColor } from './card-button';
 
+export interface CardAttributes {
+  expanded: boolean;
+}
+
 export interface CardProps {
   entity: EntityInfo;
   selected: boolean;
   onSelect: () => void;
+  expanded: boolean;
+  onExpandedToggled: () => void;
   resetButton?: boolean;
   resetButtonText?: string;
   activated?: boolean;
@@ -23,9 +29,7 @@ export interface CardProps {
   isUserInProfitCenter?: boolean;
   indentation?: number;
 }
-
 interface CardState {
-  expanded: boolean;
   updateProfitCenterModalOpen: boolean;
 }
 
@@ -40,7 +44,6 @@ export class Card extends React.Component<CardProps, CardState> {
     super(props);
 
     this.state = {
-      expanded: false,
       updateProfitCenterModalOpen: false,
     };
 
@@ -48,7 +51,6 @@ export class Card extends React.Component<CardProps, CardState> {
     this.deleteAsProfitCenter = this.deleteAsProfitCenter.bind(this);
     this.editAsProfitCenter = this.editAsProfitCenter.bind(this);
     this.removeAsUser = this.removeAsUser.bind(this);
-    this.toggleExpansion = this.toggleExpansion.bind(this);
     this.openUpdateModal = this.openUpdateModal.bind(this);
     this.closeModal = this.closeModal.bind(this);
     this.handleUpdate = this.handleUpdate.bind(this);
@@ -259,14 +261,15 @@ export class Card extends React.Component<CardProps, CardState> {
       } else {
         title = 'Members';
       }
+      const expansionList = this.renderExpansionList();
+
       return (
-        <div className={'card-expansion-container' + (this.state.expanded ? ' maximized' : '')}>
+        <div className={'card-expansion-container' + (this.props.expanded ? ' maximized' : '')}>
           <h4 className="card-expansion-category-label">{title}</h4>
-          {this.renderExpansionList()}
           <div className="card-button-bottom-container">
             <div
               className="card-button-background card-button-expansion"
-              onClick={this.toggleExpansion}
+              onClick={this.onExpandedToggled}
             >
               <svg className="card-button-icon">
                 <use xlinkHref="#expand-card" />
@@ -366,13 +369,6 @@ export class Card extends React.Component<CardProps, CardState> {
     });
   }
 
-  private toggleExpansion(event: React.MouseEvent<HTMLDivElement>) {
-    event.stopPropagation();
-    this.setState((prevState) => ({
-      expanded: !prevState.expanded,
-    }));
-  }
-
   private openUpdateModal() {
     this.setState({
       updateProfitCenterModalOpen: true,
@@ -391,5 +387,10 @@ export class Card extends React.Component<CardProps, CardState> {
       alert('Profit center updated.');
       this.closeModal();
     });
+  }
+
+  private onExpandedToggled = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    this.props.onExpandedToggled();
   }
 }

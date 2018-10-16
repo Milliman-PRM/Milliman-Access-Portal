@@ -10,27 +10,27 @@ import '../../../scss/react/system-admin/system-admin.scss';
 import * as React from 'react';
 
 import { getData, postData } from '../../shared';
+import { BasicNode } from '../../view-models/content-publishing';
+import { Card, CardAttributes } from '../shared-components/card';
 import { ColumnIndicator } from '../shared-components/column-selector';
 import { ContentPanel } from '../shared-components/content-panel';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
-  EntityInfoCollection, isRootContentItemDetail, isUserClientRoles, isUserDetail, PrimaryDetail,
-  SecondaryDetail, UserClientRoles,
+  ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfoTree,
+  isRootContentItemDetail, isUserClientRoles, isUserDetail, PrimaryDetail, SecondaryDetail,
+  UserClientRoles,
 } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
-interface CardState {
-  expanded: boolean;
-}
-interface ContentPanelState {
+interface ContentPanelAttributes {
   selected: {
     column: SystemAdminColumn;
     card: string;
   };
   cards: {
-    [id: string]: CardState;
+    [id: string]: CardAttributes;
   };
   filter: {
     text: string;
@@ -46,8 +46,8 @@ export interface SystemAdminState {
     primaryDetail: PrimaryDetail;
     secondaryDetail: SecondaryDetail;
   };
-  primaryPanel: ContentPanelState;
-  secondaryPanel: ContentPanelState;
+  primaryPanel: ContentPanelAttributes;
+  secondaryPanel: ContentPanelAttributes;
 }
 
 export enum SystemAdminColumn {
@@ -154,6 +154,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           columns={this.getColumns(primaryColumn)}
           onColumnSelect={this.handleSecondaryColumnSelected}
           selectedColumn={this.getColumns(primaryColumn).filter((c) => c.id === secondaryColumn)[0]}
+          onExpandedToggled={this.handleSecondaryExpandedToggled}
+          cards={this.state.secondaryPanel.cards}
           onCardSelect={this.handleSecondaryCardSelected}
           selectedCard={secondaryCard}
           queryFilter={secondaryQueryFilter}
@@ -176,6 +178,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           columns={this.getColumns()}
           onColumnSelect={this.handlePrimaryColumnSelected}
           selectedColumn={this.getColumns().filter((c) => c.id === primaryColumn)[0]}
+          onExpandedToggled={this.handlePrimaryExpandedToggled}
+          cards={this.state.primaryPanel.cards}
           onCardSelect={this.handlePrimaryCardSelected}
           selectedCard={primaryCard}
           queryFilter={this.getPrimaryQueryFilter()}
@@ -477,12 +481,16 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private fetchPrimaryEntities = () => {
     const { column } = this.state.primaryPanel.selected;
     getData(`/SystemAdmin/${this.getDataAction(column)}`, {})
-    .then((response) => {
+    .then((response: EntityInfoCollection) => {
       this.setState((prevState) => ({
         ...prevState,
         data: {
           ...prevState.data,
           primaryEntities: response,
+        },
+        primaryPanel: {
+          ...prevState.primaryPanel,
+          cards: this.initializeCardAttributes(response),
         },
       }));
     });
@@ -497,6 +505,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         data: {
           ...prevState.data,
           secondaryEntities: response,
+        },
+        secondaryPanel: {
+          ...prevState.secondaryPanel,
+          cards: this.initializeCardAttributes(response),
         },
       }));
     });
@@ -834,5 +846,67 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         },
       },
     }));
+  }
+
+  private handlePrimaryExpandedToggled = (id: Guid) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      primaryPanel: {
+        ...prevState.primaryPanel,
+        cards: {
+          ...prevState.primaryPanel.cards,
+          [id]: {
+            expanded: !prevState.primaryPanel.cards[id].expanded,
+          },
+        },
+      },
+    }));
+  }
+
+  private handleSecondaryExpandedToggled = (id: Guid) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      secondaryPanel: {
+        ...prevState.secondaryPanel,
+        cards: {
+          ...prevState.secondaryPanel.cards,
+          [id]: {
+            expanded: !prevState.secondaryPanel.cards[id].expanded,
+          },
+        },
+      },
+    }));
+  }
+
+  private initializeCardAttributes(entities: EntityInfoCollection): { [id: string]: CardAttributes } {
+    let entityInfo: EntityInfo[];
+    if (isClientInfoTree(entities)) {
+      // flatten basic tree into an array
+      const traverse = (node: BasicNode<ClientInfo>, list: ClientInfoWithDepth[] = [], depth = 0) => {
+        if (node.Value !== null) {
+          const clientDepth = {
+            ...node.Value,
+            depth,
+          };
+          list.push(clientDepth);
+        }
+        if (node.Children.length) {
+          node.Children.forEach((child) => list = traverse(child, list, depth + 1));
+        }
+        return list;
+      };
+      entityInfo = traverse(entities.Root);
+    } else {
+      entityInfo = entities;
+    }
+    const cards: {
+      [id: string]: CardAttributes;
+    } = {};
+    entityInfo.forEach((entity) => {
+        cards[entity.Id] = {
+          expanded: false,
+        };
+    });
+    return cards;
   }
 }

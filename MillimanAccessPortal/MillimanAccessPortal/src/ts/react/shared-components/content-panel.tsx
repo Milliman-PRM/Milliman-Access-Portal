@@ -12,7 +12,7 @@ import { AddUserToProfitCenterModal } from '../system-admin/modals/add-user-to-p
 import { CreateProfitCenterModal } from '../system-admin/modals/create-profit-center';
 import { CreateUserModal } from '../system-admin/modals/create-user';
 import { ActionIcon } from './action-icon';
-import { Card } from './card';
+import { Card, CardAttributes } from './card';
 import { ColumnIndicator, ColumnSelector } from './column-selector';
 import { EntityHelper } from './entity';
 import { Filter } from './filter';
@@ -30,6 +30,10 @@ export interface ContentPanelProps extends ContentPanelAttributes {
   columns: ColumnIndicator[];
   onColumnSelect: (id: string) => void;
   selectedColumn: ColumnIndicator;
+  onExpandedToggled: (id: Guid) => void;
+  cards: {
+    [id: string]: CardAttributes;
+  };
   onCardSelect: (id: Guid) => void;
   selectedCard: string;
   queryFilter: QueryFilter;
@@ -169,6 +173,8 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
               entity={entity}
               selected={entity.Id === this.props.selectedCard}
               onSelect={() => this.props.onCardSelect(entity.Id)}
+              expanded={this.props.cards[entity.Id].expanded}
+              onExpandedToggled={() => this.props.onExpandedToggled(entity.Id)}
               indentation={entity.depth}
             />
           </li>
@@ -185,6 +191,8 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
             entity={entity}
             selected={entity.Id === this.props.selectedCard}
             onSelect={() => this.props.onCardSelect(entity.Id)}
+            expanded={this.props.cards[entity.Id].expanded}
+            onExpandedToggled={() => this.props.onExpandedToggled(entity.Id)}
             activated={isUserInfo(entity) ? entity.Activated : null}
             resetButton={isUserInfo(entity)}
           />
