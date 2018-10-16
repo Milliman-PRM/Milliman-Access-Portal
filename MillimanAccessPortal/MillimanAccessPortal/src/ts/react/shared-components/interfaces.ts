@@ -25,3 +25,5 @@ export interface ContentContainerProps {
   contentURL: string;
   closeAction: (URL: string) => void;
 }
+
+export type Guid = string;
