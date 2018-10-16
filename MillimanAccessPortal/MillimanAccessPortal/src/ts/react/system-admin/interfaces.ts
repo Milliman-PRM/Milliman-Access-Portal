@@ -1,5 +1,5 @@
 ﻿import { BasicTree, Nestable } from '../../view-models/content-publishing';
-import { QueryFilter } from '../shared-components/interfaces';
+import { Guid, QueryFilter } from '../shared-components/interfaces';
 
 export interface ContentPanelProps<T> {
   onFetch: (data: T[]) => void;
@@ -14,13 +14,13 @@ export interface NestedList {
 }
 export interface NestedListSection {
   Name: string;
-  Id?: string;
+  Id?: Guid;
   Marked?: boolean;
   Values: string[];
 }
 
 export interface UserInfo {
-  Id: string;
+  Id: Guid;
   Activated: boolean;
   FirstName: string;
   LastName: string;
@@ -43,7 +43,7 @@ export interface ClientInfoWithDepth extends ClientInfo {
   depth: number;
 }
 export interface ProfitCenterInfo {
-  Id: string;
+  Id: Guid;
   Name: string;
   Code: string;
   Office: string;
@@ -51,7 +51,7 @@ export interface ProfitCenterInfo {
   ClientCount: number;
 }
 export interface RootContentItemInfo {
-  Id: string;
+  Id: Guid;
   Name: string;
   ClientName: string;
   UserCount?: number;
@@ -100,7 +100,7 @@ interface Suspendable {
   IsSuspended: boolean;
 }
 export interface UserDetail extends Suspendable {
-  Id: string;
+  Id: Guid;
   FirstName: string;
   LastName: string;
   Employer: string;
@@ -113,7 +113,7 @@ export function isUserDetail(detail: PrimaryDetail): detail is UserDetail {
   return detail && (detail as UserDetail).IsSystemAdmin !== undefined;
 }
 export interface ClientDetail {
-  Id: string;
+  Id: Guid;
   ClientName: string;
   ClientCode: string;
   ClientContactName: string;
@@ -125,7 +125,7 @@ export interface ClientDetail {
   ConsultantEmail: string;
 }
 export interface ProfitCenterDetail {
-  Id: string;
+  Id: Guid;
   Name: string;
   Code: string;
   Office: string;
@@ -145,7 +145,7 @@ export function isUserClientRoles(detail: SecondaryDetail): detail is UserDetail
   return detail && (detail as UserClientRoles).IsClientAdmin !== undefined;
 }
 export interface UserDetailForClient extends UserClientRoles {
-  Id: string;
+  Id: Guid;
   FirstName: string;
   LastName: string;
   Employer: string;
@@ -154,7 +154,7 @@ export interface UserDetailForClient extends UserClientRoles {
   Phone: string;
 }
 export interface UserDetailForProfitCenter {
-    Id: string;
+    Id: Guid;
     FirstName: string;
     LastName: string;
     Email: string;
@@ -162,12 +162,12 @@ export interface UserDetailForProfitCenter {
     AssignedClients: NestedList;
 }
 export interface ClientDetailForUser extends UserClientRoles {
-    Id: string;
+    Id: Guid;
     ClientName: string;
     ClientCode: string;
 }
 export interface ClientDetailForProfitCenter {
-    Id: string;
+    Id: Guid;
     Name: string;
     Code: string;
     ContactName: string;
@@ -176,12 +176,12 @@ export interface ClientDetailForProfitCenter {
     AuthorizedUsers: NestedList;
 }
 export interface RootContentItemDetailForUser extends Suspendable {
-    Id: string;
+    Id: Guid;
     ContentName: string;
     ContentType: string;
 }
 export interface RootContentItemDetailForClient extends Suspendable {
-    Id: string;
+    Id: Guid;
     ContentName: string;
     ContentType: string;
     Description: string;

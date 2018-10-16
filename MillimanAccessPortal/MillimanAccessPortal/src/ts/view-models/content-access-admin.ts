@@ -1,3 +1,4 @@
+import { Guid } from '../react/shared-components/interfaces';
 import {
   ContentReductionHierarchy, ReductionFieldValueSelection, RootContentItemStatus, UserInfo,
 } from './content-publishing';
@@ -18,14 +19,14 @@ export interface ReductionSummary {
   User: UserInfo;
   StatusEnum: ReductionStatus;
   StatusName: string;
-  SelectionGroupId: string;
+  SelectionGroupId: Guid;
   RootContentItemId?: string;
 }
 export interface SelectionGroupStatus {
   Status: ReductionSummary[];
 }
 export interface SelectionDetails {
-  Id: string;
+  Id: Guid;
   Marked: boolean;
 }
 export interface SelectionComparison {
@@ -45,7 +46,7 @@ export interface SelectionsDetail {
 }
 
 export interface SelectionGroupSummary {
-  Id: string;
+  Id: Guid;
   Name: string;
   MemberList: UserInfo[];
   ReductionDetails: ReductionSummary;
@@ -54,7 +55,7 @@ export interface SelectionGroupSummary {
 }
 export interface SelectionGroupList {
   SelectionGroups: SelectionGroupSummary[];
-  RelevantRootContentItemId: string;
+  RelevantRootContentItemId: Guid;
 }
 
 export interface ContentAccessStatus {

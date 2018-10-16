@@ -14,7 +14,7 @@ import { BasicNode, BasicTree } from '../../view-models/content-publishing';
 import { ColumnIndicator } from '../shared-components/column-selector';
 import { ContentPanel, ContentPanelAttributes } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
-import { QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
   ClientInfo, Detail, EntityInfo, EntityInfoCollection, isRootContentItemDetail, isUserClientRoles,
@@ -338,7 +338,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }
   }
 
-  private assignQueryFilter(column: SystemAdminColumn, queryFilter: QueryFilter, id: string): QueryFilter {
+  private assignQueryFilter(column: SystemAdminColumn, queryFilter: QueryFilter, id: Guid): QueryFilter {
     switch (column) {
       case SystemAdminColumn.USER:
         return {...queryFilter, userId: id};
@@ -437,7 +437,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
-  private handlePrimaryCardSelected = (id: string) => {
+  private handlePrimaryCardSelected = (id: Guid) => {
     this.setState((prevState) => {
       const defaultColumn = this.getColumns(prevState.primaryPanel.selected.column)[0].id as SystemAdminColumn;
       return {
@@ -465,7 +465,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
-  private handleSecondaryCardSelected = (id: string) => {
+  private handleSecondaryCardSelected = (id: Guid) => {
     this.setState((prevState) => ({
       ...prevState,
       data: {
@@ -562,7 +562,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
-  private handleReductionCanceled = (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+  private handleReductionCanceled = (event: React.MouseEvent<HTMLAnchorElement>, id: Guid) => {
     event.preventDefault();
     postData(
       '/SystemAdmin/CancelReduction',

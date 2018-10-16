@@ -1,4 +1,5 @@
 import { EntityInfo, isRootContentItemInfo, isUserInfo } from '../system-admin/interfaces';
+import { Guid } from './interfaces';
 
 // Represents an object displayable on a card
 
@@ -9,7 +10,7 @@ export interface CardStat {
 }
 
 export interface Entity {
-  id: string;
+  id: Guid;
   primaryText: string;
   secondaryText?: string;
   primaryStat?: CardStat;

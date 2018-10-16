@@ -4,9 +4,10 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import { postData } from '../../../shared';
+import { Guid } from '../../shared-components/interfaces';
 
 export interface AddUserToProfitCenterModalProps extends Modal.Props {
-  profitCenterId: string;
+  profitCenterId: Guid;
 }
 
 interface AddUserToProfitCenterModalState {

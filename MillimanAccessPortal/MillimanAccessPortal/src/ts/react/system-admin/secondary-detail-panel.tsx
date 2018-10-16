@@ -3,7 +3,7 @@ import * as React from 'react';
 
 import { getData, postData } from '../../shared';
 import { Entity } from '../shared-components/entity';
-import { QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { Toggle } from '../shared-components/toggle';
 import {
   ClientDetailForProfitCenter, ClientDetailForUser, NestedList, RootContentItemDetailForClient,
@@ -18,7 +18,7 @@ interface SecondaryDetailPanelProps {
   queryFilter: QueryFilter;
   detail: SecondaryDetail;
   onCancelPublication: (event: React.MouseEvent<HTMLElement>) => void;
-  onCancelReduction: (event: React.MouseEvent<HTMLElement>, id: string) => void;
+  onCancelReduction: (event: React.MouseEvent<HTMLElement>, id: Guid) => void;
   onPushUserClient: (event: React.ChangeEvent<HTMLInputElement>, role: RoleEnum) => void;
   checkedClientAdmin: boolean;
   checkedContentPublisher: boolean;

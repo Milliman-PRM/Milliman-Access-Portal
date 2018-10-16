@@ -19,7 +19,7 @@ import { Card } from './card';
 import { ColumnIndicator, ColumnSelector } from './column-selector';
 import { Entity, EntityHelper } from './entity';
 import { Filter } from './filter';
-import { QueryFilter } from './interfaces';
+import { Guid, QueryFilter } from './interfaces';
 
 export interface ContentPanelAttributes {
   filterText: string;
@@ -33,7 +33,7 @@ export interface ContentPanelProps extends ContentPanelAttributes {
   columns: ColumnIndicator[];
   onColumnSelect: (id: string) => void;
   selectedColumn: ColumnIndicator;
-  onCardSelect: (id: string) => void;
+  onCardSelect: (id: Guid) => void;
   selectedCard: string;
   queryFilter: QueryFilter;
   entities: EntityInfoCollection;
