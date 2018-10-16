@@ -113,39 +113,44 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   public componentDidUpdate() {
-    if (this.state.data.primaryEntities === null) {
+    const { primaryEntities, secondaryEntities, primaryDetail, secondaryDetail } = this.state.data;
+    const { column: primaryColumn, card: primaryCard } = this.state.primaryPanel.selected;
+    const { column: secondaryColumn, card: secondaryCard } = this.state.secondaryPanel.selected;
+    if (primaryEntities === null) {
       this.fetchPrimaryEntities();
     }
-    if (this.state.data.primaryDetail === null && this.state.primaryPanel.selected.card) {
+    if (primaryDetail === null && primaryCard) {
       this.fetchPrimaryDetail();
-      if (this.state.primaryPanel.selected.column === SystemAdminColumn.USER) {
+      if (primaryColumn === SystemAdminColumn.USER) {
         this.fetchSystemAdmin();
         this.fetchSuspendUser();
       }
     }
-    if (this.state.data.secondaryEntities === null && this.state.secondaryPanel.selected.column) {
+    if (secondaryEntities === null && secondaryColumn) {
       this.fetchSecondaryEntities();
     }
-    if (this.state.data.secondaryDetail === null && this.state.secondaryPanel.selected.card) {
+    if (secondaryDetail === null && secondaryCard) {
       this.fetchSecondaryDetail();
-      if ((this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
-          && this.state.secondaryPanel.selected.column === SystemAdminColumn.USER)
-        || (this.state.primaryPanel.selected.column === SystemAdminColumn.USER
-          && this.state.secondaryPanel.selected.column === SystemAdminColumn.CLIENT)) {
+      if ((primaryColumn === SystemAdminColumn.CLIENT && secondaryColumn === SystemAdminColumn.USER)
+        || (primaryColumn === SystemAdminColumn.USER && secondaryColumn === SystemAdminColumn.CLIENT)) {
         this.fetchUserClient(RoleEnum.Admin);
         this.fetchUserClient(RoleEnum.ContentPublisher);
         this.fetchUserClient(RoleEnum.ContentAccessAdmin);
         this.fetchUserClient(RoleEnum.ContentUser);
       }
-      if (this.state.secondaryPanel.selected.column === SystemAdminColumn.ROOT_CONTENT_ITEM) {
+      if (secondaryColumn === SystemAdminColumn.ROOT_CONTENT_ITEM) {
         this.fetchSuspendContent();
       }
     }
   }
 
   public render() {
+    const { primaryEntities, secondaryEntities, primaryDetail, secondaryDetail } = this.state.data;
+    const { column: primaryColumn, card: primaryCard } = this.state.primaryPanel.selected;
+    const { column: secondaryColumn, card: secondaryCard } = this.state.secondaryPanel.selected;
+
     const secondaryQueryFilter = this.getSecondaryQueryFilter();
-    const secondaryColumnComponent = this.state.secondaryPanel.selected.column
+    const secondaryColumnComponent = secondaryColumn
       ? (
         <ContentPanel
           filterText={this.state.secondaryPanel.filter.text}
@@ -153,14 +158,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onFilterTextChange={this.handleSecondaryFilterKeyup}
           onModalOpen={this.handleSecondaryModalOpen}
           onModalClose={this.handleSecondaryModalClose}
-          createAction={this.getCreateAction(this.state.secondaryPanel.selected.column, this.state.primaryPanel.selected.column)}
-          columns={this.getColumns(this.state.primaryPanel.selected.column)}
+          createAction={this.getCreateAction(secondaryColumn, primaryColumn)}
+          columns={this.getColumns(primaryColumn)}
           onColumnSelect={this.handleSecondaryColumnSelected}
-          selectedColumn={this.getColumns(this.state.primaryPanel.selected.column).filter((c) => c.id === this.state.secondaryPanel.selected.column)[0]}
+          selectedColumn={this.getColumns(primaryColumn).filter((c) => c.id === secondaryColumn)[0]}
           onCardSelect={this.handleSecondaryCardSelected}
-          selectedCard={this.state.secondaryPanel.selected.card}
+          selectedCard={secondaryCard}
           queryFilter={secondaryQueryFilter}
-          entities={this.state.data.secondaryEntities}
+          entities={secondaryEntities}
         />
       )
       : null;
@@ -175,14 +180,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onFilterTextChange={this.handlePrimaryFilterKeyup}
           onModalOpen={this.handlePrimaryModalOpen}
           onModalClose={this.handlePrimaryModalClose}
-          createAction={this.getCreateAction(this.state.primaryPanel.selected.column)}
+          createAction={this.getCreateAction(primaryColumn)}
           columns={this.getColumns()}
           onColumnSelect={this.handlePrimaryColumnSelected}
-          selectedColumn={this.getColumns().filter((c) => c.id === this.state.primaryPanel.selected.column)[0]}
+          selectedColumn={this.getColumns().filter((c) => c.id === primaryColumn)[0]}
           onCardSelect={this.handlePrimaryCardSelected}
-          selectedCard={this.state.primaryPanel.selected.card}
+          selectedCard={primaryCard}
           queryFilter={this.getPrimaryQueryFilter()}
-          entities={this.state.data.primaryEntities}
+          entities={primaryEntities}
         />
         {secondaryColumnComponent}
         <div
@@ -190,28 +195,28 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           style={{overflowY: 'auto'}}
         >
           <PrimaryDetailPanel
-            selectedCard={this.state.primaryPanel.selected.card}
-            selectedColumn={this.state.primaryPanel.selected.column}
+            selectedCard={primaryCard}
+            selectedColumn={primaryColumn}
             queryFilter={secondaryQueryFilter}
-            detail={this.state.data.primaryDetail}
+            detail={primaryDetail}
             onPushSystemAdmin={this.pushSystemAdmin}
-            checkedSystemAdmin={isUserDetail(this.state.data.primaryDetail) && this.state.data.primaryDetail.IsSystemAdmin}
+            checkedSystemAdmin={isUserDetail(primaryDetail) && primaryDetail.IsSystemAdmin}
             onPushSuspend={this.pushSuspendUser}
-            checkedSuspended={isUserDetail(this.state.data.primaryDetail) && this.state.data.primaryDetail.IsSuspended}
+            checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.IsSuspended}
           />
           <SecondaryDetailPanel
-            selectedCard={this.state.secondaryPanel.selected.card}
-            primarySelectedColumn={this.state.primaryPanel.selected.column}
-            secondarySelectedColumn={this.state.secondaryPanel.selected.column}
+            selectedCard={secondaryCard}
+            primarySelectedColumn={primaryColumn}
+            secondarySelectedColumn={secondaryColumn}
             queryFilter={this.getFinalQueryFilter()}
-            detail={this.state.data.secondaryDetail}
+            detail={secondaryDetail}
             onCancelPublication={this.handlePublicationCanceled}
             onCancelReduction={this.handleReductionCanceled}
-            checkedClientAdmin={isUserClientRoles(this.state.data.secondaryDetail) && this.state.data.secondaryDetail.IsClientAdmin}
-            checkedContentPublisher={isUserClientRoles(this.state.data.secondaryDetail) && this.state.data.secondaryDetail.IsContentPublisher}
-            checkedAccessAdmin={isUserClientRoles(this.state.data.secondaryDetail) && this.state.data.secondaryDetail.IsAccessAdmin}
-            checkedContentUser={isUserClientRoles(this.state.data.secondaryDetail) && this.state.data.secondaryDetail.IsContentUser}
-            checkedSuspended={isRootContentItemDetail(this.state.data.secondaryDetail) && this.state.data.secondaryDetail.IsSuspended}
+            checkedClientAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.IsClientAdmin}
+            checkedContentPublisher={isUserClientRoles(secondaryDetail) && secondaryDetail.IsContentPublisher}
+            checkedAccessAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.IsAccessAdmin}
+            checkedContentUser={isUserClientRoles(secondaryDetail) && secondaryDetail.IsContentUser}
+            checkedSuspended={isRootContentItemDetail(secondaryDetail) && secondaryDetail.IsSuspended}
             onPushUserClient={this.pushUserClient}
             onPushSuspend={this.pushSuspendContent}
           />
@@ -478,7 +483,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchPrimaryEntities = () => {
-    getData(`/SystemAdmin/${this.getDataAction(this.state.primaryPanel.selected.column)}`, {})
+    const { column } = this.state.primaryPanel.selected;
+    getData(`/SystemAdmin/${this.getDataAction(column)}`, {})
     .then((response) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -491,7 +497,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSecondaryEntities() {
-    getData(`/SystemAdmin/${this.getDataAction(this.state.secondaryPanel.selected.column)}`, this.getSecondaryQueryFilter())
+    const { column } = this.state.secondaryPanel.selected;
+    getData(`/SystemAdmin/${this.getDataAction(column)}`, this.getSecondaryQueryFilter())
     .then((response) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -504,11 +511,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchPrimaryDetail = () => {
-    if (!this.state.primaryPanel.selected.card) {
+    const { column, card } = this.state.primaryPanel.selected;
+    if (!card) {
       return;
     }
 
-    getData(`/SystemAdmin/${this.getDetailAction(this.state.primaryPanel.selected.column)}`, this.getSecondaryQueryFilter())
+    getData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getSecondaryQueryFilter())
     .then((response) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -521,10 +529,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSecondaryDetail = () => {
-    if (!this.state.secondaryPanel.selected.card) {
+    const { column, card } = this.state.secondaryPanel.selected;
+    if (!card) {
       return;
     }
-    getData(`/SystemAdmin/${this.getDetailAction(this.state.secondaryPanel.selected.column)}`, this.getFinalQueryFilter())
+    getData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getFinalQueryFilter())
     .then((response) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -571,8 +580,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSystemAdmin = () => {
-    getData('/SystemAdmin/SystemRole', Object.assign({}, this.getSecondaryQueryFilter(), { role: RoleEnum.Admin }))
-    .then((response: boolean) => {
+    getData('/SystemAdmin/SystemRole', {
+      ...this.getSecondaryQueryFilter(),
+      role: RoleEnum.Admin,
+    }).then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
         data: {
@@ -587,14 +598,16 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private pushSystemAdmin = () => {
-    if (!isUserDetail(this.state.data.primaryDetail)) {
+    const { primaryDetail } = this.state.data;
+    if (!isUserDetail(primaryDetail)) {
       return;
     }
 
-    postData('/SystemAdmin/SystemRole', Object.assign({}, this.getSecondaryQueryFilter(), { role: RoleEnum.Admin }, {
-      value: !this.state.data.primaryDetail.IsSystemAdmin,
-    }))
-    .then((response: boolean) => {
+    postData('/SystemAdmin/SystemRole', {
+      ...this.getSecondaryQueryFilter(),
+      role: RoleEnum.Admin,
+      value: !primaryDetail.IsSystemAdmin,
+    }).then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
         data: {
@@ -609,8 +622,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSuspendUser = () => {
-    getData('/SystemAdmin/UserSuspendedStatus', Object.assign({}, this.getSecondaryQueryFilter()))
-    .then((response: boolean) => {
+    getData('/SystemAdmin/UserSuspendedStatus', {
+      ...this.getSecondaryQueryFilter(),
+    }).then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
         data: {
@@ -625,14 +639,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private pushSuspendUser = () => {
-    if (!isUserDetail(this.state.data.primaryDetail)) {
+    const { primaryDetail } = this.state.data;
+    if (!isUserDetail(primaryDetail)) {
       return;
     }
 
-    postData('/SystemAdmin/UserSuspendedStatus', Object.assign({}, this.getSecondaryQueryFilter(), {
-      value: !this.state.data.primaryDetail.IsSuspended,
-    }))
-    .then((response: boolean) => {
+    postData('/SystemAdmin/UserSuspendedStatus', {
+      ...this.getSecondaryQueryFilter(),
+      value: !primaryDetail.IsSuspended,
+    }).then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
         data: {
@@ -647,8 +662,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchUserClient = (role: RoleEnum) => {
-    getData('/SystemAdmin/UserClientRoleAssignment', Object.assign({}, this.getFinalQueryFilter(), { role }))
-    .then((response: boolean) => {
+    getData('/SystemAdmin/UserClientRoleAssignment', {
+      ...this.getFinalQueryFilter(),
+      role,
+    }).then((response: boolean) => {
       let roleAssignment: Partial<UserClientRoles> = {};
       switch (role) {
         case RoleEnum.Admin:
@@ -674,25 +691,27 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private pushUserClient = (_, role: RoleEnum) => {
-    if (!isUserClientRoles(this.state.data.secondaryDetail)) {
+    const { secondaryDetail } = this.state.data;
+    if (!isUserClientRoles(secondaryDetail)) {
       return;
     }
 
     let prevValue = false;
     switch (role) {
       case RoleEnum.Admin:
-        prevValue = this.state.data.secondaryDetail.IsClientAdmin;
+        prevValue = secondaryDetail.IsClientAdmin;
       case RoleEnum.ContentPublisher:
-        prevValue = this.state.data.secondaryDetail.IsContentPublisher;
+        prevValue = secondaryDetail.IsContentPublisher;
       case RoleEnum.ContentAccessAdmin:
-        prevValue = this.state.data.secondaryDetail.IsAccessAdmin;
+        prevValue = secondaryDetail.IsAccessAdmin;
       case RoleEnum.ContentUser:
-        prevValue = this.state.data.secondaryDetail.IsContentUser;
+        prevValue = secondaryDetail.IsContentUser;
     }
-    postData('/SystemAdmin/UserClientRoleAssignment', Object.assign({}, this.getFinalQueryFilter(), { role }, {
+    postData('/SystemAdmin/UserClientRoleAssignment', {
+      ...this.getFinalQueryFilter(),
+      role,
       value: !prevValue,
-    }))
-    .then((response: boolean) => {
+    }).then((response: boolean) => {
       let roleAssignment: Partial<UserClientRoles> = {};
       switch (role) {
         case RoleEnum.Admin:
@@ -718,8 +737,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSuspendContent = () => {
-    getData('/SystemAdmin/ContentSuspendedStatus', Object.assign({}, this.getFinalQueryFilter()))
-    .then((response: boolean) => {
+    getData('/SystemAdmin/ContentSuspendedStatus', {
+      ...this.getFinalQueryFilter(),
+    }).then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
         data: {
@@ -734,14 +754,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private pushSuspendContent = () => {
-    if (!isRootContentItemDetail(this.state.data.secondaryDetail)) {
+    const { secondaryDetail } = this.state.data;
+    if (!isRootContentItemDetail(secondaryDetail)) {
       return;
     }
 
-    postData('/SystemAdmin/ContentSuspendedStatus', Object.assign({}, this.getFinalQueryFilter(), {
-      value: !this.state.data.secondaryDetail.IsSuspended,
-    }))
-    .then((response: boolean) => {
+    postData('/SystemAdmin/ContentSuspendedStatus', {
+      ...this.getFinalQueryFilter(),
+      value: !secondaryDetail.IsSuspended,
+    }).then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
         data: {
