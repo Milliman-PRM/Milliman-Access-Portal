@@ -2,8 +2,6 @@
 
 import * as React from 'react';
 
-import { Entity } from './entity';
-
 export interface ColumnIndicator {
   id: string;
   name: string;

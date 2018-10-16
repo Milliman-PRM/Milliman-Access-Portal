@@ -2,9 +2,6 @@ import '../../../scss/react/shared-components/toggle.scss';
 
 import * as React from 'react';
 
-import { getData, postData } from '../../shared';
-import { QueryFilter } from './interfaces';
-
 interface ToggleProps {
   label: string;
   checked: boolean;

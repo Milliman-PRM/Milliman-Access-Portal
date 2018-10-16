@@ -1,10 +1,7 @@
 import '../../../scss/react/shared-components/content-panel.scss';
 
-import { isEqual } from 'lodash';
 import * as React from 'react';
-import * as Modal from 'react-modal';
 
-import { getData, postData } from '../../shared';
 import { BasicNode } from '../../view-models/content-publishing';
 import {
   ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo, isClientInfoTree,
@@ -17,7 +14,7 @@ import { CreateUserModal } from '../system-admin/modals/create-user';
 import { ActionIcon } from './action-icon';
 import { Card } from './card';
 import { ColumnIndicator, ColumnSelector } from './column-selector';
-import { Entity, EntityHelper } from './entity';
+import { EntityHelper } from './entity';
 import { Filter } from './filter';
 import { Guid, QueryFilter } from './interfaces';
 

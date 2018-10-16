@@ -1,8 +1,5 @@
-import { isEqual } from 'lodash';
 import * as React from 'react';
 
-import { getData, postData } from '../../shared';
-import { Entity } from '../shared-components/entity';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { Toggle } from '../shared-components/toggle';
 import {

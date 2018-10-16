@@ -10,9 +10,7 @@ import { postData } from '../../shared';
 import {
   EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo, UserInfo,
 } from '../system-admin/interfaces';
-import { UpdateProfitCenterModal } from '../system-admin/modals/update-profit-center';
 import CardButton, { CardButtonColor } from './card-button';
-import { Entity } from './entity';
 
 export interface CardProps {
   entity: EntityInfo;

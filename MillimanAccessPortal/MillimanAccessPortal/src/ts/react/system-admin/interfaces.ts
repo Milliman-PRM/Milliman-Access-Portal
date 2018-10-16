@@ -1,13 +1,5 @@
 ﻿import { BasicTree, Nestable } from '../../view-models/content-publishing';
-import { Guid, QueryFilter } from '../shared-components/interfaces';
-
-export interface ContentPanelProps<T> {
-  onFetch: (data: T[]) => void;
-  data: T[];
-  select: (id: string) => void;
-  selected: number;
-  queryFilter: QueryFilter;
-}
+import { Guid } from '../shared-components/interfaces';
 
 export interface NestedList {
   Sections: NestedListSection[];

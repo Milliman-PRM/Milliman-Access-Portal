@@ -10,24 +10,17 @@ import '../../../scss/react/system-admin/system-admin.scss';
 import * as React from 'react';
 
 import { getData, postData } from '../../shared';
-import { BasicNode, BasicTree } from '../../view-models/content-publishing';
 import { ColumnIndicator } from '../shared-components/column-selector';
-import { ContentPanel, ContentPanelAttributes } from '../shared-components/content-panel';
-import { Entity } from '../shared-components/entity';
+import { ContentPanel } from '../shared-components/content-panel';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
-  ClientInfo, Detail, EntityInfo, EntityInfoCollection, isRootContentItemDetail, isUserClientRoles,
-  isUserDetail, PrimaryDetail, ProfitCenterInfo, RootContentItemInfo, SecondaryDetail,
-  UserClientRoles, UserInfo,
+  EntityInfoCollection, isRootContentItemDetail, isUserClientRoles, isUserDetail, PrimaryDetail,
+  SecondaryDetail, UserClientRoles,
 } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
-interface ToggleInfo {
-  checked: boolean;
-  disabled: boolean;
-}
 interface CardState {
   expanded: boolean;
 }
@@ -65,7 +58,6 @@ export enum SystemAdminColumn {
 }
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
-  private controller: string = 'SystemAdmin';
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 

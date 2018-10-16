@@ -1,12 +1,8 @@
 import '../../../scss/react/system-admin/detail-panel.scss';
 
-import { isEqual } from 'lodash';
 import * as React from 'react';
 
-import { getData } from '../../shared';
-import { ColumnIndicator } from '../shared-components/column-selector';
-import { Entity } from '../shared-components/entity';
-import { QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { QueryFilter } from '../shared-components/interfaces';
 import { Toggle } from '../shared-components/toggle';
 import { ClientDetail, PrimaryDetail, ProfitCenterDetail, UserDetail } from './interfaces';
 import { SystemAdminColumn } from './system-admin';
