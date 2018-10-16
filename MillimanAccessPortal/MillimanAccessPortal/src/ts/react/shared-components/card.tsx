@@ -10,6 +10,7 @@ import { postData } from '../../shared';
 import {
   EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo, UserInfo,
 } from '../system-admin/interfaces';
+import { UpdateProfitCenterModal } from '../system-admin/modals/update-profit-center';
 import CardButton, { CardButtonColor } from './card-button';
 
 export interface CardAttributes {
@@ -63,16 +64,19 @@ export class Card extends React.Component<CardProps, CardState> {
       + (this.props.selected ? ' selected' : '')
       + (this.props.suspended ? ' suspended' : '');
     return (
-      <div className={cardClass} onClick={this.props.onSelect}>
-        <div className={cardBodyClass}>
-          <div className="card-body-main-container">
-            {this.renderPrimaryContainer()}
-            {this.renderStats()}
-            {this.renderSideButtons()}
+      <>
+        <div className={cardClass} onClick={this.props.onSelect}>
+          <div className={cardBodyClass}>
+            <div className="card-body-main-container">
+              {this.renderPrimaryContainer()}
+              {this.renderStats()}
+              {this.renderSideButtons()}
+            </div>
+            {this.renderExpansion()}
           </div>
-          {this.renderExpansion()}
         </div>
-      </div>
+        {this.renderProfitCenterModal()}
+      </>
     );
   }
 
@@ -329,6 +333,18 @@ export class Card extends React.Component<CardProps, CardState> {
       return <ul>{list}</ul>;
     }
     return null;
+  }
+
+  private renderProfitCenterModal() {
+    return isProfitCenterInfo(this.props.entity)
+      ? (
+        <UpdateProfitCenterModal
+          isOpen={this.state.updateProfitCenterModalOpen}
+          onRequestClose={this.closeModal}
+          profitCenterId={this.props.entity.Id}
+        />
+      )
+      : null;
   }
 
   private sendPasswordReset(event: React.MouseEvent<HTMLDivElement>) {
