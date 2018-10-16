@@ -367,10 +367,10 @@ const components = Object.assign(
       selector: '.card-status-container',
       html: [
         '<div class="card-status-container status-0">',
-        '  <span>',
-        '    <strong></strong>',
-        '    <em>Name</em>',
-        '  </span>',
+        '  <div>',
+        '    <span class="status-top"></span>',
+        '    <span class="status-bot"></span>',
+        '  </div>',
         '</div>',
       ].join(''),
       render(component) {

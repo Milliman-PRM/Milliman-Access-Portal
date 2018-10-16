@@ -21,6 +21,8 @@ export interface ReductionSummary {
   StatusName: string;
   SelectionGroupId: Guid;
   RootContentItemId?: string;
+  QueuedDurationMs?: number;
+  QueuePosition?: number;
 }
 export interface SelectionGroupStatus {
   Status: ReductionSummary[];

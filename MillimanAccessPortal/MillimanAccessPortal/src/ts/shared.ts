@@ -6,8 +6,8 @@ import * as toastr from 'toastr';
 
 import { DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
 import { FormBase } from './form/form-base';
-import { SelectionGroupSummary } from './view-models/content-access-admin';
-import { PublicationStatus, UserInfo } from './view-models/content-publishing';
+import { ReductionStatus, SelectionGroupSummary, ReductionSummary } from './view-models/content-access-admin';
+import { PublicationStatus, UserInfo, PublicationSummary } from './view-models/content-publishing';
 
 const SHOW_DURATION = 50;
 const ajaxStatus = [];
@@ -416,19 +416,40 @@ export function eligibleUserMatcher(query: string, callback: (matches: any) => v
 }
 
 // Card helpers
-export function updateCardStatus($card, reductionDetails) {
+function msToTimeReferenceString(timeMs: number) {
+  // Approximate days, hours, and minutes
+  const days = Math.round(timeMs / 1000 / 60 / 60 / 24);
+  const hours = Math.round(timeMs / 1000 / 60 / 60) % 24;
+  const minutes = Math.round(timeMs / 1000 / 60) % 60;
+  if (days) {
+    return ` ${days} day${days - 1 ? 's' : ''} ago`;
+  } else if (hours) {
+    return ` ${hours} hour${hours - 1 ? 's' : ''} ago`;
+  } else if (minutes) {
+    return ` ${minutes} minute${minutes - 1 ? 's' : ''} ago`;
+  } else {
+    return ' just now';
+  }
+}
+
+export function updateCardStatus($card, reductionDetails: ReductionSummary | PublicationSummary) {
   const $statusContainer = $card.find('.card-status-container');
-  const $statusName = $statusContainer.find('strong');
-  const $statusUser = $statusContainer.find('em');
-  const details = $.extend({
+  const $statusTop = $statusContainer.find('.status-top');
+  const $statusBot = $statusContainer.find('.status-bot');
+  const details = {
     User: {
       FirstName: '',
+      LastName: '',
     },
     StatusEnum: 0,
     StatusName: '',
     SelectionGroupId: 0,
     RootContentItemId: 0,
-  }, reductionDetails);
+    QueuedDurationMs: -1,
+    QueuePosition: -1,
+    QueueTotal: -1,
+    ...reductionDetails,
+  };
 
   $statusContainer
     .removeClass((_, classString) => {
@@ -440,8 +461,39 @@ export function updateCardStatus($card, reductionDetails) {
         .join(' ');
     })
     .addClass('status-' + details.StatusEnum);
-  $statusName.html(details.StatusName);
-  $statusUser.html(`${details.User.FirstName[0]}. ${details.User.LastName}`);
+  let statusTop = `<strong>${details.StatusName}</strong>`;
+  let statusBot = `Initiated by ${details.User.FirstName[0]}. ${details.User.LastName}`;
+  const durationText = details.QueuedDurationMs > 0
+    ? msToTimeReferenceString(details.QueuedDurationMs)
+    : '';
+  if (!details.SelectionGroupId) {
+    // Publication status
+    if (details.StatusName === 'Queued') {
+      if (details.QueuePosition >= 0) {
+        statusTop += ` (behind ${details.QueuePosition + 1} other publication${details.QueuePosition ? 's' : ''})`;
+      }
+      statusBot += durationText;
+    } else if (details.StatusName === 'Processing') {
+      if (details.QueueTotal > 0) {
+        statusTop += ` (${details.QueuePosition}/${details.QueueTotal} completed)`;
+      }
+      statusBot += durationText;
+    } else if (details.StatusName === 'Processed') {
+      statusBot += durationText;
+    }
+  } else {
+    // Reduction status
+    if (details.StatusName === 'Queued') {
+      if (details.QueuePosition >= 0) {
+        statusTop += ` (behind ${details.QueuePosition + 1} other reduction${details.QueuePosition ? 's' : ''})`;
+      }
+      statusBot += durationText;
+    } else if (details.StatusName === 'Processing' || details.StatusName === 'Processed') {
+      statusBot += durationText;
+    }
+  }
+  $statusTop.html(statusTop);
+  $statusBot.html(statusBot);
 }
 export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingStatusEnum: PublicationStatus) {
   $card.find('.card-button-dynamic').hide();

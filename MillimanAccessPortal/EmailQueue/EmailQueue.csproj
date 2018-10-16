@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
+    <Authors>Milliman PRM Analytics Team</Authors>
+    <Company>Milliman Inc.</Company>
+    <Version>1.0.3</Version>
   </PropertyGroup>
 
   <ItemGroup>

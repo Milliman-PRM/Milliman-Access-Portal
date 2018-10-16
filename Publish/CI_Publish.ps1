@@ -144,7 +144,7 @@ $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
 
-mkdir ${rootPath}\_test_results
+mkdir -p ${rootPath}\_test_results
 #endregion
 
 
@@ -272,7 +272,7 @@ if($runTests) {
         log_statement "ERROR: One or more MAP xUnit tests failed"
         log_statement "errorlevel was $LASTEXITCODE"
         exit $LASTEXITCODE
-    } 
+    }
 
     log_statement "Peforming Jest tests"
 
@@ -467,7 +467,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $error_code
 }
 
-#endregion 
+#endregion
 
 #region Deploy releases to Octopus
 
@@ -505,7 +505,7 @@ $releases = (invoke-restmethod "$octopusURL/api/projects/$($mapProject.Id)/relea
 $BranchRelease = $releases | where {$_.Version -eq "$webVersion"}
 $channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey)
 $channelName = $channel.Name
-$lifecycle = (Invoke-RestMethod $octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$octopusAPIKey).phases 
+$lifecycle = (Invoke-RestMethod $octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$octopusAPIKey).phases
 $targetEnvId = if ($lifecycle.AutomaticDeploymentTargets) {$lifecycle.AutomaticDeploymentTargets | select-object -first 1} else {$lifecycle.OptionalDeploymentTargets | select-object -first 1}
 $targetEnv = if ($lifecycle.AutomaticDeploymentTargets -or $lifecycle.optionalDeploymentTargets) { (Invoke-RestMethod $octopusURL/api/environments/$($TargetEnvId)?apikey=$octopusAPIKey).name} else {"Development"}
 if ($targetEnv){
