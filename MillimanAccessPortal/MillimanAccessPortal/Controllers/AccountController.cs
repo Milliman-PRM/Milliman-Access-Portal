@@ -1050,7 +1050,7 @@ namespace MillimanAccessPortal.Controllers
                         }
                         else
                         {
-                            Log.Error($"Failed to save password history or password update timestamp for user {user.UserName }");
+                            Log.Error($"Failed to save password history or password update timestamp for user {user.UserName}");
                         }
 
                         return Ok();
