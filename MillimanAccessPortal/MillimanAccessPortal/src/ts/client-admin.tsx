@@ -543,6 +543,7 @@ function renderClientNode(client, level) {
         && $expected.length
         && $selected[0] === $expected[0];
     }),
+    'Users',
   );
   $clientCard.readonly = !client.ClientModel.CanManage;
   $('#client-tree ul.admin-panel-content').append($clientCard.build());

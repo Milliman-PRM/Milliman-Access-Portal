@@ -812,6 +812,7 @@ AddChildInsertCard.prototype.constructor = AddChildInsertCard;
 export function ClientCard(
   client, userCount, reportCount, level,
   callback, deleteCallback?, editCallback?, newChildCallback?,
+  userText?: string,
 ) {
   Card.call(this);
 
@@ -819,8 +820,8 @@ export function ClientCard(
   this.addComponent('primaryText', { text: client.Name });
   this.addComponent('secondaryText', { text: client.ClientCode });
   this.addComponent('statistic', {
-    icon: 'group',
-    tooltip: 'Eligible users',
+    icon: 'user',
+    tooltip: userText || 'Eligible users',
     value: userCount,
   });
   this.addComponent('statistic', {
@@ -954,8 +955,8 @@ export function SelectionGroupCard(
   });
   this.addComponent('secondaryText', { text: selectionGroup.RootContentItemName });
   this.addComponent('statistic', {
-    icon: 'group',
-    tooltip: 'Members',
+    icon: 'user',
+    tooltip: 'Assigned users',
     value: selectionGroup.MemberList.length,
   });
   this.addComponent('button', {
@@ -979,7 +980,7 @@ export function SelectionGroupCard(
     tooltip: 'Save changes',
   });
   this.addComponent('statistics', { click: shared.toggleExpandedListener });
-  this.addComponent('detailText', { text: 'Members' });
+  this.addComponent('detailText', { text: 'Assigned users' });
   this.addComponent('userList', {});
   selectionGroup.MemberList.forEach(function(member) {
     const firstlast = member.FirstName || member.LastName
