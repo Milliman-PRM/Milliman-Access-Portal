@@ -20,6 +20,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public string ContentName { get; set; }
         public string ContentTypeName { get; set; }
         public int GroupCount { get; set; }
+        public int AssignedUserCount { get; set; }
         public bool IsSuspended { get; set; }
         public bool ReadOnly { get; set; }
         public List<UserInfoViewModel> EligibleUserList = new List<UserInfoViewModel>();
@@ -46,6 +47,11 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 ContentTypeName = rootContentItem.ContentType.Name,
                 GroupCount = dbContext.SelectionGroup
                     .Where(sg => sg.RootContentItemId == rootContentItem.Id)
+                    .Count(),
+                AssignedUserCount = dbContext.UserInSelectionGroup
+                    .Where(usg => usg.SelectionGroup.RootContentItemId == rootContentItem.Id)
+                    .Select(usg => usg.UserId)
+                    .Distinct()
                     .Count(),
                 IsSuspended = rootContentItem.IsSuspended,
                 ReadOnly = dbContext.ContentPublicationRequest

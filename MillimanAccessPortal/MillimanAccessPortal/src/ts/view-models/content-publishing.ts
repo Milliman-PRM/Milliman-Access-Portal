@@ -24,7 +24,6 @@ export interface ClientSummary extends Nestable {
   Code: string;
 
   CanManage: boolean;
-  AssignedUsers: UserInfo[];
   EligibleUserCount: number;
   RootContentItemCount: number;
 }
@@ -71,6 +70,7 @@ export interface RootContentItemSummary {
   ContentName: string;
   ContentTypeName: string;
   GroupCount: number;
+  AssignedUserCount: number;
   IsSuspended: boolean;
   ReadOnly: boolean;
   EligibleUserList: UserInfo[];

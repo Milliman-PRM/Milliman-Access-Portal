@@ -15,7 +15,7 @@ import * as toastr from 'toastr';
 
 import * as shared from './shared';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
-import { UserInfo } from './view-models/content-publishing';
+import { UserInfo, RootContentItemSummary } from './view-models/content-publishing';
 
 const cardLayout = {
   card: {
@@ -820,7 +820,7 @@ export function ClientCard(
   this.addComponent('secondaryText', { text: client.ClientCode });
   this.addComponent('statistic', {
     icon: 'group',
-    tooltip: 'Assigned users',
+    tooltip: 'Eligible users',
     value: userCount,
   });
   this.addComponent('statistic', {
@@ -856,27 +856,27 @@ ClientCard.prototype = Object.create(Card.prototype);
 ClientCard.prototype.constructor = ClientCard;
 
 export function RootContentItemCard(
-  rootContentItemDetail: any,
+  rootContentItemSummary: RootContentItemSummary,
   callback, publishCallback?, deleteCallback?, cancelCallback?, goLiveCallback?,
 ) {
   Card.call(this);
 
-  this.addComponent('body', { suspended: rootContentItemDetail.IsSuspended });
+  this.addComponent('body', { suspended: rootContentItemSummary.IsSuspended });
   this.addComponent('primaryText', {
-    text: rootContentItemDetail.ContentName + (rootContentItemDetail.IsSuspended
+    text: rootContentItemSummary.ContentName + (rootContentItemSummary.IsSuspended
       ? ' (Suspended)'
       : ''),
   });
-  this.addComponent('secondaryText', { text: rootContentItemDetail.ContentTypeName });
+  this.addComponent('secondaryText', { text: rootContentItemSummary.ContentTypeName });
   this.addComponent('statistic', {
     icon: 'group',
     tooltip: 'Selection groups',
-    value: rootContentItemDetail.GroupCount,
+    value: rootContentItemSummary.GroupCount,
   });
   this.addComponent('statistic', {
     icon: 'user',
-    tooltip: 'Eligible users',
-    value: rootContentItemDetail.EligibleUserList.length,
+    tooltip: 'Assigned users',
+    value: rootContentItemSummary.AssignedUserCount,
   });
   this.addComponent('button', {
     callback: deleteCallback,
@@ -909,12 +909,12 @@ export function RootContentItemCard(
   this.addComponent('status', {});
 
   this.data = {
-    'eligible-list': JSON.stringify(rootContentItemDetail.EligibleUserList),
+    'eligible-list': JSON.stringify(rootContentItemSummary.EligibleUserList),
     'filter-string': [
-      rootContentItemDetail.ContentName,
-      rootContentItemDetail.ContentTypeName,
+      rootContentItemSummary.ContentName,
+      rootContentItemSummary.ContentTypeName,
     ].join('~').toUpperCase(),
-    'root-content-item-id': rootContentItemDetail.Id,
+    'root-content-item-id': rootContentItemSummary.Id,
   };
 
   this.callback = callback;
