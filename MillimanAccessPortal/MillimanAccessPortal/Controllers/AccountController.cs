@@ -535,14 +535,6 @@ namespace MillimanAccessPortal.Controllers
                     {
                         await SendPasswordResetEmail(user, Url);
                     }
-                    else
-                    {
-                        string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
-                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
-
-                        string UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
-                        return View("Message", UserMsg);
-                    }
                 }
                 else
                 {
