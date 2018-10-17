@@ -11,7 +11,7 @@ import * as React from 'react';
 
 import { getData, postData } from '../../shared';
 import { BasicNode } from '../../view-models/content-publishing';
-import { Card, CardAttributes } from '../shared-components/card';
+import { CardAttributes } from '../shared-components/card';
 import { ColumnIndicator } from '../shared-components/column-selector';
 import { ContentPanel } from '../shared-components/content-panel';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
@@ -19,7 +19,7 @@ import { NavBar } from '../shared-components/navbar';
 import {
   ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfoTree,
   isRootContentItemDetail, isUserClientRoles, isUserDetail, PrimaryDetail, PrimaryDetailData,
-  SecondaryDetail, SecondaryDetailData, Suspendable, UserClientRoles, UserDetail,
+  SecondaryDetail, SecondaryDetailData, UserClientRoles,
 } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
@@ -106,7 +106,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   public componentDidUpdate() {
     const { primaryEntities, secondaryEntities, primaryDetail, secondaryDetail } = this.state.data;
-    const { column: primaryColumn, card: primaryCard } = this.state.primaryPanel.selected;
+    const { card: primaryCard } = this.state.primaryPanel.selected;
     const { column: secondaryColumn, card: secondaryCard } = this.state.secondaryPanel.selected;
     if (primaryEntities === null) {
       this.fetchPrimaryEntities();
@@ -165,6 +165,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           selectedCard={secondaryCard}
           queryFilter={secondaryQueryFilter}
           entities={secondaryEntities}
+          onProfitCenterModalOpen={this.handleProfitCenterModalOpen}
+          onProfitCenterModalClose={this.handleProfitCenterModalClose}
+          onSendReset={this.handleSendReset}
+          onProfitCenterDelete={this.handleProfitCenterDelete}
+          onProfitCenterUserRemove={this.handleProfitCenterUserRemove}
         />
       )
       : null;
@@ -189,6 +194,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           selectedCard={primaryCard}
           queryFilter={this.getPrimaryQueryFilter()}
           entities={primaryEntities}
+          onProfitCenterModalOpen={this.handleProfitCenterModalOpen}
+          onProfitCenterModalClose={this.handleProfitCenterModalClose}
+          onSendReset={this.handleSendReset}
+          onProfitCenterDelete={this.handleProfitCenterDelete}
+          onProfitCenterUserRemove={this.handleProfitCenterUserRemove}
         />
         {secondaryColumnComponent}
         <div
@@ -885,6 +895,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         cards: {
           ...prevState.primaryPanel.cards,
           [id]: {
+            ...prevState.secondaryPanel.cards[id],
             expanded: !prevState.primaryPanel.cards[id].expanded,
           },
         },
@@ -900,11 +911,65 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         cards: {
           ...prevState.secondaryPanel.cards,
           [id]: {
+            ...prevState.secondaryPanel.cards[id],
             expanded: !prevState.secondaryPanel.cards[id].expanded,
           },
         },
       },
     }));
+  }
+
+  private handleProfitCenterModalOpen = (id: Guid) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      primaryPanel: {
+        ...prevState.primaryPanel,
+        cards: {
+          ...prevState.primaryPanel.cards,
+          [id]: {
+            ...prevState.primaryPanel.cards[id],
+            profitCenterModalOpen: true,
+          },
+        },
+      },
+    }));
+  }
+
+  private handleProfitCenterModalClose = (id: Guid) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      primaryPanel: {
+        ...prevState.primaryPanel,
+        cards: {
+          ...prevState.primaryPanel.cards,
+          [id]: {
+            ...prevState.primaryPanel.cards[id],
+            profitCenterModalOpen: false,
+          },
+        },
+      },
+    }));
+  }
+
+  private handleSendReset = (email: string) => {
+    postData('Account/ForgotPassword', { Email: email }, true)
+    .then(() => {
+      alert('Password reset email sent.');
+    });
+  }
+
+  private handleProfitCenterDelete = (id: Guid) => {
+    postData('SystemAdmin/DeleteProfitCenter', { profitCenterId: id }, true)
+    .then(() => {
+      alert('Profit center deleted.');
+    });
+  }
+
+  private handleProfitCenterUserRemove = (userId: Guid, profitCenterId: Guid) => {
+    postData('SystemAdmin/RemoveUserFromProfitCenter', { userId, profitCenterId }, true)
+    .then(() => {
+      alert('User removed from profit center.');
+    });
   }
 
   private initializeCardAttributes(entities: EntityInfoCollection): { [id: string]: CardAttributes } {
@@ -934,6 +999,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     entityInfo.forEach((entity) => {
         cards[entity.Id] = {
           expanded: false,
+          profitCenterModalOpen: false,
         };
     });
     return cards;

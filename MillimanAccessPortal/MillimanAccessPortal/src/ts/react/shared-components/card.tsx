@@ -6,15 +6,15 @@ import '../../../images/remove-circle.svg';
 
 import * as React from 'react';
 
-import { postData } from '../../shared';
 import {
-  EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo, UserInfo,
+  EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo,
 } from '../system-admin/interfaces';
 import { UpdateProfitCenterModal } from '../system-admin/modals/update-profit-center';
 import CardButton, { CardButtonColor } from './card-button';
 
 export interface CardAttributes {
   expanded: boolean;
+  profitCenterModalOpen: boolean;
 }
 
 export interface CardProps {
@@ -27,35 +27,21 @@ export interface CardProps {
   resetButtonText?: string;
   activated?: boolean;
   suspended?: boolean;
-  isUserInProfitCenter?: boolean;
   indentation?: number;
-}
-interface CardState {
-  updateProfitCenterModalOpen: boolean;
+  profitCenterModalOpen: boolean;
+  onProfitCenterModalOpen: () => void;
+  onProfitCenterModalClose: () => void;
+  onSendReset?: () => void;
+  onProfitCenterDelete?: () => void;
+  onProfitCenterUserRemove?: () => void;
 }
 
-export class Card extends React.Component<CardProps, CardState> {
+export class Card extends React.Component<CardProps> {
   private indentClasses: { [indent: number]: string; } = {
     1: 'card-100',
     2: 'card-90',
     3: 'card-80',
   };
-
-  public constructor(props) {
-    super(props);
-
-    this.state = {
-      updateProfitCenterModalOpen: false,
-    };
-
-    this.sendPasswordReset = this.sendPasswordReset.bind(this);
-    this.deleteAsProfitCenter = this.deleteAsProfitCenter.bind(this);
-    this.editAsProfitCenter = this.editAsProfitCenter.bind(this);
-    this.removeAsUser = this.removeAsUser.bind(this);
-    this.openUpdateModal = this.openUpdateModal.bind(this);
-    this.closeModal = this.closeModal.bind(this);
-    this.handleUpdate = this.handleUpdate.bind(this);
-  }
 
   public render() {
     const cardClass = 'card-container'
@@ -216,17 +202,17 @@ export class Card extends React.Component<CardProps, CardState> {
             key={1}
             color={CardButtonColor.BLUE}
             tooltip={this.props.activated ? 'Send password reset email' : 'Resend account activation email'}
-            onClick={this.sendPasswordReset}
+            onClick={this.onSendReset}
             icon={'email'}
           />
         ));
-        if (this.props.isUserInProfitCenter) {
+        if (this.props.onProfitCenterUserRemove) {
           buttons.push((
             <CardButton
               key={2}
               color={CardButtonColor.RED}
               tooltip={'Remove from profit center'}
-              onClick={this.removeAsUser}
+              onClick={this.onProfitCenterUserRemove}
               icon={'remove-circle'}
             />
           ));
@@ -237,7 +223,7 @@ export class Card extends React.Component<CardProps, CardState> {
             key={1}
             color={CardButtonColor.RED}
             tooltip={'Delete profit center'}
-            onClick={this.deleteAsProfitCenter}
+            onClick={this.onProfitCenterDelete}
             icon={'delete'}
           />
         ));
@@ -246,7 +232,7 @@ export class Card extends React.Component<CardProps, CardState> {
             key={2}
             color={CardButtonColor.BLUE}
             tooltip={'Update profit center'}
-            onClick={this.editAsProfitCenter}
+            onClick={this.onProfitCenterModalOpen}
             icon={'edit'}
           />
         ));
@@ -340,70 +326,41 @@ export class Card extends React.Component<CardProps, CardState> {
     return isProfitCenterInfo(this.props.entity)
       ? (
         <UpdateProfitCenterModal
-          isOpen={this.state.updateProfitCenterModalOpen}
-          onRequestClose={this.closeModal}
+          isOpen={this.props.profitCenterModalOpen}
+          onRequestClose={this.props.onProfitCenterModalClose}
           profitCenterId={this.props.entity.Id}
         />
       )
       : null;
   }
 
-  private sendPasswordReset(event: React.MouseEvent<HTMLDivElement>) {
+  private onProfitCenterModalOpen = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
-    postData('Account/ForgotPassword', {
-      Email: (this.props.entity as UserInfo).Email,
-    })
-    .then(() => {
-      alert('Password reset email sent.');
-    });
+    this.props.onProfitCenterModalOpen();
   }
 
-  private deleteAsProfitCenter(event: React.MouseEvent<HTMLDivElement>) {
+  private onSendReset = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
-    postData('SystemAdmin/DeleteProfitCenter', {
-      profitCenterId: this.props.entity.Id,
-    })
-    .then(() => {
-      alert('Profit center deleted.');
-    });
+    const { onSendReset } = this.props;
+    if (onSendReset) {
+      onSendReset();
+    }
   }
 
-  private editAsProfitCenter(event: React.MouseEvent<HTMLDivElement>) {
+  private onProfitCenterDelete = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
-    this.setState({
-      updateProfitCenterModalOpen: true,
-    });
+    const { onProfitCenterDelete } = this.props;
+    if (onProfitCenterDelete) {
+      onProfitCenterDelete();
+    }
   }
 
-  private removeAsUser(event: React.MouseEvent<HTMLDivElement>) {
+  private onProfitCenterUserRemove = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
-    postData('SystemAdmin/RemoveUserFromProfitCenter', {
-      userId: this.props.entity.Id,
-      profitCenterId: this.props.isUserInProfitCenter,
-    })
-    .then(() => {
-      alert('User removed from profit center.');
-    });
-  }
-
-  private openUpdateModal() {
-    this.setState({
-      updateProfitCenterModalOpen: true,
-    });
-  }
-
-  private closeModal() {
-    this.setState({
-      updateProfitCenterModalOpen: false,
-    });
-  }
-
-  private handleUpdate() {
-    postData('SystemAdmin/UpdateProfitCenter', this.props)
-    .then(() => {
-      alert('Profit center updated.');
-      this.closeModal();
-    });
+    const { onProfitCenterUserRemove } = this.props;
+    if (onProfitCenterUserRemove) {
+      onProfitCenterUserRemove();
+    }
   }
 
   private onExpandedToggled = (event: React.MouseEvent<HTMLDivElement>) => {

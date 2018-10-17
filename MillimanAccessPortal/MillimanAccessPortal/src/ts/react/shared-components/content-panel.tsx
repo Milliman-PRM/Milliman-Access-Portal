@@ -5,7 +5,7 @@ import * as React from 'react';
 import { BasicNode } from '../../view-models/content-publishing';
 import {
   ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo, isClientInfoTree,
-  isUserInfo,
+  isProfitCenterInfo, isUserInfo,
 } from '../system-admin/interfaces';
 import { AddUserToClientModal } from '../system-admin/modals/add-user-to-client';
 import { AddUserToProfitCenterModal } from '../system-admin/modals/add-user-to-profit-center';
@@ -38,6 +38,11 @@ export interface ContentPanelProps extends ContentPanelAttributes {
   selectedCard: string;
   queryFilter: QueryFilter;
   entities: EntityInfoCollection;
+  onProfitCenterModalOpen: (id: Guid) => void;
+  onProfitCenterModalClose: (id: Guid) => void;
+  onSendReset: (email: string) => void;
+  onProfitCenterDelete: (id: Guid) => void;
+  onProfitCenterUserRemove: (userId: Guid, profitCenterId: Guid) => void;
 }
 
 export class ContentPanel extends React.Component<ContentPanelProps> {
@@ -176,6 +181,9 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
               expanded={this.props.cards[entity.Id].expanded}
               onExpandedToggled={() => this.props.onExpandedToggled(entity.Id)}
               indentation={entity.depth}
+              profitCenterModalOpen={this.props.cards[entity.Id].profitCenterModalOpen}
+              onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.Id)}
+              onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.Id)}
             />
           </li>
         ));
@@ -195,9 +203,27 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
             onExpandedToggled={() => this.props.onExpandedToggled(entity.Id)}
             activated={isUserInfo(entity) ? entity.Activated : null}
             resetButton={isUserInfo(entity)}
+            profitCenterModalOpen={this.props.cards[entity.Id].profitCenterModalOpen}
+            onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.Id)}
+            onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.Id)}
+            onSendReset={this.getOnSendReset(entity)}
+            onProfitCenterDelete={this.getOnProfitCenterDelete(entity)}
+            onProfitCenterUserRemove={this.getOnProfitCenterUserRemove(entity)}
           />
         </li>
       ));
     }
   }
+
+  private getOnSendReset = (entity: EntityInfo) => isUserInfo(entity)
+      ? () => this.props.onSendReset(entity.Email)
+      : null
+
+  private getOnProfitCenterDelete = (entity: EntityInfo) => isProfitCenterInfo(entity)
+      ? () => this.props.onProfitCenterDelete(entity.Id)
+      : null
+
+  private getOnProfitCenterUserRemove = (entity: EntityInfo) => (isUserInfo(entity) && entity.ProfitCenterId !== null)
+      ? () => this.props.onProfitCenterUserRemove(entity.Id, entity.ProfitCenterId)
+      : null
 }
