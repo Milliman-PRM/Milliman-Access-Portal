@@ -267,9 +267,10 @@ export class Card extends React.Component<CardProps, CardState> {
       }
       const expansionList = this.renderExpansionList();
 
-      return (
+      return expansionList && (
         <div className={'card-expansion-container' + (this.props.expanded ? ' maximized' : '')}>
           <h4 className="card-expansion-category-label">{title}</h4>
+          {expansionList}
           <div className="card-button-bottom-container">
             <div
               className="card-button-background card-button-expansion"
@@ -302,7 +303,7 @@ export class Card extends React.Component<CardProps, CardState> {
             secondaryText: itemInfo.ClientName,
           }));
         } else {
-          return <div>This user does not have access to any reports.</div>;
+          return null;
         }
       } else {
         if (entity.Users && entity.Users.length) {
@@ -312,7 +313,7 @@ export class Card extends React.Component<CardProps, CardState> {
             secondaryText: userInfo.UserName,
           }));
         } else {
-          return <div>No users have access to this report.</div>;
+          return null;
         }
       }
       const list = textList.map(({ primaryText, secondaryText }, i) => (
