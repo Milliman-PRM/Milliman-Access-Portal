@@ -30,6 +30,7 @@ _UpgradeReport_Files/
 # Directories #
 ###############
 bin/
+_test_results/
 obj/
 TestResults/
 node_modules/

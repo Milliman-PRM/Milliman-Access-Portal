@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Linq;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.AccountViewModels;
@@ -18,6 +19,9 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public string StatusName { get => ContentPublicationRequest.PublicationStatusString[StatusEnum]; }
         public string StatusMessage { get; set; } = string.Empty;
         public Guid RootContentItemId { get; set; }
+        public int QueuedDurationMs { get; set; }
+        public int QueuePosition { get; set; } = -1;
+        public int QueueTotal { get; set; } = -1;
 
         public static explicit operator PublicationSummary(ContentPublicationRequest contentPublicationRequest)
         {
@@ -31,7 +35,41 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 StatusEnum = contentPublicationRequest.RequestStatus,
                 RootContentItemId = contentPublicationRequest.RootContentItemId,
                 StatusMessage = contentPublicationRequest.StatusMessage,
+                QueuedDurationMs = (int)(contentPublicationRequest.RequestStatus.IsActive()
+                    ? DateTime.UtcNow - contentPublicationRequest.CreateDateTimeUtc
+                    : TimeSpan.Zero).TotalMilliseconds,
             };
+        }
+    }
+
+    public static class PublicationSummaryExtensions
+    {
+        public static PublicationSummary ToSummaryWithQueueInformation(this ContentPublicationRequest publicationRequest, ApplicationDbContext dbContext)
+        {
+            var publicationSummary = (PublicationSummary)publicationRequest;
+
+            if (publicationRequest?.RequestStatus.IsCancelable() ?? false)
+            {
+                var precedingPublicationRequestCount = dbContext.ContentPublicationRequest
+                    .Where(r => r.CreateDateTimeUtc < publicationRequest.CreateDateTimeUtc)
+                    .Where(r => r.RequestStatus.IsCancelable())
+                    .Count();
+                publicationSummary.QueuePosition = precedingPublicationRequestCount;
+            }
+            else if (publicationRequest?.RequestStatus.IsActive() ?? false)
+            {
+                var relatedReductionTaskCount = dbContext.ContentReductionTask
+                    .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
+                    .Count();
+                var completedReductionTaskCount = dbContext.ContentReductionTask
+                    .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
+                    .Where(t => t.ReductionStatus == ReductionStatusEnum.Reduced)
+                    .Count();
+                publicationSummary.QueuePosition = completedReductionTaskCount;
+                publicationSummary.QueueTotal = relatedReductionTaskCount;
+            }
+
+            return publicationSummary;
         }
     }
 }

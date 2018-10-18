@@ -465,46 +465,101 @@ namespace MillimanAccessPortal.Controllers
                 return View("Login");
             }
 
-            IdentityResult identityResult = await _userManager.ConfirmEmailAsync(user, model.Code);
-            if (identityResult.Succeeded)
+            using (var Txn = DbContext.Database.BeginTransaction())
             {
-                identityResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
-
-                if (identityResult.Succeeded)
+                // Confirm the user's account
+                IdentityResult confirmEmailResult = await _userManager.ConfirmEmailAsync(user, model.Code);
+                if (!confirmEmailResult.Succeeded)
                 {
-                    // Save password hash in history
-                    user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
-                    user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
-                    var addHistoryResult = await _userManager.UpdateAsync(user);
-
-                    if (!addHistoryResult.Succeeded)
+                    if (confirmEmailResult.Errors.Any(e => e.Code == "InvalidToken"))  // Happens when token is expired. I don't know whether it could indicate anything else
                     {
-                        _logger.LogError($"Failed to save password history for {user.UserName }");
+                        string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
+                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
+
+                        string WhatHappenedMessage = "Your previous Milliman Access Portal account activation link is invalid and may have expired.  A new link has been emailed to you.";
+                        return View("Message", WhatHappenedMessage);
                     }
+                    else
+                    {
+                        string confirmEmailErrors = $"Error while confirming account: {string.Join($", ", confirmEmailResult.Errors.Select(e => e.Description))}";
+                        Response.Headers.Add("Warning", confirmEmailErrors);
 
-                    _auditLogger.Log(AuditEventType.UserAccountEnabled.ToEvent(user));
+                        // temporary
+                        string ErrorLogFolder = System.IO.Path.Combine(_configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), "ErrorLog");
+                        System.IO.Directory.CreateDirectory(ErrorLogFolder);
+                        string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.EnableAccocuntError.txt");
+                        string Msg = $"ConfirmEmail.Succeeded = false for user {user.UserName}, errors: {confirmEmailErrors}";
+                        System.IO.File.WriteAllText(ErrorLogFile, Msg);
 
-                    user.FirstName = model.FirstName;
-                    user.LastName = model.LastName;
-                    user.Employer = model.Employer;
-                    user.PhoneNumber = model.Phone;
-                    await _userManager.UpdateAsync(user);
+                        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
 
-                    return View("Login");
+
+                    }
                 }
-            }
-            else if (identityResult.Errors.Any(e => e.Code == "InvalidToken"))  // Happens when token is expired. I don't know whether it could indicate anything else
-            {
-                string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
 
-                string WhatHappenedMessage = "Your previous Milliman Access Portal account activation link is invalid and may have expired.";
-                return View("Message", WhatHappenedMessage);
-            }
+                // Set the initial password
+                IdentityResult addPasswordResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
+                if (!addPasswordResult.Succeeded)
+                {
+                    string addPasswordErrors = $"Error while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}";
+                    Response.Headers.Add("Warning", addPasswordErrors);
 
-            string Errors = string.Join($", ", identityResult.Errors.Select(e => e.Description));
-            Response.Headers.Add("Warning", $"Error while enabling account: {Errors}");
-            return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                    // temporary
+                    string ErrorLogFolder = System.IO.Path.Combine(_configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), "ErrorLog");
+                    System.IO.Directory.CreateDirectory(ErrorLogFolder);
+                    string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.AddPasswordError.txt");
+                    string Msg = $"AddPassword.Succeeded = false for user {user.UserName}, errors: {addPasswordErrors}";
+                    System.IO.File.WriteAllText(ErrorLogFile, Msg);
+
+                    return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                }
+
+                // Save password hash in history
+                user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
+                user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
+                var addPasswordHistoryResult = await _userManager.UpdateAsync(user);
+                if (!addPasswordHistoryResult.Succeeded)
+                {
+                    string addPasswordHistoryErrors = $"Error while setting password history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}";
+                    Response.Headers.Add("Warning", addPasswordHistoryErrors);
+
+                    // temporary
+                    string ErrorLogFolder = System.IO.Path.Combine(_configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), "ErrorLog");
+                    System.IO.Directory.CreateDirectory(ErrorLogFolder);
+                    string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.AddPasswordHistoryError.txt");
+                    string Msg = $"AddPassword.Succeeded = false for user {user.UserName}, errors: {addPasswordHistoryErrors}";
+                    System.IO.File.WriteAllText(ErrorLogFile, Msg);
+
+                    return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                }
+
+                // Update other user account settings
+                user.FirstName = model.FirstName;
+                user.LastName = model.LastName;
+                user.Employer = model.Employer;
+                user.PhoneNumber = model.Phone;
+                var updateAccountSettingsResult = await _userManager.UpdateAsync(user);
+                if (!updateAccountSettingsResult.Succeeded)
+                {
+                    string updateAccountSettingsErrors = $"Error while setting password history: {string.Join($", ", updateAccountSettingsResult.Errors.Select(e => e.Description))}";
+                    Response.Headers.Add("Warning", updateAccountSettingsErrors);
+
+                    // temporary
+                    string ErrorLogFolder = System.IO.Path.Combine(_configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), "ErrorLog");
+                    System.IO.Directory.CreateDirectory(ErrorLogFolder);
+                    string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.UpdateAccountSettingsError.txt");
+                    string Msg = $"UpdateAccountSettings.Succeeded = false for user {user.UserName}, errors: {updateAccountSettingsErrors}";
+                    System.IO.File.WriteAllText(ErrorLogFile, Msg);
+
+                    return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                }
+
+                Txn.Commit();
+
+                _auditLogger.Log(AuditEventType.UserAccountEnabled.ToEvent(user));
+
+                return View("Login");
+            }
         }
 
         //

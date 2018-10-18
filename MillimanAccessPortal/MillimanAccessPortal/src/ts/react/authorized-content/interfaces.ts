@@ -1,9 +1,11 @@
-﻿export interface Filterable {
+﻿import { Guid } from '../shared-components/interfaces';
+
+export interface Filterable {
   filterString: string;
 }
 
 export interface ContentItem {
-  Id: string;
+  Id: Guid;
   Name: string;
   Description: string;
   ContentURL: string;
@@ -13,7 +15,7 @@ export interface ContentItem {
 }
 
 export interface ContentItemGroup {
-  Id: string;
+  Id: Guid;
   Name: string;
   Items: ContentItem[];
 }

@@ -173,7 +173,7 @@ namespace AuditLogLib
                         {
                             string ErrorLogFolder = System.IO.Path.Combine(Config.ErrorLogRootFolder, "ErrorLog");
                             System.IO.Directory.CreateDirectory(ErrorLogFolder);
-                            string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyy-MM-ddThh-mm-ss")}.AuditLogException.txt");
+                            string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.AuditLogException.txt");
                             string Msg = $"{GlobalFunctions.LoggableExceptionString(e, "AuditLog persistence exception:", true, true)}";
                             if (NewEventsToStore != null)
                             {
