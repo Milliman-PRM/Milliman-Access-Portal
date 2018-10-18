@@ -4,9 +4,10 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import { postData } from '../../../shared';
+import { Guid } from '../../shared-components/interfaces';
 
 export interface AddUserToClientModalProps extends Modal.Props {
-  clientId: string;
+  clientId: Guid;
 }
 
 interface AddUserToClientModalState {

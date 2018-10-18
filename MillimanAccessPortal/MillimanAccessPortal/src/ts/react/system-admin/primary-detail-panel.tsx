@@ -1,83 +1,34 @@
 import '../../../scss/react/system-admin/detail-panel.scss';
 
-import { isEqual } from 'lodash';
 import * as React from 'react';
 
-import { getData } from '../../shared';
-import { Entity } from '../shared-components/entity';
-import { ImmediateToggle } from '../shared-components/immediate-toggle';
-import { DataSource, QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { QueryFilter } from '../shared-components/interfaces';
+import { Toggle } from '../shared-components/toggle';
 import { ClientDetail, PrimaryDetail, ProfitCenterDetail, UserDetail } from './interfaces';
+import { SystemAdminColumn } from './system-admin';
 
 interface PrimaryDetailPanelProps {
-  controller: string;
-  selectedDataSource: DataSource<Entity>;
+  selectedColumn: SystemAdminColumn;
   selectedCard: string;
   queryFilter: QueryFilter;
-}
-
-interface PrimaryDetailPanelState {
   detail: PrimaryDetail;
-  prevQuery: {
-    dataSource: string;
-    entityId: string;
-  };
+  onPushSystemAdmin: (event: React.MouseEvent<HTMLDivElement>) => void;
+  checkedSystemAdmin: boolean;
+  onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
+  checkedSuspended: boolean;
 }
 
-export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps, PrimaryDetailPanelState> {
-
-  // see https://github.com/reactjs/rfcs/issues/26#issuecomment-365744134
-  public static getDerivedStateFromProps(
-    nextProps: PrimaryDetailPanelProps, prevState: PrimaryDetailPanelState,
-  ): Partial<PrimaryDetailPanelState> {
-    const nextQuery = {
-      dataSource: nextProps.selectedDataSource.name,
-      entityId: nextProps.selectedCard,
-    };
-
-    if (!isEqual(nextQuery, prevState.prevQuery)) {
-      return {
-        prevQuery: nextQuery,
-        detail: null,
-      };
-    }
-
-    return null;
-  }
-
-  private get url() {
-    return this.props.selectedCard
-      && `/${this.props.controller}/${this.props.selectedDataSource.detailAction}`;
-  }
-
-  public constructor(props) {
-    super(props);
-
-    this.state = {
-      detail: null,
-      prevQuery: null,
-    };
-  }
-
-  public componentDidMount() {
-    this.fetch();
-  }
-
-  public componentDidUpdate() {
-    if (this.state.detail === null) {
-      this.fetch();
-    }
-  }
+export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps> {
 
   public render() {
     // populate detail panel
     const primaryDetail = (() => {
-      if (!this.state.detail) {
+      if (!this.props.detail) {
         return null;
       }
-      switch (this.props.selectedDataSource.name) {
-        case 'user':
-          const userDetail = this.state.detail as UserDetail;
+      switch (this.props.selectedColumn) {
+        case SystemAdminColumn.USER:
+          const userDetail = this.props.detail as UserDetail;
           return (
             <div>
               <h2>User Details</h2>
@@ -115,24 +66,20 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
                   <div className="detail-section">
                     <h3 className="detail-section-title">System Permissions</h3>
                     <div className="detail-container">
-                      <ImmediateToggle
-                        controller={this.props.controller}
-                        action={'SystemRole'}
-                        queryFilter={this.props.queryFilter}
+                      <Toggle
                         label={'System Admin'}
-                        data={{ role: RoleEnum.Admin }}
+                        checked={this.props.checkedSystemAdmin}
+                        onClick={this.props.onPushSystemAdmin}
                       />
                     </div>
                   </div>
                   <div className="detail-section">
                     <h3 className="detail-section-title">User Settings</h3>
                     <div className="detail-container">
-                      <ImmediateToggle
-                        controller={this.props.controller}
-                        action={'UserSuspendedStatus'}
-                        queryFilter={this.props.queryFilter}
+                      <Toggle
                         label={'Suspended'}
-                        data={{ }}
+                        checked={this.props.checkedSuspended}
+                        onClick={this.props.onPushSuspend}
                       />
                     </div>
                   </div>
@@ -140,8 +87,8 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
               </div>
             </div>
           );
-        case 'client':
-          const clientDetail = this.state.detail as ClientDetail;
+        case SystemAdminColumn.CLIENT:
+          const clientDetail = this.props.detail as ClientDetail;
           return (
             <div>
               <h2>Client Details</h2>
@@ -195,8 +142,8 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
               </div>
             </div>
           );
-        case 'profitCenter':
-          const profitCenterDetail = this.state.detail as ProfitCenterDetail;
+        case SystemAdminColumn.PROFIT_CENTER:
+          const profitCenterDetail = this.props.detail as ProfitCenterDetail;
           return (
             <div>
               <h2>Profit Center Details</h2>
@@ -240,7 +187,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
 
     const detail = !this.props.selectedCard
       ? null
-      : this.state.detail === null
+      : this.props.detail === null
         ? (<div>Loading...</div>)
         : primaryDetail;
     return (
@@ -248,16 +195,5 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
         {detail}
       </div>
     );
-  }
-
-  private fetch() {
-    if (!this.url) {
-      return;
-    }
-
-    getData(this.url, this.props.queryFilter)
-    .then((response) => this.setState({
-      detail: response,
-    }));
   }
 }

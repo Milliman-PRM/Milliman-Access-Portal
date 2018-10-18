@@ -1,5 +1,7 @@
+import { Guid } from '../react/shared-components/interfaces';
+
 export interface Nestable {
-  Id: string;
+  Id: Guid;
   ParentId?: string;
 }
 
@@ -12,7 +14,7 @@ export interface BasicNode<T extends Nestable> {
 }
 
 export interface UserInfo {
-  Id: string;
+  Id: Guid;
   LastName: string;
   FirstName: string;
   Email: string;
@@ -29,7 +31,7 @@ export interface ClientSummary extends Nestable {
   RootContentItemCount: number;
 }
 export interface ClientTree extends BasicTree<ClientSummary> {
-  SelectedClientId: string;
+  SelectedClientId: Guid;
 }
 
 export enum PublicationStatus {
@@ -60,14 +62,14 @@ export interface PublicationSummary {
   User: UserInfo;
   StatusEnum: PublicationStatus;
   StatusName: string;
-  SelectionGroupId: string;
-  RootContentItemId: string;
+  SelectionGroupId: Guid;
+  RootContentItemId: Guid;
   QueuedDurationMs?: number;
   QueuePosition?: number;
   QueueTotal?: number;
 }
 export interface RootContentItemSummary {
-  Id: string;
+  Id: Guid;
   ContentName: string;
   ContentTypeName: string;
   GroupCount: number;
@@ -78,21 +80,21 @@ export interface RootContentItemSummary {
 }
 export interface RootContentItemList {
   SummaryList: RootContentItemSummary[];
-  SelectedRootContentItemId: string;
+  SelectedRootContentItemId: Guid;
 }
 
 export interface ContentType {
-  Id: string;
+  Id: Guid;
   TypeEnum: number;
   Name: string;
   CanReduce: boolean;
 }
 
 export interface RootContentItemDetail {
-  Id: string;
-  ClientId: string;
+  Id: Guid;
+  ClientId: Guid;
   ContentName: string;
-  ContentTypeId: string;
+  ContentTypeId: Guid;
   DoesReduce: boolean;
   RelatedFiles: ContentRelatedFile[];
   Description: string;
@@ -112,16 +114,16 @@ export interface RootContentItemStatus {
 export interface ContentRelatedFile {
   FileOriginalName: string;
   FilePurpose: string;
-  FileUploadId: string;
+  FileUploadId: Guid;
 }
 export interface PublishRequest {
-  RootContentItemId: string;
+  RootContentItemId: Guid;
   RelatedFiles: ContentRelatedFile[];
 }
 
 export interface PreLiveContentValidationSummary {
-  ValidationSummaryId: string;
-  PublicationRequestId: string;
+  ValidationSummaryId: Guid;
+  PublicationRequestId: Guid;
   RootContentName: string;
   ContentTypeName: string;
   ContentDescription: string;
@@ -145,17 +147,17 @@ export interface SelectionGroupSummary {
 
 export interface ContentReductionHierarchy<T extends ReductionFieldValue> {
   Fields: Array<ReductionField<T>>;
-  RootContentItemId: string;
+  RootContentItemId: Guid;
 }
 export interface ReductionField<T extends ReductionFieldValue> {
-  Id: string;
+  Id: Guid;
   FieldName: string;
   DisplayName: string;
   ValueDelimiter: string;
   Values: T[];
 }
 export interface ReductionFieldValue {
-  Id: string;
+  Id: Guid;
   Value: string;
   HasSelectionStatus: boolean;
 }

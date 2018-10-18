@@ -4,9 +4,9 @@ import * as React from 'react';
 
 import { getData } from '../../shared';
 import { ContentContainer } from '../shared-components/content-container';
+import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
 import { ContentCard } from './content-card';
-import { Filter } from '../shared-components/filter';
 import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
 
 interface AuthorizedContentState extends ContentItemGroupList, Filterable { }
@@ -54,8 +54,8 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       document.getElementById('authorized-content-container').style.display = display;
       if (!contentURL) {
         // IE doesn't support popstate on URL hashchange so we need to treat it differently here.
-        const is_ie = navigator.userAgent.indexOf("MSIE ") > -1 || navigator.userAgent.indexOf("Trident/") > -1;
-        if (!is_ie) {
+        const isIE = navigator.userAgent.indexOf('MSIE ') > -1 || navigator.userAgent.indexOf('Trident/') > -1;
+        if (!isIE) {
           history.back();
         } else {
           location.reload();
