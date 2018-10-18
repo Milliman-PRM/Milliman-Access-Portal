@@ -28,6 +28,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
+using Serilog;
 using System;
 using System.Globalization;
 using System.IO;
@@ -169,6 +170,7 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (FileUploadException e)
             {
+                Log.Error(e, "In FileUploadController.UploadChunk action: exception, aborting");
                 Response.Headers.Add("Warning", e.Message);
                 return new StatusCodeResult(e.HttpStatus);
             }
@@ -184,6 +186,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public IActionResult CancelUpload(ResumableInfo resumableInfo)
         {
+            Log.Verbose("Entered FileUploadController.CancelUpload action for {@ResumableInfo}", resumableInfo);
             UploadHelper.DeleteAllChunks(resumableInfo);
 
             return Ok();
@@ -197,12 +200,14 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public IActionResult FinalizeUpload(ResumableInfo resumableInfo)
         {
+            Log.Verbose("Entered FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
             try
             {
                 UploadHelper.FinalizeUpload(resumableInfo);
             }
             catch (FileUploadException e)
             {
+                Log.Error(e, "In FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
                 Response.Headers.Add("Warning", e.Message);
                 return new StatusCodeResult(e.HttpStatus);
             }
