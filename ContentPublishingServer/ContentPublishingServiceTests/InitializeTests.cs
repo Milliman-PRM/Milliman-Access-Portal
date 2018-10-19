@@ -481,7 +481,7 @@ namespace ContentPublishingServiceTests
                 });
 
             MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(Db.Object.ContentPublicationRequest, "RootContentItemId", Db.Object.RootContentItem);
-            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(Db.Object.ContentPublicationRequest, "RootContentItemId", Db.Object.ApplicationUser);
+            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(Db.Object.ContentPublicationRequest, "ApplicationUserId", Db.Object.ApplicationUser);
             #endregion
 
             return Db;
