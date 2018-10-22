@@ -338,7 +338,7 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary Validation
             if (selectionGroup == null)
             {
-                Log.Debug($"In ContentAccessAdminController.AddUserToSelectionGroup action: selection group {} not found");
+                Log.Debug($"In ContentAccessAdminController.AddUserToSelectionGroup action: selection group {SelectionGroupId} not found");
                 Response.Headers.Add("Warning", "The requested selection group does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
