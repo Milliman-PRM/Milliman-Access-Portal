@@ -1,4 +1,4 @@
-#Client Administration
+# Client Administration
 
 This video will walk through managing clients including creating, editing, and deleting a client. We will also walk through managing users within a client including adding users, adjusting user's roles, and removing users.
 
