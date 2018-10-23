@@ -5,7 +5,7 @@
 ### v1.1.0
 
 - Queue information now available for content items in the process of being published
-- Concurrent number of publication tasks increased to improve throughput and prevent bottlenecks during publication
+- Improved the flow of publication requests to prevent reducible content from blocking non-reducible content
 - Improved exception logging in the MAP application
 - Restructured the System Admin view to enable future enhancements
 - Addressed issue with URL encoding of file names during publishing
