@@ -16,8 +16,22 @@ After clicking on Create the Content item button, the new content will be go thr
 
 Once the content has been processed, we will click the green check mark on the content card. This will allow us to view the content item prior to making it live.
 
-We must check each item off in order to attest it is the corrent piece of content.
+We must check each item off in order to attest it is the correct piece of content.
 
 At this point, we can either approve or reject the content item. I am going to choose Approve to make this content live.
 
 ## Updating Existing Content
+
+To update a content item, click on the green icon on the content card.
+
+From here, we can update anything about the content item except the reducible toggle.
+
+I am going to republish a new content item for this demo.
+
+After clicking on "Republish" the content item is going into virus scanning. [Pop up: If you want to cancel the republishing, click the red x icon on the card]
+
+Once the content item has been processed, we will press the go live icon.
+
+We are going to go through and ensure the proper report was updated and then press Approve for republishing the new content.
+
+## Deleting Content Items
