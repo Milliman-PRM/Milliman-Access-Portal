@@ -35,3 +35,5 @@ Once the content item has been processed, we will press the go live icon.
 We are going to go through and ensure the proper report was updated and then press Approve for republishing the new content.
 
 ## Deleting Content Items
+
+To delete a content item, click on the red trash can icon on the content card. [Pop up: Must fill in your password to delete the content item. There cannot be users associated with the content item when deleting.]
