@@ -455,7 +455,7 @@ namespace MapTests
 
         [Theory]
         [InlineData(3, 999, PublicationStatus.Queued, "user1", "The requested publication request does not exist.")]
-        [InlineData(3, 3, PublicationStatus.Processing, "user1", "The specified publication request is not currently queued.")]
+        [InlineData(3, 3, PublicationStatus.Processing, "user1", "The specified publication request is not currently processed.")]
         public async Task Reject_BadRequest(int rootContentItemId, int pubRequestId, PublicationStatus initialPubRequestStatus, string UserName, string ExpectedHeaderString)
         {
             #region Arrange
