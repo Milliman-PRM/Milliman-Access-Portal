@@ -49,3 +49,19 @@ In order to delete a parent client, there must not be any sub clients associated
 Note that you have to provide your password when deleting a client. This is to ensure you are actually wanting to move forward with the deletion of your client.
 
 ## Managing Users at the Client Level
+
+### Adding Users
+
+To add users, we are going to select the client card that we want to add users to and navigate to the right side and either click on the plus icon or the "Add user" button.
+
+We can only add users with the domains listed in the client so I am going to add Michael.Reisz@milliman.com and Tom.Puckett@milliman.com to this client.
+
+### Adjusting Users Roles
+
+After adding Mike and Tom to the Client Users list we are going to assign them as  Content Users. [Pop up: Content Users are eligible to view content but must first be added to selection groups within the content item in order to view content. This will be covered in the Content Publishing video.]
+
+I am going to grant myself full access to this client by toggling all of the roles to "On".
+
+### Removing Users
+
+To remove a user from a client, click on the minus icon on the users card. I will remove Tom from this client.
