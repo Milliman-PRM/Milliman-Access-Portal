@@ -33,6 +33,8 @@ namespace ContentPublishingLib.JobMonitors
             internal ContentReductionTask dbTask;
         }
 
+        override internal string MaxThreadsConfigKey { get; } = "MaxParallelTasks";
+
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<ReductionJobTrackingItem> ActiveReductionRunnerItems = new List<ReductionJobTrackingItem>();
 
@@ -111,9 +113,9 @@ namespace ContentPublishingLib.JobMonitors
                 }
 
                 // Start more tasks if there is room in the RunningTasks collection. 
-                if (ActiveReductionRunnerItems.Count < MaxParallelTasks)
+                if (ActiveReductionRunnerItems.Count < MaxConcurrentTasks)
                 {
-                    List<ContentReductionTask> Responses = GetReadyTasks(MaxParallelTasks - ActiveReductionRunnerItems.Count);
+                    List<ContentReductionTask> Responses = GetReadyTasks(MaxConcurrentTasks - ActiveReductionRunnerItems.Count);
 
                     foreach (ContentReductionTask DbTask in Responses)
                     {
@@ -133,6 +135,7 @@ namespace ContentPublishingLib.JobMonitors
                                 }
 
                                 NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
+                                GlobalFunctions.TraceWriteLine($"Started new Reduction task ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentTasks})");
                                 break;
 
                             default:

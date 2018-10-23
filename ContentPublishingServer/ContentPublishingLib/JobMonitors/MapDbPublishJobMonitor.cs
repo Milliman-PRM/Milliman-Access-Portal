@@ -31,6 +31,8 @@ namespace ContentPublishingLib.JobMonitors
             internal Guid requestId;
         }
 
+        override internal string MaxThreadsConfigKey { get; } = "MaxSimultaneousRequests";
+
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<PublishJobTrackingItem> ActivePublicationRunnerItems = new List<PublishJobTrackingItem>();
 
@@ -48,23 +50,6 @@ namespace ContentPublishingLib.JobMonitors
                     TaskAgeSec = 30;
                 }
                 return TimeSpan.FromSeconds(TaskAgeSec);
-            }
-        }
-
-        private int MaxParallelRequests
-        {
-            get
-            {
-                int MaxTasks;
-                try
-                {
-                    MaxTasks = int.Parse(Configuration.ApplicationConfiguration["MaxParallelTasks"]);
-                }
-                catch
-                {
-                    MaxTasks = 1;
-                }
-                return MaxTasks;
             }
         }
 
@@ -127,9 +112,9 @@ namespace ContentPublishingLib.JobMonitors
                 }
 
                 // Start more tasks if there is room in the RunningTasks collection. 
-                if (ActivePublicationRunnerItems.Count < MaxParallelRequests)
+                if (ActivePublicationRunnerItems.Count < MaxConcurrentTasks)
                 {
-                    List<ContentPublicationRequest> Responses = GetReadyRequests(MaxParallelRequests - ActivePublicationRunnerItems.Count);
+                    List<ContentPublicationRequest> Responses = GetReadyRequests(MaxConcurrentTasks - ActivePublicationRunnerItems.Count);
 
                     foreach (ContentPublicationRequest DbRequest in Responses)
                     {
