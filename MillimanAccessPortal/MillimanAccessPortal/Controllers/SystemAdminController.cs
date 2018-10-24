@@ -957,7 +957,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<ActionResult> RemoveUserFromClient(Guid userId, Guid clientId)
         {
-            Log.Verbose("Entered SystemAdminController.RemoveUserFromClient action with {@userId}, {@clientId}", userId, profitCenterId);
+            Log.Verbose("Entered SystemAdminController.RemoveUserFromClient action with {@userId}, {@clientId}", userId, clientId);
 
             #region Authorization
             // User must have a global Admin role
