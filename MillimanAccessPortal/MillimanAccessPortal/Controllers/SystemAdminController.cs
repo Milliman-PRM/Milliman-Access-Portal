@@ -864,6 +864,71 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
+        /// Remove a user from a client
+        /// </summary>
+        /// <param name="userId">User to remove</param>
+        /// <param name="clientId">Client from which user is to be removed</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> RemoveUserFromClient(Guid userId, Guid clientId)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var user = _dbContext.ApplicationUser.Find(userId);
+            if (user == null)
+            {
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            var client = _dbContext.Client.Find(clientId);
+            if (client == null)
+            {
+                Response.Headers.Add("Warning", "Client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var clientMembershipClaims = _dbContext.UserClaims
+                .Where(uc => uc.ClaimType == "ClientMembership")
+                .Where(uc => uc.ClaimValue == client.Id.ToString())
+                .Where(uc => uc.UserId == user.Id)
+                .ToList();
+            var selectionGroupAssignments = _dbContext.UserInSelectionGroup
+                .Where(u => u.UserId == user.Id)
+                .Where(u => u.SelectionGroup.RootContentItem.ClientId == client.Id)
+                .ToList();
+            var rootContentItemAssignments = _dbContext.UserRoleInRootContentItem
+                .Where(r => r.UserId == user.Id)
+                .Where(r => r.RootContentItem.ClientId == client.Id)
+                .ToList();
+            var clientAssignments = _dbContext.UserRoleInClient
+                .Where(r => r.UserId == user.Id)
+                .Where(r => r.ClientId == client.Id)
+                .ToList();
+
+            _dbContext.UserInSelectionGroup.RemoveRange(selectionGroupAssignments);
+            _dbContext.UserRoleInRootContentItem.RemoveRange(rootContentItemAssignments);
+            _dbContext.UserRoleInClient.RemoveRange(clientAssignments);
+            _dbContext.UserClaims.RemoveRange(clientMembershipClaims);
+
+            _dbContext.SaveChanges();
+
+            _auditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(client, user));
+
+            return Json(user);
+        }
+
+        /// <summary>
         /// Cancel a content publication request
         /// </summary>
         /// <remarks>This action allows publication requests in more statuses to be canceled compared to the content publishing page</remarks>

@@ -43,6 +43,7 @@ export interface ContentPanelProps extends ContentPanelAttributes {
   onSendReset: (email: string) => void;
   onProfitCenterDelete: (id: Guid) => void;
   onProfitCenterUserRemove: (userId: Guid, profitCenterId: Guid) => void;
+  onClientUserRemove: (userId: Guid, clientId: Guid) => void;
 }
 
 export class ContentPanel extends React.Component<ContentPanelProps> {
@@ -209,6 +210,7 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
             onSendReset={this.getOnSendReset(entity)}
             onProfitCenterDelete={this.getOnProfitCenterDelete(entity)}
             onProfitCenterUserRemove={this.getOnProfitCenterUserRemove(entity)}
+            onClientUserRemove={this.getOnClientUserRemove(entity)}
           />
         </li>
       ));
@@ -225,5 +227,9 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
 
   private getOnProfitCenterUserRemove = (entity: EntityInfo) => (isUserInfo(entity) && entity.ProfitCenterId !== null)
       ? () => this.props.onProfitCenterUserRemove(entity.Id, entity.ProfitCenterId)
+      : null
+
+  private getOnClientUserRemove = (entity: EntityInfo) => (isUserInfo(entity) && entity.ClientId !== null)
+      ? () => this.props.onClientUserRemove(entity.Id, entity.ClientId)
       : null
 }
