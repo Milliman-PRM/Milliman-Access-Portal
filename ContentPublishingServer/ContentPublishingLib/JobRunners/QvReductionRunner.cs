@@ -741,9 +741,10 @@ namespace ContentPublishingLib.JobRunners
         /// <summary>
         /// Try to delete a file until success
         /// </summary>
+        /// <remarks>Time before retry increases after each attempt.</remarks>
         /// <param name="path">Path to the file to be deleted</param>
         /// <param name="attempts">Number of times to try deleting the file before giving up</param>
-        private void TryDeleteFile(string path, int attempts = 5)
+        private void TryDeleteFile(string path, int attempts = 5, int baseIntervalMs = 500)
         {
             int retryInterval = 0;
             int attemptNo = 0;
@@ -767,7 +768,7 @@ namespace ContentPublishingLib.JobRunners
                     GlobalFunctions.TraceWriteLine($"Failed to delete file '{path}'; retrying {attemptsLeft} more times...");
 
                     retryInterval += attemptNo;
-                    Thread.Sleep(retryInterval * 500);
+                    Thread.Sleep(retryInterval * baseIntervalMs);
                 }
             }
         }
@@ -775,9 +776,10 @@ namespace ContentPublishingLib.JobRunners
         /// <summary>
         /// Try to delete a directory until success
         /// </summary>
+        /// <remarks>Time before retry increases after each attempt.</remarks>
         /// <param name="path">Path to the directory to be deleted</param>
         /// <param name="attempts">Number of times to try deleting the directory before giving up</param>
-        private void TryDeleteDirectory(string path, int attempts = 5)
+        private void TryDeleteDirectory(string path, int attempts = 5, int baseIntervalMs = 500)
         {
             int retryInterval = 0;
             int attemptNo = 0;
@@ -801,7 +803,7 @@ namespace ContentPublishingLib.JobRunners
                     GlobalFunctions.TraceWriteLine($"Failed to delete directory '{path}'; retrying {attemptsLeft} more times...");
 
                     retryInterval += attemptNo;
-                    Thread.Sleep(retryInterval * 500);
+                    Thread.Sleep(retryInterval * baseIntervalMs);
                 }
             }
         }

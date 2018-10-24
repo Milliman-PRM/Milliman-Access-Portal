@@ -79,7 +79,7 @@ namespace ContentPublishingServiceTests
                 var jobMonitor = new MapDbReductionJobMonitor
                 {
                     MockContext = mockContext,
-                    MaxConcurrentTasks = maxConcurrentTasks,
+                    MaxConcurrentRunners = maxConcurrentTasks,
                 };
 
                 var cancelTokenSource = new CancellationTokenSource();
