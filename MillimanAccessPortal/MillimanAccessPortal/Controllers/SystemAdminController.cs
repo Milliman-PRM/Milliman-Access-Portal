@@ -957,12 +957,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<ActionResult> RemoveUserFromClient(Guid userId, Guid clientId)
         {
+            Log.Verbose("Entered SystemAdminController.RemoveUserFromClient action with {@userId}, {@clientId}", userId, profitCenterId);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.RemoveUserFromClient action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -972,12 +975,14 @@ namespace MillimanAccessPortal.Controllers
             var user = _dbContext.ApplicationUser.Find(userId);
             if (user == null)
             {
+                Log.Debug($"In SystemAdminController.RemoveUserFromClient action: requested user {userId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             var client = _dbContext.Client.Find(clientId);
             if (client == null)
             {
+                Log.Debug($"In SystemAdminController.RemoveUserFromClient action: requested client {clientId} not found, aborting");
                 Response.Headers.Add("Warning", "Client does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1008,6 +1013,7 @@ namespace MillimanAccessPortal.Controllers
 
             _dbContext.SaveChanges();
 
+            Log.Verbose("In SystemAdminController.RemoveUserFromClient action: success");
             _auditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(client, user));
 
             return Json(user);
