@@ -1390,6 +1390,20 @@ namespace MillimanAccessPortal.Controllers
                             .ToList();
                         _dbContext.UserRoleInRootContentItem.RemoveRange(rootContentItemRoles);
                     }
+
+                    // Logic for this very special case shouldn't be duplicated here long term
+                    // The ContentUser role likely needs a slight adjustment to improve its consitency with other roles
+                    if (roleInClientToRemove.Role.RoleEnum == RoleEnum.ContentUser)
+                    {
+                        var existingSelectionGroupAssignments = _dbContext.UserInSelectionGroup
+                            .Where(usg => usg.UserId == user.Id)
+                            .Where(usg => usg.SelectionGroup.RootContentItem.ClientId == client.Id)
+                            .ToList();
+                        foreach (var existingSelectionGroupAssignment in existingSelectionGroupAssignments)
+                        {
+                            _dbContext.Remove(existingSelectionGroupAssignment);
+                        }
+                    }
                 }
                 _dbContext.SaveChanges();
 
