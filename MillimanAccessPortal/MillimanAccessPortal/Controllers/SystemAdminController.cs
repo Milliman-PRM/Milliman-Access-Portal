@@ -28,11 +28,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Models.SystemAdmin;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,7 +48,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService _authService;
         private readonly ApplicationDbContext _dbContext;
         private readonly IConfiguration _configuration;
-        private readonly ILogger _logger;
         private readonly StandardQueries _queries;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -59,7 +58,6 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService authService,
             IConfiguration configuration,
             ApplicationDbContext dbContext,
-            ILoggerFactory loggerFactory,
             StandardQueries queries,
             RoleManager<ApplicationRole> roleManager,
             UserManager<ApplicationUser> userManager
@@ -70,7 +68,6 @@ namespace MillimanAccessPortal.Controllers
             _authService = authService;
             _configuration = configuration;
             _dbContext = dbContext;
-            _logger = loggerFactory.CreateLogger<SystemAdminController>();
             _queries = queries;
             _roleManager = roleManager;
             _userManager = userManager;
@@ -83,12 +80,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            Log.Verbose("Entered SystemAdminController.Index action");
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.Index action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -106,12 +106,14 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> Users(QueryFilter filter)
         {
+            Log.Verbose("Entered SystemAdminController.Users action with {@QueryFilter}", filter);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
-
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.Users action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -150,8 +152,11 @@ namespace MillimanAccessPortal.Controllers
                 userInfoList.Add(userInfo);
             }
 
+            Log.Verbose($"In SystemAdminController.Users action: success");
+
             return Json(userInfoList);
         }
+
         /// <summary>
         /// Query for details for a specified user, optionally in context of another entity
         /// </summary>
@@ -160,12 +165,14 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> UserDetail(QueryFilter filter)
         {
+            Log.Verbose("Entered SystemAdminController.UserDetail action with {@QueryFilter}", filter);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
-
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.UserDetail action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -176,6 +183,7 @@ namespace MillimanAccessPortal.Controllers
             user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == (filter.UserId ?? Guid.Empty));
             if (user == null)
             {
+                Log.Debug($"In SystemAdminController.UserDetail action: user {User.Identity.Name} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -191,6 +199,7 @@ namespace MillimanAccessPortal.Controllers
                 model.QueryRelatedEntities(_dbContext, filter.ProfitCenterId.Value);
                 return Json(model);
             }
+            Log.Verbose($"In SystemAdminController.UserDetail action: success");
             return Json((UserDetail)user);
         }
 
@@ -202,12 +211,14 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> Clients(QueryFilter filter)
         {
+            Log.Verbose("Entered SystemAdminController.Clients action with {@QueryFilter}", filter);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
-
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.Clients action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -252,6 +263,7 @@ namespace MillimanAccessPortal.Controllers
             });
             clientTree.Root.OrderInPlaceBy((node) => node.Value.Name);
 
+            Log.Verbose($"In SystemAdminController.Clients action: success");
             return Json(clientTree);
         }
         /// <summary>
@@ -262,12 +274,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> ClientDetail(QueryFilter filter)
         {
+            Log.Verbose("Entered SystemAdminController.ClientDetail action with {@QueryFilter}", filter);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.ClientDetail action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -281,6 +296,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (client == null)
             {
+                Log.Debug($"In SystemAdminController.ClientDetail action: client {filter.ClientId ?? Guid.Empty} not found");
                 Response.Headers.Add("Warning", "The specified client does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -288,14 +304,17 @@ namespace MillimanAccessPortal.Controllers
 
             if (filter.UserId.HasValue)
             {
+                Log.Verbose("Entered SystemAdminController.ClientDetail action: success");
                 return Json((ClientDetailForUser)client);
             }
             if (filter.ProfitCenterId.HasValue)
             {
                 var model = (ClientDetailForProfitCenter)client;
                 model.QueryRelatedEntities(_dbContext, filter.ProfitCenterId.Value);
+                Log.Verbose("Entered SystemAdminController.ClientDetail action: success");
                 return Json(model);
             }
+            Log.Verbose("Entered SystemAdminController.ClientDetail action: success");
             return Json((ClientDetail)client);
         }
 
@@ -307,12 +326,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> ProfitCenters(QueryFilter filter)
         {
+            Log.Verbose("Entered SystemAdminController.ProfitCenters action with {@QueryFilter}", filter);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.ProfitCenters action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -331,6 +353,7 @@ namespace MillimanAccessPortal.Controllers
                 pcInfoList.Add(pcInfo);
             }
 
+            Log.Verbose("In SystemAdminController.ProfitCenters action: success");
             return Json(pcInfoList);
         }
         /// <summary>
@@ -341,12 +364,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> ProfitCenterDetail(QueryFilter filter)
         {
+            Log.Verbose("Entered SystemAdminController.ProfitCenterDetail action with {@QueryFilter}", filter);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.ProfitCenterDetail action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -357,11 +383,13 @@ namespace MillimanAccessPortal.Controllers
             pc = _dbContext.ProfitCenter.SingleOrDefault(c => c.Id == (filter.ProfitCenterId ?? Guid.Empty));
             if (pc == null)
             {
+                Log.Debug($"In SystemAdminController.ProfitCenterDetail action: profit center {filter.ProfitCenterId ?? Guid.Empty} not found, aborting");
                 Response.Headers.Add("Warning", "The specified profit center does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
+            Log.Verbose("Entered SystemAdminController.ProfitCenterDetail action: success");
             return Json((ProfitCenterDetail)pc);
         }
 
@@ -373,12 +401,14 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> RootContentItems(QueryFilter filter)
         {
+            Log.Verbose("Entered SystemAdminController.RootContentItems action with {@QueryFilter}", filter);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
-
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.RootContentItems action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -411,8 +441,10 @@ namespace MillimanAccessPortal.Controllers
                 itemInfoList.Add(itemInfo);
             }
 
+            Log.Verbose($"In SystemAdminController.RootContentItems action: success");
             return Json(itemInfoList);
         }
+
         /// <summary>
         /// Query for details for a specified root content item, optionally in context of another entity
         /// </summary>
@@ -421,12 +453,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> RootContentItemDetail(QueryFilter filter)
         {
+            Log.Verbose("Entered SystemAdminController.RootContentItemDetail action with {@QueryFilter}", filter);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.RootContentItemDetail action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -439,6 +474,7 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault(i => i.Id == (filter.RootContentItemId ?? Guid.Empty));
             if (item == null)
             {
+                Log.Debug($"In SystemAdminController.RootContentItemDetail action: content item {filter.RootContentItemId ?? Guid.Empty} not found, aborting");
                 Response.Headers.Add("Warning", "The specified content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -446,15 +482,21 @@ namespace MillimanAccessPortal.Controllers
 
             if (filter.UserId.HasValue)
             {
+                Log.Verbose("In SystemAdminController.RootContentItemDetail action: success");
                 return Json((RootContentItemDetailForUser)item);
             }
-            if (filter.ClientId.HasValue)
+            else if (filter.ClientId.HasValue)
             {
                 var model = (RootContentItemDetailForClient)item;
-                model.QueryRelatedEntities(_dbContext, filter.ClientId.Value); 
+                model.QueryRelatedEntities(_dbContext, filter.ClientId.Value);
+                Log.Verbose("In SystemAdminController.RootContentItemDetail action: success");
                 return Json(model);
             }
-            return BadRequest();
+            else
+            {
+                Log.Debug("In SystemAdminController.RootContentItemDetail action: bad request, filter client ID and user ID both missing");
+                return BadRequest();
+            }
         }
         #endregion
 
@@ -470,12 +512,14 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateUser(string email)
         {
+            Log.Verbose($"Entered SystemAdminController.CreateUser action with email {email}");
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
-
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.CreateUser action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -484,12 +528,14 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (!GlobalFunctions.IsValidEmail(email))
             {
+                Log.Debug($"In SystemAdminController.CreateUser action: requested email {email} is invalid, aborting");
                 Response.Headers.Add("Warning", "The specified email address is invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            ApplicationUser user = await _userManager.FindByEmailAsync(email);
+            ApplicationUser user = await _userManager.FindByEmailAsync(email) ?? await _userManager.FindByNameAsync(email);
             if (user != null)
             {
+                Log.Debug($"In SystemAdminController.CreateUser action: a user with email or username {email} already exists, aborting");
                 Response.Headers.Add("Warning", "User already exists.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -507,10 +553,12 @@ namespace MillimanAccessPortal.Controllers
             else
             {
                 string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
+                Log.Debug($"In SystemAdminController.CreateUser action: failed to create user with email {email}, errors {errors}, aborting");
                 Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
+            Log.Verbose($"In SystemAdminController.CreateUser action: success");
             _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(user));
 
             var userSummary = (UserInfoViewModel)user;
@@ -527,12 +575,15 @@ namespace MillimanAccessPortal.Controllers
         public async Task<ActionResult> CreateProfitCenter(
             [Bind("Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
         {
+            Log.Verbose("Entered SystemAdminController.CreateProfitCenter action with {@profitCenter}", profitCenter);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.CreateProfitCenter action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -541,6 +592,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (!ModelState.IsValid)
             {
+                Log.Debug($"In SystemAdminController.CreateProfitCenter action: invalid ModelState with errors <{string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}>, aborting");
                 Response.Headers.Add("Warning", ModelState.Values.First(v => v.Errors.Any()).Errors.ToString());
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -549,6 +601,7 @@ namespace MillimanAccessPortal.Controllers
             _dbContext.ProfitCenter.Add(profitCenter);
             _dbContext.SaveChanges();
 
+            Log.Verbose("In SystemAdminController.CreateProfitCenter action: success");
             _auditLogger.Log(AuditEventType.ProfitCenterCreated.ToEvent(profitCenter));
 
             return Json(profitCenter);
@@ -564,12 +617,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<ActionResult> AddUserToClient(string email, Guid clientId)
         {
+            Log.Verbose("Entered SystemAdminController.AddUserToClient action with {@Email}, {@ClientId}", email, clientId);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.AddUserToClient action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -578,12 +634,14 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (!GlobalFunctions.IsValidEmail(email))
             {
+                Log.Debug($"In SystemAdminController.AddUserToClient action: requested email {email} is invalid, aborting");
                 Response.Headers.Add("Warning", "The specified email address is invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             var client = _dbContext.Client.Find(clientId);
             if (client == null)
             {
+                Log.Debug($"In SystemAdminController.AddUserToClient action: requested client {clientId} not found, aborting");
                 Response.Headers.Add("Warning", "Client does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -593,7 +651,7 @@ namespace MillimanAccessPortal.Controllers
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
                 // Find the user or create one if it doesn't exist
-                user = await _userManager.FindByEmailAsync(email);
+                user = await _userManager.FindByEmailAsync(email) ?? await _userManager.FindByNameAsync(email);
                 if (user == null)
                 {
                     // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
@@ -608,6 +666,7 @@ namespace MillimanAccessPortal.Controllers
                     else
                     {
                         string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
+                        Log.Debug($"In SystemAdminController.AddUserToClient action: failed to create new user account for email {email}, errors <{errors}>, aborting");
                         Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
@@ -626,6 +685,7 @@ namespace MillimanAccessPortal.Controllers
 
                 transaction.Commit();
 
+                Log.Verbose($"In SystemAdminController.AddUserToClient action: success");
                 _auditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(client, user));
             }
 
@@ -642,12 +702,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<ActionResult> AddUserToProfitCenter(string email, Guid profitCenterId)
         {
+            Log.Verbose("Entered SystemAdminController.AddUserToProfitCenter action with {@Email}, {@ProfitCenterId}", email, profitCenterId);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.AddUserToProfitCenter action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -656,12 +719,14 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (!GlobalFunctions.IsValidEmail(email))
             {
+                Log.Debug($"In SystemAdminController.AddUserToProfitCenter action: provided email {email} is invalid, aborting");
                 Response.Headers.Add("Warning", "The specified email address is invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             var profitCenter = _dbContext.ProfitCenter.Find(profitCenterId);
             if (profitCenter == null)
             {
+                Log.Debug($"In SystemAdminController.AddUserToProfitCenter action: provided profit center ID {profitCenterId} not found, aborting");
                 Response.Headers.Add("Warning", "Profit center does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -686,6 +751,7 @@ namespace MillimanAccessPortal.Controllers
                     else
                     {
                         string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
+                        Log.Debug($"In SystemAdminController.AddUserToProfitCenter action: failed to create new user with email {email}, aborting");
                         Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
@@ -708,6 +774,7 @@ namespace MillimanAccessPortal.Controllers
                     _dbContext.SaveChanges();
                 }
 
+                Log.Verbose($"In SystemAdminController.AddUserToProfitCenter action: success");
                 transaction.Commit();
             }
 
@@ -727,12 +794,15 @@ namespace MillimanAccessPortal.Controllers
         public async Task<ActionResult> UpdateProfitCenter(
             [Bind("Id", "Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
         {
+            Log.Verbose("Entered SystemAdminController.UpdateProfitCenter action with {@ProfitCenter}", profitCenter);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.UpdateProfitCenter action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -741,12 +811,14 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (!ModelState.IsValid)
             {
+                Log.Debug($"In SystemAdminController.UpdateProfitCenter action: ModelState invalid, errors <{string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}>, aborting");
                 Response.Headers.Add("Warning", ModelState.Values.First(v => v.Errors.Any()).Errors.ToString());
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             var existingRecord = _dbContext.ProfitCenter.Find(profitCenter.Id);
             if (existingRecord == null)
             {
+                Log.Debug($"In SystemAdminController.UpdateProfitCenter action: requested profit center {profitCenter.Id} not found, aborting");
                 Response.Headers.Add("Warning", "The specified profit center does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -762,6 +834,7 @@ namespace MillimanAccessPortal.Controllers
             _dbContext.Update(existingRecord);
             _dbContext.SaveChanges();
 
+            Log.Verbose($"In SystemAdminController.UpdateProfitCenter action: success");
             _auditLogger.Log(AuditEventType.ProfitCenterUpdated.ToEvent(profitCenter));
 
             return Json(existingRecord);
@@ -777,12 +850,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<ActionResult> DeleteProfitCenter(Guid profitCenterId)
         {
+            Log.Verbose("Entered SystemAdminController.DeleteProfitCenter action with {@ProfitCenterId}", profitCenterId);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.DeleteProfitCenter action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -792,12 +868,14 @@ namespace MillimanAccessPortal.Controllers
             var existingRecord = _dbContext.ProfitCenter.Find(profitCenterId);
             if (existingRecord == null)
             {
+                Log.Debug($"In SystemAdminController.DeleteProfitCenter action: requested profit center {profitCenterId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified profit center does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             // The profit center should have no clients
             if (_dbContext.Client.Where(c => c.ProfitCenterId == profitCenterId).Any())
             {
+                Log.Debug($"In SystemAdminController.DeleteProfitCenter action: requested profit center {profitCenterId} has clients and cannot be removed, aborting");
                 Response.Headers.Add("Warning", "The specified profit center has clients - remove those first.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -806,6 +884,7 @@ namespace MillimanAccessPortal.Controllers
             _dbContext.ProfitCenter.Remove(existingRecord);
             _dbContext.SaveChanges();
 
+            Log.Verbose("In SystemAdminController.DeleteProfitCenter action: success");
             _auditLogger.Log(AuditEventType.ProfitCenterDeleted.ToEvent(existingRecord));
 
             return Json(existingRecord);
@@ -820,12 +899,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<ActionResult> RemoveUserFromProfitCenter(Guid userId, Guid profitCenterId)
         {
+            Log.Verbose("Entered SystemAdminController.RemoveUserFromProfitCenter action with {@UserId}, {@ProfitCenterId}", userId, profitCenterId);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.RemoveUserFromProfitCenter action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -835,12 +917,14 @@ namespace MillimanAccessPortal.Controllers
             var user = _dbContext.ApplicationUser.Find(userId);
             if (user == null)
             {
+                Log.Debug($"In SystemAdminController.RemoveUserFromProfitCenter action: requested user {userId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             var profitCenter = _dbContext.ProfitCenter.Find(profitCenterId);
             if (profitCenter == null)
             {
+                Log.Debug($"In SystemAdminController.RemoveUserFromProfitCenter action: requested profit center {profitCenterId} not found, aborting");
                 Response.Headers.Add("Warning", "Profit center does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -858,6 +942,7 @@ namespace MillimanAccessPortal.Controllers
             }
             _dbContext.SaveChanges();
 
+            Log.Verbose("In SystemAdminController.RemoveUserFromProfitCenter action: success");
             _auditLogger.Log(AuditEventType.UserRemovedFromProfitCenter.ToEvent(profitCenter, user));
 
             return Json(user);
@@ -872,12 +957,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<ActionResult> CancelPublication(Guid rootContentItemId)
         {
+            Log.Verbose("Entered SystemAdminController.CancelPublication action with {@RootContentItemId}", rootContentItemId);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.CancelPublication action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -887,6 +975,7 @@ namespace MillimanAccessPortal.Controllers
             var existingRecord = _dbContext.RootContentItem.Find(rootContentItemId);
             if (existingRecord == null)
             {
+                Log.Debug($"In SystemAdminController.CancelPublication action: content item {rootContentItemId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified root content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -897,6 +986,7 @@ namespace MillimanAccessPortal.Controllers
                 .ToList();
             if (!activePublications.Any())
             {
+                Log.Debug($"In SystemAdminController.CancelPublication action: no cancelable publication request for content item {rootContentItemId}, aborting");
                 Response.Headers.Add("Warning", "The specified root content item has no active publications.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -915,10 +1005,12 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
+                Log.Warning($"In SystemAdminController.CancelPublication action: publication request has been modified in another thread prior to completing this request, aborting");
                 Response.Headers.Add("Warning", "The publication record was modified by another process during the request. Please try again.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
+            Log.Verbose("In SystemAdminController.CancelPublication action: success");
             foreach (var updatedPublication in activePublications)
             {
                 _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingRecord, updatedPublication));
@@ -936,12 +1028,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<ActionResult> CancelReduction(Guid selectionGroupId)
         {
+            Log.Verbose("Entered SystemAdminController.CancelReduction action with {@SelectionGroupId}", selectionGroupId);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.CancelReduction action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -951,6 +1046,7 @@ namespace MillimanAccessPortal.Controllers
             var existingRecord = _dbContext.SelectionGroup.Find(selectionGroupId);
             if (existingRecord == null)
             {
+                Log.Debug($"In SystemAdminController.CancelReduction action: selection group not found, aborting");
                 Response.Headers.Add("Warning", "The specified selection group does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -961,6 +1057,7 @@ namespace MillimanAccessPortal.Controllers
                 .ToList();
             if (!activeReductions.Any())
             {
+                Log.Debug($"In SystemAdminController.CancelReduction action: selection group {selectionGroupId} has no active reduction tasks, aborting");
                 Response.Headers.Add("Warning", "The specified selection group has no active reductions.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -978,10 +1075,12 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
+                Log.Debug($"In SystemAdminController.CancelReduction action: the content reduction task record was modified in another thread before completing this request, aborting");
                 Response.Headers.Add("Warning", "The reduction record was modified by another process during the request. Please try again.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
+            Log.Verbose($"In SystemAdminController.CancelReduction action: success");
             foreach (var updatedReduction in activeReductions)
             {
                 _auditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(existingRecord, updatedReduction));
@@ -1001,12 +1100,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> SystemRole(Guid userId, RoleEnum role)
         {
+            Log.Verbose("Entered SystemAdminController.SystemRole action with {@UserId}, {@Role}", userId, role.ToString());
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.SystemRole action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -1016,6 +1118,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (user == null)
             {
+                Log.Debug($"In SystemAdminController.SystemRole action: user {userId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1026,6 +1129,7 @@ namespace MillimanAccessPortal.Controllers
             };
             if (!systemRoles.Contains(role))
             {
+                Log.Debug($"In SystemAdminController.SystemRole action: requested role {role.ToString()} cannot be assigned globally, aborting");
                 Response.Headers.Add("Warning", "The specified role is not a system role.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1034,8 +1138,11 @@ namespace MillimanAccessPortal.Controllers
             var roleId = ApplicationRole.RoleIds[role];
             var roleExists = _dbContext.UserRoles.Any(ur => ur.UserId == userId && ur.RoleId == roleId);
 
+            Log.Verbose("In SystemAdminController.SystemRole action: success");
+
             return Json(roleExists);
         }
+
         /// <summary>
         /// Set a specific system role for a user.
         /// </summary>
@@ -1047,12 +1154,15 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SystemRole(Guid userId, RoleEnum role, bool value)
         {
+            Log.Verbose("Entered SystemAdminController.SystemRole action with {@UserId}, {@Role}, {@Assign}", userId, role.ToString(), value.ToString());
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.SystemRole action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -1062,6 +1172,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (user == null)
             {
+                Log.Debug($"In SystemAdminController.SystemRole action: user {userId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1072,6 +1183,7 @@ namespace MillimanAccessPortal.Controllers
             };
             if (!systemRoles.Contains(role))
             {
+                Log.Debug($"In SystemAdminController.SystemRole action: role {role.ToString()} cannot be assigned globally, aborting");
                 Response.Headers.Add("Warning", "The specified role is not a system role.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1079,6 +1191,7 @@ namespace MillimanAccessPortal.Controllers
             var currentUser = await _queries.GetCurrentApplicationUser(User);
             if (user.Id == currentUser.Id && role == RoleEnum.Admin && !value)
             {
+                Log.Debug($"In SystemAdminController.SystemRole action: no user can unassign themself as system admin, aborting");
                 Response.Headers.Add("Warning", "You cannot unset your own account as system admin.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1086,9 +1199,9 @@ namespace MillimanAccessPortal.Controllers
 
             var roleId = ApplicationRole.RoleIds[role];
             var roleQuery = _dbContext.UserRoles.Where(ur => ur.UserId == userId && ur.RoleId == roleId);
-            var roleExists = roleQuery.Any();
+            var roleIsAssigned = roleQuery.Any();
 
-            if (roleExists == value)
+            if (roleIsAssigned == value)
             {
                 // pass
             }
@@ -1113,6 +1226,8 @@ namespace MillimanAccessPortal.Controllers
                 _auditLogger.Log(AuditEventType.SystemRoleRemoved.ToEvent(user, role));
             }
 
+            Log.Verbose("In SystemAdminController.SystemRole action: success");
+
             return Json(value);
         }
 
@@ -1124,12 +1239,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> UserSuspendedStatus(Guid userId)
         {
+            Log.Verbose("Entered SystemAdminController.UserSuspendedStatus action with {@UserId}", userId);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.UserSuspendedStatus action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -1139,13 +1257,17 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (user == null)
             {
+                Log.Debug($"In SystemAdminController.UserSuspendedStatus action: authorization failure, user {userId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
+            Log.Verbose("In SystemAdminController.UserSuspendedStatus action: success");
+
             return Json(user.IsSuspended);
         }
+
         /// <summary>
         /// Set suspension status for a user.
         /// </summary>
@@ -1156,12 +1278,15 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> UserSuspendedStatus(Guid userId, bool value)
         {
+            Log.Verbose("Entered SystemAdminController.UserSuspendedStatus action with {@UserId}", userId);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.UserSuspendedStatus action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -1171,6 +1296,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (user == null)
             {
+                Log.Debug($"In SystemAdminController.UserSuspendedStatus action: user {userId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1178,6 +1304,7 @@ namespace MillimanAccessPortal.Controllers
             var currentUser = await _queries.GetCurrentApplicationUser(User);
             if (user.Id == currentUser.Id && value)
             {
+                Log.Debug($"In SystemAdminController.UserSuspendedStatus action: no user can suspend their own account, aborting");
                 Response.Headers.Add("Warning", "You cannot suspend your own account.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1187,6 +1314,7 @@ namespace MillimanAccessPortal.Controllers
             _dbContext.ApplicationUser.Update(user);
             _dbContext.SaveChanges();
 
+            Log.Verbose($"In SystemAdminController.UserSuspendedStatus action: success");
             _auditLogger.Log(AuditEventType.UserSuspensionUpdate.ToEvent(user, value, ""));
 
             return Json(user.IsSuspended);
@@ -1202,12 +1330,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> UserClientRoleAssignment(Guid userId, Guid clientId, RoleEnum role)
         {
+            Log.Verbose("Entered SystemAdminController.UserClientRoleAssignment action with {@UserId}, {@ClientId}, {@Role}", userId, clientId, role.ToString());
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.UserClientRoleAssignment action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -1218,11 +1349,13 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (user == null)
             {
+                Log.Debug($"In SystemAdminController.UserClientRoleAssignment action: user {userId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             if (client == null)
             {
+                Log.Debug($"In SystemAdminController.UserClientRoleAssignment action: client {clientId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified client does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1242,6 +1375,7 @@ namespace MillimanAccessPortal.Controllers
             };
             if (!userClientAssignments.Keys.Contains(role))
             {
+                Log.Debug($"In SystemAdminController.UserClientRoleAssignment action: requested role {role.ToString()} cannot be assigned for client entity authorization, aborting");
                 Response.Headers.Add("Warning", "The specified role is not a user-client role.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1254,8 +1388,11 @@ namespace MillimanAccessPortal.Controllers
                 .All(a => roleQuery
                     .Any(ur => ur.Role.RoleEnum == a));
 
+            Log.Verbose($"In SystemAdminController.UserClientRoleAssignment action: success");
+
             return Json(roleExists);
         }
+
         /// <summary>
         /// Set a specific client role for a user.
         /// </summary>
@@ -1268,12 +1405,15 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> UserClientRoleAssignment(Guid userId, Guid clientId, RoleEnum role, bool value)
         {
+            Log.Verbose("Entered SystemAdminController.UserClientRoleAssignment action with {@Parameters}", new object[] { userId, clientId, role.ToString(), value });
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.UserClientRoleAssignment action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -1284,11 +1424,13 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (user == null)
             {
+                Log.Debug($"In SystemAdminController.UserClientRoleAssignment action: user {userId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             if (client == null)
             {
+                Log.Debug($"In SystemAdminController.UserClientRoleAssignment action: client {clientId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified client does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1310,6 +1452,7 @@ namespace MillimanAccessPortal.Controllers
             };
             if (!userClientAssignments.Keys.Contains(role))
             {
+                Log.Debug($"In SystemAdminController.UserClientRoleAssignment action: requested role {role.ToString()} is not assignable to a client entity, aborting");
                 Response.Headers.Add("Warning", "The specified role is not a user-client role.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1396,6 +1539,8 @@ namespace MillimanAccessPortal.Controllers
                 _auditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(client, user, userClientAssignments[role]));
             }
 
+            Log.Verbose("In SystemAdminController.UserClientRoleAssignment action: success");
+
             return Json(value);
         }
 
@@ -1407,12 +1552,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> ContentSuspendedStatus(Guid rootContentItemId)
         {
+            Log.Verbose("Entered SystemAdminController.ContentSuspendedStatus action with {@RootContentItemId}", rootContentItemId);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.ContentSuspendedStatus action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -1422,13 +1570,17 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (rootContentItem == null)
             {
+                Log.Debug($"In SystemAdminController.ContentSuspendedStatus action: content item {rootContentItemId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
+            Log.Verbose($"In SystemAdminController.ContentSuspendedStatus action: success");
+
             return Json(rootContentItem.IsSuspended);
         }
+
         /// <summary>
         /// Set suspension status for a root content item.
         /// </summary>
@@ -1439,12 +1591,15 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ContentSuspendedStatus(Guid rootContentItemId, bool value)
         {
+            Log.Verbose("Entered SystemAdminController.ContentSuspendedStatus action with {@RootContentItemId}, {@Value}", rootContentItemId, value);
+
             #region Authorization
             // User must have a global Admin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
+                Log.Debug($"In SystemAdminController.ContentSuspendedStatus action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
@@ -1454,6 +1609,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (rootContentItem == null)
             {
+                Log.Debug($"In SystemAdminController.ContentSuspendedStatus action: content item {rootContentItemId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1463,6 +1619,7 @@ namespace MillimanAccessPortal.Controllers
             _dbContext.RootContentItem.Update(rootContentItem);
             _dbContext.SaveChanges();
 
+            Log.Verbose("In SystemAdminController.ContentSuspendedStatus action: success");
             _auditLogger.Log(AuditEventType.RootContentItemSuspensionUpdate.ToEvent(rootContentItem, value, ""));
 
             return Json(rootContentItem.IsSuspended);

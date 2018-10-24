@@ -22,6 +22,8 @@ namespace MapCommonLib
         public static readonly int fallbackAccountActivationTokenTimespanDays = 7;
         public static readonly int fallbackPasswordResetTokenTimespanHours = 4;
 
+        private static readonly string _DefaultErrorLogPath = ".";
+
         static Regex EmailAddressValidationRegex = new Regex (emailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
         public static bool IsValidEmail(string TestAddress)
@@ -128,5 +130,6 @@ namespace MapCommonLib
             string messageTemplate = configuration.GetSection("Global")["ErrorMessageTemplate"];
             return string.Format(messageTemplate, subject);
         }
+
     }
 }
