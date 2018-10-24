@@ -1,11 +1,13 @@
 ﻿using AuditLogLib.Event;
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
+using Serilog;
 using System.Security.Cryptography.X509Certificates;
 using System.Linq;
 using MapCommonLib;
@@ -23,13 +25,18 @@ namespace MillimanAccessPortal
             {
                 IServiceProvider serviceProvider = scope.ServiceProvider;
 
-                #region Initialize global expressions
+                #region Initialize global resources
                 IConfiguration Configuration = serviceProvider.GetService<IConfiguration>();
 
                 GlobalFunctions.domainValRegex = Configuration.GetValue("Global:DomainValidationRegex", GlobalFunctions.domainValRegex);
                 GlobalFunctions.emailValRegex = Configuration.GetValue("Global:EmailValidationRegex", GlobalFunctions.emailValRegex);
                 GlobalFunctions.maxFileUploadSize = Configuration.GetValue("Global:MaxFileUploadSize", GlobalFunctions.maxFileUploadSize);
                 GlobalFunctions.virusScanWindowSeconds = Configuration.GetValue("Global:VirusScanWindowSeconds", GlobalFunctions.virusScanWindowSeconds);
+
+                // Initialize Serilog
+                Log.Logger = new LoggerConfiguration()
+                    .ReadFrom.Configuration(Configuration)
+                    .CreateLogger();
                 #endregion
 
                 try
@@ -38,7 +45,7 @@ namespace MillimanAccessPortal
                 }
                 catch (Exception e)
                 {
-                    serviceProvider.GetService<ILoggerFactory>().CreateLogger<ApplicationDbContext>().LogError($"ApplicationDbContext.InitializeAll() failed: {e.Message}");
+                    Log.Error($"ApplicationDbContext.InitializeAll() failed: {e.Message}");
                     throw;
                 }
             }
@@ -48,7 +55,11 @@ namespace MillimanAccessPortal
             host.Run();
         }
 
-        public static IWebHost BuildWebHost(string[] args) =>
+        public static IWebHost BuildWebHost(string[] args)
+        {
+            string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
+
+            var webHost = 
             WebHost.CreateDefaultBuilder(args)
             .UseStartup<Startup>()
             .ConfigureAppConfiguration((hostContext, config) =>
@@ -63,16 +74,15 @@ namespace MillimanAccessPortal
                     ;
 
                     #region Configure Azure Key Vault for CI & Production
-                    string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
-                    switch (EnvironmentName)
+                    switch (EnvironmentNameUpper)
                     {
                         case "AZURECI":
                         case "PRODUCTION":
                         case "STAGING":
-                            config.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
+                            config.AddJsonFile($"AzureKeyVault.{EnvironmentNameUpper}.json", optional: true, reloadOnChange: true);
 
                             var builtConfig = config.Build();
-                        
+
                             var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                             store.Open(OpenFlags.ReadOnly);
                             var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
@@ -88,12 +98,22 @@ namespace MillimanAccessPortal
                             break;
 
                         default: // Unsupported environment name	
-                            throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Program.cs");
+                            throw new InvalidOperationException($"Current environment name ({EnvironmentNameUpper}) is not supported in Program.cs");
 
                     }
                     #endregion
                 })
-            .UseApplicationInsights()    
-            .Build();
+            .ConfigureLogging((hostingContext, config) => config.ClearProviders())  // remove asp default logger
+            // .UseApplicationINsights() is removed due to use of Serilog. Consider package serilog.sinks.applicationinsights if this is needed.
+            ;
+
+            if (new List<string> { "DEVELOPMENT", "STAGING" }.Contains(EnvironmentNameUpper))
+            {
+                // includes highly detailed .NET logging to the Serilog sinks
+                webHost = webHost.UseSerilog();
+            }
+
+            return webHost.Build();
+        }
     }
 }

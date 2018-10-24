@@ -44,7 +44,6 @@ namespace MapTests
                 _testResources.RoleManagerObject,
                 null,
                 _testResources.MessageQueueServicesObject,
-                _testResources.LoggerFactory,
                 _testResources.AuditLoggerObject,
                 _testResources.QueriesObj,
                 _testResources.AuthorizationService,
@@ -57,7 +56,6 @@ namespace MapTests
                 _testResources.AuthorizationService,
                 _testResources.ConfigurationObject,
                 _testResources.DbContextObject,
-                _testResources.LoggerFactory,
                 _testResources.QueriesObj,
                 _testResources.RoleManagerObject,
                 _testResources.UserManagerObject);

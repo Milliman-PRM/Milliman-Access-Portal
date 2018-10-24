@@ -1,4 +1,4 @@
-﻿@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet  
+﻿@* @inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet  *@
 @{string Title = String.Format("{0}{1}Milliman Access Portal", ViewData["Title"], (ViewData["Title"].ToString().Length > 0) ? " - " : "");}
 
 <!DOCTYPE html>
@@ -11,7 +11,7 @@
 
     @RenderSection("CSS", required: false)
 
-    @Html.Raw(JavaScriptSnippet.FullScript)
+    @*    @Html.Raw(JavaScriptSnippet.FullScript) *@
     @RenderSection("Scripts", required: false)
 </head>
 <body data-nav-location="@ViewData["NavIcon"]">
@@ -19,11 +19,10 @@
     @RenderBody()
 
     <div id="global-settings"
-        data-domain-validation-regex="@Html.Raw(MapCommonLib.GlobalFunctions.domainValRegex)"
-        data-email-validation-regex="@Html.Raw(MapCommonLib.GlobalFunctions.emailValRegex)"
-        data-max-file-upload-size="@Html.Raw(MapCommonLib.GlobalFunctions.maxFileUploadSize)"
-        style="display: none;"
-    ></div>
+         data-domain-validation-regex="@Html.Raw(MapCommonLib.GlobalFunctions.domainValRegex)"
+         data-email-validation-regex="@Html.Raw(MapCommonLib.GlobalFunctions.emailValRegex)"
+         data-max-file-upload-size="@Html.Raw(MapCommonLib.GlobalFunctions.maxFileUploadSize)"
+         style="display: none;"></div>
 
 </body>
 </html>

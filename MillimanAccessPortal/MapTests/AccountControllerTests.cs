@@ -49,7 +49,6 @@ namespace MapTests
                 TestResources.RoleManagerObject,
                 null,  // SingInManager<ApplicationUser>
                 TestResources.MessageQueueServicesObject,
-                TestResources.LoggerFactory,
                 TestResources.AuditLoggerObject,
                 TestResources.QueriesObj,
                 TestResources.AuthorizationService,
