@@ -271,7 +271,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser appUser = await Queries.GetCurrentApplicationUser(User);
             await _signInManager.SignOutAsync();
 
-            Log.Information($"User {appUser?.UserName ?? ""} logged out.");
+            Log.Verbose($"In AccountController.Logout action: user {appUser?.UserName ?? "<unknown>"} logged out.");
             _auditLogger.Log(AuditEventType.Logout.ToEvent(), appUser?.UserName);
 
             Response.Cookies.Delete(".AspNetCore.Session");
@@ -941,7 +941,7 @@ namespace MillimanAccessPortal.Controllers
             }
             if (result.IsLockedOut)
             {
-                Log.Warning("User account locked out.");
+                Log.Debug("User account locked out.");
                 var lockoutMessage = "This account has been locked out, please try again later.";
                 return View("Message", lockoutMessage);
             }

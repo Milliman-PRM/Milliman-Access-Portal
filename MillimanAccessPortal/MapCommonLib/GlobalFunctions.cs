@@ -131,28 +131,5 @@ namespace MapCommonLib
             return string.Format(messageTemplate, subject);
         }
 
-        /// <summary>
-        /// Writes a single message to a file named semantically for useful sorting/identification.
-        /// </summary>
-        /// <param name="LogFolder">The folder that a log file should be written</param>
-        /// <param name="Message">Text to write to the file</param>
-        /// <param name="Source">Becomes part of the log file name, useful to later identify a file of interest</param>
-        public static void LogApplicationMessage(string LogFolder, string Message, string Source = "NoSource")
-        {
-            try
-            {
-                Directory.CreateDirectory(LogFolder);
-            }
-            catch
-            {
-                LogFolder = _DefaultErrorLogPath;
-            }
-            string LogFilePath = Path.Combine(LogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.{Source}.txt");
-            try
-            {
-                File.WriteAllText(LogFilePath, Message);
-            }
-            catch { };
-        }
     }
 }
