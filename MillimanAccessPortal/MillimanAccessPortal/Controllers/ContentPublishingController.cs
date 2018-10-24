@@ -763,19 +763,25 @@ namespace MillimanAccessPortal.Controllers
                 List<ContentRelatedFile> UpdatedContentFilesList = PubRequest.RootContentItem.ContentFilesList;
                 foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
                 {
+                    string workingDirectory = Path.GetDirectoryName(Crf.FullPath);
                     // This assignment defines the live file name
                     string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(Crf.FilePurpose, Path.GetExtension(Crf.FullPath), rootContentItemId);
-                    string TargetFilePath = Path.Combine(Path.GetDirectoryName(Crf.FullPath), TargetFileName);
+                    string targetFileBasename = Path.GetFileNameWithoutExtension(TargetFileName);
+                    string TargetFilePath = Path.Combine(workingDirectory, TargetFileName);
+
+                    // Assumes no nesting, only one file for each purpose
+                    var existingRelatedFiles = Directory.EnumerateFiles(workingDirectory);
+                    var fileToReplace = existingRelatedFiles.SingleOrDefault(f => f.StartsWith(targetFileBasename));
 
                     // Move any existing file to backed up name
-                    if (System.IO.File.Exists(TargetFilePath))
+                    if (fileToReplace != null)
                     {
-                        string BackupFilePath = TargetFilePath + ".bak";
+                        string BackupFilePath = fileToReplace + ".bak";
                         if (System.IO.File.Exists(BackupFilePath))
                         {
                             System.IO.File.Delete(BackupFilePath);
                         }
-                        System.IO.File.Move(TargetFilePath, BackupFilePath);
+                        System.IO.File.Move(fileToReplace, BackupFilePath);
                         FilesToDelete.Add(BackupFilePath);
                     }
 
