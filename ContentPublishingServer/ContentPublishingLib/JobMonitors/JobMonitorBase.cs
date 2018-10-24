@@ -19,6 +19,8 @@ namespace ContentPublishingLib.JobMonitors
         public abstract Task Start(CancellationToken Token);
         public abstract void JobMonitorThreadMain(CancellationToken Token);
 
+        internal abstract string MaxConcurrentRunnersConfigKey { get; }
+
         /// <summary>
         /// Can be provided by test code to initializate data in a mocked ApplicationDbContext
         /// </summary>
@@ -51,27 +53,25 @@ namespace ContentPublishingLib.JobMonitors
                 catch
                 {
                     // Increases the total time based on concurrent tasks, but less than linearly
-                    WaitSec = 3 * 60 * (int)Math.Ceiling(Math.Sqrt(MaxParallelTasks));
+                    WaitSec = 3 * 60 * (int)Math.Ceiling(Math.Sqrt(MaxConcurrentRunners));
                 }
                 return TimeSpan.FromSeconds(WaitSec);
             }
         }
 
-        protected int MaxParallelTasks
+        private int? _maxConcurrentRunners = null;
+        public int MaxConcurrentRunners
         {
             get
             {
-                try
+                if (!_maxConcurrentRunners.HasValue)
                 {
-                    if (int.TryParse(Configuration.ApplicationConfiguration["MaxParallelTasks"], out int MaxTasks))
-                    {
-                        return MaxTasks;
-                    }
+                    _maxConcurrentRunners = int.Parse(
+                        Configuration.ApplicationConfiguration[MaxConcurrentRunnersConfigKey] ?? "1");
                 }
-                catch
-                { }
-                return 1;
+                return _maxConcurrentRunners.Value;
             }
+            set { _maxConcurrentRunners = value; }
         }
 
         protected void AssertTesting()
