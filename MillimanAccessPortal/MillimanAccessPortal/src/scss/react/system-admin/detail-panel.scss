@@ -24,6 +24,7 @@
                     font-weight: bold;
                     width: 35%;
                     display: inline-block;
+                    vertical-align: top;
 
                     &::after {
                         content: ':'
@@ -33,6 +34,7 @@
                 .detail-value {
                     width: 65%;
                     display: inline-block;
+                    vertical-align: top;
                 }
             }
 
