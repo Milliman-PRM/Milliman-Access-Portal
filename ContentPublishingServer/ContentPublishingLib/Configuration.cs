@@ -46,6 +46,10 @@ namespace ContentPublishingLib
                     {
                         CfgBuilder.AddAzureKeyVault(vaultConfig["AzureVaultName"], vaultConfig["AzureClientID"], cert.OfType<X509Certificate2>().Single());
                     }
+                    else
+                    {
+                        throw new ApplicationException($"Found {cert.OfType<X509Certificate2>().Count()} certificate(s) to access Azure Key Vault for environment {EnvironmentName}, expected 1");
+                    }
 
                     break;
 
