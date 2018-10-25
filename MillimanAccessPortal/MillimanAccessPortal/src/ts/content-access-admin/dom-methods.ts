@@ -30,7 +30,7 @@ let statusMonitor: SelectionStatusMonitor;
 
 function updateSelectionGroupCount() {
   $('#root-content-items [selected] [href="#group"]')
-    .parent().next().html($('#selection-groups ul.admin-panel-content li').length.toString());
+    .parent().next().html($('#selection-groups ul.admin-panel-content > li').length.toString());
 }
 
 function selectionGroupAddClickHandler() {

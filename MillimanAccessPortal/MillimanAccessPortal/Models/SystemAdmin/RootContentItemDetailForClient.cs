@@ -52,6 +52,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             var selectionGroups = dbContext.SelectionGroup
                 .Where(g => g.RootContentItemId == Id)
                 .Where(g => g.RootContentItem.ClientId == clientId)
+                .OrderBy(g => g.GroupName)
                 .ToList();
 
             var selectionGroupIds = selectionGroups.Select(g => g.Id).ToList();

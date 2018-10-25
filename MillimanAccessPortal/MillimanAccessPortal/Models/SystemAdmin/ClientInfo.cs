@@ -62,10 +62,10 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                     .Where(claim => claim.ClaimValue == Id.ToString())
                     .Count();
 
-                RootContentItemCount = dbContext.UserInSelectionGroup
-                    .Where(usg => usg.SelectionGroup.RootContentItem.ClientId == Id)
-                    .Select(usg => usg.SelectionGroup.RootContentItemId)
-                    .ToHashSet().Count;
+                RootContentItemCount = dbContext.RootContentItem
+                    .Where(item => item.ClientId == Id)
+                    .Select(item => item.Id)
+                    .Distinct().Count();
             }
         }
     }

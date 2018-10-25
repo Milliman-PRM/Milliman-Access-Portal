@@ -34,6 +34,7 @@ export interface CardProps {
   onSendReset?: () => void;
   onProfitCenterDelete?: () => void;
   onProfitCenterUserRemove?: () => void;
+  onClientUserRemove?: () => void;
 }
 
 export class Card extends React.Component<CardProps> {
@@ -216,6 +217,16 @@ export class Card extends React.Component<CardProps> {
               icon={'remove-circle'}
             />
           ));
+        } else if (this.props.onClientUserRemove) {
+          buttons.push((
+            <CardButton
+              key={2}
+              color={CardButtonColor.RED}
+              tooltip={'Remove from client'}
+              onClick={this.onClientUserRemove}
+              icon={'remove-circle'}
+            />
+          ));
         }
       } else {
         buttons.push((
@@ -360,6 +371,14 @@ export class Card extends React.Component<CardProps> {
     const { onProfitCenterUserRemove } = this.props;
     if (onProfitCenterUserRemove) {
       onProfitCenterUserRemove();
+    }
+  }
+
+  private onClientUserRemove = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    const { onClientUserRemove } = this.props;
+    if (onClientUserRemove) {
+      onClientUserRemove();
     }
   }
 

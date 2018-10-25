@@ -7,13 +7,16 @@
 - Queue information now available for content items in the process of being published
 - Improved the flow of publication requests to prevent reducible content from blocking non-reducible content
 - Improved exception logging in the MAP application
-- Restructured the System Admin view to enable future enhancements
 - Addressed issue with URL encoding of file names during publishing
-- Fixed text alignment in System Admin view
 - Improved the behavior of the Forgot Password workflow to prevent innadvertently acknowleding accounts exist between their creation and activation
-- Fixed an issue preventing a confirmation notification from being displayed in the System Admin view
 - Fixed an issue where a publication could be submitted before files were finished uploading
 - Adjusted card stats in the Content Publisher and Content Access Admin views to show more useful information
+- Added sorting for Content Items and Selection Groups
+- Restructured the System Admin view to enable future enhancements
+- Fixed an issue preventing a confirmation notification from being displayed in the System Admin view
+- Fixed text alignment in System Admin view
+- Added the ability to remove users from clients in System Admin
+- Unified the behavior of removing the Content Eligible role between Client Admin and System Admin
 
 ### v1.0.3
 

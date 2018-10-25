@@ -21,6 +21,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 
             var selectionGroups = dbContext.SelectionGroup
                 .Where(sg => sg.RootContentItemId == rootContentItem.Id)
+                .OrderBy(sg => sg.GroupName)
                 .ToList();
 
             foreach (var selectionGroup in selectionGroups)

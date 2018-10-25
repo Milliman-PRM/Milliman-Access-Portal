@@ -120,15 +120,17 @@ export class Submission extends FormElement {
     if (!this.submissionMode || !this.form) {
       return false;
     }
-    return this.submissionMode.groups.map((group) => {
+    const validModifiedGroups = this.submissionMode.groups.map((group) => {
       const modified = this.form.inputSections
         .filter((inputSection) => group.sections === undefined || group.sections.indexOf(inputSection.name) !== -1)
         .map((inputSection) => inputSection.modified)
         .reduce((cum, cur) => cum || cur, false);
       const valid = this.form.valid(group.sections);
-      return modified && valid;
-    }).reduce((cum, cur) => this.submissionMode.sparse ? cum || cur : cum && cur, !this.submissionMode.sparse)
-    && (this._accessMode === AccessMode.Defer || this._accessMode === AccessMode.Write);
+      return modified ? valid : undefined;
+    }).filter((value) => value !== undefined);
+    return validModifiedGroups.length
+      && validModifiedGroups.reduce((cum, cur) => cum && cur, true)
+      && (this._accessMode === AccessMode.Defer || this._accessMode === AccessMode.Write);
   }
 }
 

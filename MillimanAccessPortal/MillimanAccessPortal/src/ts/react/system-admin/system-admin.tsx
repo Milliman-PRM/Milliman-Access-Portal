@@ -170,6 +170,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onSendReset={this.handleSendReset}
           onProfitCenterDelete={this.handleProfitCenterDelete}
           onProfitCenterUserRemove={this.handleProfitCenterUserRemove}
+          onClientUserRemove={this.handleClientUserRemove}
         />
       )
       : null;
@@ -199,6 +200,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onSendReset={this.handleSendReset}
           onProfitCenterDelete={this.handleProfitCenterDelete}
           onProfitCenterUserRemove={this.handleProfitCenterUserRemove}
+          onClientUserRemove={this.handleClientUserRemove}
         />
         {secondaryColumnComponent}
         <div
@@ -969,6 +971,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     postData('SystemAdmin/RemoveUserFromProfitCenter', { userId, profitCenterId }, true)
     .then(() => {
       alert('User removed from profit center.');
+    });
+  }
+
+  private handleClientUserRemove = (userId: Guid, clientId: Guid) => {
+    postData('SystemAdmin/RemoveUserFromClient', { userId, clientId }, true)
+    .then(() => {
+      alert('User removed from client.');
     });
   }
 
