@@ -303,6 +303,14 @@ label.input-with-upload {
         }
     }
 
+    .file-upload-icons {
+        position: absolute;
+        display: inline-block;
+        right: .25em;
+        top: 1.9em;
+        z-index: 2;
+    }
+
     svg {
 
         &.upload-icon, 
@@ -310,10 +318,7 @@ label.input-with-upload {
             color: $charcoal;
             height: 1.8em;
             width: 1.8em;
-            position: absolute;
-            right: .25em;
-            top: 1.9em;
-            z-index: 2;
+            position: relative;
 
             &[disabled="disabled"] {
                 display: none !important;

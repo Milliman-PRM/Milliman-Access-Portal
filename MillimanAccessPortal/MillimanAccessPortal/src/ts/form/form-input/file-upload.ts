@@ -23,6 +23,16 @@ export class FileUploadInput extends FormInput {
     return this._upload;
   }
 
+  private _deletable: boolean;
+  private get deletable(): boolean {
+    if (!this._deletable) {
+      this._deletable = this.$entryPoint.hasClass('deletable');
+    }
+    return this._deletable;
+  }
+
+  private cancelable: boolean = false;
+
   private originalName: string;
 
   public configure(token: string) {
@@ -81,9 +91,14 @@ export class FileUploadInput extends FormInput {
     this.upload.assignBrowse(this.$entryPoint.find('label')[0]);
     this.$entryPoint.find('.cancel-icon').click((event) => {
       event.stopPropagation();
-      this.upload.cancel();
-      this.$entryPoint.find('div.progress-bar-3').width('0');
-      this.reset();
+      if (this.cancelable) {
+        this.upload.cancel();
+        this.$entryPoint.find('div.progress-bar-3').width('0');
+        this.reset();
+      } else {
+        this.value = `${this.originalName}~delete`;
+        toastr.success('File marked for deletion.');
+      }
     });
   }
 
@@ -105,13 +120,17 @@ export class FileUploadInput extends FormInput {
   protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
 
   protected disable = ($input: JQuery<HTMLElement>) => $input
-    .parent().find('*').not('.cancel-icon,input.file-upload-guid').attr('disabled', '')
+    .parent().find('*').not('input.file-upload-guid').attr('disabled', '')
   protected enable = ($input: JQuery<HTMLElement>) => $input
-    .parent().find('*').not('.cancel-icon,input.file-upload-guid').removeAttr('disabled')
+    .parent().find('*').not('input.file-upload-guid').removeAttr('disabled')
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 
-  protected validFn = () => this.upload && this.upload.valid();
+  protected validFn = () => {
+    const uploadValid = (this.upload && this.upload.valid());
+    const deleteValid = this.value.endsWith('delete') || undefined;
+    return uploadValid || deleteValid;
+  }
 
   public get component(): UploadComponent {
     return this.name as UploadComponent;
@@ -122,15 +141,21 @@ export class FileUploadInput extends FormInput {
       this.setAccessMode(AccessMode.WriteDisabled);
       this.$entryPoint.find('.upload-icon').hide();
       this.$entryPoint.find('.cancel-icon').show();
+      this.$entryPoint.find('.cancel-icon').removeAttr('disabled');
       this.$entryPoint.find('.progress-bars').css('visibility', 'visible');
     } else {
       if (this.accessMode === AccessMode.WriteDisabled) {
         this.setAccessMode(AccessMode.Write);
       }
-      this.$entryPoint.find('.cancel-icon').hide();
       this.$entryPoint.find('.upload-icon').show();
+      if (!this.deletable
+          || this.$entryPoint.find('.file-upload').val() === ''
+          || this.value.endsWith('delete')) {
+        this.$entryPoint.find('.cancel-icon').hide();
+      }
       this.$entryPoint.find('.progress-bars').css('visibility', 'hidden');
     }
+    this.cancelable = cancelable;
   }
 }
 
