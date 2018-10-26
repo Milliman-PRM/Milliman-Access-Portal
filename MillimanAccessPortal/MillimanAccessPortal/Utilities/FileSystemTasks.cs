@@ -35,7 +35,7 @@ namespace MillimanAccessPortal.Utilities
 
                 // Assumes only one file for each purpose
                 var targetFile = Directory.EnumerateFiles(workingDirectory)
-                    .SingleOrDefault(f => f.StartsWith(targetFilePrefix));
+                    .SingleOrDefault(f => Path.GetFileNameWithoutExtension(f) == targetFilePrefix);
 
                 if (targetFile != null)
                 {
