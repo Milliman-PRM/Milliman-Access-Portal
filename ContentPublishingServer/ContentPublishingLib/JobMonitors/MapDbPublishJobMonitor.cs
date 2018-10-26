@@ -31,6 +31,8 @@ namespace ContentPublishingLib.JobMonitors
             internal Guid requestId;
         }
 
+        override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxSimultaneousRequests";
+
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<PublishJobTrackingItem> ActivePublicationRunnerItems = new List<PublishJobTrackingItem>();
 
@@ -48,23 +50,6 @@ namespace ContentPublishingLib.JobMonitors
                     TaskAgeSec = 30;
                 }
                 return TimeSpan.FromSeconds(TaskAgeSec);
-            }
-        }
-
-        private int MaxParallelRequests
-        {
-            get
-            {
-                int MaxTasks;
-                try
-                {
-                    MaxTasks = int.Parse(Configuration.ApplicationConfiguration["MaxParallelTasks"]);
-                }
-                catch
-                {
-                    MaxTasks = 1;
-                }
-                return MaxTasks;
             }
         }
 
@@ -127,9 +112,9 @@ namespace ContentPublishingLib.JobMonitors
                 }
 
                 // Start more tasks if there is room in the RunningTasks collection. 
-                if (ActivePublicationRunnerItems.Count < MaxParallelRequests)
+                if (ActivePublicationRunnerItems.Count < MaxConcurrentRunners)
                 {
-                    List<ContentPublicationRequest> Responses = GetReadyRequests(MaxParallelRequests - ActivePublicationRunnerItems.Count);
+                    List<ContentPublicationRequest> Responses = GetReadyRequests(MaxConcurrentRunners - ActivePublicationRunnerItems.Count);
 
                     foreach (ContentPublicationRequest DbRequest in Responses)
                     {
@@ -225,7 +210,8 @@ namespace ContentPublishingLib.JobMonitors
                     List<ContentPublicationRequest> TopItems = Db.ContentPublicationRequest.Where(r => DateTime.UtcNow - r.CreateDateTimeUtc > TaskAgeBeforeExecution)
                                                                                  .Where(r => r.RequestStatus == PublicationStatus.Queued)
                                                                                  .Include(r => r.RootContentItem)
-                                                                                 .OrderBy(r => r.CreateDateTimeUtc)
+                                                                                 .OrderBy(r => r.RootContentItem.DoesReduce)  // false < true
+                                                                                     .ThenBy(r => r.CreateDateTimeUtc)
                                                                                  .Take(ReturnNoMoreThan)
                                                                                  .ToList();
                     if (TopItems.Count > 0)

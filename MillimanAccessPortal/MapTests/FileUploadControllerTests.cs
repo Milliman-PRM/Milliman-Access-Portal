@@ -36,8 +36,7 @@ namespace MapTests
                 TestResources.MockDbContext.Object,
                 TestResources.AuditLoggerObject,
                 TestResources.AuthorizationService,
-                TestResources.UploadHelperObject,
-                TestResources.LoggerFactory
+                TestResources.UploadHelperObject
                 );
 
             try

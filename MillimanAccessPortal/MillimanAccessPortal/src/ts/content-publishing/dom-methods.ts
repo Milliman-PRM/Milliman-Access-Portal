@@ -9,6 +9,7 @@ import { CancelContentPublicationRequestDialog, DeleteRootContentItemDialog } fr
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
+import { Guid } from '../react/shared-components/interfaces';
 import {
   collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
   hideButtonSpinner, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
@@ -30,7 +31,7 @@ let statusMonitor: PublicationStatusMonitor;
 let preLiveObject: PreLiveContentValidationSummary;
 
 function deleteRootContentItem(
-  rootContentItemId: string,
+  rootContentItemId: Guid,
   rootContentItemName: string,
   password: string,
   callback: () => void,
@@ -174,7 +175,7 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
   return formMap;
 }
 
-function addToDocumentCount(clientId: string, offset: number) {
+function addToDocumentCount(clientId: Guid, offset: number) {
   const itemCount = $('#client-tree .card-container')
     .filter((_, card) => $(card).data().clientId === clientId)
     .find('use[href="#reports"]').closest('div').find('h4');
@@ -366,7 +367,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       const dataArray: { [key: string]: string } = {};
       data.split('&')
         .map((kvp) => kvp.split('='))
-        .forEach((kvp) => dataArray[kvp[0]] = kvp[1]);
+        .forEach((kvp) => dataArray[decodeURIComponent(kvp[0])] = decodeURIComponent(kvp[1]));
       const publishRequest: PublishRequest = {
         RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
           .map((file) => {

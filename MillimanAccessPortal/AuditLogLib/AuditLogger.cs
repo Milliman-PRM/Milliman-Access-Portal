@@ -115,12 +115,7 @@ namespace AuditLogLib
                 }
                 catch (Exception e) // Nothing should stop this from proceding
                 {
-                    string ErrorLogFolder = System.IO.Path.Combine(Config.ErrorLogRootFolder, "ErrorLog");
-                    System.IO.Directory.CreateDirectory(ErrorLogFolder);
-                    string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyy-MM-ddThh-mm-ss")}.AuditLogException.txt");
-                    string Msg = $"{GlobalFunctions.LoggableExceptionString(e, "AuditLog User/SessionId assignment from injected services exception:", true, true)}";
-                    Msg += $"{Environment.NewLine}UserNameArg was: {UserNameArg}, SessionIdArg was: {SessionIdArg}";
-                    System.IO.File.WriteAllText(ErrorLogFile, Msg);
+                    Serilog.Log.Error(e, "In AuditLogger.Log(), exception while accessing _contextAccessor.HttpContext?.User?.Identity?.Name or @_contextAccessor.HttpContext?.Session?.Id from {@HttpContext}", _contextAccessor.HttpContext);
                 }
             }
 
@@ -171,15 +166,7 @@ namespace AuditLogLib
                         }
                         catch (Exception e)
                         {
-                            string ErrorLogFolder = System.IO.Path.Combine(Config.ErrorLogRootFolder, "ErrorLog");
-                            System.IO.Directory.CreateDirectory(ErrorLogFolder);
-                            string ErrorLogFile = System.IO.Path.Combine(ErrorLogFolder, $"{DateTime.UtcNow.ToString("yyyyMMdd-hhmmss")}.AuditLogException.txt");
-                            string Msg = $"{GlobalFunctions.LoggableExceptionString(e, "AuditLog persistence exception:", true, true)}";
-                            if (NewEventsToStore != null)
-                            {
-                                Msg += $"{Environment.NewLine}NewEventsToStore was:{Environment.NewLine}{Newtonsoft.Json.JsonConvert.SerializeObject(NewEventsToStore)}";
-                            }
-                            System.IO.File.WriteAllText(ErrorLogFile, Msg);
+                            Serilog.Log.Error(e, "In AuditLogger.ProcessQueueEvents(), exception while accessing the ConcurrentQueue or saving events to database");
 
                             if (RetryCount < 5)
                             {

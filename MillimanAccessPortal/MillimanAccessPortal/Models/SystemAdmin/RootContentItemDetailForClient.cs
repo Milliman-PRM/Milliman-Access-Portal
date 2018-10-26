@@ -48,35 +48,56 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 .Where(pr => pr.RequestStatus.IsActive())
                 .Any();
 
-            var groups = dbContext.UserInSelectionGroup
-                .Where(g => g.SelectionGroup.RootContentItemId == Id)
-                .Where(g => g.SelectionGroup.RootContentItem.ClientId == clientId)
-                .Include(g => g.SelectionGroup)
+            // query for selection groups and users in selection groups, then assign to a dictionary
+            var selectionGroups = dbContext.SelectionGroup
+                .Where(g => g.RootContentItemId == Id)
+                .Where(g => g.RootContentItem.ClientId == clientId)
+                .OrderBy(g => g.GroupName)
+                .ToList();
+
+            var selectionGroupIds = selectionGroups.Select(g => g.Id).ToList();
+            var usersInSelectionGroups = dbContext.UserInSelectionGroup
+                .Where(g => selectionGroupIds.Contains(g.SelectionGroupId))
                 .Include(g => g.User)
                 .ToList();
 
-            var selectionGroups = new NestedList();
-            foreach (var group in groups)
+            var selectionGroupUsersDictionary = selectionGroups.ToDictionary(
+                g => g.Id,
+                g => usersInSelectionGroups
+                    .Where(u => u.SelectionGroupId == g.Id)
+                    .Select(u => u.User).ToList());
+
+            var selectionGroupList = new NestedList();
+            foreach (var groupId in selectionGroupIds)
             {
-                if (!selectionGroups.Sections.Any(s => s.Name == group.SelectionGroup.GroupName))
+                var group = selectionGroups.Single(g => g.Id == groupId);
+                if (!selectionGroupList.Sections.Any(s => s.Name == group.GroupName))
                 {
-                    selectionGroups.Sections.Add(new NestedListSection
+                    var reductionTasks = dbContext.ContentReductionTask
+                        .Where(rt => rt.SelectionGroupId == group.Id)
+                        .Where(rt => rt.ReductionStatus.IsActive())
+                        .Include(rt => rt.ContentPublicationRequest)
+                        .ToList();
+                    selectionGroupList.Sections.Add(new NestedListSection
                     {
-                        Name = group.SelectionGroup.GroupName,
-                        Id = group.SelectionGroup.Id,
-                        Marked =  dbContext.ContentReductionTask
-                            .Where(rt => rt.SelectionGroupId == group.SelectionGroup.Id)
-                            .Where(rt => rt.ReductionStatus.IsActive())
-                            .Where(rt => rt.ContentPublicationRequestId == null)
+                        Name = group.GroupName,
+                        Id = group.Id,
+                        // Mark reduction tasks as cancelable
+                        // The reduction task must either have no publication request or a nonactive publication request
+                        Marked = reductionTasks
+                            .Where(rt => rt.ContentPublicationRequest == null || !rt.ContentPublicationRequest.RequestStatus.IsActive())
                             .Any(),
                     });
                 }
-                selectionGroups
-                    .Sections.Single(s => s.Name == group.SelectionGroup.GroupName)
-                    .Values.Add($"{group.User.FirstName} {group.User.LastName}");
+                foreach (var user in selectionGroupUsersDictionary[group.Id])
+                {
+                    selectionGroupList
+                        .Sections.Single(s => s.Name == group.GroupName)
+                        .Values.Add($"{user.FirstName} {user.LastName}");
+                }
             }
 
-            SelectionGroups = selectionGroups;
+            SelectionGroups = selectionGroupList;
         }
     }
 }

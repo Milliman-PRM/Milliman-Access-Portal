@@ -25,6 +25,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public int? RootContentItemCount { get; set; } = null;
         public List<RootContentItemInfo> RootContentItems { get; set; }
         public Guid? ProfitCenterId { get; set; } = null;
+        public Guid? ClientId { get; set; } = null;
 
         public static explicit operator UserInfo(ApplicationUser user)
         {
@@ -49,6 +50,8 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         {
             if (clientId.HasValue)
             {
+                ClientId = clientId.Value;
+
                 // don't count clients
 
                 // only count root content items that are under the specified client

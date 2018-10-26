@@ -264,7 +264,7 @@ namespace ContentPublishingLib.JobRunners
             {
                 if (Directory.Exists(WorkingFolderAbsolute) && !string.IsNullOrWhiteSpace(WorkingFolderRelative))
                 {
-                    Directory.Delete(WorkingFolderAbsolute, true);
+                    TryDeleteDirectory(WorkingFolderAbsolute);
                 }
 
                 if (!File.Exists(JobDetail.Request.MasterFilePath))
@@ -317,7 +317,7 @@ namespace ContentPublishingLib.JobRunners
             finally
             {
                 // Clean up
-                File.Delete(AncillaryScriptFilePath);
+                TryDeleteFile(AncillaryScriptFilePath);
             }
 
             #region Build hierarchy json output
@@ -341,7 +341,7 @@ namespace ContentPublishingLib.JobRunners
                     string ValuesFileName = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "fieldvalues." + Fields[1] + ".csv");
                     NewField.FieldValues = File.ReadAllLines(ValuesFileName).Skip(1).ToList();  // skip because the first line is the field name
 
-                    File.Delete(ValuesFileName);
+                    TryDeleteFile(ValuesFileName);
 
                     ResultHierarchy.Fields.Add(NewField);
                 }
@@ -358,7 +358,7 @@ namespace ContentPublishingLib.JobRunners
             }
             finally
             {
-                File.Delete(ReductionSchemeFilePath);
+                TryDeleteFile(ReductionSchemeFilePath);
             }
             #endregion
 
@@ -366,7 +366,7 @@ namespace ContentPublishingLib.JobRunners
             {
                 try
                 {
-                    File.Delete(LogFile);
+                    TryDeleteFile(LogFile);
                 }
                 catch (System.Exception e)
                 {
@@ -462,7 +462,7 @@ namespace ContentPublishingLib.JobRunners
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
             if (!string.IsNullOrWhiteSpace(WorkingFolderRelative) && Directory.Exists(WorkingFolderAbsolute))
             {
-                Directory.Delete(WorkingFolderAbsolute, true);
+                TryDeleteDirectory(WorkingFolderAbsolute);
             }
 
             GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed Cleanup");
@@ -738,5 +738,74 @@ namespace ContentPublishingLib.JobRunners
             }
         }
 
+        /// <summary>
+        /// Try to delete a file until success
+        /// </summary>
+        /// <remarks>Time before retry increases after each attempt.</remarks>
+        /// <param name="path">Path to the file to be deleted</param>
+        /// <param name="attempts">Number of times to try deleting the file before giving up</param>
+        private void TryDeleteFile(string path, int attempts = 5, int baseIntervalMs = 500)
+        {
+            int retryInterval = 0;
+            int attemptNo = 0;
+
+            while (true)
+            {
+                try
+                {
+                    File.Delete(path);
+                    break;
+                }
+                catch (IOException)
+                {
+                    attemptNo += 1;
+
+                    int attemptsLeft = attempts - attemptNo;
+                    if (attemptsLeft == 0)
+                    {
+                        throw;
+                    }
+                    GlobalFunctions.TraceWriteLine($"Failed to delete file '{path}'; retrying {attemptsLeft} more times...");
+
+                    retryInterval += attemptNo;
+                    Thread.Sleep(retryInterval * baseIntervalMs);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Try to delete a directory until success
+        /// </summary>
+        /// <remarks>Time before retry increases after each attempt.</remarks>
+        /// <param name="path">Path to the directory to be deleted</param>
+        /// <param name="attempts">Number of times to try deleting the directory before giving up</param>
+        private void TryDeleteDirectory(string path, int attempts = 5, int baseIntervalMs = 500)
+        {
+            int retryInterval = 0;
+            int attemptNo = 0;
+
+            while (true)
+            {
+                try
+                {
+                    Directory.Delete(path, true);
+                    break;
+                }
+                catch (IOException)
+                {
+                    attemptNo += 1;
+
+                    int attemptsLeft = attempts - attemptNo;
+                    if (attemptsLeft == 0)
+                    {
+                        throw;
+                    }
+                    GlobalFunctions.TraceWriteLine($"Failed to delete directory '{path}'; retrying {attemptsLeft} more times...");
+
+                    retryInterval += attemptNo;
+                    Thread.Sleep(retryInterval * baseIntervalMs);
+                }
+            }
+        }
     }
 }

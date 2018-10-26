@@ -38,7 +38,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                     .Where(t => t.SelectionGroupId == selectionGroup.Id)
                     .OrderByDescending(r => r.CreateDateTimeUtc)
                     .FirstOrDefault();
-                model.Status.Add((ReductionSummary) reductionTask);
+                model.Status.Add(reductionTask.ToSummaryWithQueueInformation(dbContext));
             }
 
             return model;

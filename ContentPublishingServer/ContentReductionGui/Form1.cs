@@ -27,7 +27,7 @@ namespace QvReportReductionGui
 
         public Form1()
         {
-            DateTime StartDateTime = DateTime.Now;
+            DateTime StartDateTime = DateTime.UtcNow;
             CurrentTraceListener = new TextWriterTraceListener("QvReportReductionGui_Trace_" + StartDateTime.ToString("yyyyMMdd-HHmmss") + ".txt");
             Trace.Listeners.Add(CurrentTraceListener);
             Trace.AutoFlush = true;

@@ -1,90 +1,42 @@
-import { isEqual } from 'lodash';
 import * as React from 'react';
 
-import { getData, postData } from '../../shared';
-import { Entity } from '../shared-components/entity';
-import { ImmediateToggle } from '../shared-components/immediate-toggle';
-import { DataSource, QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { Toggle } from '../shared-components/toggle';
 import {
   ClientDetailForProfitCenter, ClientDetailForUser, NestedList, RootContentItemDetailForClient,
   RootContentItemDetailForUser, SecondaryDetail, UserDetailForClient, UserDetailForProfitCenter,
 } from './interfaces';
+import { SystemAdminColumn } from './system-admin';
 
 interface SecondaryDetailPanelProps {
-  controller: string;
-  primarySelectedDataSource: DataSource<Entity>;
-  secondarySelectedDataSource: DataSource<Entity>;
+  primarySelectedColumn: SystemAdminColumn;
+  secondarySelectedColumn: SystemAdminColumn;
   selectedCard: string;
   queryFilter: QueryFilter;
-}
-
-interface SecondaryDetailPanelState {
   detail: SecondaryDetail;
-  prevQuery: {
-    dataSource: string;
-    entityId: string;
-  };
+  onCancelPublication: (event: React.MouseEvent<HTMLElement>) => void;
+  onCancelReduction: (event: React.MouseEvent<HTMLElement>, id: Guid) => void;
+  onPushUserClient: (event: React.MouseEvent<HTMLDivElement>, role: RoleEnum) => void;
+  checkedClientAdmin: boolean;
+  checkedContentPublisher: boolean;
+  checkedAccessAdmin: boolean;
+  checkedContentUser: boolean;
+  onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
+  checkedSuspended: boolean;
 }
 
-export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelProps, SecondaryDetailPanelState> {
-
-  // see https://github.com/reactjs/rfcs/issues/26#issuecomment-365744134
-  public static getDerivedStateFromProps(
-    nextProps: SecondaryDetailPanelProps, prevState: SecondaryDetailPanelState,
-  ): Partial<SecondaryDetailPanelState> {
-    const nextQuery = {
-      dataSource: nextProps.secondarySelectedDataSource.name,
-      entityId: nextProps.selectedCard,
-    };
-
-    if (!isEqual(nextQuery, prevState.prevQuery)) {
-      return {
-        prevQuery: nextQuery,
-        detail: null,
-      };
-    }
-
-    return null;
-  }
-
-  private get url() {
-    return this.props.selectedCard
-      && `/${this.props.controller}/${this.props.secondarySelectedDataSource.detailAction}`;
-  }
-
-  public constructor(props) {
-    super(props);
-
-    this.state = {
-      detail: null,
-      prevQuery: null,
-    };
-
-    this.cancelPublicationRequest = this.cancelPublicationRequest.bind(this);
-    this.cancelReductionTask = this.cancelReductionTask.bind(this);
-  }
-
-  public componentDidMount() {
-    this.fetch();
-  }
-
-  public componentDidUpdate() {
-    if (this.state.detail === null) {
-      this.fetch();
-    }
-  }
-
+export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelProps> {
   public render() {
     // populate detail panel
     const secondaryDetail = (() => {
-      if (!this.state.detail) {
+      if (!this.props.detail) {
         return null;
       }
-      switch (this.props.primarySelectedDataSource.name) {
-        case 'user':
-          switch (this.props.secondarySelectedDataSource.name) {
-            case 'client':
-              const clientDetailForUser = this.state.detail as ClientDetailForUser;
+      switch (this.props.primarySelectedColumn) {
+        case SystemAdminColumn.USER:
+          switch (this.props.secondarySelectedColumn) {
+            case SystemAdminColumn.CLIENT:
+              const clientDetailForUser = this.props.detail as ClientDetailForUser;
               return (
                 <div>
                   <div className="detail-column-container">
@@ -105,39 +57,31 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div className="detail-section">
                         <h3 className="detail-section-title">Client/User Roles</h3>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Client Admin'}
-                            data={{ role: RoleEnum.Admin }}
+                            checked={this.props.checkedClientAdmin}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.Admin)}
                           />
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Content Access Admin'}
-                            data={{ role: RoleEnum.ContentAccessAdmin }}
+                            checked={this.props.checkedAccessAdmin}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentAccessAdmin)}
                           />
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Content Publisher'}
-                            data={{ role: RoleEnum.ContentPublisher }}
+                            checked={this.props.checkedContentPublisher}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentPublisher)}
                           />
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Content Eligible'}
-                            data={{ role: RoleEnum.ContentUser }}
+                            checked={this.props.checkedContentUser}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
                           />
                         </div>
                       </div>
@@ -145,8 +89,8 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                   </div>
                 </div>
               );
-            case 'rootContentItem':
-              const rootContentItemDetailForUser = this.state.detail as RootContentItemDetailForUser;
+            case SystemAdminColumn.ROOT_CONTENT_ITEM:
+              const rootContentItemDetailForUser = this.props.detail as RootContentItemDetailForUser;
               return (
                 <div>
                   <div className="detail-column-container">
@@ -169,10 +113,10 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
             default:
               return null;
           }
-        case 'client':
-          switch (this.props.secondarySelectedDataSource.name) {
-            case 'user':
-              const userDetailForClient = this.state.detail as UserDetailForClient;
+        case SystemAdminColumn.CLIENT:
+          switch (this.props.secondarySelectedColumn) {
+            case SystemAdminColumn.USER:
+              const userDetailForClient = this.props.detail as UserDetailForClient;
               return (
                 <div>
                   <div className="detail-column-container">
@@ -209,39 +153,31 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div className="detail-section">
                         <h3 className="detail-section-title">Client/User Roles</h3>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Client Admin'}
-                            data={{ role: RoleEnum.Admin }}
+                            checked={this.props.checkedClientAdmin}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.Admin)}
                           />
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Content Access Admin'}
-                            data={{ role: RoleEnum.ContentAccessAdmin }}
+                            checked={this.props.checkedAccessAdmin}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentAccessAdmin)}
                           />
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Content Publisher'}
-                            data={{ role: RoleEnum.ContentPublisher }}
+                            checked={this.props.checkedContentPublisher}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentPublisher)}
                           />
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'UserClientRoleAssignment'}
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Content Eligible'}
-                            data={{ role: RoleEnum.ContentUser }}
+                            checked={this.props.checkedContentUser}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
                           />
                         </div>
                       </div>
@@ -249,15 +185,15 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                   </div>
                 </div>
               );
-            case 'rootContentItem':
-              const rootContentItemDetailForClient = this.state.detail as RootContentItemDetailForClient;
+            case SystemAdminColumn.ROOT_CONTENT_ITEM:
+              const rootContentItemDetailForClient = this.props.detail as RootContentItemDetailForClient;
               const publishingStatus = rootContentItemDetailForClient.IsPublishing
                 ? (
                   <span className="detail-value">
                     Yes (
                       <a
                         href={''}
-                        onClick={this.cancelPublicationRequest}
+                        onClick={this.props.onCancelPublication}
                       >
                         Cancel
                       </a>
@@ -292,12 +228,10 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                           {publishingStatus}
                         </div>
                         <div className="detail-container">
-                          <ImmediateToggle
-                            controller={this.props.controller}
-                            action={'ContentSuspendedStatus'}
-                            queryFilter={this.props.queryFilter}
+                          <Toggle
                             label={'Suspended'}
-                            data={{ }}
+                            checked={this.props.checkedSuspended}
+                            onClick={this.props.onPushSuspend}
                           />
                         </div>
                       </div>
@@ -316,10 +250,10 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
             default:
               return null;
           }
-        case 'profitCenter':
-          switch (this.props.secondarySelectedDataSource.name) {
-            case 'user':
-              const userDetailForProfitCenter = this.state.detail as UserDetailForProfitCenter;
+        case SystemAdminColumn.PROFIT_CENTER:
+          switch (this.props.secondarySelectedColumn) {
+            case SystemAdminColumn.USER:
+              const userDetailForProfitCenter = this.props.detail as UserDetailForProfitCenter;
               return (
                 <div>
                   <div className="detail-column-container">
@@ -351,8 +285,8 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                   </div>
                 </div>
               );
-            case 'client':
-              const clientDetailForProfitCenter = this.state.detail as ClientDetailForProfitCenter;
+            case SystemAdminColumn.CLIENT:
+              const clientDetailForProfitCenter = this.props.detail as ClientDetailForProfitCenter;
               return (
                 <div>
                   <div className="detail-column-container">
@@ -402,7 +336,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
 
     const detail = !this.props.selectedCard
       ? null
-      : this.state.detail === null
+      : this.props.detail === null
         ? (<div>Loading...</div>)
         : secondaryDetail;
     return (
@@ -410,19 +344,6 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
         {detail}
       </div>
     );
-  }
-
-  private fetch() {
-    if (!this.url) {
-      return this.setState({ detail: undefined });
-    }
-
-    getData(this.url, this.props.queryFilter)
-    .then((response) => {
-      this.setState({
-        detail: response,
-      });
-    });
   }
 
   private renderNestedList(list: NestedList): JSX.Element[] {
@@ -440,7 +361,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
             (
             <a
               href={''}
-              onClick={(event) => this.cancelReductionTask(event, section.Id)}
+              onClick={(event) => this.props.onCancelReduction(event, section.Id)}
             >
               Cancel
             </a>
@@ -457,27 +378,6 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
           {values}
         </div>
       );
-    });
-  }
-
-  // These actions could be split out into other components
-  private cancelPublicationRequest(event: React.MouseEvent<HTMLAnchorElement>) {
-    event.preventDefault();
-    postData(
-      '/SystemAdmin/CancelPublication',
-      { rootContentItemId: this.props.queryFilter.rootContentItemId },
-    ).then(() => {
-      alert('Publication canceled.');
-    });
-  }
-
-  private cancelReductionTask(event: React.MouseEvent<HTMLAnchorElement>, id: string) {
-    event.preventDefault();
-    postData(
-      '/SystemAdmin/CancelReduction',
-      { selectionGroupId: id },
-    ).then(() => {
-      alert('Reduction canceled.');
     });
   }
 }

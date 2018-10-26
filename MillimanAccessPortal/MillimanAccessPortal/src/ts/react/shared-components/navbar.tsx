@@ -14,15 +14,24 @@ import * as React from 'react';
 import { getData, postData } from '../../shared';
 import { ContactFormModal } from '../contact-form-modal';
 import { UserGuideModal } from '../user-guide-modal';
-import { NavBarElement, NavBarProps, NavBarState } from './interfaces';
+import { NavBarElement } from './interfaces';
+
+export interface NavBarProps {
+  currentView: string;
+}
+
+export interface NavBarState {
+  navBarElements: NavBarElement[];
+  contactFormOpen: boolean;
+  userGuideOpen: boolean;
+}
 
 export class NavBar extends React.Component<NavBarProps, NavBarState> {
   public constructor(props) {
     super(props);
 
     this.state = {
-      navBarElements: [],
-      navBarIsLoaded: false,
+      navBarElements: null,
       contactFormOpen: false,
       userGuideOpen: false,
     };
@@ -38,7 +47,6 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
     .then((response) => {
       this.setState({
         navBarElements: response,
-        navBarIsLoaded: true,
       });
     })
     .catch((e) => {
@@ -47,7 +55,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
   }
 
   public render() {
-    const navElements = this.state.navBarElements.map((element: NavBarElement) => {
+    const navElements = this.state.navBarElements && this.state.navBarElements.map((element: NavBarElement) => {
       const classes = `nav-element ${(this.props.currentView === element.View) ? 'selected' : null }`;
       return (
         <a href={'/' + element.URL} key={element.View}>
@@ -62,7 +70,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
     });
 
     return (
-      <nav className={this.state.navBarIsLoaded ? 'loaded' : null}>
+      <nav className={this.state.navBarElements && 'loaded'}>
         {navElements}
         <div className="nav-element" style={{ order: 98 }} onClick={this.openUserGuide}>
           <h3 className="nav-element-label">User Guide</h3>

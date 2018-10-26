@@ -34,7 +34,6 @@ namespace MapTests
             ClientAdminController testController = new ClientAdminController(TestResources.DbContextObject,
                 TestResources.AuditLoggerObject,
                 TestResources.AuthorizationService,
-                TestResources.LoggerFactory,
                 TestResources.MessageQueueServicesObject,
                 TestResources.RoleManagerObject,
                 TestResources.QueriesObj,

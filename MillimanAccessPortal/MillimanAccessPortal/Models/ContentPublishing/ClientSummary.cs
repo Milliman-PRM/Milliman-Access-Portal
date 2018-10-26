@@ -23,7 +23,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string Code { get; set; }
 
         public bool CanManage { get; set; }
-        public List<UserInfoViewModel> AssignedUsers { get; set; }
         public long EligibleUserCount { get; set; }
         public long RootContentItemCount { get; set; }
         
@@ -46,19 +45,11 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             // Don't provide more information than necessary
             if (!clientDetail.CanManage) return clientDetail;
 
-            Claim MembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), clientDetail.Id.ToString());
-            IList<ApplicationUser> UsersForClaim = await userManager.GetUsersForClaimAsync(MembershipClaim);
-            clientDetail.AssignedUsers = UsersForClaim
-                .Select(u => (UserInfoViewModel) u)
-                .OrderBy(u => u.LastName)
-                .ThenBy(u => u.FirstName)
-                .ThenBy(u => u.UserName)
-                .ToList();
-
             clientDetail.EligibleUserCount = dbContext.UserRoleInClient
                 .Where(urc => urc.Role.RoleEnum == RoleEnum.ContentUser)
                 .Where(urc => urc.ClientId == clientDetail.Id)
-                .ToHashSet()
+                .Select(urc => urc.Id)
+                .Distinct()
                 .Count();
 
             clientDetail.RootContentItemCount = dbContext.RootContentItem

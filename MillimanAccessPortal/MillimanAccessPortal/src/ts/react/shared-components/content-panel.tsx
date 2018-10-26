@@ -1,243 +1,100 @@
 import '../../../scss/react/shared-components/content-panel.scss';
 
-import { isEqual } from 'lodash';
 import * as React from 'react';
-import * as Modal from 'react-modal';
 
-import { getData, postData } from '../../shared';
+import { BasicNode } from '../../view-models/content-publishing';
+import {
+  ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo, isClientInfoTree,
+  isProfitCenterInfo, isUserInfo,
+} from '../system-admin/interfaces';
 import { AddUserToClientModal } from '../system-admin/modals/add-user-to-client';
 import { AddUserToProfitCenterModal } from '../system-admin/modals/add-user-to-profit-center';
 import { CreateProfitCenterModal } from '../system-admin/modals/create-profit-center';
 import { CreateUserModal } from '../system-admin/modals/create-user';
 import { ActionIcon } from './action-icon';
-import { Card, withActivated } from './card';
-import { ColumnSelector } from './column-selector';
-import { Entity, EntityHelper } from './entity';
+import { Card, CardAttributes } from './card';
+import { ColumnIndicator, ColumnSelector } from './column-selector';
+import { EntityHelper } from './entity';
 import { Filter } from './filter';
-import { DataSource, QueryFilter, Structure } from './interfaces';
+import { Guid, QueryFilter } from './interfaces';
 
-export interface ContentPanelProps {
-  controller: string;
-  dataSources: Array<DataSource<Entity>>;
-  setSelectedDataSource: (sourceName: string) => void;
-  selectedDataSource: DataSource<Entity>;
-  setSelectedCard: (cardId: string) => void;
+export interface ContentPanelAttributes {
+  filterText: string;
+  onFilterTextChange: (text: string) => void;
+  modalOpen: boolean;
+  onModalOpen: () => void;
+  onModalClose: () => void;
+  createAction: string;
+}
+export interface ContentPanelProps extends ContentPanelAttributes {
+  columns: ColumnIndicator[];
+  onColumnSelect: (id: string) => void;
+  selectedColumn: ColumnIndicator;
+  onExpandedToggled: (id: Guid) => void;
+  cards: {
+    [id: string]: CardAttributes;
+  };
+  onCardSelect: (id: Guid) => void;
   selectedCard: string;
   queryFilter: QueryFilter;
-}
-interface ContentPanelState {
-  entities: Entity[];
-  filterText: string;
-  prevQuery: {
-    queryFilter: QueryFilter;
-    sourceName: string;
-  };
-  modalOpen: boolean;
+  entities: EntityInfoCollection;
+  onProfitCenterModalOpen: (id: Guid) => void;
+  onProfitCenterModalClose: (id: Guid) => void;
+  onSendReset: (email: string) => void;
+  onProfitCenterDelete: (id: Guid) => void;
+  onProfitCenterUserRemove: (userId: Guid, profitCenterId: Guid) => void;
+  onClientUserRemove: (userId: Guid, clientId: Guid) => void;
 }
 
-export class ContentPanel extends React.Component<ContentPanelProps, ContentPanelState> {
-
-  // see https://github.com/reactjs/rfcs/issues/26#issuecomment-365744134
-  public static getDerivedStateFromProps(
-    nextProps: ContentPanelProps, prevState: ContentPanelState,
-  ): Partial<ContentPanelState> {
-    const nextQuery = {
-      queryFilter: nextProps.queryFilter,
-      sourceName: nextProps.selectedDataSource.name,
-    };
-    if (!isEqual(nextQuery, prevState.prevQuery)) {
-      return {
-        prevQuery: nextQuery,
-        entities: null,
-      };
-    }
-    return null;
-  }
-
-  // tslint:disable-next-line:variable-name
-  private UserCard = withActivated(Card);
-
-  private get url() {
-    return this.props.selectedDataSource.infoAction
-      && `/${this.props.controller}/${this.props.selectedDataSource.infoAction}`;
-  }
-
-  private get createUrl() {
-    return this.props.selectedDataSource.createAction
-      && `/${this.props.controller}/${this.props.selectedDataSource.createAction}`;
-  }
-
-  public constructor(props) {
-    super(props);
-
-    this.state = {
-      entities: null,
-      filterText: '',
-      prevQuery: null,
-      modalOpen: false,
-    };
-
-    this.setFilterText = this.setFilterText.bind(this);
-    this.addAction = this.addAction.bind(this);
-    this.closeModal = this.closeModal.bind(this);
-    this.handleCreate = this.handleCreate.bind(this);
-  }
-
-  public componentDidMount() {
-    this.props.setSelectedDataSource(this.props.dataSources[0] && this.props.dataSources[0].name);
-    this.fetch();
-  }
-
-  public componentDidUpdate() {
-    if (this.state.entities === null) {
-      this.fetch();
-    }
-    if (this.props.selectedDataSource.name === null) {
-      this.props.setSelectedDataSource(this.props.dataSources[0] && this.props.dataSources[0].name);
-    }
-  }
-
+export class ContentPanel extends React.Component<ContentPanelProps> {
   public render() {
-    const filteredCards = this.state.entities && this.state.entities
-      .filter((entity) => EntityHelper.applyFilter(entity, this.state.filterText));
-    let cards = null;
-    if (filteredCards === null) {
-      cards = (<div>Loading...</div>);
-    } else if (filteredCards.length === 0) {
-      cards = (
-        <div>No {this.props.selectedDataSource.displayName.toLowerCase()} found.</div>
-      );
-    } else if (this.props.selectedDataSource.structure === Structure.Tree) {
-      const rootIndices = [];
-      filteredCards.forEach((entity, i) => {
-        if (entity.indent === 1) {
-          rootIndices.push(i);
-        }
-      });
-      const cardGroups = rootIndices.map((_, i) =>
-        filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
-      cards = cardGroups.map((group, i) => {
-        const groupCards = group.map((entity) => (
-          <li
-            key={entity.id}
-          >
-            <Card
-              {...entity}
-              selected={entity.id === this.props.selectedCard}
-              // tslint:disable-next-line:jsx-no-lambda
-              setSelected={() => this.props.setSelectedCard(entity.id)}
-              sublistInfo={this.props.selectedDataSource.sublistInfo}
-            />
-          </li>
-        ));
-        if (i + 1 !== cardGroups.length) {
-          groupCards.push((<div key="hr-{i}" className="hr" />));
-        }
-        return groupCards;
-      });
-    } else if (this.props.selectedDataSource.name === 'user') {
-      cards = filteredCards.map((entity) => (
-        <li
-          key={entity.id}
-        >
-          <this.UserCard
-            {...entity}
-            selected={entity.id === this.props.selectedCard}
-            // tslint:disable-next-line:jsx-no-lambda
-            setSelected={() => this.props.setSelectedCard(entity.id)}
-            activated={entity.activated}
-            resetButton={true}
-            sublistInfo={this.props.selectedDataSource.sublistInfo}
-          />
-        </li>
-      ));
-    } else {
-      cards = filteredCards.map((entity) => (
-        <li
-          key={entity.id}
-        >
-          <Card
-            {...entity}
-            selected={entity.id === this.props.selectedCard}
-            // tslint:disable-next-line:jsx-no-lambda
-            setSelected={() => this.props.setSelectedCard(entity.id)}
-            sublistInfo={this.props.selectedDataSource.sublistInfo}
-          />
-        </li>
-      ));
-    }
-    const filterPlaceholder = this.props.selectedDataSource.displayName
-      ? `Filter ${this.props.selectedDataSource.displayName}...`
+
+    const filterPlaceholder = this.props.selectedColumn
+      ? `Filter ${this.props.selectedColumn.name}...`
       : '';
-    const actionIcon = this.props.selectedDataSource.createAction
+    const actionIcon = this.props.createAction
       && (
         <ActionIcon
           title={'Add'}
-          action={this.addAction}
+          action={this.props.onModalOpen}
           icon={'add'}
         />
       );
 
-    const modalStyle = {
-      overlay: {
-        zIndex: 200,
-      },
-    };
-
     const modal = (() => {
-      switch (this.props.selectedDataSource.createAction) {
+      switch (this.props.createAction) {
         case 'CreateUser':
           return (
             <CreateUserModal
-              isOpen={this.state.modalOpen}
-              onRequestClose={this.closeModal}
-              style={modalStyle}
+              isOpen={this.props.modalOpen}
+              onRequestClose={this.props.onModalClose}
             />
           );
         case 'CreateProfitCenter':
           return (
             <CreateProfitCenterModal
-              isOpen={this.state.modalOpen}
-              onRequestClose={this.closeModal}
-              style={modalStyle}
+              isOpen={this.props.modalOpen}
+              onRequestClose={this.props.onModalClose}
             />
           );
         case 'AddUserToClient':
           return (
             <AddUserToClientModal
-              isOpen={this.state.modalOpen}
-              onRequestClose={this.closeModal}
-              style={modalStyle}
+              isOpen={this.props.modalOpen}
+              onRequestClose={this.props.onModalClose}
               clientId={this.props.queryFilter.clientId}
             />
           );
         case 'AddUserToProfitCenter':
           return (
             <AddUserToProfitCenterModal
-              isOpen={this.state.modalOpen}
-              onRequestClose={this.closeModal}
-              style={modalStyle}
+              isOpen={this.props.modalOpen}
+              onRequestClose={this.props.onModalClose}
               profitCenterId={this.props.queryFilter.profitCenterId}
             />
           );
         default:
-          return (
-            <Modal
-              isOpen={this.state.modalOpen}
-              onRequestClose={this.closeModal}
-              ariaHideApp={false}
-              style={modalStyle}
-            >
-              <div>Please press the button</div>
-              <button
-                type="button"
-                className="button-submit blue-button"
-                onClick={this.handleCreate}
-              >
-                Click Me
-              </button>
-            </Modal>
-          );
+          return null;
       }
     })();
 
@@ -246,14 +103,16 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
       >
         <ColumnSelector
-          {...this.props}
+          columns={this.props.columns}
+          onColumnSelect={this.props.onColumnSelect}
+          selectedColumn={this.props.selectedColumn}
         />
         <div className="admin-panel-list">
           <div className="admin-panel-toolbar">
             <Filter
               placeholderText={filterPlaceholder}
-              setFilterText={this.setFilterText}
-              filterText={this.state.filterText}
+              setFilterText={this.props.onFilterTextChange}
+              filterText={this.props.filterText}
             />
             <div className="admin-panel-action-icons-container">
               {actionIcon}
@@ -261,7 +120,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
           </div>
           <div className="admin-panel-content-container">
             <ul className="admin-panel-content">
-              {cards}
+              {this.renderCards()}
             </ul>
           </div>
         </div>
@@ -270,41 +129,107 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     );
   }
 
-  private fetch() {
-    if (!this.url) {
-      return this.setState({ entities: [] });
+  private renderCards() {
+    if (this.props.entities === null) {
+      return <div>Loading...</div>;
     }
 
-    getData(this.url, this.props.queryFilter)
-    .then((response) => {
-      if (this.props.selectedDataSource) {
-        this.setState({
-          entities: this.props.selectedDataSource.processInfo(response),
-        });
-      }
-    });
+    let filteredCards: EntityInfo[];
+    if (isClientInfoTree(this.props.entities)) {
+      // flatten basic tree into an array
+      const traverse = (node: BasicNode<ClientInfo>, list: ClientInfoWithDepth[] = [], depth = 0) => {
+        if (node.Value !== null) {
+          const clientDepth = {
+            ...node.Value,
+            depth,
+          };
+          list.push(clientDepth);
+        }
+        if (node.Children.length) {
+          node.Children.forEach((child) => list = traverse(child, list, depth + 1));
+        }
+        return list;
+      };
+      filteredCards = traverse(this.props.entities.Root);
+    } else {
+      filteredCards = this.props.entities;
+    }
+
+    // apply filter
+    filteredCards = filteredCards.filter((entity) =>
+        EntityHelper.applyFilter(entity, this.props.filterText));
+
+    if (filteredCards.length === 0) {
+      return this.props.selectedColumn
+        ? <div>No {this.props.selectedColumn.name.toLowerCase()} found.</div>
+        : null;
+    } else if (isClientInfo(filteredCards[0])) {
+      const rootIndices = [];
+      filteredCards.forEach((entity: ClientInfoWithDepth, i) => {
+        if (!entity.ParentId) {
+          rootIndices.push(i);
+        }
+      });
+      const cardGroups = rootIndices.map((_, i) =>
+        filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
+      return cardGroups.map((group, i) => {
+        const groupCards = group.map((entity: ClientInfoWithDepth) => (
+          <li key={entity.Id}>
+            <Card
+              entity={entity}
+              selected={entity.Id === this.props.selectedCard}
+              onSelect={() => this.props.onCardSelect(entity.Id)}
+              expanded={this.props.cards[entity.Id].expanded}
+              onExpandedToggled={() => this.props.onExpandedToggled(entity.Id)}
+              indentation={entity.depth}
+              profitCenterModalOpen={this.props.cards[entity.Id].profitCenterModalOpen}
+              onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.Id)}
+              onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.Id)}
+            />
+          </li>
+        ));
+        if (i + 1 !== cardGroups.length) {
+          groupCards.push((<div key="hr-{i}" className="hr" />));
+        }
+        return groupCards;
+      });
+    } else {
+      return filteredCards.map((entity) => (
+        <li key={entity.Id}>
+          <Card
+            entity={entity}
+            selected={entity.Id === this.props.selectedCard}
+            onSelect={() => this.props.onCardSelect(entity.Id)}
+            expanded={this.props.cards[entity.Id].expanded}
+            onExpandedToggled={() => this.props.onExpandedToggled(entity.Id)}
+            activated={isUserInfo(entity) ? entity.Activated : null}
+            resetButton={isUserInfo(entity)}
+            profitCenterModalOpen={this.props.cards[entity.Id].profitCenterModalOpen}
+            onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.Id)}
+            onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.Id)}
+            onSendReset={this.getOnSendReset(entity)}
+            onProfitCenterDelete={this.getOnProfitCenterDelete(entity)}
+            onProfitCenterUserRemove={this.getOnProfitCenterUserRemove(entity)}
+            onClientUserRemove={this.getOnClientUserRemove(entity)}
+          />
+        </li>
+      ));
+    }
   }
 
-  private setFilterText(filterText: string) {
-    this.setState({ filterText });
-  }
+  private getOnSendReset = (entity: EntityInfo) => isUserInfo(entity)
+      ? () => this.props.onSendReset(entity.Email)
+      : null
 
-  private addAction() {
-    this.setState({
-      modalOpen: true,
-    });
-  }
+  private getOnProfitCenterDelete = (entity: EntityInfo) => isProfitCenterInfo(entity)
+      ? () => this.props.onProfitCenterDelete(entity.Id)
+      : null
 
-  private closeModal() {
-    this.setState({
-      modalOpen: false,
-    });
-  }
+  private getOnProfitCenterUserRemove = (entity: EntityInfo) => (isUserInfo(entity) && entity.ProfitCenterId !== null)
+      ? () => this.props.onProfitCenterUserRemove(entity.Id, entity.ProfitCenterId)
+      : null
 
-  private handleCreate() {
-    postData(this.createUrl)
-    .then(() => {
-      throw new Error('Not implemented');
-    });
-  }
+  private getOnClientUserRemove = (entity: EntityInfo) => (isUserInfo(entity) && entity.ClientId !== null)
+      ? () => this.props.onClientUserRemove(entity.Id, entity.ClientId)
+      : null
 }

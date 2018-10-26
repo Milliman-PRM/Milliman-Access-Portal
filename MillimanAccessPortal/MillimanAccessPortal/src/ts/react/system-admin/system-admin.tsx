@@ -9,258 +9,168 @@ import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
-import { BasicNode, BasicTree } from '../../view-models/content-publishing';
+import { getData, postData } from '../../shared';
+import { BasicNode } from '../../view-models/content-publishing';
+import { CardAttributes } from '../shared-components/card';
+import { ColumnIndicator } from '../shared-components/column-selector';
 import { ContentPanel } from '../shared-components/content-panel';
-import { Entity } from '../shared-components/entity';
-import { DataSource, Structure } from '../shared-components/interfaces';
+import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
-import { ClientInfo, ProfitCenterInfo, RootContentItemInfo, UserInfo } from './interfaces';
+import {
+  ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfoTree,
+  isRootContentItemDetail, isUserClientRoles, isUserDetail, PrimaryDetail, PrimaryDetailData,
+  SecondaryDetail, SecondaryDetailData, UserClientRoles,
+} from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
+interface ContentPanelAttributes {
+  selected: {
+    column: SystemAdminColumn;
+    card: string;
+  };
+  cards: {
+    [id: string]: CardAttributes;
+  };
+  filter: {
+    text: string;
+  };
+  createModal: {
+    open: boolean;
+  };
+}
 export interface SystemAdminState {
-  primaryDataSource: string;
-  secondaryDataSource: string;
-  primarySelectedCard: string;
-  secondarySelectedCard: string;
+  data: {
+    primaryEntities: EntityInfoCollection;
+    secondaryEntities: EntityInfoCollection;
+    primaryDetail: PrimaryDetailData;
+    secondaryDetail: SecondaryDetailData;
+  };
+  primaryPanel: ContentPanelAttributes;
+  secondaryPanel: ContentPanelAttributes;
+}
+
+export enum SystemAdminColumn {
+  USER = 'user',
+  CLIENT = 'client',
+  PROFIT_CENTER = 'profitCenter',
+  ROOT_CONTENT_ITEM = 'rootContentItem',
 }
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
-  private controller: string = 'SystemAdmin';
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
-  private nullDataSource: DataSource<Entity> = {
-    name: null,
-    structure: 0,
-    parentSources: [],
-    displayName: '',
-    infoAction: '',
-    detailAction: '',
-    createAction: null,
-    processInfo: () => null,
-    assignQueryFilter: () => null,
-  };
-  private dataSources: Array<DataSource<Entity>> = [
-    {
-      name: 'user',
-      structure: Structure.List,
-      parentSources: [
-        null,
-        {
-          name: 'client',
-          overrides: {
-            createAction: 'AddUserToClient',
-          },
-        },
-        {
-          name: 'profitCenter',
-          overrides: {
-            createAction: 'AddUserToProfitCenter',
-            displayName: 'Authorized Users',
-          },
-        },
-      ],
-      displayName: 'Users',
-      sublistInfo: {
-        title: 'Content Items',
-        icon: 'reports',
-        emptyText: 'This user does not have access to any reports.',
-      },
-      infoAction: 'Users',
-      detailAction: 'UserDetail',
-      createAction: 'CreateUser',
-      processInfo: (response: UserInfo[]) => response.map((user) => ({
-        id: user.Id,
-        primaryText: `${user.LastName}, ${user.FirstName}`,
-        secondaryText: user.UserName,
-        primaryStat: user.ClientCount !== null && {
-          name: 'Clients',
-          value: user.ClientCount,
-          icon: 'client-admin',
-        },
-        secondaryStat: user.RootContentItemCount !== null && {
-          name: 'Reports',
-          value: user.RootContentItemCount,
-          icon: 'reports',
-        },
-        sublist: user.RootContentItems && user.RootContentItems.map((item) => ({
-          id: item.Id,
-          primaryText: item.Name,
-        })),
-        activated: user.Activated,
-        email: user.Email,
-        suspended: user.IsSuspended,
-        isUserInProfitCenter: user.ProfitCenterId,
-      })),
-      assignQueryFilter: (userId: string) => ({ userId }),
-    },
-    {
-      name: 'client',
-      structure: Structure.Tree,
-      parentSources: [
-        null,
-        'user',
-        'profitCenter',
-      ],
-      displayName: 'Clients',
-      infoAction: 'Clients',
-      detailAction: 'ClientDetail',
-      createAction: null,
-      processInfo: (response: BasicTree<ClientInfo>) => {
-        interface ClientDepth {
-          client: ClientInfo;
-          depth: number;
-        }
-        function traverse(node: BasicNode<ClientInfo>, list: ClientDepth[] = [], depth = 0): ClientDepth[] {
-          if (node.Value !== null) {
-            const clientDepth = {
-              client: node.Value,
-              depth,
-            };
-            list.push(clientDepth);
-          }
-          if (node.Children.length) {
-            node.Children.forEach((child) => list = traverse(child, list, depth + 1));
-          }
-          return list;
-        }
-        const clientDepthList = traverse(response.Root);
-        return clientDepthList.map((cd) => ({
-          id: cd.client.Id,
-          primaryText: cd.client.Name,
-          secondaryText: cd.client.Code,
-          primaryStat: cd.client.UserCount !== null && {
-            name: 'Users',
-            value: cd.client.UserCount,
-            icon: 'user',
-          },
-          secondaryStat: cd.client.RootContentItemCount !== null && {
-            name: 'Reports',
-            value: cd.client.RootContentItemCount,
-            icon: 'reports',
-          },
-          indent: cd.depth,
-          readOnly: cd.client.ParentOnly,
-        }));
-      },
-      assignQueryFilter: (clientId: string) => ({ clientId }),
-    },
-    {
-      name: 'profitCenter',
-      structure: Structure.List,
-      parentSources: [
-        null,
-      ],
-      displayName: 'Profit Center',
-      infoAction: 'ProfitCenters',
-      detailAction: 'ProfitCenterDetail',
-      createAction: 'CreateProfitCenter',
-      processInfo: (response: ProfitCenterInfo[]) => response.map((profitCenter) => ({
-        id: profitCenter.Id,
-        primaryText: profitCenter.Name,
-        secondaryText: profitCenter.Office,
-        primaryStat: {
-          name: 'Authorized users',
-          value: profitCenter.UserCount,
-          icon: 'user',
-        },
-        secondaryStat: {
-          name: 'Clients',
-          value: profitCenter.ClientCount,
-          icon: 'client-admin',
-        },
-        isProfitCenter: true,
-      })),
-      assignQueryFilter: (profitCenterId: string) => ({ profitCenterId }),
-    },
-    {
-      name: 'rootContentItem',
-      structure: Structure.List,
-      parentSources: [
-        {
-          name: 'user',
-          overrides: {
-            displayName: 'Content',
-          },
-        },
-        'client',
-      ],
-      displayName: 'Content Items',
-      sublistInfo: {
-        title: 'Members',
-        icon: 'user',
-        emptyText: 'No users have access to this report.',
-      },
-      infoAction: 'RootContentItems',
-      detailAction: 'RootContentItemDetail',
-      createAction: null,
-      processInfo: (response: RootContentItemInfo[]) => response.map((item) => ({
-        id: item.Id,
-        primaryText: item.Name,
-        secondaryText: item.ClientName,
-        primaryStat: item.UserCount !== null && {
-          name: 'Users',
-          value: item.UserCount,
-          icon: 'user',
-        },
-        secondaryStat: item.SelectionGroupCount !== null && {
-          name: 'Selection Groups',
-          value: item.SelectionGroupCount,
-          icon: 'group',
-        },
-        sublist: item.Users && item.Users.map((user) => ({
-          id: user.Id,
-          primaryText: `${user.FirstName} ${user.LastName}`,
-          secondaryText: user.UserName,
-        })),
-        suspended: item.IsSuspended,
-      })),
-      assignQueryFilter: (rootContentItemId: string) => ({ rootContentItemId }),
-    },
-  ];
 
   public constructor(props) {
     super(props);
 
     this.state = {
-      primaryDataSource: 'user',
-      secondaryDataSource: null,
-      primarySelectedCard: null,
-      secondarySelectedCard: null,
+      data: {
+        primaryEntities: null,
+        secondaryEntities: null,
+        primaryDetail: null,
+        secondaryDetail: null,
+      },
+      primaryPanel: {
+        selected: {
+          column: SystemAdminColumn.USER,
+          card: null,
+        },
+        cards: null,
+        filter: {
+          text: '',
+        },
+        createModal: {
+          open: false,
+        },
+      },
+      secondaryPanel: {
+        selected: {
+          column: null,
+          card: null,
+        },
+        cards: null,
+        filter: {
+          text: '',
+        },
+        createModal: {
+          open: false,
+        },
+      },
     };
+  }
 
-    this.setPrimaryDataSource = this.setPrimaryDataSource.bind(this);
-    this.setSecondaryDataSource = this.setSecondaryDataSource.bind(this);
-    this.setPrimarySelectedCard = this.setPrimarySelectedCard.bind(this);
-    this.setSecondarySelectedCard = this.setSecondarySelectedCard.bind(this);
+  public componentDidMount() {
+    this.handlePrimaryColumnSelected(SystemAdminColumn.USER);
+  }
+
+  public componentDidUpdate() {
+    const { primaryEntities, secondaryEntities, primaryDetail, secondaryDetail } = this.state.data;
+    const { card: primaryCard } = this.state.primaryPanel.selected;
+    const { column: secondaryColumn, card: secondaryCard } = this.state.secondaryPanel.selected;
+    if (primaryEntities === null) {
+      this.fetchPrimaryEntities();
+    }
+    if (primaryCard) {
+      if (primaryDetail === null) {
+        this.fetchPrimaryDetail();
+      } else {
+        if (isUserDetail(primaryDetail) && primaryDetail.IsSuspended === null) {
+          this.fetchSystemAdmin();
+          this.fetchSuspendUser();
+        }
+      }
+    }
+    if (secondaryEntities === null && secondaryColumn) {
+      this.fetchSecondaryEntities();
+    }
+    if (secondaryCard) {
+      if (secondaryDetail === null) {
+        this.fetchSecondaryDetail();
+      } else {
+        if (isUserClientRoles(secondaryDetail) && secondaryDetail.IsClientAdmin === null) {
+          this.fetchUserClient(RoleEnum.Admin);
+          this.fetchUserClient(RoleEnum.ContentPublisher);
+          this.fetchUserClient(RoleEnum.ContentAccessAdmin);
+          this.fetchUserClient(RoleEnum.ContentUser);
+        }
+        if (isRootContentItemDetail(secondaryDetail) && secondaryDetail.IsSuspended === null) {
+          this.fetchSuspendContent();
+        }
+      }
+    }
   }
 
   public render() {
+    const { primaryEntities, secondaryEntities, primaryDetail, secondaryDetail } = this.state.data;
+    const { column: primaryColumn, card: primaryCard } = this.state.primaryPanel.selected;
+    const { column: secondaryColumn, card: secondaryCard } = this.state.secondaryPanel.selected;
 
-    // pass available data sources as props based on defined data sources
-    const primaryDataSources = this.getDataSources(null);
-    const primaryDataSource = this.getDataSourceByName(primaryDataSources, this.state.primaryDataSource);
-    const secondaryDataSources = this.getDataSources(this.state.primaryDataSource);
-    const secondaryDataSource = this.getDataSourceByName(secondaryDataSources, this.state.secondaryDataSource);
-
-    const secondaryQueryFilter = Object.assign(
-      {}, primaryDataSource.assignQueryFilter(this.state.primarySelectedCard));
-    const finalQueryFilter = Object.assign(
-      {},
-      primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
-      secondaryDataSource.assignQueryFilter(this.state.secondarySelectedCard),
-    );
-
-    const secondaryColumnComponent = this.state.primarySelectedCard
+    const secondaryQueryFilter = this.getSecondaryQueryFilter();
+    const secondaryColumnComponent = secondaryColumn
       ? (
         <ContentPanel
-          controller={this.controller}
-          dataSources={secondaryDataSources}
-          setSelectedDataSource={this.setSecondaryDataSource}
-          selectedDataSource={secondaryDataSource}
-          setSelectedCard={this.setSecondarySelectedCard}
-          selectedCard={this.state.secondarySelectedCard}
+          filterText={this.state.secondaryPanel.filter.text}
+          modalOpen={this.state.secondaryPanel.createModal.open}
+          onFilterTextChange={this.handleSecondaryFilterKeyup}
+          onModalOpen={this.handleSecondaryModalOpen}
+          onModalClose={this.handleSecondaryModalClose}
+          createAction={this.getCreateAction(secondaryColumn, primaryColumn)}
+          columns={this.getColumns(primaryColumn)}
+          onColumnSelect={this.handleSecondaryColumnSelected}
+          selectedColumn={this.getColumns(primaryColumn).filter((c) => c.id === secondaryColumn)[0]}
+          onExpandedToggled={this.handleSecondaryExpandedToggled}
+          cards={this.state.secondaryPanel.cards}
+          onCardSelect={this.handleSecondaryCardSelected}
+          selectedCard={secondaryCard}
           queryFilter={secondaryQueryFilter}
+          entities={secondaryEntities}
+          onProfitCenterModalOpen={this.handleProfitCenterModalOpen}
+          onProfitCenterModalClose={this.handleProfitCenterModalClose}
+          onSendReset={this.handleSendReset}
+          onProfitCenterDelete={this.handleProfitCenterDelete}
+          onProfitCenterUserRemove={this.handleProfitCenterUserRemove}
+          onClientUserRemove={this.handleClientUserRemove}
         />
       )
       : null;
@@ -270,13 +180,27 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           currentView={this.currentView}
         />
         <ContentPanel
-          controller={this.controller}
-          dataSources={primaryDataSources}
-          setSelectedDataSource={this.setPrimaryDataSource}
-          selectedDataSource={primaryDataSource}
-          setSelectedCard={this.setPrimarySelectedCard}
-          selectedCard={this.state.primarySelectedCard}
-          queryFilter={{}}
+          filterText={this.state.primaryPanel.filter.text}
+          modalOpen={this.state.primaryPanel.createModal.open}
+          onFilterTextChange={this.handlePrimaryFilterKeyup}
+          onModalOpen={this.handlePrimaryModalOpen}
+          onModalClose={this.handlePrimaryModalClose}
+          createAction={this.getCreateAction(primaryColumn)}
+          columns={this.getColumns()}
+          onColumnSelect={this.handlePrimaryColumnSelected}
+          selectedColumn={this.getColumns().filter((c) => c.id === primaryColumn)[0]}
+          onExpandedToggled={this.handlePrimaryExpandedToggled}
+          cards={this.state.primaryPanel.cards}
+          onCardSelect={this.handlePrimaryCardSelected}
+          selectedCard={primaryCard}
+          queryFilter={this.getPrimaryQueryFilter()}
+          entities={primaryEntities}
+          onProfitCenterModalOpen={this.handleProfitCenterModalOpen}
+          onProfitCenterModalClose={this.handleProfitCenterModalClose}
+          onSendReset={this.handleSendReset}
+          onProfitCenterDelete={this.handleProfitCenterDelete}
+          onProfitCenterUserRemove={this.handleProfitCenterUserRemove}
+          onClientUserRemove={this.handleClientUserRemove}
         />
         {secondaryColumnComponent}
         <div
@@ -284,91 +208,809 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           style={{overflowY: 'auto'}}
         >
           <PrimaryDetailPanel
-            controller={this.controller}
-            selectedDataSource={primaryDataSource}
-            selectedCard={this.state.primarySelectedCard}
+            selectedCard={primaryCard}
+            selectedColumn={primaryColumn}
             queryFilter={secondaryQueryFilter}
+            detail={primaryDetail}
+            onPushSystemAdmin={this.pushSystemAdmin}
+            checkedSystemAdmin={isUserDetail(primaryDetail) && primaryDetail.IsSystemAdmin}
+            onPushSuspend={this.pushSuspendUser}
+            checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.IsSuspended}
           />
           <SecondaryDetailPanel
-            controller={this.controller}
-            primarySelectedDataSource={primaryDataSource}
-            secondarySelectedDataSource={secondaryDataSource}
-            selectedCard={this.state.secondarySelectedCard}
-            queryFilter={finalQueryFilter}
+            selectedCard={secondaryCard}
+            primarySelectedColumn={primaryColumn}
+            secondarySelectedColumn={secondaryColumn}
+            queryFilter={this.getFinalQueryFilter()}
+            detail={secondaryDetail}
+            onCancelPublication={this.handlePublicationCanceled}
+            onCancelReduction={this.handleReductionCanceled}
+            checkedClientAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.IsClientAdmin}
+            checkedContentPublisher={isUserClientRoles(secondaryDetail) && secondaryDetail.IsContentPublisher}
+            checkedAccessAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.IsAccessAdmin}
+            checkedContentUser={isUserClientRoles(secondaryDetail) && secondaryDetail.IsContentUser}
+            checkedSuspended={isRootContentItemDetail(secondaryDetail) && secondaryDetail.IsSuspended}
+            onPushUserClient={this.pushUserClient}
+            onPushSuspend={this.pushSuspendContent}
           />
         </div>
       </>
     );
   }
 
-  // callbacks for child components
-  private setPrimaryDataSource(sourceName: string) {
-    this.setState((prevState) => ({
-      primaryDataSource: sourceName,
-      secondaryDataSource: sourceName === prevState.primaryDataSource
-        ? prevState.secondaryDataSource
-        : null,
-      primarySelectedCard: sourceName === prevState.primaryDataSource
-        ? prevState.primarySelectedCard
-        : null,
-      secondarySelectedCard: sourceName === prevState.primaryDataSource
-        ? prevState.secondarySelectedCard
-        : null,
-    }));
-  }
-
-  private setSecondaryDataSource(sourceName: string) {
-    this.setState((prevState) => ({
-      secondaryDataSource: sourceName,
-      secondarySelectedCard: sourceName === prevState.secondaryDataSource
-        ? prevState.secondarySelectedCard
-        : null,
-    }));
-  }
-
-  private setPrimarySelectedCard(cardId: string) {
-    this.setState((prevState) => ({
-      primarySelectedCard: prevState.primarySelectedCard === cardId
-        ? null
-        : cardId,
-      secondarySelectedCard: null,
-    }));
-  }
-
-  private setSecondarySelectedCard(cardId: string) {
-    this.setState((prevState) => ({
-      secondarySelectedCard: prevState.secondarySelectedCard === cardId
-        ? null
-        : cardId,
-    }));
-  }
-
   // utility methods
-  private getDataSources(parentName: string): Array<DataSource<Entity>> {
-    return this.dataSources
-      // strip non-matching parent sources
-      .map((dataSource) => {
-        const filteredDataSource = {...dataSource};
-        filteredDataSource.parentSources = filteredDataSource.parentSources.filter((parentSource) =>
-          parentSource === null || typeof parentSource === 'string'
-            ? parentSource === parentName
-            : parentSource.name === parentName);
-        return filteredDataSource;
-      })
-      // filter out data sources without the parent source
-      .filter((dataSource) => dataSource.parentSources.length)
-      // apply overrides if present
-      .map((dataSource) => {
-        const parentSource = dataSource.parentSources[0];
-        if (parentSource !== null && typeof parentSource !== 'string') {
-          Object.assign(dataSource, parentSource.overrides);
-        }
-        return dataSource;
-      });
+  private getColumns(parent: SystemAdminColumn = null): ColumnIndicator[] {
+    switch (parent) {
+      case null:
+        return [
+          {
+            id: SystemAdminColumn.USER,
+            name: 'Users',
+          },
+          {
+            id: SystemAdminColumn.CLIENT,
+            name: 'Clients',
+          },
+          {
+            id: SystemAdminColumn.PROFIT_CENTER,
+            name: 'Profit Centers',
+          },
+        ];
+      case SystemAdminColumn.USER:
+        return [
+          {
+            id: SystemAdminColumn.CLIENT,
+            name: 'Clients',
+          },
+          {
+            id: SystemAdminColumn.ROOT_CONTENT_ITEM,
+            name: 'Content',
+          },
+        ];
+      case SystemAdminColumn.CLIENT:
+        return [
+          {
+            id: SystemAdminColumn.USER,
+            name: 'Users',
+          },
+          {
+            id: SystemAdminColumn.ROOT_CONTENT_ITEM,
+            name: 'Content Items',
+          },
+        ];
+      case SystemAdminColumn.PROFIT_CENTER:
+        return [
+          {
+            id: SystemAdminColumn.USER,
+            name: 'Authorized Users',
+          },
+          {
+            id: SystemAdminColumn.CLIENT,
+            name: 'Clients',
+          },
+        ];
+      default:
+        return [];
+    }
   }
 
-  private getDataSourceByName(dataSources: Array<DataSource<Entity>>, name: string): DataSource<Entity> {
-    return dataSources.filter((dataSource) => dataSource.name === name)[0]
-      || this.nullDataSource;
+  private getDataAction(column: SystemAdminColumn) {
+    switch (column) {
+      case SystemAdminColumn.USER:
+        return 'Users';
+      case SystemAdminColumn.CLIENT:
+        return 'Clients';
+      case SystemAdminColumn.PROFIT_CENTER:
+        return 'ProfitCenters';
+      case SystemAdminColumn.ROOT_CONTENT_ITEM:
+        return 'RootContentItems';
+      default:
+        throw new Error(`'${column}' is not a valid column.`);
+    }
+  }
+
+  private getDetailAction(column: SystemAdminColumn) {
+    switch (column) {
+      case SystemAdminColumn.USER:
+        return 'UserDetail';
+      case SystemAdminColumn.CLIENT:
+        return 'ClientDetail';
+      case SystemAdminColumn.PROFIT_CENTER:
+        return 'ProfitCenterDetail';
+      case SystemAdminColumn.ROOT_CONTENT_ITEM:
+        return 'RootContentItemDetail';
+      default:
+        throw new Error(`'${column}' is not a valid column.`);
+    }
+  }
+
+  private getCreateAction(column: SystemAdminColumn, context: SystemAdminColumn = null) {
+    switch (column) {
+      case SystemAdminColumn.USER:
+        switch (context) {
+          case SystemAdminColumn.CLIENT:
+            return 'AddUserToClient';
+          case SystemAdminColumn.PROFIT_CENTER:
+            return 'AddUserToProfitCenter';
+          case null:
+            return 'CreateUser';
+          case SystemAdminColumn.USER:
+          case SystemAdminColumn.ROOT_CONTENT_ITEM:
+            return null;
+          default:
+            throw new Error(`'${column}' is not a valid column in context of column ${context}.`);
+        }
+      case SystemAdminColumn.PROFIT_CENTER:
+        return 'CreateProfitCenter';
+      case SystemAdminColumn.CLIENT:
+      case SystemAdminColumn.ROOT_CONTENT_ITEM:
+      case null:
+        return null;
+      default:
+        throw new Error(`'${column}' is not a valid column.`);
+    }
+  }
+
+  private assignQueryFilter(column: SystemAdminColumn, queryFilter: QueryFilter, id: Guid): QueryFilter {
+    switch (column) {
+      case SystemAdminColumn.USER:
+        return {...queryFilter, userId: id};
+      case SystemAdminColumn.CLIENT:
+        return {...queryFilter, clientId: id};
+      case SystemAdminColumn.PROFIT_CENTER:
+        return {...queryFilter, profitCenterId: id};
+      case SystemAdminColumn.ROOT_CONTENT_ITEM:
+        return {...queryFilter, rootContentItemId: id};
+      default:
+        return queryFilter;
+    }
+  }
+
+  private getPrimaryQueryFilter = () => ({});
+  private getSecondaryQueryFilter = () => this.assignQueryFilter(
+    this.state.primaryPanel.selected.column,
+    this.getPrimaryQueryFilter(),
+    this.state.primaryPanel.selected.card,
+  )
+  private getFinalQueryFilter = () => this.assignQueryFilter(
+    this.state.secondaryPanel.selected.column,
+    this.getSecondaryQueryFilter(),
+    this.state.secondaryPanel.selected.card,
+  )
+
+  // callbacks for child components
+  private handlePrimaryColumnSelected = (column: SystemAdminColumn) => {
+    this.setState((prevState) => {
+      if (column === prevState.primaryPanel.selected.column) {
+        return prevState;
+      }
+      return {
+        data: {
+          primaryEntities: null,
+          secondaryEntities: null,
+          primaryDetail: null,
+          secondaryDetail: null,
+        },
+        primaryPanel: {
+          selected: {
+            column,
+            card: null,
+          },
+          cards: null,
+          filter: {
+            text: '',
+          },
+          createModal: {
+            open: false,
+          },
+        },
+        secondaryPanel: {
+          selected: {
+            column: null,
+            card: null,
+          },
+          cards: null,
+          filter: {
+            text: '',
+          },
+          createModal: {
+            open: false,
+          },
+        },
+      };
+    });
+  }
+
+  private handleSecondaryColumnSelected = (column: SystemAdminColumn) => {
+    this.setState((prevState) => {
+      if (column === prevState.secondaryPanel.selected.column) {
+        return prevState;
+      }
+      return {
+        ...prevState,
+        data: {
+          ...prevState.data,
+          secondaryEntities: null,
+          secondaryDetail: null,
+        },
+        secondaryPanel: {
+          selected: {
+            column,
+            card: null,
+          },
+          cards: null,
+          filter: {
+            text: '',
+          },
+          createModal: {
+            open: false,
+          },
+        },
+      };
+    });
+  }
+
+  private handlePrimaryCardSelected = (id: Guid) => {
+    this.setState((prevState) => {
+      const defaultColumn = this.getColumns(prevState.primaryPanel.selected.column)[0].id as SystemAdminColumn;
+      return {
+        data: {
+          ...prevState.data,
+          secondaryEntities: null,
+          primaryDetail: null,
+          secondaryDetail: null,
+        },
+        primaryPanel: {
+          ...prevState.primaryPanel,
+          selected: {
+            ...prevState.primaryPanel.selected,
+            card: prevState.primaryPanel.selected.card === id ? null : id,
+          },
+        },
+        secondaryPanel: {
+          ...prevState.secondaryPanel,
+          selected: {
+            column: prevState.secondaryPanel.selected.column || (defaultColumn as SystemAdminColumn),
+            card: null,
+          },
+        },
+      };
+    });
+  }
+
+  private handleSecondaryCardSelected = (id: Guid) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      data: {
+        ...prevState.data,
+        secondaryDetail: null,
+      },
+      secondaryPanel: {
+        ...prevState.secondaryPanel,
+        selected: {
+          ...prevState.secondaryPanel.selected,
+          card: prevState.secondaryPanel.selected.card === id ? null : id,
+        },
+      },
+    }));
+  }
+
+  private fetchPrimaryEntities = () => {
+    const { column } = this.state.primaryPanel.selected;
+    getData(`/SystemAdmin/${this.getDataAction(column)}`, {})
+    .then((response: EntityInfoCollection) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          primaryEntities: response,
+        },
+        primaryPanel: {
+          ...prevState.primaryPanel,
+          cards: this.initializeCardAttributes(response),
+        },
+      }));
+    });
+  }
+
+  private fetchSecondaryEntities() {
+    const { column } = this.state.secondaryPanel.selected;
+    getData(`/SystemAdmin/${this.getDataAction(column)}`, this.getSecondaryQueryFilter())
+    .then((response) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          secondaryEntities: response,
+        },
+        secondaryPanel: {
+          ...prevState.secondaryPanel,
+          cards: this.initializeCardAttributes(response),
+        },
+      }));
+    });
+  }
+
+  private fetchPrimaryDetail = () => {
+    const { column, card } = this.state.primaryPanel.selected;
+    if (!card) {
+      return;
+    }
+
+    getData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getSecondaryQueryFilter())
+    .then((response: PrimaryDetail) => {
+      let responseWithDefaults: PrimaryDetailData;
+      if (isUserDetail(response)) {
+        responseWithDefaults = {
+          ...response,
+          IsSystemAdmin: null,
+          IsSuspended: null,
+        };
+      } else {
+        responseWithDefaults = response;
+      }
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          primaryDetail: responseWithDefaults,
+        },
+      }));
+    });
+  }
+
+  private fetchSecondaryDetail = () => {
+    const { column, card } = this.state.secondaryPanel.selected;
+    if (!card) {
+      return;
+    }
+    getData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getFinalQueryFilter())
+    .then((response: SecondaryDetail) => {
+      let responseWithDefaults: SecondaryDetailData;
+      if (isUserClientRoles(response)) {
+        responseWithDefaults = {
+          ...response,
+          IsClientAdmin: null,
+          IsContentPublisher: null,
+          IsAccessAdmin: null,
+          IsContentUser: null,
+        };
+      } else if (isRootContentItemDetail(response)) {
+        responseWithDefaults = {
+          ...response,
+          IsSuspended: null,
+        };
+      } else {
+        responseWithDefaults = response;
+      }
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          secondaryDetail: responseWithDefaults,
+        },
+      }));
+    });
+  }
+
+  private handlePublicationCanceled = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    postData(
+      '/SystemAdmin/CancelPublication',
+      { rootContentItemId: this.getFinalQueryFilter().rootContentItemId },
+    ).then(() => {
+      alert('Publication canceled.');
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          secondaryDetail: null,
+        },
+      }));
+    });
+  }
+
+  private handleReductionCanceled = (event: React.MouseEvent<HTMLAnchorElement>, id: Guid) => {
+    event.preventDefault();
+    postData(
+      '/SystemAdmin/CancelReduction',
+      { selectionGroupId: id },
+    ).then(() => {
+      alert('Reduction canceled.');
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          secondaryDetail: null,
+        },
+      }));
+    });
+  }
+
+  private fetchSystemAdmin = () => {
+    getData('/SystemAdmin/SystemRole', {
+      ...this.getSecondaryQueryFilter(),
+      role: RoleEnum.Admin,
+    }).then((response: boolean) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          primaryDetail: {
+            ...prevState.data.primaryDetail,
+            IsSystemAdmin: response,
+          },
+        },
+      }));
+    });
+  }
+
+  private pushSystemAdmin = () => {
+    const { primaryDetail } = this.state.data;
+    if (!isUserDetail(primaryDetail)) {
+      return;
+    }
+
+    postData('/SystemAdmin/SystemRole', {
+      ...this.getSecondaryQueryFilter(),
+      role: RoleEnum.Admin,
+      value: !primaryDetail.IsSystemAdmin,
+    }).then((response: boolean) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          primaryDetail: {
+            ...prevState.data.primaryDetail,
+            IsSystemAdmin: response,
+          },
+        },
+      }));
+    });
+  }
+
+  private fetchSuspendUser = () => {
+    getData('/SystemAdmin/UserSuspendedStatus', {
+      ...this.getSecondaryQueryFilter(),
+    }).then((response: boolean) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          primaryDetail: {
+            ...prevState.data.primaryDetail,
+            IsSuspended: response,
+          },
+        },
+      }));
+    });
+  }
+
+  private pushSuspendUser = () => {
+    const { primaryDetail } = this.state.data;
+    if (!isUserDetail(primaryDetail)) {
+      return;
+    }
+
+    postData('/SystemAdmin/UserSuspendedStatus', {
+      ...this.getSecondaryQueryFilter(),
+      value: !primaryDetail.IsSuspended,
+    }).then((response: boolean) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          primaryDetail: {
+            ...prevState.data.primaryDetail,
+            IsSuspended: response,
+          },
+        },
+      }));
+    });
+  }
+
+  private fetchUserClient = (role: RoleEnum) => {
+    getData('/SystemAdmin/UserClientRoleAssignment', {
+      ...this.getFinalQueryFilter(),
+      role,
+    }).then((response: boolean) => {
+      let roleAssignment: Partial<UserClientRoles> = {};
+      if (role === RoleEnum.Admin) {
+        roleAssignment = { IsClientAdmin: response };
+      } else if (role === RoleEnum.ContentPublisher) {
+        roleAssignment = { IsContentPublisher: response };
+      } else if (role === RoleEnum.ContentAccessAdmin) {
+        roleAssignment = { IsAccessAdmin: response };
+      } else if (role === RoleEnum.ContentUser) {
+        roleAssignment = { IsContentUser: response };
+      }
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          secondaryDetail: {
+            ...prevState.data.secondaryDetail,
+            ...roleAssignment,
+          },
+        },
+      }));
+    });
+  }
+
+  private pushUserClient = (_, role: RoleEnum) => {
+    const { secondaryDetail } = this.state.data;
+    if (!isUserClientRoles(secondaryDetail)) {
+      return;
+    }
+
+    let prevValue = false;
+    if (role === RoleEnum.Admin) {
+      prevValue = secondaryDetail.IsClientAdmin;
+    } else if (role === RoleEnum.ContentPublisher) {
+      prevValue = secondaryDetail.IsContentPublisher;
+    } else if (role === RoleEnum.ContentAccessAdmin) {
+      prevValue = secondaryDetail.IsAccessAdmin;
+    } else if (role === RoleEnum.ContentUser) {
+      prevValue = secondaryDetail.IsContentUser;
+    }
+    postData('/SystemAdmin/UserClientRoleAssignment', {
+      ...this.getFinalQueryFilter(),
+      role,
+      value: !prevValue,
+    }).then((response: boolean) => {
+      let roleAssignment: Partial<UserClientRoles> = {};
+      if (role === RoleEnum.Admin) {
+        roleAssignment = { IsClientAdmin: response };
+      } else if (role === RoleEnum.ContentPublisher) {
+        roleAssignment = { IsContentPublisher: response };
+      } else if (role === RoleEnum.ContentAccessAdmin) {
+        roleAssignment = { IsAccessAdmin: response };
+      } else if (role === RoleEnum.ContentUser) {
+        roleAssignment = { IsContentUser: response };
+      }
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          secondaryDetail: {
+            ...prevState.data.secondaryDetail,
+            ...roleAssignment,
+          },
+        },
+      }));
+    });
+  }
+
+  private fetchSuspendContent = () => {
+    getData('/SystemAdmin/ContentSuspendedStatus', {
+      ...this.getFinalQueryFilter(),
+    }).then((response: boolean) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          secondaryDetail: {
+            ...prevState.data.secondaryDetail,
+            IsSuspended: response,
+          },
+        },
+      }));
+    });
+  }
+
+  private pushSuspendContent = () => {
+    const { secondaryDetail } = this.state.data;
+    if (!isRootContentItemDetail(secondaryDetail)) {
+      return;
+    }
+
+    postData('/SystemAdmin/ContentSuspendedStatus', {
+      ...this.getFinalQueryFilter(),
+      value: !secondaryDetail.IsSuspended,
+    }).then((response: boolean) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          secondaryDetail: {
+            ...prevState.data.secondaryDetail,
+            IsSuspended: response,
+          },
+        },
+      }));
+    });
+  }
+
+  private handlePrimaryFilterKeyup = (text: string) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      primaryPanel: {
+        ...prevState.primaryPanel,
+        filter: { text },
+      },
+    }));
+  }
+
+  private handleSecondaryFilterKeyup = (text: string) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      secondaryPanel: {
+        ...prevState.secondaryPanel,
+        filter: { text },
+      },
+    }));
+  }
+
+  private handlePrimaryModalOpen = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      primaryPanel: {
+        ...prevState.primaryPanel,
+        createModal: {
+          open: true,
+        },
+      },
+    }));
+  }
+
+  private handlePrimaryModalClose = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      primaryPanel: {
+        ...prevState.primaryPanel,
+        createModal: {
+          open: false,
+        },
+      },
+    }));
+  }
+
+  private handleSecondaryModalOpen = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      secondaryPanel: {
+        ...prevState.secondaryPanel,
+        createModal: {
+          open: true,
+        },
+      },
+    }));
+  }
+
+  private handleSecondaryModalClose = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      secondaryPanel: {
+        ...prevState.secondaryPanel,
+        createModal: {
+          open: false,
+        },
+      },
+    }));
+  }
+
+  private handlePrimaryExpandedToggled = (id: Guid) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      primaryPanel: {
+        ...prevState.primaryPanel,
+        cards: {
+          ...prevState.primaryPanel.cards,
+          [id]: {
+            ...prevState.secondaryPanel.cards[id],
+            expanded: !prevState.primaryPanel.cards[id].expanded,
+          },
+        },
+      },
+    }));
+  }
+
+  private handleSecondaryExpandedToggled = (id: Guid) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      secondaryPanel: {
+        ...prevState.secondaryPanel,
+        cards: {
+          ...prevState.secondaryPanel.cards,
+          [id]: {
+            ...prevState.secondaryPanel.cards[id],
+            expanded: !prevState.secondaryPanel.cards[id].expanded,
+          },
+        },
+      },
+    }));
+  }
+
+  private handleProfitCenterModalOpen = (id: Guid) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      primaryPanel: {
+        ...prevState.primaryPanel,
+        cards: {
+          ...prevState.primaryPanel.cards,
+          [id]: {
+            ...prevState.primaryPanel.cards[id],
+            profitCenterModalOpen: true,
+          },
+        },
+      },
+    }));
+  }
+
+  private handleProfitCenterModalClose = (id: Guid) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      primaryPanel: {
+        ...prevState.primaryPanel,
+        cards: {
+          ...prevState.primaryPanel.cards,
+          [id]: {
+            ...prevState.primaryPanel.cards[id],
+            profitCenterModalOpen: false,
+          },
+        },
+      },
+    }));
+  }
+
+  private handleSendReset = (email: string) => {
+    postData('Account/ForgotPassword', { Email: email }, true)
+    .then(() => {
+      alert('Password reset email sent.');
+    });
+  }
+
+  private handleProfitCenterDelete = (id: Guid) => {
+    postData('SystemAdmin/DeleteProfitCenter', { profitCenterId: id }, true)
+    .then(() => {
+      alert('Profit center deleted.');
+    });
+  }
+
+  private handleProfitCenterUserRemove = (userId: Guid, profitCenterId: Guid) => {
+    postData('SystemAdmin/RemoveUserFromProfitCenter', { userId, profitCenterId }, true)
+    .then(() => {
+      alert('User removed from profit center.');
+    });
+  }
+
+  private handleClientUserRemove = (userId: Guid, clientId: Guid) => {
+    postData('SystemAdmin/RemoveUserFromClient', { userId, clientId }, true)
+    .then(() => {
+      alert('User removed from client.');
+    });
+  }
+
+  private initializeCardAttributes(entities: EntityInfoCollection): { [id: string]: CardAttributes } {
+    let entityInfo: EntityInfo[];
+    if (isClientInfoTree(entities)) {
+      // flatten basic tree into an array
+      const traverse = (node: BasicNode<ClientInfo>, list: ClientInfoWithDepth[] = [], depth = 0) => {
+        if (node.Value !== null) {
+          const clientDepth = {
+            ...node.Value,
+            depth,
+          };
+          list.push(clientDepth);
+        }
+        if (node.Children.length) {
+          node.Children.forEach((child) => list = traverse(child, list, depth + 1));
+        }
+        return list;
+      };
+      entityInfo = traverse(entities.Root);
+    } else {
+      entityInfo = entities;
+    }
+    const cards: {
+      [id: string]: CardAttributes;
+    } = {};
+    entityInfo.forEach((entity) => {
+        cards[entity.Id] = {
+          expanded: false,
+          profitCenterModalOpen: false,
+        };
+    });
+    return cards;
   }
 }
