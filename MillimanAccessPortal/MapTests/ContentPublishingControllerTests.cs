@@ -301,7 +301,7 @@ namespace MapTests
             PublishRequest RequestArg = new PublishRequest
             {
                 RootContentItemId = TestUtil.MakeTestGuid(3),
-                RelatedFiles = new UploadedRelatedFile[]
+                NewRelatedFiles = new UploadedRelatedFile[]
                 {
                     new UploadedRelatedFile
                     {  // does not exist in initialized FileUpload entity. 
@@ -333,7 +333,7 @@ namespace MapTests
             PublishRequest RequestArg = new PublishRequest
             {
                 RootContentItemId = TestUtil.MakeTestGuid(3),
-                RelatedFiles = new UploadedRelatedFile[0],
+                NewRelatedFiles = new UploadedRelatedFile[0],
             };
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentPublicationRequest.Add(new ContentPublicationRequest
@@ -368,7 +368,7 @@ namespace MapTests
             PublishRequest RequestArg = new PublishRequest
             {
                 RootContentItemId = TestUtil.MakeTestGuid(3),
-                RelatedFiles = new UploadedRelatedFile[0],
+                NewRelatedFiles = new UploadedRelatedFile[0],
             };
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
