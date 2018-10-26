@@ -18,33 +18,39 @@ namespace ContentPublishingLib
         /// </summary>
         public static void LoadConfiguration()
         {
-            IConfigurationBuilder CfgBuilder = new ConfigurationBuilder()
-                .AddJsonFile(path: "contentPublicationLibSettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile(path: "appSettings.json", optional: true, reloadOnChange: true)
-                ;
-
-            #region Add environment dependent configuration sources
             string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToUpper();
+
+            IConfigurationBuilder CfgBuilder = new ConfigurationBuilder()
+                .AddJsonFile("contentPublicationLibSettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile("appSettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"contentPublicationLibSettings.{EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appSettings.{EnvironmentName}.json", optional: true, reloadOnChange: true);
+
+            #region Add additional environment specific configuration sources
             switch (EnvironmentName)
             {
                 case "CI":
                 case "AZURECI":
                 case "PRODUCTION":
                 case "STAGING":
-                    CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true)
-                              .AddJsonFile($"contentPublicationLibSettings.{EnvironmentName}.json", optional: true, reloadOnChange: true);
-
-                    var builtConfig = CfgBuilder.Build();
+                    // get (environment dependent) settings from Azure key vault if any exist
+                    IConfigurationRoot vaultConfig = new ConfigurationBuilder()
+                        .AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true)
+                        .Build();
 
                     var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
-                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, vaultConfig["AzureCertificateThumbprint"], false);
 
-                    CfgBuilder.AddAzureKeyVault(
-                        builtConfig["AzureVaultName"],
-                        builtConfig["AzureClientID"],
-                        cert.OfType<X509Certificate2>().Single()
-                        );
+                    if (cert.OfType<X509Certificate2>().Count() == 1)
+                    {
+                        CfgBuilder.AddAzureKeyVault(vaultConfig["AzureVaultName"], vaultConfig["AzureClientID"], cert.OfType<X509Certificate2>().Single());
+                    }
+                    else
+                    {
+                        throw new ApplicationException($"Found {cert.OfType<X509Certificate2>().Count()} certificate(s) to access Azure Key Vault for environment {EnvironmentName}, expected 1");
+                    }
+
                     break;
 
                 case null:  // for framework GUI project
