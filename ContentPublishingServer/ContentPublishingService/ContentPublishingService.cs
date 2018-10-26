@@ -74,11 +74,11 @@ namespace ContentPublishingService
                     TraceLogDirectory = Path.GetDirectoryName(fullPath);
                 }
 
-                string TraceLogFilePath = Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.txt");
+                string TraceLogFilePath = Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")}.txt");
                 EvtMsg += $"Using Trace logging file {Environment.NewLine}    {TraceLogFilePath}";
                 EventLog.WriteEntry(EvtMsg, EvtType);
 
-                CurrentTraceListener = new TextWriterTraceListener(Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.txt"));
+                CurrentTraceListener = new TextWriterTraceListener(TraceLogFilePath);
                 Trace.Listeners.Add(CurrentTraceListener);
                 Trace.AutoFlush = true;
             }

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Services;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -49,16 +50,18 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult SendEmail (IEnumerable<string> recipients, string subject, string message, string senderAddress=null, string senderName=null)
         {
-
+            Log.Verbose($"Entered MessageController.SendEmail action for recipients <{string.Join(", ", recipients)}>, subject <{subject}>");
             bool Result =_mailSender.QueueEmail(recipients, subject, message, senderAddress, senderName);
 
             if (Result)
             {
+                Log.Verbose($"In MessageController.SendEmail action: email queued successfully");
                 return Ok();
             }
             else
             {
                 // Send attempt failed. Log failure and return failure code.
+                Log.Warning($"In MessageController.SendEmail action: failed to queue email");
                 return BadRequest();
             }
 
@@ -75,15 +78,18 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult SendEmail (string recipient, string subject, string message)
         {
+            Log.Verbose($"Entered MessageController.SendEmail action for recipient <recipient>, subject <{subject}>");
             bool Result = _mailSender.QueueEmail(recipient, subject, message);
 
             if (Result)
             {
+                Log.Verbose($"In MessageController.SendEmail action: email queued successfully");
                 return Ok();
             }
             else
             {
                 // Send attempt failed. Log failure and return failure code.
+                Log.Warning($"In MessageController.SendEmail action: failed to queue email");
                 return BadRequest();
             }
         }
@@ -92,6 +98,8 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SendSupportEmail(string subject, string message)
         {
+            Log.Verbose($"Entered MessageController.SendSupportEmail action for subject <{subject}>");
+
             var user = await Queries.GetCurrentApplicationUser(User);
             var senderAddress = user.Email;
             var senderName = $"{user.FirstName} {user.LastName}";
@@ -101,11 +109,13 @@ namespace MillimanAccessPortal.Controllers
 
             if (result)
             {
+                Log.Verbose($"In MessageController.SendSupportEmail action: email queued successfully");
                 return Ok();
             }
             else
             {
                 // Send attempt failed. Log failure and return failure code.
+                Log.Warning($"In MessageController.SendSupportEmail action: failed to queue email");
                 return BadRequest();
             }
         }
@@ -121,6 +131,8 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SendEmailFromUser ([FromForm] IFormCollection collection)
         {
+            Log.Verbose($"Entered MessageController.SendEmailFromUser action with keys <{string.Join(",", collection.Keys)}>");
+
             if (!collection.Keys.Contains("subject") ||
                 !collection.Keys.Contains("message") ||
                 !collection.Keys.Contains("recipient"))
@@ -142,11 +154,13 @@ namespace MillimanAccessPortal.Controllers
 
             if (Result)
             {
+                Log.Verbose($"In MessageController.SendEmailFromUser action: email queued successfully");
                 return Ok();
             }
             else
             {
                 // Send attempt failed. Log failure and return failure code.
+                Log.Warning($"In MessageController.SendEmailFromUser action: failed to queue email");
                 return BadRequest();
             }
         }

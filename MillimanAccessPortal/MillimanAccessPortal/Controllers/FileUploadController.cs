@@ -25,10 +25,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
+using Serilog;
 using System;
 using System.Globalization;
 using System.IO;
@@ -42,7 +42,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
         private readonly IUploadHelper UploadHelper;
-        private readonly ILogger Logger;
         private readonly ApplicationDbContext DbContext;
 
         /// <summary>
@@ -56,14 +55,12 @@ namespace MillimanAccessPortal.Controllers
             ApplicationDbContext ContextArg,
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
-            IUploadHelper UploadHelperArg,
-            ILoggerFactory LoggerFactoryArg
+            IUploadHelper UploadHelperArg
             )
         {
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             UploadHelper = UploadHelperArg;
-            Logger = LoggerFactoryArg.CreateLogger<FileUploadController>();
             DbContext = ContextArg;
         }
 
@@ -173,6 +170,7 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (FileUploadException e)
             {
+                Log.Error(e, "In FileUploadController.UploadChunk action: exception, aborting");
                 Response.Headers.Add("Warning", e.Message);
                 return new StatusCodeResult(e.HttpStatus);
             }
@@ -188,6 +186,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public IActionResult CancelUpload(ResumableInfo resumableInfo)
         {
+            Log.Verbose("Entered FileUploadController.CancelUpload action for {@ResumableInfo}", resumableInfo);
             UploadHelper.DeleteAllChunks(resumableInfo);
 
             return Ok();
@@ -201,12 +200,14 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public IActionResult FinalizeUpload(ResumableInfo resumableInfo)
         {
+            Log.Verbose("Entered FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
             try
             {
                 UploadHelper.FinalizeUpload(resumableInfo);
             }
             catch (FileUploadException e)
             {
+                Log.Error(e, "In FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
                 Response.Headers.Add("Warning", e.Message);
                 return new StatusCodeResult(e.HttpStatus);
             }

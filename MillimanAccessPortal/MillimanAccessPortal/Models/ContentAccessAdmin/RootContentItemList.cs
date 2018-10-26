@@ -26,6 +26,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 .Where(urc => urc.RootContentItem.ClientId == client.Id)
                 .Where(urc => urc.UserId == User.Id)
                 .Where(urc => urc.Role.RoleEnum == roleInRootContentItem)
+                .OrderBy(urc => urc.RootContentItem.ContentName)
                 .Select(urc => urc.RootContentItem)
                 .Distinct()
                 .ToList();

@@ -23,6 +23,7 @@ export interface UserInfo {
   RootContentItemCount?: number;
   RootContentItems?: RootContentItemInfo[];
   ProfitCenterId: Guid;
+  ClientId: Guid;
 }
 export interface ClientInfo extends Nestable {
   Name: string;
