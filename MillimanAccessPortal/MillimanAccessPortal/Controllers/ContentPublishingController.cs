@@ -429,9 +429,9 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Publish(PublishRequest Arg)
+        public async Task<IActionResult> Publish(PublishRequest request)
         {
-            Log.Verbose($"Entered ContentPublishingController.Publish action with {{@PublishRequest}}", Arg);
+            Log.Verbose($"Entered ContentPublishingController.Publish action with {{@PublishRequest}}", request);
 
             ApplicationUser currentApplicationUser = await Queries.GetCurrentApplicationUser(User);
 
@@ -445,10 +445,10 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, Arg.RootContentItemId));
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, request.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.Publish action: authorization failure, user {currentApplicationUser.UserName}, content item {Arg.RootContentItemId}, role {RoleEnum.ContentPublisher}, aborting");
+                Log.Debug($"In ContentPublishingController.Publish action: authorization failure, user {currentApplicationUser.UserName}, content item {request.RootContentItemId}, role {RoleEnum.ContentPublisher}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
                 Response.Headers.Add("Warning", $"You are not authorized to publish this content");
                 return Unauthorized();
@@ -458,19 +458,19 @@ namespace MillimanAccessPortal.Controllers
 
             RootContentItem ContentItem = DbContext.RootContentItem
                                                    .Include(rc => rc.ContentType)
-                                                   .SingleOrDefault(rc => rc.Id == Arg.RootContentItemId);
+                                                   .SingleOrDefault(rc => rc.Id == request.RootContentItemId);
 
             #region Validation
             // The requested RootContentItem must exist
             if (ContentItem == null)
             {
-                Log.Debug($"In ContentPublishingController.Publish action: content item {Arg.RootContentItemId} not found, aborting");
+                Log.Debug($"In ContentPublishingController.Publish action: content item {request.RootContentItemId} not found, aborting");
                 Response.Headers.Add("Warning", "Requested content item not found.");
                 return BadRequest();
             }
 
             // There must be new files or files to delete
-            if (!Arg.NewRelatedFiles.Any() && !Arg.DeleteFilePurposes.Any())
+            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any())
             {
                 Log.Debug($"In ContentPublishingController.Publish action: no files provided, aborting");
                 Response.Headers.Add("Warning", "No files provided.");
@@ -478,7 +478,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // All the provided references to related files must be found in the FileUpload entity.  
-            if (Arg.NewRelatedFiles.Any(f => DbContext.FileUpload.Count(fu => fu.Id == f.FileUploadId) != 1))
+            if (request.NewRelatedFiles.Any(f => DbContext.FileUpload.Count(fu => fu.Id == f.FileUploadId) != 1))
             {
                 Log.Debug($"In ContentPublishingController.Publish action: one or more new files to be published not found in FileUpload table, aborting");
                 Response.Headers.Add("Warning", "A specified uploaded file was not found.");
@@ -489,11 +489,11 @@ namespace MillimanAccessPortal.Controllers
 
             // There must be no unresolved ContentPublicationRequest.
             Blocked = DbContext.ContentPublicationRequest
-                               .Where(r => r.RootContentItemId == Arg.RootContentItemId)
+                               .Where(r => r.RootContentItemId == request.RootContentItemId)
                                .Any(r => r.RequestStatus.IsActive());
             if (Blocked)
             {
-                Log.Debug($"In ContentPublishingController.Publish action: blocked due to unresolved ContentPublicationRequest for content item {Arg.RootContentItemId}, aborting");
+                Log.Debug($"In ContentPublishingController.Publish action: blocked due to unresolved ContentPublicationRequest for content item {request.RootContentItemId}, aborting");
                 Response.Headers.Add("Warning", "A previous publication is pending for this content.");
                 return BadRequest();
             }
@@ -501,17 +501,17 @@ namespace MillimanAccessPortal.Controllers
             // There must be no unresolved ContentReductionTask.
             Blocked = DbContext.ContentReductionTask
                                .Where(t => t.ContentPublicationRequestId == null)
-                               .Where(t => t.SelectionGroup.RootContentItemId == Arg.RootContentItemId)
+                               .Where(t => t.SelectionGroup.RootContentItemId == request.RootContentItemId)
                                .Any(t => t.ReductionStatus.IsActive());
             if (Blocked)
             {
-                Log.Debug($"In ContentPublishingController.Publish action: blocked due to unresolved ContentReductionTask for content item {Arg.RootContentItemId}, aborting");
+                Log.Debug($"In ContentPublishingController.Publish action: blocked due to unresolved ContentReductionTask for content item {request.RootContentItemId}, aborting");
                 Response.Headers.Add("Warning", "A previous reduction task is pending for this content.");
                 return BadRequest();
             }
 
             // There must be a master content file either in this request or from previous go-live
-            if (!ContentItem.ContentFilesList.Any(f => f.FilePurpose.ToLower() == "mastercontent") && !Arg.NewRelatedFiles.Any(f => f.FilePurpose.ToLower() == "mastercontent"))
+            if (!ContentItem.ContentFilesList.Any(f => f.FilePurpose.ToLower() == "mastercontent") && !request.NewRelatedFiles.Any(f => f.FilePurpose.ToLower() == "mastercontent"))
             {
                 Log.Debug($"In ContentPublishingController.Publish action: content item has no master file and publication request does not contain one, aborting");
                 Response.Headers.Add("Warning", "New publications must include a master content file");
@@ -519,17 +519,17 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            if (Arg.DeleteFilePurposes.Any())
+            if (request.DeleteFilePurposes.Any())
             {
                 var filesToDelete = ContentItem.ContentFilesList
-                    .Where(f => Arg.DeleteFilePurposes.Contains(f.FilePurpose)).ToList();
+                    .Where(f => request.DeleteFilePurposes.Contains(f.FilePurpose)).ToList();
 
                 _fileSystemTasks.DeleteRelatedFiles(ContentItem, filesToDelete);
 
                 DbContext.SaveChanges();
             }
 
-            if (Arg.NewRelatedFiles.Any())
+            if (request.NewRelatedFiles.Any())
             {
                 // Insert the initial publication request (not queued yet)
                 ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest
@@ -540,7 +540,7 @@ namespace MillimanAccessPortal.Controllers
                     RootContentItemId = ContentItem.Id,
                     LiveReadyFilesObj = new List<ContentRelatedFile>(),
                     ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
-                    UploadedRelatedFilesObj = Arg.NewRelatedFiles.ToList(),
+                    UploadedRelatedFilesObj = request.NewRelatedFiles.ToList(),
                 };
                 DbContext.ContentPublicationRequest.Add(NewContentPublicationRequest);
 
