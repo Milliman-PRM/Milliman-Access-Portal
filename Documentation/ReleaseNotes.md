@@ -5,7 +5,7 @@
 ### v1.1.0
 
 - Queue information now available for content items in the process of being published
-- Improved the flow of publication requests to prevent reducible content from blocking non-reducible content
+- Improved the flow of publication requests to allow non-reducible content to be processed before reducible content
 - Improved exception logging in the MAP application
 - Addressed issue with URL encoding of file names during publishing
 - Improved the behavior of the Forgot Password workflow to prevent innadvertently acknowleding accounts exist between their creation and activation
