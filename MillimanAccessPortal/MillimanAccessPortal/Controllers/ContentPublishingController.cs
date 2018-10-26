@@ -469,14 +469,6 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
-            // There must be new files or files to delete
-            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any())
-            {
-                Log.Debug($"In ContentPublishingController.Publish action: no files provided, aborting");
-                Response.Headers.Add("Warning", "No files provided.");
-                return BadRequest();
-            }
-
             // All the provided references to related files must be found in the FileUpload entity.  
             if (request.NewRelatedFiles.Any(f => DbContext.FileUpload.Count(fu => fu.Id == f.FileUploadId) != 1))
             {
@@ -507,6 +499,14 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Debug($"In ContentPublishingController.Publish action: blocked due to unresolved ContentReductionTask for content item {request.RootContentItemId}, aborting");
                 Response.Headers.Add("Warning", "A previous reduction task is pending for this content.");
+                return BadRequest();
+            }
+
+            // There must be new files or files to delete
+            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any())
+            {
+                Log.Debug($"In ContentPublishingController.Publish action: no files provided, aborting");
+                Response.Headers.Add("Warning", "No files provided.");
                 return BadRequest();
             }
 
