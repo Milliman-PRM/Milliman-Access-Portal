@@ -34,13 +34,13 @@ namespace MillimanAccessPortal.Utilities
                     relatedFile.FilePurpose, "", contentItem.Id);
 
                 // Assumes only one file for each purpose
-                var targetFile = Directory.EnumerateFiles(workingDirectory)
-                    .SingleOrDefault(f => Path.GetFileNameWithoutExtension(f) == targetFilePrefix);
+                var targetFiles = Directory.EnumerateFiles(workingDirectory)
+                    .Where(f => Path.GetFileNameWithoutExtension(f) == targetFilePrefix).ToList();
 
-                if (targetFile != null)
+                foreach (var file in targetFiles)
                 {
                     // Delete the file
-                    FileSystemUtil.DeleteFileWithRetry(targetFile);
+                    FileSystemUtil.DeleteFileWithRetry(file);
 
                     // Update content list in root content item
                     relatedFilesObj.RemoveAll(f => f.FilePurpose == relatedFile.FilePurpose);
