@@ -138,11 +138,11 @@
                                     Thumbnail Image
                                     <input class="file-upload" type="text" readonly />
                                     <div class="file-upload-icons">
-                                        <svg class="upload-icon tooltip" title="Upload thumbnail image">
-                                            <use xlink:href="#upload"></use>
-                                        </svg>
                                         <svg class="cancel-icon tooltip" title="Remove file">
                                             <use xlink:href="#cancel"></use>
+                                        </svg>
+                                        <svg class="upload-icon tooltip" title="Upload thumbnail image">
+                                            <use xlink:href="#upload"></use>
                                         </svg>
                                     </div>
                                     <div class="progress-bars" style="visibility: hidden;">
@@ -161,11 +161,11 @@
                                     File
                                     <input class="file-upload" type="text" readonly />
                                     <div class="file-upload-icons">
-                                        <svg class="upload-icon tooltip" title="Upload master content">
-                                            <use xlink:href="#upload"></use>
-                                        </svg>
                                         <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
                                             <use xlink:href="#cancel"></use>
+                                        </svg>
+                                        <svg class="upload-icon tooltip" title="Upload master content">
+                                            <use xlink:href="#upload"></use>
                                         </svg>
                                     </div>
                                     <div class="progress-bars" style="visibility: hidden;">
@@ -181,11 +181,11 @@
                                     Userguide
                                     <input class="file-upload" type="text" readonly />
                                     <div class="file-upload-icons">
-                                        <svg class="upload-icon tooltip" title="Upload user guide">
-                                            <use xlink:href="#upload"></use>
-                                        </svg>
                                         <svg class="cancel-icon tooltip" title="Cancel upload">
                                             <use xlink:href="#cancel"></use>
+                                        </svg>
+                                        <svg class="upload-icon tooltip" title="Upload user guide">
+                                            <use xlink:href="#upload"></use>
                                         </svg>
                                     </div>
                                     <div class="progress-bars" style="visibility: hidden;">
@@ -201,11 +201,11 @@
                                     Release Notes
                                     <input class="file-upload" type="text" readonly />
                                     <div class="file-upload-icons">
-                                        <svg class="upload-icon tooltip" title="Upload release notes">
-                                            <use xlink:href="#upload"></use>
-                                        </svg>
                                         <svg class="cancel-icon tooltip" title="Remove file">
                                             <use xlink:href="#cancel"></use>
+                                        </svg>
+                                        <svg class="upload-icon tooltip" title="Upload release notes">
+                                            <use xlink:href="#upload"></use>
                                         </svg>
                                     </div>
                                     <div class="progress-bars" style="visibility: hidden;">

@@ -357,8 +357,17 @@ label.input-with-upload {
         }
     }
 
-    &:hover:not([disabled]) svg.upload-icon {
-        color: $green;
+    &:hover:not([disabled]) {
+        svg.upload-icon {
+            color: $green;
+        }
+        svg.cancel-icon:hover {
+            color: $red;
+
+            + svg.upload-icon {
+                color: $black;
+            }
+        }
     }
 
     &[disabled] svg.cancel-icon:hover {
