@@ -34,7 +34,7 @@ module.exports = {
             loader: 'svg-sprite-loader',
             options: {
               extract: false
-            }
+            },
           },
           {
             loader: 'svgo-loader',
@@ -43,16 +43,17 @@ module.exports = {
                 { removeTitle: true },
                 { convertColors: { currentColor: true } },
                 { convertPathData: false },
-                { cleanupIDs: { remove: false }}
-              ]
-            }
-          }
-        ]
+                { cleanupIDs: { remove: false }},
+              ],
+            },
+          },
+        ],
+        include: path.resolve(__dirname, 'src', 'images'),
       },
       {
         test: /\.tsx?$/,
         use: 'ts-loader',
-        exclude: /node_modules/,
+        include: path.resolve(__dirname, 'src', 'ts'),
       },
     ],
   },
@@ -170,5 +171,6 @@ module.exports = {
       '.tsx',
       '.ts',
     ],
+    symlinks: false,
   },
 };
