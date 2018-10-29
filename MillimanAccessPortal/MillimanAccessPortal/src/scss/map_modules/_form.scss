@@ -237,6 +237,20 @@ input.filter-input {
 
         .form-input-file-upload {
             width: 100%;
+
+            label.input-with-upload input {
+                padding-right: 2.05em;
+
+                &[disabled] {
+                    padding-right: 0.25em;
+                }
+            }
+
+            &.deletable {
+                label.input-with-upload input {
+                    padding-right: 3.85em;
+                }
+            }
         }
 
         .switch-container.content-item-flex-none {
@@ -286,20 +300,18 @@ label.input-with-upload {
         }
     }
 
-    input,
+    input:not([disabled]),
     div.image-placeholder {
         cursor: pointer;
     }
 
     input {
         font-size: 1rem;
-        padding-right: 2.5em;
         position: relative;
         z-index: 1;
 
         &[disabled] {
             font: $grey;
-            padding-right: .25em;
         }
     }
 
@@ -374,6 +386,7 @@ label.input-with-upload {
         color: $red;
     }
 }
+
 /* Validation Error Styling */
 .input-validation-error {
     border-bottom: solid 2px $red !important;
