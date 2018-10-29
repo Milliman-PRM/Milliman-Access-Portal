@@ -76,7 +76,7 @@ export class FileUploadInput extends FormInput {
     const $clonedInput = $(clickableElement.cloneNode(true));
     $clonedInput.find('input[type="file"]').remove();
     $clonedInput.find('.file-upload').data($(clickableElement).find('.file-upload').data());
-    $(clickableElement).replaceWith($clonedInput);
+    $(clickableElement).replaceWith($clonedInput as JQuery<HTMLElement>);
 
     this.upload.assignBrowse(this.$entryPoint.find('label')[0]);
     this.$entryPoint.find('.cancel-icon').click((event) => {
