@@ -826,18 +826,18 @@ namespace MillimanAccessPortal.Controllers
                     string TargetFilePath = Path.Combine(workingDirectory, TargetFileName);
 
                     // Assumes no nesting, only one file for each purpose
-                    var existingRelatedFiles = Directory.EnumerateFiles(workingDirectory);
-                    var fileToReplace = existingRelatedFiles.SingleOrDefault(f => f.StartsWith(targetFileBasename));
+                    var filesToReplace = Directory.EnumerateFiles(workingDirectory)
+                        .Where(f => Path.GetFileNameWithoutExtension(f) == targetFileBasename).ToList();
 
                     // Move any existing file to backed up name
-                    if (fileToReplace != null)
+                    foreach (var file in filesToReplace)
                     {
-                        string BackupFilePath = fileToReplace + ".bak";
+                        string BackupFilePath = file + ".bak";
                         if (System.IO.File.Exists(BackupFilePath))
                         {
                             System.IO.File.Delete(BackupFilePath);
                         }
-                        System.IO.File.Move(fileToReplace, BackupFilePath);
+                        System.IO.File.Move(file, BackupFilePath);
                         FilesToDelete.Add(BackupFilePath);
                     }
 
