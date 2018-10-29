@@ -345,7 +345,7 @@
             </div>
             <div class="confirmation-section-button-container">
                 <button type="button" class="button-reject red-button">Reject</button>
-                <button type="button" class="button-approve green-button" disabled>Approve</button>
+                <button type="button" class="button-approve green-button tooltip disabled" title="Complete checks to proceed">Approve</button>
             </div>
         </div>
     </div>

@@ -190,7 +190,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     .removeAttr('disabled')
     .prop('checked', false);
   $('#confirmation-section-attestation .button-approve')
-    .attr('disabled', '');
+    .addClass('disabled')
+    .tooltipster('enable');
   // set src for iframes, conditionally marking iframes as unchanged
   const linkPairs: Array<{sectionName: string, link: string}> = [
     { sectionName: 'master-content', link: response.MasterContentLink },
@@ -274,7 +275,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     .filter((_, element) => $(element).attr('disabled') === undefined).length;
   if (!anyEnabled) {
     $('#confirmation-section-attestation .button-approve')
-      .removeAttr('disabled');
+      .removeClass('disabled')
+      .tooltipster('disable');
   }
 
   preLiveObject = response;
@@ -578,15 +580,20 @@ export function setup() {
   });
   $('#report-confirmation input[type="checkbox"]').change(() =>
     $('#confirmation-section-attestation .button-approve')
-      .attr('disabled', '')
+      .addClass('disabled')
+      .tooltipster('enable')
       .filter(() =>
         $('#report-confirmation input[type="checkbox"]').not('[disabled]').toArray()
           .map((checkbox: HTMLInputElement) => checkbox.checked)
           .reduce((cum, cur) => cum && cur, true))
-      .removeAttr('disabled'));
+      .removeClass('disabled')
+      .tooltipster('disable'));
   $('#confirmation-section-attestation .button-reject').click((event) => {
     const $target = $(event.target);
-    $target.attr('disabled', '');
+    if ($target.hasClass('disabled')) {
+      return;
+    }
+    $target.addClass('disabled');
     const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
     showButtonSpinner($target, 'Rejecting');
     $.post({
@@ -607,13 +614,16 @@ export function setup() {
       hideButtonSpinner($target);
       $('#report-confirmation').hide();
       $('#root-content-items [selected]').removeAttr('selected');
-      $target.removeAttr('disabled');
+      $target.removeClass('disabled');
       statusMonitor.checkStatus();
     });
   });
   $('#confirmation-section-attestation .button-approve').click((event) => {
     const $target = $(event.target);
-    $target.attr('disabled', '');
+    if ($target.hasClass('disabled')) {
+      return;
+    }
+    $target.addClass('disabled');
     const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
     showButtonSpinner($target, 'Approving');
     $.post({
@@ -635,7 +645,7 @@ export function setup() {
       hideButtonSpinner($target);
       $('#report-confirmation').hide();
       $('#root-content-items [selected]').removeAttr('selected');
-      $target.removeAttr('disabled');
+      $target.removeClass('disabled');
       statusMonitor.checkStatus();
     });
   });
