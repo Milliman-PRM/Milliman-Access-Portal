@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 
 namespace MapCommonLib
@@ -14,7 +15,7 @@ namespace MapCommonLib
         /// <param name="baseIntervalMs">Time to wait after initial attempt</param>
         public static void DeleteFileWithRetry(string path, int attempts = 5, int baseIntervalMs = 500)
         {
-            IOOperationWithRetry(File.Delete, path, attempts, baseIntervalMs);
+            ApplyRetryOperation<IOException, string>(File.Delete, attempts, baseIntervalMs, path);
         }
 
         /// <summary>
@@ -26,26 +27,33 @@ namespace MapCommonLib
         /// <param name="baseIntervalMs">Time to wait after initial attempt</param>
         public static void DeleteDirectoryWithRetry(string path, int attempts = 5, int baseIntervalMs = 500)
         {
-            IOOperationWithRetry(p => Directory.Delete(p, true), path, attempts, baseIntervalMs);
+            ApplyRetryOperation<IOException, string>(p => Directory.Delete(p, true), attempts, baseIntervalMs, path);
         }
 
         /// <summary>
-        /// Represents an operation that can throw an IOException
+        /// Represents a retriable operation that throws an exception when it should be retried
         /// </summary>
-        /// <param name="opArg">Arbitrary argument. Often a path to a file or directory.</param>
-        private delegate void IOOperation(string opArg);
+        /// <param name="opArg"></param>
+        private delegate void RetryOperation<TException, TArg>(TArg opArg) where TException : Exception;
 
         /// <summary>
-        /// Try to perform an IO operation until it succeeds
-        /// </summary>
-        /// <remarks>
+        /// Try to perform a retriable operation until it succeeds.
         /// Time before retry increases after each attempt. Retry intervals form a triangular sequence.
-        /// </remarks>
-        /// <param name="operation">IO operation to try until success. Only retried when IOException is thrown.</param>
-        /// <param name="opArg">Passed to operation delegate</param>
+        /// </summary>
+        /// <typeparam name="TException">
+        /// Exception type to monitor. When operation throws an exception of this type, it will be retried.
+        /// </typeparam>
+        /// <typeparam name="TArg"></typeparam>
+        /// <param name="operation">
+        /// Retriable operation to try until success. Only retried when TException is thrown.
+        /// </param>
         /// <param name="attempts">Times to try the operation before giving up</param>
         /// <param name="baseIntervalMs">Time to wait after initial attempt</param>
-        private static void IOOperationWithRetry(IOOperation operation, string opArg, int attempts, int baseIntervalMs)
+        /// <param name="opArg">Passed to operation delegate</param>
+        /// <summary>
+        private static void ApplyRetryOperation<TException, TArg>(
+            RetryOperation<TException, TArg> operation, int attempts, int baseIntervalMs, TArg opArg)
+            where TException : Exception
         {
             int retryInterval = 0;
             int attemptNo = 0;
@@ -57,7 +65,7 @@ namespace MapCommonLib
                     operation(opArg);
                     break;
                 }
-                catch (IOException)
+                catch (TException)
                 {
                     attemptNo += 1;
 
@@ -67,7 +75,8 @@ namespace MapCommonLib
                         throw;
                     }
                     GlobalFunctions.TraceWriteLine(
-                        $"Failed to delete directory '{opArg}'; retrying {attemptsLeft} more times...");
+                        $"Failed to apply retry operation with argument '{opArg}'; "
+                        + $"retrying {attemptsLeft} more times...");
 
                     retryInterval += attemptNo;
                     Thread.Sleep(retryInterval * baseIntervalMs);
