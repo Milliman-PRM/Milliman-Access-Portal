@@ -82,13 +82,23 @@ export class FileUploadInput extends FormInput {
     };
 
     // Clone the input to clear any event listeners
-    const clickableElement = this.$entryPoint.find('label')[0];
-    const $clonedInput = $(clickableElement.cloneNode(true));
+    const $clickableElement = this.$entryPoint.find('label');
+    const $tooltipstered = $clickableElement.find('.tooltipstered');
+    $tooltipstered.each((_, element) => {
+      const $element = $(element);
+      const content = $element.tooltipster('content');
+      $element.tooltipster('destroy');
+      $element.removeClass('tooltipstered');
+      $element.addClass('tooltip');
+      $element.attr('title', content);
+    });
+    const $clonedInput = $($clickableElement[0].cloneNode(true));
     $clonedInput.find('input[type="file"]').remove();
-    $clonedInput.find('.file-upload').data($(clickableElement).find('.file-upload').data());
-    $(clickableElement).replaceWith($clonedInput);
+    $clonedInput.find('.file-upload').data($clickableElement.find('.file-upload').data());
+    $clickableElement.replaceWith($clonedInput);
 
     this.upload.assignBrowse(this.$entryPoint.find('label')[0]);
+    this.$entryPoint.find('.tooltip').tooltipster();
     this.$entryPoint.find('.cancel-icon').click((event) => {
       event.stopPropagation();
       if (this.cancelable) {
@@ -144,6 +154,7 @@ export class FileUploadInput extends FormInput {
       this.$entryPoint.find('.cancel-icon').show();
       this.$entryPoint.find('.cancel-icon').removeAttr('disabled');
       this.$entryPoint.find('.progress-bars').css('visibility', 'visible');
+      this.$entryPoint.find('.cancel-icon.tooltip').tooltipster('content', 'Cancel upload');
     } else {
       if (this.accessMode === AccessMode.WriteDisabled) {
         this.setAccessMode(AccessMode.Write);
@@ -155,6 +166,7 @@ export class FileUploadInput extends FormInput {
         this.$entryPoint.find('.cancel-icon').hide();
       }
       this.$entryPoint.find('.progress-bars').css('visibility', 'hidden');
+      this.$entryPoint.find('.cancel-icon.tooltip').tooltipster('content', 'Remove file');
     }
     this.cancelable = cancelable;
   }

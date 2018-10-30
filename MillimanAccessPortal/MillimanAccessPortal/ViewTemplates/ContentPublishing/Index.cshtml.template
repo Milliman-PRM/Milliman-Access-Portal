@@ -181,7 +181,7 @@
                                     Userguide
                                     <input class="file-upload" type="text" readonly />
                                     <div class="file-upload-icons">
-                                        <svg class="cancel-icon tooltip" title="Cancel upload">
+                                        <svg class="cancel-icon tooltip" title="Remove file">
                                             <use xlink:href="#cancel"></use>
                                         </svg>
                                         <svg class="upload-icon tooltip" title="Upload user guide">
