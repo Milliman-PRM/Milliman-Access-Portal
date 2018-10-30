@@ -74,7 +74,7 @@ export class FormInputSection extends FormElement {
       .filter((valid) => valid !== undefined);
     return filteredInputs.length
       ? filteredInputs.reduce(this.validReduce.fn, this.validReduce.init)
-      : false;
+      : true;
   }
 
   public get name() {
