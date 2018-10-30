@@ -108,6 +108,7 @@ export class FileUploadInput extends FormInput {
       } else {
         this.value = `${this.originalName}~delete`;
         this.$entryPoint.find('input.file-upload').val('[deleted]');
+        this.$entryPoint.find('.cancel-icon').hide();
         toastr.success('File marked for deletion.');
       }
     });
@@ -122,6 +123,8 @@ export class FileUploadInput extends FormInput {
     if (this.upload) {
       this.upload.reset();
     }
+    this.$entryPoint.find('.cancel-icon').show();
+    this.setCancelable(false);
     this.$entryPoint.change(); // trigger a change event
   }
 
