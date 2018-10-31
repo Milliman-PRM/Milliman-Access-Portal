@@ -31,7 +31,7 @@ export interface ClientInfo extends Nestable {
   Code: string;
   UserCount?: number;
   RootContentItemCount?: number;
-  ParentOnly: boolean;
+  ParentOnly?: boolean;
 }
 export interface ClientInfoWithDepth extends ClientInfo {
   depth: number;
@@ -47,7 +47,7 @@ export interface ProfitCenterInfo {
 export interface RootContentItemInfo {
   Id: Guid;
   Name: string;
-  ClientName: string;
+  ClientName?: string;
   UserCount?: number;
   SelectionGroupCount?: number;
   Users?: UserInfo[];

@@ -126,15 +126,20 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
   }
 
   private renderColumnSelector() {
-    return this.props.columns.length > 1
-      ? (
+    if (this.props.columns.length === 1) {
+      return (
+        <h3 className="admin-panel-header">{this.props.columns[0].name}</h3>
+      );
+    } else if (this.props.columns.length > 1) {
+      return (
         <ColumnSelector
           columns={this.props.columns}
           onColumnSelect={this.props.onColumnSelect}
           selectedColumn={this.props.selectedColumn}
         />
-      )
-      : null;
+      );
+    }
+    return null;
   }
 
   private renderCards() {
@@ -181,7 +186,32 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
       const cardGroups = rootIndices.map((_, i) =>
         filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
       return cardGroups.map((group, i) => {
-        const groupCards = group.map((entity: ClientInfoWithDepth) => (
+        const groupCards = group
+          .filter((entity: ClientInfoWithDepth) => this.props.cards[entity.Id] !== undefined)
+          .map((entity: ClientInfoWithDepth) => (
+            <li key={entity.Id}>
+              <Card
+                entity={entity}
+                selected={entity.Id === this.props.selectedCard}
+                onSelect={() => this.props.onCardSelect(entity.Id)}
+                expanded={this.props.cards[entity.Id].expanded}
+                onExpandedToggled={() => this.props.onExpandedToggled(entity.Id)}
+                indentation={entity.depth}
+                profitCenterModalOpen={this.props.cards[entity.Id].profitCenterModalOpen}
+                onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.Id)}
+                onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.Id)}
+              />
+            </li>
+          ));
+        if (i + 1 !== cardGroups.length) {
+          groupCards.push((<div key="hr-{i}" className="hr" />));
+        }
+        return groupCards;
+      });
+    } else {
+      return filteredCards
+        .filter((entity: EntityInfo) => this.props.cards[entity.Id] !== undefined)
+        .map((entity) => (
           <li key={entity.Id}>
             <Card
               entity={entity}
@@ -189,39 +219,18 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
               onSelect={() => this.props.onCardSelect(entity.Id)}
               expanded={this.props.cards[entity.Id].expanded}
               onExpandedToggled={() => this.props.onExpandedToggled(entity.Id)}
-              indentation={entity.depth}
+              activated={isUserInfo(entity) ? entity.Activated : null}
+              resetButton={isUserInfo(entity)}
               profitCenterModalOpen={this.props.cards[entity.Id].profitCenterModalOpen}
               onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.Id)}
               onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.Id)}
+              onSendReset={this.getOnSendReset(entity)}
+              onProfitCenterDelete={this.getOnProfitCenterDelete(entity)}
+              onProfitCenterUserRemove={this.getOnProfitCenterUserRemove(entity)}
+              onClientUserRemove={this.getOnClientUserRemove(entity)}
             />
           </li>
         ));
-        if (i + 1 !== cardGroups.length) {
-          groupCards.push((<div key="hr-{i}" className="hr" />));
-        }
-        return groupCards;
-      });
-    } else {
-      return filteredCards.map((entity) => (
-        <li key={entity.Id}>
-          <Card
-            entity={entity}
-            selected={entity.Id === this.props.selectedCard}
-            onSelect={() => this.props.onCardSelect(entity.Id)}
-            expanded={this.props.cards[entity.Id].expanded}
-            onExpandedToggled={() => this.props.onExpandedToggled(entity.Id)}
-            activated={isUserInfo(entity) ? entity.Activated : null}
-            resetButton={isUserInfo(entity)}
-            profitCenterModalOpen={this.props.cards[entity.Id].profitCenterModalOpen}
-            onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.Id)}
-            onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.Id)}
-            onSendReset={this.getOnSendReset(entity)}
-            onProfitCenterDelete={this.getOnProfitCenterDelete(entity)}
-            onProfitCenterUserRemove={this.getOnProfitCenterUserRemove(entity)}
-            onClientUserRemove={this.getOnClientUserRemove(entity)}
-          />
-        </li>
-      ));
     }
   }
 
