@@ -817,8 +817,8 @@ export function ClientCard(
   Card.call(this);
 
   this.addComponent('card', { class: 'card-' + (100 - (10 * level)) });
-  this.addComponent('primaryText', { text: client.Name });
-  this.addComponent('secondaryText', { text: client.ClientCode });
+  this.addComponent('primaryText', { text: client.name });
+  this.addComponent('secondaryText', { text: client.clientCode });
   this.addComponent('statistic', {
     icon: 'user',
     tooltip: userText || 'Eligible users',
@@ -848,8 +848,8 @@ export function ClientCard(
     tooltip: 'Add sub-client',
   });
   this.data = {
-    'client-id': client.Id,
-    'filter-string': [client.Name, client.ClientCode].join('~').toUpperCase(),
+    'client-id': client.id,
+    'filter-string': [client.name, client.clientCode].join('~').toUpperCase(),
   };
   this.callback = callback;
 }
@@ -862,22 +862,22 @@ export function RootContentItemCard(
 ) {
   Card.call(this);
 
-  this.addComponent('body', { suspended: rootContentItemSummary.IsSuspended });
+  this.addComponent('body', { suspended: rootContentItemSummary.isSuspended });
   this.addComponent('primaryText', {
-    text: rootContentItemSummary.ContentName + (rootContentItemSummary.IsSuspended
+    text: rootContentItemSummary.contentName + (rootContentItemSummary.isSuspended
       ? ' (Suspended)'
       : ''),
   });
-  this.addComponent('secondaryText', { text: rootContentItemSummary.ContentTypeName });
+  this.addComponent('secondaryText', { text: rootContentItemSummary.contentTypeName });
   this.addComponent('statistic', {
     icon: 'group',
     tooltip: 'Selection groups',
-    value: rootContentItemSummary.GroupCount,
+    value: rootContentItemSummary.groupCount,
   });
   this.addComponent('statistic', {
     icon: 'user',
     tooltip: 'Assigned users',
-    value: rootContentItemSummary.AssignedUserCount,
+    value: rootContentItemSummary.assignedUserCount,
   });
   this.addComponent('button', {
     callback: deleteCallback,
@@ -910,12 +910,12 @@ export function RootContentItemCard(
   this.addComponent('status', {});
 
   this.data = {
-    'eligible-list': JSON.stringify(rootContentItemSummary.EligibleUserList),
+    'eligible-list': JSON.stringify(rootContentItemSummary.eligibleUserList),
     'filter-string': [
-      rootContentItemSummary.ContentName,
-      rootContentItemSummary.ContentTypeName,
+      rootContentItemSummary.contentName,
+      rootContentItemSummary.contentTypeName,
     ].join('~').toUpperCase(),
-    'root-content-item-id': rootContentItemSummary.Id,
+    'root-content-item-id': rootContentItemSummary.id,
   };
 
   this.callback = callback;
@@ -941,23 +941,23 @@ export function SelectionGroupCard(
 ) {
   Card.call(this);
 
-  const memberInfo = $.map(selectionGroup.MemberList, function toString(member) {
-    return [member.FirstName + ' ' + member.LastName, member.Email, member.UserName];
+  const memberInfo = $.map(selectionGroup.memberList, function toString(member) {
+    return [member.firstName + ' ' + member.lastName, member.email, member.userName];
   }).reduce(function concat(acc, cur) {
     return acc.concat(cur);
   }, []);
 
-  this.addComponent('body', { suspended: selectionGroup.IsSuspended });
+  this.addComponent('body', { suspended: selectionGroup.isSuspended });
   this.addComponent('primaryTextBox', {
-    text: selectionGroup.Name + (selectionGroup.IsSuspended
+    text: selectionGroup.name + (selectionGroup.isSuspended
       ? ' (Suspended)'
       : ''),
   });
-  this.addComponent('secondaryText', { text: selectionGroup.RootContentItemName });
+  this.addComponent('secondaryText', { text: selectionGroup.rootContentItemName });
   this.addComponent('statistic', {
     icon: 'user',
     tooltip: 'Assigned users',
-    value: selectionGroup.MemberList.length,
+    value: selectionGroup.memberList.length,
   });
   this.addComponent('button', {
     callback: deleteCallback,
@@ -982,17 +982,17 @@ export function SelectionGroupCard(
   this.addComponent('statistics', { click: shared.toggleExpandedListener });
   this.addComponent('detailText', { text: 'Assigned users' });
   this.addComponent('userList', {});
-  selectionGroup.MemberList.forEach(function(member) {
-    const firstlast = member.FirstName || member.LastName
-      ? `${member.FirstName || ''} ${member.LastName || ''}`
-      : member.UserName;
-    const username = firstlast === member.UserName
+  selectionGroup.memberList.forEach(function(member) {
+    const firstlast = member.firstName || member.lastName
+      ? `${member.firstName || ''} ${member.lastName || ''}`
+      : member.userName;
+    const username = firstlast === member.userName
       ? ''
-      : member.UserName;
+      : member.userName;
     this.addComponent('user', {
       callback: (event) => shared.removeUserFromSelectionGroup(event, member, selectionGroup),
       data: {
-        'user-id': member.Id,
+        'user-id': member.id,
       },
       firstlast,
       username,
@@ -1017,7 +1017,7 @@ export function SelectionGroupCard(
         shared.addUserToSelectionGroup(response);
         $ttInput.typeahead('val', '');
         $ttInput.focus();
-        toastr.success(`Added ${data} to selection group ${selectionGroup.Name}.`);
+        toastr.success(`Added ${data} to selection group ${selectionGroup.name}.`);
       }).fail((response) => {
         toastr.warning(response.getResponseHeader('Warning')
           || 'An unknown error has occurred.');
@@ -1037,9 +1037,9 @@ export function SelectionGroupCard(
   this.addComponent('status', {});
 
   this.data = {
-    'filter-string': memberInfo.concat([selectionGroup.Name]).join('~').toUpperCase(),
-    'member-list': JSON.stringify(selectionGroup.MemberList),
-    'selection-group-id': selectionGroup.Id,
+    'filter-string': memberInfo.concat([selectionGroup.name]).join('~').toUpperCase(),
+    'member-list': JSON.stringify(selectionGroup.memberList),
+    'selection-group-id': selectionGroup.id,
   };
 
   this.callback = callback;
@@ -1059,18 +1059,18 @@ export function SelectionGroupCard(
         name: 'eligibleUsers',
         source: shared.eligibleUserMatcher,
         display(data: UserInfo) {
-          return data.UserName;
+          return data.userName;
         },
         templates: {
           suggestion(data: UserInfo) {
             return [
               '<div>',
-              data.UserName + '',
-              (data.UserName !== data.Email)
-                ? '<br /> ' + data.Email
+              data.userName + '',
+              (data.userName !== data.email)
+                ? '<br /> ' + data.email
                 : '',
-              (data.FirstName && data.LastName)
-                ? '<br /><span class="secondary-text">' + data.FirstName + ' ' + data.LastName + '</span>'
+              (data.firstName && data.lastName)
+                ? '<br /><span class="secondary-text">' + data.firstName + ' ' + data.lastName + '</span>'
                 : '',
               '</div>',
             ].join('');
@@ -1091,19 +1091,19 @@ export function UserCard(
 
   Card.call(this);
 
-  if (user.FirstName && user.LastName) {
-    names.push([user.FirstName, user.LastName].join(' '));
+  if (user.firstName && user.lastName) {
+    names.push([user.firstName, user.lastName].join(' '));
   }
-  if (user.UserName !== user.Email) {
-    names.push(user.UserName);
+  if (user.userName !== user.email) {
+    names.push(user.userName);
   }
-  names.push(user.Email);
+  names.push(user.email);
 
-  this.addComponent('body', { suspended: user.IsSuspended });
+  this.addComponent('body', { suspended: user.isSuspended });
   this.addComponent('icon', { icon: 'user', class: 'card-user-icon' });
   this.addComponent('icon', { icon: 'add', class: 'card-user-role-indicator' });
   this.addComponent('primaryText', {
-    text: names[0] + (user.IsSuspended
+    text: names[0] + (user.isSuspended
       ? ' (Suspended)'
       : ''),
   });
@@ -1111,9 +1111,9 @@ export function UserCard(
     this.addComponent('secondaryText', { text: name });
   }, this);
   this.data = {
-    'client-id': client.Id,
+    'client-id': client.id,
     'filter-string': names.join('~').toUpperCase(),
-    'user-id': user.Id,
+    'user-id': user.id,
   };
   if (canManage) {
     this.addComponent('button', {
@@ -1123,15 +1123,15 @@ export function UserCard(
       tooltip: 'Remove user',
     });
     this.addComponent('detailText', { text: 'User roles' });
-    user.UserRoles.forEach(function(role) {
+    user.userRoles.forEach(function(role) {
       this.addComponent('toggle', {
         callback: roleCallback,
-        checked: role.IsAssigned,
+        checked: role.isAssigned,
         data: {
-          'role-enum': role.RoleEnum,
+          'role-enum': role.roleEnum,
         },
-        id: 'user-role-' + user.Id + '-' + role.RoleEnum,
-        text: role.RoleDisplayValue,
+        id: 'user-role-' + user.id + '-' + role.roleEnum,
+        text: role.roleDisplayValue,
       });
     }, this);
     this.callback = shared.toggleExpandedListener;

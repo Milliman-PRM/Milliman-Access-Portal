@@ -29,14 +29,14 @@ export class EntityHelper {
   public static applyFilter(entity: EntityInfo, filterText: string): boolean {
     const filterTextLower = filterText.toLowerCase();
     const primaryText = isUserInfo(entity)
-      ? `${entity.FirstName} ${entity.LastName}`
-      : entity.Name;
+      ? `${entity.firstName} ${entity.lastName}`
+      : entity.name;
     const secondaryText = isUserInfo(entity)
-      ? entity.UserName
+      ? entity.userName
       : isRootContentItemInfo(entity)
-        ? entity.ClientName
+        ? entity.clientName
         : (isClientInfo(entity) || isProfitCenterInfo(entity))
-          ? entity.Code
+          ? entity.code
           : '';
     const primaryMatch = primaryText
       ? primaryText.toLowerCase().indexOf(filterTextLower) !== -1

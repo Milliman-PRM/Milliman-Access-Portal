@@ -158,12 +158,12 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
   private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     postData(this.url, {
-      Name: this.state.name,
-      ProfitCenterCode: this.state.code,
-      MillimanOffice: this.state.office,
-      ContactName: this.state.contact,
-      ContactEmail: this.state.email,
-      ContactPhone: this.state.phone,
+      name: this.state.name,
+      profitCenterCode: this.state.code,
+      millimanOffice: this.state.office,
+      contactName: this.state.contact,
+      contactEmail: this.state.email,
+      contactPhone: this.state.phone,
     })
     .then(() => {
       alert('Profit center created.');

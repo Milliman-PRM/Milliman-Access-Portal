@@ -4,7 +4,7 @@ import { UserInfo } from './system-admin/interfaces';
 export type Guid = string;
 
 export interface SelectionGroupInfo {
-  Id: Guid;
-  Name: string;
-  IsSuspended: boolean;
+  id: Guid;
+  name: string;
+  isSuspended: boolean;
 }

@@ -16,51 +16,51 @@ export enum ReductionStatus {
   Error = 90,
 }
 export interface ReductionSummary {
-  User: UserInfo;
-  StatusEnum: ReductionStatus;
-  StatusName: string;
-  SelectionGroupId: Guid;
-  RootContentItemId?: string;
-  QueuedDurationMs?: number;
-  QueuePosition?: number;
+  user: UserInfo;
+  statusEnum: ReductionStatus;
+  statusName: string;
+  selectionGroupId: Guid;
+  rootContentItemId?: string;
+  queuedDurationMs?: number;
+  queuePosition?: number;
 }
 export interface SelectionGroupStatus {
-  Status: ReductionSummary[];
+  status: ReductionSummary[];
 }
 export interface SelectionDetails {
-  Id: Guid;
-  Marked: boolean;
+  id: Guid;
+  marked: boolean;
 }
 export interface SelectionComparison {
-  Hierarchy: ContentReductionHierarchy<ReductionFieldValueSelection>;
-  LiveSelections: SelectionDetails[];
-  PendingSelections: SelectionDetails[];
-  IsLiveMaster: boolean;
-  IsPendingMaster: boolean;
+  hierarchy: ContentReductionHierarchy<ReductionFieldValueSelection>;
+  liveSelections: SelectionDetails[];
+  pendingSelections: SelectionDetails[];
+  isLiveMaster: boolean;
+  isPendingMaster: boolean;
 }
 export interface SelectionsDetail {
-  SelectionGroupName: string;
-  RootContentItemName: string;
-  ReductionSummary: ReductionSummary;
-  SelectionComparison: SelectionComparison;
-  IsSuspended: boolean;
-  DoesReduce: boolean;
+  selectionGroupName: string;
+  rootContentItemName: string;
+  reductionSummary: ReductionSummary;
+  selectionComparison: SelectionComparison;
+  isSuspended: boolean;
+  doesReduce: boolean;
 }
 
 export interface SelectionGroupSummary {
-  Id: Guid;
-  Name: string;
-  MemberList: UserInfo[];
-  ReductionDetails: ReductionSummary;
-  RootContentItemName: string;
-  IsSuspended: boolean;
+  id: Guid;
+  name: string;
+  memberList: UserInfo[];
+  reductionDetails: ReductionSummary;
+  rootContentItemName: string;
+  isSuspended: boolean;
 }
 export interface SelectionGroupList {
-  SelectionGroups: SelectionGroupSummary[];
-  RelevantRootContentItemId: Guid;
+  selectionGroups: SelectionGroupSummary[];
+  relevantRootContentItemId: Guid;
 }
 
 export interface ContentAccessStatus {
-  RootContentItemStatusList: RootContentItemStatus;
-  SelectionGroupStatusList: SelectionGroupStatus;
+  rootContentItemStatusList: RootContentItemStatus;
+  selectionGroupStatusList: SelectionGroupStatus;
 }

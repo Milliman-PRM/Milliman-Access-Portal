@@ -56,13 +56,13 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
 
   public render() {
     const navElements = this.state.navBarElements && this.state.navBarElements.map((element: NavBarElement) => {
-      const classes = `nav-element ${(this.props.currentView === element.View) ? 'selected' : null }`;
+      const classes = `nav-element ${(this.props.currentView === element.view) ? 'selected' : null }`;
       return (
-        <a href={'/' + element.URL} key={element.View}>
-          <div className={classes} style={{ order: element.Order }}>
-            <h3 className="nav-element-label">{element.Label}</h3>
+        <a href={'/' + element.url} key={element.view}>
+          <div className={classes} style={{ order: element.order }}>
+            <h3 className="nav-element-label">{element.label}</h3>
             <svg className="nav-element-icon">
-              <use xlinkHref={`#${element.Icon}`} />
+              <use xlinkHref={`#${element.icon}`} />
             </svg>
           </div>
         </a>

@@ -49,9 +49,9 @@ function deleteRootContentItem(
   }).done(function onDone(response: RootContentItemDetail) {
     $('#content-publishing-form').hide();
     $('#root-content-items .card-container')
-      .filter((_, card) => $(card).data().rootContentItemId === response.Id)
+      .filter((_, card) => $(card).data().rootContentItemId === response.id)
       .remove();
-    addToDocumentCount(response.ClientId, -1);
+    addToDocumentCount(response.clientId, -1);
     callback();
     toastr.success(rootContentItemName + ' was successfully deleted.');
   }).fail(function onFail(response) {
@@ -120,15 +120,15 @@ export function openNewRootContentItemForm() {
   }
   const clientId = $('#client-tree [selected]').parent().data().clientId;
   renderRootContentItemForm({
-    ClientId: clientId,
-    ContentName: '',
-    ContentTypeId: '0',
-    Description: '',
-    DoesReduce: false,
-    Id: '0',
-    Notes: '',
-    RelatedFiles: [],
-    IsSuspended: false,
+    clientId: clientId,
+    contentName: '',
+    contentTypeId: '0',
+    description: '',
+    doesReduce: false,
+    id: '0',
+    notes: '',
+    relatedFiles: [],
+    isSuspended: false,
   });
   setFormNew();
 }
@@ -164,13 +164,13 @@ function setFormEditOrRepublish() {
 function mapRootContentItemDetail(item: RootContentItemDetail) {
   const formMap = new Map<string, string | number | boolean>();
 
-  formMap.set('Id', item.Id);
-  formMap.set('ClientId', item.ClientId);
-  formMap.set('ContentName', item.ContentName);
-  formMap.set('ContentTypeId', item.ContentTypeId);
-  formMap.set('DoesReduce',  item.DoesReduce);
-  formMap.set('Description', item.Description);
-  formMap.set('Notes', item.Notes);
+  formMap.set('Id', item.id);
+  formMap.set('ClientId', item.clientId);
+  formMap.set('ContentName', item.contentName);
+  formMap.set('ContentTypeId', item.contentTypeId);
+  formMap.set('DoesReduce',  item.doesReduce);
+  formMap.set('Description', item.description);
+  formMap.set('Notes', item.notes);
 
   return formMap;
 }
@@ -193,9 +193,9 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     .attr('disabled', '');
   // set src for iframes, conditionally marking iframes as unchanged
   const linkPairs: Array<{sectionName: string, link: string}> = [
-    { sectionName: 'master-content', link: response.MasterContentLink },
-    { sectionName: 'user-guide', link: response.UserGuideLink },
-    { sectionName: 'release-notes', link: response.ReleaseNotesLink },
+    { sectionName: 'master-content', link: response.masterContentLink },
+    { sectionName: 'user-guide', link: response.userGuideLink },
+    { sectionName: 'release-notes', link: response.releaseNotesLink },
   ];
   linkPairs.forEach((pair) => {
     $(`#confirmation-section-${pair.sectionName} iframe`)
@@ -214,7 +214,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       .attr('disabled', '');
   });
 
-  if (!response.DoesReduce || !response.SelectionGroups) {
+  if (!response.doesReduce || !response.selectionGroups) {
     $('#confirmation-section-hierarchy-diff')
       .hide()
       .find('input[type="checkbox"]')
@@ -230,45 +230,45 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       .show();
     // populate (after calculating, if need be) hierarchy diff
     $('#confirmation-section-hierarchy-diff .hierarchy > ul').children().remove();
-    if (!response.LiveHierarchy) {
+    if (!response.liveHierarchy) {
       $('#confirmation-section-hierarchy-diff .hierarchy-left > ul').append('<div>None</div>');
     } else {
-      response.LiveHierarchy.Fields.forEach((field) => {
-        const subList = $(`<li><h6>${field.DisplayName}</h6><ul class="hierarchy-list"></ul></li>`);
-        field.Values.forEach((value) =>
-            subList.find('ul').append(`<li>${value.Value}</li>`));
+      response.liveHierarchy.fields.forEach((field) => {
+        const subList = $(`<li><h6>${field.displayName}</h6><ul class="hierarchy-list"></ul></li>`);
+        field.values.forEach((value) =>
+            subList.find('ul').append(`<li>${value.value}</li>`));
         $('#confirmation-section-hierarchy-diff .hierarchy-left > ul')
           .append(subList);
       });
     }
-    if (!response.NewHierarchy) {
+    if (!response.newHierarchy) {
       $('#confirmation-section-hierarchy-diff .hierarchy-right > ul').append('<div>None</div>');
     } else {
-      response.NewHierarchy.Fields.forEach((field) => {
-        const subList = $(`<li><h6>${field.DisplayName}</h6><ul class="hierarchy-list"></ul></li>`);
-        field.Values.forEach((value) =>
-            subList.find('ul').append(`<li>${value.Value}</li>`));
+      response.newHierarchy.fields.forEach((field) => {
+        const subList = $(`<li><h6>${field.displayName}</h6><ul class="hierarchy-list"></ul></li>`);
+        field.values.forEach((value) =>
+            subList.find('ul').append(`<li>${value.value}</li>`));
         $('#confirmation-section-hierarchy-diff .hierarchy-right > ul')
           .append(subList);
       });
     }
     // populate hierarchy stats
     $('#confirmation-section-hierarchy-stats > div > ul').children().remove();
-    response.SelectionGroups.forEach((selectionGroup) => {
+    response.selectionGroups.forEach((selectionGroup) => {
       $('#confirmation-section-hierarchy-stats > div > ul')
         .append(`<li><div class="selection-group-summary">
-          <h5>${selectionGroup.Name}${selectionGroup.IsMaster ? ' (Master)' : ''}</h5>
+          <h5>${selectionGroup.name}${selectionGroup.isMaster ? ' (Master)' : ''}</h5>
           <ul>
             <li><div class="selection-group-stat">
               <span class="selection-group-stat-label">Users:</span>
-              <span class="selection-group-stat-value">${selectionGroup.UserCount}</span>
+              <span class="selection-group-stat-value">${selectionGroup.userCount}</span>
             </div></li>
           </ul>
         </div></li>`);
     });
   }
   // populate attestation
-  $('#confirmation-section-attestation .attestation-language').html(response.AttestationLanguage);
+  $('#confirmation-section-attestation .attestation-language').html(response.attestationLanguage);
 
   const anyEnabled = $('#report-confirmation input[type="checkbox"]')
     .filter((_, element) => $(element).attr('disabled') === undefined).length;
@@ -292,17 +292,17 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       }
     });
     $rootContentItemForm.find('.file-upload').data('originalName', '');
-    if (item.RelatedFiles && !ignoreFiles) {
-      item.RelatedFiles.forEach((relatedFile) => {
-        $rootContentItemForm.find(`#${relatedFile.FilePurpose}`)
+    if (item.relatedFiles && !ignoreFiles) {
+      item.relatedFiles.forEach((relatedFile) => {
+        $rootContentItemForm.find(`#${relatedFile.filePurpose}`)
           .val('')
           .siblings('label').find('.file-upload')
-          .data('originalName', relatedFile.FileOriginalName);
+          .data('originalName', relatedFile.fileOriginalName);
       });
     }
 
     const $doesReduceToggle = $rootContentItemForm.find('#DoesReduce');
-    $doesReduceToggle.prop('checked', item.DoesReduce);
+    $doesReduceToggle.prop('checked', item.doesReduce);
   }
 
   const createContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
@@ -320,10 +320,10 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       // Add the new content item as a card and select it
       renderRootContentItem(response.summary);
       $('#root-content-items .card-container')
-        .filter((_, card) => $(card).data().rootContentItemId === response.detail.Id)
+        .filter((_, card) => $(card).data().rootContentItemId === response.detail.id)
         .children().click();
       // Update the root content item count stat on the client card
-      addToDocumentCount(response.detail.ClientId, 1);
+      addToDocumentCount(response.detail.clientId, 1);
 
       toastr.success('content item created');
     },
@@ -343,9 +343,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       renderRootContentItemForm(response.detail, true);
       // Update related root content item card
       const $card = $('#root-content-items .card-container')
-        .filter((_, card) => $(card).data().rootContentItemId === response.detail.Id);
-      $card.find('.card-body-primary-text').html(response.summary.ContentName);
-      $card.find('.card-body-secondary-text').html(response.summary.ContentTypeName);
+        .filter((_, card) => $(card).data().rootContentItemId === response.detail.id);
+      $card.find('.card-body-primary-text').html(response.summary.contentName);
+      $card.find('.card-body-secondary-text').html(response.summary.contentTypeName);
       toastr.success('content item updated');
     },
     (data) => data.indexOf('DoesReduce=') === -1
@@ -369,17 +369,17 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
         .map((kvp) => kvp.split('='))
         .forEach((kvp) => dataArray[decodeURIComponent(kvp[0])] = decodeURIComponent(kvp[1]));
       const publishRequest: PublishRequest = {
-        RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
+        relatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
           .map((file) => {
             const fileData = dataArray[file].split('~');
             return {
-              FileOriginalName: fileData[0],
-              FilePurpose: file,
-              FileUploadId: fileData[1],
+              fileOriginalName: fileData[0],
+              filePurpose: file,
+              fileUploadId: fileData[1],
             };
           })
-          .filter((file) => file.FileUploadId),
-        RootContentItemId: dataArray.Id,
+          .filter((file) => file.fileUploadId),
+        rootContentItemId: dataArray.Id,
       };
       return publishRequest;
     },
@@ -462,15 +462,15 @@ function renderRootContentItem(item: RootContentItemSummary) {
         }),
       ), () => formObject, {count: 1, offset: 1}, () => false),
   ).build();
-  updateCardStatus($rootContentItemCard, item.PublicationDetails);
-  updateCardStatusButtons($rootContentItemCard, item.PublicationDetails && item.PublicationDetails.StatusEnum);
-  $rootContentItemCard.data('statusEnum', item.PublicationDetails && item.PublicationDetails.StatusEnum);
+  updateCardStatus($rootContentItemCard, item.publicationDetails);
+  updateCardStatusButtons($rootContentItemCard, item.publicationDetails && item.publicationDetails.statusEnum);
+  $rootContentItemCard.data('statusEnum', item.publicationDetails && item.publicationDetails.statusEnum);
   $('#root-content-items ul.admin-panel-content').append($rootContentItemCard);
 }
 function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: string) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
-  response.SummaryList.forEach(renderRootContentItem);
+  response.summaryList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
   if (rootContentItemId !== null) {
@@ -480,9 +480,9 @@ function renderRootContentItemList(response: RootContentItemList, rootContentIte
 
 function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
   const $card = new ClientCard(
-    client.Value,
-    client.Value.EligibleUserCount,
-    client.Value.RootContentItemCount,
+    client.value,
+    client.value.eligibleUserCount,
+    client.value.rootContentItemCount,
     level,
     wrapCardCallback(get(
       'ContentPublishing/RootContentItems',
@@ -492,18 +492,18 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
       }),
     ), () => formObject),
   );
-  $card.disabled = !client.Value.CanManage;
+  $card.disabled = !client.value.canManage;
   $('#client-tree ul.admin-panel-content').append($card.build());
 
   // Render child nodes
-  client.Children.forEach((childNode) => {
+  client.children.forEach((childNode) => {
     renderClientNode(childNode, level + 1);
   });
 }
 function renderClientTree(response: ClientTree, clientId?: string) {
   const $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
-  response.Root.Children.forEach((rootClient) => {
+  response.root.children.forEach((rootClient) => {
     renderClientNode(rootClient);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
@@ -523,7 +523,7 @@ function populateAvailableContentTypes(contentTypes: ContentType[]) {
   $contentTypeDropdown.children(':not(option[value = "0"])').remove();
 
   contentTypes.forEach((contentType) => {
-    const option = new Option(contentType.Name, contentType.Id.toString());
+    const option = new Option(contentType.name, contentType.id.toString());
     $(option).data(contentType);
     $contentTypeDropdown.append(option);
   });
@@ -539,7 +539,7 @@ export function setup() {
     const contentType = $contentTypeDropdown
       .find(`option[value="${$contentTypeDropdown.val()}"]`)
       .data() as ContentType;
-    if (!contentType.CanReduce) {
+    if (!contentType.canReduce) {
       $doesReduceToggle.attr('disabled', '');
       $doesReduceToggle.prop('checked', false);
     } else {
@@ -591,7 +591,7 @@ export function setup() {
     showButtonSpinner($target, 'Rejecting');
     $.post({
       data: {
-        publicationRequestId: preLiveObject && preLiveObject.PublicationRequestId,
+        publicationRequestId: preLiveObject && preLiveObject.publicationRequestId,
         rootContentItemId,
       },
       headers: {
@@ -618,9 +618,9 @@ export function setup() {
     showButtonSpinner($target, 'Approving');
     $.post({
       data: {
-        publicationRequestId: preLiveObject && preLiveObject.PublicationRequestId,
+        publicationRequestId: preLiveObject && preLiveObject.publicationRequestId,
         rootContentItemId,
-        validationSummaryId: preLiveObject && preLiveObject.ValidationSummaryId,
+        validationSummaryId: preLiveObject && preLiveObject.validationSummaryId,
       },
       headers: {
         RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),

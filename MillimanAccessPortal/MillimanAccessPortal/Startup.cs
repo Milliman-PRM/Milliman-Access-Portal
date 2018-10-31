@@ -160,16 +160,7 @@ namespace MillimanAccessPortal
                              .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
             })
-            .AddControllersAsServices()
-            .AddJsonOptions(opt =>
-            {
-                var resolver = opt.SerializerSettings.ContractResolver;
-                if (resolver != null)
-                {
-                    var res = resolver as Newtonsoft.Json.Serialization.DefaultContractResolver;
-                    res.NamingStrategy = null;  // Remove the default lowerCamelCasing of the json output
-                }
-            });
+            .AddControllersAsServices();
 
             string fileUploadPath = Path.GetTempPath();
             // The environment variable check enables migrations to be deployed to Staging or Production via the MAP deployment server

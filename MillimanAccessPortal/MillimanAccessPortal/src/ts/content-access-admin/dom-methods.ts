@@ -107,9 +107,9 @@ function submitSelectionForm() {
   const $selectionGroups = $('#selection-groups ul.admin-panel-content');
   const $button = $selectionInfo.find('button');
   const data = {
-    IsMaster: $selectionInfo.find('#IsMaster').prop('checked'),
-    SelectionGroupId: $selectionGroups.find('[selected]').closest('.card-container').attr('data-selection-group-id'),
-    Selections: $selectionInfo.serializeArray().reduce((acc, cur) => {
+    isMaster: $selectionInfo.find('#IsMaster').prop('checked'),
+    selectionGroupId: $selectionGroups.find('[selected]').closest('.card-container').attr('data-selection-group-id'),
+    selections: $selectionInfo.serializeArray().reduce((acc, cur) => {
       return (cur.value === 'on')
         ? acc.concat(cur.name)
         : undefined;
@@ -127,7 +127,7 @@ function submitSelectionForm() {
   }).done(function onDone(response) {
     hideButtonSpinner($button);
     renderSelections(response);
-    toastr.success(data.IsMaster
+    toastr.success(data.isMaster
       ? 'Unrestricted access granted.'
       : 'A reduction task has been queued.');
   }).fail(function onFail(response) {
@@ -153,24 +153,24 @@ function renderValue(
   pendingSelections: SelectionDetails[],
 ) {
   const $checkbox = $(`<label class="selection-option-label">
-    ${value.Value}
-      <input type="checkbox" id="selection-value-${value.Id}" name="${value.Id}" class="selection-option-value">
+    ${value.value}
+      <input type="checkbox" id="selection-value-${value.id}" name="${value.id}" class="selection-option-value">
         <span class="selection-option-checkmark"></span>
     </label>`);
   $fieldset.append(
-    `<div class="selection-option-container" data-selection-value="${value.Value.toUpperCase()}"></div>`);
+    `<div class="selection-option-container" data-selection-value="${value.value.toUpperCase()}"></div>`);
   const $div = $fieldset.find('div.selection-option-container').last();
   $div.append($checkbox);
 
-  const live = liveSelections.filter((s) => s.Id === value.Id);
-  const pending = pendingSelections && pendingSelections.filter((s) => s.Id === value.Id);
+  const live = liveSelections.filter((s) => s.id === value.id);
+  const pending = pendingSelections && pendingSelections.filter((s) => s.id === value.id);
   $checkbox.find('input[type="checkbox"]')
     .prop('checked', pending ? pending.length > 0 : live.length > 0)
     .data('originalValue', live.length > 0);
-  if (pending && live.length && live[0].Marked) {
+  if (pending && live.length && live[0].marked) {
     $div.attr('style', 'color: red;');
   }
-  if (pending && pending.length && pending[0].Marked) {
+  if (pending && pending.length && pending[0].marked) {
     $div.attr('style', 'color: green;');
   }
 
@@ -187,8 +187,8 @@ function renderField(
 ) {
   $parent.append('<fieldset></fieldset>');
   const $fieldset = $parent.find('fieldset').last();
-  $fieldset.append(`<legend>${field.DisplayName}</legend>`);
-  field.Values.forEach((value) => {
+  $fieldset.append(`<legend>${field.displayName}</legend>`);
+  field.values.forEach((value) => {
     renderValue(value, $fieldset, liveSelections, pendingSelections);
   });
 }
@@ -198,38 +198,38 @@ function renderSelections(response: SelectionsDetail) {
   const $fieldsetDiv = $selectionInfo.find('.fieldset-container');
   const $relatedCard = $('#selection-groups [selected]').closest('.card-container');
 
-  $selectionInfo.children('h2').html(response.SelectionGroupName);
-  $selectionInfo.children('h3').html(response.RootContentItemName);
+  $selectionInfo.children('h2').html(response.selectionGroupName);
+  $selectionInfo.children('h3').html(response.rootContentItemName);
 
   const details = $.extend({
-    User: {
-      FirstName: '',
+    user: {
+      firstName: '',
     },
-    StatusEnum: 0,
-    StatusName: '',
-    SelectionGroupId: 0,
-    RootContentItemId: 0,
-  }, response.ReductionSummary);
+    statusEnum: 0,
+    statusName: '',
+    selectionGroupId: 0,
+    rootContentItemId: 0,
+  }, response.reductionSummary);
 
-  const comparison = response.SelectionComparison;
-  const isMaster = comparison.PendingSelections === null && comparison.IsLiveMaster;
+  const comparison = response.selectionComparison;
+  const isMaster = comparison.pendingSelections === null && comparison.isLiveMaster;
   $('#IsMaster')
     .prop('checked', isMaster)
     .data('originalValue', isMaster);
   $fieldsetDiv.hide().filter(() => !isMaster).show();
-  $('#IsSuspended').prop('checked', response.IsSuspended);
+  $('#IsSuspended').prop('checked', response.isSuspended);
   $('#selection-info form.admin-panel-content .selection-content')
-    .hide().filter(() => response.DoesReduce).show();
+    .hide().filter(() => response.doesReduce).show();
 
   $fieldsetDiv.empty();
-  comparison.Hierarchy.Fields.forEach((field) =>
-    renderField(field, $fieldsetDiv, comparison.LiveSelections, comparison.PendingSelections));
-  updateCardStatus($relatedCard, response.ReductionSummary);
+  comparison.hierarchy.fields.forEach((field) =>
+    renderField(field, $fieldsetDiv, comparison.liveSelections, comparison.pendingSelections));
+  updateCardStatus($relatedCard, response.reductionSummary);
   $selectionInfo
     .find('button').hide()
-    .filter(`.button-status-${details.StatusEnum}`).show();
+    .filter(`.button-status-${details.statusEnum}`).show();
   $('#selection-info .blue-button').hide();
-  const readonly = [10, 20, 30].indexOf(details.StatusEnum) !== -1;
+  const readonly = [10, 20, 30].indexOf(details.statusEnum) !== -1;
   $fieldsetDiv
     .find('input[type="checkbox"]')
     .click(readonly
@@ -241,7 +241,7 @@ function renderSelections(response: SelectionsDetail) {
 }
 
 function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
-  $('#root-content-items [selected]').parent().data('eligibleMembers', selectionGroup.MemberList);
+  $('#root-content-items [selected]').parent().data('eligibleMembers', selectionGroup.memberList);
   const $card = new SelectionGroupCard(
     selectionGroup,
     wrapCardCallback(get(
@@ -304,13 +304,13 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
       });
     },
   ).build();
-  updateCardStatus($card, selectionGroup.ReductionDetails);
+  updateCardStatus($card, selectionGroup.reductionDetails);
   $('#selection-groups ul.admin-panel-content').append($card);
 }
 function renderSelectionGroupList(response: SelectionGroupList, selectionGroupId?) {
   const $selectionGroupList = $('#selection-groups ul.admin-panel-content');
   $selectionGroupList.empty();
-  response.SelectionGroups.forEach((selectionGroup) =>
+  response.selectionGroups.forEach((selectionGroup) =>
     renderSelectionGroup(selectionGroup));
   $selectionGroupList.find('.tooltip').tooltipster();
 
@@ -338,16 +338,16 @@ function renderRootContentItem(item: RootContentItemSummary) {
       }),
     )),
   );
-  rootContentItemCard.disabled = item.ReadOnly;
+  rootContentItemCard.disabled = item.readOnly;
   rootContentItemCard.disabledReason = 'Selection Groups cannot be managed during publication.';
   const $rootContentItemCard = rootContentItemCard.build();
-  updateCardStatus($rootContentItemCard, item.PublicationDetails);
+  updateCardStatus($rootContentItemCard, item.publicationDetails);
   $('#root-content-items ul.admin-panel-content').append($rootContentItemCard);
 }
 function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: string) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
-  response.SummaryList.forEach(renderRootContentItem);
+  response.summaryList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
   if (rootContentItemId !== null) {
@@ -357,9 +357,9 @@ function renderRootContentItemList(response: RootContentItemList, rootContentIte
 
 function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
   const $card = new ClientCard(
-    client.Value,
-    client.Value.EligibleUserCount,
-    client.Value.RootContentItemCount,
+    client.value,
+    client.value.eligibleUserCount,
+    client.value.rootContentItemCount,
     level,
     wrapCardCallback(get(
       'ContentAccessAdmin/RootContentItems',
@@ -369,18 +369,18 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
       }),
     )),
   );
-  $card.disabled = !client.Value.CanManage;
+  $card.disabled = !client.value.canManage;
   $('#client-tree ul.admin-panel-content').append($card.build());
 
   // Render child nodes
-  client.Children.forEach((childNode) => {
+  client.children.forEach((childNode) => {
     renderClientNode(childNode, level + 1);
   });
 }
 function renderClientTree(response: ClientTree, clientId?: string) {
   const $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
-  response.Root.Children.forEach((rootClient) => {
+  response.root.children.forEach((rootClient) => {
     renderClientNode(rootClient);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
@@ -436,10 +436,10 @@ export function setup() {
       url: 'ContentAccessAdmin/SetSuspendedSelectionGroup',
     }).done((response: SelectionsDetail) => {
       // Set checkbox states to match the response
-      $('#IsSuspended').prop('checked', response.IsSuspended);
+      $('#IsSuspended').prop('checked', response.isSuspended);
 
-      const setUnset = response.IsSuspended ? '' : 'un';
-      toastr.success(`${response.SelectionGroupName} was ${setUnset}suspended.`);
+      const setUnset = response.isSuspended ? '' : 'un';
+      toastr.success(`${response.selectionGroupName} was ${setUnset}suspended.`);
       onResponse();
     }).fail((response) => {
       toastr.warning(response.getResponseHeader('Warning')

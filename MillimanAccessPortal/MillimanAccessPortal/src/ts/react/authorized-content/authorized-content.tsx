@@ -18,7 +18,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     super(props);
 
     this.state = {
-      ItemGroups: [],
+      itemGroups: [],
       selectedContentURL: null,
       filterString: '',
     };
@@ -72,16 +72,16 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
 
   public render() {
     const clientGroups = this.filteredArray().map((client: ContentItemGroup) => {
-      const clientItems = client.Items.map((contentItem: ContentItem) => (
+      const clientItems = client.items.map((contentItem: ContentItem) => (
         <ContentCard
-          key={contentItem.Id.toString()}
+          key={contentItem.id.toString()}
           selectContent={this.selectContentItem}
           {...contentItem}
         />
       ));
       return (
-        <div key={`client-${client.Id}`} className="client-content-container">
-          <h1 className="client-name">{client.Name}</h1>
+        <div key={`client-${client.id}`} className="client-content-container">
+          <h1 className="client-name">{client.name}</h1>
           {clientItems}
         </div>
       );
@@ -116,12 +116,12 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
 
   private filteredArray() {
     // Deep copy state
-    const groups = JSON.parse(JSON.stringify(this.state.ItemGroups)) as ContentItemGroup[];
+    const groups = JSON.parse(JSON.stringify(this.state.itemGroups)) as ContentItemGroup[];
     return groups.map((itemGroup: ContentItemGroup) => {
-      itemGroup.Items = itemGroup.Items.filter((item) =>
-        [itemGroup.Name, item.Name, item.Description].filter((text) =>
+      itemGroup.items = itemGroup.items.filter((item) =>
+        [itemGroup.name, item.name, item.description].filter((text) =>
           text && text.toLowerCase().indexOf(this.state.filterString.toLowerCase()) > -1).length);
       return itemGroup;
-    }).filter((itemGroup: ContentItemGroup) => itemGroup.Items.length);
+    }).filter((itemGroup: ContentItemGroup) => itemGroup.items.length);
   }
 }

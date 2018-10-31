@@ -115,7 +115,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       if (primaryDetail === null) {
         this.fetchPrimaryDetail();
       } else {
-        if (isUserDetail(primaryDetail) && primaryDetail.IsSuspended === null) {
+        if (isUserDetail(primaryDetail) && primaryDetail.isSuspended === null) {
           this.fetchSystemAdmin();
           this.fetchSuspendUser();
         }
@@ -128,13 +128,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       if (secondaryDetail === null) {
         this.fetchSecondaryDetail();
       } else {
-        if (isUserClientRoles(secondaryDetail) && secondaryDetail.IsClientAdmin === null) {
+        if (isUserClientRoles(secondaryDetail) && secondaryDetail.isClientAdmin === null) {
           this.fetchUserClient(RoleEnum.Admin);
           this.fetchUserClient(RoleEnum.ContentPublisher);
           this.fetchUserClient(RoleEnum.ContentAccessAdmin);
           this.fetchUserClient(RoleEnum.ContentUser);
         }
-        if (isRootContentItemDetail(secondaryDetail) && secondaryDetail.IsSuspended === null) {
+        if (isRootContentItemDetail(secondaryDetail) && secondaryDetail.isSuspended === null) {
           this.fetchSuspendContent();
         }
       }
@@ -217,9 +217,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             queryFilter={secondaryQueryFilter}
             detail={primaryDetail}
             onPushSystemAdmin={this.pushSystemAdmin}
-            checkedSystemAdmin={isUserDetail(primaryDetail) && primaryDetail.IsSystemAdmin}
+            checkedSystemAdmin={isUserDetail(primaryDetail) && primaryDetail.isSystemAdmin}
             onPushSuspend={this.pushSuspendUser}
-            checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.IsSuspended}
+            checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.isSuspended}
           />
           <SecondaryDetailPanel
             selectedCard={secondaryCard}
@@ -229,11 +229,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             detail={secondaryDetail}
             onCancelPublication={this.handlePublicationCanceled}
             onCancelReduction={this.handleReductionCanceled}
-            checkedClientAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.IsClientAdmin}
-            checkedContentPublisher={isUserClientRoles(secondaryDetail) && secondaryDetail.IsContentPublisher}
-            checkedAccessAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.IsAccessAdmin}
-            checkedContentUser={isUserClientRoles(secondaryDetail) && secondaryDetail.IsContentUser}
-            checkedSuspended={isRootContentItemDetail(secondaryDetail) && secondaryDetail.IsSuspended}
+            checkedClientAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.isClientAdmin}
+            checkedContentPublisher={isUserClientRoles(secondaryDetail) && secondaryDetail.isContentPublisher}
+            checkedAccessAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.isAccessAdmin}
+            checkedContentUser={isUserClientRoles(secondaryDetail) && secondaryDetail.isContentUser}
+            checkedSuspended={isRootContentItemDetail(secondaryDetail) && secondaryDetail.isSuspended}
             onPushUserClient={this.pushUserClient}
             onPushSuspend={this.pushSuspendContent}
           />
@@ -547,8 +547,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       if (isUserDetail(response)) {
         responseWithDefaults = {
           ...response,
-          IsSystemAdmin: null,
-          IsSuspended: null,
+          isSystemAdmin: null,
+          isSuspended: null,
         };
       } else {
         responseWithDefaults = response;
@@ -574,15 +574,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       if (isUserClientRoles(response)) {
         responseWithDefaults = {
           ...response,
-          IsClientAdmin: null,
-          IsContentPublisher: null,
-          IsAccessAdmin: null,
-          IsContentUser: null,
+          isClientAdmin: null,
+          isContentPublisher: null,
+          isAccessAdmin: null,
+          isContentUser: null,
         };
       } else if (isRootContentItemDetail(response)) {
         responseWithDefaults = {
           ...response,
-          IsSuspended: null,
+          isSuspended: null,
         };
       } else {
         responseWithDefaults = response;
@@ -642,7 +642,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           primaryDetail: {
             ...prevState.data.primaryDetail,
-            IsSystemAdmin: response,
+            isSystemAdmin: response,
           },
         },
       }));
@@ -658,7 +658,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     postData('/SystemAdmin/SystemRole', {
       ...this.getSecondaryQueryFilter(),
       role: RoleEnum.Admin,
-      value: !primaryDetail.IsSystemAdmin,
+      value: !primaryDetail.isSystemAdmin,
     }).then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -666,7 +666,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           primaryDetail: {
             ...prevState.data.primaryDetail,
-            IsSystemAdmin: response,
+            isSystemAdmin: response,
           },
         },
       }));
@@ -683,7 +683,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           primaryDetail: {
             ...prevState.data.primaryDetail,
-            IsSuspended: response,
+            isSuspended: response,
           },
         },
       }));
@@ -698,7 +698,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
     postData('/SystemAdmin/UserSuspendedStatus', {
       ...this.getSecondaryQueryFilter(),
-      value: !primaryDetail.IsSuspended,
+      value: !primaryDetail.isSuspended,
     }).then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -706,7 +706,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           primaryDetail: {
             ...prevState.data.primaryDetail,
-            IsSuspended: response,
+            isSuspended: response,
           },
         },
       }));
@@ -720,13 +720,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }).then((response: boolean) => {
       let roleAssignment: Partial<UserClientRoles> = {};
       if (role === RoleEnum.Admin) {
-        roleAssignment = { IsClientAdmin: response };
+        roleAssignment = { isClientAdmin: response };
       } else if (role === RoleEnum.ContentPublisher) {
-        roleAssignment = { IsContentPublisher: response };
+        roleAssignment = { isContentPublisher: response };
       } else if (role === RoleEnum.ContentAccessAdmin) {
-        roleAssignment = { IsAccessAdmin: response };
+        roleAssignment = { isAccessAdmin: response };
       } else if (role === RoleEnum.ContentUser) {
-        roleAssignment = { IsContentUser: response };
+        roleAssignment = { isContentUser: response };
       }
       this.setState((prevState) => ({
         ...prevState,
@@ -749,13 +749,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
     let prevValue = false;
     if (role === RoleEnum.Admin) {
-      prevValue = secondaryDetail.IsClientAdmin;
+      prevValue = secondaryDetail.isClientAdmin;
     } else if (role === RoleEnum.ContentPublisher) {
-      prevValue = secondaryDetail.IsContentPublisher;
+      prevValue = secondaryDetail.isContentPublisher;
     } else if (role === RoleEnum.ContentAccessAdmin) {
-      prevValue = secondaryDetail.IsAccessAdmin;
+      prevValue = secondaryDetail.isAccessAdmin;
     } else if (role === RoleEnum.ContentUser) {
-      prevValue = secondaryDetail.IsContentUser;
+      prevValue = secondaryDetail.isContentUser;
     }
     postData('/SystemAdmin/UserClientRoleAssignment', {
       ...this.getFinalQueryFilter(),
@@ -764,13 +764,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }).then((response: boolean) => {
       let roleAssignment: Partial<UserClientRoles> = {};
       if (role === RoleEnum.Admin) {
-        roleAssignment = { IsClientAdmin: response };
+        roleAssignment = { isClientAdmin: response };
       } else if (role === RoleEnum.ContentPublisher) {
-        roleAssignment = { IsContentPublisher: response };
+        roleAssignment = { isContentPublisher: response };
       } else if (role === RoleEnum.ContentAccessAdmin) {
-        roleAssignment = { IsAccessAdmin: response };
+        roleAssignment = { isAccessAdmin: response };
       } else if (role === RoleEnum.ContentUser) {
-        roleAssignment = { IsContentUser: response };
+        roleAssignment = { isContentUser: response };
       }
       this.setState((prevState) => ({
         ...prevState,
@@ -795,7 +795,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           secondaryDetail: {
             ...prevState.data.secondaryDetail,
-            IsSuspended: response,
+            isSuspended: response,
           },
         },
       }));
@@ -810,7 +810,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
     postData('/SystemAdmin/ContentSuspendedStatus', {
       ...this.getFinalQueryFilter(),
-      value: !secondaryDetail.IsSuspended,
+      value: !secondaryDetail.isSuspended,
     }).then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -818,7 +818,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           secondaryDetail: {
             ...prevState.data.secondaryDetail,
-            IsSuspended: response,
+            isSuspended: response,
           },
         },
       }));
@@ -990,19 +990,19 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     if (isClientInfoTree(entities)) {
       // flatten basic tree into an array
       const traverse = (node: BasicNode<ClientInfo>, list: ClientInfoWithDepth[] = [], depth = 0) => {
-        if (node.Value !== null) {
+        if (node.value !== null) {
           const clientDepth = {
-            ...node.Value,
+            ...node.value,
             depth,
           };
           list.push(clientDepth);
         }
-        if (node.Children.length) {
-          node.Children.forEach((child) => list = traverse(child, list, depth + 1));
+        if (node.children.length) {
+          node.children.forEach((child) => list = traverse(child, list, depth + 1));
         }
         return list;
       };
-      entityInfo = traverse(entities.Root);
+      entityInfo = traverse(entities.root);
     } else {
       entityInfo = entities;
     }
@@ -1010,7 +1010,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       [id: string]: CardAttributes;
     } = {};
     entityInfo.forEach((entity) => {
-        cards[entity.Id] = {
+        cards[entity.id] = {
           expanded: false,
           profitCenterModalOpen: false,
         };

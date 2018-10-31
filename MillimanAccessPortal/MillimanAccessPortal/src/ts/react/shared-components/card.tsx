@@ -80,10 +80,10 @@ export class Card extends React.Component<CardProps> {
     const { entity } = this.props;
     let text: string;
     if (isUserInfo(entity)) {
-      const { FirstName, LastName } = entity;
-      text = this.props.activated ? `${FirstName} ${LastName}` : '(Unactivated)';
+      const { firstName, lastName } = entity;
+      text = this.props.activated ? `${firstName} ${lastName}` : '(Unactivated)';
     } else {
-      text = entity.Name;
+      text = entity.name;
     }
     return (
       <h2 className="card-body-primary-text">
@@ -96,11 +96,11 @@ export class Card extends React.Component<CardProps> {
     const { entity } = this.props;
     let text: string;
     if (isUserInfo(entity)) {
-      text = entity.UserName;
+      text = entity.userName;
     } else if (isRootContentItemInfo(entity)) {
-      text = entity.ClientName;
+      text = entity.clientName;
     } else if (isClientInfo(entity) || isProfitCenterInfo(entity)) {
-      text = entity.Code;
+      text = entity.code;
     } else {
       text = '';
     }
@@ -115,7 +115,7 @@ export class Card extends React.Component<CardProps> {
       icon: string;
     }> = [];
     if (isUserInfo(entity)) {
-      const { ClientCount: clients, RootContentItemCount: items } = entity;
+      const { clientCount: clients, rootContentItemCount: items } = entity;
       if (clients !== null) {
         cardStats.push({
           name: 'Clients',
@@ -131,7 +131,7 @@ export class Card extends React.Component<CardProps> {
         });
       }
     } else if (isClientInfo(entity)) {
-      const { UserCount: users, RootContentItemCount: items } = entity;
+      const { userCount: users, rootContentItemCount: items } = entity;
       if (users !== null) {
         cardStats.push({
           name: 'Users',
@@ -147,7 +147,7 @@ export class Card extends React.Component<CardProps> {
         });
       }
     } else if (isProfitCenterInfo(entity)) {
-      const { UserCount: users, ClientCount: clients } = entity;
+      const { userCount: users, clientCount: clients } = entity;
       if (users !== null) {
         cardStats.push({
           name: 'Authorized users',
@@ -163,7 +163,7 @@ export class Card extends React.Component<CardProps> {
         });
       }
     } else if (isRootContentItemInfo(entity)) {
-      const { UserCount: users, SelectionGroupCount: groups } = entity;
+      const { userCount: users, selectionGroupCount: groups } = entity;
       if (users !== null) {
         cardStats.push({
           name: 'Users',
@@ -295,21 +295,21 @@ export class Card extends React.Component<CardProps> {
         secondaryText: string;
       }>;
       if (isUserInfo(entity)) {
-        if (entity.RootContentItems && entity.RootContentItems.length) {
+        if (entity.rootContentItems && entity.rootContentItems.length) {
           icon = 'reports';
-          textList = entity.RootContentItems.map((itemInfo) => ({
-            primaryText: itemInfo.Name,
-            secondaryText: itemInfo.ClientName,
+          textList = entity.rootContentItems.map((itemInfo) => ({
+            primaryText: itemInfo.name,
+            secondaryText: itemInfo.clientName,
           }));
         } else {
           return null;
         }
       } else {
-        if (entity.Users && entity.Users.length) {
+        if (entity.users && entity.users.length) {
           icon = 'user';
-          textList = entity.Users.map((userInfo) => ({
-            primaryText: `${userInfo.FirstName} ${userInfo.LastName}`,
-            secondaryText: userInfo.UserName,
+          textList = entity.users.map((userInfo) => ({
+            primaryText: `${userInfo.firstName} ${userInfo.lastName}`,
+            secondaryText: userInfo.userName,
           }));
         } else {
           return null;
@@ -341,7 +341,7 @@ export class Card extends React.Component<CardProps> {
         <UpdateProfitCenterModal
           isOpen={this.props.profitCenterModalOpen}
           onRequestClose={this.props.onProfitCenterModalClose}
-          profitCenterId={this.props.entity.Id}
+          profitCenterId={this.props.entity.id}
         />
       )
       : null;

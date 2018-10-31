@@ -22,14 +22,14 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
   }
 
   public render() {
-    const image = this.props.ImageURL && (
+    const image = this.props.imageURL && (
       <img
         className="content-card-image"
-        src={this.props.ImageURL}
-        alt={this.props.Name}
+        src={this.props.imageURL}
+        alt={this.props.name}
       />
     );
-    const releaseNotes = this.props.ReleaseNotesURL
+    const releaseNotes = this.props.releaseNotesURL
       ? (
         <ActionIcon
           action={this.selectReleaseNotes}
@@ -38,7 +38,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         />
       )
       : null;
-    const userGuide = this.props.UserguideURL
+    const userGuide = this.props.userguideURL
       ? (
         <ActionIcon
           action={this.selectUserGuide}
@@ -51,7 +51,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
       <div className="content-card-container">
         <div className="content-card" onClick={this.selectContent}>
           <div className="content-card-header">
-            <h2 className="content-card-title">{this.props.Name}</h2>
+            <h2 className="content-card-title">{this.props.name}</h2>
             <div className="content-card-icons">
               {releaseNotes}
               {userGuide}
@@ -60,7 +60,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
           <div className="content-card-body">
             {image}
             <p className="content-card-description">
-              {this.props.Description}
+              {this.props.description}
             </p>
           </div>
         </div>
@@ -70,17 +70,17 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
 
   private selectContent(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.ContentURL);
+    this.props.selectContent(this.props.contentURL);
   }
 
   private selectReleaseNotes(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.ReleaseNotesURL);
+    this.props.selectContent(this.props.releaseNotesURL);
   }
 
   private selectUserGuide(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.UserguideURL);
+    this.props.selectContent(this.props.userguideURL);
   }
 
 }

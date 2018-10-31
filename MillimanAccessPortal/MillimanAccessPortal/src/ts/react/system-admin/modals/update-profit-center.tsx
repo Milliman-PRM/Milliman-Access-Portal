@@ -52,12 +52,12 @@ export class UpdateProfitCenterModal
       })
       .then((response: ProfitCenterDetail) => {
         this.setState({
-          name: response.Name,
-          code: response.Code,
-          office: response.Office,
-          contact: response.ContactName,
-          email: response.ContactEmail,
-          phone: response.ContactPhone,
+          name: response.name,
+          code: response.code,
+          office: response.office,
+          contact: response.contactName,
+          email: response.contactEmail,
+          phone: response.contactPhone,
         });
       });
     }
@@ -187,13 +187,13 @@ export class UpdateProfitCenterModal
   private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     postData(this.url, {
-      Id: this.props.profitCenterId,
-      Name: this.state.name,
-      ProfitCenterCode: this.state.code,
-      MillimanOffice: this.state.office,
-      ContactName: this.state.contact,
-      ContactEmail: this.state.email,
-      ContactPhone: this.state.phone,
+      id: this.props.profitCenterId,
+      name: this.state.name,
+      profitCenterCode: this.state.code,
+      millimanOffice: this.state.office,
+      contactName: this.state.contact,
+      contactEmail: this.state.email,
+      contactPhone: this.state.phone,
     })
     .then(() => {
       alert('Profit center updated.');

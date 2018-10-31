@@ -33,11 +33,11 @@ function statusCallback(response: RootContentItemStatus) {
   $('#root-content-items').find('.card-container')
     .toArray().forEach((cardContainer: HTMLElement) => {
       const $cardContainer = $(cardContainer);
-      const status = response.Status.filter((s) =>
-        s && s.RootContentItemId === $cardContainer.data().rootContentItemId)[0];
+      const status = response.status.filter((s) =>
+        s && s.rootContentItemId === $cardContainer.data().rootContentItemId)[0];
       updateCardStatus($cardContainer, status);
-      updateCardStatusButtons($cardContainer, status && status.StatusEnum);
-      $cardContainer.data('statusEnum', status && status.StatusEnum);
+      updateCardStatusButtons($cardContainer, status && status.statusEnum);
+      $cardContainer.data('statusEnum', status && status.statusEnum);
     });
   updateFormStatusButtons();
 }

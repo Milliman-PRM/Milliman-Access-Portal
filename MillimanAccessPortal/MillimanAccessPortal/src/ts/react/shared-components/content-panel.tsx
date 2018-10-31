@@ -149,19 +149,19 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
     if (isClientInfoTree(this.props.entities)) {
       // flatten basic tree into an array
       const traverse = (node: BasicNode<ClientInfo>, list: ClientInfoWithDepth[] = [], depth = 0) => {
-        if (node.Value !== null) {
+        if (node.value !== null) {
           const clientDepth = {
-            ...node.Value,
+            ...node.value,
             depth,
           };
           list.push(clientDepth);
         }
-        if (node.Children.length) {
-          node.Children.forEach((child) => list = traverse(child, list, depth + 1));
+        if (node.children.length) {
+          node.children.forEach((child) => list = traverse(child, list, depth + 1));
         }
         return list;
       };
-      filteredCards = traverse(this.props.entities.Root);
+      filteredCards = traverse(this.props.entities.root);
     } else {
       filteredCards = this.props.entities;
     }
@@ -181,7 +181,7 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
     } else if (isClientInfo(filteredCards[0])) {
       const rootIndices = [];
       filteredCards.forEach((entity: ClientInfoWithDepth, i) => {
-        if (!entity.ParentId) {
+        if (!entity.parentId) {
           rootIndices.push(i);
         }
       });
@@ -189,19 +189,19 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
         filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
       return cardGroups.map((group, i) => {
         const groupCards = group
-          .filter((entity: ClientInfoWithDepth) => this.props.cards[entity.Id] !== undefined)
+          .filter((entity: ClientInfoWithDepth) => this.props.cards[entity.id] !== undefined)
           .map((entity: ClientInfoWithDepth) => (
-            <li key={entity.Id}>
+            <li key={entity.id}>
               <Card
                 entity={entity}
-                selected={entity.Id === this.props.selectedCard}
-                onSelect={() => this.props.onCardSelect(entity.Id)}
-                expanded={this.props.cards[entity.Id].expanded}
-                onExpandedToggled={() => this.props.onExpandedToggled(entity.Id)}
+                selected={entity.id === this.props.selectedCard}
+                onSelect={() => this.props.onCardSelect(entity.id)}
+                expanded={this.props.cards[entity.id].expanded}
+                onExpandedToggled={() => this.props.onExpandedToggled(entity.id)}
                 indentation={entity.depth}
-                profitCenterModalOpen={this.props.cards[entity.Id].profitCenterModalOpen}
-                onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.Id)}
-                onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.Id)}
+                profitCenterModalOpen={this.props.cards[entity.id].profitCenterModalOpen}
+                onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.id)}
+                onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.id)}
               />
             </li>
           ));
@@ -212,20 +212,20 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
       });
     } else {
       return filteredCards
-        .filter((entity: EntityInfo) => this.props.cards[entity.Id] !== undefined)
+        .filter((entity: EntityInfo) => this.props.cards[entity.id] !== undefined)
         .map((entity) => (
-          <li key={entity.Id}>
+          <li key={entity.id}>
             <Card
               entity={entity}
-              selected={entity.Id === this.props.selectedCard}
-              onSelect={() => this.props.onCardSelect(entity.Id)}
-              expanded={this.props.cards[entity.Id].expanded}
-              onExpandedToggled={() => this.props.onExpandedToggled(entity.Id)}
-              activated={isUserInfo(entity) ? entity.Activated : null}
+              selected={entity.id === this.props.selectedCard}
+              onSelect={() => this.props.onCardSelect(entity.id)}
+              expanded={this.props.cards[entity.id].expanded}
+              onExpandedToggled={() => this.props.onExpandedToggled(entity.id)}
+              activated={isUserInfo(entity) ? entity.activated : null}
               resetButton={isUserInfo(entity)}
-              profitCenterModalOpen={this.props.cards[entity.Id].profitCenterModalOpen}
-              onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.Id)}
-              onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.Id)}
+              profitCenterModalOpen={this.props.cards[entity.id].profitCenterModalOpen}
+              onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.id)}
+              onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.id)}
               onSendReset={this.getOnSendReset(entity)}
               onProfitCenterDelete={this.getOnProfitCenterDelete(entity)}
               onProfitCenterUserRemove={this.getOnProfitCenterUserRemove(entity)}
@@ -237,18 +237,18 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
   }
 
   private getOnSendReset = (entity: EntityInfo) => isUserInfo(entity)
-      ? () => this.props.onSendReset(entity.Email)
+      ? () => this.props.onSendReset(entity.email)
       : null
 
   private getOnProfitCenterDelete = (entity: EntityInfo) => isProfitCenterInfo(entity)
-      ? () => this.props.onProfitCenterDelete(entity.Id)
+      ? () => this.props.onProfitCenterDelete(entity.id)
       : null
 
-  private getOnProfitCenterUserRemove = (entity: EntityInfo) => (isUserInfo(entity) && entity.ProfitCenterId !== null)
-      ? () => this.props.onProfitCenterUserRemove(entity.Id, entity.ProfitCenterId)
+  private getOnProfitCenterUserRemove = (entity: EntityInfo) => (isUserInfo(entity) && entity.profitCenterId !== null)
+      ? () => this.props.onProfitCenterUserRemove(entity.id, entity.profitCenterId)
       : null
 
-  private getOnClientUserRemove = (entity: EntityInfo) => (isUserInfo(entity) && entity.ClientId !== null)
-      ? () => this.props.onClientUserRemove(entity.Id, entity.ClientId)
+  private getOnClientUserRemove = (entity: EntityInfo) => (isUserInfo(entity) && entity.clientId !== null)
+      ? () => this.props.onClientUserRemove(entity.id, entity.clientId)
       : null
 }

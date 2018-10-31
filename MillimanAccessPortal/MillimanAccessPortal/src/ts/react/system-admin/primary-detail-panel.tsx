@@ -38,27 +38,27 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     <h3 className="detail-section-title">User Details</h3>
                     <div className="detail-container">
                       <span className="detail-label">First Name</span>
-                      <span className="detail-value">{userDetail.FirstName}</span>
+                      <span className="detail-value">{userDetail.firstName}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Last Name</span>
-                      <span className="detail-value">{userDetail.LastName}</span>
+                      <span className="detail-value">{userDetail.lastName}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Company</span>
-                      <span className="detail-value">{userDetail.Employer}</span>
+                      <span className="detail-value">{userDetail.employer}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Username</span>
-                      <span className="detail-value">{userDetail.UserName}</span>
+                      <span className="detail-value">{userDetail.userName}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Email</span>
-                      <span className="detail-value">{userDetail.Email}</span>
+                      <span className="detail-value">{userDetail.email}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Phone</span>
-                      <span className="detail-value">{userDetail.Phone}</span>
+                      <span className="detail-value">{userDetail.phone}</span>
                     </div>
                   </div>
                 </div>
@@ -98,23 +98,23 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     <h3 className="detail-section-title">Client Information</h3>
                     <div className="detail-container">
                       <span className="detail-label">Name</span>
-                      <span className="detail-value">{clientDetail.ClientName}</span>
+                      <span className="detail-value">{clientDetail.clientName}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Code</span>
-                      <span className="detail-value">{clientDetail.ClientCode}</span>
+                      <span className="detail-value">{clientDetail.clientCode}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Contact</span>
-                      <span className="detail-value">{clientDetail.ClientContactName}</span>
+                      <span className="detail-value">{clientDetail.clientContactName}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Email</span>
-                      <span className="detail-value">{clientDetail.ClientContactEmail}</span>
+                      <span className="detail-value">{clientDetail.clientContactEmail}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Phone</span>
-                      <span className="detail-value">{clientDetail.ClientContactPhone}</span>
+                      <span className="detail-value">{clientDetail.clientContactPhone}</span>
                     </div>
                   </div>
                 </div>
@@ -123,19 +123,19 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     <h3 className="detail-section-title">Billing Information</h3>
                     <div className="detail-container">
                       <span className="detail-label">Prof. Center</span>
-                      <span className="detail-value">{clientDetail.ProfitCenter}</span>
+                      <span className="detail-value">{clientDetail.profitCenter}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Office</span>
-                      <span className="detail-value">{clientDetail.Office}</span>
+                      <span className="detail-value">{clientDetail.office}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Contact</span>
-                      <span className="detail-value">{clientDetail.ConsultantName}</span>
+                      <span className="detail-value">{clientDetail.consultantName}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Email</span>
-                      <span className="detail-value">{clientDetail.ConsultantEmail}</span>
+                      <span className="detail-value">{clientDetail.consultantEmail}</span>
                     </div>
                   </div>
                 </div>
@@ -153,27 +153,27 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     <h3 className="detail-section-title">Profit Center Information</h3>
                     <div className="detail-container">
                       <span className="detail-label">Name</span>
-                      <span className="detail-value">{profitCenterDetail.Name}</span>
+                      <span className="detail-value">{profitCenterDetail.name}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Code</span>
-                      <span className="detail-value">{profitCenterDetail.Code}</span>
+                      <span className="detail-value">{profitCenterDetail.code}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Office</span>
-                      <span className="detail-value">{profitCenterDetail.Office}</span>
+                      <span className="detail-value">{profitCenterDetail.office}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Contact</span>
-                      <span className="detail-value">{profitCenterDetail.ContactName}</span>
+                      <span className="detail-value">{profitCenterDetail.contactName}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Email</span>
-                      <span className="detail-value">{profitCenterDetail.ContactEmail}</span>
+                      <span className="detail-value">{profitCenterDetail.contactEmail}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Phone</span>
-                      <span className="detail-value">{profitCenterDetail.ContactPhone}</span>
+                      <span className="detail-value">{profitCenterDetail.contactPhone}</span>
                     </div>
                   </div>
                 </div>

@@ -33,19 +33,19 @@ function statusCallback(response: ContentAccessStatus) {
   $('#root-content-items').find('.card-container')
     .toArray().forEach((cardContainer: HTMLElement) => {
       const $cardContainer = $(cardContainer);
-      const status = response.RootContentItemStatusList.Status.filter((s) =>
-        s && s.RootContentItemId === $cardContainer.data().rootContentItemId)[0];
+      const status = response.rootContentItemStatusList.status.filter((s) =>
+        s && s.rootContentItemId === $cardContainer.data().rootContentItemId)[0];
       updateCardStatus($cardContainer, status);
-      $cardContainer.data('statusEnum', status && status.StatusEnum);
+      $cardContainer.data('statusEnum', status && status.statusEnum);
     });
   $('#selection-groups').find('.card-container')
     .toArray().forEach((cardContainer: HTMLElement) => {
       const $cardContainer = $(cardContainer);
-      const status = response.SelectionGroupStatusList.Status.filter((s) =>
-        s && s.SelectionGroupId === $cardContainer.data().selectionGroupId)[0];
+      const status = response.selectionGroupStatusList.status.filter((s) =>
+        s && s.selectionGroupId === $cardContainer.data().selectionGroupId)[0];
       updateCardStatus($cardContainer, status);
-      // updateCardStatusButtons($cardContainer, status && status.StatusEnum);
-      $cardContainer.data('statusEnum', status && status.StatusEnum);
+      // updateCardStatusButtons($cardContainer, status && status.statusEnum);
+      $cardContainer.data('statusEnum', status && status.statusEnum);
     });
   // updateFormStatusButtons();
 }
