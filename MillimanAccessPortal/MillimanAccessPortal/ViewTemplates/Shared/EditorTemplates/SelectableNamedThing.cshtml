@@ -1,9 +1,0 @@
-@using MillimanAccessPortal.Models.ClientAdminViewModels
-
-@model SelectableNamedThing
-
-@Html.HiddenFor(x => x.Id)
-@Html.CheckBoxFor(x=>x.Selected)
-@Html.LabelFor(x => x.Selected, Model.DisplayName)
-<br />
-
