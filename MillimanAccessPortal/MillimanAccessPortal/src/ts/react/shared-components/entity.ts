@@ -1,4 +1,4 @@
-import { EntityInfo, isRootContentItemInfo, isUserInfo } from '../system-admin/interfaces';
+import { EntityInfo, isRootContentItemInfo, isUserInfo, isClientInfo, isProfitCenterInfo } from '../system-admin/interfaces';
 import { Guid } from './interfaces';
 
 // Represents an object displayable on a card
@@ -35,7 +35,9 @@ export class EntityHelper {
       ? entity.UserName
       : isRootContentItemInfo(entity)
         ? entity.ClientName
-        : entity.Code;
+        : (isClientInfo(entity) || isProfitCenterInfo(entity))
+          ? entity.Code
+          : '';
     const primaryMatch = primaryText
       ? primaryText.toLowerCase().indexOf(filterTextLower) !== -1
       : false;

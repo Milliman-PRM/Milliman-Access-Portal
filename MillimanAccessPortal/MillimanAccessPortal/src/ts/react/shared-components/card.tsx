@@ -99,8 +99,10 @@ export class Card extends React.Component<CardProps> {
       text = entity.UserName;
     } else if (isRootContentItemInfo(entity)) {
       text = entity.ClientName;
-    } else {
+    } else if (isClientInfo(entity) || isProfitCenterInfo(entity)) {
       text = entity.Code;
+    } else {
+      text = '';
     }
     return <p className="card-body-secondary-text">{text}</p>;
   }

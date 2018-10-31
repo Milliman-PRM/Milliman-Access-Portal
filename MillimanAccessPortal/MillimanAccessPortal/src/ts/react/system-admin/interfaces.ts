@@ -1,4 +1,5 @@
 ﻿import { BasicTree, Nestable } from '../../view-models/content-publishing';
+import { SelectionGroupInfo } from '../models';
 import { Guid } from '../shared-components/interfaces';
 
 export interface NestedList {
@@ -22,8 +23,8 @@ export interface UserInfo {
   ClientCount?: number;
   RootContentItemCount?: number;
   RootContentItems?: RootContentItemInfo[];
-  ProfitCenterId: Guid;
-  ClientId: Guid;
+  ProfitCenterId?: Guid;
+  ClientId?: Guid;
 }
 export interface ClientInfo extends Nestable {
   Name: string;
@@ -52,7 +53,7 @@ export interface RootContentItemInfo {
   Users?: UserInfo[];
   IsSuspended: boolean;
 }
-export type EntityInfo = UserInfo | ClientInfo | ProfitCenterInfo | RootContentItemInfo;
+export type EntityInfo = UserInfo | ClientInfo | ProfitCenterInfo | RootContentItemInfo | SelectionGroupInfo;
 export function isUserInfo(info: EntityInfo): info is UserInfo {
   return info && (info as UserInfo).UserName !== undefined;
 }
@@ -67,7 +68,7 @@ export function isRootContentItemInfo(info: EntityInfo): info is RootContentItem
 }
 
 export type EntityInfoCollection =
-  UserInfo[] | ClientInfo[] | BasicTree<ClientInfo> | ProfitCenterInfo[] | RootContentItemInfo[];
+  UserInfo[] | ClientInfo[] | BasicTree<ClientInfo> | ProfitCenterInfo[] | RootContentItemInfo[] | SelectionGroupInfo[];
 export function isUserInfoArray(info: EntityInfoCollection): info is UserInfo[] {
   const userInfo = info as UserInfo[];
   return userInfo && userInfo.length === 0 || isUserInfo(userInfo[0]);

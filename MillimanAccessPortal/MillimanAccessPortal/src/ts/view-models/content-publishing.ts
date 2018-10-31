@@ -149,16 +149,20 @@ export interface ContentReductionHierarchy<T extends ReductionFieldValue> {
   Fields: Array<ReductionField<T>>;
   RootContentItemId: Guid;
 }
-export interface ReductionField<T extends ReductionFieldValue> {
+export interface ReductionFieldInfo {
   Id: Guid;
   FieldName: string;
   DisplayName: string;
   ValueDelimiter: string;
+}
+export interface ReductionField<T extends ReductionFieldValue> extends ReductionFieldInfo {
   Values: T[];
 }
-export interface ReductionFieldValue {
+export interface ReductionFieldValueInfo {
   Id: Guid;
   Value: string;
+}
+export interface ReductionFieldValue extends ReductionFieldValueInfo {
   HasSelectionStatus: boolean;
 }
 export interface ReductionFieldValueSelection extends ReductionFieldValue {

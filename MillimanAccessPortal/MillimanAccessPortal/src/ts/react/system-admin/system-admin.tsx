@@ -24,7 +24,7 @@ import {
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
-interface ContentPanelAttributes {
+export interface ContentPanelAttributes {
   selected: {
     column: SystemAdminColumn;
     card: string;

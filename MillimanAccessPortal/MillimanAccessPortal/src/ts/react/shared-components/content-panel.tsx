@@ -102,11 +102,7 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
       <div
         className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
       >
-        <ColumnSelector
-          columns={this.props.columns}
-          onColumnSelect={this.props.onColumnSelect}
-          selectedColumn={this.props.selectedColumn}
-        />
+        {this.renderColumnSelector()}
         <div className="admin-panel-list">
           <div className="admin-panel-toolbar">
             <Filter
@@ -127,6 +123,18 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
         {modal}
       </div>
     );
+  }
+
+  private renderColumnSelector() {
+    return this.props.columns.length > 1
+      ? (
+        <ColumnSelector
+          columns={this.props.columns}
+          onColumnSelect={this.props.onColumnSelect}
+          selectedColumn={this.props.selectedColumn}
+        />
+      )
+      : null;
   }
 
   private renderCards() {
