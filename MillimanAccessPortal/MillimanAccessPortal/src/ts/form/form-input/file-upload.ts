@@ -107,9 +107,9 @@ export class FileUploadInput extends FormInput {
         this.reset();
       } else {
         this.value = `${this.originalName}~delete`;
-        this.$entryPoint.find('input.file-upload').val('[deleted]');
+        this.$entryPoint.find('input.file-upload').val('[Delete pending]');
         this.$entryPoint.find('.cancel-icon').hide();
-        toastr.success('File marked for deletion.');
+        toastr.info('File will be deleted on form submission.');
       }
     });
   }
