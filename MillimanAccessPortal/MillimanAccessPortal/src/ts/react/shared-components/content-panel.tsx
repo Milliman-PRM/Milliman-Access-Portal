@@ -13,7 +13,7 @@ import { CreateProfitCenterModal } from '../system-admin/modals/create-profit-ce
 import { CreateUserModal } from '../system-admin/modals/create-user';
 import { ActionIcon } from './action-icon';
 import { Card, CardAttributes } from './card';
-import { ColumnIndicator, ColumnSelector } from './column-selector';
+import { ColumnIndicator, ColumnSelector, ColumnSelectorProps } from './column-selector';
 import { EntityHelper } from './entity';
 import { Filter } from './filter';
 import { Guid, QueryFilter } from './interfaces';
@@ -27,9 +27,7 @@ export interface ContentPanelAttributes {
   createAction: string;
 }
 export interface ContentPanelProps extends ContentPanelAttributes {
-  columns: ColumnIndicator[];
-  onColumnSelect: (id: string) => void;
-  selectedColumn: ColumnIndicator;
+  panelHeader: PanelHeader;
   onExpandedToggled: (id: Guid) => void;
   cards: {
     [id: string]: CardAttributes;
@@ -46,12 +44,11 @@ export interface ContentPanelProps extends ContentPanelAttributes {
   onClientUserRemove: (userId: Guid, clientId: Guid) => void;
 }
 
+export type PanelHeader = string | ColumnSelectorProps;
+
 export class ContentPanel extends React.Component<ContentPanelProps> {
   public render() {
 
-    const filterPlaceholder = this.props.selectedColumn
-      ? `Filter ${this.props.selectedColumn.name}...`
-      : '';
     const actionIcon = this.props.createAction
       && (
         <ActionIcon
@@ -106,7 +103,7 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
         <div className="admin-panel-list">
           <div className="admin-panel-toolbar">
             <Filter
-              placeholderText={filterPlaceholder}
+              placeholderText={''}
               setFilterText={this.props.onFilterTextChange}
               filterText={this.props.filterText}
             />
@@ -126,16 +123,17 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
   }
 
   private renderColumnSelector() {
-    if (this.props.columns.length === 1) {
+    const { panelHeader } = this.props;
+    if (typeof(panelHeader) === 'string') {
       return (
-        <h3 className="admin-panel-header">{this.props.columns[0].name}</h3>
+        <h3 className="admin-panel-header">{this.props.panelHeader}</h3>
       );
-    } else if (this.props.columns.length > 1) {
+    } else if (panelHeader.columns.length) {
       return (
         <ColumnSelector
-          columns={this.props.columns}
-          onColumnSelect={this.props.onColumnSelect}
-          selectedColumn={this.props.selectedColumn}
+          columns={panelHeader.columns}
+          onColumnSelect={panelHeader.onColumnSelect}
+          selectedColumn={panelHeader.selectedColumn}
         />
       );
     }
@@ -173,9 +171,13 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
         EntityHelper.applyFilter(entity, this.props.filterText));
 
     if (filteredCards.length === 0) {
-      return this.props.selectedColumn
-        ? <div>No {this.props.selectedColumn.name.toLowerCase()} found.</div>
-        : null;
+      const { panelHeader } = this.props;
+      const panelTitle = typeof(panelHeader) === 'string'
+        ? panelHeader
+        : panelHeader.selectedColumn
+          ? panelHeader.selectedColumn.name
+          : null;
+      return panelTitle && <div>No {panelTitle.toLowerCase()} found.</div>;
     } else if (isClientInfo(filteredCards[0])) {
       const rootIndices = [];
       filteredCards.forEach((entity: ClientInfoWithDepth, i) => {

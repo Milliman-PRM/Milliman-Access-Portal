@@ -150,15 +150,17 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     const secondaryColumnComponent = secondaryColumn
       ? (
         <ContentPanel
+          panelHeader={{
+            columns: this.getColumns(primaryColumn),
+            onColumnSelect: this.handleSecondaryColumnSelected,
+            selectedColumn: this.getColumns(primaryColumn).filter((c) => c.id === secondaryColumn)[0],
+          }}
           filterText={this.state.secondaryPanel.filter.text}
           modalOpen={this.state.secondaryPanel.createModal.open}
           onFilterTextChange={this.handleSecondaryFilterKeyup}
           onModalOpen={this.handleSecondaryModalOpen}
           onModalClose={this.handleSecondaryModalClose}
           createAction={this.getCreateAction(secondaryColumn, primaryColumn)}
-          columns={this.getColumns(primaryColumn)}
-          onColumnSelect={this.handleSecondaryColumnSelected}
-          selectedColumn={this.getColumns(primaryColumn).filter((c) => c.id === secondaryColumn)[0]}
           onExpandedToggled={this.handleSecondaryExpandedToggled}
           cards={this.state.secondaryPanel.cards}
           onCardSelect={this.handleSecondaryCardSelected}
@@ -180,15 +182,17 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           currentView={this.currentView}
         />
         <ContentPanel
+          panelHeader={{
+            columns: this.getColumns(),
+            onColumnSelect: this.handlePrimaryColumnSelected,
+            selectedColumn: this.getColumns().filter((c) => c.id === primaryColumn)[0],
+          }}
           filterText={this.state.primaryPanel.filter.text}
           modalOpen={this.state.primaryPanel.createModal.open}
           onFilterTextChange={this.handlePrimaryFilterKeyup}
           onModalOpen={this.handlePrimaryModalOpen}
           onModalClose={this.handlePrimaryModalClose}
           createAction={this.getCreateAction(primaryColumn)}
-          columns={this.getColumns()}
-          onColumnSelect={this.handlePrimaryColumnSelected}
-          selectedColumn={this.getColumns().filter((c) => c.id === primaryColumn)[0]}
           onExpandedToggled={this.handlePrimaryExpandedToggled}
           cards={this.state.primaryPanel.cards}
           onCardSelect={this.handlePrimaryCardSelected}

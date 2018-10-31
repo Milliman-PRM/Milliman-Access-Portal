@@ -51,12 +51,10 @@ export class ContentAccessAdmin extends React.Component<ContentAccessAdminProps>
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
   private nullProps: ContentPanelProps = {
-    columns: [],
     createAction: null,
     modalOpen: false,
     onCardSelect: () => null,
     onClientUserRemove: () => null,
-    onColumnSelect: () => null,
     onExpandedToggled: () => null,
     onFilterTextChange: () => null,
     onModalClose: () => null,
@@ -68,10 +66,10 @@ export class ContentAccessAdmin extends React.Component<ContentAccessAdminProps>
     onSendReset: () => null,
     queryFilter: null,
     selectedCard: null,
-    selectedColumn: null,
     filterText: '',
     cards: {},
     entities: [],
+    panelHeader: '',
   };
 
   public render() {
@@ -82,22 +80,19 @@ export class ContentAccessAdmin extends React.Component<ContentAccessAdminProps>
           {...this.nullProps}
           cards={this.props.clientPanel.cards}
           entities={this.props.data.clients}
-          columns={[{ id: '1', name: 'Clients' }]}
-          selectedColumn={{ id: '1', name: 'Clients' }}
+          panelHeader={'Clients'}
         />
         <ContentPanel
           {...this.nullProps}
           cards={this.props.itemPanel.cards}
           entities={this.props.data.items}
-          columns={[{ id: '1', name: 'Content Items' }]}
-          selectedColumn={{ id: '1', name: 'Content Items' }}
+          panelHeader={'Content Items'}
         />
         <ContentPanel
           {...this.nullProps}
           cards={this.props.groupPanel.cards}
           entities={this.props.data.groups}
-          columns={[{ id: '1', name: 'Selection Groups' }]}
-          selectedColumn={{ id: '1', name: 'Selection Groups' }}
+          panelHeader={'Selection Groups'}
         />
       </>
     );
