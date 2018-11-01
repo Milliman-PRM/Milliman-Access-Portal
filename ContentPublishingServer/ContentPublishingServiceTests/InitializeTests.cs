@@ -243,13 +243,13 @@ namespace ContentPublishingServiceTests
                 {
                     Id = TestUtil.MakeTestGuid(2),
                     RootContentItemId = TestUtil.MakeTestGuid(4),
-                    SelectedHierarchyFieldValueList = new Guid[] {TestUtil.MakeTestGuid(13), TestUtil.MakeTestGuid(16), },  // "Assigned Provider Clinic (Hier) 0434" and "Assigned Provider Clinic (Hier) 0871"
+                    SelectedHierarchyFieldValueList = new List<Guid> {TestUtil.MakeTestGuid(13), TestUtil.MakeTestGuid(16), },  // "Assigned Provider Clinic (Hier) 0434" and "Assigned Provider Clinic (Hier) 0871"
                 },
                 new SelectionGroup
                 {
                     Id = TestUtil.MakeTestGuid(3),
                     RootContentItemId = TestUtil.MakeTestGuid(4),
-                    SelectedHierarchyFieldValueList = new Guid[] { TestUtil.MakeTestGuid(12), TestUtil.MakeTestGuid(14), },  // "Assigned Provider Clinic (Hier) 7252" and "Assigned Provider Clinic (Hier) 7291"
+                    SelectedHierarchyFieldValueList = new List<Guid> { TestUtil.MakeTestGuid(12), TestUtil.MakeTestGuid(14), },  // "Assigned Provider Clinic (Hier) 7252" and "Assigned Provider Clinic (Hier) 7291"
                 },
             });
             MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(Db.Object.SelectionGroup, "RootContentItemId", Db.Object.RootContentItem);

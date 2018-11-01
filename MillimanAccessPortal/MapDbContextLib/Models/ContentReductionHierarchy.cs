@@ -64,7 +64,7 @@ namespace MapDbContextLib.Models
         /// <param name="SelectionGroupId">The selection group whose selections are to be gathered</param>
         /// <param name="Selections">Any changes to the current selections to effect in the returned hierarchy</param>
         /// <returns>ContentReductionHierarchy</returns>
-        public static ContentReductionHierarchy<ReductionFieldValueSelection> GetFieldSelectionsForSelectionGroup(ApplicationDbContext DbContext, Guid SelectionGroupId, Guid[] Selections = null)
+        public static ContentReductionHierarchy<ReductionFieldValueSelection> GetFieldSelectionsForSelectionGroup(ApplicationDbContext DbContext, Guid SelectionGroupId, List<Guid> Selections = null)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)

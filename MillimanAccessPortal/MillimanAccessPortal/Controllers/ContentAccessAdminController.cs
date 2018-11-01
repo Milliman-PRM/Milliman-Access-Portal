@@ -230,7 +230,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 RootContentItemId = rootContentItem.Id,
                 GroupName = SelectionGroupName,
-                SelectedHierarchyFieldValueList = new Guid[] { },
+                SelectedHierarchyFieldValueList = new List<Guid>(),
                 ContentInstanceUrl = "",
                 IsMaster = false,
             };
@@ -717,7 +717,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateSelections(Guid selectionGroupId, bool isMaster, Guid[] selections)
+        public async Task<IActionResult> UpdateSelections(Guid selectionGroupId, bool isMaster, List<Guid> selections)
         {
             Log.Verbose($"Entered ContentAccessAdminController.UpdateSelections action with SelectionGroup ID {selectionGroupId}, is master {isMaster}, {{@selections}}", selections);
 
@@ -804,7 +804,7 @@ namespace MillimanAccessPortal.Controllers
                                                    .Where(hfv => hfv.HierarchyField.RootContentItemId == selectionGroup.RootContentItemId)
                                                    .Where(hfv => selections.Contains(hfv.Id))
                                                    .Count();
-                if (validSelectionCount < selections.Count())
+                if (validSelectionCount < selections.Count)
                 {
                     Log.Debug($"In ContentAccessAdminController.UpdateSelections action: request to update selection group {selectionGroup.Id} using invalid selection value(s), aborting");
                     Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified content item.");
@@ -837,7 +837,7 @@ namespace MillimanAccessPortal.Controllers
             if (isMaster)
             {
                 selectionGroup.IsMaster = true;
-                selectionGroup.SelectedHierarchyFieldValueList = new Guid[0];
+                selectionGroup.SelectedHierarchyFieldValueList = new List<Guid>();
                 selectionGroup.SetContentUrl(Path.GetFileName(LiveMasterFile.FullPath));
                 DbContext.SelectionGroup.Update(selectionGroup);
                 DbContext.SaveChanges();

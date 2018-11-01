@@ -559,11 +559,11 @@ namespace MapTests
             Guid SelectionGroupId = TestUtil.MakeTestGuid(SelectionGroupIdArg);
             ContentAccessAdminController controller = await GetControllerForUser("user1");
             var Selections = HierarchyFieldValueIdArg.HasValue
-                ? new Guid[]
+                ? new List<Guid>
                 {
                     TestUtil.MakeTestGuid(HierarchyFieldValueIdArg.Value),
                 }
-                : new Guid[] { };
+                : new List<Guid>();
 
             foreach (var Status in Tasks)
             {
@@ -599,7 +599,7 @@ namespace MapTests
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser(UserName);
-            var Selections = new Guid[]
+            var Selections = new List<Guid>
             {
                 TestUtil.MakeTestGuid(2),
             };

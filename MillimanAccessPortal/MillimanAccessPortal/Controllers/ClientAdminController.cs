@@ -768,8 +768,8 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // Convert delimited strings bound from the browser to a proper array
-            Model.AcceptedEmailDomainList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailDomainList, true);
-            Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailAddressExceptionList, false);
+            Model.AcceptedEmailDomainList = GetCleanClientEmailWhitelist(Model.AcceptedEmailDomainList, true);
+            Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelist(Model.AcceptedEmailAddressExceptionList, false);
 
             // Valid domain(s) in whitelist
             foreach (string WhiteListedDomain in Model.AcceptedEmailDomainList)
@@ -813,7 +813,7 @@ namespace MillimanAccessPortal.Controllers
             // Make sure current user is allowed by email or domain whitelist
             if (!Queries.DoesEmailSatisfyClientWhitelists(CurrentApplicationUser.Email, Model.AcceptedEmailDomainList, Model.AcceptedEmailAddressExceptionList))
             {
-                Model.AcceptedEmailAddressExceptionList = Model.AcceptedEmailAddressExceptionList.Append(CurrentApplicationUser.Email).ToArray();
+                Model.AcceptedEmailAddressExceptionList.Add(CurrentApplicationUser.Email);
                 Log.Verbose($"In ClientAdminController.SaveNewClient action: automatically added current user {CurrentApplicationUser.UserName} to email exception list of new client");
             }
 
@@ -951,8 +951,8 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Convert delimited strings bound from the browser to a proper array
-            Model.AcceptedEmailDomainList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailDomainList, true);
-            Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailAddressExceptionList, false);
+            Model.AcceptedEmailDomainList = GetCleanClientEmailWhitelist(Model.AcceptedEmailDomainList, true);
+            Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelist(Model.AcceptedEmailAddressExceptionList, false);
             
             // Valid domains in domain whitelist
             foreach (string WhiteListedDomain in Model.AcceptedEmailDomainList)
@@ -1177,30 +1177,30 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>
         /// Returns an array of individual whitelist items without nulls, optionally tested for validity as either domain or full email address
         /// </summary>
-        /// <param name="InArray">0 or more strings that may contain 0 or more email entries or a delimited list</param>
+        /// <param name="InList">0 or more strings that may contain 0 or more email entries or a delimited list</param>
         /// <param name="CleanDomain">If true, strip characters up through '@' from each found element</param>
         /// <returns></returns>
         [NonAction]
-        private string[] GetCleanClientEmailWhitelistArray(string[] InArray, bool CleanDomain)
+        private List<string> GetCleanClientEmailWhitelist(List<string> InList, bool CleanDomain)
         {
             char[] StringDelimiters = new char[] { ',', ';', ' ' };
 
-            string[] Result = new string[0];
+            List<string> Result = new List<string>();
 
-            foreach (string Element in InArray)  // Normally from model binding there will be exactly 1
+            foreach (string Element in InList)  // Normally from model binding there will be exactly 1
             {
                 if (!string.IsNullOrWhiteSpace(Element))  // Model binding passes null when nothing provided
                 {
                     foreach (string GoodElement in Element.Split(StringDelimiters, StringSplitOptions.RemoveEmptyEntries))
                     {
-                        Result = Result.Append(GoodElement.Trim()).ToArray();
+                        Result.Add(GoodElement.Trim());
                     }
                 }
             }
 
             if (CleanDomain)
             {
-                Result = Result.Select(d => d.Contains("@") ? d.Substring(d.LastIndexOf('@') + 1) : d).ToArray();
+                Result = Result.Select(d => d.Contains("@") ? d.Substring(d.LastIndexOf('@') + 1) : d).ToList();
             }
 
             return Result;
