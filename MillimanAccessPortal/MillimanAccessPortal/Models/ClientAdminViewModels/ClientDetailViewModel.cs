@@ -150,7 +150,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 }
 
                 // Populate eligible users
-                foreach (string AcceptableDomain in ClientEntity.AcceptedEmailDomainList ?? new string[] { })
+                foreach (string AcceptableDomain in ClientEntity.AcceptedEmailDomainList ?? new List<string>())
                 {
                     if (string.IsNullOrWhiteSpace(AcceptableDomain))
                     {

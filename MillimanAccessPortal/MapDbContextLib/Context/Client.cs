@@ -6,6 +6,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -13,12 +14,6 @@ namespace MapDbContextLib.Context
 {
     public class Client
     {
-        public Client()
-        {
-            AcceptedEmailDomainList = new string[0];
-            AcceptedEmailAddressExceptionList = new string[0];
-        }
-
         [Key]
         [HiddenInput]
         [Display(Name = "Client ID")]
@@ -57,11 +52,11 @@ namespace MapDbContextLib.Context
 
         [Required]
         [Display(Name = "Approved Email Domain List")]
-        public string[] AcceptedEmailDomainList { get; set; }
+        public List<string> AcceptedEmailDomainList { get; set; } = new List<string>();
 
         [Required]
         [Display(Name = "Approved Email Address Exception List")]
-        public string[] AcceptedEmailAddressExceptionList { get; set; }
+        public List<string> AcceptedEmailAddressExceptionList { get; set; } = new List<string>();
 
         [DataType(DataType.MultilineText)]
         [Display(Name = "Custom Welcome Text")]
