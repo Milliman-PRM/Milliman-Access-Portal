@@ -12,7 +12,7 @@ import { AddUserToProfitCenterModal } from '../system-admin/modals/add-user-to-p
 import { CreateProfitCenterModal } from '../system-admin/modals/create-profit-center';
 import { CreateUserModal } from '../system-admin/modals/create-user';
 import { ActionIcon } from './action-icon';
-import { Card, CardAttributes } from './card';
+import { Card, CardAttributes, CardStatPropEvaluator } from './card';
 import { ColumnIndicator, ColumnSelector, ColumnSelectorProps } from './column-selector';
 import { EntityHelper } from './entity';
 import { Filter } from './filter';
@@ -42,6 +42,7 @@ export interface ContentPanelProps extends ContentPanelAttributes {
   onProfitCenterDelete: (id: Guid) => void;
   onProfitCenterUserRemove: (userId: Guid, profitCenterId: Guid) => void;
   onClientUserRemove: (userId: Guid, clientId: Guid) => void;
+  cardStats?: CardStatPropEvaluator[];
 }
 
 export type PanelHeader = string | ColumnSelectorProps;
@@ -202,6 +203,7 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
                 profitCenterModalOpen={this.props.cards[entity.id].profitCenterModalOpen}
                 onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.id)}
                 onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.id)}
+                cardStats={this.props.cardStats}
               />
             </li>
           ));
@@ -230,6 +232,7 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
               onProfitCenterDelete={this.getOnProfitCenterDelete(entity)}
               onProfitCenterUserRemove={this.getOnProfitCenterUserRemove(entity)}
               onClientUserRemove={this.getOnClientUserRemove(entity)}
+              cardStats={this.props.cardStats}
             />
           </li>
         ));

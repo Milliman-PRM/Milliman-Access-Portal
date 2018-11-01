@@ -1,4 +1,4 @@
-﻿import '../../../images/client-admin.svg';
+﻿import '../../../images/client.svg';
 import '../../../images/content-access.svg';
 import '../../../images/content-grid.svg';
 import '../../../images/content-publishing.svg';

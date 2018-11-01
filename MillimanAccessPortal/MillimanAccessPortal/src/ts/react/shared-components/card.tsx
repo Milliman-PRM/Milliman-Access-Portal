@@ -6,11 +6,19 @@ import '../../../images/remove-circle.svg';
 
 import * as React from 'react';
 
+import { Guid } from '../models';
 import {
   EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo,
 } from '../system-admin/interfaces';
 import { UpdateProfitCenterModal } from '../system-admin/modals/update-profit-center';
 import CardButton, { CardButtonColor } from './card-button';
+import { CardStatIcon, CardStat } from './card-stat';
+
+export interface CardStatPropEvaluator {
+  name: string;
+  value: (id: Guid) => number;
+  icon: CardStatIcon;
+}
 
 export interface CardAttributes {
   expanded: boolean;
@@ -35,6 +43,7 @@ export interface CardProps {
   onProfitCenterDelete?: () => void;
   onProfitCenterUserRemove?: () => void;
   onClientUserRemove?: () => void;
+  cardStats?: CardStatPropEvaluator[];
 }
 
 export class Card extends React.Component<CardProps> {
@@ -109,24 +118,22 @@ export class Card extends React.Component<CardProps> {
 
   private renderStats() {
     const { entity } = this.props;
-    const cardStats: Array<{
-      name: string;
-      value: number;
-      icon: string;
-    }> = [];
-    if (isUserInfo(entity)) {
+    const cardStats: CardStatPropEvaluator[] = [];
+    if (this.props.cardStats) {
+      cardStats.push(...this.props.cardStats);
+    } else if (isUserInfo(entity)) {
       const { clientCount: clients, rootContentItemCount: items } = entity;
       if (clients !== null) {
         cardStats.push({
           name: 'Clients',
-          value: clients,
-          icon: 'client-admin',
+          value: () => clients,
+          icon: 'client',
         });
       }
       if (items !== null) {
         cardStats.push({
           name: 'Reports',
-          value: items,
+          value: () => items,
           icon: 'reports',
         });
       }
@@ -135,14 +142,14 @@ export class Card extends React.Component<CardProps> {
       if (users !== null) {
         cardStats.push({
           name: 'Users',
-          value: users,
+          value: () => users,
           icon: 'user',
         });
       }
       if (items !== null) {
         cardStats.push({
           name: 'Reports',
-          value: items,
+          value: () => items,
           icon: 'reports',
         });
       }
@@ -151,15 +158,15 @@ export class Card extends React.Component<CardProps> {
       if (users !== null) {
         cardStats.push({
           name: 'Authorized users',
-          value: users,
+          value: () => users,
           icon: 'user',
         });
       }
       if (clients !== null) {
         cardStats.push({
           name: 'Clients',
-          value: clients,
-          icon: 'client-admin',
+          value: () => clients,
+          icon: 'client',
         });
       }
     } else if (isRootContentItemInfo(entity)) {
@@ -167,14 +174,14 @@ export class Card extends React.Component<CardProps> {
       if (users !== null) {
         cardStats.push({
           name: 'Users',
-          value: users,
+          value: () => users,
           icon: 'user',
         });
       }
       if (groups !== null) {
         cardStats.push({
           name: 'Selection Groups',
-          value: groups,
+          value: () => groups,
           icon: 'group',
         });
       }
@@ -183,15 +190,14 @@ export class Card extends React.Component<CardProps> {
       return null;
     }
 
-    const stats = cardStats
-      .map(({ name, value, icon }, i) => (
-        <div key={i} className="card-stat-container" title={name}>
-          <svg className="card-stat-icon">
-            <use xlinkHref={`#${icon}`} />
-          </svg>
-          <h4 className="card-stat-value">{value}</h4>
-        </div>
-      ));
+    const stats = cardStats.map(({ name, value, icon }, i) => (
+      <CardStat
+        key={i}
+        name={name}
+        value={value(entity.id)}
+        icon={icon}
+      />
+    ));
     return <div className="card-stats-container">{stats}</div>;
   }
 

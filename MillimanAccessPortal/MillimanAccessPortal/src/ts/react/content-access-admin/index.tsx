@@ -7,8 +7,8 @@ import * as ReactDOM from 'react-dom';
 import { StatusMonitor } from '../../status-monitor';
 import { ReductionFieldInfo, ReductionFieldValueInfo } from '../../view-models/content-publishing';
 import { SelectionGroupInfo } from '../models';
-import { ClientInfo, RootContentItemInfo, UserInfo } from '../system-admin/interfaces';
 import { ContentAccessAdmin } from './content-access-admin';
+import { ClientInfo, RootContentItemInfo, UserInfo } from '../system-admin/interfaces';
 
 document.addEventListener('DOMContentLoaded', () => {
   const clients: ClientInfo[] = [
@@ -18,12 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: 'client4', name: 'client4', code: 'c4' },
   ];
   const items: RootContentItemInfo[] = [
-    { id: 'item1', name: 'item1', isSuspended: false },
-    { id: 'item2', name: 'item2', isSuspended: false },
-    { id: 'item3', name: 'item3', isSuspended: false },
-    { id: 'item4', name: 'item4', isSuspended: false },
-    { id: 'item5', name: 'item5', isSuspended: false },
-    { id: 'item6', name: 'item6', isSuspended: false },
+    { id: 'item1', name: 'item1', isSuspended: false, clientId: 'client1' },
+    { id: 'item2', name: 'item2', isSuspended: false, clientId: 'client1' },
+    { id: 'item3', name: 'item3', isSuspended: false, clientId: 'client1' },
+    { id: 'item4', name: 'item4', isSuspended: false, clientId: 'client2' },
+    { id: 'item5', name: 'item5', isSuspended: false, clientId: 'client2' },
+    { id: 'item6', name: 'item6', isSuspended: false, clientId: 'client4' },
   ];
   const groups: SelectionGroupInfo[] = [
     { id: 'group1', name: 'group1', isSuspended: false },
@@ -37,17 +37,17 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   const users: UserInfo[] = [
     { id: 'user1', activated: true, firstName: 'first1', lastName: 'last1', userName: 'username1',
-      email: 'email1', isSuspended: false },
+      email: 'email1', isSuspended: false, clientId: 'client1' },
     { id: 'user2', activated: true, firstName: 'first2', lastName: 'last2', userName: 'username2',
-      email: 'email2', isSuspended: false },
+      email: 'email2', isSuspended: false, clientId: 'client1' },
     { id: 'user3', activated: true, firstName: 'first3', lastName: 'last3', userName: 'username3',
-      email: 'email3', isSuspended: false },
+      email: 'email3', isSuspended: false, clientId: 'client1' },
     { id: 'user4', activated: true, firstName: 'first4', lastName: 'last4', userName: 'username4',
-      email: 'email4', isSuspended: false },
+      email: 'email4', isSuspended: false, clientId: 'client1' },
     { id: 'user5', activated: true, firstName: 'first5', lastName: 'last5', userName: 'username5',
-      email: 'email5', isSuspended: false },
+      email: 'email5', isSuspended: false, clientId: 'client2' },
     { id: 'user6', activated: true, firstName: 'first6', lastName: 'last6', userName: 'username6',
-      email: 'email6', isSuspended: false },
+      email: 'email6', isSuspended: false, clientId: 'client2' },
   ];
   const fields: ReductionFieldInfo[] = [
     { id: 'field1', fieldName: 'field1', displayName: 'Field 1', valueDelimiter: '|' },
@@ -75,6 +75,14 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   const itemCards = {
     item1: {
+      expanded: false,
+      profitCenterModalOpen: false,
+    },
+    item2: {
+      expanded: false,
+      profitCenterModalOpen: false,
+    },
+    item3: {
       expanded: false,
       profitCenterModalOpen: false,
     },

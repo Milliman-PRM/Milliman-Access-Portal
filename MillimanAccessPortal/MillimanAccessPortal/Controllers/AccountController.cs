@@ -792,7 +792,7 @@ namespace MillimanAccessPortal.Controllers
                     Label = "Manage Clients",
                     URL = nameof(ClientAdminController).Replace("Controller", ""),
                     View = "ClientAdmin",
-                    Icon = "client-admin",
+                    Icon = "client",
                 });
             }
 

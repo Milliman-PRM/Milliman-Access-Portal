@@ -6,6 +6,7 @@ import { CardAttributes } from '../shared-components/card';
 import { ContentPanel, ContentPanelProps } from '../shared-components/content-panel';
 import { NavBar } from '../shared-components/navbar';
 import { ClientInfo, RootContentItemInfo, UserInfo } from '../system-admin/interfaces';
+import { Guid } from '../shared-components/interfaces';
 
 interface NestedCardAttributes extends CardAttributes {
   parentId: string;
@@ -73,6 +74,7 @@ export class ContentAccessAdmin extends React.Component<ContentAccessAdminProps>
   };
 
   public render() {
+    const { data } = this.props;
     return (
       <>
         <NavBar currentView={this.currentView} />
@@ -81,6 +83,18 @@ export class ContentAccessAdmin extends React.Component<ContentAccessAdminProps>
           cards={this.props.clientPanel.cards}
           entities={this.props.data.clients}
           panelHeader={'Clients'}
+          cardStats={[
+            {
+              name: 'Users',
+              value: (id: Guid) => data.users.filter(u => u.clientId === id).length,
+              icon: 'user',
+            },
+            {
+              name: 'Reports',
+              value: (id: Guid) => data.items.filter(u => u.clientId === id).length,
+              icon: 'reports',
+            },
+          ]}
         />
         <ContentPanel
           {...this.nullProps}

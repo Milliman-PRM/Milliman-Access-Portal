@@ -51,6 +51,7 @@ export interface RootContentItemInfo {
   userCount?: number;
   selectionGroupCount?: number;
   users?: UserInfo[];
+  clientId?: Guid;
   isSuspended: boolean;
 }
 export type EntityInfo = UserInfo | ClientInfo | ProfitCenterInfo | RootContentItemInfo | SelectionGroupInfo;
