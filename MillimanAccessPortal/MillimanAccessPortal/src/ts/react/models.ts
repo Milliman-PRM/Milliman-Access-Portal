@@ -37,3 +37,13 @@ export interface SelectionGroup {
   isMaster: boolean;
   name: string;
 }
+export interface ReductionField {
+  id: Guid;
+  fieldName: string;
+  displayName: string;
+  valueDelimiter: string;
+}
+export interface ReductionFieldValue {
+  id: Guid;
+  value: string;
+}

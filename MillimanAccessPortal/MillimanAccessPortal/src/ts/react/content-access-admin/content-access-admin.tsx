@@ -1,20 +1,19 @@
 import * as React from 'react';
 
-import { ReductionFieldInfo, ReductionFieldValueInfo } from '../../view-models/content-publishing';
-import { Client, RootContentItem, SelectionGroup, User } from '../models';
 import { ContentPanel, ContentPanelProps } from '../shared-components/content-panel';
 import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
+import { Client, RootContentItem, SelectionGroup } from '../models';
+import { connect } from 'react-redux';
+import * as actions from './redux/actions';
+import { ContentAccessAdminState } from './redux/store';
+import { selectedItems, selectedGroups } from './redux/selectors';
 
-export interface ContentAccessAdminProps {
-  data: {
-    clients: Client[];
-    items: RootContentItem[];
-    groups: SelectionGroup[];
-    users: User[];
-    fields: ReductionFieldInfo[];
-    values: ReductionFieldValueInfo[];
-  };
+
+interface ContentAccessAdminProps {
+  clients: Client[];
+  selectedItems: RootContentItem[];
+  selectedGroups: SelectionGroup[];
   clientPanel: {
     cards: {
       [id: string]: {
@@ -43,8 +42,11 @@ export interface ContentAccessAdminProps {
     selectedCard: Guid;
   };
 }
+interface ContentAccessAdminActions {
+  nop: () => void;
+}
 
-export class ContentAccessAdmin extends React.Component<ContentAccessAdminProps> {
+class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & ContentAccessAdminActions> {
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
@@ -70,8 +72,11 @@ export class ContentAccessAdmin extends React.Component<ContentAccessAdminProps>
     panelHeader: '',
   };
 
+  public componentDidMount() {
+    this.props.nop();
+  }
+
   public render() {
-    const { data } = this.props;
     return (
       <>
         <NavBar currentView={this.currentView} />
@@ -83,22 +88,22 @@ export class ContentAccessAdmin extends React.Component<ContentAccessAdminProps>
   }
 
   private renderClientPanel() {
-    const { data, clientPanel } = this.props;
+    const { clients, clientPanel } = this.props;
     return (
       <ContentPanel
         {...this.nullProps}
         {...clientPanel}
-        entities={data.clients}
+        entities={clients}
         panelHeader={'Clients'}
         cardStats={[
           {
             name: 'Users',
-            value: (_: Guid) => '?' as any,
+            value: () => '?' as any,
             icon: 'user',
           },
           {
             name: 'Reports',
-            value: (id: Guid) => data.items.filter(u => u.clientId === id).length,
+            value: () => '?' as any,
             icon: 'reports',
           },
         ]}
@@ -107,26 +112,44 @@ export class ContentAccessAdmin extends React.Component<ContentAccessAdminProps>
   }
 
   private renderItemPanel() {
-    const { data, clientPanel, itemPanel } = this.props;
+    const { selectedItems, clientPanel, itemPanel } = this.props;
     return clientPanel.selectedCard && (
       <ContentPanel
         {...this.nullProps}
         {...itemPanel}
-        entities={data.items}
+        entities={selectedItems}
         panelHeader={'Content Items'}
       />
     );
   }
 
   private renderGroupPanel() {
-    const { data, itemPanel, groupPanel } = this.props;
+    const { selectedGroups, itemPanel, groupPanel } = this.props;
     return itemPanel.selectedCard && (
       <ContentPanel
         {...this.nullProps}
         {...groupPanel}
-        entities={data.groups}
+        entities={selectedGroups}
         panelHeader={'Selection Groups'}
       />
     );
   }
 }
+
+function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProps {
+  const { clientPanel, itemPanel, groupPanel } = state;
+  const { clients } = state.data;
+  return {
+    clients,
+    selectedItems: selectedItems(state),
+    selectedGroups: selectedGroups(state),
+    clientPanel,
+    itemPanel,
+    groupPanel,
+  };
+}
+
+export const ConnectedContentAccessAdmin = connect(
+  mapStateToProps,
+  actions,
+)(ContentAccessAdmin);
