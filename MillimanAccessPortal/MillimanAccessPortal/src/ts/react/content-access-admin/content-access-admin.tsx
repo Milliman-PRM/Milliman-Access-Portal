@@ -1,23 +1,17 @@
 import * as React from 'react';
 
 import { ReductionFieldInfo, ReductionFieldValueInfo } from '../../view-models/content-publishing';
-import { SelectionGroupInfo } from '../models';
-import { CardAttributes } from '../shared-components/card';
+import { Client, RootContentItem, SelectionGroup, User } from '../models';
 import { ContentPanel, ContentPanelProps } from '../shared-components/content-panel';
-import { NavBar } from '../shared-components/navbar';
-import { ClientInfo, RootContentItemInfo, UserInfo } from '../system-admin/interfaces';
 import { Guid } from '../shared-components/interfaces';
+import { NavBar } from '../shared-components/navbar';
 
-interface NestedCardAttributes extends CardAttributes {
-  parentId: string;
-}
-
-interface ContentAccessAdminProps {
+export interface ContentAccessAdminProps {
   data: {
-    clients: ClientInfo[];
-    items: RootContentItemInfo[];
-    groups: SelectionGroupInfo[];
-    users: UserInfo[];
+    clients: Client[];
+    items: RootContentItem[];
+    groups: SelectionGroup[];
+    users: User[];
     fields: ReductionFieldInfo[];
     values: ReductionFieldValueInfo[];
   };
@@ -28,6 +22,7 @@ interface ContentAccessAdminProps {
         profitCenterModalOpen: boolean;
       };
     };
+    selectedCard: Guid;
   };
   itemPanel: {
     cards: {
@@ -36,6 +31,7 @@ interface ContentAccessAdminProps {
         profitCenterModalOpen: boolean;
       };
     };
+    selectedCard: Guid;
   };
   groupPanel: {
     cards: {
@@ -44,6 +40,7 @@ interface ContentAccessAdminProps {
         profitCenterModalOpen: boolean;
       };
     };
+    selectedCard: Guid;
   };
 }
 
@@ -78,37 +75,58 @@ export class ContentAccessAdmin extends React.Component<ContentAccessAdminProps>
     return (
       <>
         <NavBar currentView={this.currentView} />
-        <ContentPanel
-          {...this.nullProps}
-          cards={this.props.clientPanel.cards}
-          entities={this.props.data.clients}
-          panelHeader={'Clients'}
-          cardStats={[
-            {
-              name: 'Users',
-              value: (id: Guid) => data.users.filter(u => u.clientId === id).length,
-              icon: 'user',
-            },
-            {
-              name: 'Reports',
-              value: (id: Guid) => data.items.filter(u => u.clientId === id).length,
-              icon: 'reports',
-            },
-          ]}
-        />
-        <ContentPanel
-          {...this.nullProps}
-          cards={this.props.itemPanel.cards}
-          entities={this.props.data.items}
-          panelHeader={'Content Items'}
-        />
-        <ContentPanel
-          {...this.nullProps}
-          cards={this.props.groupPanel.cards}
-          entities={this.props.data.groups}
-          panelHeader={'Selection Groups'}
-        />
+        {this.renderClientPanel()}
+        {this.renderItemPanel()}
+        {this.renderGroupPanel()}
       </>
+    );
+  }
+
+  private renderClientPanel() {
+    const { data, clientPanel } = this.props;
+    return (
+      <ContentPanel
+        {...this.nullProps}
+        {...clientPanel}
+        entities={data.clients}
+        panelHeader={'Clients'}
+        cardStats={[
+          {
+            name: 'Users',
+            value: (_: Guid) => '?' as any,
+            icon: 'user',
+          },
+          {
+            name: 'Reports',
+            value: (id: Guid) => data.items.filter(u => u.clientId === id).length,
+            icon: 'reports',
+          },
+        ]}
+      />
+    );
+  }
+
+  private renderItemPanel() {
+    const { data, clientPanel, itemPanel } = this.props;
+    return clientPanel.selectedCard && (
+      <ContentPanel
+        {...this.nullProps}
+        {...itemPanel}
+        entities={data.items}
+        panelHeader={'Content Items'}
+      />
+    );
+  }
+
+  private renderGroupPanel() {
+    const { data, itemPanel, groupPanel } = this.props;
+    return itemPanel.selectedCard && (
+      <ContentPanel
+        {...this.nullProps}
+        {...groupPanel}
+        entities={data.groups}
+        panelHeader={'Selection Groups'}
+      />
     );
   }
 }
