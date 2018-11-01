@@ -41,11 +41,6 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.1.2" />
   </ItemGroup>
   <ItemGroup>
-    <!-- 
-    These were causing compiler warnings because they are now included in the .NET Core SDK
-    <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="1.0.1" />
-    <DotNetCliToolReference Include="Microsoft.Extensions.SecretManager.Tools" Version="2.0.0" />
-    -->
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
