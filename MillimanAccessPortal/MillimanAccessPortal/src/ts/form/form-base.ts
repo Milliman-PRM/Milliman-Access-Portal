@@ -155,10 +155,13 @@ export class FormBase extends FormElement {
   }
 
   public valid(sections: string[] = []) {
-    return this.inputSections
+    const filteredSections = this.inputSections
       .filter((section) => sections.length === 0 || sections.indexOf(section.name) > -1)
       .map((section) => section.valid)
-      .reduce((cum, cur) => cum && cur, true);
+      .filter((section) => section !== undefined);
+    return filteredSections.length
+      ? filteredSections.reduce((cum, cur) => cum && cur, true)
+      : true;
   }
 
   public validate() {
