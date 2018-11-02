@@ -214,7 +214,8 @@ namespace MillimanAccessPortal.Controllers
             catch (Exception e)
             {
                 Log.Error(e, "In FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
-                throw;
+                Response.Headers.Add("Warning", e.Message);
+                return new StatusCodeResult(500);
             }
 
             var fileUpload = new FileUpload
