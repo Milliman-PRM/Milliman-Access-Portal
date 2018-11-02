@@ -13,7 +13,13 @@
         "no-var-requires": false,
         "object-literal-sort-keys": false,
         "quotemark": [true, "single", "avoid-template", "jsx-double"],
-        "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"]
+        "variable-name": [
+            true,
+            "ban-keywords",
+            "check-format",
+            "allow-leading-underscore",
+            "allow-pascal-case"
+        ]
     },
     "rulesDirectory": []
 }
