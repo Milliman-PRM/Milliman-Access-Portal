@@ -1,3 +1,4 @@
+const path = require('path');
 const webpack = require('webpack');
 const merge = require('webpack-merge');
 const common = require('./webpack.common.js');
@@ -26,6 +27,9 @@ module.exports = merge(common, {
         },
       },
     },
+  },
+  output: {
+    filename: 'js/[contenthash].js',
   },
   module: {
     rules: [

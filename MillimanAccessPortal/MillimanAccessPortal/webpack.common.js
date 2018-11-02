@@ -22,8 +22,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, 'wwwroot'),
-    filename: 'js/[name].[contenthash].js',
-    publicPath: '~',
+    publicPath: '~/',
   },
   module: {
     rules: [
