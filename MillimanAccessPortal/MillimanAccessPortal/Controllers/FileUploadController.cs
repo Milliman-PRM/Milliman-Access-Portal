@@ -211,6 +211,11 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", e.Message);
                 return new StatusCodeResult(e.HttpStatus);
             }
+            catch (Exception e)
+            {
+                Log.Error(e, "In FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
+                throw;
+            }
 
             var fileUpload = new FileUpload
             {
