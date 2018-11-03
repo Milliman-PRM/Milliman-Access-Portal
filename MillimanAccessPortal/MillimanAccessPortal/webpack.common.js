@@ -57,13 +57,6 @@ module.exports = {
     ],
   },
   plugins: [
-    new CleanWebpackPlugin([
-      'src/js',
-      'wwwroot/css',
-      'wwwroot/images',
-      'wwwroot/js',
-      'wwwroot/favicon.ico',
-    ]),
     new CopyWebpackPlugin([
       {
         from: 'src/favicon.ico',

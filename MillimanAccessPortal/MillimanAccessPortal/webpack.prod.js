@@ -1,12 +1,13 @@
 const path = require('path');
 const webpack = require('webpack');
 const merge = require('webpack-merge');
+const clean = require('./webpack.clean.js');
 const common = require('./webpack.common.js');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
-module.exports = merge(common, {
+module.exports = merge(clean, common, {
   optimization: {
     minimizer: [
       // Must specify JS minizer as specifying any part of optimization.minimizer
