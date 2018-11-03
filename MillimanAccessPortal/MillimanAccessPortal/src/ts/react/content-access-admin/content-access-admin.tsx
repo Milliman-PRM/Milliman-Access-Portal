@@ -1,19 +1,18 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 
+import { Client, RootContentItem, SelectionGroup } from '../models';
 import { ContentPanel, ContentPanelProps } from '../shared-components/content-panel';
 import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
-import { Client, RootContentItem, SelectionGroup } from '../models';
-import { connect } from 'react-redux';
 import * as actions from './redux/actions';
+import { selectedGroups, selectedItems } from './redux/selectors';
 import { ContentAccessAdminState } from './redux/store';
-import { selectedItems, selectedGroups } from './redux/selectors';
-
 
 interface ContentAccessAdminProps {
   clients: Client[];
-  selectedItems: RootContentItem[];
-  selectedGroups: SelectionGroup[];
+  items: RootContentItem[];
+  groups: SelectionGroup[];
   clientPanel: {
     cards: {
       [id: string]: {
@@ -112,24 +111,24 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   }
 
   private renderItemPanel() {
-    const { selectedItems, clientPanel, itemPanel } = this.props;
+    const { items, clientPanel, itemPanel } = this.props;
     return clientPanel.selectedCard && (
       <ContentPanel
         {...this.nullProps}
         {...itemPanel}
-        entities={selectedItems}
+        entities={items}
         panelHeader={'Content Items'}
       />
     );
   }
 
   private renderGroupPanel() {
-    const { selectedGroups, itemPanel, groupPanel } = this.props;
+    const { groups, itemPanel, groupPanel } = this.props;
     return itemPanel.selectedCard && (
       <ContentPanel
         {...this.nullProps}
         {...groupPanel}
-        entities={selectedGroups}
+        entities={groups}
         panelHeader={'Selection Groups'}
       />
     );
@@ -141,8 +140,8 @@ function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProp
   const { clients } = state.data;
   return {
     clients,
-    selectedItems: selectedItems(state),
-    selectedGroups: selectedGroups(state),
+    items: selectedItems(state),
+    groups: selectedGroups(state),
     clientPanel,
     itemPanel,
     groupPanel,

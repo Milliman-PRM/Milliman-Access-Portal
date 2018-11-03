@@ -1,7 +1,10 @@
-import { ContentAccessAdminState } from './store';
 import { Action } from 'redux';
-import { Client, RootContentItem, SelectionGroup, User, ReductionField, ReductionFieldValue } from '../../models';
+
+import {
+  Client, ReductionField, ReductionFieldValue, RootContentItem, SelectionGroup, User,
+} from '../../models';
 import { ActionWithId } from './actions';
+import { ContentAccessAdminState } from './store';
 
 const clients: Client[] = [
   { id: 'client1', name: 'client1', code: 'c1' },
@@ -90,10 +93,10 @@ const initialState = {
   clientPanel: { cards: clientCards, selectedCard: null },
   itemPanel: { cards: itemCards, selectedCard: null },
   groupPanel: { cards: groupCards, selectedCard: null },
-}
+};
 
 export function contentAccessAdmin(state: ContentAccessAdminState = initialState, action: Action) {
-  switch(action.type) {
+  switch (action.type) {
     case 'SELECT_CARD_CLIENT':
       return {
         ...state,
