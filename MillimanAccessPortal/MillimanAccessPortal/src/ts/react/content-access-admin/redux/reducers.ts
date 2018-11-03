@@ -1,7 +1,7 @@
 import { Action } from 'redux';
 
 import {
-  Client, Guid, ReductionField, ReductionFieldValue, RootContentItem, SelectionGroup, User,
+  Client, ReductionField, ReductionFieldValue, RootContentItem, SelectionGroup, User,
 } from '../../models';
 import { ActionWithId } from './actions';
 import { ContentAccessAdminState } from './store';
@@ -13,12 +13,12 @@ const clients: Client[] = [
   { id: 'client4', name: 'client4', code: 'c4' },
 ];
 const items: RootContentItem[] = [
-  { id: 'item1', name: 'item1', isSuspended: false, clientId: 'client1' },
-  { id: 'item2', name: 'item2', isSuspended: false, clientId: 'client1' },
-  { id: 'item3', name: 'item3', isSuspended: false, clientId: 'client1' },
-  { id: 'item4', name: 'item4', isSuspended: false, clientId: 'client2' },
-  { id: 'item5', name: 'item5', isSuspended: false, clientId: 'client2' },
-  { id: 'item6', name: 'item6', isSuspended: false, clientId: 'client4' },
+  { id: 'item1', name: 'item1', isSuspended: false, doesReduce: true, clientId: 'client1' },
+  { id: 'item2', name: 'item2', isSuspended: false, doesReduce: true, clientId: 'client1' },
+  { id: 'item3', name: 'item3', isSuspended: false, doesReduce: false, clientId: 'client1' },
+  { id: 'item4', name: 'item4', isSuspended: false, doesReduce: true, clientId: 'client2' },
+  { id: 'item5', name: 'item5', isSuspended: false, doesReduce: false, clientId: 'client2' },
+  { id: 'item6', name: 'item6', isSuspended: false, doesReduce: false, clientId: 'client4' },
 ];
 const groups: SelectionGroup[] = [
   { id: 'group1', name: 'group1', isSuspended: false, isMaster: false, rootContentItemId: 'item1',

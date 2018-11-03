@@ -4,6 +4,7 @@ import { Filter } from '../shared-components/filter';
 import { Fieldset, FieldsetProps } from './fieldset';
 
 export interface SelectionsPanelProps {
+  doesReduce: boolean;
   fieldsets: FieldsetProps[];
 }
 
@@ -37,31 +38,39 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
                 </div>
                 <label className="switch-label">Suspend Access</label>
               </div>
-              <div className="selection-content">
-                <hr />
-                <div className="switch-container">
-                  <div className="toggle-switch">
-                    <input type="checkbox" className="toggle-switch-checkbox" name="IsMaster" id="IsMaster" />
-                    <label className="toggle-switch-label" htmlFor="IsMaster">
-                      <span className="toggle-switch-inner" />
-                      <span className="toggle-switch-switch" />
-                    </label>
-                  </div>
-                  <label className="switch-label">Unrestricted Access</label>
-                </div>
-                <div className="fieldset-container">
-                  {this.renderReductionFields()}
-                </div>
-                <button type="button" className="blue-button button-status-0 button-status-1 button-status-40">
-                  Submit
-                </button>
-                <button type="button" className="red-button button-status-10">Cancel</button>
-              </div>
+              {this.renderDoesReduceSection()}
             </form>
           </div>
         </div>
       </div>
     );
+  }
+
+  private renderDoesReduceSection() {
+    return this.props.doesReduce
+      ? (
+        <div className="selection-content">
+          <hr />
+          <div className="switch-container">
+            <div className="toggle-switch">
+              <input type="checkbox" className="toggle-switch-checkbox" name="IsMaster" id="IsMaster" />
+              <label className="toggle-switch-label" htmlFor="IsMaster">
+                <span className="toggle-switch-inner" />
+                <span className="toggle-switch-switch" />
+              </label>
+            </div>
+            <label className="switch-label">Unrestricted Access</label>
+          </div>
+          <div className="fieldset-container">
+            {this.renderReductionFields()}
+          </div>
+          <button type="button" className="blue-button button-status-0 button-status-1 button-status-40">
+            Submit
+          </button>
+          <button type="button" className="red-button button-status-10">Cancel</button>
+        </div>
+      )
+    : null;
   }
 
   private renderReductionFields() {

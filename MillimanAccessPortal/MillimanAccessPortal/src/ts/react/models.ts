@@ -25,6 +25,7 @@ export interface RootContentItem {
   id: Guid;
   clientId?: Guid;
   isSuspended: boolean;
+  doesReduce: boolean;
   name: string;
 }
 export interface SelectionGroup {

@@ -11,7 +11,7 @@ import { FieldsetProps } from './fieldset';
 import * as actions from './redux/actions';
 import {
   activeGroups, activeItems, activeReductionFields, activeReductionFieldsets, activeReductionValues,
-  selectedGroup, selectedReductionValues,
+  selectedGroup, selectedItem, selectedReductionValues,
 } from './redux/selectors';
 import { ContentAccessAdminState } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
@@ -48,6 +48,7 @@ interface ContentAccessAdminProps {
     };
     selectedCard: Guid;
   };
+  selectedItem: RootContentItem;
   selectedValues: Guid[];
 }
 interface ContentAccessAdminActions {
@@ -152,7 +153,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   }
 
   private renderSelectionsPanel() {
-    const { reductionFieldsets, groupPanel, setValueSelected, selectedValues } = this.props;
+    const { selectedItem: item, reductionFieldsets, groupPanel, setValueSelected, selectedValues } = this.props;
     const fieldsets = reductionFieldsets.map((s) => ({
       name: s.field.displayName,
       fields: s.values.map((v) => ({
@@ -163,6 +164,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
     }));
     return groupPanel.selectedCard && (
       <SelectionsPanel
+        doesReduce={item.doesReduce}
         fieldsets={fieldsets}
       />
     );
@@ -185,6 +187,7 @@ function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProp
     clientPanel,
     itemPanel,
     groupPanel,
+    selectedItem: selectedItem(state),
     selectedValues: selectedGroup(state)
       ? selectedGroup(state).selectedValues
       : [],
