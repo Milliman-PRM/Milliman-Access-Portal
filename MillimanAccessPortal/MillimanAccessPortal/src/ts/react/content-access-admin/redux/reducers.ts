@@ -1,9 +1,9 @@
 import { Action } from 'redux';
 
 import {
-  Client, ReductionField, ReductionFieldValue, RootContentItem, SelectionGroup, User,
+  Client, Guid, ReductionField, ReductionFieldValue, RootContentItem, SelectionGroup, User,
 } from '../../models';
-import { ActionWithId, ActionWithBoolean } from './actions';
+import { ActionWithId } from './actions';
 import { ContentAccessAdminState } from './store';
 
 const clients: Client[] = [
@@ -107,13 +107,22 @@ const initialState = {
 };
 
 export function contentAccessAdmin(state: ContentAccessAdminState = initialState, action: Action) {
+  const cardId = (action as ActionWithId).id;
   switch (action.type) {
     case 'SELECT_CARD_CLIENT':
       return {
         ...state,
         clientPanel: {
           ...state.clientPanel,
-          selectedCard: (action as ActionWithId).id,
+          selectedCard: cardId === state.clientPanel.selectedCard ? null : cardId,
+        },
+        itemPanel: {
+          ...state.itemPanel,
+          selectedCard: null,
+        },
+        groupPanel: {
+          ...state.groupPanel,
+          selectedCard: null,
         },
       };
     case 'SELECT_CARD_ITEM':
@@ -121,7 +130,11 @@ export function contentAccessAdmin(state: ContentAccessAdminState = initialState
         ...state,
         itemPanel: {
           ...state.itemPanel,
-          selectedCard: (action as ActionWithId).id,
+          selectedCard: cardId === state.itemPanel.selectedCard ? null : cardId,
+        },
+        groupPanel: {
+          ...state.groupPanel,
+          selectedCard: null,
         },
       };
     case 'SELECT_CARD_GROUP':
@@ -129,7 +142,7 @@ export function contentAccessAdmin(state: ContentAccessAdminState = initialState
         ...state,
         groupPanel: {
           ...state.groupPanel,
-          selectedCard: (action as ActionWithId).id,
+          selectedCard: cardId === state.groupPanel.selectedCard ? null : cardId,
         },
       };
     case 'NOP':

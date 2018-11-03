@@ -108,6 +108,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         {...clientPanel}
         entities={clients}
         panelHeader={'Clients'}
+        onCardSelect={this.props.selectClientCard}
         cardStats={[
           {
             name: 'Users',
@@ -132,6 +133,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         {...itemPanel}
         entities={items}
         panelHeader={'Content Items'}
+        onCardSelect={this.props.selectItemCard}
       />
     );
   }
@@ -144,6 +146,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         {...groupPanel}
         entities={groups}
         panelHeader={'Selection Groups'}
+        onCardSelect={this.props.selectGroupCard}
       />
     );
   }
@@ -164,6 +167,11 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       />
     );
   }
+
+  private handleClientCardSelect = (id: Guid) => {
+    this.props.selectClientCard(id);
+  }
+
 }
 
 function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProps {
