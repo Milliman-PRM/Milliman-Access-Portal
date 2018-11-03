@@ -3,7 +3,7 @@ import { Action } from 'redux';
 import {
   Client, ReductionField, ReductionFieldValue, RootContentItem, SelectionGroup, User,
 } from '../../models';
-import { ActionWithId } from './actions';
+import { ActionWithId, ActionWithBoolean } from './actions';
 import { ContentAccessAdminState } from './store';
 
 const clients: Client[] = [
@@ -21,14 +21,22 @@ const items: RootContentItem[] = [
   { id: 'item6', name: 'item6', isSuspended: false, clientId: 'client4' },
 ];
 const groups: SelectionGroup[] = [
-  { id: 'group1', name: 'group1', isSuspended: false, isMaster: false, rootContentItemId: 'item1' },
-  { id: 'group2', name: 'group2', isSuspended: false, isMaster: false, rootContentItemId: 'item1' },
-  { id: 'group3', name: 'group3', isSuspended: false, isMaster: false, rootContentItemId: 'item1' },
-  { id: 'group4', name: 'group4', isSuspended: false, isMaster: false, rootContentItemId: 'item2' },
-  { id: 'group5', name: 'group5', isSuspended: false, isMaster: false, rootContentItemId: 'item4' },
-  { id: 'group6', name: 'group6', isSuspended: false, isMaster: false, rootContentItemId: 'item5' },
-  { id: 'group7', name: 'group7', isSuspended: false, isMaster: false, rootContentItemId: 'item5' },
-  { id: 'group8', name: 'group8', isSuspended: false, isMaster: false, rootContentItemId: 'item6' },
+  { id: 'group1', name: 'group1', isSuspended: false, isMaster: false, rootContentItemId: 'item1',
+    selectedValues: [ 'value1', 'value2', 'value3', 'value4', 'value5' ] },
+  { id: 'group2', name: 'group2', isSuspended: false, isMaster: false, rootContentItemId: 'item1',
+    selectedValues: [ 'value1' ] },
+  { id: 'group3', name: 'group3', isSuspended: false, isMaster: false, rootContentItemId: 'item1',
+    selectedValues: [ ] },
+  { id: 'group4', name: 'group4', isSuspended: false, isMaster: false, rootContentItemId: 'item2',
+    selectedValues: [ ] },
+  { id: 'group5', name: 'group5', isSuspended: false, isMaster: false, rootContentItemId: 'item4',
+    selectedValues: [ ] },
+  { id: 'group6', name: 'group6', isSuspended: false, isMaster: false, rootContentItemId: 'item5',
+    selectedValues: [ ] },
+  { id: 'group7', name: 'group7', isSuspended: false, isMaster: false, rootContentItemId: 'item5',
+    selectedValues: [ ] },
+  { id: 'group8', name: 'group8', isSuspended: false, isMaster: false, rootContentItemId: 'item6',
+    selectedValues: [ ] },
 ];
 const users: User[] = [
   { id: 'user1', activated: true, firstName: 'first1', lastName: 'last1', userName: 'username1',
@@ -45,17 +53,20 @@ const users: User[] = [
     email: 'email6', isSuspended: false },
 ];
 const fields: ReductionField[] = [
-  { id: 'field1', fieldName: 'field1', displayName: 'Field 1', valueDelimiter: '|' },
-  { id: 'field2', fieldName: 'field2', displayName: 'Field 2', valueDelimiter: '|' },
-  { id: 'field3', fieldName: 'field3', displayName: 'Field 3', valueDelimiter: '|' },
+  { id: 'field1', fieldName: 'field1', displayName: 'Field 1', valueDelimiter: '|',
+    rootContentItemId: 'item1' },
+  { id: 'field2', fieldName: 'field2', displayName: 'Field 2', valueDelimiter: '|',
+    rootContentItemId: 'item1' },
+  { id: 'field3', fieldName: 'field3', displayName: 'Field 3', valueDelimiter: '|',
+    rootContentItemId: 'item1' },
 ];
 const values: ReductionFieldValue[] = [
-  { id: 'value1', value: 'value1' },
-  { id: 'value2', value: 'value2' },
-  { id: 'value3', value: 'value3' },
-  { id: 'value4', value: 'value4' },
-  { id: 'value5', value: 'value5' },
-  { id: 'value6', value: 'value6' },
+  { id: 'value1', value: 'value1', reductionFieldId: 'field1' },
+  { id: 'value2', value: 'value2', reductionFieldId: 'field2' },
+  { id: 'value3', value: 'value3', reductionFieldId: 'field2' },
+  { id: 'value4', value: 'value4', reductionFieldId: 'field3' },
+  { id: 'value5', value: 'value5', reductionFieldId: 'field3' },
+  { id: 'value6', value: 'value6', reductionFieldId: 'field3' },
 ];
 
 const clientCards = {

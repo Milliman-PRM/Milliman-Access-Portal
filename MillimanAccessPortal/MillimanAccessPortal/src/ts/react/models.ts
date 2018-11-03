@@ -1,6 +1,3 @@
-import { ReductionSummary } from '../view-models/content-access-admin';
-import { UserInfo } from './system-admin/interfaces';
-
 export type Guid = string;
 
 export interface User {
@@ -33,17 +30,25 @@ export interface RootContentItem {
 export interface SelectionGroup {
   id: Guid;
   rootContentItemId?: Guid;
+  selectedValues?: Guid[];
   isSuspended: boolean;
   isMaster: boolean;
   name: string;
 }
 export interface ReductionField {
   id: Guid;
+  rootContentItemId?: Guid;
   fieldName: string;
   displayName: string;
   valueDelimiter: string;
 }
 export interface ReductionFieldValue {
   id: Guid;
+  reductionFieldId?: Guid;
   value: string;
+}
+
+export interface ReductionFieldset {
+  field: ReductionField;
+  values: ReductionFieldValue[];
 }

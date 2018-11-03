@@ -1,18 +1,26 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { Client, RootContentItem, SelectionGroup } from '../models';
+import {
+  Client, ReductionFieldset, ReductionFieldValue, RootContentItem, SelectionGroup,
+} from '../models';
 import { CardPanel, CardPanelProps } from '../shared-components/card-panel';
 import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
+import { FieldsetProps } from './fieldset';
 import * as actions from './redux/actions';
-import { selectedGroups, selectedItems } from './redux/selectors';
+import {
+  activeGroups, activeItems, activeReductionFields, activeReductionFieldsets, activeReductionValues,
+  selectedGroup, selectedReductionValues,
+} from './redux/selectors';
 import { ContentAccessAdminState } from './redux/store';
+import { SelectionsPanel } from './selections-panel';
 
 interface ContentAccessAdminProps {
   clients: Client[];
   items: RootContentItem[];
   groups: SelectionGroup[];
+  reductionFieldsets: ReductionFieldset[];
   clientPanel: {
     cards: {
       [id: string]: {
@@ -40,9 +48,14 @@ interface ContentAccessAdminProps {
     };
     selectedCard: Guid;
   };
+  selectedValues: Guid[];
 }
 interface ContentAccessAdminActions {
   nop: () => void;
+  selectClientCard: (id: Guid) => actions.ActionWithId;
+  selectItemCard: (id: Guid) => actions.ActionWithId;
+  selectGroupCard: (id: Guid) => actions.ActionWithId;
+  setValueSelected: (id: Guid, bValue: boolean) => actions.ActionWithId & actions.ActionWithBoolean;
 }
 
 class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & ContentAccessAdminActions> {
@@ -82,6 +95,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         {this.renderClientPanel()}
         {this.renderItemPanel()}
         {this.renderGroupPanel()}
+        {this.renderSelectionsPanel()}
       </>
     );
   }
@@ -133,6 +147,23 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       />
     );
   }
+
+  private renderSelectionsPanel() {
+    const { reductionFieldsets, groupPanel, setValueSelected, selectedValues } = this.props;
+    const fieldsets = reductionFieldsets.map((s) => ({
+      name: s.field.displayName,
+      fields: s.values.map((v) => ({
+        name: v.value,
+        selected: selectedValues.indexOf(v.id) !== -1,
+        onChange: (selected: boolean) => setValueSelected(v.id, selected),
+      })),
+    }));
+    return groupPanel.selectedCard && (
+      <SelectionsPanel
+        fieldsets={fieldsets}
+      />
+    );
+  }
 }
 
 function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProps {
@@ -140,11 +171,15 @@ function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProp
   const { clients } = state.data;
   return {
     clients,
-    items: selectedItems(state),
-    groups: selectedGroups(state),
+    items: activeItems(state),
+    groups: activeGroups(state),
+    reductionFieldsets: activeReductionFieldsets(state),
     clientPanel,
     itemPanel,
     groupPanel,
+    selectedValues: selectedGroup(state)
+      ? selectedGroup(state).selectedValues
+      : [],
   };
 }
 
