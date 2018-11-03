@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import { Client, RootContentItem, SelectionGroup } from '../models';
-import { ContentPanel, ContentPanelProps } from '../shared-components/content-panel';
+import { CardPanel, CardPanelProps } from '../shared-components/card-panel';
 import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import * as actions from './redux/actions';
@@ -49,7 +49,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
-  private nullProps: ContentPanelProps = {
+  private nullProps: CardPanelProps = {
     createAction: null,
     modalOpen: false,
     onCardSelect: () => null,
@@ -89,7 +89,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   private renderClientPanel() {
     const { clients, clientPanel } = this.props;
     return (
-      <ContentPanel
+      <CardPanel
         {...this.nullProps}
         {...clientPanel}
         entities={clients}
@@ -113,7 +113,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   private renderItemPanel() {
     const { items, clientPanel, itemPanel } = this.props;
     return clientPanel.selectedCard && (
-      <ContentPanel
+      <CardPanel
         {...this.nullProps}
         {...itemPanel}
         entities={items}
@@ -125,7 +125,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   private renderGroupPanel() {
     const { groups, itemPanel, groupPanel } = this.props;
     return itemPanel.selectedCard && (
-      <ContentPanel
+      <CardPanel
         {...this.nullProps}
         {...groupPanel}
         entities={groups}

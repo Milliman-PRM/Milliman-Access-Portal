@@ -12,8 +12,8 @@ import * as React from 'react';
 import { getData, postData } from '../../shared';
 import { BasicNode } from '../../view-models/content-publishing';
 import { CardAttributes } from '../shared-components/card';
+import { CardPanel } from '../shared-components/card-panel';
 import { ColumnIndicator } from '../shared-components/column-selector';
-import { ContentPanel } from '../shared-components/content-panel';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
@@ -149,7 +149,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     const secondaryQueryFilter = this.getSecondaryQueryFilter();
     const secondaryColumnComponent = secondaryColumn
       ? (
-        <ContentPanel
+        <CardPanel
           panelHeader={{
             columns: this.getColumns(primaryColumn),
             onColumnSelect: this.handleSecondaryColumnSelected,
@@ -181,7 +181,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         <NavBar
           currentView={this.currentView}
         />
-        <ContentPanel
+        <CardPanel
           panelHeader={{
             columns: this.getColumns(),
             onColumnSelect: this.handlePrimaryColumnSelected,

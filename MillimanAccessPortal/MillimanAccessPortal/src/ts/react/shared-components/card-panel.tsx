@@ -1,4 +1,4 @@
-import '../../../scss/react/shared-components/content-panel.scss';
+import '../../../scss/react/shared-components/card-panel.scss';
 
 import * as React from 'react';
 
@@ -18,7 +18,7 @@ import { EntityHelper } from './entity';
 import { Filter } from './filter';
 import { Guid, QueryFilter } from './interfaces';
 
-export interface ContentPanelAttributes {
+export interface CardPanelAttributes {
   filterText: string;
   onFilterTextChange: (text: string) => void;
   modalOpen: boolean;
@@ -26,7 +26,7 @@ export interface ContentPanelAttributes {
   onModalClose: () => void;
   createAction: string;
 }
-export interface ContentPanelProps extends ContentPanelAttributes {
+export interface CardPanelProps extends CardPanelAttributes {
   panelHeader: PanelHeader;
   onExpandedToggled: (id: Guid) => void;
   cards: {
@@ -47,7 +47,7 @@ export interface ContentPanelProps extends ContentPanelAttributes {
 
 export type PanelHeader = string | ColumnSelectorProps;
 
-export class ContentPanel extends React.Component<ContentPanelProps> {
+export class CardPanel extends React.Component<CardPanelProps> {
   public render() {
 
     const actionIcon = this.props.createAction
@@ -190,23 +190,25 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
         filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
       return cardGroups.map((group, i) => {
         const groupCards = group
-          .filter((entity: ClientInfoWithDepth) => this.props.cards[entity.id] !== undefined)
-          .map((entity: ClientInfoWithDepth) => (
-            <li key={entity.id}>
-              <Card
-                entity={entity}
-                selected={entity.id === this.props.selectedCard}
-                onSelect={() => this.props.onCardSelect(entity.id)}
-                expanded={this.props.cards[entity.id].expanded}
-                onExpandedToggled={() => this.props.onExpandedToggled(entity.id)}
-                indentation={entity.depth}
-                profitCenterModalOpen={this.props.cards[entity.id].profitCenterModalOpen}
-                onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.id)}
-                onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.id)}
-                cardStats={this.props.cardStats}
-              />
-            </li>
-          ));
+          .map((entity: ClientInfoWithDepth) => {
+            const card = this.props.cards[entity.id];
+            return (
+              <li key={entity.id}>
+                <Card
+                  entity={entity}
+                  selected={entity.id === this.props.selectedCard}
+                  onSelect={() => this.props.onCardSelect(entity.id)}
+                  expanded={card && card.expanded || false}
+                  onExpandedToggled={() => this.props.onExpandedToggled(entity.id)}
+                  indentation={entity.depth}
+                  profitCenterModalOpen={card && card.profitCenterModalOpen || false}
+                  onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.id)}
+                  onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.id)}
+                  cardStats={this.props.cardStats}
+                />
+              </li>
+            );
+          });
         if (i + 1 !== cardGroups.length) {
           groupCards.push((<div key="hr-{i}" className="hr" />));
         }
@@ -214,28 +216,30 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
       });
     } else {
       return filteredCards
-        .filter((entity: EntityInfo) => this.props.cards[entity.id] !== undefined)
-        .map((entity) => (
-          <li key={entity.id}>
-            <Card
-              entity={entity}
-              selected={entity.id === this.props.selectedCard}
-              onSelect={() => this.props.onCardSelect(entity.id)}
-              expanded={this.props.cards[entity.id].expanded}
-              onExpandedToggled={() => this.props.onExpandedToggled(entity.id)}
-              activated={isUserInfo(entity) ? entity.activated : null}
-              resetButton={isUserInfo(entity)}
-              profitCenterModalOpen={this.props.cards[entity.id].profitCenterModalOpen}
-              onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.id)}
-              onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.id)}
-              onSendReset={this.getOnSendReset(entity)}
-              onProfitCenterDelete={this.getOnProfitCenterDelete(entity)}
-              onProfitCenterUserRemove={this.getOnProfitCenterUserRemove(entity)}
-              onClientUserRemove={this.getOnClientUserRemove(entity)}
-              cardStats={this.props.cardStats}
-            />
-          </li>
-        ));
+        .map((entity) => {
+          const card = this.props.cards[entity.id];
+          return (
+            <li key={entity.id}>
+              <Card
+                entity={entity}
+                selected={entity.id === this.props.selectedCard}
+                onSelect={() => this.props.onCardSelect(entity.id)}
+                expanded={card && card.expanded || false}
+                onExpandedToggled={() => this.props.onExpandedToggled(entity.id)}
+                activated={isUserInfo(entity) ? entity.activated : null}
+                resetButton={isUserInfo(entity)}
+                profitCenterModalOpen={card && card.profitCenterModalOpen || false}
+                onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.id)}
+                onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.id)}
+                onSendReset={this.getOnSendReset(entity)}
+                onProfitCenterDelete={this.getOnProfitCenterDelete(entity)}
+                onProfitCenterUserRemove={this.getOnProfitCenterUserRemove(entity)}
+                onClientUserRemove={this.getOnClientUserRemove(entity)}
+                cardStats={this.props.cardStats}
+              />
+            </li>
+          );
+        });
     }
   }
 
