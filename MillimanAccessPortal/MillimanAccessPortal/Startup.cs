@@ -208,11 +208,11 @@ namespace MillimanAccessPortal
 
                 if (env.IsDevelopment())
                 {
-                    // app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
-                    // {
-                    //     HotModuleReplacement = true,
-                    //     ConfigFile = "webpack.dev.js",
-                    // });
+                    app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+                    {
+                        HotModuleReplacement = true,
+                        ConfigFile = "webpack.dev.js",
+                    });
                 }
             }
             else
