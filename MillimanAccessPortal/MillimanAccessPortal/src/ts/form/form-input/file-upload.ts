@@ -23,6 +23,16 @@ export class FileUploadInput extends FormInput {
     return this._upload;
   }
 
+  private _deletable: boolean;
+  private get deletable(): boolean {
+    if (!this._deletable) {
+      this._deletable = this.$entryPoint.hasClass('deletable');
+    }
+    return this._deletable;
+  }
+
+  private cancelable: boolean = false;
+
   private originalName: string;
 
   public configure(token: string) {
@@ -72,18 +82,35 @@ export class FileUploadInput extends FormInput {
     };
 
     // Clone the input to clear any event listeners
-    const clickableElement = this.$entryPoint.find('label')[0];
-    const $clonedInput = $(clickableElement.cloneNode(true));
+    const $clickableElement = this.$entryPoint.find('label');
+    const $tooltipstered = $clickableElement.find('.tooltipstered');
+    $tooltipstered.each((_, element) => {
+      const $element = $(element);
+      const content = $element.tooltipster('content');
+      $element.tooltipster('destroy');
+      $element.removeClass('tooltipstered');
+      $element.addClass('tooltip');
+      $element.attr('title', content);
+    });
+    const $clonedInput = $($clickableElement[0].cloneNode(true));
     $clonedInput.find('input[type="file"]').remove();
-    $clonedInput.find('.file-upload').data($(clickableElement).find('.file-upload').data());
-    $(clickableElement).replaceWith($clonedInput as JQuery<HTMLElement>);
+    $clonedInput.find('.file-upload').data($clickableElement.find('.file-upload').data());
+    $clickableElement.replaceWith($clonedInput as JQuery<HTMLElement>);
 
     this.upload.assignBrowse(this.$entryPoint.find('label')[0]);
+    this.$entryPoint.find('.tooltip').tooltipster();
     this.$entryPoint.find('.cancel-icon').click((event) => {
       event.stopPropagation();
-      this.upload.cancel();
-      this.$entryPoint.find('div.progress-bar-3').width('0');
-      this.reset();
+      if (this.cancelable) {
+        this.upload.cancel();
+        this.$entryPoint.find('div.progress-bar-3').width('0');
+        this.reset();
+      } else {
+        this.value = `${this.originalName}~delete`;
+        this.$entryPoint.find('input.file-upload').val('[Delete pending]');
+        this.$entryPoint.find('.cancel-icon').hide();
+        toastr.info('File will be deleted on form submission.');
+      }
     });
   }
 
@@ -96,6 +123,8 @@ export class FileUploadInput extends FormInput {
     if (this.upload) {
       this.upload.reset();
     }
+    this.$entryPoint.find('.cancel-icon').show();
+    this.setCancelable(false);
     this.$entryPoint.change(); // trigger a change event
   }
 
@@ -105,13 +134,17 @@ export class FileUploadInput extends FormInput {
   protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
 
   protected disable = ($input: JQuery<HTMLElement>) => $input
-    .parent().find('*').not('.cancel-icon,input.file-upload-guid').attr('disabled', '')
+    .parent().find('*').not('input.file-upload-guid').attr('disabled', '')
   protected enable = ($input: JQuery<HTMLElement>) => $input
-    .parent().find('*').not('.cancel-icon,input.file-upload-guid').removeAttr('disabled')
+    .parent().find('*').not('input.file-upload-guid').removeAttr('disabled')
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 
-  protected validFn = () => this.upload && this.upload.valid();
+  protected validFn = () => {
+    const uploadValid = (this.upload && this.upload.valid());
+    const deleteValid = this.value.endsWith('delete') || undefined;
+    return uploadValid || deleteValid;
+  }
 
   public get component(): UploadComponent {
     return this.name as UploadComponent;
@@ -122,15 +155,23 @@ export class FileUploadInput extends FormInput {
       this.setAccessMode(AccessMode.WriteDisabled);
       this.$entryPoint.find('.upload-icon').hide();
       this.$entryPoint.find('.cancel-icon').show();
+      this.$entryPoint.find('.cancel-icon').removeAttr('disabled');
       this.$entryPoint.find('.progress-bars').css('visibility', 'visible');
+      this.$entryPoint.find('.cancel-icon.tooltip').tooltipster('content', 'Cancel upload');
     } else {
       if (this.accessMode === AccessMode.WriteDisabled) {
         this.setAccessMode(AccessMode.Write);
       }
-      this.$entryPoint.find('.cancel-icon').hide();
       this.$entryPoint.find('.upload-icon').show();
+      if (!this.deletable
+          || this.$entryPoint.find('.file-upload').val() === ''
+          || this.value.endsWith('delete')) {
+        this.$entryPoint.find('.cancel-icon').hide();
+      }
       this.$entryPoint.find('.progress-bars').css('visibility', 'hidden');
+      this.$entryPoint.find('.cancel-icon.tooltip').tooltipster('content', 'Remove file');
     }
+    this.cancelable = cancelable;
   }
 }
 
