@@ -15,6 +15,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public Guid RootContentItemId { get; set; }
 
         [Required]
-        public UploadedRelatedFile[] RelatedFiles { get; set; }
+        public UploadedRelatedFile[] NewRelatedFiles { get; set; } = new UploadedRelatedFile[0];
+
+        [Required]
+        public string[] DeleteFilePurposes { get; set; } = new string[0];
     }
 }
