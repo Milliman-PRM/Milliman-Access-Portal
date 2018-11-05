@@ -55,6 +55,9 @@ namespace MapDbContextLib.Context
             switch (RootContentItem.ContentType.TypeEnum)
             {
                 case ContentTypeEnum.Qlikview:
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.FileDownload:
                     ContentInstanceUrl = Path.Combine($"{RootContentItem.Id}", fileName);
                     return;
 
