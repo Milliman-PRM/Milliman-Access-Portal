@@ -17,6 +17,9 @@ namespace MapDbContextLib.Context
     {
         Unknown = 0,
         Qlikview,
+        Html,
+        Pdf,
+        FileDownload,
     }
 
     public class ContentType
@@ -70,6 +73,24 @@ namespace MapDbContextLib.Context
                     CanReduce = true,
                     DefaultIconName = "QlikView_Icon.png",
                     FileExtensions = new string[] { "qvw" },
+                },
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.Html,
+                    CanReduce = false,
+                    DefaultIconName = "QlikView_Icon.png",
+                    FileExtensions = new string[] { "html", "htm" },
+                },
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.Pdf,
+                    CanReduce = false,
+                    DefaultIconName = "QlikView_Icon.png",
+                    FileExtensions = new string[] { "pdf" },
+                },
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.FileDownload,
+                    CanReduce = false,
+                    DefaultIconName = "QlikView_Icon.png",
+                    FileExtensions = new string[] { },
                 },
             };
 
