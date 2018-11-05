@@ -7,6 +7,7 @@ import * as toastr from 'toastr';
 import { AddRootContentItemActionCard, ClientCard, RootContentItemCard } from '../card';
 import { CancelContentPublicationRequestDialog, DeleteRootContentItemDialog } from '../dialog';
 import { FormBase } from '../form/form-base';
+import { isFileUploadInput } from '../form/form-input/file-upload';
 import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import { Guid } from '../react/shared-components/interfaces';
@@ -16,6 +17,7 @@ import {
   updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
 import { setUnloadAlert } from '../unload-alerts';
+import { UploadComponent } from '../upload/upload';
 import {
   BasicNode, ClientSummary, ClientTree, ContentType, PreLiveContentValidationSummary,
   PublishRequest, RootContentItemDetail, RootContentItemList, RootContentItemSummary,
@@ -554,6 +556,13 @@ export function setup() {
     } else {
       $doesReduceToggle.removeAttr('disabled');
     }
+    formObject.inputSections.forEach((section) =>
+      section.inputs.forEach((input) => {
+        if (isFileUploadInput(input)) {
+          input.fileTypes.set(UploadComponent.Content, contentType.FileExtensions);
+          input.configure();
+        }
+      }));
   });
 
   $('.action-icon-expand').click(expandAllListener);

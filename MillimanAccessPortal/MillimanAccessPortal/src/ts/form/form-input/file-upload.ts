@@ -8,6 +8,13 @@ import { FormInput } from './input';
 import 'toastr/toastr.scss';
 
 export class FileUploadInput extends FormInput {
+  public fileTypes = new Map<UploadComponent, string[]>([
+    [UploadComponent.Image, ['jpg', 'jpeg', 'png', 'gif']],
+    [UploadComponent.Content, []],
+    [UploadComponent.UserGuide, ['pdf']],
+    [UploadComponent.ReleaseNotes, ['pdf']],
+  ]);
+
   protected _cssClasses = {
     main: 'form-input-file-upload',
     title: 'form-input-file-upload-title',
@@ -35,12 +42,17 @@ export class FileUploadInput extends FormInput {
 
   private originalName: string;
 
-  public configure(token: string) {
-    this.upload.setFileTypes(fileTypes.get(this.component));
+  public configure(token?: string) {
+    this.upload.setFileTypes(this.fileTypes.get(this.component));
 
-    this.upload.getUID = () => {
-      return `publication-${this.component}-${token}`;
-    };
+    // if token is not supplied, input is reconfigured but token is not changed
+    // reconfiguration is useful when reassigning resumable to an element,
+    // which is needed when changing resumable options such as file types
+    if (token !== undefined) {
+      this.upload.getUID = () => {
+        return `publication-${this.component}-${token}`;
+      };
+    }
     this.upload.onChecksumProgress = (progress: ProgressSummary) => {
       const progressBar = this.$entryPoint.find('div.progress-bar-1');
       const isEndpoint = progress.percentage === '0%' || progress.percentage === '100%';
@@ -175,9 +187,6 @@ export class FileUploadInput extends FormInput {
   }
 }
 
-const fileTypes = new Map<UploadComponent, string[]>([
-  [UploadComponent.Image, ['jpg', 'jpeg', 'png', 'gif']],
-  [UploadComponent.Content, ['qvw']],
-  [UploadComponent.UserGuide, ['pdf']],
-  [UploadComponent.ReleaseNotes, ['pdf']],
-]);
+export function isFileUploadInput(input: FormInput): input is FileUploadInput {
+  return input && ((input as FileUploadInput).fileTypes !== undefined);
+}
