@@ -1,3 +1,5 @@
+import { isEqual } from 'lodash';
+
 import { ReductionFieldset } from '../../models';
 import { ContentAccessAdminState } from './store';
 
@@ -18,6 +20,32 @@ export function selectedReductionValues(state: ContentAccessAdminState) {
     ? selectedGroup(state).selectedValues.map((i) =>
       state.data.values.filter((v) => v.id === i)[0])
     : [];
+}
+
+export function pendingReductionValues(state: ContentAccessAdminState) {
+  const _selectedGroup = selectedGroup(state);
+  return _selectedGroup
+    ? state.data.values.filter((v) => {
+      const panelValue = state.selectionsPanel.values[v.id];
+      return (_selectedGroup.selectedValues.indexOf(v.id) !== -1 && panelValue !== false) || panelValue;
+    })
+    : [];
+}
+
+export function pendingMaster(state: ContentAccessAdminState) {
+  const _selectedGroup = selectedGroup(state);
+  return _selectedGroup
+    ? state.selectionsPanel.isMaster === null
+      ? _selectedGroup.isMaster
+      : state.selectionsPanel.isMaster
+    : false;
+}
+
+export function reductionValuesModified(state: ContentAccessAdminState) {
+  return !isEqual(
+    selectedReductionValues(state),
+    pendingReductionValues(state),
+  );
 }
 
 export function activeItems(state: ContentAccessAdminState) {

@@ -36,8 +36,14 @@ export function selectGroupCard(id: Guid): ActionWithId {
   };
 }
 
+export function setMasterSelected(bValue: boolean): ActionWithBoolean {
+  return {
+    type: 'SET_MASTER_SELECTED',
+    bValue,
+  };
+}
+
 export function setValueSelected(id: Guid, bValue: boolean): ActionWithId & ActionWithBoolean {
-  console.log(`Set value of ${id} to ${bValue}`);
   return {
     type: 'SET_VALUE_SELECTED',
     id,

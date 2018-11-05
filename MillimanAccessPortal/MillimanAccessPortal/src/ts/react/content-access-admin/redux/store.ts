@@ -41,6 +41,12 @@ export interface ContentAccessAdminState {
     };
     selectedCard: Guid;
   };
+  selectionsPanel: {
+    isMaster: boolean;
+    values: {
+      [id: string]: boolean;
+    };
+  };
 }
 
 export const store = createStore(contentAccessAdmin);

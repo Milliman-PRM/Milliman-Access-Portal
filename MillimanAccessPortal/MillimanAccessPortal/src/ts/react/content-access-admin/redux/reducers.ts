@@ -1,18 +1,18 @@
 import { Action } from 'redux';
 
 import {
-  Client, ReductionField, ReductionFieldValue, RootContentItem, SelectionGroup, User,
+  Client, Guid, ReductionField, ReductionFieldValue, RootContentItem, SelectionGroup, User,
 } from '../../models';
-import { ActionWithId } from './actions';
+import { ActionWithBoolean, ActionWithId } from './actions';
 import { ContentAccessAdminState } from './store';
 
-const clients: Client[] = [
+const _clients: Client[] = [
   { id: 'client1', name: 'client1', code: 'c1' },
   { id: 'client2', name: 'client2', code: 'c2' },
   { id: 'client3', name: 'client3', code: 'c3' },
   { id: 'client4', name: 'client4', code: 'c4' },
 ];
-const items: RootContentItem[] = [
+const _items: RootContentItem[] = [
   { id: 'item1', name: 'item1', isSuspended: false, doesReduce: true, clientId: 'client1' },
   { id: 'item2', name: 'item2', isSuspended: false, doesReduce: true, clientId: 'client1' },
   { id: 'item3', name: 'item3', isSuspended: false, doesReduce: false, clientId: 'client1' },
@@ -20,7 +20,7 @@ const items: RootContentItem[] = [
   { id: 'item5', name: 'item5', isSuspended: false, doesReduce: false, clientId: 'client2' },
   { id: 'item6', name: 'item6', isSuspended: false, doesReduce: false, clientId: 'client4' },
 ];
-const groups: SelectionGroup[] = [
+const _groups: SelectionGroup[] = [
   { id: 'group1', name: 'group1', isSuspended: true, isMaster: false, rootContentItemId: 'item1',
     selectedValues: [ 'value1', 'value2', 'value3', 'value4', 'value5' ] },
   { id: 'group2', name: 'group2', isSuspended: false, isMaster: false, rootContentItemId: 'item1',
@@ -38,7 +38,7 @@ const groups: SelectionGroup[] = [
   { id: 'group8', name: 'group8', isSuspended: false, isMaster: false, rootContentItemId: 'item6',
     selectedValues: [ ] },
 ];
-const users: User[] = [
+const _users: User[] = [
   { id: 'user1', activated: true, firstName: 'first1', lastName: 'last1', userName: 'username1',
     email: 'email1', isSuspended: false },
   { id: 'user2', activated: true, firstName: 'first2', lastName: 'last2', userName: 'username2',
@@ -52,7 +52,7 @@ const users: User[] = [
   { id: 'user6', activated: true, firstName: 'first6', lastName: 'last6', userName: 'username6',
     email: 'email6', isSuspended: false },
 ];
-const fields: ReductionField[] = [
+const _fields: ReductionField[] = [
   { id: 'field1', fieldName: 'field1', displayName: 'Field 1', valueDelimiter: '|',
     rootContentItemId: 'item1' },
   { id: 'field2', fieldName: 'field2', displayName: 'Field 2', valueDelimiter: '|',
@@ -60,7 +60,7 @@ const fields: ReductionField[] = [
   { id: 'field3', fieldName: 'field3', displayName: 'Field 3', valueDelimiter: '|',
     rootContentItemId: 'item1' },
 ];
-const values: ReductionFieldValue[] = [
+const _values: ReductionFieldValue[] = [
   { id: 'value1', value: 'value1', reductionFieldId: 'field1' },
   { id: 'value2', value: 'value2', reductionFieldId: 'field2' },
   { id: 'value3', value: 'value3', reductionFieldId: 'field2' },
@@ -69,7 +69,7 @@ const values: ReductionFieldValue[] = [
   { id: 'value6', value: 'value6', reductionFieldId: 'field3' },
 ];
 
-const clientCards = {
+const _clientCards = {
   client1: {
     expanded: false,
     profitCenterModalOpen: false,
@@ -79,7 +79,7 @@ const clientCards = {
     profitCenterModalOpen: false,
   },
 };
-const itemCards = {
+const _itemCards = {
   item1: {
     expanded: false,
     profitCenterModalOpen: false,
@@ -93,28 +93,36 @@ const itemCards = {
     profitCenterModalOpen: false,
   },
 };
-const groupCards = {
+const _groupCards = {
   group1: {
     expanded: false,
     profitCenterModalOpen: false,
   },
 };
-const initialState = {
-  data: { clients, items, groups, users, fields, values },
-  clientPanel: { cards: clientCards, selectedCard: null },
-  itemPanel: { cards: itemCards, selectedCard: null },
-  groupPanel: { cards: groupCards, selectedCard: null },
+const _initialState: ContentAccessAdminState = {
+  data: {
+    clients: _clients,
+    items: _items,
+    groups: _groups,
+    users: _users,
+    fields: _fields,
+    values: _values,
+  },
+  clientPanel: { cards: _clientCards, selectedCard: null },
+  itemPanel: { cards: _itemCards, selectedCard: null },
+  groupPanel: { cards: _groupCards, selectedCard: null },
+  selectionsPanel: { isMaster: null, values: {} },
 };
 
-export function contentAccessAdmin(state: ContentAccessAdminState = initialState, action: Action) {
-  const cardId = (action as ActionWithId).id;
+export function contentAccessAdmin(state: ContentAccessAdminState = _initialState, action: Action) {
+  const id = (action as ActionWithId).id;
   switch (action.type) {
     case 'SELECT_CARD_CLIENT':
       return {
         ...state,
         clientPanel: {
           ...state.clientPanel,
-          selectedCard: cardId === state.clientPanel.selectedCard ? null : cardId,
+          selectedCard: id === state.clientPanel.selectedCard ? null : id,
         },
         itemPanel: {
           ...state.itemPanel,
@@ -130,7 +138,7 @@ export function contentAccessAdmin(state: ContentAccessAdminState = initialState
         ...state,
         itemPanel: {
           ...state.itemPanel,
-          selectedCard: cardId === state.itemPanel.selectedCard ? null : cardId,
+          selectedCard: id === state.itemPanel.selectedCard ? null : id,
         },
         groupPanel: {
           ...state.groupPanel,
@@ -142,7 +150,30 @@ export function contentAccessAdmin(state: ContentAccessAdminState = initialState
         ...state,
         groupPanel: {
           ...state.groupPanel,
-          selectedCard: cardId === state.groupPanel.selectedCard ? null : cardId,
+          selectedCard: id === state.groupPanel.selectedCard ? null : id,
+        },
+        selectionsPanel: {
+          isMaster: null,
+          values: {},
+        },
+      };
+    case 'SET_MASTER_SELECTED':
+      return {
+        ...state,
+        selectionsPanel: {
+          ...state.selectionsPanel,
+          isMaster: (action as ActionWithBoolean).bValue,
+        },
+      };
+    case 'SET_VALUE_SELECTED':
+      return {
+        ...state,
+        selectionsPanel: {
+          ...state.selectionsPanel,
+          values: {
+            ...state.selectionsPanel.values,
+            [id]: (action as ActionWithBoolean).bValue,
+          },
         },
       };
     case 'NOP':

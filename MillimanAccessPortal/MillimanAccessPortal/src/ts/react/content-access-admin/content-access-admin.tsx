@@ -1,17 +1,14 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import {
-  Client, ReductionFieldset, ReductionFieldValue, RootContentItem, SelectionGroup,
-} from '../models';
+import { Client, ReductionFieldset, RootContentItem, SelectionGroup } from '../models';
 import { CardPanel, CardPanelProps } from '../shared-components/card-panel';
 import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
-import { FieldsetProps } from './fieldset';
 import * as actions from './redux/actions';
 import {
-  activeGroups, activeItems, activeReductionFields, activeReductionFieldsets, activeReductionValues,
-  selectedGroup, selectedItem, selectedReductionValues,
+  activeGroups, activeItems, activeReductionFieldsets, pendingMaster, pendingReductionValues,
+  reductionValuesModified, selectedGroup, selectedItem,
 } from './redux/selectors';
 import { ContentAccessAdminState } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
@@ -51,12 +48,15 @@ interface ContentAccessAdminProps {
   selectedItem: RootContentItem;
   selectedGroup: SelectionGroup;
   selectedValues: Guid[];
+  selectedMaster: boolean;
+  selectionsModified: boolean;
 }
 interface ContentAccessAdminActions {
   nop: () => void;
   selectClientCard: (id: Guid) => actions.ActionWithId;
   selectItemCard: (id: Guid) => actions.ActionWithId;
   selectGroupCard: (id: Guid) => actions.ActionWithId;
+  setMasterSelected: (bValue: boolean) => actions.ActionWithBoolean;
   setValueSelected: (id: Guid, bValue: boolean) => actions.ActionWithId & actions.ActionWithBoolean;
 }
 
@@ -161,6 +161,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       groupPanel,
       setValueSelected,
       selectedValues,
+      selectedMaster,
+      setMasterSelected,
+      selectionsModified,
     } = this.props;
     const fieldsets = reductionFieldsets.map((s) => ({
       name: s.field.displayName,
@@ -174,7 +177,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       <SelectionsPanel
         isSuspended={group.isSuspended}
         doesReduce={item.doesReduce}
-        isMaster={group.isMaster}
+        isModified={selectionsModified}
+        isMaster={selectedMaster}
+        onIsMasterChange={setMasterSelected}
         fieldsets={fieldsets}
       />
     );
@@ -194,9 +199,11 @@ function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProp
     groupPanel,
     selectedItem: selectedItem(state),
     selectedGroup: selectedGroup(state),
-    selectedValues: selectedGroup(state)
-      ? selectedGroup(state).selectedValues
+    selectedValues: pendingReductionValues(state)
+      ? pendingReductionValues(state).map((v) => v.id)
       : [],
+    selectedMaster: pendingMaster(state),
+    selectionsModified: reductionValuesModified(state),
   };
 }
 

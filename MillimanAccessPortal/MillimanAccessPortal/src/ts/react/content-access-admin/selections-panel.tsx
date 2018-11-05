@@ -7,7 +7,9 @@ import { Fieldset, FieldsetProps } from './fieldset';
 export interface SelectionsPanelProps {
   isSuspended: boolean;
   doesReduce: boolean;
+  isModified: boolean;
   isMaster: boolean;
+  onIsMasterChange: (value: boolean) => void;
   fieldsets: FieldsetProps[];
 }
 
@@ -45,14 +47,15 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderDoesReduceSection() {
-    return this.props.doesReduce
+    const { doesReduce, isMaster, onIsMasterChange } = this.props;
+    return doesReduce
       ? (
         <div className="selection-content">
           <hr />
           <Toggle
             label={'Unrestricted Access'}
-            checked={this.props.isMaster}
-            onClick={() => null}
+            checked={isMaster}
+            onClick={() => onIsMasterChange(!isMaster)}
           />
           {this.renderReductionSection()}
         </div>
@@ -65,6 +68,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
       ? null
       : (
         <>
+          {this.renderSelectionsModifiedBanner()}
           <div className="fieldset-container">
             {this.renderReductionFields()}
           </div>
@@ -74,6 +78,14 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
           <button type="button" className="red-button button-status-10">Cancel</button>
         </>
       );
+  }
+
+  private renderSelectionsModifiedBanner() {
+    return this.props.isModified
+    ? (
+      <h4>* selections have been modified</h4>
+    )
+    : null;
   }
 
   private renderReductionFields() {
