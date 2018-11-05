@@ -520,6 +520,7 @@ export function updateFormStatusButtons() {
    || statusEnum === PublicationStatus.Unknown
    || statusEnum === PublicationStatus.Error
    || statusEnum === PublicationStatus.Canceled
+   || statusEnum === PublicationStatus.Rejected
    || statusEnum === PublicationStatus.Replaced
    || statusEnum === PublicationStatus.Confirmed) {
     $statusFormContainer.filter('.form-status-edit-or-republish').show();

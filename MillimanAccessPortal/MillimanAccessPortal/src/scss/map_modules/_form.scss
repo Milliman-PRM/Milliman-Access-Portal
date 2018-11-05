@@ -73,7 +73,8 @@ button,
             background-color: darken($blue, 5%);
         }
 
-        &:disabled {
+        &:disabled,
+        &.disabled {
             border: 1px solid $blue;
             color: $blue;
             background-color: transparent;
@@ -89,7 +90,8 @@ button,
             background-color: darken($green, 5%);
         }
 
-        &:disabled {
+        &:disabled,
+        &.disabled {
             border: 1px solid $green;
             color: $green;
             background-color: transparent;
@@ -105,7 +107,8 @@ button,
             background-color: lighten($red, 5%);
         }
 
-        &:disabled {
+        &:disabled,
+        &.disabled {
             border: 1px solid $red;
             color: $red;
             background-color: transparent;
