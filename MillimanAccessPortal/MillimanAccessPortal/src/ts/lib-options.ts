@@ -16,7 +16,7 @@ export let globalSettings: GlobalSettings = {
   emailValidationRegex: initialAppSettings.Global.EmailValidationRegex,
   maxFileUploadSize: initialAppSettings.Global.MaxFileUploadSize,
 };
-$(document).ready(() => {
+$(() => {
   globalSettings = $('#global-settings').data() as GlobalSettings;
 });
 
