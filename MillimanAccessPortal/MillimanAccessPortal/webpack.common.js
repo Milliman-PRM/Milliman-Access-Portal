@@ -1,6 +1,5 @@
 const path = require('path');
 const webpack = require('webpack');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -22,8 +21,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, 'wwwroot'),
-    filename: 'js/[name].[contenthash].js',
-    publicPath: '~',
+    publicPath: '~/',
   },
   module: {
     rules: [
@@ -58,13 +56,6 @@ module.exports = {
     ],
   },
   plugins: [
-    new CleanWebpackPlugin([
-      'src/js',
-      'wwwroot/css',
-      'wwwroot/images',
-      'wwwroot/js',
-      'wwwroot/favicon.ico',
-    ]),
     new CopyWebpackPlugin([
       {
         from: 'src/favicon.ico',

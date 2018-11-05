@@ -240,6 +240,20 @@ input.filter-input {
 
         .form-input-file-upload {
             width: 100%;
+
+            label.input-with-upload input {
+                padding-right: 2.05em;
+
+                &[disabled] {
+                    padding-right: 0.25em;
+                }
+            }
+
+            &.deletable {
+                label.input-with-upload input {
+                    padding-right: 3.85em;
+                }
+            }
         }
 
         .switch-container.content-item-flex-none {
@@ -289,21 +303,27 @@ label.input-with-upload {
         }
     }
 
-    input,
+    input:not([disabled]),
     div.image-placeholder {
         cursor: pointer;
     }
 
     input {
         font-size: 1rem;
-        padding-right: 2.5em;
         position: relative;
         z-index: 1;
 
         &[disabled] {
             font: $grey;
-            padding-right: .25em;
         }
+    }
+
+    .file-upload-icons {
+        position: absolute;
+        display: inline-block;
+        right: .25em;
+        top: 1.9em;
+        z-index: 2;
     }
 
     svg {
@@ -313,10 +333,8 @@ label.input-with-upload {
             color: $charcoal;
             height: 1.8em;
             width: 1.8em;
-            position: absolute;
-            right: .25em;
-            top: 1.9em;
-            z-index: 2;
+            position: relative;
+            margin-left: .25em;
 
             &[disabled="disabled"] {
                 display: none !important;
@@ -355,14 +373,24 @@ label.input-with-upload {
         }
     }
 
-    &:hover:not([disabled]) svg.upload-icon {
-        color: $green;
+    &:hover:not([disabled]) {
+        svg.upload-icon {
+            color: $green;
+        }
+        svg.cancel-icon:hover {
+            color: $red;
+
+            + svg.upload-icon {
+                color: $black;
+            }
+        }
     }
 
     &[disabled] svg.cancel-icon:hover {
         color: $red;
     }
 }
+
 /* Validation Error Styling */
 .input-validation-error {
     border-bottom: solid 2px $red !important;

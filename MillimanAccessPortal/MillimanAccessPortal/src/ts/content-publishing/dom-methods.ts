@@ -370,17 +370,21 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       data.split('&')
         .map((kvp) => kvp.split('='))
         .forEach((kvp) => dataArray[decodeURIComponent(kvp[0])] = decodeURIComponent(kvp[1]));
+      const fileChanges = ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
+        .map((file) => {
+          const fileData = dataArray[file].split('~');
+          return {
+            FileOriginalName: fileData[0],
+            FilePurpose: file,
+            FileUploadId: fileData[1],
+          };
+        });
       const publishRequest: PublishRequest = {
-        RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
-          .map((file) => {
-            const fileData = dataArray[file].split('~');
-            return {
-              FileOriginalName: fileData[0],
-              FilePurpose: file,
-              FileUploadId: fileData[1],
-            };
-          })
-          .filter((file) => file.FileUploadId),
+        NewRelatedFiles: fileChanges
+          .filter((file) => file.FileUploadId && file.FileUploadId !== 'delete'),
+        DeleteFilePurposes: fileChanges
+          .filter((file) => file.FileUploadId && file.FileUploadId === 'delete')
+          .map((file) => file.FilePurpose),
         RootContentItemId: dataArray.Id,
       };
       return publishRequest;
