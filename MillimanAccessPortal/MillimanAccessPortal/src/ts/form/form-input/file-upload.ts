@@ -82,6 +82,7 @@ export class FileUploadInput extends FormInput {
         };
         reader.readAsDataURL(resumableFile.file);
       }
+      $('#ContentTypeId').attr('disabled', '');
     };
     this.upload.onFileSuccess = (fileGUID: string) => {
       this.value = `${this.originalName}~${fileGUID}`;
@@ -137,6 +138,7 @@ export class FileUploadInput extends FormInput {
     }
     this.$entryPoint.find('.cancel-icon').show();
     this.setCancelable(false);
+    $('#ContentTypeId').removeAttr('disabled');
     this.$entryPoint.change(); // trigger a change event
   }
 
