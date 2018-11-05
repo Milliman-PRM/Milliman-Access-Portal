@@ -107,6 +107,7 @@ namespace MapDbContextLib.Context
                     fromDb.Name = type.Name;
                     fromDb.CanReduce = type.CanReduce;
                     fromDb.DefaultIconName = type.DefaultIconName;
+                    fromDb.FileExtensions = type.FileExtensions;
                     Db.ContentType.Update(fromDb);
                 }
             }
