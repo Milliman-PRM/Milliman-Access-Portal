@@ -88,6 +88,7 @@ export interface ContentType {
   TypeEnum: number;
   Name: string;
   CanReduce: boolean;
+  FileExtensions: string[];
 }
 
 export interface RootContentItemDetail {

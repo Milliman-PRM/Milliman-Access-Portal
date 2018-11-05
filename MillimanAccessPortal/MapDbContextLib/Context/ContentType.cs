@@ -52,6 +52,9 @@ namespace MapDbContextLib.Context
         [Required]
         public string DefaultIconName { get; set; }
 
+        [Required]
+        public string[] FileExtensions { get; set; }
+
         #region Database Initialization
         /// <summary>
         /// Initialize the database with known content types
@@ -62,8 +65,12 @@ namespace MapDbContextLib.Context
         {
             List<ContentType> AllProposedContentTypes = new List<ContentType>
             {
-                new ContentType { TypeEnum=ContentTypeEnum.Qlikview, CanReduce = true, DefaultIconName = "QlikView_Icon.png" },
-                //new ContentType { TypeEnum = ContentTypeEnum.AnotherType, CanReduce = trueorfalse, DefaultIconName = ""},
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.Qlikview,
+                    CanReduce = true,
+                    DefaultIconName = "QlikView_Icon.png",
+                    FileExtensions = new string[] { "qvw" },
+                },
             };
 
             ApplicationDbContext Db = serviceProvider.GetService<Context.ApplicationDbContext>();
