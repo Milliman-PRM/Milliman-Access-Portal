@@ -49,6 +49,7 @@ interface ContentAccessAdminProps {
     selectedCard: Guid;
   };
   selectedItem: RootContentItem;
+  selectedGroup: SelectionGroup;
   selectedValues: Guid[];
 }
 interface ContentAccessAdminActions {
@@ -153,7 +154,14 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   }
 
   private renderSelectionsPanel() {
-    const { selectedItem: item, reductionFieldsets, groupPanel, setValueSelected, selectedValues } = this.props;
+    const {
+      selectedItem: item,
+      selectedGroup: group,
+      reductionFieldsets,
+      groupPanel,
+      setValueSelected,
+      selectedValues,
+    } = this.props;
     const fieldsets = reductionFieldsets.map((s) => ({
       name: s.field.displayName,
       fields: s.values.map((v) => ({
@@ -164,16 +172,13 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
     }));
     return groupPanel.selectedCard && (
       <SelectionsPanel
+        isSuspended={group.isSuspended}
         doesReduce={item.doesReduce}
+        isMaster={group.isMaster}
         fieldsets={fieldsets}
       />
     );
   }
-
-  private handleClientCardSelect = (id: Guid) => {
-    this.props.selectClientCard(id);
-  }
-
 }
 
 function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProps {
@@ -188,6 +193,7 @@ function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProp
     itemPanel,
     groupPanel,
     selectedItem: selectedItem(state),
+    selectedGroup: selectedGroup(state),
     selectedValues: selectedGroup(state)
       ? selectedGroup(state).selectedValues
       : [],

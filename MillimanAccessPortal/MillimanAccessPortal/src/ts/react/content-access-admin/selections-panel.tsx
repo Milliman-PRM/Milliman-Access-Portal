@@ -1,10 +1,13 @@
 import * as React from 'react';
 
 import { Filter } from '../shared-components/filter';
+import { Toggle } from '../shared-components/toggle';
 import { Fieldset, FieldsetProps } from './fieldset';
 
 export interface SelectionsPanelProps {
+  isSuspended: boolean;
   doesReduce: boolean;
+  isMaster: boolean;
   fieldsets: FieldsetProps[];
 }
 
@@ -28,16 +31,11 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
             <form className="admin-panel-content">
               <h2>Title 1</h2>
               <h3>Title 2</h3>
-              <div className="switch-container">
-                <div className="toggle-switch">
-                  <input type="checkbox" className="toggle-switch-checkbox" name="IsSuspended" id="IsSuspended" />
-                  <label className="toggle-switch-label" htmlFor="IsSuspended">
-                    <span className="toggle-switch-inner" />
-                    <span className="toggle-switch-switch" />
-                  </label>
-                </div>
-                <label className="switch-label">Suspend Access</label>
-              </div>
+              <Toggle
+                label={'Suspend Access'}
+                checked={this.props.isSuspended}
+                onClick={() => null}
+              />
               {this.renderDoesReduceSection()}
             </form>
           </div>
@@ -51,16 +49,22 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
       ? (
         <div className="selection-content">
           <hr />
-          <div className="switch-container">
-            <div className="toggle-switch">
-              <input type="checkbox" className="toggle-switch-checkbox" name="IsMaster" id="IsMaster" />
-              <label className="toggle-switch-label" htmlFor="IsMaster">
-                <span className="toggle-switch-inner" />
-                <span className="toggle-switch-switch" />
-              </label>
-            </div>
-            <label className="switch-label">Unrestricted Access</label>
-          </div>
+          <Toggle
+            label={'Unrestricted Access'}
+            checked={this.props.isMaster}
+            onClick={() => null}
+          />
+          {this.renderReductionSection()}
+        </div>
+      )
+      : null;
+  }
+
+  private renderReductionSection() {
+    return this.props.isMaster
+      ? null
+      : (
+        <>
           <div className="fieldset-container">
             {this.renderReductionFields()}
           </div>
@@ -68,9 +72,8 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
             Submit
           </button>
           <button type="button" className="red-button button-status-10">Cancel</button>
-        </div>
-      )
-    : null;
+        </>
+      );
   }
 
   private renderReductionFields() {

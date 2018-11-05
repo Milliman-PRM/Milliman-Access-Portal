@@ -21,13 +21,13 @@ const items: RootContentItem[] = [
   { id: 'item6', name: 'item6', isSuspended: false, doesReduce: false, clientId: 'client4' },
 ];
 const groups: SelectionGroup[] = [
-  { id: 'group1', name: 'group1', isSuspended: false, isMaster: false, rootContentItemId: 'item1',
+  { id: 'group1', name: 'group1', isSuspended: true, isMaster: false, rootContentItemId: 'item1',
     selectedValues: [ 'value1', 'value2', 'value3', 'value4', 'value5' ] },
   { id: 'group2', name: 'group2', isSuspended: false, isMaster: false, rootContentItemId: 'item1',
     selectedValues: [ 'value1' ] },
   { id: 'group3', name: 'group3', isSuspended: false, isMaster: false, rootContentItemId: 'item1',
     selectedValues: [ ] },
-  { id: 'group4', name: 'group4', isSuspended: false, isMaster: false, rootContentItemId: 'item2',
+  { id: 'group4', name: 'group4', isSuspended: false, isMaster: true, rootContentItemId: 'item2',
     selectedValues: [ ] },
   { id: 'group5', name: 'group5', isSuspended: false, isMaster: false, rootContentItemId: 'item4',
     selectedValues: [ ] },
