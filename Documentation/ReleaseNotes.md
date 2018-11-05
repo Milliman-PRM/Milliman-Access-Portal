@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.2.0
+
+- Added the ability to delete supporting files from a content item
+
 ### v1.1.1
 
 - Fixed an issue preventing content item details to be changed without uploading a file
