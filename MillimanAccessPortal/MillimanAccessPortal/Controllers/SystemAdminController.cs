@@ -559,7 +559,6 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In SystemAdminController.CreateUser action: success");
-            _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(user));
 
             var userSummary = (UserInfoViewModel)user;
 
