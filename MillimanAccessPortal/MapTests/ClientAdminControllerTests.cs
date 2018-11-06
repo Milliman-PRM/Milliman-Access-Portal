@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TestResourcesLib;
@@ -66,8 +67,8 @@ namespace MapTests
                 ConsultantEmail = "consultant@example.com",
                 ConsultantName = "Test Consultant",
                 ConsultantOffice = "Indy PRM Testing",
-                AcceptedEmailAddressExceptionList = new string[] { },
-                AcceptedEmailDomainList = new string[] { "placeholder.com" },
+                AcceptedEmailAddressExceptionList = new List<string> { },
+                AcceptedEmailDomainList = new List<string> { "placeholder.com" },
                 ParentClientId = TestUtil.MakeTestGuid(2),
                 ProfitCenterId = TestUtil.MakeTestGuid(1)
             };
@@ -692,11 +693,11 @@ namespace MapTests
             testClient.ParentClientId = null;
             if (domainListArg != null)
             {
-                testClient.AcceptedEmailDomainList = domainListArg;
+                testClient.AcceptedEmailDomainList = domainListArg.ToList();
             }
             if (emailListArg != null)
             {
-                testClient.AcceptedEmailAddressExceptionList = emailListArg;
+                testClient.AcceptedEmailAddressExceptionList = emailListArg.ToList();
             }
             var view = await controller.SaveNewClient(testClient);
             #endregion
@@ -860,12 +861,12 @@ namespace MapTests
 
             if (domainWhitelistArg != null)
             {
-                testClient.AcceptedEmailDomainList = domainWhitelistArg;
+                testClient.AcceptedEmailDomainList = domainWhitelistArg.ToList();
             }
 
             if (addressWhitelistArg != null)
             {
-                testClient.AcceptedEmailAddressExceptionList = addressWhitelistArg;
+                testClient.AcceptedEmailAddressExceptionList = addressWhitelistArg.ToList();
             }
             #endregion 
 
@@ -910,8 +911,8 @@ namespace MapTests
             testClient.ConsultantEmail = "editconsultant@example2.com";
             testClient.ConsultantName = "Edit consultant name";
             testClient.ConsultantOffice = "Edit consultant office";
-            testClient.AcceptedEmailAddressExceptionList = new string[] { "edit1@example.com,edit2@example.com", "edit3@example.com" };
-            testClient.AcceptedEmailDomainList = new string[] { "editexample.com", "example2.com" };
+            testClient.AcceptedEmailAddressExceptionList = new List<string> { "edit1@example.com,edit2@example.com", "edit3@example.com" };
+            testClient.AcceptedEmailDomainList = new List<string> { "editexample.com", "example2.com" };
             #endregion 
 
             var view = await controller.EditClient(testClient);

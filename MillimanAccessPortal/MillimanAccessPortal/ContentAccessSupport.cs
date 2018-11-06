@@ -171,7 +171,7 @@ namespace MillimanAccessPortal
             // update selection group
             List<Guid> ValueIdList = new List<Guid>();
             reductionTask.SelectionCriteriaObj.Fields.ForEach(f => ValueIdList.AddRange(f.Values.Where(v => v.SelectionStatus).Select(v => v.Id)));
-            reductionTask.SelectionGroup.SelectedHierarchyFieldValueList = ValueIdList.ToArray();
+            reductionTask.SelectionGroup.SelectedHierarchyFieldValueList = ValueIdList;
             reductionTask.SelectionGroup.IsMaster = false;
             reductionTask.SelectionGroup.SetContentUrl(Path.GetFileName(targetFileName));
             reductionTask.SelectionGroup.ReducedContentChecksum = reductionTask.ReducedContentChecksum;
