@@ -48,6 +48,18 @@ export function reductionValuesModified(state: ContentAccessAdminState) {
   );
 }
 
+export function masterModified(state: ContentAccessAdminState) {
+  const _selectedGroup = selectedGroup(state);
+  const { isMaster } = state.selectionsPanel;
+  return _selectedGroup
+    ? (isMaster !== null && isMaster !== _selectedGroup.isMaster)
+    : false;
+}
+
+export function selectionsFormModified(state: ContentAccessAdminState) {
+  return reductionValuesModified(state) || masterModified(state);
+}
+
 export function activeItems(state: ContentAccessAdminState) {
   return state.data.items.filter((i) => i.clientId === state.clientPanel.selectedCard);
 }

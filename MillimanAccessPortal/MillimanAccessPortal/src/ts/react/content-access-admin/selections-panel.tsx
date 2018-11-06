@@ -58,6 +58,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
             onClick={() => onIsMasterChange(!isMaster)}
           />
           {this.renderReductionSection()}
+          {this.renderButtonSection()}
         </div>
       )
       : null;
@@ -67,25 +68,10 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
     return this.props.isMaster
       ? null
       : (
-        <>
-          {this.renderSelectionsModifiedBanner()}
-          <div className="fieldset-container">
-            {this.renderReductionFields()}
-          </div>
-          <button type="button" className="blue-button button-status-0 button-status-1 button-status-40">
-            Submit
-          </button>
-          <button type="button" className="red-button button-status-10">Cancel</button>
-        </>
+        <div className="fieldset-container">
+          {this.renderReductionFields()}
+        </div>
       );
-  }
-
-  private renderSelectionsModifiedBanner() {
-    return this.props.isModified
-    ? (
-      <h4>* selections have been modified</h4>
-    )
-    : null;
   }
 
   private renderReductionFields() {
@@ -93,5 +79,16 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
     return fieldsets.map((fieldset) => (
       <Fieldset key={fieldset.name} {...fieldset} />
     ));
+  }
+
+  private renderButtonSection() {
+    return this.props.isModified
+    ? (
+      <>
+        <button type="button" className="blue-button">Submit</button>
+        <button type="button" className="red-button">Cancel</button>
+      </>
+    )
+    : null;
   }
 }

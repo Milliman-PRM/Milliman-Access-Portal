@@ -8,7 +8,7 @@ import { NavBar } from '../shared-components/navbar';
 import * as actions from './redux/actions';
 import {
   activeGroups, activeItems, activeReductionFieldsets, pendingMaster, pendingReductionValues,
-  reductionValuesModified, selectedGroup, selectedItem,
+  reductionValuesModified, selectedGroup, selectedItem, selectionsFormModified,
 } from './redux/selectors';
 import { ContentAccessAdminState } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
@@ -49,7 +49,7 @@ interface ContentAccessAdminProps {
   selectedGroup: SelectionGroup;
   selectedValues: Guid[];
   selectedMaster: boolean;
-  selectionsModified: boolean;
+  formModified: boolean;
 }
 interface ContentAccessAdminActions {
   nop: () => void;
@@ -163,7 +163,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       selectedValues,
       selectedMaster,
       setMasterSelected,
-      selectionsModified,
+      formModified,
     } = this.props;
     const fieldsets = reductionFieldsets.map((s) => ({
       name: s.field.displayName,
@@ -177,7 +177,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       <SelectionsPanel
         isSuspended={group.isSuspended}
         doesReduce={item.doesReduce}
-        isModified={selectionsModified}
+        isModified={formModified}
         isMaster={selectedMaster}
         onIsMasterChange={setMasterSelected}
         fieldsets={fieldsets}
@@ -203,7 +203,7 @@ function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProp
       ? pendingReductionValues(state).map((v) => v.id)
       : [],
     selectedMaster: pendingMaster(state),
-    selectionsModified: reductionValuesModified(state),
+    formModified: selectionsFormModified(state),
   };
 }
 
