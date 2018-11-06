@@ -42,7 +42,7 @@ namespace MillimanAccessPortal.DataQueries
         }
 
         /// <summary>
-        /// Creates a new user account
+        /// Creates a new user account and records to the audit log if successful
         /// </summary>
         /// <param name="UserNameArg"></param>
         /// <param name="EmailArg"></param>
