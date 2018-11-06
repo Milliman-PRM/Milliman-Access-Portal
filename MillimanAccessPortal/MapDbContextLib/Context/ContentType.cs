@@ -17,6 +17,9 @@ namespace MapDbContextLib.Context
     {
         Unknown = 0,
         Qlikview,
+        Html,
+        Pdf,
+        FileDownload,
     }
 
     public class ContentType
@@ -52,6 +55,8 @@ namespace MapDbContextLib.Context
         [Required]
         public string DefaultIconName { get; set; }
 
+        public string[] FileExtensions { get; set; }
+
         #region Database Initialization
         /// <summary>
         /// Initialize the database with known content types
@@ -62,8 +67,30 @@ namespace MapDbContextLib.Context
         {
             List<ContentType> AllProposedContentTypes = new List<ContentType>
             {
-                new ContentType { TypeEnum=ContentTypeEnum.Qlikview, CanReduce = true, DefaultIconName = "QlikView_Icon.png" },
-                //new ContentType { TypeEnum = ContentTypeEnum.AnotherType, CanReduce = trueorfalse, DefaultIconName = ""},
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.Qlikview,
+                    CanReduce = true,
+                    DefaultIconName = "QlikView_Icon.png",
+                    FileExtensions = new string[] { "qvw" },
+                },
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.Html,
+                    CanReduce = false,
+                    DefaultIconName = "QlikView_Icon.png",
+                    FileExtensions = new string[] { "html", "htm" },
+                },
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.Pdf,
+                    CanReduce = false,
+                    DefaultIconName = "QlikView_Icon.png",
+                    FileExtensions = new string[] { "pdf" },
+                },
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.FileDownload,
+                    CanReduce = false,
+                    DefaultIconName = "QlikView_Icon.png",
+                    FileExtensions = new string[] { },
+                },
             };
 
             ApplicationDbContext Db = serviceProvider.GetService<Context.ApplicationDbContext>();
@@ -80,6 +107,7 @@ namespace MapDbContextLib.Context
                     fromDb.Name = type.Name;
                     fromDb.CanReduce = type.CanReduce;
                     fromDb.DefaultIconName = type.DefaultIconName;
+                    fromDb.FileExtensions = type.FileExtensions;
                     Db.ContentType.Update(fromDb);
                 }
             }

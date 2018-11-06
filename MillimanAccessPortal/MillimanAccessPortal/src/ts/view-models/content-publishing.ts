@@ -88,6 +88,7 @@ export interface ContentType {
   typeEnum: number;
   name: string;
   canReduce: boolean;
+  fileExtensions: string[];
 }
 
 export interface RootContentItemDetail {
@@ -118,7 +119,8 @@ export interface ContentRelatedFile {
 }
 export interface PublishRequest {
   rootContentItemId: Guid;
-  relatedFiles: ContentRelatedFile[];
+  newRelatedFiles: ContentRelatedFile[];
+  deleteFilePurposes: string[];
 }
 
 export interface PreLiveContentValidationSummary {

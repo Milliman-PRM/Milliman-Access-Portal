@@ -37,6 +37,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NetEscapades.AspNetCore.SecurityHeaders;
+using MillimanAccessPortal.Utilities;
 
 namespace MillimanAccessPortal
 {
@@ -179,6 +180,7 @@ namespace MillimanAccessPortal
             // Add application services.
             services.AddTransient<IMessageQueue, MessageQueueServices>();
             services.AddScoped<IUploadHelper, UploadHelper>();
+            services.AddScoped<FileSystemTasks>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -2,6 +2,14 @@
 
 ## Release Notes
 
+### v1.2.0
+
+- Added the ability to delete supporting files from a content item
+
+### v1.1.1
+
+- Fixed an issue preventing content item details to be changed without uploading a file
+
 ### v1.1.0
 
 - Queue information now available for content items in the process of being published

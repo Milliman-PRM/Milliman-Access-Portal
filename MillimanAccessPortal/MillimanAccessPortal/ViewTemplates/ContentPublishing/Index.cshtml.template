@@ -133,16 +133,18 @@
                     <h4 class="form-section-title">Files</h4>
                     <div class="form-input-container">
                         <div class="form-input-container content-item-flex-none align-self-start">
-                            <div class="form-input form-input-file-upload">
+                            <div class="form-input form-input-file-upload deletable">
                                 <label for="Thumbnail" class="input-with-upload image">
                                     Thumbnail Image
                                     <input class="file-upload" type="text" readonly />
-                                    <svg class="upload-icon tooltip" title="Upload thumbnail image">
-                                        <use xlink:href="#upload"></use>
-                                    </svg>
-                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
-                                        <use xlink:href="#cancel"></use>
-                                    </svg>
+                                    <div class="file-upload-icons">
+                                        <svg class="cancel-icon tooltip" title="Remove file">
+                                            <use xlink:href="#cancel"></use>
+                                        </svg>
+                                        <svg class="upload-icon tooltip" title="Upload thumbnail image">
+                                            <use xlink:href="#upload"></use>
+                                        </svg>
+                                    </div>
                                     <div class="progress-bars" style="visibility: hidden;">
                                         <div class="progress-bar progress-bar-1"></div>
                                         <div class="progress-bar progress-bar-2"></div>
@@ -158,12 +160,14 @@
                                 <label for="MasterContent" class="input-with-upload">
                                     File
                                     <input class="file-upload" type="text" readonly />
-                                    <svg class="upload-icon tooltip" title="Upload master content">
-                                        <use xlink:href="#upload"></use>
-                                    </svg>
-                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
-                                        <use xlink:href="#cancel"></use>
-                                    </svg>
+                                    <div class="file-upload-icons">
+                                        <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
+                                            <use xlink:href="#cancel"></use>
+                                        </svg>
+                                        <svg class="upload-icon tooltip" title="Upload master content">
+                                            <use xlink:href="#upload"></use>
+                                        </svg>
+                                    </div>
                                     <div class="progress-bars" style="visibility: hidden;">
                                         <div class="progress-bar progress-bar-1"></div>
                                         <div class="progress-bar progress-bar-2"></div>
@@ -172,16 +176,18 @@
                                 </label>
                                 <input class="file-upload-guid" type="text" id="MasterContent" name="MasterContent" style="display: none;" />
                             </div>
-                            <div class="form-input form-input-file-upload">
+                            <div class="form-input form-input-file-upload deletable">
                                 <label for="UserGuide" class="input-with-upload">
                                     Userguide
                                     <input class="file-upload" type="text" readonly />
-                                    <svg class="upload-icon tooltip" title="Upload user guide">
-                                        <use xlink:href="#upload"></use>
-                                    </svg>
-                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
-                                        <use xlink:href="#cancel"></use>
-                                    </svg>
+                                    <div class="file-upload-icons">
+                                        <svg class="cancel-icon tooltip" title="Remove file">
+                                            <use xlink:href="#cancel"></use>
+                                        </svg>
+                                        <svg class="upload-icon tooltip" title="Upload user guide">
+                                            <use xlink:href="#upload"></use>
+                                        </svg>
+                                    </div>
                                     <div class="progress-bars" style="visibility: hidden;">
                                         <div class="progress-bar progress-bar-1"></div>
                                         <div class="progress-bar progress-bar-2"></div>
@@ -190,16 +196,18 @@
                                 </label>
                                 <input class="file-upload-guid" type="text" id="UserGuide" name="UserGuide" style="display: none;" />
                             </div>
-                            <div class="form-input form-input-file-upload">
+                            <div class="form-input form-input-file-upload deletable">
                                 <label for="ReleaseNotes" class="input-with-upload">
                                     Release Notes
                                     <input class="file-upload" type="text" readonly />
-                                    <svg class="upload-icon tooltip" title="Upload release notes">
-                                        <use xlink:href="#upload"></use>
-                                    </svg>
-                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
-                                        <use xlink:href="#cancel"></use>
-                                    </svg>
+                                    <div class="file-upload-icons">
+                                        <svg class="cancel-icon tooltip" title="Remove file">
+                                            <use xlink:href="#cancel"></use>
+                                        </svg>
+                                        <svg class="upload-icon tooltip" title="Upload release notes">
+                                            <use xlink:href="#upload"></use>
+                                        </svg>
+                                    </div>
                                     <div class="progress-bars" style="visibility: hidden;">
                                         <div class="progress-bar progress-bar-1"></div>
                                         <div class="progress-bar progress-bar-2"></div>
@@ -345,7 +353,7 @@
             </div>
             <div class="confirmation-section-button-container">
                 <button type="button" class="button-reject red-button">Reject</button>
-                <button type="button" class="button-approve green-button" disabled>Approve</button>
+                <button type="button" class="button-approve green-button tooltip disabled" title="Complete checks to proceed">Approve</button>
             </div>
         </div>
     </div>
