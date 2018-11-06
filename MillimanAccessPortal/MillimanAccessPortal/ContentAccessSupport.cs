@@ -194,6 +194,9 @@ namespace MillimanAccessPortal
                     break;
 
                 case ContentTypeEnum.Unknown:
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.FileDownload:
                 default:
                     break;
             }

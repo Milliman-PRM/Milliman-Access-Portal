@@ -76,9 +76,7 @@ namespace MapDbContextLib.Models
             }
 
             // Apply selection updates if provided
-            var SelectedHierarchyFieldValues = (Selections == null)
-                ? SelectionGroup.SelectedHierarchyFieldValueList
-                : Selections;
+            var SelectedHierarchyFieldValues = Selections ?? SelectionGroup.SelectedHierarchyFieldValueList;
 
             ContentReductionHierarchy<ReductionFieldValueSelection> ContentReductionHierarchy = new ContentReductionHierarchy<ReductionFieldValueSelection>
             {
@@ -115,6 +113,11 @@ namespace MapDbContextLib.Models
                             Values = HierarchyFieldValues,
                         };
                         break;
+
+                    case ContentTypeEnum.Unknown:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.FileDownload:
                     default:
                         ReductionField = null;
                         break;
@@ -169,6 +172,10 @@ namespace MapDbContextLib.Models
                             });
                             break;
 
+                        case ContentTypeEnum.Unknown:
+                        case ContentTypeEnum.Html:
+                        case ContentTypeEnum.Pdf:
+                        case ContentTypeEnum.FileDownload:
                         default:
                             break;
                     }

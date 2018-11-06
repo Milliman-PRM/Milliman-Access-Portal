@@ -76,19 +76,19 @@ namespace MapDbContextLib.Context
                 new ContentType {
                     TypeEnum = ContentTypeEnum.Html,
                     CanReduce = false,
-                    DefaultIconName = "QlikView_Icon.png",
+                    DefaultIconName = "HTML_Icon.png",
                     FileExtensions = new string[] { "html", "htm" },
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.Pdf,
                     CanReduce = false,
-                    DefaultIconName = "QlikView_Icon.png",
+                    DefaultIconName = "PDF_Icon.png",
                     FileExtensions = new string[] { "pdf" },
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.FileDownload,
                     CanReduce = false,
-                    DefaultIconName = "QlikView_Icon.png",
+                    DefaultIconName = "FileDownload_Icon.png",
                     FileExtensions = new string[] { },
                 },
             };
