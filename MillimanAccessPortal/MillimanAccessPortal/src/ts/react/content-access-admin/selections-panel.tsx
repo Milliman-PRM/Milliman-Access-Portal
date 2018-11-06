@@ -10,6 +10,8 @@ export interface SelectionsPanelProps {
   isModified: boolean;
   isMaster: boolean;
   onIsMasterChange: (value: boolean) => void;
+  title: string;
+  subtitle: string;
   fieldsets: FieldsetProps[];
 }
 
@@ -31,8 +33,8 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
         <div className="admin-panel-list">
           <div className="admin-panel-content-container">
             <form className="admin-panel-content">
-              <h2>Title 1</h2>
-              <h3>Title 2</h3>
+              <h2>{this.props.title}</h2>
+              <h3>{this.props.subtitle}</h3>
               <Toggle
                 label={'Suspend Access'}
                 checked={this.props.isSuspended}

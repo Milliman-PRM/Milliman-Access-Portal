@@ -180,6 +180,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         isModified={formModified}
         isMaster={selectedMaster}
         onIsMasterChange={setMasterSelected}
+        title={group.name}
+        subtitle={item.name}
         fieldsets={fieldsets}
       />
     );
