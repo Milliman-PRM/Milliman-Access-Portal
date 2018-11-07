@@ -107,7 +107,10 @@ namespace MillimanAccessPortal
             // .UseApplicationINsights() is removed due to use of Serilog. Consider package serilog.sinks.applicationinsights if this is needed.
             ;
 
-            if (new List<string> { "DEVELOPMENT", "STAGING" }.Contains(EnvironmentNameUpper))
+            IWebHost TempIWebHost = webHost.Build();
+            bool VerboseDotNetLogging = TempIWebHost.Services.GetService<IConfiguration>().GetValue("VerboseDotNetLogging", false);
+
+            if (VerboseDotNetLogging)
             {
                 // includes highly detailed .NET logging to the Serilog sinks
                 webHost = webHost.UseSerilog();
