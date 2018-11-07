@@ -76,3 +76,18 @@ export interface ReductionFieldset {
   field: ReductionField;
   values: ReductionFieldValue[];
 }
+
+interface StatusDetails {
+  user: User;
+  statusName: string;
+  queuedDurationMs: number;
+  queuePosition: number;
+  queueTotal?: number;
+}
+interface PublicationId {
+  publicationId: Guid;
+}
+interface ReductionId {
+  reductionId: Guid;
+}
+export type StatusDetailsWithId = StatusDetails & (PublicationId | ReductionId);

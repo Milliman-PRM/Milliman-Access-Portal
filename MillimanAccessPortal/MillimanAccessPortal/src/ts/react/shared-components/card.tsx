@@ -6,7 +6,7 @@ import '../../../images/remove-circle.svg';
 
 import * as React from 'react';
 
-import { ContentPublicationRequest, ContentReductionTask, Guid } from '../models';
+import { ContentPublicationRequest, ContentReductionTask, Guid, User } from '../models';
 import {
   EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo,
 } from '../system-admin/interfaces';
@@ -344,10 +344,11 @@ export class Card extends React.Component<CardProps> {
   }
 
   private renderStatus() {
-    return this.props.status
+    const { status } = this.props;
+    return status
     ? (
       <div className="card-status-container status-30">
-        <span className="status-top"><strong>Processed</strong></span>
+        <span className="status-top">Processed</span>
         <span className="status-bot">Initiated by J. Sweeney 2 days ago</span>
       </div>
     )

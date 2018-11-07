@@ -3,6 +3,7 @@ import '../../../scss/react/shared-components/card-panel.scss';
 import * as React from 'react';
 
 import { BasicNode } from '../../view-models/content-publishing';
+import { ContentPublicationRequest, ContentReductionTask } from '../models';
 import {
   ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo, isClientInfoTree,
   isProfitCenterInfo, isUserInfo,
@@ -17,7 +18,6 @@ import { ColumnIndicator, ColumnSelector, ColumnSelectorProps } from './column-s
 import { EntityHelper } from './entity';
 import { Filter } from './filter';
 import { Guid, QueryFilter } from './interfaces';
-import { ContentPublicationRequest, ContentReductionTask } from '../models';
 
 export interface CardPanelAttributes {
   filterText: string;
