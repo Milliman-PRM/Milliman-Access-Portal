@@ -9,6 +9,7 @@
         "interface-name": [true, "never-prefix"],
         "max-classes-per-file": [true, 3],
         "jsx-no-lambda": false,
+        "jsx-no-multiline-js": false,
         "no-unused-variable": true,
         "no-var-requires": false,
         "object-literal-sort-keys": false,

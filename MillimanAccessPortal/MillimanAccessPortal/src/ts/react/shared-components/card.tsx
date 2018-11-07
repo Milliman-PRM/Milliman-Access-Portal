@@ -10,7 +10,7 @@ import { ContentPublicationRequest, ContentReductionTask, Guid, User } from '../
 import {
   EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo,
 } from '../system-admin/interfaces';
-import { UpdateProfitCenterModal } from '../system-admin/modals/update-profit-center';
+import { CardModal } from '../system-admin/modals/card-modal';
 import CardButton, { CardButtonColor } from './card-button';
 import { CardStat, CardStatIcon } from './card-stat';
 
@@ -36,9 +36,7 @@ export interface CardProps {
   activated?: boolean;
   suspended?: boolean;
   indentation?: number;
-  profitCenterModalOpen: boolean;
   onProfitCenterModalOpen: () => void;
-  onProfitCenterModalClose: () => void;
   onSendReset?: () => void;
   onProfitCenterDelete?: () => void;
   onProfitCenterUserRemove?: () => void;
@@ -73,7 +71,6 @@ export class Card extends React.Component<CardProps> {
           </div>
           {this.renderStatus()}
         </div>
-        {this.renderProfitCenterModal()}
       </>
     );
   }
@@ -353,18 +350,6 @@ export class Card extends React.Component<CardProps> {
       </div>
     )
     : null;
-  }
-
-  private renderProfitCenterModal() {
-    return isProfitCenterInfo(this.props.entity)
-      ? (
-        <UpdateProfitCenterModal
-          isOpen={this.props.profitCenterModalOpen}
-          onRequestClose={this.props.onProfitCenterModalClose}
-          profitCenterId={this.props.entity.id}
-        />
-      )
-      : null;
   }
 
   private onProfitCenterModalOpen = (event: React.MouseEvent<HTMLDivElement>) => {

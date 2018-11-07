@@ -1,0 +1,201 @@
+import '../../../../scss/react/shared-components/modal.scss';
+
+import * as React from 'react';
+import * as Modal from 'react-modal';
+
+import { getData, postData } from '../../../shared';
+import { ProfitCenterDetail } from '../interfaces';
+
+interface CardModalProps extends Modal.Props {
+  render: (props: CardModalProps) => JSX.Element;
+  profitCenterId?: string;
+}
+interface CardModalState {
+  name: string;
+  code: string;
+  office: string;
+  contact: string;
+  email: string;
+  phone: string;
+}
+
+export class CardModal extends React.Component<CardModalProps, CardModalState> {
+
+  private url: string = 'SystemAdmin/UpdateProfitCenter';
+
+  public constructor(props) {
+    super(props);
+
+    this.state = {
+      name: '',
+      code: '',
+      office: '',
+      contact: '',
+      email: '',
+      phone: '',
+    };
+  }
+
+  public componentDidMount() {
+    if (this.props.profitCenterId) {
+      getData('SystemAdmin/ProfitCenterDetail', {
+        profitCenterId: this.props.profitCenterId,
+      })
+      .then((response: ProfitCenterDetail) => {
+        this.setState({
+          name: response.name,
+          code: response.code,
+          office: response.office,
+          contact: response.contactName,
+          email: response.contactEmail,
+          phone: response.contactPhone,
+        });
+      });
+    }
+  }
+
+  public render() {
+    return (
+      <>
+        {this.props.render(this.props)}
+        <Modal
+          ariaHideApp={false}
+          {...this.props}
+          className="modal"
+          overlayClassName="modal-overlay"
+        >
+          <h3 className="title blue">Update Existing Profit Center</h3>
+          <span className="modal-text">Profit Center Information</span>
+          <form onSubmit={this.handleSubmit}>
+            <span>
+              <label htmlFor="pcName">Name:</label>
+              <input
+                name="pcName"
+                type="text"
+                onChange={this.handleChangeName}
+                value={this.state.name || ''}
+              />
+            </span>
+            <span>
+              <label htmlFor="pcCode">Code:</label>
+              <input
+                name="pcCode"
+                type="text"
+                onChange={this.handleChangeCode}
+                value={this.state.code || ''}
+              />
+            </span>
+            <span>
+              <label htmlFor="pcOffice">Office:</label>
+              <input
+                name="pcOffice"
+                type="text"
+                onChange={this.handleChangeOffice}
+                value={this.state.office || ''}
+              />
+            </span>
+            <span>
+              <label htmlFor="pcContact">Contact:</label>
+              <input
+                name="pcContact"
+                type="text"
+                onChange={this.handleChangeContact}
+                value={this.state.contact || ''}
+              />
+            </span>
+            <span>
+              <label htmlFor="pcEmail">Email:</label>
+              <input
+                name="pcEmail"
+                type="text"
+                onChange={this.handleChangeEmail}
+                value={this.state.email || ''}
+              />
+            </span>
+            <span>
+              <label htmlFor="pcPhone">Phone:</label>
+              <input
+                name="pcPhone"
+                type="text"
+                onChange={this.handleChangePhone}
+                value={this.state.phone || ''}
+              />
+            </span>
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={this.cancel}
+              >
+                Cancel
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+              >
+                Update Profit Center
+              </button>
+            </div>
+          </form>
+        </Modal>
+      </>
+    );
+  }
+
+  private handleChangeName = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({
+      name: event.target.value,
+    });
+  }
+
+  private handleChangeCode = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({
+      code: event.target.value,
+    });
+  }
+
+  private handleChangeOffice = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({
+      office: event.target.value,
+    });
+  }
+
+  private handleChangeContact = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({
+      contact: event.target.value,
+    });
+  }
+
+  private handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({
+      email: event.target.value,
+    });
+  }
+
+  private handleChangePhone = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({
+      phone: event.target.value,
+    });
+  }
+
+  private handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    postData(this.url, {
+      id: this.props.profitCenterId,
+      name: this.state.name,
+      profitCenterCode: this.state.code,
+      millimanOffice: this.state.office,
+      contactName: this.state.contact,
+      contactEmail: this.state.email,
+      contactPhone: this.state.phone,
+    })
+    .then(() => {
+      alert('Profit center updated.');
+      this.props.onRequestClose(null);
+    });
+  }
+
+  private cancel = (event: React.MouseEvent<HTMLButtonElement>) => {
+    this.props.onRequestClose(event.nativeEvent);
+  }
+}

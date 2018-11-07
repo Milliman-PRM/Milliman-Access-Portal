@@ -3,18 +3,18 @@ import '../../../scss/react/shared-components/card-panel.scss';
 import * as React from 'react';
 
 import { BasicNode } from '../../view-models/content-publishing';
-import { ContentPublicationRequest, ContentReductionTask } from '../models';
 import {
   ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo, isClientInfoTree,
   isProfitCenterInfo, isUserInfo,
 } from '../system-admin/interfaces';
 import { AddUserToClientModal } from '../system-admin/modals/add-user-to-client';
 import { AddUserToProfitCenterModal } from '../system-admin/modals/add-user-to-profit-center';
+import { CardModal } from '../system-admin/modals/card-modal';
 import { CreateProfitCenterModal } from '../system-admin/modals/create-profit-center';
 import { CreateUserModal } from '../system-admin/modals/create-user';
 import { ActionIcon } from './action-icon';
 import { Card, CardAttributes, CardStatPropEvaluator } from './card';
-import { ColumnIndicator, ColumnSelector, ColumnSelectorProps } from './column-selector';
+import { ColumnSelector, ColumnSelectorProps } from './column-selector';
 import { EntityHelper } from './entity';
 import { Filter } from './filter';
 import { Guid, QueryFilter } from './interfaces';
@@ -202,9 +202,7 @@ export class CardPanel extends React.Component<CardPanelProps> {
                   expanded={card && card.expanded || false}
                   onExpandedToggled={() => this.props.onExpandedToggled(entity.id)}
                   indentation={entity.depth}
-                  profitCenterModalOpen={card && card.profitCenterModalOpen || false}
-                  onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.id)}
-                  onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.id)}
+                  onProfitCenterModalOpen={() => null}
                   cardStats={this.props.cardStats}
                 />
               </li>
@@ -215,6 +213,37 @@ export class CardPanel extends React.Component<CardPanelProps> {
         }
         return groupCards;
       });
+    } else if (isProfitCenterInfo(filteredCards[0])) {
+      return filteredCards
+        .map((entity) => {
+          const card = this.props.cards[entity.id];
+          return (
+            <li key={entity.id}>
+              <CardModal
+                isOpen={card && card.profitCenterModalOpen || false}
+                onRequestClose={() => this.props.onProfitCenterModalClose(entity.id)}
+                render={() => (
+                  <Card
+                    entity={entity}
+                    selected={entity.id === this.props.selectedCard}
+                    onSelect={() => this.props.onCardSelect(entity.id)}
+                    expanded={card && card.expanded || false}
+                    onExpandedToggled={() => this.props.onExpandedToggled(entity.id)}
+                    activated={isUserInfo(entity) ? entity.activated : null}
+                    resetButton={isUserInfo(entity)}
+                    onSendReset={this.getOnSendReset(entity)}
+                    onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.id)}
+                    onProfitCenterDelete={this.getOnProfitCenterDelete(entity)}
+                    onProfitCenterUserRemove={this.getOnProfitCenterUserRemove(entity)}
+                    onClientUserRemove={this.getOnClientUserRemove(entity)}
+                    cardStats={this.props.cardStats}
+                    status={(entity as any).status}
+                  />
+                )}
+              />
+            </li>
+          );
+        });
     } else {
       return filteredCards
         .map((entity) => {
@@ -229,9 +258,7 @@ export class CardPanel extends React.Component<CardPanelProps> {
                 onExpandedToggled={() => this.props.onExpandedToggled(entity.id)}
                 activated={isUserInfo(entity) ? entity.activated : null}
                 resetButton={isUserInfo(entity)}
-                profitCenterModalOpen={card && card.profitCenterModalOpen || false}
-                onProfitCenterModalOpen={() => this.props.onProfitCenterModalOpen(entity.id)}
-                onProfitCenterModalClose={() => this.props.onProfitCenterModalClose(entity.id)}
+                onProfitCenterModalOpen={() => null}
                 onSendReset={this.getOnSendReset(entity)}
                 onProfitCenterDelete={this.getOnProfitCenterDelete(entity)}
                 onProfitCenterUserRemove={this.getOnProfitCenterUserRemove(entity)}
