@@ -36,7 +36,9 @@ namespace MapDbContextLib.Context
             }
             get
             {
-                return (ContentTypeEnum) Enum.Parse(typeof(ContentTypeEnum), Name, true);
+                return Enum.TryParse<ContentTypeEnum>(Name, true, out ContentTypeEnum OutValue) 
+                    ? OutValue 
+                    : (ContentTypeEnum)int.MaxValue;
             }
         }
 
