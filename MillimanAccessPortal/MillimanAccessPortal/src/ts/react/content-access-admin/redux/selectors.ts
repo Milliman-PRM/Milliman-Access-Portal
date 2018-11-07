@@ -1,6 +1,6 @@
 import { isEqual } from 'lodash';
 
-import { ReductionFieldset } from '../../models';
+import { Guid, ReductionFieldset } from '../../models';
 import { ContentAccessAdminState } from './store';
 
 export function selectedClient(state: ContentAccessAdminState) {
@@ -11,8 +11,17 @@ export function selectedItem(state: ContentAccessAdminState) {
   return state.data.items.filter((i) => i.id === state.itemPanel.selectedCard)[0];
 }
 
-export function selectedGroup(state: ContentAccessAdminState) {
+function selectedGroup(state: ContentAccessAdminState) {
   return state.data.groups.filter((g) => g.id === state.groupPanel.selectedCard)[0];
+}
+export function selectedGroupWithStatus(state: ContentAccessAdminState) {
+  const _selectedGroup = selectedGroup(state);
+  return _selectedGroup
+  ? {
+    ..._selectedGroup,
+    status: relatedReduction(state, _selectedGroup.id),
+  }
+  : null;
 }
 
 export function selectedReductionValues(state: ContentAccessAdminState) {
@@ -60,12 +69,39 @@ export function selectionsFormModified(state: ContentAccessAdminState) {
   return reductionValuesModified(state) || masterModified(state);
 }
 
-export function activeItems(state: ContentAccessAdminState) {
+function relatedPublication(state: ContentAccessAdminState, itemId: Guid) {
+  return state.data.publications
+    .filter((p) => p.rootContentItemId === itemId)
+    .sort().reverse()[0];
+}
+function activeItems(state: ContentAccessAdminState) {
   return state.data.items.filter((i) => i.clientId === state.clientPanel.selectedCard);
 }
+export function activeItemsWithStatus(state: ContentAccessAdminState) {
+  return activeItems(state).map((i) => ({
+    ...i,
+    status: relatedPublication(state, i.id),
+  }));
+}
 
-export function activeGroups(state: ContentAccessAdminState) {
+function relatedReduction(state: ContentAccessAdminState, groupId: Guid) {
+  return state.data.reductions
+    .filter((r) => r.selectionGroupId === groupId)
+    .sort().reverse()[0];
+}
+function activeGroups(state: ContentAccessAdminState) {
   return state.data.groups.filter((i) => i.rootContentItemId === state.itemPanel.selectedCard);
+}
+export function activeGroupsWithStatus(state: ContentAccessAdminState) {
+  return activeGroups(state).map((g) => ({
+    ...g,
+    status: relatedReduction(state, g.id),
+  }));
+}
+
+export function activeReductions(state: ContentAccessAdminState) {
+  return state.data.reductions.filter((r) => (
+    activeGroups(state).map((g) => g.id).indexOf(r.selectionGroupId) !== -1));
 }
 
 export function activeReductionFields(state: ContentAccessAdminState) {

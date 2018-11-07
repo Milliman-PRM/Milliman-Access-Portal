@@ -1,7 +1,7 @@
 import { Action } from 'redux';
 
 import {
-  Client, Guid, ReductionField, ReductionFieldValue, RootContentItem, SelectionGroup, User,
+  Client, Guid, ReductionField, ReductionFieldValue, RootContentItem, SelectionGroup, User, ContentPublicationRequest, ContentReductionTask,
 } from '../../models';
 import { ActionWithBoolean, ActionWithId } from './actions';
 import { ContentAccessAdminState } from './store';
@@ -68,6 +68,13 @@ const _values: ReductionFieldValue[] = [
   { id: 'value5', value: 'value5', reductionFieldId: 'field3' },
   { id: 'value6', value: 'value6', reductionFieldId: 'field3' },
 ];
+const _publications: ContentPublicationRequest[] = [
+ { id: 'publication1', applicationUserId: 'user1', rootContentItemId: 'item1',
+   createDateTimeUtc: '1', requestStatus: 20 },
+];
+const _reductions: ContentReductionTask[] = [
+
+];
 
 const _clientCards = {
   client1: {
@@ -107,6 +114,8 @@ const _initialState: ContentAccessAdminState = {
     users: _users,
     fields: _fields,
     values: _values,
+    publications: _publications,
+    reductions: _reductions,
   },
   clientPanel: { cards: _clientCards, selectedCard: null },
   itemPanel: { cards: _itemCards, selectedCard: null },

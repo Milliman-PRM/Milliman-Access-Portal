@@ -1,3 +1,5 @@
+import { PublicationStatus, ReductionStatus } from '../view-models/content-publishing';
+
 export type Guid = string;
 
 export interface User {
@@ -28,6 +30,9 @@ export interface RootContentItem {
   doesReduce: boolean;
   name: string;
 }
+export interface RootContentItemWithStatus extends RootContentItem {
+  status: ContentPublicationRequest;
+}
 export interface SelectionGroup {
   id: Guid;
   rootContentItemId?: Guid;
@@ -35,6 +40,9 @@ export interface SelectionGroup {
   isSuspended: boolean;
   isMaster: boolean;
   name: string;
+}
+export interface SelectionGroupWithStatus extends SelectionGroup {
+  status: ContentReductionTask;
 }
 export interface ReductionField {
   id: Guid;
@@ -47,6 +55,21 @@ export interface ReductionFieldValue {
   id: Guid;
   reductionFieldId?: Guid;
   value: string;
+}
+export interface ContentPublicationRequest {
+  id: Guid;
+  rootContentItemId: Guid;
+  applicationUserId: Guid;
+  createDateTimeUtc: string;
+  requestStatus: PublicationStatus;
+}
+export interface ContentReductionTask {
+  id: Guid;
+  contentPublicationRequestId: Guid;
+  applicationUserId: Guid;
+  selectionGroupId: Guid;
+  createDateTimeUtc: string;
+  reductionStatus: ReductionStatus;
 }
 
 export interface ReductionFieldset {

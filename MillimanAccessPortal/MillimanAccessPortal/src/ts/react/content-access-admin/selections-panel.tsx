@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import { ContentReductionTask } from '../models';
 import { Filter } from '../shared-components/filter';
 import { Toggle } from '../shared-components/toggle';
 import { Fieldset, FieldsetProps } from './fieldset';
@@ -12,6 +13,7 @@ export interface SelectionsPanelProps {
   onIsMasterChange: (value: boolean) => void;
   title: string;
   subtitle: string;
+  status: ContentReductionTask;
   fieldsets: FieldsetProps[];
 }
 
@@ -84,13 +86,13 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderButtonSection() {
+    const status = this.props.status
+      ? this.props.status.reductionStatus
+      : 0;
     return this.props.isModified
-    ? (
-      <>
-        <button type="button" className="blue-button">Submit</button>
-        <button type="button" className="red-button">Cancel</button>
-      </>
-    )
+    ? status === 10
+      ? <button type="button" className="red-button">Cancel</button>
+      : <button type="button" className="blue-button">Submit</button>
     : null;
   }
 }

@@ -1,22 +1,24 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { Client, ReductionFieldset, RootContentItem, SelectionGroup } from '../models';
+import {
+  Client, ReductionFieldset, RootContentItem, RootContentItemWithStatus, SelectionGroupWithStatus,
+} from '../models';
 import { CardPanel, CardPanelProps } from '../shared-components/card-panel';
 import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import * as actions from './redux/actions';
 import {
-  activeGroups, activeItems, activeReductionFieldsets, pendingMaster, pendingReductionValues,
-  reductionValuesModified, selectedGroup, selectedItem, selectionsFormModified,
+  activeGroupsWithStatus, activeItemsWithStatus, activeReductionFieldsets, pendingMaster,
+  pendingReductionValues, selectedGroupWithStatus, selectedItem, selectionsFormModified,
 } from './redux/selectors';
 import { ContentAccessAdminState } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
 
 interface ContentAccessAdminProps {
   clients: Client[];
-  items: RootContentItem[];
-  groups: SelectionGroup[];
+  items: RootContentItemWithStatus[];
+  groups: SelectionGroupWithStatus[];
   reductionFieldsets: ReductionFieldset[];
   clientPanel: {
     cards: {
@@ -46,7 +48,7 @@ interface ContentAccessAdminProps {
     selectedCard: Guid;
   };
   selectedItem: RootContentItem;
-  selectedGroup: SelectionGroup;
+  selectedGroup: SelectionGroupWithStatus;
   selectedValues: Guid[];
   selectedMaster: boolean;
   formModified: boolean;
@@ -182,6 +184,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         onIsMasterChange={setMasterSelected}
         title={group.name}
         subtitle={item.name}
+        status={group.status}
         fieldsets={fieldsets}
       />
     );
@@ -193,14 +196,14 @@ function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProp
   const { clients } = state.data;
   return {
     clients,
-    items: activeItems(state),
-    groups: activeGroups(state),
+    items: activeItemsWithStatus(state),
+    groups: activeGroupsWithStatus(state),
     reductionFieldsets: activeReductionFieldsets(state),
     clientPanel,
     itemPanel,
     groupPanel,
     selectedItem: selectedItem(state),
-    selectedGroup: selectedGroup(state),
+    selectedGroup: selectedGroupWithStatus(state),
     selectedValues: pendingReductionValues(state)
       ? pendingReductionValues(state).map((v) => v.id)
       : [],

@@ -17,6 +17,7 @@ import { ColumnIndicator, ColumnSelector, ColumnSelectorProps } from './column-s
 import { EntityHelper } from './entity';
 import { Filter } from './filter';
 import { Guid, QueryFilter } from './interfaces';
+import { ContentPublicationRequest, ContentReductionTask } from '../models';
 
 export interface CardPanelAttributes {
   filterText: string;
@@ -236,6 +237,7 @@ export class CardPanel extends React.Component<CardPanelProps> {
                 onProfitCenterUserRemove={this.getOnProfitCenterUserRemove(entity)}
                 onClientUserRemove={this.getOnClientUserRemove(entity)}
                 cardStats={this.props.cardStats}
+                status={(entity as any).status}
               />
             </li>
           );

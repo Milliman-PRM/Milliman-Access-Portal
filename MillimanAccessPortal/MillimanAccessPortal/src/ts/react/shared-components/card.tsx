@@ -6,13 +6,13 @@ import '../../../images/remove-circle.svg';
 
 import * as React from 'react';
 
-import { Guid } from '../models';
+import { ContentPublicationRequest, ContentReductionTask, Guid } from '../models';
 import {
   EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo,
 } from '../system-admin/interfaces';
 import { UpdateProfitCenterModal } from '../system-admin/modals/update-profit-center';
 import CardButton, { CardButtonColor } from './card-button';
-import { CardStatIcon, CardStat } from './card-stat';
+import { CardStat, CardStatIcon } from './card-stat';
 
 export interface CardStatPropEvaluator {
   name: string;
@@ -44,6 +44,7 @@ export interface CardProps {
   onProfitCenterUserRemove?: () => void;
   onClientUserRemove?: () => void;
   cardStats?: CardStatPropEvaluator[];
+  status?: ContentPublicationRequest | ContentReductionTask;
 }
 
 export class Card extends React.Component<CardProps> {
@@ -70,6 +71,7 @@ export class Card extends React.Component<CardProps> {
             </div>
             {this.renderExpansion()}
           </div>
+          {this.renderStatus()}
         </div>
         {this.renderProfitCenterModal()}
       </>
@@ -339,6 +341,17 @@ export class Card extends React.Component<CardProps> {
       return <ul>{list}</ul>;
     }
     return null;
+  }
+
+  private renderStatus() {
+    return this.props.status
+    ? (
+      <div className="card-status-container status-30">
+        <span className="status-top"><strong>Processed</strong></span>
+        <span className="status-bot">Initiated by J. Sweeney 2 days ago</span>
+      </div>
+    )
+    : null;
   }
 
   private renderProfitCenterModal() {
