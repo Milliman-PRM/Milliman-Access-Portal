@@ -301,8 +301,7 @@ namespace MillimanAccessPortal.Controllers
                             ? RequestedClient.NewUserWelcomeText
                             : ApplicationConfig["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
 
-                        await _accountController.SendNewAccountWelcomeEmail(RequestedUser, Url, welcomeText);
-                        Log.Debug($"In ClientAdminController.SaveNewUser action: For new user UserName {Model.UserName}, welcome email sent");
+                        await _accountController.SendNewAccountWelcomeEmail(RequestedUser, Url, welcomeText);  // This saves a log message
                     }
                     else
                     {
