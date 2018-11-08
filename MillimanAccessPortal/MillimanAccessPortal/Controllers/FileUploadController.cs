@@ -217,7 +217,9 @@ namespace MillimanAccessPortal.Controllers
                 throw;
             }
 
-            var fileUpload = new FileUpload
+            FileUpload fileUpload;
+            try {
+            fileUpload = new FileUpload
             {
                 StoragePath = UploadHelper.GetOutputFilePath(),
                 Checksum = resumableInfo.Checksum,
@@ -227,8 +229,24 @@ namespace MillimanAccessPortal.Controllers
 
             DbContext.FileUpload.Add(fileUpload);
             DbContext.SaveChanges();
-
-            return new JsonResult(fileUpload.Id);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "[Saving DB record] In FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
+                throw;
+            }
+            JsonResult r;
+            try
+            {
+                r = Json(fileUpload.Id);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "[Building JsonResult] In FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
+                throw;
+            }
+              
+            return r;
         }
     }
 
