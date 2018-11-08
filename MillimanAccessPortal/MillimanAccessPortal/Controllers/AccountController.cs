@@ -392,7 +392,9 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("Entered AccountController.SendNewAccountWelcomeEmail action with {@UserName}", RequestedUser.UserName);
 
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
+            Log.Verbose("In AccountController.SendNewAccountWelcomeEmail action: EmailConfirmationToken created: {@Token}", emailConfirmationToken);
             var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
+            Log.Verbose("In AccountController.SendNewAccountWelcomeEmail action: Url created: {@url}", callbackUrl);
 
             // Configurable portion of email body
             string emailBody = string.IsNullOrWhiteSpace(SettableEmailText)
@@ -440,6 +442,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> EnableAccount(string userId, string code)
         {
             Log.Verbose("Entered AccountController.EnableAccount GET action with {@UserId}", userId);
+            Log.Debug("In AccountController.EnableAccount GET action: Token received: {@Code}", code);
 
             if (userId == null || code == null)
             {
