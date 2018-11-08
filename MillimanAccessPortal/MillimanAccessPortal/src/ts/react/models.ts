@@ -31,7 +31,7 @@ export interface RootContentItem {
   name: string;
 }
 export interface RootContentItemWithStatus extends RootContentItem {
-  status: ContentPublicationRequest;
+  status: PublicationWithQueueDetails;
 }
 export interface SelectionGroup {
   id: Guid;
@@ -42,7 +42,7 @@ export interface SelectionGroup {
   name: string;
 }
 export interface SelectionGroupWithStatus extends SelectionGroup {
-  status: ContentReductionTask;
+  status: ReductionWithQueueDetails;
 }
 export interface ReductionField {
   id: Guid;
@@ -77,17 +77,20 @@ export interface ReductionFieldset {
   values: ReductionFieldValue[];
 }
 
-interface StatusDetails {
-  user: User;
-  statusName: string;
+export interface PublicationQueueDetails {
+  publicationId: Guid;
+  queuedDurationMs: number;
+  queuePosition: number;
+}
+export interface ReductionQueueDetails {
+  reductionId: Guid;
   queuedDurationMs: number;
   queuePosition: number;
   queueTotal?: number;
 }
-interface PublicationId {
-  publicationId: Guid;
+export interface PublicationWithQueueDetails extends ContentPublicationRequest {
+  queueDetails: PublicationQueueDetails;
 }
-interface ReductionId {
-  reductionId: Guid;
+export interface ReductionWithQueueDetails extends ContentReductionTask {
+  queueDetails: ReductionQueueDetails;
 }
-export type StatusDetailsWithId = StatusDetails & (PublicationId | ReductionId);

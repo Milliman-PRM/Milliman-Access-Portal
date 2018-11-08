@@ -6,11 +6,10 @@ import '../../../images/remove-circle.svg';
 
 import * as React from 'react';
 
-import { ContentPublicationRequest, ContentReductionTask, Guid, User } from '../models';
+import { Guid, PublicationWithQueueDetails, ReductionWithQueueDetails } from '../models';
 import {
   EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo,
 } from '../system-admin/interfaces';
-import { CardModal } from '../system-admin/modals/card-modal';
 import CardButton, { CardButtonColor } from './card-button';
 import { CardStat, CardStatIcon } from './card-stat';
 
@@ -42,7 +41,7 @@ export interface CardProps {
   onProfitCenterUserRemove?: () => void;
   onClientUserRemove?: () => void;
   cardStats?: CardStatPropEvaluator[];
-  status?: ContentPublicationRequest | ContentReductionTask;
+  status?: PublicationWithQueueDetails | ReductionWithQueueDetails;
 }
 
 export class Card extends React.Component<CardProps> {
@@ -342,14 +341,18 @@ export class Card extends React.Component<CardProps> {
 
   private renderStatus() {
     const { status } = this.props;
-    return status
-    ? (
-      <div className="card-status-container status-30">
-        <span className="status-top">Processed</span>
-        <span className="status-bot">Initiated by J. Sweeney 2 days ago</span>
-      </div>
-    )
-    : null;
+    if (!status) {
+      return null;
+    } else {
+      return (
+        <div className="card-status-container status-30">
+          <span className="status-top">Status Name</span>
+          <span className="status-bot">
+            Initiated by {status.applicationUserId} {status.queueDetails.queuedDurationMs}ms ago
+          </span>
+        </div>
+      );
+    }
   }
 
   private onProfitCenterModalOpen = (event: React.MouseEvent<HTMLDivElement>) => {

@@ -1,9 +1,12 @@
 import * as React from 'react';
-import { Checkbox, CheckboxProps } from '../shared-components/checkbox';
+import { Checkbox, CheckboxData } from '../shared-components/checkbox';
 
-export interface FieldsetProps {
+export interface FieldsetData {
   name: string;
-  fields: CheckboxProps[];
+  fields: CheckboxData[];
+}
+export interface FieldsetProps extends FieldsetData {
+  readOnly: boolean;
 }
 
 export class Fieldset extends React.Component<FieldsetProps> {
@@ -18,9 +21,9 @@ export class Fieldset extends React.Component<FieldsetProps> {
   }
 
   private renderFields() {
-    const { fields } = this.props;
+    const { fields, readOnly } = this.props;
     return fields.map((field) => (
-      <Checkbox key={field.name} {...field} />
+      <Checkbox key={field.name} {...field} readOnly={readOnly} />
     ));
   }
 }

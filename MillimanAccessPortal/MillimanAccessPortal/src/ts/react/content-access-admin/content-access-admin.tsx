@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
+import { ReductionStatus } from '../../view-models/content-publishing';
 import {
   Client, ReductionFieldset, RootContentItem, RootContentItemWithStatus, SelectionGroupWithStatus,
 } from '../models';
@@ -184,7 +185,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         onIsMasterChange={setMasterSelected}
         title={group.name}
         subtitle={item.name}
-        status={group.status}
+        status={group.status ? group.status.reductionStatus : ReductionStatus.Unspecified}
         fieldsets={fieldsets}
       />
     );

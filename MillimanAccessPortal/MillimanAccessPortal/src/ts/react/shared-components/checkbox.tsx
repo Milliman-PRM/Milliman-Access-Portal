@@ -1,9 +1,12 @@
 import * as React from 'react';
 
-export interface CheckboxProps {
+export interface CheckboxData {
   name: string;
   selected: boolean;
   onChange: (selected: boolean) => void;
+}
+export interface CheckboxProps extends CheckboxData {
+  readOnly: boolean;
 }
 
 export class Checkbox extends React.Component<CheckboxProps> {
@@ -26,6 +29,9 @@ export class Checkbox extends React.Component<CheckboxProps> {
   }
 
   private onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.props.onChange(event.target.checked);
+    const { onChange, readOnly } = this.props;
+    if (!readOnly) {
+      onChange(event.target.checked);
+    }
   }
 }

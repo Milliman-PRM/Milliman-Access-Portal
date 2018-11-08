@@ -1,7 +1,9 @@
 import { Action } from 'redux';
 
+import { PublicationStatus, ReductionStatus } from '../../../view-models/content-publishing';
 import {
-  Client, Guid, ReductionField, ReductionFieldValue, RootContentItem, SelectionGroup, User, ContentPublicationRequest, ContentReductionTask,
+  Client, ContentPublicationRequest, ContentReductionTask, Guid, PublicationQueueDetails,
+  ReductionField, ReductionFieldValue, ReductionQueueDetails, RootContentItem, SelectionGroup, User,
 } from '../../models';
 import { ActionWithBoolean, ActionWithId } from './actions';
 import { ContentAccessAdminState } from './store';
@@ -69,11 +71,18 @@ const _values: ReductionFieldValue[] = [
   { id: 'value6', value: 'value6', reductionFieldId: 'field3' },
 ];
 const _publications: ContentPublicationRequest[] = [
- { id: 'publication1', applicationUserId: 'user1', rootContentItemId: 'item1',
-   createDateTimeUtc: '1', requestStatus: 20 },
+  { id: 'publication1', applicationUserId: 'user1', requestStatus: PublicationStatus.Queued,
+    createDateTimeUtc: '', rootContentItemId: 'item2' },
+];
+const _publicationQueue: PublicationQueueDetails[] = [
+  { publicationId: 'publication1', queuePosition: 1, queuedDurationMs: 42 },
 ];
 const _reductions: ContentReductionTask[] = [
-
+  { id: 'reduction1', applicationUserId: 'user1', contentPublicationRequestId: null,
+    selectionGroupId: 'group1', reductionStatus: ReductionStatus.Queued, createDateTimeUtc: '' },
+];
+const _reductionQueue: ReductionQueueDetails[] = [
+  { reductionId: 'reduction1', queuePosition: 1, queuedDurationMs: 42 },
 ];
 
 const _clientCards = {
@@ -115,7 +124,9 @@ const _initialState: ContentAccessAdminState = {
     fields: _fields,
     values: _values,
     publications: _publications,
+    publicationQueue: _publicationQueue,
     reductions: _reductions,
+    reductionQueue: _reductionQueue,
   },
   clientPanel: { cards: _clientCards, selectedCard: null },
   itemPanel: { cards: _itemCards, selectedCard: null },

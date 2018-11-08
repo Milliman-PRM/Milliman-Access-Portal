@@ -1,8 +1,8 @@
 import { createStore } from 'redux';
 
 import {
-  Client, ContentPublicationRequest, ContentReductionTask, Guid, ReductionField,
-  ReductionFieldValue, RootContentItem, SelectionGroup, User,
+  Client, ContentPublicationRequest, ContentReductionTask, Guid, PublicationQueueDetails,
+  ReductionField, ReductionFieldValue, ReductionQueueDetails, RootContentItem, SelectionGroup, User,
 } from '../../models';
 import { contentAccessAdmin } from './reducers';
 
@@ -15,7 +15,9 @@ export interface ContentAccessAdminState {
     fields: ReductionField[];
     values: ReductionFieldValue[];
     publications: ContentPublicationRequest[];
+    publicationQueue: PublicationQueueDetails[];
     reductions: ContentReductionTask[];
+    reductionQueue: ReductionQueueDetails[];
   };
   clientPanel: {
     cards: {

@@ -69,10 +69,15 @@ export function selectionsFormModified(state: ContentAccessAdminState) {
   return reductionValuesModified(state) || masterModified(state);
 }
 
+function queueDetailsForPublication(state: ContentAccessAdminState, publicationId: Guid) {
+  return state.data.publicationQueue.filter((q) => q.publicationId === publicationId)[0];
+}
 function relatedPublication(state: ContentAccessAdminState, itemId: Guid) {
-  return state.data.publications
-    .filter((p) => p.rootContentItemId === itemId)
-    .sort().reverse()[0];
+  const publication = state.data.publications.filter((p) => p.rootContentItemId === itemId)[0];
+  const queueDetails = publication && queueDetailsForPublication(state, publication.id);
+  return publication
+    ? { ...publication, queueDetails }
+    : null;
 }
 function activeItems(state: ContentAccessAdminState) {
   return state.data.items.filter((i) => i.clientId === state.clientPanel.selectedCard);
@@ -84,10 +89,15 @@ export function activeItemsWithStatus(state: ContentAccessAdminState) {
   }));
 }
 
+function queueDetailsForReduction(state: ContentAccessAdminState, reductionId: Guid) {
+  return state.data.reductionQueue.filter((q) => q.reductionId === reductionId)[0];
+}
 function relatedReduction(state: ContentAccessAdminState, groupId: Guid) {
-  return state.data.reductions
-    .filter((r) => r.selectionGroupId === groupId)
-    .sort().reverse()[0];
+  const reduction = state.data.reductions.filter((r) => r.selectionGroupId === groupId)[0];
+  const queueDetails = reduction && queueDetailsForReduction(state, reduction.id);
+  return reduction
+    ? { ...reduction, queueDetails }
+    : null;
 }
 function activeGroups(state: ContentAccessAdminState) {
   return state.data.groups.filter((i) => i.rootContentItemId === state.itemPanel.selectedCard);

@@ -1,9 +1,10 @@
 import * as React from 'react';
 
-import { ContentReductionTask } from '../models';
+import { ReductionStatus } from '../../view-models/content-publishing';
+import { ContentReductionTask, ReductionWithQueueDetails } from '../models';
 import { Filter } from '../shared-components/filter';
 import { Toggle } from '../shared-components/toggle';
-import { Fieldset, FieldsetProps } from './fieldset';
+import { Fieldset, FieldsetData } from './fieldset';
 
 export interface SelectionsPanelProps {
   isSuspended: boolean;
@@ -13,8 +14,8 @@ export interface SelectionsPanelProps {
   onIsMasterChange: (value: boolean) => void;
   title: string;
   subtitle: string;
-  status: ContentReductionTask;
-  fieldsets: FieldsetProps[];
+  status: ReductionStatus;
+  fieldsets: FieldsetData[];
 }
 
 export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
@@ -79,20 +80,30 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderReductionFields() {
-    const { fieldsets } = this.props;
+    const { fieldsets, status } = this.props;
     return fieldsets.map((fieldset) => (
-      <Fieldset key={fieldset.name} {...fieldset} />
+      <Fieldset
+        key={fieldset.name}
+        readOnly={status === ReductionStatus.Queued}
+        {...fieldset}
+      />
     ));
   }
 
   private renderButtonSection() {
-    const status = this.props.status
-      ? this.props.status.reductionStatus
-      : 0;
-    return this.props.isModified
-    ? status === 10
-      ? <button type="button" className="red-button">Cancel</button>
-      : <button type="button" className="blue-button">Submit</button>
-    : null;
+    switch (this.props.status) {
+      case ReductionStatus.Unspecified:
+      case ReductionStatus.Canceled:
+      case ReductionStatus.Rejected:
+      case ReductionStatus.Live:
+      case ReductionStatus.Error:
+        return this.props.isModified
+          ? <button type="button" className="blue-button">Submit</button>
+          : null;
+      case ReductionStatus.Queued:
+        return <button type="button" className="red-button">Cancel</button>;
+      default:
+        return null;
+    }
   }
 }
