@@ -5,6 +5,7 @@ import { ProgressMonitor, ProgressSummary } from './progress-monitor';
 
 import $ = require('jquery');
 import forge = require('node-forge');
+import { StatusMonitor } from '../status-monitor';
 const resumable = require('resumablejs');
 
 export enum UploadComponent {
@@ -12,6 +13,20 @@ export enum UploadComponent {
   UserGuide = 'UserGuide',
   Image = 'Thumbnail',
   ReleaseNotes = 'ReleaseNotes',
+}
+
+export enum FileUploadStatus {
+  InProgress = 0,
+  Complete = 1,
+  Error = 2,
+}
+
+interface FileUpload {
+  Id: string;
+  InitiatedDateTimeUtc: string;
+  ClientFileIdentifier: string;
+  Status: FileUploadStatus;
+  StatusMessage: string;
 }
 
 interface ResumableInfo {
@@ -46,6 +61,8 @@ export class Upload {
   private _checksum: string = null;
   // The GUID of a successful file upload provided by the server
   private _fileGUID: string = null;
+
+  private _finalizationMonitor: StatusMonitor<FileUpload> = null;
 
   constructor() {
     this.resumable = new resumable(Object.assign({}, resumableOptions, {
@@ -125,6 +142,9 @@ export class Upload {
           this.setChecksum(null);
         });
       });
+      if (this._finalizationMonitor) {
+        this._finalizationMonitor.stop();
+      }
     });
 
     this.resumable.on('fileSuccess', (file) => {
@@ -147,16 +167,31 @@ export class Upload {
         },
         type: 'POST',
         url: 'FileUpload/FinalizeUpload',
-      }).done((response: string) => {
-        this.monitor.deactivate();
-        this.onUploadProgress(ProgressSummary.full());
-        this.setFileGUID(response);
-        this.onFileSuccess(this.fileGUID);
+      }).done((uploadId: string) => {
+        // poll finalization status until complete or error
+        this._finalizationMonitor = new StatusMonitor(
+          `/FileUpload/FinalizeUpload?fileUploadId=${uploadId}`,
+          (fileUpload: FileUpload) => {
+            if (fileUpload.Status === FileUploadStatus.Complete) {
+              this.monitor.deactivate();
+              this.onUploadProgress(ProgressSummary.full());
+              this.setFileGUID(uploadId);
+              this.onFileSuccess(this.fileGUID);
+              this.setChecksum(null);
+              this._finalizationMonitor.stop();
+            } else if (fileUpload.Status === FileUploadStatus.Error) {
+              this.setCancelable(true);
+              this.onError(fileUpload.StatusMessage
+                || 'Something went wrong during upload. Please try again.');
+              this.setChecksum(null);
+              this._finalizationMonitor.stop();
+            }
+          });
+        setTimeout(() => this._finalizationMonitor.start(), 1000);
       }).fail((response) => {
         this.setCancelable(true);
         this.onError(response.getResponseHeader('Warning')
           || 'Something went wrong during upload. Please try again.');
-      }).always(() => {
         this.setChecksum(null);
       });
     });
