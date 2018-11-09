@@ -80,7 +80,7 @@ namespace MillimanAccessPortal
                 {
                     validationWindowComplete = Db.FileUpload
                         .Where(u => fileIds.Contains(u.Id))
-                        .All(u => u.VirusScanWindowComplete);
+                        .All(u => u.FileUploadExtension.VirusScanWindowComplete);
                 }
 
                 Thread.Sleep(1000);
@@ -154,25 +154,27 @@ namespace MillimanAccessPortal
 
             using (IDbContextTransaction Txn = Db.Database.BeginTransaction())
             {
-                FileUpload FileUploadRecord = Db.FileUpload.Find(RelatedFile.FileUploadId);
+                FileUpload FileUploadRecord = Db.FileUpload
+                    .Include(f => f.FileUploadExtension)
+                    .Single(f => f.Id == RelatedFile.FileUploadId);
 
                 #region Validate the file referenced by the FileUpload record
                 // The file must exist
-                if (FileUploadRecord == null || !System.IO.File.Exists(FileUploadRecord.StoragePath))
+                if (FileUploadRecord == null || !File.Exists(FileUploadRecord.FileUploadExtension.StoragePath))
                 {
-                    throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
+                    throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.FileUploadExtension.StoragePath}].");
                 }
                 // The checksum must be correct
-                if (FileUploadRecord.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath).ToLower())
+                if (FileUploadRecord.FileUploadExtension.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(FileUploadRecord.FileUploadExtension.StoragePath).ToLower())
                 {
-                    throw new ApplicationException($"While publishing for content {ContentItem.Id}, checksum validation failed for file [{FileUploadRecord.StoragePath}].");
+                    throw new ApplicationException($"While publishing for content {ContentItem.Id}, checksum validation failed for file [{FileUploadRecord.FileUploadExtension.StoragePath}].");
                 }
                 #endregion
 
                 string RootContentFolder = Path.Combine(contentItemRootPath, ContentItem.Id.ToString());
 
                 // Copy uploaded file to root content folder
-                string DestinationFileName = QlikviewLibApi.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath));
+                string DestinationFileName = QlikviewLibApi.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.FileUploadExtension.StoragePath));
                 switch (contentType)
                 {  // This is where any dependence on ContentType would be incorporated to override base behavior
                     case ContentTypeEnum.Qlikview:
@@ -184,19 +186,19 @@ namespace MillimanAccessPortal
 
                 // Create the root content folder if it does not already exist
                 Directory.CreateDirectory(RootContentFolder);
-                System.IO.File.Copy(FileUploadRecord.StoragePath, DestinationFullPath, true);
+                System.IO.File.Copy(FileUploadRecord.FileUploadExtension.StoragePath, DestinationFullPath, true);
 
                 ReturnObj = new ContentRelatedFile
                 {
                     FilePurpose = RelatedFile.FilePurpose,
                     FullPath = DestinationFullPath,
                     FileOriginalName = RelatedFile.FileOriginalName,
-                    Checksum = FileUploadRecord.Checksum,
+                    Checksum = FileUploadRecord.FileUploadExtension.Checksum,
                 };
 
                 // Remove FileUpload record(s) for this file path
-                List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == FileUploadRecord.StoragePath).ToList();
-                System.IO.File.Delete(FileUploadRecord.StoragePath);  // delete the file
+                List<FileUpload> Uploads = Db.FileUpload.Where(f => f.FileUploadExtension.StoragePath == FileUploadRecord.FileUploadExtension.StoragePath).ToList();
+                System.IO.File.Delete(FileUploadRecord.FileUploadExtension.StoragePath);  // delete the file
                 Db.FileUpload.RemoveRange(Uploads);  // remove the record
 
                 Db.SaveChanges();

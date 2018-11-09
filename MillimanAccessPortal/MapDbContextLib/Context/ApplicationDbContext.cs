@@ -29,6 +29,7 @@ namespace MapDbContextLib.Context
         public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
         public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
         public DbSet<FileUpload> FileUpload { get; set; }
+        public DbSet<FileUploadExtension> FileUploadExtension { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }

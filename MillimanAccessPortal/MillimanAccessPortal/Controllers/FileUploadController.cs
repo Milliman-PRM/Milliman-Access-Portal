@@ -201,6 +201,13 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult FinalizeUpload(ResumableInfo resumableInfo)
         {
             Log.Verbose("Entered FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
+
+            var fileUpload = new FileUpload
+            {
+                ClientFileIdentifier = resumableInfo.UID,
+            };
+            DbContext.FileUpload.Add(fileUpload);
+
             try
             {
                 UploadHelper.FinalizeUpload(resumableInfo);
@@ -212,15 +219,14 @@ namespace MillimanAccessPortal.Controllers
                 return new StatusCodeResult(e.HttpStatus);
             }
 
-            var fileUpload = new FileUpload
+            var fileUploadExtension = new FileUploadExtension
             {
+                FileUploadId = fileUpload.Id,
                 StoragePath = UploadHelper.GetOutputFilePath(),
                 Checksum = resumableInfo.Checksum,
-                ClientFileIdentifier = resumableInfo.UID,
-                CreatedDateTimeUtc = DateTime.UtcNow
             };
 
-            DbContext.FileUpload.Add(fileUpload);
+            DbContext.FileUploadExtension.Add(fileUploadExtension);
             DbContext.SaveChanges();
 
             return new JsonResult(fileUpload.Id);
