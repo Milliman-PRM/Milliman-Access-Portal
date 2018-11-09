@@ -223,9 +223,7 @@ namespace MillimanAccessPortal.Controllers
             DbContext.FileUpload.Add(fileUpload);
             DbContext.SaveChanges();
 
-            JsonResult a = Json(fileUpload.Id);
-            Log.Information("Returning JsonResult with Id: {@JsonResult}, {@Id}", a, fileUpload.Id);
-            return a;
+            return new JsonResult(fileUpload.Id);
         }
     }
 
