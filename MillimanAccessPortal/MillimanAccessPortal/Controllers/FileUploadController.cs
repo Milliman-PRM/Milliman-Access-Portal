@@ -20,7 +20,6 @@
 
 using AuditLogLib.Services;
 using MapDbContextLib.Context;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -32,6 +31,7 @@ using Serilog;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -192,7 +192,31 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// Finalize upload by reassmebling and verifying the file
+        /// Get a file upload
+        /// </summary>
+        /// <param name="fileUploadId">The file upload to return</param>
+        /// <returns>Json</returns>
+        [HttpGet]
+        public IActionResult FinalizeUpload(Guid fileUploadId)
+        {
+            Log.Verbose($"Entered FileUploadController.FinalizeUpload action for {fileUploadId}");
+
+            var fileUpload = _dbContext.FileUpload.SingleOrDefault();
+
+            #region Validation
+            if (fileUpload == null)
+            {
+                Log.Debug($"In FileUploadController.FinalizeUpload action: file upload does not exist, aborting");
+                Response.Headers.Add("Warning", "The specified file uplad does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            return Json(fileUpload);
+        }
+
+        /// <summary>
+        /// Queue upload finalization
         /// </summary>
         /// <param name="resumableInfo">Identifies the resumable upload</param>
         /// <returns>Ok or 409</returns>
@@ -211,9 +235,6 @@ namespace MillimanAccessPortal.Controllers
             _uploadTaskQueue.QueueUploadFinalization(resumableInfo);
 
             return Json(fileUpload.Id);
-
-            /*
-            */
         }
     }
 
