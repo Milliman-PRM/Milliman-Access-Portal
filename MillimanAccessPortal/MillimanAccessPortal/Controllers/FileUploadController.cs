@@ -211,6 +211,11 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", e.Message);
                 return new StatusCodeResult(e.HttpStatus);
             }
+            catch (Exception e)
+            {
+                Log.Error(e, "In FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
+                throw;
+            }
 
             var fileUpload = new FileUpload
             {
@@ -223,7 +228,9 @@ namespace MillimanAccessPortal.Controllers
             DbContext.FileUpload.Add(fileUpload);
             DbContext.SaveChanges();
 
-            return new JsonResult(fileUpload.Id);
+            JsonResult a = Json(fileUpload.Id);
+            Log.Information("Returning JsonResult with Id: {@JsonResult}, {@Id}", a, fileUpload.Id);
+            return a;
         }
     }
 

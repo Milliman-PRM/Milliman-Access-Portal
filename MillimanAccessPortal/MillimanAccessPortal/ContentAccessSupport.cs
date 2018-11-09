@@ -11,6 +11,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using QlikviewLib;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -62,7 +63,9 @@ namespace MillimanAccessPortal
         /// Task entry point for monitoring a ContentReductionTask queued due to a selection group change.
         /// </summary>
         /// <param name="TaskGuid"></param>
-        /// <param name="connectionString"></param>
+        /// <param name="connectionString">Used to create a local database context instance that avoids scoped lifetime</param>
+        /// <param name="contentRootFolder"></param>
+        /// <param name="ContentTypeConfig"></param>
         internal static async Task MonitorReductionTaskForGoLive(Guid TaskGuid, string connectionString, string contentRootFolder, object ContentTypeConfig = null)
         {
             TimeSpan timeoutDuration = new TimeSpan(0, 8, 0);
@@ -71,6 +74,7 @@ namespace MillimanAccessPortal
             DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString);
             DbContextOptions<ApplicationDbContext> ContextOptions = ContextBuilder.Options;
 
+            // The task might stay queued a while, waiting for other tasks.  Don't start timing till it has started
             do
             {
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
@@ -78,13 +82,12 @@ namespace MillimanAccessPortal
                     thisContentReductionTask = Db.ContentReductionTask.Find(TaskGuid);
                 }
 
-                Thread.Sleep(1000);
+                Thread.Sleep(2000);
             }
             while (thisContentReductionTask.ReductionStatus == ReductionStatusEnum.Queued);
 
-            // The task might stay queued a while, waiting for other tasks.  Don't start timing till it has started
+            // 
             DateTime expireTimeUtc = DateTime.UtcNow + timeoutDuration;
-
             while (thisContentReductionTask.ReductionStatus != ReductionStatusEnum.Reduced)
             {
                 Thread.Sleep(2000);
@@ -96,12 +99,14 @@ namespace MillimanAccessPortal
 
                 if (DateTime.UtcNow > expireTimeUtc)
                 {
+                    Log.Warning($"In ContentAccessSupport.MonitorReductionTaskForGoLive, elapsed time exceeded {timeoutDuration.ToString()} while waiting for ContentReductionTask to achieve status ReductionStatusEnum.Reduced, task is likely to be orphaned, not live, aborting");
                     return;
                 }
 
                 if (thisContentReductionTask.ReductionStatus == ReductionStatusEnum.Canceled || 
                     thisContentReductionTask.ReductionStatus == ReductionStatusEnum.Error)
                 {
+                    Log.Information($"In ContentAccessSupport.MonitorReductionTaskForGoLive, ContentReductionTask status changed to {thisContentReductionTask.ReductionStatus.ToString()}, aborting");
                     throw new ApplicationException($"Reduction error while processing UpdateSelections request{Environment.NewLine}{thisContentReductionTask.ReductionStatusMessage}");
                 }
             }
@@ -129,6 +134,7 @@ namespace MillimanAccessPortal
                 }
             }
 
+            Log.Verbose($"At end of ContentAccessSupport.MonitorReductionTaskForGoLive, ContentReductionTask status has become {thisContentReductionTask.ReductionStatus.ToString()}");
         }
 
         /// <summary>
@@ -146,10 +152,12 @@ namespace MillimanAccessPortal
                 reductionTask.SelectionGroup == null || 
                 reductionTask.SelectionGroup.RootContentItem == null)
             {
+                Log.Debug("At end of ContentAccessSupport.ReducedContentGoLive, ContentReductionTask or a required navigation property is null");
                 throw new ApplicationException("ContentAccessSupport.PositionReducedContentForGoLive called without required navigation properties");
             }
             if (reductionTask.SelectionCriteria == null)
             {
+                Log.Debug("At end of ContentAccessSupport.ReducedContentGoLive, ContentReductionTask contains no selection criteria");
                 throw new ApplicationException("ContentAccessSupport.PositionReducedContentForGoLive called for ContentReductionTask with null SelectionCriteria");
             }
 

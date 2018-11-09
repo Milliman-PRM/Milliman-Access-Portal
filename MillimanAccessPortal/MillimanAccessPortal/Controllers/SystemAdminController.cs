@@ -547,6 +547,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (createResult.Succeeded && user != null)
             {
+                Log.Debug($"In SystemAdminController.CreateUser action: created new user account with email {email}");
                 string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
                 await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
             }
@@ -559,7 +560,6 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In SystemAdminController.CreateUser action: success");
-            _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(user));
 
             var userSummary = (UserInfoViewModel)user;
 
@@ -660,6 +660,7 @@ namespace MillimanAccessPortal.Controllers
 
                     if (createResult.Succeeded && user != null)
                     {
+                        Log.Debug($"In SystemAdminController.AddUserToClient action: created new user account with email {email}");
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
                         await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
                     }
@@ -745,6 +746,7 @@ namespace MillimanAccessPortal.Controllers
 
                     if (createResult.Succeeded && user != null)
                     {
+                        Log.Debug($"In SystemAdminController.AddUserToProfitCenter action: created new user account with email {email}");
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
                         await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
                     }

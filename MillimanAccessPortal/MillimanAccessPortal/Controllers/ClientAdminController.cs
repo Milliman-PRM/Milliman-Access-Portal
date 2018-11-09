@@ -164,7 +164,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SaveNewUser([Bind("UserName,Email,MemberOfClientId")]ApplicationUserViewModel Model)
         {
-            Log.Verbose($"In ClientAdminController.SaveNewUser action request to add user {(!string.IsNullOrWhiteSpace(Model.Email) ? Model.Email : Model.UserName) ?? "<Unspecified>"} to clientId {Model.MemberOfClientId}");
+            Log.Verbose("Entered ClientAdminController.SaveNewUser action with model {@Model}", Model);
 
             ApplicationUser RequestedUser = null;
 
@@ -172,10 +172,12 @@ namespace MillimanAccessPortal.Controllers
             if (!string.IsNullOrWhiteSpace(Model.Email))
             {
                 RequestedUser = await UserManager.FindByEmailAsync(Model.Email);
+                Log.Debug($"In ClientAdminController.SaveNewUser action, searching for existing account using FindByEmailAsync returned {(RequestedUser != null ? Newtonsoft.Json.JsonConvert.SerializeObject(RequestedUser) : "null")}");
             }
             if (RequestedUser == null && !string.IsNullOrWhiteSpace(Model.UserName))
             {
                 RequestedUser = await UserManager.FindByNameAsync(Model.UserName);
+                Log.Debug($"In ClientAdminController.SaveNewUser action, searching for existing account using FindByNameAsync returned {(RequestedUser != null ? Newtonsoft.Json.JsonConvert.SerializeObject(RequestedUser) : "null")}");
             }
             #endregion
 
@@ -184,6 +186,7 @@ namespace MillimanAccessPortal.Controllers
             Client RequestedClient = DbContext.Client.SingleOrDefault(c => c.Id == Model.MemberOfClientId);
             if (RequestedClient == null)
             {
+                Log.Debug($"In ClientAdminController.SaveNewUser action, client {Model.MemberOfClientId} not found");
                 Response.Headers.Add("Warning", "The requested Client does not exist");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -249,7 +252,7 @@ namespace MillimanAccessPortal.Controllers
                 // 1. Email must be a valid address
                 if (!GlobalFunctions.IsValidEmail(Model.Email))
                 {
-                    Log.Verbose($"In ClientAdminController.SaveNewUser action: Validation failed, requested new user email is invalid: {Model.Email}");
+                    Log.Debug($"In ClientAdminController.SaveNewUser action: Validation failed, requested new user email is invalid: {Model.Email}");
                     Response.Headers.Add("MapReason", "101");
                     Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) is not valid");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -260,7 +263,7 @@ namespace MillimanAccessPortal.Controllers
                     (DbContext.ApplicationUser.Any(u => u.UserName == Model.UserName) ||
                         DbContext.ApplicationUser.Any(u => u.Email == Model.UserName)))
                 {
-                    Log.Verbose($"In ClientAdminController.SaveNewUser action: Validation failed, requested new user email {Model.Email} already exists in database as email or username");
+                    Log.Debug($"In ClientAdminController.SaveNewUser action: Validation failed, requested new user email {Model.Email} already exists in database as email or username");
                     Response.Headers.Add("MapReason", "103");
                     Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -292,19 +295,18 @@ namespace MillimanAccessPortal.Controllers
 
                     if (result.Succeeded && RequestedUser != null)
                     {
-                        Log.Verbose($"In ClientAdminController.SaveNewUser action: New user account created: UserName {Model.UserName}, email {Model.Email}");
+                        Log.Debug("In ClientAdminController.SaveNewUser action: New user account created successfully: using model {@Model}", Model);
                         // Configurable portion of email body
                         string welcomeText = !string.IsNullOrWhiteSpace(RequestedClient.NewUserWelcomeText)
                             ? RequestedClient.NewUserWelcomeText
                             : ApplicationConfig["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
 
-                        await _accountController.SendNewAccountWelcomeEmail(RequestedUser, Url, welcomeText);
-                        Log.Verbose($"In ClientAdminController.SaveNewUser action: For new user UserName {Model.UserName}, welcome email sent");
+                        await _accountController.SendNewAccountWelcomeEmail(RequestedUser, Url, welcomeText);  // This saves a log message
                     }
                     else
                     {
                         string Errors = string.Join($", ", result.Errors.Select(e => e.Description));
-                        Log.Verbose($"In ClientAdminController.SaveNewUser action: New user account creation failed: UserName {Model.UserName}, error(s) {Errors}");
+                        Log.Debug($"In ClientAdminController.SaveNewUser action: New user account creation failed: Model {{@Model}}, error(s) {Errors}", Model);
                         Response.Headers.Add("Warning", $"Error while creating user ({Model.UserName}) in database: {Errors}");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
@@ -315,7 +317,7 @@ namespace MillimanAccessPortal.Controllers
                 if (!CurrentClaimsOfRequestedUser.Any(c => c.Type == ThisClientMembershipClaim.Type && c.Value == ThisClientMembershipClaim.Value))
                 {
                     await UserManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim);
-                    Log.Verbose($"In ClientAdminController.SaveNewUser action: UserName {RequestedUser.UserName}, added to client {ThisClientMembershipClaim.Value}");
+                    Log.Debug($"In ClientAdminController.SaveNewUser action: UserName {RequestedUser.UserName}, added to client {ThisClientMembershipClaim.Value}");
                 }
 
                 DbContext.SaveChanges();

@@ -36,6 +36,8 @@ namespace MillimanAccessPortal.Controllers
     [Authorize]
     public class AccountController : Controller
     {
+        readonly string TwoNewLines = Environment.NewLine + Environment.NewLine;
+
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
@@ -377,23 +379,36 @@ namespace MillimanAccessPortal.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="RequestedUser"></param>
+        /// <param name="Url"></param>
+        /// <param name="SettableEmailText">Do not include trailing line feeds</param>
+        /// <returns></returns>
         [NonAction]
         public async Task SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, IUrlHelper Url, string SettableEmailText = null)
         {
             Log.Verbose("Entered AccountController.SendNewAccountWelcomeEmail action with {@UserName}", RequestedUser.UserName);
 
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
+            Log.Debug("In AccountController.SendNewAccountWelcomeEmail action: EmailConfirmationToken created: {@Token}", emailConfirmationToken);
             var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
+            Log.Debug("In AccountController.SendNewAccountWelcomeEmail action: Url created: {@url}", callbackUrl);
 
             // Configurable portion of email body
             string emailBody = string.IsNullOrWhiteSpace(SettableEmailText)
                 ? string.Empty
-                : SettableEmailText + $"{Environment.NewLine}{Environment.NewLine}";
+                : SettableEmailText + $"{TwoNewLines}";
 
             string accountActivationDays = _configuration["AccountActivationTokenTimespanDays"] ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays.ToString();
 
             // Non-configurable portion of email body
-            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}{callbackUrl}{Environment.NewLine}{Environment.NewLine}This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}If you have any questions regarding this email, please contact map.support@milliman.com";
+            emailBody += $"Your username is: {RequestedUser.UserName}{TwoNewLines}" +
+                         $"Activate your account by clicking the link below or copying and pasting the link into your web browser.{TwoNewLines}" +
+                         callbackUrl + TwoNewLines +
+                         $"This link will expire in {accountActivationDays} days.{TwoNewLines}"+
+                         "If you have any questions regarding this email, please contact map.support@milliman.com";
             string emailSubject = "Welcome to Milliman Access Portal!";
             // Send welcome email
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
@@ -412,7 +427,7 @@ namespace MillimanAccessPortal.Controllers
             string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
 
             string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
-            emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
+            emailBody += $"Your user name is {RequestedUser.UserName}{TwoNewLines}";
             emailBody += $"{linkUrl}";
             _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
 
@@ -427,10 +442,11 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> EnableAccount(string userId, string code)
         {
             Log.Verbose("Entered AccountController.EnableAccount GET action with {@UserId}", userId);
+            Log.Debug("In AccountController.EnableAccount GET action: Token received: {@Code}", code);
 
             if (userId == null || code == null)
             {
-                Log.Debug("In AccountController.EnableAccount GET action: invalid argument(s), aborting");
+                Log.Debug("In AccountController.EnableAccount GET action: a null argument is invalid, aborting");
                 return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
             }
             var user = await _userManager.FindByIdAsync(userId);
@@ -477,7 +493,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EnableAccount(EnableAccountViewModel model)
         {
-            Log.Verbose("Entered AccountController.EnableAccount POST action with {@UserName}", model.Username);
+            Log.Verbose("Entered AccountController.EnableAccount POST action for user {@UserName}", model.Username);
 
             if (!ModelState.IsValid)
             {
@@ -486,7 +502,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null)
             {
-                Log.Debug($"In AccountController.EnableAccount POST action: user {model.Id} no found, aborting");
+                Log.Debug($"In AccountController.EnableAccount POST action: user {model.Id} not found, aborting");
                 return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
             }
 
