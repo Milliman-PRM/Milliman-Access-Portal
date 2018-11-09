@@ -201,16 +201,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered FileUploadController.FinalizeUpload action for {fileUploadId}");
 
-            var fileUpload = _dbContext.FileUpload.SingleOrDefault();
-
-            #region Validation
-            if (fileUpload == null)
-            {
-                Log.Debug($"In FileUploadController.FinalizeUpload action: file upload does not exist, aborting");
-                Response.Headers.Add("Warning", "The specified file uplad does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
+            var fileUpload = _dbContext.FileUpload.Find(fileUploadId);
 
             return Json(fileUpload);
         }
