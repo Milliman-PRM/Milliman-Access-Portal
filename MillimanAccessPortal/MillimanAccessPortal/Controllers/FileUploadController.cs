@@ -39,29 +39,28 @@ namespace MillimanAccessPortal.Controllers
 {
     public class FileUploadController : Controller
     {
-        private readonly IAuditLogger AuditLogger;
-        private readonly IAuthorizationService AuthorizationService;
-        private readonly IUploadHelper UploadHelper;
-        private readonly ApplicationDbContext DbContext;
+        private readonly IAuditLogger _auditLogger;
+        private readonly ApplicationDbContext _dbContext;
+        private readonly IUploadHelper _uploadHelper;
+        private readonly IUploadTaskQueue _uploadTaskQueue;
 
         /// <summary>
         /// Constructor, stores local references to injected service instances
         /// </summary>
-        /// <param name="AuditLoggerArg"></param>
-        /// <param name="AuthorizationServiceArg"></param>
-        /// <param name="UploadHelperArg"></param>
-        /// <param name="LoggerFactoryArg"></param>
+        /// <param name="auditLogger"></param>
+        /// <param name="dbContext"></param>
+        /// <param name="uploadHelper"></param>
+        /// <param name="uploadTaskQueue"></param>
         public FileUploadController(
-            ApplicationDbContext ContextArg,
-            IAuditLogger AuditLoggerArg,
-            IAuthorizationService AuthorizationServiceArg,
-            IUploadHelper UploadHelperArg
-            )
+            IAuditLogger auditLogger,
+            ApplicationDbContext dbContext,
+            IUploadHelper uploadHelper,
+            IUploadTaskQueue uploadTaskQueue)
         {
-            AuditLogger = AuditLoggerArg;
-            AuthorizationService = AuthorizationServiceArg;
-            UploadHelper = UploadHelperArg;
-            DbContext = ContextArg;
+            _auditLogger = auditLogger;
+            _dbContext = dbContext;
+            _uploadHelper = uploadHelper;
+            _uploadTaskQueue = uploadTaskQueue;
         }
 
         /// <summary>
@@ -72,7 +71,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public ActionResult ChunkStatus(ResumableInfo resumableInfo)
         {
-            return new JsonResult(UploadHelper.GetUploadStatus(resumableInfo));
+            return new JsonResult(_uploadHelper.GetUploadStatus(resumableInfo));
         }
 
         /// <summary>
@@ -108,7 +107,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
                     {
-                        using (var tempFileStream = UploadHelper.OpenTempFile())
+                        using (var tempFileStream = _uploadHelper.OpenTempFile())
                         {
                             await section.Body.CopyToAsync(tempFileStream);
                         }
@@ -166,7 +165,7 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                UploadHelper.FinalizeChunk(resumableInfo);
+                _uploadHelper.FinalizeChunk(resumableInfo);
             }
             catch (FileUploadException e)
             {
@@ -187,7 +186,7 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult CancelUpload(ResumableInfo resumableInfo)
         {
             Log.Verbose("Entered FileUploadController.CancelUpload action for {@ResumableInfo}", resumableInfo);
-            UploadHelper.DeleteAllChunks(resumableInfo);
+            _uploadHelper.DeleteAllChunks(resumableInfo);
 
             return Ok();
         }
@@ -206,30 +205,15 @@ namespace MillimanAccessPortal.Controllers
             {
                 ClientFileIdentifier = resumableInfo.UID,
             };
-            DbContext.FileUpload.Add(fileUpload);
+            _dbContext.FileUpload.Add(fileUpload);
+            _dbContext.SaveChanges();
 
-            try
-            {
-                UploadHelper.FinalizeUpload(resumableInfo);
-            }
-            catch (FileUploadException e)
-            {
-                Log.Error(e, "In FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
-                Response.Headers.Add("Warning", e.Message);
-                return new StatusCodeResult(e.HttpStatus);
-            }
+            _uploadTaskQueue.QueueUploadFinalization(resumableInfo);
 
-            var fileUploadExtension = new FileUploadExtension
-            {
-                FileUploadId = fileUpload.Id,
-                StoragePath = UploadHelper.GetOutputFilePath(),
-                Checksum = resumableInfo.Checksum,
-            };
+            return Json(fileUpload.Id);
 
-            DbContext.FileUploadExtension.Add(fileUploadExtension);
-            DbContext.SaveChanges();
-
-            return new JsonResult(fileUpload.Id);
+            /*
+            */
         }
     }
 
