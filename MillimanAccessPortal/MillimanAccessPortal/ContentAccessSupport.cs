@@ -65,7 +65,7 @@ namespace MillimanAccessPortal
         /// <param name="connectionString"></param>
         internal static async Task MonitorReductionTaskForGoLive(Guid TaskGuid, string connectionString, string contentRootFolder, object ContentTypeConfig = null)
         {
-            TimeSpan timeoutDuration = new TimeSpan(0, 8, 0);
+            TimeSpan timeoutDuration = new TimeSpan(0, 15, 0);
             ContentReductionTask thisContentReductionTask = null;
 
             DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString);
@@ -92,11 +92,13 @@ namespace MillimanAccessPortal
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     thisContentReductionTask = Db.ContentReductionTask.Find(TaskGuid);
-                }
 
-                if (DateTime.UtcNow > expireTimeUtc)
-                {
-                    return;
+                    if (DateTime.UtcNow > expireTimeUtc)
+                    {
+                        thisContentReductionTask.ReductionStatus = ReductionStatusEnum.Error;
+                        Db.SaveChanges();
+                        return;
+                    }
                 }
 
                 if (thisContentReductionTask.ReductionStatus == ReductionStatusEnum.Canceled || 

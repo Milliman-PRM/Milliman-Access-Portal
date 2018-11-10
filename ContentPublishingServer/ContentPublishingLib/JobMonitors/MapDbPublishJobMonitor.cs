@@ -261,8 +261,9 @@ namespace ContentPublishingLib.JobMonitors
                         return false;
                     }
 
-                    // Canceled here implies that the application does not want the update
-                    if (DbRequest.RequestStatus == PublicationStatus.Canceled)
+                    // Canceled or error here implies that the application does not want the update
+                    if (DbRequest.RequestStatus == PublicationStatus.Canceled
+                        || DbRequest.RequestStatus == PublicationStatus.Error)
                     {
                         List<ContentReductionTask> RelatedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id).ToList();
                         RelatedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);

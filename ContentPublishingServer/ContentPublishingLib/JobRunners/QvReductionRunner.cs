@@ -670,8 +670,8 @@ namespace ContentPublishingLib.JobRunners
         /// <returns></returns>
         private async Task RunQdsTask(DocumentTask DocTask)
         {
-            TimeSpan MaxStartDelay = new TimeSpan(0, 5, 0);
-            TimeSpan MaxElapsedRun = new TimeSpan(0, 5, 0);
+            TimeSpan MaxStartDelay = new TimeSpan(0, 10, 0);
+            TimeSpan MaxElapsedRun = new TimeSpan(0, 10, 0);
             int PublisherPollingIntervalMs = 250;
 
             QlikviewLib.Qms.TaskStatus Status;

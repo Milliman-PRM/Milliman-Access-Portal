@@ -253,8 +253,10 @@ namespace ContentPublishingLib.JobMonitors
                 {
                     ContentReductionTask DbTask = Db.ContentReductionTask.Find(JobDetail.TaskId);
 
-                    // Canceled here implies that the application does not want the update
-                    if (DbTask == null || DbTask.ReductionStatus == ReductionStatusEnum.Canceled)
+                    // Canceled and error here implies that the application does not want the update
+                    if (DbTask == null
+                        || DbTask.ReductionStatus == ReductionStatusEnum.Canceled
+                        || DbTask.ReductionStatus == ReductionStatusEnum.Error)
                     {
                         return false;
                     }
