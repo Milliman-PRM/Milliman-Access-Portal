@@ -11,6 +11,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using QlikviewLib;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -95,7 +96,9 @@ namespace MillimanAccessPortal
 
                     if (DateTime.UtcNow > expireTimeUtc)
                     {
+                        Log.Warning("Timeout reached while waiting for reduction task. {@timeout} {@reductionTask}", timeoutDuration, thisContentReductionTask);
                         thisContentReductionTask.ReductionStatus = ReductionStatusEnum.Error;
+                        thisContentReductionTask.ReductionStatusMessage = "MAP timeout waiting for reduction task.";
                         Db.SaveChanges();
                         return;
                     }
