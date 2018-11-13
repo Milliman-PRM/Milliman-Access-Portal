@@ -36,7 +36,7 @@ export function pendingReductionValues(state: ContentAccessAdminState) {
   const _selectedGroup = selectedGroup(state);
   const _relatedReduction = relatedReduction(state, _selectedGroup && _selectedGroup.id);
   return _selectedGroup
-    ? (_relatedReduction && isReductionActive(_relatedReduction.reductionStatus))
+    ? (_relatedReduction && isReductionActive(_relatedReduction.taskStatus))
       ? _relatedReduction.selectedValues.map((i) =>
         state.data.values.filter((v) => v.id === i)[0])
       : state.data.values.filter((v) => {

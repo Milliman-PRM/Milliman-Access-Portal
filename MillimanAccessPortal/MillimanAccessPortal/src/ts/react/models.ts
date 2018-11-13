@@ -70,7 +70,7 @@ export interface ContentReductionTask {
   selectionGroupId: Guid;
   selectedValues: Guid[];
   createDateTimeUtc: string;
-  reductionStatus: ReductionStatus;
+  taskStatus: ReductionStatus;
 }
 
 export interface ReductionFieldset {
@@ -94,4 +94,12 @@ export interface PublicationWithQueueDetails extends ContentPublicationRequest {
 }
 export interface ReductionWithQueueDetails extends ContentReductionTask {
   queueDetails: ReductionQueueDetails;
+}
+export function isPublicationRequest(request: ContentPublicationRequest | ContentReductionTask)
+    : request is ContentPublicationRequest {
+  return (request as ContentPublicationRequest).rootContentItemId !== undefined;
+}
+export function isReductionTask(request: ContentPublicationRequest | ContentReductionTask)
+    : request is ContentReductionTask {
+  return (request as ContentReductionTask).selectionGroupId !== undefined;
 }

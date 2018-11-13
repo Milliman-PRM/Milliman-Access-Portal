@@ -179,7 +179,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         onIsMasterChange={setMasterSelected}
         title={group.name}
         subtitle={item.name}
-        status={group.status ? group.status.reductionStatus : ReductionStatus.Unspecified}
+        status={group.status ? group.status.taskStatus : ReductionStatus.Unspecified}
         fieldsets={fieldsets}
       />
     );

@@ -6,7 +6,7 @@ import '../../../images/remove-circle.svg';
 
 import * as React from 'react';
 
-import { Guid, PublicationWithQueueDetails, ReductionWithQueueDetails } from '../models';
+import { Guid, PublicationWithQueueDetails, ReductionWithQueueDetails, isPublicationRequest } from '../models';
 import {
   EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo,
 } from '../system-admin/interfaces';
@@ -347,9 +347,12 @@ export class Card extends React.Component<CardProps> {
     if (!status) {
       return null;
     } else {
+      const statusValue = isPublicationRequest(status)
+        ? status.requestStatus
+        : status.taskStatus;
       return (
-        <div className="card-status-container status-30">
-          <span className="status-top">Status Name</span>
+        <div className={`card-status-container status-${statusValue}`}>
+          <span className="status-top">{statusValue}</span>
           <span className="status-bot">
             Initiated by {status.applicationUserId} {status.queueDetails.queuedDurationMs}ms ago
           </span>

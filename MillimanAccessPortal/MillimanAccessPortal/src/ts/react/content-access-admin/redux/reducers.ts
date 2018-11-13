@@ -79,7 +79,7 @@ const _publicationQueue: PublicationQueueDetails[] = [
 ];
 const _reductions: ContentReductionTask[] = [
   { id: 'reduction1', applicationUserId: 'user1', contentPublicationRequestId: null,
-    selectionGroupId: 'group1', selectedValues: [], reductionStatus: ReductionStatus.Queued, createDateTimeUtc: '' },
+    selectionGroupId: 'group1', selectedValues: [], taskStatus: ReductionStatus.Queued, createDateTimeUtc: '' },
 ];
 const _reductionQueue: ReductionQueueDetails[] = [
   { reductionId: 'reduction1', queuePosition: 1, queuedDurationMs: 42 },
