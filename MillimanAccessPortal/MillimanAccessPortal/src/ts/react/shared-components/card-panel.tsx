@@ -266,6 +266,7 @@ export class CardPanel extends React.Component<CardPanelProps> {
                 onClientUserRemove={this.getOnClientUserRemove(entity)}
                 cardStats={this.props.cardStats}
                 status={(entity as any).status}
+                suspended={(entity as any).isSuspended}
               />
             </li>
           );
