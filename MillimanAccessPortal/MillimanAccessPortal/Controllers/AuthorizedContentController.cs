@@ -181,10 +181,9 @@ namespace MillimanAccessPortal.Controllers
                         ContentSpecificHandler = new QlikviewLibApi();
                         break;
 
-                    //case ContentTypeEnum.SomeOther":
-                    //    ContentSpecificHandler = new AnotherTypeSpecificLib();
-                    //    break;
-
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.FileDownload:
                     default:
                         Log.Error($"In AuthorizedContentController.WebHostedContent action, unsupported content type <{selectionGroup.RootContentItem.ContentType.Name}>, aborting");
                         TempData["Message"] = $"Display of an unsupported ContentType was requested: {selectionGroup.RootContentItem.ContentType.Name}";
@@ -201,9 +200,9 @@ namespace MillimanAccessPortal.Controllers
                     case ContentTypeEnum.Qlikview:
                         return Redirect(ContentUri.Uri.AbsoluteUri);
 
-                    //case ContentTypeEnum.Another:
-                    //return TheRightThing;
-
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.FileDownload:
                     default:
                         // Perhaps this can't happen since this case is handled above
                         TempData["Message"] = $"In AuthorizedContentController.WebHostedContent action, an unsupported ContentType was requested: {selectionGroup.RootContentItem.ContentType.Name}";

@@ -388,7 +388,7 @@ namespace MillimanAccessPortal.Controllers
                 case ContentTypeEnum.Qlikview:
                     string ContentFolderFullPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), rootContentItem.Id.ToString());
 
-                    if (Directory.Exists(ContentFolderFullPath))  // unlikely but could happen if nothing was ever published
+                    if (Directory.Exists(ContentFolderFullPath))  // could be false if nothing was ever published
                     {
                         List<string> AllQvwFiles = Directory.GetFiles(ContentFolderFullPath, "*.qvw").ToList();
                         AllQvwFiles.ForEach(async f =>
@@ -400,6 +400,9 @@ namespace MillimanAccessPortal.Controllers
                     }
                     break;
 
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.FileDownload:
                 default:
                     break;
             }
@@ -852,6 +855,9 @@ namespace MillimanAccessPortal.Controllers
                             }
                             break;
 
+                        case ContentTypeEnum.Html:
+                        case ContentTypeEnum.Pdf:
+                        case ContentTypeEnum.FileDownload:
                         default:
                             break;
                     }
@@ -999,7 +1005,9 @@ namespace MillimanAccessPortal.Controllers
                         await new QlikviewLib.QlikviewLibApi().AuthorizeUserDocumentsInFolder(rootContentItemId.ToString(), QlikviewConfig);
                         break;
 
-                    case ContentTypeEnum.Unknown:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.FileDownload:
                     default:
                         break;
                 }

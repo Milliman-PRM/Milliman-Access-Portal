@@ -655,6 +655,9 @@ namespace MillimanAccessPortal.Controllers
                         }
                         break;
 
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.FileDownload:
                     default:
                         break;
                 }
@@ -879,7 +882,9 @@ namespace MillimanAccessPortal.Controllers
                         ContentTypeConfigObj = QvConfig;
                         break;
 
-                    case ContentTypeEnum.Unknown:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.FileDownload:
                     default:
                         break;
                 }

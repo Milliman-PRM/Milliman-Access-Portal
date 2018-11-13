@@ -134,7 +134,6 @@ namespace MillimanAccessPortal
                         }
                         break;
 
-                    case ContentTypeEnum.Unknown:
                     default:
                         throw new NotSupportedException($"Publication request cannot be created for unsupported ContentType {rootContentItem.ContentType.TypeEnum.ToString()}");
                 }

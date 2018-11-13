@@ -118,6 +118,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 ReturnObj.MasterContentLink = QvwUri.Uri.AbsoluteUri;
                                 break;
 
+                            case ContentTypeEnum.Html:
+                            case ContentTypeEnum.Pdf:
+                            case ContentTypeEnum.FileDownload:
                             default:
                                 break;
                         }

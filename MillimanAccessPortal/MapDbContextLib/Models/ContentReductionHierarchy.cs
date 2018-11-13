@@ -114,7 +114,6 @@ namespace MapDbContextLib.Models
                         };
                         break;
 
-                    case ContentTypeEnum.Unknown:
                     case ContentTypeEnum.Html:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.FileDownload:
@@ -172,7 +171,6 @@ namespace MapDbContextLib.Models
                             });
                             break;
 
-                        case ContentTypeEnum.Unknown:
                         case ContentTypeEnum.Html:
                         case ContentTypeEnum.Pdf:
                         case ContentTypeEnum.FileDownload:
