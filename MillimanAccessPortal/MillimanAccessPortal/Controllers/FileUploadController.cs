@@ -20,7 +20,6 @@
 
 using AuditLogLib.Services;
 using MapDbContextLib.Context;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -32,6 +31,7 @@ using Serilog;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -39,29 +39,28 @@ namespace MillimanAccessPortal.Controllers
 {
     public class FileUploadController : Controller
     {
-        private readonly IAuditLogger AuditLogger;
-        private readonly IAuthorizationService AuthorizationService;
-        private readonly IUploadHelper UploadHelper;
-        private readonly ApplicationDbContext DbContext;
+        private readonly IAuditLogger _auditLogger;
+        private readonly ApplicationDbContext _dbContext;
+        private readonly IUploadHelper _uploadHelper;
+        private readonly IUploadTaskQueue _uploadTaskQueue;
 
         /// <summary>
         /// Constructor, stores local references to injected service instances
         /// </summary>
-        /// <param name="AuditLoggerArg"></param>
-        /// <param name="AuthorizationServiceArg"></param>
-        /// <param name="UploadHelperArg"></param>
-        /// <param name="LoggerFactoryArg"></param>
+        /// <param name="auditLogger"></param>
+        /// <param name="dbContext"></param>
+        /// <param name="uploadHelper"></param>
+        /// <param name="uploadTaskQueue"></param>
         public FileUploadController(
-            ApplicationDbContext ContextArg,
-            IAuditLogger AuditLoggerArg,
-            IAuthorizationService AuthorizationServiceArg,
-            IUploadHelper UploadHelperArg
-            )
+            IAuditLogger auditLogger,
+            ApplicationDbContext dbContext,
+            IUploadHelper uploadHelper,
+            IUploadTaskQueue uploadTaskQueue)
         {
-            AuditLogger = AuditLoggerArg;
-            AuthorizationService = AuthorizationServiceArg;
-            UploadHelper = UploadHelperArg;
-            DbContext = ContextArg;
+            _auditLogger = auditLogger;
+            _dbContext = dbContext;
+            _uploadHelper = uploadHelper;
+            _uploadTaskQueue = uploadTaskQueue;
         }
 
         /// <summary>
@@ -72,7 +71,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public ActionResult ChunkStatus(ResumableInfo resumableInfo)
         {
-            return new JsonResult(UploadHelper.GetUploadStatus(resumableInfo));
+            return new JsonResult(_uploadHelper.GetUploadStatus(resumableInfo));
         }
 
         /// <summary>
@@ -108,7 +107,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
                     {
-                        using (var tempFileStream = UploadHelper.OpenTempFile())
+                        using (var tempFileStream = _uploadHelper.OpenTempFile())
                         {
                             await section.Body.CopyToAsync(tempFileStream);
                         }
@@ -166,7 +165,7 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                UploadHelper.FinalizeChunk(resumableInfo);
+                _uploadHelper.FinalizeChunk(resumableInfo);
             }
             catch (FileUploadException e)
             {
@@ -187,13 +186,28 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult CancelUpload(ResumableInfo resumableInfo)
         {
             Log.Verbose("Entered FileUploadController.CancelUpload action for {@ResumableInfo}", resumableInfo);
-            UploadHelper.DeleteAllChunks(resumableInfo);
+            _uploadHelper.DeleteAllChunks(resumableInfo);
 
             return Ok();
         }
 
         /// <summary>
-        /// Finalize upload by reassmebling and verifying the file
+        /// Get a file upload
+        /// </summary>
+        /// <param name="fileUploadId">The file upload to return</param>
+        /// <returns>Json</returns>
+        [HttpGet]
+        public IActionResult FinalizeUpload(Guid fileUploadId)
+        {
+            Log.Verbose($"Entered FileUploadController.FinalizeUpload action for {fileUploadId}");
+
+            var fileUpload = _dbContext.FileUpload.Find(fileUploadId);
+
+            return Json(fileUpload);
+        }
+
+        /// <summary>
+        /// Queue upload finalization
         /// </summary>
         /// <param name="resumableInfo">Identifies the resumable upload</param>
         /// <returns>Ok or 409</returns>
@@ -201,29 +215,17 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult FinalizeUpload(ResumableInfo resumableInfo)
         {
             Log.Verbose("Entered FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
-            try
-            {
-                UploadHelper.FinalizeUpload(resumableInfo);
-            }
-            catch (FileUploadException e)
-            {
-                Log.Error(e, "In FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
-                Response.Headers.Add("Warning", e.Message);
-                return new StatusCodeResult(e.HttpStatus);
-            }
 
             var fileUpload = new FileUpload
             {
-                StoragePath = UploadHelper.GetOutputFilePath(),
-                Checksum = resumableInfo.Checksum,
                 ClientFileIdentifier = resumableInfo.UID,
-                CreatedDateTimeUtc = DateTime.UtcNow
             };
+            _dbContext.FileUpload.Add(fileUpload);
+            _dbContext.SaveChanges();
 
-            DbContext.FileUpload.Add(fileUpload);
-            DbContext.SaveChanges();
+            _uploadTaskQueue.QueueUploadFinalization(resumableInfo);
 
-            return new JsonResult(fileUpload.Id);
+            return Json(fileUpload.Id);
         }
     }
 
