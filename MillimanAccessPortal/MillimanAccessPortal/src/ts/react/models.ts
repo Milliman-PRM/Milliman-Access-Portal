@@ -36,7 +36,7 @@ export interface RootContentItemWithStatus extends RootContentItem {
 export interface SelectionGroup {
   id: Guid;
   rootContentItemId?: Guid;
-  selectedValues?: Guid[];
+  selectedValues: Guid[];
   isSuspended: boolean;
   isMaster: boolean;
   name: string;
@@ -68,6 +68,7 @@ export interface ContentReductionTask {
   contentPublicationRequestId: Guid;
   applicationUserId: Guid;
   selectionGroupId: Guid;
+  selectedValues: Guid[];
   createDateTimeUtc: string;
   reductionStatus: ReductionStatus;
 }

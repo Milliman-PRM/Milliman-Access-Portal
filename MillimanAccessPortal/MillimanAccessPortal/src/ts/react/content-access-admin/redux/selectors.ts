@@ -1,8 +1,7 @@
 import { isEqual, xor } from 'lodash';
 
-import { isActive } from '../../../view-models/content-publishing';
+import { isPublicationActive, isReductionActive } from '../../../view-models/content-publishing';
 import { Guid, ReductionFieldset } from '../../models';
-import { CardAttributes } from '../../shared-components/card';
 import { ContentAccessAdminState } from './store';
 
 export function selectedClient(state: ContentAccessAdminState) {
@@ -35,11 +34,15 @@ export function selectedReductionValues(state: ContentAccessAdminState) {
 
 export function pendingReductionValues(state: ContentAccessAdminState) {
   const _selectedGroup = selectedGroup(state);
+  const _relatedReduction = relatedReduction(state, _selectedGroup && _selectedGroup.id);
   return _selectedGroup
-    ? state.data.values.filter((v) => {
-      const panelValue = state.selectionsPanel.values[v.id];
-      return (_selectedGroup.selectedValues.indexOf(v.id) !== -1 && panelValue !== false) || panelValue;
-    })
+    ? (_relatedReduction && isReductionActive(_relatedReduction.reductionStatus))
+      ? _relatedReduction.selectedValues.map((i) =>
+        state.data.values.filter((v) => v.id === i)[0])
+      : state.data.values.filter((v) => {
+        const panelValue = state.selectionsPanel.values[v.id];
+        return (_selectedGroup.selectedValues.indexOf(v.id) !== -1 && panelValue !== false) || panelValue;
+      })
     : [];
 }
 
@@ -144,7 +147,7 @@ export function activeReductionFieldsets(state: ContentAccessAdminState): Reduct
 export function itemCardAttributes(state: ContentAccessAdminState) {
   const cards = { ...state.itemPanel.cards };
   state.data.publications.forEach((p) => {
-    if (isActive(p.requestStatus)) {
+    if (isPublicationActive(p.requestStatus)) {
       if (cards[p.rootContentItemId]) {
         cards[p.rootContentItemId].disabled = true;
       } else {
