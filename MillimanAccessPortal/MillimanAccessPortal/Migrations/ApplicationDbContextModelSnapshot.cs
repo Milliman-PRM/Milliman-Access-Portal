@@ -192,8 +192,12 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("uuid_generate_v4()");
 
+                    b.Property<string>("Checksum");
+
                     b.Property<string>("ClientFileIdentifier")
                         .IsRequired();
+
+                    b.Property<DateTime>("CreatedDateTimeUtc");
 
                     b.Property<DateTime>("InitiatedDateTimeUtc");
 
@@ -201,32 +205,11 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("StatusMessage");
 
+                    b.Property<string>("StoragePath");
+
                     b.HasKey("Id");
 
                     b.ToTable("FileUpload");
-                });
-
-            modelBuilder.Entity("MapDbContextLib.Context.FileUploadExtension", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Checksum")
-                        .IsRequired();
-
-                    b.Property<DateTime>("CreatedDateTimeUtc");
-
-                    b.Property<Guid>("FileUploadId");
-
-                    b.Property<string>("StoragePath")
-                        .IsRequired();
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FileUploadId")
-                        .IsUnique();
-
-                    b.ToTable("FileUploadExtension");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.HierarchyField", b =>
@@ -666,14 +649,6 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Context.SelectionGroup", "SelectionGroup")
                         .WithMany()
                         .HasForeignKey("SelectionGroupId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("MapDbContextLib.Context.FileUploadExtension", b =>
-                {
-                    b.HasOne("MapDbContextLib.Context.FileUpload", "FileUpload")
-                        .WithOne("FileUploadExtension")
-                        .HasForeignKey("MapDbContextLib.Context.FileUploadExtension", "FileUploadId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

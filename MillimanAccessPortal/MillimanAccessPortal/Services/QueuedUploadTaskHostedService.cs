@@ -52,15 +52,10 @@ public class QueuedUploadTaskHostedService : BackgroundService
                     continue;
                 }
 
-                var fileUploadExtension = new FileUploadExtension
-                {
-                    FileUploadId = fileUpload.Id,
-                    StoragePath = uploadHelper.GetOutputFilePath(),
-                    Checksum = resumableInfo.Checksum,
-                };
-                dbContext.FileUploadExtension.Add(fileUploadExtension);
-
                 fileUpload.Status = FileUploadStatus.Complete;
+                fileUpload.Checksum = resumableInfo.Checksum;
+                fileUpload.CreatedDateTimeUtc = DateTime.UtcNow;
+                fileUpload.StoragePath = uploadHelper.GetOutputFilePath();
 
                 await dbContext.SaveChangesAsync();
             }

@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett, Joseph Sweeney
- * OBJECTIVE: An entity representing a file that has been uploaded to the system
+ * OBJECTIVE: An entity representing an upload and (sometimes) the resulting file
  * DEVELOPER NOTES: 
  */
 
@@ -34,31 +34,19 @@ namespace MapDbContextLib.Context
 
         public string StatusMessage { get; set; }
 
-        public FileUploadExtension FileUploadExtension { get; set; }
-    }
-
-    public class FileUploadExtension
-    {
-        [Key]
-        public Guid Id { get; set; }
-
-        [Required]
+        // These members should only be populated if Status = FileUploadStatus.Complete
         public string Checksum { get; set; }
 
-        [Required]
-        public DateTime CreatedDateTimeUtc { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedDateTimeUtc { get; set; }
 
+        // PG does not set datetimes as nullable, instead giving them a default value.
+        // This property may give an incorrect answer if CreatedDateTimeUtc has not been set.
         [NotMapped]
         public bool VirusScanWindowComplete
         {
             get => (CreatedDateTimeUtc + TimeSpan.FromSeconds(GlobalFunctions.virusScanWindowSeconds)) < DateTime.UtcNow;
         }
 
-        [Required]
         public string StoragePath { get; set; }
-
-        [ForeignKey("FileUpload")]
-        public Guid FileUploadId { get; set; }
-        public FileUpload FileUpload { get; set; }
     }
 }
