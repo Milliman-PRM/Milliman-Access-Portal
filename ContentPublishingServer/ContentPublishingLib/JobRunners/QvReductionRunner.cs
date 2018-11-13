@@ -312,7 +312,7 @@ namespace ContentPublishingLib.JobRunners
             // Run Qlikview publisher (QDS) task
             try
             {
-                await RunQdsTask(HierarchyTask);
+                await RunQdsTask(HierarchyTask, 5);
             }
             finally
             {
@@ -668,11 +668,12 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="TInfo"></param>
         /// <returns></returns>
-        private async Task RunQdsTask(DocumentTask DocTask)
+        private async Task RunQdsTask(DocumentTask DocTask, int? timeoutMinutes = null)
         {
+            var defaultTimeout = int.Parse(Configuration.ApplicationConfiguration["DefaultQdsTaskTimeoutMinutes"]);
             TimeSpan MaxStartDelay = new TimeSpan(0, 5, 0);
-            TimeSpan MaxElapsedRun = new TimeSpan(0, 5, 0);
-            int PublisherPollingIntervalMs = 250;
+            TimeSpan MaxElapsedRun = new TimeSpan(0, timeoutMinutes ?? defaultTimeout, 0);
+            int PublisherPollingIntervalMs = 1000;
 
             QlikviewLib.Qms.TaskStatus Status;
 
