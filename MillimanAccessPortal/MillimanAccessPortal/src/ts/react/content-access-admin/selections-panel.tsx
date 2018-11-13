@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 import { ReductionStatus } from '../../view-models/content-publishing';
-import { ContentReductionTask, ReductionWithQueueDetails } from '../models';
 import { Filter } from '../shared-components/filter';
 import { Toggle } from '../shared-components/toggle';
 import { Fieldset, FieldsetData } from './fieldset';

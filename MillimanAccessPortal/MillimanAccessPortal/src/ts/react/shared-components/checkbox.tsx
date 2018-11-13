@@ -3,6 +3,7 @@ import * as React from 'react';
 export interface CheckboxData {
   name: string;
   selected: boolean;
+  modified: boolean;
   onChange: (selected: boolean) => void;
 }
 export interface CheckboxProps extends CheckboxData {
@@ -11,11 +12,11 @@ export interface CheckboxProps extends CheckboxData {
 
 export class Checkbox extends React.Component<CheckboxProps> {
   public render() {
-    const { name, selected } = this.props;
+    const { name, selected, modified } = this.props;
     return (
       <div className="selection-option-container">
         <label className="selection-option-label">
-          {name}
+          {name}{modified ? '*' : ''}
           <input
             type="checkbox"
             className="selection-option-value"

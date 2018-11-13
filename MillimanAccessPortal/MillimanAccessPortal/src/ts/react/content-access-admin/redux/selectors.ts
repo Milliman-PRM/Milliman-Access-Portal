@@ -1,9 +1,9 @@
-import { isEqual } from 'lodash';
+import { isEqual, xor } from 'lodash';
 
-import { Guid, ReductionFieldset } from '../../models';
-import { ContentAccessAdminState } from './store';
 import { isActive } from '../../../view-models/content-publishing';
+import { Guid, ReductionFieldset } from '../../models';
 import { CardAttributes } from '../../shared-components/card';
+import { ContentAccessAdminState } from './store';
 
 export function selectedClient(state: ContentAccessAdminState) {
   return state.data.clients.filter((c) => c.id === state.clientPanel.selectedCard)[0];
@@ -41,6 +41,13 @@ export function pendingReductionValues(state: ContentAccessAdminState) {
       return (_selectedGroup.selectedValues.indexOf(v.id) !== -1 && panelValue !== false) || panelValue;
     })
     : [];
+}
+
+export function modifiedReductionValues(state: ContentAccessAdminState) {
+  return xor(
+    selectedReductionValues(state),
+    pendingReductionValues(state),
+  );
 }
 
 export function pendingMaster(state: ContentAccessAdminState) {
@@ -141,9 +148,7 @@ export function itemCardAttributes(state: ContentAccessAdminState) {
       if (cards[p.rootContentItemId]) {
         cards[p.rootContentItemId].disabled = true;
       } else {
-        cards[p.rootContentItemId] = {
-          disabled: true,
-        };
+        cards[p.rootContentItemId] = { disabled: true };
       }
     }
   });
