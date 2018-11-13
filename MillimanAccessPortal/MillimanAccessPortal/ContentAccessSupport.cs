@@ -11,7 +11,6 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using QlikviewLib;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;

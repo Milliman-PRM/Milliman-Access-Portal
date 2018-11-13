@@ -312,7 +312,7 @@ namespace ContentPublishingLib.JobRunners
             // Run Qlikview publisher (QDS) task
             try
             {
-                await RunQdsTask(HierarchyTask);
+                await RunQdsTask(HierarchyTask, 5);
             }
             finally
             {
