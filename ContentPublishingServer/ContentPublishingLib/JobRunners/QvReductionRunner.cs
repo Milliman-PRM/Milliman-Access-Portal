@@ -347,17 +347,9 @@ namespace ContentPublishingLib.JobRunners
                         string valFromFile = NewField.FieldValues[valCounter];
                         if (valFromFile.StartsWith("\"") && valFromFile.EndsWith("\""))
                         {
-                            // remove enclosing quotes
-                            string UnquotedValue = valFromFile.Substring(1, valFromFile.Length - 2);
-                            // removing any escaped double quotes, can't just use .Replace() because the original value may have consecutive double quotes
-                            for (int charCounter = 0; charCounter < UnquotedValue.Length - 1; charCounter++)
-                            {
-                                if (UnquotedValue.IndexOf("\"\"", charCounter, 2) != -1)
-                                {
-                                    UnquotedValue = UnquotedValue.Remove(charCounter, 1);
-                                }
-                            }
-                            NewField.FieldValues[valCounter] = UnquotedValue;
+                            NewField.FieldValues[valCounter] = valFromFile
+                                .Substring(1, valFromFile.Length - 2)  // remove enclosing quotes
+                                .Replace("\"\"", "\"");  // replace each pair of (escaped) '"' with a single '"'
                         }
                     }
 
