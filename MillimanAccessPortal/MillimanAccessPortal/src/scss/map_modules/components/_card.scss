@@ -11,7 +11,8 @@
         box-shadow: rgba($charcoal, .42) .2em .2em .75em;
     }
 
-    &[disabled] {
+    &[disabled],
+    &.card-disabled {
 
         &.card-disabled {
             cursor: default;

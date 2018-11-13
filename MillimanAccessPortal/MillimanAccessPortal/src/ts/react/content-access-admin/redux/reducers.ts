@@ -85,34 +85,20 @@ const _reductionQueue: ReductionQueueDetails[] = [
   { reductionId: 'reduction1', queuePosition: 1, queuedDurationMs: 42 },
 ];
 
-const _clientCards = {
-  client1: {
-    expanded: false,
-    profitCenterModalOpen: false,
-  },
-  client2: {
-    expanded: false,
-    profitCenterModalOpen: false,
-  },
-};
 const _itemCards = {
   item1: {
-    expanded: false,
-    profitCenterModalOpen: false,
+    disabled: false,
   },
   item2: {
-    expanded: false,
-    profitCenterModalOpen: false,
+    disabled: true,
   },
   item3: {
-    expanded: false,
-    profitCenterModalOpen: false,
+    disabled: false,
   },
 };
 const _groupCards = {
   group1: {
     expanded: false,
-    profitCenterModalOpen: false,
   },
 };
 const _initialState: ContentAccessAdminState = {
@@ -128,7 +114,7 @@ const _initialState: ContentAccessAdminState = {
     reductions: _reductions,
     reductionQueue: _reductionQueue,
   },
-  clientPanel: { cards: _clientCards, selectedCard: null },
+  clientPanel: { selectedCard: null },
   itemPanel: { cards: _itemCards, selectedCard: null },
   groupPanel: { cards: _groupCards, selectedCard: null },
   selectionsPanel: { isMaster: null, values: {} },

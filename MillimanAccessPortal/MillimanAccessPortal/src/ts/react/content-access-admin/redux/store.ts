@@ -20,19 +20,12 @@ export interface ContentAccessAdminState {
     reductionQueue: ReductionQueueDetails[];
   };
   clientPanel: {
-    cards: {
-      [id: string]: {
-        expanded: boolean;
-        profitCenterModalOpen: boolean;
-      };
-    };
     selectedCard: Guid;
   };
   itemPanel: {
     cards: {
       [id: string]: {
-        expanded: boolean;
-        profitCenterModalOpen: boolean;
+        disabled: boolean;
       };
     };
     selectedCard: Guid;
@@ -41,7 +34,6 @@ export interface ContentAccessAdminState {
     cards: {
       [id: string]: {
         expanded: boolean;
-        profitCenterModalOpen: boolean;
       };
     };
     selectedCard: Guid;

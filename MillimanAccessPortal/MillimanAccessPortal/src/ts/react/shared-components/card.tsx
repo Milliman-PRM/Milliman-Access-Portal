@@ -20,8 +20,9 @@ export interface CardStatPropEvaluator {
 }
 
 export interface CardAttributes {
-  expanded: boolean;
-  profitCenterModalOpen: boolean;
+  disabled?: boolean;
+  expanded?: boolean;
+  profitCenterModalOpen?: boolean;
 }
 
 export interface CardProps {
@@ -34,6 +35,7 @@ export interface CardProps {
   resetButtonText?: string;
   activated?: boolean;
   suspended?: boolean;
+  disabled?: boolean;
   indentation?: number;
   onProfitCenterModalOpen: () => void;
   onSendReset?: () => void;
@@ -53,7 +55,8 @@ export class Card extends React.Component<CardProps> {
 
   public render() {
     const cardClass = 'card-container'
-      + (this.props.indentation ? ` ${this.indentClasses[this.props.indentation] || this.indentClasses[1]}` : '');
+      + (this.props.indentation ? ` ${this.indentClasses[this.props.indentation] || this.indentClasses[1]}` : '')
+      + (this.props.disabled ? ' card-disabled' : '');
     const cardBodyClass = 'card-body-container'
       + (this.props.selected ? ' selected' : '')
       + (this.props.suspended ? ' suspended' : '');

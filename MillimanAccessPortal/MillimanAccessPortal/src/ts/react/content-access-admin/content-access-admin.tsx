@@ -22,19 +22,12 @@ interface ContentAccessAdminProps {
   groups: SelectionGroupWithStatus[];
   reductionFieldsets: ReductionFieldset[];
   clientPanel: {
-    cards: {
-      [id: string]: {
-        expanded: boolean;
-        profitCenterModalOpen: boolean;
-      };
-    };
     selectedCard: Guid;
   };
   itemPanel: {
     cards: {
       [id: string]: {
-        expanded: boolean;
-        profitCenterModalOpen: boolean;
+        disabled: boolean;
       };
     };
     selectedCard: Guid;
@@ -43,7 +36,6 @@ interface ContentAccessAdminProps {
     cards: {
       [id: string]: {
         expanded: boolean;
-        profitCenterModalOpen: boolean;
       };
     };
     selectedCard: Guid;
@@ -137,6 +129,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         {...this.nullProps}
         {...itemPanel}
         entities={items}
+        cards={itemPanel.cards}
         panelHeader={'Content Items'}
         onCardSelect={this.props.selectItemCard}
       />

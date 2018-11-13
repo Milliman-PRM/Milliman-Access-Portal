@@ -253,10 +253,11 @@ export class CardPanel extends React.Component<CardPanelProps> {
               <Card
                 entity={entity}
                 selected={entity.id === this.props.selectedCard}
-                onSelect={() => this.props.onCardSelect(entity.id)}
+                onSelect={(card && card.disabled) ? () => null : () => this.props.onCardSelect(entity.id)}
                 expanded={card && card.expanded || false}
                 onExpandedToggled={() => this.props.onExpandedToggled(entity.id)}
                 activated={isUserInfo(entity) ? entity.activated : null}
+                disabled={card && card.disabled || false}
                 resetButton={isUserInfo(entity)}
                 onProfitCenterModalOpen={() => null}
                 onSendReset={this.getOnSendReset(entity)}
