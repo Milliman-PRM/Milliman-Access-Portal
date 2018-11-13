@@ -57,6 +57,16 @@ export enum ReductionStatus {
   Replaced = 50,
   Error = 90,
 }
+export function isActive(status: PublicationStatus) {
+  return [
+    PublicationStatus.Validating,
+    PublicationStatus.Queued,
+    PublicationStatus.Processing,
+    PublicationStatus.Processed,
+  ].indexOf(status) !== -1;
+}
+
+
 export interface PublicationSummary {
   user: UserInfo;
   statusEnum: PublicationStatus;

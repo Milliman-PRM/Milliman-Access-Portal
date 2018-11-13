@@ -5,13 +5,15 @@ import { ReductionStatus } from '../../view-models/content-publishing';
 import {
   Client, ReductionFieldset, RootContentItem, RootContentItemWithStatus, SelectionGroupWithStatus,
 } from '../models';
+import { CardAttributes } from '../shared-components/card';
 import { CardPanel, CardPanelProps } from '../shared-components/card-panel';
 import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import * as actions from './redux/actions';
 import {
-  activeGroupsWithStatus, activeItemsWithStatus, activeReductionFieldsets, pendingMaster,
-  pendingReductionValues, selectedGroupWithStatus, selectedItem, selectionsFormModified,
+  activeGroupsWithStatus, activeItemsWithStatus, activeReductionFieldsets, itemCardAttributes,
+  pendingMaster, pendingReductionValues, selectedGroupWithStatus, selectedItem,
+  selectionsFormModified,
 } from './redux/selectors';
 import { ContentAccessAdminState } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
@@ -26,17 +28,13 @@ interface ContentAccessAdminProps {
   };
   itemPanel: {
     cards: {
-      [id: string]: {
-        disabled: boolean;
-      };
+      [id: string]: CardAttributes;
     };
     selectedCard: Guid;
   };
   groupPanel: {
     cards: {
-      [id: string]: {
-        expanded: boolean;
-      };
+      [id: string]: CardAttributes;
     };
     selectedCard: Guid;
   };
@@ -194,7 +192,10 @@ function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProp
     groups: activeGroupsWithStatus(state),
     reductionFieldsets: activeReductionFieldsets(state),
     clientPanel,
-    itemPanel,
+    itemPanel: {
+      ...itemPanel,
+      cards: itemCardAttributes(state),
+    },
     groupPanel,
     selectedItem: selectedItem(state),
     selectedGroup: selectedGroupWithStatus(state),

@@ -4,6 +4,7 @@ import {
   Client, ContentPublicationRequest, ContentReductionTask, Guid, PublicationQueueDetails,
   ReductionField, ReductionFieldValue, ReductionQueueDetails, RootContentItem, SelectionGroup, User,
 } from '../../models';
+import { CardAttributes } from '../../shared-components/card';
 import { contentAccessAdmin } from './reducers';
 
 export interface ContentAccessAdminState {
@@ -24,17 +25,13 @@ export interface ContentAccessAdminState {
   };
   itemPanel: {
     cards: {
-      [id: string]: {
-        disabled: boolean;
-      };
+      [id: string]: CardAttributes;
     };
     selectedCard: Guid;
   };
   groupPanel: {
     cards: {
-      [id: string]: {
-        expanded: boolean;
-      };
+      [id: string]: CardAttributes;
     };
     selectedCard: Guid;
   };

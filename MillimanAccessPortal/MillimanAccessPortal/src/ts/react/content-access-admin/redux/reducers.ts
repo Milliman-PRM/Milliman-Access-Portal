@@ -85,22 +85,6 @@ const _reductionQueue: ReductionQueueDetails[] = [
   { reductionId: 'reduction1', queuePosition: 1, queuedDurationMs: 42 },
 ];
 
-const _itemCards = {
-  item1: {
-    disabled: false,
-  },
-  item2: {
-    disabled: true,
-  },
-  item3: {
-    disabled: false,
-  },
-};
-const _groupCards = {
-  group1: {
-    expanded: false,
-  },
-};
 const _initialState: ContentAccessAdminState = {
   data: {
     clients: _clients,
@@ -115,8 +99,8 @@ const _initialState: ContentAccessAdminState = {
     reductionQueue: _reductionQueue,
   },
   clientPanel: { selectedCard: null },
-  itemPanel: { cards: _itemCards, selectedCard: null },
-  groupPanel: { cards: _groupCards, selectedCard: null },
+  itemPanel: { cards: {}, selectedCard: null },
+  groupPanel: { cards: {}, selectedCard: null },
   selectionsPanel: { isMaster: null, values: {} },
 };
 

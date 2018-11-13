@@ -2,6 +2,8 @@ import { isEqual } from 'lodash';
 
 import { Guid, ReductionFieldset } from '../../models';
 import { ContentAccessAdminState } from './store';
+import { isActive } from '../../../view-models/content-publishing';
+import { CardAttributes } from '../../shared-components/card';
 
 export function selectedClient(state: ContentAccessAdminState) {
   return state.data.clients.filter((c) => c.id === state.clientPanel.selectedCard)[0];
@@ -130,4 +132,20 @@ export function activeReductionFieldsets(state: ContentAccessAdminState): Reduct
     field: f,
     values: activeReductionValues(state).filter((v) => v.reductionFieldId === f.id),
   }));
+}
+
+export function itemCardAttributes(state: ContentAccessAdminState) {
+  const cards = { ...state.itemPanel.cards };
+  state.data.publications.forEach((p) => {
+    if (isActive(p.requestStatus)) {
+      if (cards[p.rootContentItemId]) {
+        cards[p.rootContentItemId].disabled = true;
+      } else {
+        cards[p.rootContentItemId] = {
+          disabled: true,
+        };
+      }
+    }
+  });
+  return cards;
 }
