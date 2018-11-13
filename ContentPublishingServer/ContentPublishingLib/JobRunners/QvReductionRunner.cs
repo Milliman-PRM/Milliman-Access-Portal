@@ -341,6 +341,18 @@ namespace ContentPublishingLib.JobRunners
                     string ValuesFileName = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "fieldvalues." + Fields[1] + ".csv");
                     NewField.FieldValues = File.ReadAllLines(ValuesFileName).Skip(1).ToList();  // skip because the first line is the field name
 
+                    // Clean up any values that have surrounding double quotes, usually due to special character(s)
+                    for (int valCounter = 0; valCounter < NewField.FieldValues.Count; valCounter++)
+                    {
+                        string valFromFile = NewField.FieldValues[valCounter];
+                        if (valFromFile.StartsWith("\"") && valFromFile.EndsWith("\""))
+                        {
+                            NewField.FieldValues[valCounter] = valFromFile
+                                .Substring(1, valFromFile.Length - 2)  // remove enclosing quotes
+                                .Replace("\"\"", "\"");  // replace each pair of (escaped) '"' with a single '"'
+                        }
+                    }
+
                     TryDeleteFile(ValuesFileName);
 
                     ResultHierarchy.Fields.Add(NewField);
