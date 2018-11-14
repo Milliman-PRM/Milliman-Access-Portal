@@ -11,8 +11,8 @@ import * as React from 'react';
 
 import { getData, postData } from '../../shared';
 import { BasicNode } from '../../view-models/content-publishing';
-import { CardAttributes } from '../shared-components/card';
 import { CardPanel } from '../shared-components/card-panel';
+import { CardAttributes } from '../shared-components/card/card';
 import { ColumnIndicator } from '../shared-components/column-selector';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
@@ -166,7 +166,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onCardSelect={this.handleSecondaryCardSelected}
           selectedCard={secondaryCard}
           queryFilter={secondaryQueryFilter}
-          entities={secondaryEntities}
+          entities={secondaryEntities as any}
+          renderEntity={null}
           onProfitCenterModalOpen={this.handleProfitCenterModalOpen}
           onProfitCenterModalClose={this.handleProfitCenterModalClose}
           onSendReset={this.handleSendReset}
@@ -198,7 +199,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onCardSelect={this.handlePrimaryCardSelected}
           selectedCard={primaryCard}
           queryFilter={this.getPrimaryQueryFilter()}
-          entities={primaryEntities}
+          entities={primaryEntities as any}
+          renderEntity={null}
           onProfitCenterModalOpen={this.handleProfitCenterModalOpen}
           onProfitCenterModalClose={this.handleProfitCenterModalClose}
           onSendReset={this.handleSendReset}

@@ -1,12 +1,20 @@
+import '../../../images/user.svg';
+
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ReductionStatus } from '../../view-models/content-publishing';
+import { isPublicationActive, ReductionStatus } from '../../view-models/content-publishing';
 import {
   Client, ReductionFieldset, RootContentItem, RootContentItemWithStatus, SelectionGroupWithStatus,
 } from '../models';
-import { CardAttributes } from '../shared-components/card';
 import { CardPanel, CardPanelProps } from '../shared-components/card-panel';
+import { Card, CardAttributes } from '../shared-components/card/card';
+import CardButton from '../shared-components/card/card-button';
+import { CardExpansion } from '../shared-components/card/card-expansion';
+import {
+  CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
+} from '../shared-components/card/card-sections';
+import { CardStat } from '../shared-components/card/card-stat';
 import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import * as actions from './redux/actions';
@@ -58,7 +66,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
-  private nullProps: CardPanelProps = {
+  private nullProps: CardPanelProps<any> = {
     createAction: null,
     modalOpen: false,
     onCardSelect: () => null,
@@ -77,6 +85,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
     filterText: '',
     cards: {},
     entities: [],
+    renderEntity: () => null,
     panelHeader: '',
   };
 
@@ -97,53 +106,148 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   }
 
   private renderClientPanel() {
-    const { clients, clientPanel } = this.props;
+    const { clients, clientPanel, selectClientCard } = this.props;
     return (
       <CardPanel
         {...this.nullProps}
         {...clientPanel}
-        entities={clients}
         panelHeader={'Clients'}
-        onCardSelect={this.props.selectClientCard}
-        cardStats={[
-          {
-            name: 'Users',
-            value: () => '?' as any,
-            icon: 'user',
-          },
-          {
-            name: 'Reports',
-            value: () => '?' as any,
-            icon: 'reports',
-          },
-        ]}
+        entities={clients}
+        renderEntity={(entity, key) => (
+          <Card
+            key={key}
+            selected={clientPanel.selectedCard === entity.id}
+            onSelect={() => selectClientCard(entity.id)}
+            renderBody={() => (
+              <CardSectionMain>
+                <CardText text={entity.name} subtext={entity.code} />
+                <CardSectionStats>
+                  <CardStat
+                    name={'Eligible users'}
+                    value={0}
+                    icon={'user'}
+                  />
+                  <CardStat
+                    name={'Reports'}
+                    value={0}
+                    icon={'reports'}
+                  />
+                </CardSectionStats>
+              </CardSectionMain>
+            )}
+          />
+        )}
       />
     );
   }
 
   private renderItemPanel() {
-    const { items, clientPanel, itemPanel } = this.props;
+    const { items, clientPanel, itemPanel, selectItemCard } = this.props;
     return clientPanel.selectedCard && (
       <CardPanel
         {...this.nullProps}
         {...itemPanel}
-        entities={items}
         cards={itemPanel.cards}
         panelHeader={'Content Items'}
-        onCardSelect={this.props.selectItemCard}
+        entities={items}
+        renderEntity={(entity, key) => (
+          <Card
+            key={key}
+            disabled={isPublicationActive(entity.status && entity.status.requestStatus)}
+            selected={itemPanel.selectedCard === entity.id}
+            onSelect={() => selectItemCard(entity.id)}
+            status={entity.status}
+            renderBody={() => (
+              <CardSectionMain>
+                <CardText text={entity.name} subtext={'Content Type'} />
+                <CardSectionStats>
+                  <CardStat
+                    name={'Assigned users'}
+                    value={0}
+                    icon={'user'}
+                  />
+                  <CardStat
+                    name={'Selection groups'}
+                    value={0}
+                    icon={'group'}
+                  />
+                </CardSectionStats>
+              </CardSectionMain>
+            )}
+          />
+        )}
       />
     );
   }
 
   private renderGroupPanel() {
-    const { groups, itemPanel, groupPanel } = this.props;
+    const { groups, itemPanel, groupPanel, selectGroupCard, selectedItem: item } = this.props;
     return itemPanel.selectedCard && (
       <CardPanel
         {...this.nullProps}
         {...groupPanel}
-        entities={groups}
+        cards={groupPanel.cards}
         panelHeader={'Selection Groups'}
-        onCardSelect={this.props.selectGroupCard}
+        entities={groups}
+        renderEntity={(entity, key) => (
+          <Card
+            key={key}
+            selected={groupPanel.selectedCard === entity.id}
+            onSelect={() => selectGroupCard(entity.id)}
+            status={entity.status}
+            renderBody={() => (
+              <>
+                <CardSectionMain>
+                  <CardText text={entity.name} subtext={item.name} />
+                  <CardSectionStats>
+                    <CardStat
+                      name={'Assigned users'}
+                      value={0}
+                      icon={'user'}
+                    />
+                  </CardSectionStats>
+                  <CardSectionButtons>
+                    <CardButton
+                      color={'red'}
+                      tooltip={'Delete selection group'}
+                      onClick={() => alert('You clicked delete.')}
+                      icon={'delete'}
+                    />
+                    <CardButton
+                      color={'blue'}
+                      tooltip={'Edit selection group'}
+                      onClick={() => alert('You clicked edit.')}
+                      icon={'edit'}
+                    />
+                  </CardSectionButtons>
+                </CardSectionMain>
+                <CardExpansion
+                  label={'Members'}
+                  maximized={false}
+                  setMaximized={() => null}
+                >
+                  <ul>
+                  {[{}].map((o: any, i) => (
+                    <li key={i}>
+                      <span className="detail-item-user">
+                        <div className="detail-item-user-icon">
+                          <svg className="card-user-icon">
+                            <use xlinkHref={'user'} />
+                          </svg>
+                        </div>
+                        <div className="detail-item-user-name">
+                          <h4 className="first-last">{o.primaryText}</h4>
+                          <span className="user-name">{o.secondaryText}</span>
+                        </div>
+                      </span>
+                    </li>
+                  ))}
+                  </ul>
+                </CardExpansion>
+              </>
+            )}
+          />
+        )}
       />
     );
   }

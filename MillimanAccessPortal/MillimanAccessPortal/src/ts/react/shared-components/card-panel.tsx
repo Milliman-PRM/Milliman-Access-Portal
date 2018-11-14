@@ -13,7 +13,7 @@ import { CardModal } from '../system-admin/modals/card-modal';
 import { CreateProfitCenterModal } from '../system-admin/modals/create-profit-center';
 import { CreateUserModal } from '../system-admin/modals/create-user';
 import { ActionIcon } from './action-icon';
-import { Card, CardAttributes, CardStatPropEvaluator } from './card';
+import { Card, CardAttributes } from './card/card';
 import { ColumnSelector, ColumnSelectorProps } from './column-selector';
 import { EntityHelper } from './entity';
 import { Filter } from './filter';
@@ -27,7 +27,7 @@ export interface CardPanelAttributes {
   onModalClose: () => void;
   createAction: string;
 }
-export interface CardPanelProps extends CardPanelAttributes {
+export interface CardPanelProps<TEntity> extends CardPanelAttributes {
   panelHeader: PanelHeader;
   onExpandedToggled: (id: Guid) => void;
   cards: {
@@ -36,19 +36,19 @@ export interface CardPanelProps extends CardPanelAttributes {
   onCardSelect: (id: Guid) => void;
   selectedCard: string;
   queryFilter: QueryFilter;
-  entities: EntityInfoCollection;
+  entities: TEntity[];
+  renderEntity: (entity: TEntity, key: number) => JSX.Element;
   onProfitCenterModalOpen: (id: Guid) => void;
   onProfitCenterModalClose: (id: Guid) => void;
   onSendReset: (email: string) => void;
   onProfitCenterDelete: (id: Guid) => void;
   onProfitCenterUserRemove: (userId: Guid, profitCenterId: Guid) => void;
   onClientUserRemove: (userId: Guid, clientId: Guid) => void;
-  cardStats?: CardStatPropEvaluator[];
 }
 
 export type PanelHeader = string | ColumnSelectorProps;
 
-export class CardPanel extends React.Component<CardPanelProps> {
+export class CardPanel<TEntity> extends React.Component<CardPanelProps<TEntity>> {
   public render() {
 
     const actionIcon = this.props.createAction
@@ -97,6 +97,7 @@ export class CardPanel extends React.Component<CardPanelProps> {
       }
     })();
 
+    const { entities, renderEntity } = this.props;
     return (
       <div
         className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
@@ -115,7 +116,7 @@ export class CardPanel extends React.Component<CardPanelProps> {
           </div>
           <div className="admin-panel-content-container">
             <ul className="admin-panel-content">
-              {this.renderCards()}
+              {entities.map((entity, i) => renderEntity(entity, i))}
             </ul>
           </div>
         </div>
@@ -142,6 +143,7 @@ export class CardPanel extends React.Component<CardPanelProps> {
     return null;
   }
 
+  /*
   private renderCards() {
     if (this.props.entities === null) {
       return <div>Loading...</div>;
@@ -273,6 +275,7 @@ export class CardPanel extends React.Component<CardPanelProps> {
         });
     }
   }
+  */
 
   private getOnSendReset = (entity: EntityInfo) => isUserInfo(entity)
       ? () => this.props.onSendReset(entity.email)

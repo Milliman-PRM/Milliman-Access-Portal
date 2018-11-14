@@ -4,7 +4,7 @@ import {
   Client, ContentPublicationRequest, ContentReductionTask, Guid, PublicationQueueDetails,
   ReductionField, ReductionFieldValue, ReductionQueueDetails, RootContentItem, SelectionGroup, User,
 } from '../../models';
-import { CardAttributes } from '../../shared-components/card';
+import { CardAttributes } from '../../shared-components/card/card';
 import { contentAccessAdmin } from './reducers';
 
 export interface ContentAccessAdminState {
