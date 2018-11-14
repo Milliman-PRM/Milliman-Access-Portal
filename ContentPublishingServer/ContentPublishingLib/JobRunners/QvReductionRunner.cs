@@ -312,7 +312,7 @@ namespace ContentPublishingLib.JobRunners
             // Run Qlikview publisher (QDS) task
             try
             {
-                await RunQdsTask(HierarchyTask);
+                await RunQdsTask(HierarchyTask, 5);
             }
             finally
             {
@@ -340,6 +340,18 @@ namespace ContentPublishingLib.JobRunners
 
                     string ValuesFileName = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "fieldvalues." + Fields[1] + ".csv");
                     NewField.FieldValues = File.ReadAllLines(ValuesFileName).Skip(1).ToList();  // skip because the first line is the field name
+
+                    // Clean up any values that have surrounding double quotes, usually due to special character(s)
+                    for (int valCounter = 0; valCounter < NewField.FieldValues.Count; valCounter++)
+                    {
+                        string valFromFile = NewField.FieldValues[valCounter];
+                        if (valFromFile.StartsWith("\"") && valFromFile.EndsWith("\""))
+                        {
+                            NewField.FieldValues[valCounter] = valFromFile
+                                .Substring(1, valFromFile.Length - 2)  // remove enclosing quotes
+                                .Replace("\"\"", "\"");  // replace each pair of (escaped) '"' with a single '"'
+                        }
+                    }
 
                     TryDeleteFile(ValuesFileName);
 
@@ -668,11 +680,12 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="TInfo"></param>
         /// <returns></returns>
-        private async Task RunQdsTask(DocumentTask DocTask)
+        private async Task RunQdsTask(DocumentTask DocTask, int? timeoutMinutes = null)
         {
+            var defaultTimeout = int.Parse(Configuration.ApplicationConfiguration["DefaultQdsTaskTimeoutMinutes"]);
             TimeSpan MaxStartDelay = new TimeSpan(0, 5, 0);
-            TimeSpan MaxElapsedRun = new TimeSpan(0, 5, 0);
-            int PublisherPollingIntervalMs = 250;
+            TimeSpan MaxElapsedRun = new TimeSpan(0, timeoutMinutes ?? defaultTimeout, 0);
+            int PublisherPollingIntervalMs = 1000;
 
             QlikviewLib.Qms.TaskStatus Status;
 

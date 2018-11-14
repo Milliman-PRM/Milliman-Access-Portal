@@ -72,6 +72,9 @@ namespace MapTests
         public Mock<IUploadHelper> MockUploadHelper { get; set; }
         public IUploadHelper UploadHelperObject { get => MockUploadHelper.Object; }
 
+        public Mock<IUploadTaskQueue> MockUploadTaskQueue { get; set; }
+        public IUploadTaskQueue UploadTaskQueueObject { get => MockUploadTaskQueue.Object; }
+
         public IConfiguration ConfigurationObject { get; set; }
 
         public Mock<IServiceProvider> MockServiceProvider { get; set; }
@@ -152,6 +155,7 @@ namespace MapTests
             MockRoleManager = GenerateRoleManager(MockDbContext);
             MockMessageQueueService = GenerateMessageQueueService();
             MockUploadHelper = GenerateUploadHelper();
+            MockUploadTaskQueue = new Mock<IUploadTaskQueue>();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();

@@ -154,11 +154,14 @@ namespace MillimanAccessPortal
 
             using (IDbContextTransaction Txn = Db.Database.BeginTransaction())
             {
-                FileUpload FileUploadRecord = Db.FileUpload.Find(RelatedFile.FileUploadId);
+                FileUpload FileUploadRecord = Db.FileUpload
+                    .Where(f => f.Id == RelatedFile.FileUploadId)
+                    .Where(f => f.Status == FileUploadStatus.Complete)
+                    .SingleOrDefault();
 
                 #region Validate the file referenced by the FileUpload record
                 // The file must exist
-                if (FileUploadRecord == null || !System.IO.File.Exists(FileUploadRecord.StoragePath))
+                if (FileUploadRecord == null || !File.Exists(FileUploadRecord.StoragePath))
                 {
                     throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
                 }
