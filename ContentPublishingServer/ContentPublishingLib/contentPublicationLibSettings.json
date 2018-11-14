@@ -16,6 +16,7 @@
   "QvServerHost": "",
   "QvsQmsApiUrl": "",
   "QdsQmsApiUrl": "",
+  "DefaultQdsTaskTimeoutMinutes": 10,
   "TaskAgeBeforeExecutionSeconds": 20,
   "StopWaitTimeSeconds": 180,
   "MaxParallelTasks": 1,
