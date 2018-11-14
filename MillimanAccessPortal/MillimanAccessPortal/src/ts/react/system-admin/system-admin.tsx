@@ -10,16 +10,19 @@ import '../../../scss/react/system-admin/system-admin.scss';
 import * as React from 'react';
 
 import { getData, postData } from '../../shared';
-import { BasicNode } from '../../view-models/content-publishing';
+import { BasicNode, BasicTree, Nestable } from '../../view-models/content-publishing';
 import { CardPanel } from '../shared-components/card-panel';
-import { CardAttributes } from '../shared-components/card/card';
+import { Card, CardAttributes } from '../shared-components/card/card';
+import { CardSectionMain, CardText } from '../shared-components/card/card-sections';
 import { ColumnIndicator } from '../shared-components/column-selector';
+import { EntityHelper } from '../shared-components/entity';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
-  ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfoTree,
-  isRootContentItemDetail, isUserClientRoles, isUserDetail, PrimaryDetail, PrimaryDetailData,
-  SecondaryDetail, SecondaryDetailData, UserClientRoles,
+  ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo, isClientInfoTree,
+  isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo, isUserClientRoles,
+  isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail, SecondaryDetailData,
+  UserClientRoles,
 } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
@@ -146,6 +149,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     const { column: primaryColumn, card: primaryCard } = this.state.primaryPanel.selected;
     const { column: secondaryColumn, card: secondaryCard } = this.state.secondaryPanel.selected;
 
+    const pEntities = this.filterEntities(primaryEntities, this.state.primaryPanel.filter.text);
+    const sEntities = this.filterEntities(secondaryEntities, this.state.secondaryPanel.filter.text);
+
     const secondaryQueryFilter = this.getSecondaryQueryFilter();
     const secondaryColumnComponent = secondaryColumn
       ? (
@@ -166,14 +172,40 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onCardSelect={this.handleSecondaryCardSelected}
           selectedCard={secondaryCard}
           queryFilter={secondaryQueryFilter}
-          entities={secondaryEntities as any}
-          renderEntity={null}
           onProfitCenterModalOpen={this.handleProfitCenterModalOpen}
           onProfitCenterModalClose={this.handleProfitCenterModalClose}
           onSendReset={this.handleSendReset}
           onProfitCenterDelete={this.handleProfitCenterDelete}
           onProfitCenterUserRemove={this.handleProfitCenterUserRemove}
           onClientUserRemove={this.handleClientUserRemove}
+          entities={sEntities}
+          renderEntity={(entity, key) => {
+            let text;
+            let subtext;
+            if (isUserInfo(entity)) {
+              text = entity.firstName + ' ' + entity.lastName;
+              subtext = entity.userName;
+            } else {
+              text = entity.name;
+              if (isRootContentItemInfo(entity)) {
+                subtext = entity.clientName;
+              } else {
+                subtext = entity.code;
+              }
+            }
+            return (
+              <Card
+                key={key}
+                selected={secondaryCard === entity.id}
+                onSelect={() => this.handleSecondaryCardSelected(entity.id)}
+                render={() => (
+                  <CardSectionMain>
+                    <CardText text={text} subtext={subtext} />
+                  </CardSectionMain>
+                )}
+              />
+            );
+          }}
         />
       )
       : null;
@@ -199,14 +231,44 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           onCardSelect={this.handlePrimaryCardSelected}
           selectedCard={primaryCard}
           queryFilter={this.getPrimaryQueryFilter()}
-          entities={primaryEntities as any}
-          renderEntity={null}
           onProfitCenterModalOpen={this.handleProfitCenterModalOpen}
           onProfitCenterModalClose={this.handleProfitCenterModalClose}
           onSendReset={this.handleSendReset}
           onProfitCenterDelete={this.handleProfitCenterDelete}
           onProfitCenterUserRemove={this.handleProfitCenterUserRemove}
           onClientUserRemove={this.handleClientUserRemove}
+          entities={pEntities}
+          renderEntity={(entity, key) => {
+            let text;
+            let subtext;
+            if (isUserInfo(entity)) {
+              text = entity.firstName + ' ' + entity.lastName;
+              subtext = entity.userName;
+            } else {
+              text = entity.name;
+              if (isRootContentItemInfo(entity)) {
+                subtext = entity.clientName;
+              } else {
+                subtext = entity.code;
+              }
+            }
+            const indentation = isClientInfo(entity)
+              ? (entity as ClientInfoWithDepth).depth
+              : 1;
+            return (
+              <Card
+                key={key}
+                selected={primaryCard === entity.id}
+                onSelect={() => this.handlePrimaryCardSelected(entity.id)}
+                indentation={indentation}
+                render={() => (
+                  <CardSectionMain>
+                    <CardText text={text} subtext={subtext} />
+                  </CardSectionMain>
+                )}
+              />
+            );
+          }}
         />
         {secondaryColumnComponent}
         <div
@@ -245,6 +307,53 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   // utility methods
+  private filterEntities(entities: EntityInfoCollection, filterText: string): EntityInfo[] {
+    if (!entities) {
+      return [];
+    }
+
+    let filteredCards: EntityInfo[];
+    if (isClientInfoTree(entities)) {
+      // flatten basic tree into an array
+      const traverse = (node: BasicNode<ClientInfo>, list: ClientInfoWithDepth[] = [], depth = 0) => {
+        if (node.value !== null) {
+          const clientDepth = {
+            ...node.value,
+            depth,
+          };
+          list.push(clientDepth);
+        }
+        if (node.children.length) {
+          node.children.forEach((child) => list = traverse(child, list, depth + 1));
+        }
+        return list;
+      };
+      filteredCards = traverse(entities.root);
+    } else {
+      filteredCards = entities;
+    }
+
+    // apply filter
+    filteredCards = filteredCards.filter((entity) =>
+        EntityHelper.applyFilter(entity, filterText));
+
+    if (filteredCards.length === 0) {
+      return [];
+    } else if (isClientInfo(filteredCards[0])) {
+      const rootIndices = [];
+      filteredCards.forEach((entity: ClientInfoWithDepth, i) => {
+        if (!entity.parentId) {
+          rootIndices.push(i);
+        }
+      });
+      const cardGroups = rootIndices.map((_, i) =>
+        filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
+      return cardGroups.reduce((cum, cur) => [...cum, ...cur], []);
+    } else {
+      return filteredCards;
+    }
+  }
+
   private getColumns(parent: SystemAdminColumn = null): ColumnIndicator[] {
     switch (parent) {
       case null:

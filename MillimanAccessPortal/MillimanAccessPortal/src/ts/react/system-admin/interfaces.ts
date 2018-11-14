@@ -54,7 +54,7 @@ export interface RootContentItemInfo {
   clientId?: Guid;
   isSuspended: boolean;
 }
-export type EntityInfo = UserInfo | ClientInfo | ProfitCenterInfo | RootContentItemInfo | SelectionGroup;
+export type EntityInfo = UserInfo | ClientInfo | ProfitCenterInfo | RootContentItemInfo;
 export function isUserInfo(info: EntityInfo): info is UserInfo {
   return info && (info as UserInfo).userName !== undefined;
 }

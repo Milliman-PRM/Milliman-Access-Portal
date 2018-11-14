@@ -118,7 +118,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             key={key}
             selected={clientPanel.selectedCard === entity.id}
             onSelect={() => selectClientCard(entity.id)}
-            renderBody={() => (
+            render={() => (
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.code} />
                 <CardSectionStats>
@@ -157,7 +157,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             selected={itemPanel.selectedCard === entity.id}
             onSelect={() => selectItemCard(entity.id)}
             status={entity.status}
-            renderBody={() => (
+            render={() => (
               <CardSectionMain>
                 <CardText text={entity.name} subtext={'Content Type'} />
                 <CardSectionStats>
@@ -195,7 +195,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             selected={groupPanel.selectedCard === entity.id}
             onSelect={() => selectGroupCard(entity.id)}
             status={entity.status}
-            renderBody={() => (
+            render={() => (
               <>
                 <CardSectionMain>
                   <CardText text={entity.name} subtext={item.name} />
