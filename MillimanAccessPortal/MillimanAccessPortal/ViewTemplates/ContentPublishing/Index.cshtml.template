@@ -273,7 +273,7 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-master-content">
             <h4>Master Content</h4>
             <div class="content-preview">
-                <iframe src="about:blank"></iframe>
+                <iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" src="about:blank"></iframe>
                 <a href="about:blank" target="_blank">
                     <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
                         <use xlink:href="#upload"></use>
@@ -289,7 +289,7 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-user-guide">
             <h4>User Guide</h4>
             <div class="content-preview">
-                <iframe src="about:blank"></iframe>
+                <iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" src="about:blank"></iframe>
                 <a href="about:blank" target="_blank">
                     <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
                         <use xlink:href="#upload"></use>
@@ -305,7 +305,7 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-release-notes">
             <h4>Release Notes</h4>
             <div class="content-preview">
-                <iframe src="about:blank"></iframe>
+                <iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" src="about:blank"></iframe>
                 <a href="about:blank" target="_blank">
                     <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
                         <use xlink:href="#upload"></use>

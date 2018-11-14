@@ -33,7 +33,7 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
             <use xlinkHref="#cancel" />
           </svg>
         </div>
-        <iframe id="content-iframe" src={this.props.contentURL} />
+        <iframe id="content-iframe" sandbox="allow-same-origin allow-scripts allow-popups allow-forms" src={this.props.contentURL}></iframe>
       </div>
     );
   }
