@@ -118,7 +118,8 @@ export interface ContentRelatedFile {
 }
 export interface PublishRequest {
   RootContentItemId: Guid;
-  RelatedFiles: ContentRelatedFile[];
+  NewRelatedFiles: ContentRelatedFile[];
+  DeleteFilePurposes: string[];
 }
 
 export interface PreLiveContentValidationSummary {

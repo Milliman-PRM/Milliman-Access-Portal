@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.2.0
+
+- Added the ability to delete supporting files from a content item
+
 ### v1.1.2
 
 - Allow heirarchy comparison values to wrap in the Go Live preview to better support long values

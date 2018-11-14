@@ -613,7 +613,7 @@ function getClientTree(clientId?) {
   });
 }
 
-$(document).ready(function onReady() {
+$(function onReady() {
   getClientTree();
 
   $('#client-tree .action-icon-add').click(() => {

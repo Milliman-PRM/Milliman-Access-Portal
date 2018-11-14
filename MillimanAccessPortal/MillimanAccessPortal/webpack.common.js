@@ -1,29 +1,27 @@
 const path = require('path');
 const webpack = require('webpack');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: {
-    'account-settings': './src/js/account-settings.js',
-    'authorized-content': './src/js/react/authorized-content/index.js',
-    'client-admin': './src/js/client-admin.js',
-    'content-access-admin': './src/js/content-access-admin/index.js',
-    'content-publishing': './src/js/content-publishing/index.js',
-    'create-initial-user': './src/js/create-initial-user.js',
-    'enable-account': './src/js/enable-account.js',
-    'forgot-password': './src/js/forgot-password.js',
-    'login': './src/js/login.js',
-    'message': './src/js/message.js',
-    'reset-password': './src/js/reset-password.js',
-    'system-admin': './src/js/react/system-admin/index.js',
+    'account-settings': './src/ts/account-settings.tsx',
+    'authorized-content': './src/ts/react/authorized-content/index.tsx',
+    'client-admin': './src/ts/client-admin.tsx',
+    'content-access-admin': './src/ts/content-access-admin/index.tsx',
+    'content-publishing': './src/ts/content-publishing/index.tsx',
+    'create-initial-user': './src/ts/create-initial-user.ts',
+    'enable-account': './src/ts/enable-account.ts',
+    'forgot-password': './src/ts/forgot-password.ts',
+    'login': './src/ts/login.ts',
+    'message': './src/ts/message.ts',
+    'reset-password': './src/ts/reset-password.ts',
+    'system-admin': './src/ts/react/system-admin/index.tsx',
   },
   output: {
     path: path.resolve(__dirname, 'wwwroot'),
-    filename: 'js/[name].[contenthash].js',
-    publicPath: '~',
+    publicPath: '~/',
   },
   module: {
     rules: [
@@ -34,7 +32,7 @@ module.exports = {
             loader: 'svg-sprite-loader',
             options: {
               extract: false
-            }
+            },
           },
           {
             loader: 'svgo-loader',
@@ -43,21 +41,21 @@ module.exports = {
                 { removeTitle: true },
                 { convertColors: { currentColor: true } },
                 { convertPathData: false },
-                { cleanupIDs: { remove: false }}
-              ]
-            }
-          }
-        ]
+                { cleanupIDs: { remove: false }},
+              ],
+            },
+          },
+        ],
+        include: path.resolve(__dirname, 'src', 'images'),
+      },
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        include: path.resolve(__dirname, 'src', 'ts'),
       },
     ],
   },
   plugins: [
-    new CleanWebpackPlugin([
-      'wwwroot/css',
-      'wwwroot/images',
-      'wwwroot/js',
-      'wwwroot/favicon.ico',
-    ]),
     new CopyWebpackPlugin([
       {
         from: 'src/favicon.ico',
@@ -161,6 +159,9 @@ module.exports = {
       '.webpack.js',
       '.web.js',
       '.js',
+      '.tsx',
+      '.ts',
     ],
+    symlinks: false,
   },
 };
