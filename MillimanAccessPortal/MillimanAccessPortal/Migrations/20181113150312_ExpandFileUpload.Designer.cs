@@ -13,9 +13,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181113150312_ExpandFileUpload")]
+    partial class ExpandFileUpload
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -176,9 +177,6 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<bool>("CanReduce");
 
                     b.Property<string>("DefaultIconName")
-                        .IsRequired();
-
-                    b.Property<string[]>("FileExtensions")
                         .IsRequired();
 
                     b.Property<string>("Name")
