@@ -30,6 +30,9 @@ let statusMonitor: PublicationStatusMonitor;
 
 let preLiveObject: PreLiveContentValidationSummary;
 
+const goLiveDisabledTooltip = 'Complete checks to proceed';
+const goLiveEnabledTooltip = 'Approve content and go live';
+
 function deleteRootContentItem(
   rootContentItemId: Guid,
   rootContentItemName: string,
@@ -191,7 +194,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     .prop('checked', false);
   $('#confirmation-section-attestation .button-approve')
     .addClass('disabled')
-    .tooltipster('enable');
+    .tooltipster('content', goLiveDisabledTooltip);
   // set src for iframes, conditionally marking iframes as unchanged
   const linkPairs: Array<{sectionName: string, link: string}> = [
     { sectionName: 'master-content', link: response.MasterContentLink },
@@ -276,7 +279,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   if (!anyEnabled) {
     $('#confirmation-section-attestation .button-approve')
       .removeClass('disabled')
-      .tooltipster('disable');
+      .tooltipster('content', goLiveEnabledTooltip);
   }
 
   preLiveObject = response;
@@ -585,13 +588,13 @@ export function setup() {
   $('#report-confirmation input[type="checkbox"]').change(() =>
     $('#confirmation-section-attestation .button-approve')
       .addClass('disabled')
-      .tooltipster('enable')
+      .tooltipster('content', goLiveDisabledTooltip)
       .filter(() =>
         $('#report-confirmation input[type="checkbox"]').not('[disabled]').toArray()
           .map((checkbox: HTMLInputElement) => checkbox.checked)
           .reduce((cum, cur) => cum && cur, true))
       .removeClass('disabled')
-      .tooltipster('disable'));
+      .tooltipster('content', goLiveEnabledTooltip));
   $('#confirmation-section-attestation .button-reject').click((event) => {
     const $target = $(event.target);
     if ($target.hasClass('disabled')) {

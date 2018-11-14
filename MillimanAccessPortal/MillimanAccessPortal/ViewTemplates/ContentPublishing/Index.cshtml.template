@@ -352,7 +352,7 @@
             <div class="attestation-language">
             </div>
             <div class="confirmation-section-button-container">
-                <button type="button" class="button-reject red-button">Reject</button>
+                <button type="button" class="button-reject red-button tooltip" title="Reject pending changes">Reject</button>
                 <button type="button" class="button-approve green-button tooltip disabled" title="Complete checks to proceed">Approve</button>
             </div>
         </div>

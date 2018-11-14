@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(<NavBar currentView={view} />, document.getElementById('navbar'));
 });
 
-$(document).ready(() => {
+$(() => {
   setup();
 });
 
