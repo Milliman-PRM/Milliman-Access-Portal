@@ -36,7 +36,7 @@ export default class CardButton extends React.Component<CardButtonProps> {
     );
   }
 
-  private onClick(event: React.MouseEvent<HTMLDivElement>) {
+  private onClick = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
     this.props.onClick();
   }

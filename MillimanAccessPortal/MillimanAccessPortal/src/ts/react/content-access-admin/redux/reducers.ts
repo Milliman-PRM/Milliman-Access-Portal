@@ -147,6 +147,20 @@ export function contentAccessAdmin(state: ContentAccessAdminState = _initialStat
           values: {},
         },
       };
+    case 'SET_GROUP_CARD_EXPANDED':
+      return {
+        ...state,
+        groupPanel: {
+          ...state.groupPanel,
+          cards: {
+            ...state.groupPanel.cards,
+            [id]: {
+              ...state.groupPanel.cards[id],
+              expanded: (action as ActionWithBoolean).bValue,
+            },
+          },
+        },
+      };
     case 'SET_MASTER_SELECTED':
       return {
         ...state,

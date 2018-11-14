@@ -58,6 +58,7 @@ interface ContentAccessAdminActions {
   selectClientCard: (id: Guid) => actions.ActionWithId;
   selectItemCard: (id: Guid) => actions.ActionWithId;
   selectGroupCard: (id: Guid) => actions.ActionWithId;
+  setGroupCardExpanded: (id: Guid, bValue: boolean) => actions.ActionWithId & actions.ActionWithBoolean;
   setMasterSelected: (bValue: boolean) => actions.ActionWithBoolean;
   setValueSelected: (id: Guid, bValue: boolean) => actions.ActionWithId & actions.ActionWithBoolean;
 }
@@ -181,7 +182,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   }
 
   private renderGroupPanel() {
-    const { groups, itemPanel, groupPanel, selectGroupCard, selectedItem: item } = this.props;
+    const { groups, itemPanel, groupPanel, selectGroupCard, selectedItem: item, setGroupCardExpanded } = this.props;
     return itemPanel.selectedCard && (
       <CardPanel
         {...this.nullProps}
@@ -189,65 +190,68 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         cards={groupPanel.cards}
         panelHeader={'Selection Groups'}
         entities={groups}
-        renderEntity={(entity, key) => (
-          <Card
-            key={key}
-            selected={groupPanel.selectedCard === entity.id}
-            onSelect={() => selectGroupCard(entity.id)}
-            status={entity.status}
-            render={() => (
-              <>
-                <CardSectionMain>
-                  <CardText text={entity.name} subtext={item.name} />
-                  <CardSectionStats>
-                    <CardStat
-                      name={'Assigned users'}
-                      value={0}
-                      icon={'user'}
-                    />
-                  </CardSectionStats>
-                  <CardSectionButtons>
-                    <CardButton
-                      color={'red'}
-                      tooltip={'Delete selection group'}
-                      onClick={() => alert('You clicked delete.')}
-                      icon={'delete'}
-                    />
-                    <CardButton
-                      color={'blue'}
-                      tooltip={'Edit selection group'}
-                      onClick={() => alert('You clicked edit.')}
-                      icon={'edit'}
-                    />
-                  </CardSectionButtons>
-                </CardSectionMain>
-                <CardExpansion
-                  label={'Members'}
-                  maximized={false}
-                  setMaximized={() => null}
-                >
-                  <ul>
-                  {[{}].map((o: any, i) => (
-                    <li key={i}>
-                      <span className="detail-item-user">
-                        <div className="detail-item-user-icon">
-                          <svg className="card-user-icon">
-                            <use xlinkHref={'user'} />
-                          </svg>
-                        </div>
-                        <div className="detail-item-user-name">
-                          <h4 className="first-last">{o.primaryText}</h4>
-                          <span className="user-name">{o.secondaryText}</span>
-                        </div>
-                      </span>
-                    </li>
-                  ))}
-                  </ul>
-                </CardExpansion>
-              </>
-            )}
-          />
-        )}
+        renderEntity={(entity, key) => {
+          const card = groupPanel.cards[entity.id] || {};
+          return (
+            <Card
+              key={key}
+              selected={groupPanel.selectedCard === entity.id}
+              onSelect={() => selectGroupCard(entity.id)}
+              status={entity.status}
+              render={() => (
+                <>
+                  <CardSectionMain>
+                    <CardText text={entity.name} subtext={item.name} />
+                    <CardSectionStats>
+                      <CardStat
+                        name={'Assigned users'}
+                        value={0}
+                        icon={'user'}
+                      />
+                    </CardSectionStats>
+                    <CardSectionButtons>
+                      <CardButton
+                        color={'red'}
+                        tooltip={'Delete selection group'}
+                        onClick={() => alert('You clicked delete.')}
+                        icon={'delete'}
+                      />
+                      <CardButton
+                        color={'blue'}
+                        tooltip={'Edit selection group'}
+                        onClick={() => alert('You clicked edit.')}
+                        icon={'edit'}
+                      />
+                    </CardSectionButtons>
+                  </CardSectionMain>
+                  <CardExpansion
+                    label={'Members'}
+                    maximized={card.expanded}
+                    setMaximized={(value) => setGroupCardExpanded(entity.id, value)}
+                  >
+                    <ul>
+                    {[{}].map((o: any, i) => (
+                      <li key={i}>
+                        <span className="detail-item-user">
+                          <div className="detail-item-user-icon">
+                            <svg className="card-user-icon">
+                              <use xlinkHref={'user'} />
+                            </svg>
+                          </div>
+                          <div className="detail-item-user-name">
+                            <h4 className="first-last">{o.primaryText}</h4>
+                            <span className="user-name">{o.secondaryText}</span>
+                          </div>
+                        </span>
+                      </li>
+                    ))}
+                    </ul>
+                  </CardExpansion>
+                </>
+              )}
+            />
+          );
+        }}
       />
     );
   }

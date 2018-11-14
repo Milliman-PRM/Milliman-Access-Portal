@@ -36,6 +36,14 @@ export function selectGroupCard(id: Guid): ActionWithId {
   };
 }
 
+export function setGroupCardExpanded(id: Guid, bValue: boolean): ActionWithId & ActionWithBoolean {
+  return {
+    type: 'SET_GROUP_CARD_EXPANDED',
+    id,
+    bValue,
+  };
+}
+
 export function setMasterSelected(bValue: boolean): ActionWithBoolean {
   return {
     type: 'SET_MASTER_SELECTED',
