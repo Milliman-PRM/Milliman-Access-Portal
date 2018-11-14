@@ -17,7 +17,6 @@ export interface CardProps {
   suspended: boolean;
   indentation: number;
   status: PublicationWithQueueDetails | ReductionWithQueueDetails;
-  render: () => JSX.Element;
 }
 
 export class Card extends React.Component<CardProps> {
@@ -36,7 +35,7 @@ export class Card extends React.Component<CardProps> {
   };
 
   public render() {
-    const { indentation, disabled, selected, suspended, onSelect, status, render } = this.props;
+    const { indentation, disabled, selected, suspended, onSelect, status, children } = this.props;
 
     const cardClass = 'card-container'
       + (indentation ? ` ${this.indentClasses[indentation] || this.indentClasses[1]}` : '')
@@ -48,7 +47,7 @@ export class Card extends React.Component<CardProps> {
     return (
       <div className={cardClass} onClick={disabled ? () => null : onSelect}>
         <div className={cardBodyClass}>
-          {render()}
+          {children}
         </div>
         {status && <CardStatus status={status} />}
       </div>

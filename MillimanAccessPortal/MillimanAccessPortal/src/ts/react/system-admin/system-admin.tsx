@@ -198,12 +198,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                 key={key}
                 selected={secondaryCard === entity.id}
                 onSelect={() => this.handleSecondaryCardSelected(entity.id)}
-                render={() => (
-                  <CardSectionMain>
-                    <CardText text={text} subtext={subtext} />
-                  </CardSectionMain>
-                )}
-              />
+              >
+                <CardSectionMain>
+                  <CardText text={text} subtext={subtext} />
+                </CardSectionMain>
+              </Card>
             );
           }}
         />
@@ -261,12 +260,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                 selected={primaryCard === entity.id}
                 onSelect={() => this.handlePrimaryCardSelected(entity.id)}
                 indentation={indentation}
-                render={() => (
-                  <CardSectionMain>
-                    <CardText text={text} subtext={subtext} />
-                  </CardSectionMain>
-                )}
-              />
+              >
+                <CardSectionMain>
+                  <CardText text={text} subtext={subtext} />
+                </CardSectionMain>
+              </Card>
             );
           }}
         />

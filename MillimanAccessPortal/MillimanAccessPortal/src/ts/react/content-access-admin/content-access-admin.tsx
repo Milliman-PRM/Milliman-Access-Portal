@@ -119,24 +119,23 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             key={key}
             selected={clientPanel.selectedCard === entity.id}
             onSelect={() => selectClientCard(entity.id)}
-            render={() => (
-              <CardSectionMain>
-                <CardText text={entity.name} subtext={entity.code} />
-                <CardSectionStats>
-                  <CardStat
-                    name={'Eligible users'}
-                    value={0}
-                    icon={'user'}
-                  />
-                  <CardStat
-                    name={'Reports'}
-                    value={0}
-                    icon={'reports'}
-                  />
-                </CardSectionStats>
-              </CardSectionMain>
-            )}
-          />
+          >
+            <CardSectionMain>
+              <CardText text={entity.name} subtext={entity.code} />
+              <CardSectionStats>
+                <CardStat
+                  name={'Eligible users'}
+                  value={0}
+                  icon={'user'}
+                />
+                <CardStat
+                  name={'Reports'}
+                  value={0}
+                  icon={'reports'}
+                />
+              </CardSectionStats>
+            </CardSectionMain>
+          </Card>
         )}
       />
     );
@@ -158,24 +157,23 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             selected={itemPanel.selectedCard === entity.id}
             onSelect={() => selectItemCard(entity.id)}
             status={entity.status}
-            render={() => (
-              <CardSectionMain>
-                <CardText text={entity.name} subtext={'Content Type'} />
-                <CardSectionStats>
-                  <CardStat
-                    name={'Assigned users'}
-                    value={0}
-                    icon={'user'}
-                  />
-                  <CardStat
-                    name={'Selection groups'}
-                    value={0}
-                    icon={'group'}
-                  />
-                </CardSectionStats>
-              </CardSectionMain>
-            )}
-          />
+          >
+            <CardSectionMain>
+              <CardText text={entity.name} subtext={'Content Type'} />
+              <CardSectionStats>
+                <CardStat
+                  name={'Assigned users'}
+                  value={0}
+                  icon={'user'}
+                />
+                <CardStat
+                  name={'Selection groups'}
+                  value={0}
+                  icon={'group'}
+                />
+              </CardSectionStats>
+            </CardSectionMain>
+          </Card>
         )}
       />
     );
@@ -198,58 +196,55 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               selected={groupPanel.selectedCard === entity.id}
               onSelect={() => selectGroupCard(entity.id)}
               status={entity.status}
-              render={() => (
-                <>
-                  <CardSectionMain>
-                    <CardText text={entity.name} subtext={item.name} />
-                    <CardSectionStats>
-                      <CardStat
-                        name={'Assigned users'}
-                        value={0}
-                        icon={'user'}
-                      />
-                    </CardSectionStats>
-                    <CardSectionButtons>
-                      <CardButton
-                        color={'red'}
-                        tooltip={'Delete selection group'}
-                        onClick={() => alert('You clicked delete.')}
-                        icon={'delete'}
-                      />
-                      <CardButton
-                        color={'blue'}
-                        tooltip={'Edit selection group'}
-                        onClick={() => alert('You clicked edit.')}
-                        icon={'edit'}
-                      />
-                    </CardSectionButtons>
-                  </CardSectionMain>
-                  <CardExpansion
-                    label={'Members'}
-                    maximized={card.expanded}
-                    setMaximized={(value) => setGroupCardExpanded(entity.id, value)}
-                  >
-                    <ul>
-                    {[{}].map((o: any, i) => (
-                      <li key={i}>
-                        <span className="detail-item-user">
-                          <div className="detail-item-user-icon">
-                            <svg className="card-user-icon">
-                              <use xlinkHref={'user'} />
-                            </svg>
-                          </div>
-                          <div className="detail-item-user-name">
-                            <h4 className="first-last">{o.primaryText}</h4>
-                            <span className="user-name">{o.secondaryText}</span>
-                          </div>
-                        </span>
-                      </li>
-                    ))}
-                    </ul>
-                  </CardExpansion>
-                </>
-              )}
-            />
+            >
+              <CardSectionMain>
+                <CardText text={entity.name} subtext={item.name} />
+                <CardSectionStats>
+                  <CardStat
+                    name={'Assigned users'}
+                    value={0}
+                    icon={'user'}
+                  />
+                </CardSectionStats>
+                <CardSectionButtons>
+                  <CardButton
+                    color={'red'}
+                    tooltip={'Delete selection group'}
+                    onClick={() => alert('You clicked delete.')}
+                    icon={'delete'}
+                  />
+                  <CardButton
+                    color={'blue'}
+                    tooltip={'Edit selection group'}
+                    onClick={() => alert('You clicked edit.')}
+                    icon={'edit'}
+                  />
+                </CardSectionButtons>
+              </CardSectionMain>
+              <CardExpansion
+                label={'Members'}
+                maximized={card.expanded}
+                setMaximized={(value) => setGroupCardExpanded(entity.id, value)}
+              >
+                <ul>
+                {[{}].map((o: any, i) => (
+                  <li key={i}>
+                    <span className="detail-item-user">
+                      <div className="detail-item-user-icon">
+                        <svg className="card-user-icon">
+                          <use xlinkHref={'user'} />
+                        </svg>
+                      </div>
+                      <div className="detail-item-user-name">
+                        <h4 className="first-last">{o.primaryText}</h4>
+                        <span className="user-name">{o.secondaryText}</span>
+                      </div>
+                    </span>
+                  </li>
+                ))}
+                </ul>
+              </CardExpansion>
+            </Card>
           );
         }}
       />
