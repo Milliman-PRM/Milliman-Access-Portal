@@ -111,7 +111,7 @@ function relatedReduction(state: ContentAccessAdminState, groupId: Guid) {
     ? { ...reduction, queueDetails }
     : null;
 }
-function activeGroups(state: ContentAccessAdminState) {
+export function activeGroups(state: ContentAccessAdminState) {
   return state.data.groups.filter((i) => i.rootContentItemId === state.itemPanel.selectedCard);
 }
 export function activeGroupsWithStatus(state: ContentAccessAdminState) {
@@ -119,6 +119,18 @@ export function activeGroupsWithStatus(state: ContentAccessAdminState) {
     ...g,
     status: relatedReduction(state, g.id),
   }));
+}
+export function allGroupsExpanded(state: ContentAccessAdminState) {
+  return activeGroups(state).reduce((prev, g) => {
+    const card = state.groupPanel.cards[g.id];
+    return prev && card && card.expanded;
+  }, true);
+}
+export function allGroupsCollapsed(state: ContentAccessAdminState) {
+  return activeGroups(state).reduce((prev, g) => {
+    const card = state.groupPanel.cards[g.id];
+    return prev && (!card || !card.expanded);
+  }, true);
 }
 
 export function activeReductions(state: ContentAccessAdminState) {

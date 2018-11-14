@@ -44,6 +44,18 @@ export function setGroupCardExpanded(id: Guid, bValue: boolean): ActionWithId & 
   };
 }
 
+export function expandAllGroups(): Action {
+  return {
+    type: 'EXPAND_ALL_GROUPS',
+  };
+}
+
+export function collapseAllGroups(): Action {
+  return {
+    type: 'COLLAPSE_ALL_GROUPS',
+  };
+}
+
 export function setMasterSelected(bValue: boolean): ActionWithBoolean {
   return {
     type: 'SET_MASTER_SELECTED',

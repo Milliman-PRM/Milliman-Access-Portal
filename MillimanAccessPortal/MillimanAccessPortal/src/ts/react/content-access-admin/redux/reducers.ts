@@ -6,6 +6,7 @@ import {
   ReductionField, ReductionFieldValue, ReductionQueueDetails, RootContentItem, SelectionGroup, User,
 } from '../../models';
 import { ActionWithBoolean, ActionWithId } from './actions';
+import { activeGroups } from './selectors';
 import { ContentAccessAdminState } from './store';
 
 const _clients: Client[] = [
@@ -159,6 +160,36 @@ export function contentAccessAdmin(state: ContentAccessAdminState = _initialStat
               expanded: (action as ActionWithBoolean).bValue,
             },
           },
+        },
+      };
+    case 'EXPAND_ALL_GROUPS':
+      const groupCards = { ...state.groupPanel.cards };
+      activeGroups(state).forEach((g) => {
+        groupCards[g.id] = {
+          ...groupCards[g.id],
+          expanded: true,
+        };
+      });
+      return {
+        ...state,
+        groupPanel: {
+          ...state.groupPanel,
+          cards: groupCards,
+        },
+      };
+    case 'COLLAPSE_ALL_GROUPS':
+      const groupCardsC = { ...state.groupPanel.cards };
+      activeGroups(state).forEach((g) => {
+        groupCardsC[g.id] = {
+          ...groupCardsC[g.id],
+          expanded: false,
+        };
+      });
+      return {
+        ...state,
+        groupPanel: {
+          ...state.groupPanel,
+          cards: groupCardsC,
         },
       };
     case 'SET_MASTER_SELECTED':

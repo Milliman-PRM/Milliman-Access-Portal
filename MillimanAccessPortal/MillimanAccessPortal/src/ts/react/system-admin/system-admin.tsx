@@ -11,10 +11,10 @@ import * as React from 'react';
 
 import { getData, postData } from '../../shared';
 import { BasicNode, BasicTree, Nestable } from '../../view-models/content-publishing';
-import { CardPanel } from '../shared-components/card-panel';
+import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { Card, CardAttributes } from '../shared-components/card/card';
 import { CardSectionMain, CardText } from '../shared-components/card/card-sections';
-import { ColumnIndicator } from '../shared-components/column-selector';
+import { ColumnIndicator, ColumnSelector } from '../shared-components/column-selector';
 import { EntityHelper } from '../shared-components/entity';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
@@ -156,28 +156,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     const secondaryColumnComponent = secondaryColumn
       ? (
         <CardPanel
-          panelHeader={{
-            columns: this.getColumns(primaryColumn),
-            onColumnSelect: this.handleSecondaryColumnSelected,
-            selectedColumn: this.getColumns(primaryColumn).filter((c) => c.id === secondaryColumn)[0],
-          }}
-          filterText={this.state.secondaryPanel.filter.text}
-          modalOpen={this.state.secondaryPanel.createModal.open}
-          onFilterTextChange={this.handleSecondaryFilterKeyup}
-          onModalOpen={this.handleSecondaryModalOpen}
-          onModalClose={this.handleSecondaryModalClose}
-          createAction={this.getCreateAction(secondaryColumn, primaryColumn)}
-          onExpandedToggled={this.handleSecondaryExpandedToggled}
           cards={this.state.secondaryPanel.cards}
-          onCardSelect={this.handleSecondaryCardSelected}
-          selectedCard={secondaryCard}
-          queryFilter={secondaryQueryFilter}
-          onProfitCenterModalOpen={this.handleProfitCenterModalOpen}
-          onProfitCenterModalClose={this.handleProfitCenterModalClose}
-          onSendReset={this.handleSendReset}
-          onProfitCenterDelete={this.handleProfitCenterDelete}
-          onProfitCenterUserRemove={this.handleProfitCenterUserRemove}
-          onClientUserRemove={this.handleClientUserRemove}
           entities={sEntities}
           renderEntity={(entity, key) => {
             let text;
@@ -205,7 +184,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
               </Card>
             );
           }}
-        />
+        >
+          <ColumnSelector
+            columns={this.getColumns(primaryColumn)}
+            onColumnSelect={this.handleSecondaryColumnSelected}
+            selectedColumn={this.getColumns(primaryColumn).filter((c) => c.id === secondaryColumn)[0]}
+          />
+        </CardPanel>
       )
       : null;
     return (
@@ -214,28 +199,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           currentView={this.currentView}
         />
         <CardPanel
-          panelHeader={{
-            columns: this.getColumns(),
-            onColumnSelect: this.handlePrimaryColumnSelected,
-            selectedColumn: this.getColumns().filter((c) => c.id === primaryColumn)[0],
-          }}
-          filterText={this.state.primaryPanel.filter.text}
-          modalOpen={this.state.primaryPanel.createModal.open}
-          onFilterTextChange={this.handlePrimaryFilterKeyup}
-          onModalOpen={this.handlePrimaryModalOpen}
-          onModalClose={this.handlePrimaryModalClose}
-          createAction={this.getCreateAction(primaryColumn)}
-          onExpandedToggled={this.handlePrimaryExpandedToggled}
           cards={this.state.primaryPanel.cards}
-          onCardSelect={this.handlePrimaryCardSelected}
-          selectedCard={primaryCard}
-          queryFilter={this.getPrimaryQueryFilter()}
-          onProfitCenterModalOpen={this.handleProfitCenterModalOpen}
-          onProfitCenterModalClose={this.handleProfitCenterModalClose}
-          onSendReset={this.handleSendReset}
-          onProfitCenterDelete={this.handleProfitCenterDelete}
-          onProfitCenterUserRemove={this.handleProfitCenterUserRemove}
-          onClientUserRemove={this.handleClientUserRemove}
           entities={pEntities}
           renderEntity={(entity, key) => {
             let text;
@@ -267,7 +231,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
               </Card>
             );
           }}
-        />
+        >
+          <ColumnSelector
+            columns={this.getColumns()}
+            onColumnSelect={this.handlePrimaryColumnSelected}
+            selectedColumn={this.getColumns().filter((c) => c.id === primaryColumn)[0]}
+          />
+        </CardPanel>
         {secondaryColumnComponent}
         <div
           className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12"

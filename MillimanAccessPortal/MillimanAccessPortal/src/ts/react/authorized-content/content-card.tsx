@@ -33,7 +33,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
       ? (
         <ActionIcon
           action={this.selectReleaseNotes}
-          title="View Release Notes"
+          label="View Release Notes"
           icon="release-notes"
         />
       )
@@ -42,7 +42,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
       ? (
         <ActionIcon
           action={this.selectUserGuide}
-          title="View Userguide"
+          label="View Userguide"
           icon="userguide"
         />
       )
@@ -68,18 +68,15 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
     );
   }
 
-  private selectContent(event: React.MouseEvent<HTMLElement>) {
-    event.stopPropagation();
+  private selectContent() {
     this.props.selectContent(this.props.contentURL);
   }
 
-  private selectReleaseNotes(event: React.MouseEvent<HTMLElement>) {
-    event.stopPropagation();
+  private selectReleaseNotes() {
     this.props.selectContent(this.props.releaseNotesURL);
   }
 
-  private selectUserGuide(event: React.MouseEvent<HTMLElement>) {
-    event.stopPropagation();
+  private selectUserGuide() {
     this.props.selectContent(this.props.userguideURL);
   }
 

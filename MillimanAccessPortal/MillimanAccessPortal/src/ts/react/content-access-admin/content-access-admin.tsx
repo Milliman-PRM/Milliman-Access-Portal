@@ -7,7 +7,11 @@ import { isPublicationActive, ReductionStatus } from '../../view-models/content-
 import {
   Client, ReductionFieldset, RootContentItem, RootContentItemWithStatus, SelectionGroupWithStatus,
 } from '../models';
-import { CardPanel, CardPanelProps } from '../shared-components/card-panel';
+import { ActionIcon } from '../shared-components/action-icon';
+import { CardPanel } from '../shared-components/card-panel/card-panel';
+import {
+  CardPanelSectionToolbar, CardPanelSectionToolbarButtons,
+} from '../shared-components/card-panel/card-panel-sections';
 import { Card, CardAttributes } from '../shared-components/card/card';
 import CardButton from '../shared-components/card/card-button';
 import { CardExpansion } from '../shared-components/card/card-expansion';
@@ -15,13 +19,14 @@ import {
   CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
+import { Filter } from '../shared-components/filter';
 import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import * as actions from './redux/actions';
 import {
-  activeGroupsWithStatus, activeItemsWithStatus, activeReductionFieldsets, itemCardAttributes,
-  modifiedReductionValues, pendingMaster, pendingReductionValues, selectedGroupWithStatus,
-  selectedItem, selectionsFormModified,
+  activeGroupsWithStatus, activeItemsWithStatus, activeReductionFieldsets, allGroupsCollapsed,
+  allGroupsExpanded, itemCardAttributes, modifiedReductionValues, pendingMaster,
+  pendingReductionValues, selectedGroupWithStatus, selectedItem, selectionsFormModified,
 } from './redux/selectors';
 import { ContentAccessAdminState } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
@@ -44,6 +49,8 @@ interface ContentAccessAdminProps {
     cards: {
       [id: string]: CardAttributes;
     };
+    allExpanded: boolean;
+    allCollapsed: boolean;
     selectedCard: Guid;
   };
   selectedItem: RootContentItem;
@@ -59,6 +66,8 @@ interface ContentAccessAdminActions {
   selectItemCard: (id: Guid) => actions.ActionWithId;
   selectGroupCard: (id: Guid) => actions.ActionWithId;
   setGroupCardExpanded: (id: Guid, bValue: boolean) => actions.ActionWithId & actions.ActionWithBoolean;
+  expandAllGroups: () => void;
+  collapseAllGroups: () => void;
   setMasterSelected: (bValue: boolean) => actions.ActionWithBoolean;
   setValueSelected: (id: Guid, bValue: boolean) => actions.ActionWithId & actions.ActionWithBoolean;
 }
@@ -66,29 +75,6 @@ interface ContentAccessAdminActions {
 class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & ContentAccessAdminActions> {
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
-
-  private nullProps: CardPanelProps<any> = {
-    createAction: null,
-    modalOpen: false,
-    onCardSelect: () => null,
-    onClientUserRemove: () => null,
-    onExpandedToggled: () => null,
-    onFilterTextChange: () => null,
-    onModalClose: () => null,
-    onModalOpen: () => null,
-    onProfitCenterDelete: () => null,
-    onProfitCenterModalClose: () => null,
-    onProfitCenterModalOpen: () => null,
-    onProfitCenterUserRemove: () => null,
-    onSendReset: () => null,
-    queryFilter: null,
-    selectedCard: null,
-    filterText: '',
-    cards: {},
-    entities: [],
-    renderEntity: () => null,
-    panelHeader: '',
-  };
 
   public componentDidMount() {
     this.props.nop();
@@ -110,9 +96,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
     const { clients, clientPanel, selectClientCard } = this.props;
     return (
       <CardPanel
-        {...this.nullProps}
-        {...clientPanel}
-        panelHeader={'Clients'}
+        cards={{}}
         entities={clients}
         renderEntity={(entity, key) => (
           <Card
@@ -137,7 +121,19 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             </CardSectionMain>
           </Card>
         )}
-      />
+      >
+        <h3 className="admin-panel-header">Clients</h3>
+        <CardPanelSectionToolbar>
+          <Filter
+            placeholderText={''}
+            setFilterText={() => null}
+            filterText={''}
+          />
+          <CardPanelSectionToolbarButtons>
+            <div id="icons" />
+          </CardPanelSectionToolbarButtons>
+        </CardPanelSectionToolbar>
+      </CardPanel>
     );
   }
 
@@ -145,10 +141,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
     const { items, clientPanel, itemPanel, selectItemCard } = this.props;
     return clientPanel.selectedCard && (
       <CardPanel
-        {...this.nullProps}
-        {...itemPanel}
         cards={itemPanel.cards}
-        panelHeader={'Content Items'}
         entities={items}
         renderEntity={(entity, key) => (
           <Card
@@ -175,18 +168,58 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             </CardSectionMain>
           </Card>
         )}
-      />
+      >
+        <h3 className="admin-panel-header">Content Items</h3>
+        <CardPanelSectionToolbar>
+          <Filter
+            placeholderText={''}
+            setFilterText={() => null}
+            filterText={''}
+          />
+          <CardPanelSectionToolbarButtons>
+            <div id="icons" />
+          </CardPanelSectionToolbarButtons>
+        </CardPanelSectionToolbar>
+      </CardPanel>
     );
   }
 
   private renderGroupPanel() {
-    const { groups, itemPanel, groupPanel, selectGroupCard, selectedItem: item, setGroupCardExpanded } = this.props;
+    const {
+      groups,
+      itemPanel,
+      groupPanel,
+      selectGroupCard,
+      selectedItem: item,
+      setGroupCardExpanded,
+      expandAllGroups,
+      collapseAllGroups,
+    } = this.props;
+
+    const expandAllIcon = groupPanel.allExpanded
+      ? null
+      : (
+        <ActionIcon
+          label="Expand all"
+          icon="expand-cards"
+          action={expandAllGroups}
+          inline={true}
+        />
+      );
+    const collapseAllIcon = groupPanel.allCollapsed
+      ? null
+      : (
+        <ActionIcon
+          label="Collapse all"
+          icon="collapse-cards"
+          action={collapseAllGroups}
+          inline={true}
+        />
+      );
+
     return itemPanel.selectedCard && (
       <CardPanel
-        {...this.nullProps}
-        {...groupPanel}
         cards={groupPanel.cards}
-        panelHeader={'Selection Groups'}
         entities={groups}
         renderEntity={(entity, key) => {
           const card = groupPanel.cards[entity.id] || {};
@@ -223,8 +256,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               </CardSectionMain>
               <CardExpansion
                 label={'Members'}
-                maximized={card.expanded}
-                setMaximized={(value) => setGroupCardExpanded(entity.id, value)}
+                expanded={card.expanded}
+                setExpanded={(value) => setGroupCardExpanded(entity.id, value)}
               >
                 <ul>
                 {[{}].map((o: any, i) => (
@@ -247,7 +280,20 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             </Card>
           );
         }}
-      />
+      >
+        <h3 className="admin-panel-header">Selection Groups</h3>
+        <CardPanelSectionToolbar>
+          <Filter
+            placeholderText={''}
+            setFilterText={() => null}
+            filterText={''}
+          />
+          <CardPanelSectionToolbarButtons>
+            {expandAllIcon}
+            {collapseAllIcon}
+          </CardPanelSectionToolbarButtons>
+        </CardPanelSectionToolbar>
+      </CardPanel>
     );
   }
 
@@ -302,7 +348,11 @@ function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProp
       ...itemPanel,
       cards: itemCardAttributes(state),
     },
-    groupPanel,
+    groupPanel: {
+      ...groupPanel,
+      allExpanded: allGroupsExpanded(state),
+      allCollapsed: allGroupsCollapsed(state),
+    },
     selectedItem: selectedItem(state),
     selectedGroup: selectedGroupWithStatus(state),
     selectedValues: pendingReductionValues(state)
