@@ -28,7 +28,7 @@ namespace MapDbContextLib.Context
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Convenience property to automatically translate between persisted string and enumeration
+        /// Convenience property to automatically translate from the persisted Name to corresponding enumeration
         /// </summary>
         [NotMapped]
         public ContentTypeEnum TypeEnum
@@ -39,7 +39,14 @@ namespace MapDbContextLib.Context
             }
             get
             {
-                return (ContentTypeEnum) Enum.Parse(typeof(ContentTypeEnum), Name, true);
+                if (Enum.TryParse(Name, true, out ContentTypeEnum result))
+                {
+                    return result;
+                }
+                else
+                {
+                    return (ContentTypeEnum)int.MaxValue;
+                }
             }
         }
 
