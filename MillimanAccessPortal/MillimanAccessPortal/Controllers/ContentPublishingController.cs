@@ -4,11 +4,9 @@
  * DEVELOPER NOTES:
  */
 
-using AuditLogLib;
+using AuditLogLib.Event;
 using AuditLogLib.Services;
-using MapCommonLib;
 using MapCommonLib.ActionFilters;
-using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -23,15 +21,15 @@ using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
+using MillimanAccessPortal.Services;
+using QlikviewLib;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Diagnostics;
 using System.Threading.Tasks;
-using AuditLogLib.Event;
-using QlikviewLib;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -41,6 +39,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IConfiguration ApplicationConfig;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext DbContext;
+        private readonly IGoLiveTaskQueue _goLiveTaskQueue;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly QlikviewConfig QlikviewConfig;
@@ -58,6 +57,7 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext ContextArg,
+            IGoLiveTaskQueue goLiveTaskQueue,
             StandardQueries QueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
@@ -67,6 +67,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DbContext = ContextArg;
+            _goLiveTaskQueue = goLiveTaskQueue;
             Queries = QueriesArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
@@ -832,6 +833,8 @@ namespace MillimanAccessPortal.Controllers
             //    }
             //}
             #endregion
+
+            _goLiveTaskQueue.QueueGoLive(goLiveViewModel);
 
             /* At this point, available variables include:
              * - PubRequest - validated to be the relevant ContentPublicationRequest instance, with RootContentItem and ApplicationUser navigation properties
