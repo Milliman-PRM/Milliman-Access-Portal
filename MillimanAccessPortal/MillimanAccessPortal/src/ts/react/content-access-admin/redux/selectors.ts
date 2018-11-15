@@ -1,6 +1,8 @@
 import { isEqual, xor } from 'lodash';
 
-import { isPublicationActive, isReductionActive } from '../../../view-models/content-publishing';
+import {
+  isPublicationActive, isReductionActive, publicationStatusNames, reductionStatusNames,
+} from '../../../view-models/content-publishing';
 import { Guid, ReductionFieldset } from '../../models';
 import { ContentAccessAdminState } from './store';
 
@@ -16,13 +18,7 @@ function selectedGroup(state: ContentAccessAdminState) {
   return state.data.groups.filter((g) => g.id === state.groupPanel.selectedCard)[0];
 }
 export function selectedGroupWithStatus(state: ContentAccessAdminState) {
-  const _selectedGroup = selectedGroup(state);
-  return _selectedGroup
-  ? {
-    ..._selectedGroup,
-    status: relatedReduction(state, _selectedGroup.id),
-  }
-  : null;
+  return activeGroupsWithStatus(state).filter((g) => g.id === state.groupPanel.selectedCard)[0];
 }
 
 export function selectedReductionValues(state: ContentAccessAdminState) {
@@ -95,10 +91,17 @@ function activeItems(state: ContentAccessAdminState) {
   return state.data.items.filter((i) => i.clientId === state.clientPanel.selectedCard);
 }
 export function activeItemsWithStatus(state: ContentAccessAdminState) {
-  return activeItems(state).map((i) => ({
-    ...i,
-    status: relatedPublication(state, i.id),
-  }));
+  return activeItems(state).map((i) => {
+    const publication = relatedPublication(state, i.id);
+    return {
+      ...i,
+      status: {
+        ...publication,
+        applicationUser: publication && state.data.users.filter((u) => u.id === publication.applicationUserId)[0],
+        requestStatusName: publication && publicationStatusNames[publication.requestStatus],
+      },
+    };
+  });
 }
 
 function queueDetailsForReduction(state: ContentAccessAdminState, reductionId: Guid) {
@@ -115,10 +118,17 @@ export function activeGroups(state: ContentAccessAdminState) {
   return state.data.groups.filter((i) => i.rootContentItemId === state.itemPanel.selectedCard);
 }
 export function activeGroupsWithStatus(state: ContentAccessAdminState) {
-  return activeGroups(state).map((g) => ({
-    ...g,
-    status: relatedReduction(state, g.id),
-  }));
+  return activeGroups(state).map((g) => {
+    const reduction = relatedReduction(state, g.id);
+    return {
+      ...g,
+      status: {
+        ...reduction,
+        applicationUser: reduction && state.data.users.filter((u) => u.id === reduction.applicationUserId)[0],
+        taskStatusName: reduction && reductionStatusNames[reduction.taskStatus],
+      },
+    };
+  });
 }
 export function allGroupsExpanded(state: ContentAccessAdminState) {
   return activeGroups(state).reduce((prev, g) => {

@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 import { Action } from 'redux';
 
 import { PublicationStatus, ReductionStatus } from '../../../view-models/content-publishing';
@@ -73,14 +74,15 @@ const _values: ReductionFieldValue[] = [
 ];
 const _publications: ContentPublicationRequest[] = [
   { id: 'publication1', applicationUserId: 'user1', requestStatus: PublicationStatus.Queued,
-    createDateTimeUtc: '', rootContentItemId: 'item2' },
+    createDateTimeUtc: moment().toISOString(), rootContentItemId: 'item2' },
 ];
 const _publicationQueue: PublicationQueueDetails[] = [
   { publicationId: 'publication1', queuePosition: 1, queuedDurationMs: 42 },
 ];
 const _reductions: ContentReductionTask[] = [
   { id: 'reduction1', applicationUserId: 'user1', contentPublicationRequestId: null,
-    selectionGroupId: 'group1', selectedValues: [], taskStatus: ReductionStatus.Queued, createDateTimeUtc: '' },
+    selectionGroupId: 'group1', selectedValues: [], taskStatus: ReductionStatus.Queued,
+    createDateTimeUtc: moment().toISOString() },
 ];
 const _reductionQueue: ReductionQueueDetails[] = [
   { reductionId: 'reduction1', queuePosition: 1, queuedDurationMs: 42 },

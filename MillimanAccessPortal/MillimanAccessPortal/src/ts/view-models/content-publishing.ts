@@ -57,6 +57,19 @@ export enum ReductionStatus {
   Replaced = 50,
   Error = 90,
 }
+export const publicationStatusNames = {
+  9: 'Virus scanning',
+  10: 'Queued',
+  20: 'Processing',
+  30: 'Processed',
+  90: 'Error',
+};
+export const reductionStatusNames = {
+  10: 'Queued',
+  20: 'Reducing',
+  30: 'Reduced',
+  90: 'Error',
+};
 export function isPublicationActive(status: PublicationStatus) {
   return [
     PublicationStatus.Validating,

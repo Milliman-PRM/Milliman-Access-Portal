@@ -91,9 +91,13 @@ export interface ReductionQueueDetails {
 }
 export interface PublicationWithQueueDetails extends ContentPublicationRequest {
   queueDetails: PublicationQueueDetails;
+  applicationUser: User;
+  requestStatusName: string;
 }
 export interface ReductionWithQueueDetails extends ContentReductionTask {
   queueDetails: ReductionQueueDetails;
+  applicationUser: User;
+  taskStatusName: string;
 }
 export function isPublicationRequest(request: ContentPublicationRequest | ContentReductionTask)
     : request is ContentPublicationRequest {

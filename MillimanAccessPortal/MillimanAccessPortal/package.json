@@ -10,6 +10,7 @@
     "jquery-validation": "1.18.0",
     "jquery-validation-unobtrusive": "3.2.11",
     "lodash": "^4.17.11",
+    "moment": "^2.22.2",
     "node-forge": "^0.7.5",
     "popper.js": "^1.14.1",
     "promise-polyfill": "8.1.0",
