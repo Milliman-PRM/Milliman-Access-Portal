@@ -25,16 +25,29 @@ import { NavBar } from '../shared-components/navbar';
 import * as actions from './redux/actions';
 import {
   activeGroupsWithStatus, activeItemsWithStatus, activeReductionFieldsets, allGroupsCollapsed,
-  allGroupsExpanded, itemCardAttributes, modifiedReductionValues, pendingMaster,
-  pendingReductionValues, selectedGroupWithStatus, selectedItem, selectionsFormModified,
+  allGroupsExpanded, clientEntities, groupEntities, itemCardAttributes, itemEntities,
+  modifiedReductionValues, pendingMaster, pendingReductionValues, selectedGroupWithStatus,
+  selectedItem, selectionsFormModified,
 } from './redux/selectors';
 import { ContentAccessAdminState } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
 
+interface ClientEntity extends Client {
+  reports: number;
+  eligibleUsers: number;
+}
+interface RootContentItemEntity extends RootContentItemWithStatus {
+  selectionGroups: number;
+  assignedUsers: number;
+}
+interface SelectionGroupEntity extends SelectionGroupWithStatus {
+  assignedUsers: number;
+}
+
 interface ContentAccessAdminProps {
-  clients: Client[];
-  items: RootContentItemWithStatus[];
-  groups: SelectionGroupWithStatus[];
+  clients: ClientEntity[];
+  items: RootContentItemEntity[];
+  groups: SelectionGroupEntity[];
   reductionFieldsets: ReductionFieldset[];
   clientPanel: {
     selectedCard: Guid;
@@ -108,14 +121,14 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               <CardText text={entity.name} subtext={entity.code} />
               <CardSectionStats>
                 <CardStat
-                  name={'Eligible users'}
-                  value={0}
-                  icon={'user'}
+                  name={'Reports'}
+                  value={entity.reports}
+                  icon={'reports'}
                 />
                 <CardStat
-                  name={'Reports'}
-                  value={0}
-                  icon={'reports'}
+                  name={'Eligible users'}
+                  value={entity.eligibleUsers}
+                  icon={'user'}
                 />
               </CardSectionStats>
             </CardSectionMain>
@@ -155,14 +168,14 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               <CardText text={entity.name} subtext={'Content Type'} />
               <CardSectionStats>
                 <CardStat
-                  name={'Assigned users'}
-                  value={0}
-                  icon={'user'}
+                  name={'Selection groups'}
+                  value={entity.selectionGroups}
+                  icon={'group'}
                 />
                 <CardStat
-                  name={'Selection groups'}
-                  value={0}
-                  icon={'group'}
+                  name={'Assigned users'}
+                  value={entity.assignedUsers}
+                  icon={'user'}
                 />
               </CardSectionStats>
             </CardSectionMain>
@@ -235,7 +248,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                 <CardSectionStats>
                   <CardStat
                     name={'Assigned users'}
-                    value={0}
+                    value={entity.assignedUsers}
                     icon={'user'}
                   />
                 </CardSectionStats>
@@ -339,9 +352,9 @@ function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProp
   const { clientPanel, itemPanel, groupPanel } = state;
   const { clients } = state.data;
   return {
-    clients,
-    items: activeItemsWithStatus(state),
-    groups: activeGroupsWithStatus(state),
+    clients: clientEntities(state),
+    items: itemEntities(state),
+    groups: groupEntities(state),
     reductionFieldsets: activeReductionFieldsets(state),
     clientPanel,
     itemPanel: {

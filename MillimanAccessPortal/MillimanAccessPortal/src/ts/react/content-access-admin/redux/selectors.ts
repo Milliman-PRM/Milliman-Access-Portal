@@ -179,3 +179,27 @@ export function itemCardAttributes(state: ContentAccessAdminState) {
   });
   return cards;
 }
+
+export function clientEntities(state: ContentAccessAdminState) {
+  return state.data.clients.map((c) => ({
+    ...c,
+    reports: state.data.items.filter((i) => i.clientId === c.id).length,
+    eligibleUsers: c.eligibleUsers.length,
+  }));
+}
+export function itemEntities(state: ContentAccessAdminState) {
+  return activeItemsWithStatus(state).map((i) => {
+    const groups = state.data.groups.filter((g) => g.rootContentItemId === i.id);
+    return {
+      ...i,
+      selectionGroups: groups.length,
+      assignedUsers: groups.reduce((prev, cur) => prev + cur.assignedUsers.length, 0),
+    };
+  });
+}
+export function groupEntities(state: ContentAccessAdminState) {
+  return activeGroupsWithStatus(state).map((g) => ({
+    ...g,
+    assignedUsers: g.assignedUsers.length,
+  }));
+}

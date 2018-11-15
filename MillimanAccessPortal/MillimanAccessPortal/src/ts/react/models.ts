@@ -23,6 +23,9 @@ export interface Client {
   name: string;
   code: string;
 }
+export interface ClientWithEligibleUsers extends Client {
+  eligibleUsers: Guid[];
+}
 export interface RootContentItem {
   id: Guid;
   clientId?: Guid;
@@ -40,6 +43,9 @@ export interface SelectionGroup {
   isSuspended: boolean;
   isMaster: boolean;
   name: string;
+}
+export interface SelectionGroupWithAssignedUsers extends SelectionGroup {
+  assignedUsers: Guid[];
 }
 export interface SelectionGroupWithStatus extends SelectionGroup {
   status: ReductionWithQueueDetails;

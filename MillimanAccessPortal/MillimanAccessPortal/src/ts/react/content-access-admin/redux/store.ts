@@ -1,17 +1,18 @@
 import { createStore } from 'redux';
 
 import {
-  Client, ContentPublicationRequest, ContentReductionTask, Guid, PublicationQueueDetails,
-  ReductionField, ReductionFieldValue, ReductionQueueDetails, RootContentItem, SelectionGroup, User,
+  ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, Guid,
+  PublicationQueueDetails, ReductionField, ReductionFieldValue, ReductionQueueDetails,
+  RootContentItem, SelectionGroupWithAssignedUsers, User,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { contentAccessAdmin } from './reducers';
 
 export interface ContentAccessAdminState {
   data: {
-    clients: Client[];
+    clients: ClientWithEligibleUsers[];
     items: RootContentItem[];
-    groups: SelectionGroup[];
+    groups: SelectionGroupWithAssignedUsers[];
     users: User[];
     fields: ReductionField[];
     values: ReductionFieldValue[];

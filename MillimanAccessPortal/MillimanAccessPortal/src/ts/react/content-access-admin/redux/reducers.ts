@@ -3,18 +3,19 @@ import { Action } from 'redux';
 
 import { PublicationStatus, ReductionStatus } from '../../../view-models/content-publishing';
 import {
-  Client, ContentPublicationRequest, ContentReductionTask, Guid, PublicationQueueDetails,
-  ReductionField, ReductionFieldValue, ReductionQueueDetails, RootContentItem, SelectionGroup, User,
+  ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, PublicationQueueDetails,
+  ReductionField, ReductionFieldValue, ReductionQueueDetails, RootContentItem,
+  SelectionGroupWithAssignedUsers, User,
 } from '../../models';
 import { ActionWithBoolean, ActionWithId } from './actions';
 import { activeGroups } from './selectors';
 import { ContentAccessAdminState } from './store';
 
-const _clients: Client[] = [
-  { id: 'client1', name: 'client1', code: 'c1' },
-  { id: 'client2', name: 'client2', code: 'c2' },
-  { id: 'client3', name: 'client3', code: 'c3' },
-  { id: 'client4', name: 'client4', code: 'c4' },
+const _clients: ClientWithEligibleUsers[] = [
+  { id: 'client1', name: 'client1', code: 'c1', eligibleUsers: ['user1', 'user2', 'user3'] },
+  { id: 'client2', name: 'client2', code: 'c2', eligibleUsers: ['user1', 'user4'] },
+  { id: 'client3', name: 'client3', code: 'c3', eligibleUsers: ['user5'] },
+  { id: 'client4', name: 'client4', code: 'c4', eligibleUsers: ['user6'] },
 ];
 const _items: RootContentItem[] = [
   { id: 'item1', name: 'item1', isSuspended: false, doesReduce: true, clientId: 'client1' },
@@ -24,23 +25,23 @@ const _items: RootContentItem[] = [
   { id: 'item5', name: 'item5', isSuspended: false, doesReduce: false, clientId: 'client2' },
   { id: 'item6', name: 'item6', isSuspended: false, doesReduce: false, clientId: 'client4' },
 ];
-const _groups: SelectionGroup[] = [
+const _groups: SelectionGroupWithAssignedUsers[] = [
   { id: 'group1', name: 'group1', isSuspended: true, isMaster: false, rootContentItemId: 'item1',
-    selectedValues: [ 'value1', 'value2', 'value3', 'value4', 'value5' ] },
+    selectedValues: [ 'value1', 'value2', 'value3', 'value4', 'value5' ], assignedUsers: ['user1'] },
   { id: 'group2', name: 'group2', isSuspended: false, isMaster: false, rootContentItemId: 'item1',
-    selectedValues: [ 'value1' ] },
+    selectedValues: [ 'value1' ], assignedUsers: ['user2', 'user3'] },
   { id: 'group3', name: 'group3', isSuspended: false, isMaster: false, rootContentItemId: 'item1',
-    selectedValues: [ ] },
+    selectedValues: [ ], assignedUsers: [] },
   { id: 'group4', name: 'group4', isSuspended: false, isMaster: true, rootContentItemId: 'item2',
-    selectedValues: [ ] },
+    selectedValues: [ ], assignedUsers: ['user1', 'user2', 'user3'] },
   { id: 'group5', name: 'group5', isSuspended: false, isMaster: false, rootContentItemId: 'item4',
-    selectedValues: [ ] },
+    selectedValues: [ ], assignedUsers: ['user1'] },
   { id: 'group6', name: 'group6', isSuspended: false, isMaster: false, rootContentItemId: 'item5',
-    selectedValues: [ ] },
+    selectedValues: [ ], assignedUsers: ['user1', 'user4'] },
   { id: 'group7', name: 'group7', isSuspended: false, isMaster: false, rootContentItemId: 'item5',
-    selectedValues: [ ] },
+    selectedValues: [ ], assignedUsers: [] },
   { id: 'group8', name: 'group8', isSuspended: false, isMaster: false, rootContentItemId: 'item6',
-    selectedValues: [ ] },
+    selectedValues: [ ], assignedUsers: [] },
 ];
 const _users: User[] = [
   { id: 'user1', activated: true, firstName: 'first1', lastName: 'last1', userName: 'username1',
