@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { ReductionStatus } from '../../view-models/content-publishing';
+import { PanelSectionContainer } from '../shared-components/card-panel/panel-sections';
 import { Filter } from '../shared-components/filter';
 import { Toggle } from '../shared-components/toggle';
 import { Fieldset, FieldsetData } from './fieldset';
@@ -19,34 +20,26 @@ export interface SelectionsPanelProps {
 
 export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   public render() {
+    const { children, title, subtitle, isSuspended } = this.props;
     return (
-      <div
-        className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
-      >
+      <PanelSectionContainer>
         <h3 className="admin-panel-header">Selections</h3>
-        <div className="admin-panel-toolbar">
-          <Filter
-            placeholderText={''}
-            setFilterText={() => null}
-            filterText={''}
-          />
-          <div className="admin-panel-action-icons-container" />
-        </div>
-        <div className="admin-panel-list">
+        {children}
+        <div className="admin-panel-form">
           <div className="admin-panel-content-container">
             <form className="admin-panel-content">
-              <h2>{this.props.title}</h2>
-              <h3>{this.props.subtitle}</h3>
+              <h2>{title}</h2>
+              <h3>{subtitle}</h3>
               <Toggle
                 label={'Suspend Access'}
-                checked={this.props.isSuspended}
+                checked={isSuspended}
                 onClick={() => null}
               />
               {this.renderDoesReduceSection()}
             </form>
           </div>
         </div>
-      </div>
+      </PanelSectionContainer>
     );
   }
 

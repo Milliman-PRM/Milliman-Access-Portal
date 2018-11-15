@@ -23,24 +23,28 @@ export interface ContentAccessAdminState {
   };
   clientPanel: {
     selectedCard: Guid;
+    filterText: string;
   };
   itemPanel: {
     cards: {
       [id: string]: CardAttributes;
     };
     selectedCard: Guid;
+    filterText: string;
   };
   groupPanel: {
     cards: {
       [id: string]: CardAttributes;
     };
     selectedCard: Guid;
+    filterText: string;
   };
   selectionsPanel: {
     isMaster: boolean;
     values: {
       [id: string]: boolean;
     };
+    filterText: string;
   };
 }
 

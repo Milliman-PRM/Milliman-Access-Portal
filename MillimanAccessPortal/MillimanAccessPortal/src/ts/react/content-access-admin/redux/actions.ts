@@ -9,6 +9,10 @@ export interface ActionWithBoolean extends Action {
   bValue: boolean;
 }
 
+export interface ActionWithString extends Action {
+  sValue: string;
+}
+
 export function nop(): Action {
   return {
     type: 'NOP',
@@ -53,6 +57,34 @@ export function expandAllGroups(): Action {
 export function collapseAllGroups(): Action {
   return {
     type: 'COLLAPSE_ALL_GROUPS',
+  };
+}
+
+export function setClientFilterText(sValue: string): ActionWithString {
+  return {
+    type: 'SET_CLIENT_FILTER_TEXT',
+    sValue,
+  };
+}
+
+export function setItemFilterText(sValue: string): ActionWithString {
+  return {
+    type: 'SET_ITEM_FILTER_TEXT',
+    sValue,
+  };
+}
+
+export function setGroupFilterText(sValue: string): ActionWithString {
+  return {
+    type: 'SET_GROUP_FILTER_TEXT',
+    sValue,
+  };
+}
+
+export function setValueFilterText(sValue: string): ActionWithString {
+  return {
+    type: 'SET_VALUE_FILTER_TEXT',
+    sValue,
   };
 }
 

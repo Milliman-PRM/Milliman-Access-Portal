@@ -6,6 +6,7 @@ import {
 import { Guid, ReductionFieldset } from '../../models';
 import { ContentAccessAdminState } from './store';
 
+// Single entity selectors
 export function selectedClient(state: ContentAccessAdminState) {
   return state.data.clients.filter((c) => c.id === state.clientPanel.selectedCard)[0];
 }
@@ -28,6 +29,7 @@ export function selectedReductionValues(state: ContentAccessAdminState) {
     : [];
 }
 
+// Modified status selectors
 export function pendingReductionValues(state: ContentAccessAdminState) {
   const _selectedGroup = selectedGroup(state);
   const _relatedReduction = relatedReduction(state, _selectedGroup && _selectedGroup.id);
@@ -41,14 +43,12 @@ export function pendingReductionValues(state: ContentAccessAdminState) {
       })
     : [];
 }
-
 export function modifiedReductionValues(state: ContentAccessAdminState) {
   return xor(
     selectedReductionValues(state),
     pendingReductionValues(state),
   );
 }
-
 export function pendingMaster(state: ContentAccessAdminState) {
   const _selectedGroup = selectedGroup(state);
   return _selectedGroup
@@ -57,14 +57,12 @@ export function pendingMaster(state: ContentAccessAdminState) {
       : state.selectionsPanel.isMaster
     : false;
 }
-
 export function reductionValuesModified(state: ContentAccessAdminState) {
   return !isEqual(
     selectedReductionValues(state),
     pendingReductionValues(state),
   );
 }
-
 export function masterModified(state: ContentAccessAdminState) {
   const _selectedGroup = selectedGroup(state);
   const { isMaster } = state.selectionsPanel;
@@ -72,11 +70,60 @@ export function masterModified(state: ContentAccessAdminState) {
     ? (isMaster !== null && isMaster !== _selectedGroup.isMaster)
     : false;
 }
-
 export function selectionsFormModified(state: ContentAccessAdminState) {
   return reductionValuesModified(state) || masterModified(state);
 }
 
+// Filter selectors
+export function filteredClients(state: ContentAccessAdminState) {
+  const filterTextLower = state.clientPanel.filterText.toLowerCase();
+  return state.data.clients.filter((c) => {
+    return (
+      filterTextLower === ''
+      || c.name.toLowerCase().indexOf(filterTextLower) !== -1
+      || c.code.toLowerCase().indexOf(filterTextLower) !== -1
+    );
+  });
+}
+export function filteredItems(state: ContentAccessAdminState) {
+  const filterTextLower = state.itemPanel.filterText.toLowerCase();
+  return state.data.items.filter((i) => {
+    return (
+      filterTextLower === ''
+      || i.name.toLowerCase().indexOf(filterTextLower) !== -1
+    );
+  });
+}
+export function filteredGroups(state: ContentAccessAdminState) {
+  const filterTextLower = state.groupPanel.filterText.toLowerCase();
+  return state.data.groups.filter((g) => {
+    return (
+      filterTextLower === ''
+      || g.name.toLowerCase().indexOf(filterTextLower) !== -1
+    );
+  });
+}
+export function filteredFields(state: ContentAccessAdminState) {
+  const fieldIds = filteredValues(state).map((v) => v.reductionFieldId);
+  return state.data.fields.filter((f) => fieldIds.indexOf(f.id) !== -1);
+}
+export function filteredValues(state: ContentAccessAdminState) {
+  const filterTextLower = state.selectionsPanel.filterText.toLowerCase();
+  return state.data.values.filter((v) => {
+    const field = state.data.fields.filter((f) => v.reductionFieldId === f.id)[0];
+    return (
+      filterTextLower === ''
+      || v.value.toLowerCase().indexOf(filterTextLower) !== -1
+      || field.fieldName.toLowerCase().indexOf(filterTextLower) !== -1
+      || field.displayName.toLowerCase().indexOf(filterTextLower) !== -1
+    );
+  });
+}
+
+// Active entity selectors
+export function activeClients(state: ContentAccessAdminState) {
+  return filteredClients(state);
+}
 function queueDetailsForPublication(state: ContentAccessAdminState, publicationId: Guid) {
   return state.data.publicationQueue.filter((q) => q.publicationId === publicationId)[0];
 }
@@ -88,7 +135,7 @@ function relatedPublication(state: ContentAccessAdminState, itemId: Guid) {
     : null;
 }
 function activeItems(state: ContentAccessAdminState) {
-  return state.data.items.filter((i) => i.clientId === state.clientPanel.selectedCard);
+  return filteredItems(state).filter((i) => i.clientId === state.clientPanel.selectedCard);
 }
 export function activeItemsWithStatus(state: ContentAccessAdminState) {
   return activeItems(state).map((i) => {
@@ -115,7 +162,7 @@ function relatedReduction(state: ContentAccessAdminState, groupId: Guid) {
     : null;
 }
 export function activeGroups(state: ContentAccessAdminState) {
-  return state.data.groups.filter((i) => i.rootContentItemId === state.itemPanel.selectedCard);
+  return filteredGroups(state).filter((i) => i.rootContentItemId === state.itemPanel.selectedCard);
 }
 export function activeGroupsWithStatus(state: ContentAccessAdminState) {
   return activeGroups(state).map((g) => {
@@ -150,13 +197,13 @@ export function activeReductions(state: ContentAccessAdminState) {
 
 export function activeReductionFields(state: ContentAccessAdminState) {
   return selectedItem(state)
-    ? state.data.fields.filter((f) => selectedItem(state).id === f.rootContentItemId)
+    ? filteredFields(state).filter((f) => selectedItem(state).id === f.rootContentItemId)
     : [];
 }
 
 export function activeReductionValues(state: ContentAccessAdminState) {
   const activeReductionFieldIds = activeReductionFields(state).map((f) => f.id);
-  return state.data.values.filter((f) => activeReductionFieldIds.indexOf(f.reductionFieldId) !== -1);
+  return filteredValues(state).filter((f) => activeReductionFieldIds.indexOf(f.reductionFieldId) !== -1);
 }
 
 export function activeReductionFieldsets(state: ContentAccessAdminState): ReductionFieldset[] {
@@ -181,7 +228,7 @@ export function itemCardAttributes(state: ContentAccessAdminState) {
 }
 
 export function clientEntities(state: ContentAccessAdminState) {
-  return state.data.clients.map((c) => ({
+  return activeClients(state).map((c) => ({
     ...c,
     reports: state.data.items.filter((i) => i.clientId === c.id).length,
     eligibleUsers: c.eligibleUsers.length,

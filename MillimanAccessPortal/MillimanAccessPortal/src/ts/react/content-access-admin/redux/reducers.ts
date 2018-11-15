@@ -7,7 +7,7 @@ import {
   ReductionField, ReductionFieldValue, ReductionQueueDetails, RootContentItem,
   SelectionGroupWithAssignedUsers, User,
 } from '../../models';
-import { ActionWithBoolean, ActionWithId } from './actions';
+import { ActionWithBoolean, ActionWithId, ActionWithString } from './actions';
 import { activeGroups } from './selectors';
 import { ContentAccessAdminState } from './store';
 
@@ -102,10 +102,25 @@ const _initialState: ContentAccessAdminState = {
     reductions: _reductions,
     reductionQueue: _reductionQueue,
   },
-  clientPanel: { selectedCard: null },
-  itemPanel: { cards: {}, selectedCard: null },
-  groupPanel: { cards: {}, selectedCard: null },
-  selectionsPanel: { isMaster: null, values: {} },
+  clientPanel: {
+    selectedCard: null,
+    filterText: '',
+  },
+  itemPanel: {
+    cards: {},
+    selectedCard: null,
+    filterText: '',
+  },
+  groupPanel: {
+    cards: {},
+    selectedCard: null,
+    filterText: '',
+  },
+  selectionsPanel: {
+    isMaster: null,
+    values: {},
+    filterText: '',
+  },
 };
 
 export function contentAccessAdmin(state: ContentAccessAdminState = _initialState, action: Action) {
@@ -149,6 +164,7 @@ export function contentAccessAdmin(state: ContentAccessAdminState = _initialStat
         selectionsPanel: {
           isMaster: null,
           values: {},
+          filterText: '',
         },
       };
     case 'SET_GROUP_CARD_EXPANDED':
@@ -193,6 +209,38 @@ export function contentAccessAdmin(state: ContentAccessAdminState = _initialStat
         groupPanel: {
           ...state.groupPanel,
           cards: groupCardsC,
+        },
+      };
+    case 'SET_CLIENT_FILTER_TEXT':
+      return {
+        ...state,
+        clientPanel: {
+          ...state.clientPanel,
+          filterText: (action as ActionWithString).sValue,
+        },
+      };
+    case 'SET_ITEM_FILTER_TEXT':
+      return {
+        ...state,
+        itemPanel: {
+          ...state.itemPanel,
+          filterText: (action as ActionWithString).sValue,
+        },
+      };
+    case 'SET_GROUP_FILTER_TEXT':
+      return {
+        ...state,
+        groupPanel: {
+          ...state.groupPanel,
+          filterText: (action as ActionWithString).sValue,
+        },
+      };
+    case 'SET_VALUE_FILTER_TEXT':
+      return {
+        ...state,
+        selectionsPanel: {
+          ...state.selectionsPanel,
+          filterText: (action as ActionWithString).sValue,
         },
       };
     case 'SET_MASTER_SELECTED':
