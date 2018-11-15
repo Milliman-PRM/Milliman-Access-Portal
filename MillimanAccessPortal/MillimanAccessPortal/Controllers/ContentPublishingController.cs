@@ -780,20 +780,6 @@ namespace MillimanAccessPortal.Controllers
                             "cannot complete the go-live request.");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
-                    //// Validate file checksum for reduced content
-                    //var currentChecksum = GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower();
-                    //if (currentChecksum != ThisTask.ReducedContentChecksum.ToLower())
-                    //{
-                    //    Log.Error($"In ContentPublishingController.GoLive action: " +
-                    //        "for selection group {relatedSelectionGroup.Id}, " +
-                    //        "reduced content file {ThisTask.ResultFilePath} failed checksum validation, " +
-                    //        "aborting");
-                    //    AuditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
-                    //        publicationRequest.RootContentItem, publicationRequest));
-                    //    Response.Headers.Add("Warning", $"Reduced content file failed integrity check, " +
-                    //        "cannot complete the go-live request.");
-                    //    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                    //}
                 }
 
                 LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>
@@ -816,22 +802,6 @@ namespace MillimanAccessPortal.Controllers
                     }
                 }
             }
-
-            // Validate Checksums of LiveReady files
-            //foreach (ContentRelatedFile Crf in publicationRequest.LiveReadyFilesObj)
-            //{
-            //    if (!Crf.ValidateChecksum())
-            //    {
-            //        Log.Error($"In ContentPublishingController.GoLive action: " +
-            //            $"for publication request {publicationRequest.Id}, " +
-            //            $"live ready file {Crf.FullPath} failed checksum validation, " +
-            //            "aborting");
-            //        AuditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
-            //            publicationRequest.RootContentItem, publicationRequest));
-            //        Response.Headers.Add("Warning", "File integrity validation failed");
-            //        return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            //    }
-            //}
             #endregion
 
             _goLiveTaskQueue.QueueGoLive(goLiveViewModel);
