@@ -52,6 +52,7 @@ namespace MapDbContextLib.Context
                 PublicationStatus.Queued,
                 PublicationStatus.Processing,
                 PublicationStatus.Processed,
+                PublicationStatus.Confirming,
             };
 
             return blockingStatuses.Contains(status);
@@ -71,6 +72,7 @@ namespace MapDbContextLib.Context
             { PublicationStatus.Queued, "Queued"},
             { PublicationStatus.Processing, "Processing"},
             { PublicationStatus.Processed, "Processed"},
+            { PublicationStatus.Confirming, "Going Live"},
             { PublicationStatus.Confirmed, "Confirmed"},
             { PublicationStatus.Replaced, "Replaced" },
             { PublicationStatus.Error, "Error" },

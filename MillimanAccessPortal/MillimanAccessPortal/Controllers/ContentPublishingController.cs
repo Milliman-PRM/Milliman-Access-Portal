@@ -695,7 +695,7 @@ namespace MillimanAccessPortal.Controllers
                     .ThenInclude(c => c.ContentType)
                 .Include(r => r.ApplicationUser)
                 .Where(r => r.Id == goLiveViewModel.PublicationRequestId)
-                .Where(r => r.RootContentItemId == goLiveViewModel.PublicationRequestId)
+                .Where(r => r.RootContentItemId == goLiveViewModel.RootContentItemId)
                 .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Processed);
 
             if (publicationRequest?.RootContentItem == null || publicationRequest?.ApplicationUser == null)

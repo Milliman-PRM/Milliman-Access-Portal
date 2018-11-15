@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
 using QlikviewLib;
@@ -40,7 +41,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             var auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
             var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var qlikviewConfig = scope.ServiceProvider.GetRequiredService<QlikviewConfig>();
+            var qlikviewConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -67,8 +68,8 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 .ThenInclude(c => c.ContentType)
             .Include(r => r.ApplicationUser)
             .Where(r => r.Id == goLiveViewModel.PublicationRequestId)
-            .Where(r => r.RootContentItemId == goLiveViewModel.PublicationRequestId)
-            .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Processed);
+            .Where(r => r.RootContentItemId == goLiveViewModel.RootContentItemId)
+            .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Confirming);
 
         if (publicationRequest?.RootContentItem == null || publicationRequest?.ApplicationUser == null)
         {
@@ -374,7 +375,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
             {
                 case ContentTypeEnum.Qlikview:
-                    await new QlikviewLib.QlikviewLibApi()
+                    await new QlikviewLibApi()
                         .AuthorizeUserDocumentsInFolder(
                             goLiveViewModel.RootContentItemId.ToString(), qlikviewConfig);
                     break;
