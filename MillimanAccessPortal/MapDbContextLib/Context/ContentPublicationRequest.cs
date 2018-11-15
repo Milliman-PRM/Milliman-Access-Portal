@@ -25,6 +25,7 @@ namespace MapDbContextLib.Context
         Queued = 10,
         Processing = 20,
         Processed = 30,
+        Confirming = 35,
         Confirmed = 40,
         Replaced = 50,
         Error = 90,         // An error has occured

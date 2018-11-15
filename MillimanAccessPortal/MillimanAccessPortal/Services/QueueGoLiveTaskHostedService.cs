@@ -77,7 +77,6 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 $"publication request {goLiveViewModel.PublicationRequestId} not found, " + 
                 $"or related user {publicationRequest?.ApplicationUserId} not found, " +
                 $"or related content item {publicationRequest?.RootContentItemId} not found");
-            await FailGoLive(dbContext, "Go-Live request references an invalid publication request.");
             return;
         }
 
@@ -113,7 +112,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         "expected one reduction task for each non-master selection group, " +
                         $"failed for selection group {relatedSelectionGroup.Id}, " +
                         "aborting");
-                    await FailGoLive(dbContext,
+                    await FailGoLive(dbContext, publicationRequest,
                         $"Expected 1 reduction task related to SelectionGroup {relatedSelectionGroup.Id}, " +
                         "cannot complete this go-live request.");
                     return;
@@ -129,7 +128,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         "aborting");
                     auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
                         publicationRequest.RootContentItem, publicationRequest));
-                    await FailGoLive(dbContext,
+                    await FailGoLive(dbContext, publicationRequest,
                         $"Reduced content file failed integrity check, " +
                         "cannot complete the go-live request.");
                     return;
@@ -148,7 +147,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     "aborting");
                 auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
                     publicationRequest.RootContentItem, publicationRequest));
-                await FailGoLive(dbContext, "File integrity validation failed");
+                await FailGoLive(dbContext, publicationRequest, "File integrity validation failed");
                 return;
             }
         }
@@ -415,12 +414,13 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             Directory.Delete(PubJobTempFolder, true);
         }
         #endregion
-
-        Console.WriteLine("Validated a Go Live request.");
     }
 
-    private async Task FailGoLive(ApplicationDbContext dbContext, string reason)
+    private async Task FailGoLive(
+        ApplicationDbContext dbContext, ContentPublicationRequest publicationRequest, string reason)
     {
-        Console.WriteLine("Go Live failed.");
+        publicationRequest.RequestStatus = PublicationStatus.Error;
+        publicationRequest.StatusMessage = reason;
+        await dbContext.SaveChangesAsync();
     }
 } 
