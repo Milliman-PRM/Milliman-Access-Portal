@@ -1,6 +1,7 @@
 import '../../../images/user.svg';
 
 import * as React from 'react';
+import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 
 import { isPublicationActive, ReductionStatus } from '../../view-models/content-publishing';
@@ -25,10 +26,10 @@ import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import * as actions from './redux/actions';
 import {
-  activeGroupsWithStatus, activeItemsWithStatus, activeReductionFieldsets, activeSelectedClient,
-  activeSelectedGroup, activeSelectedItem, allGroupsCollapsed, allGroupsExpanded, clientEntities,
-  groupEntities, itemCardAttributes, itemEntities, modifiedReductionValues, pendingMaster,
-  pendingReductionValues, selectedGroupWithStatus, selectedItem, selectionsFormModified,
+  activeReductionFieldsets, activeSelectedClient, activeSelectedGroup, activeSelectedItem,
+  allGroupsCollapsed, allGroupsExpanded, clientEntities, groupEntities, itemCardAttributes,
+  itemEntities, modifiedReductionValues, pendingMaster, pendingReductionValues,
+  selectedGroupWithStatus, selectedItem, selectionsFormModified,
 } from './redux/selectors';
 import { ContentAccessAdminState } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
@@ -69,6 +70,7 @@ interface ContentAccessAdminProps {
     allCollapsed: boolean;
     selectedCard: Guid;
     filterText: string;
+    isModalOpen: boolean;
   };
   selectionsPanel: {
     filterText: string;
@@ -97,6 +99,9 @@ interface ContentAccessAdminActions {
   setValueFilterText: (sValue: string) => void;
   setMasterSelected: (bValue: boolean) => actions.ActionWithBoolean;
   setValueSelected: (id: Guid, bValue: boolean) => actions.ActionWithId & actions.ActionWithBoolean;
+  openAddGroupModal: () => void;
+  closeAddGroupModal: () => void;
+  setValueAddGroupModal: (sValue: string) => void;
 }
 
 class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & ContentAccessAdminActions> {
@@ -221,6 +226,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       selectedItem: item,
       setGroupCardExpanded,
       setGroupFilterText,
+      openAddGroupModal,
+      closeAddGroupModal,
+      setValueAddGroupModal,
       expandAllGroups,
       collapseAllGroups,
     } = this.props;
@@ -232,7 +240,6 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
           label="Expand all"
           icon="expand-cards"
           action={expandAllGroups}
-          inline={true}
         />
       );
     const collapseAllIcon = groupPanel.allCollapsed
@@ -242,7 +249,6 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
           label="Collapse all"
           icon="collapse-cards"
           action={collapseAllGroups}
-          inline={true}
         />
       );
 
@@ -322,6 +328,45 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             {collapseAllIcon}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
+        <div className="card-container" onClick={openAddGroupModal}>
+          <div className="card-body-container card-100 action-card">
+            <h2 className="card-body-primary-text">
+              <ActionIcon icon={'add'} />
+              <span>ADD SELECTION GROUP</span>
+            </h2>
+          </div>
+        </div>
+        <Modal
+          isOpen={groupPanel.isModalOpen}
+          onRequestClose={closeAddGroupModal}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+        >
+          <h3 className="title blue">Add Selection Group</h3>
+          <span className="modal-text">Selection group name:</span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              alert('You created a selection group!');
+              closeAddGroupModal();
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Selection group name"
+              onChange={(event) => setValueAddGroupModal(event.target.value)}
+            />
+            <div className="button-container">
+              <button className="link-button" type="button" onClick={closeAddGroupModal}>
+                Cancel
+              </button>
+              <button className="blue-button" type="submit">
+                Add
+              </button>
+            </div>
+          </form>
+        </Modal>
       </CardPanel>
     );
   }

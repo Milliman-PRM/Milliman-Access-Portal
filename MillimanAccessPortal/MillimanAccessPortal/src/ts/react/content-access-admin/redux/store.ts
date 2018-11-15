@@ -38,6 +38,8 @@ export interface ContentAccessAdminState {
     };
     selectedCard: Guid;
     filterText: string;
+    isModalOpen: boolean;
+    modalValue: string;
   };
   selectionsPanel: {
     isMaster: boolean;

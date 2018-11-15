@@ -1,4 +1,5 @@
-﻿import '../../../images/collapse-cards.svg';
+﻿import '../../../images/add.svg';
+import '../../../images/collapse-cards.svg';
 import '../../../images/expand-cards.svg';
 import '../../../images/release-notes.svg';
 import '../../../images/userguide.svg';
@@ -11,14 +12,16 @@ import * as React from 'react';
 
 export interface ActionIconProps {
   label: string;
-  icon: 'collapse-cards' | 'expand-cards' | 'release-notes' | 'userguide';
+  icon: 'add' | 'collapse-cards' | 'expand-cards' | 'release-notes' | 'userguide';
   action: () => void;
   inline: boolean;
 }
 
 export class ActionIcon extends React.Component<ActionIconProps, {}> {
   public static defaultProps = {
-    inline: false,
+    label: null,
+    action: () => null,
+    inline: true,
   };
   public render() {
     return this.props.action && (

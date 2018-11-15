@@ -35,6 +35,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
           action={this.selectReleaseNotes}
           label="View Release Notes"
           icon="release-notes"
+          inline={false}
         />
       )
       : null;
@@ -44,6 +45,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
           action={this.selectUserGuide}
           label="View Userguide"
           icon="userguide"
+          inline={false}
         />
       )
       : null;

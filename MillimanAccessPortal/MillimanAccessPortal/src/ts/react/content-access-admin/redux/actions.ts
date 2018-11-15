@@ -102,3 +102,22 @@ export function setValueSelected(id: Guid, bValue: boolean): ActionWithId & Acti
     bValue,
   };
 }
+
+export function openAddGroupModal(): Action {
+  return {
+    type: 'OPEN_ADD_GROUP_MODAL',
+  };
+}
+
+export function closeAddGroupModal(): Action {
+  return {
+    type: 'CLOSE_ADD_GROUP_MODAL',
+  };
+}
+
+export function setValueAddGroupModal(sValue: string): ActionWithString {
+  return {
+    type: 'SET_VALUE_ADD_GROUP_MODAL',
+    sValue,
+  };
+}

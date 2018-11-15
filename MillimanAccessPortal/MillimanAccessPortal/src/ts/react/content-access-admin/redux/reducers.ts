@@ -115,6 +115,8 @@ const _initialState: ContentAccessAdminState = {
     cards: {},
     selectedCard: null,
     filterText: '',
+    isModalOpen: false,
+    modalValue: '',
   },
   selectionsPanel: {
     isMaster: null,
@@ -260,6 +262,31 @@ export function contentAccessAdmin(state: ContentAccessAdminState = _initialStat
             ...state.selectionsPanel.values,
             [id]: (action as ActionWithBoolean).bValue,
           },
+        },
+      };
+    case 'OPEN_ADD_GROUP_MODAL':
+      return {
+        ...state,
+        groupPanel: {
+          ...state.groupPanel,
+          isModalOpen: true,
+          modalValue: '',
+        },
+      };
+    case 'CLOSE_ADD_GROUP_MODAL':
+      return {
+        ...state,
+        groupPanel: {
+          ...state.groupPanel,
+          isModalOpen: false,
+        },
+      };
+    case 'SET_VALUE_ADD_GROUP_MODAL':
+      return {
+        ...state,
+        groupPanel: {
+          ...state.groupPanel,
+          modalValue: (action as ActionWithString).sValue,
         },
       };
     case 'NOP':
