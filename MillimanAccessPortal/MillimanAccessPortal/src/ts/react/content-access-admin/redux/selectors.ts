@@ -6,29 +6,6 @@ import {
 import { Guid, ReductionFieldset } from '../../models';
 import { ContentAccessAdminState } from './store';
 
-// Single entity selectors
-export function selectedClient(state: ContentAccessAdminState) {
-  return state.data.clients.filter((c) => c.id === state.clientPanel.selectedCard)[0];
-}
-
-export function selectedItem(state: ContentAccessAdminState) {
-  return state.data.items.filter((i) => i.id === state.itemPanel.selectedCard)[0];
-}
-
-function selectedGroup(state: ContentAccessAdminState) {
-  return state.data.groups.filter((g) => g.id === state.groupPanel.selectedCard)[0];
-}
-export function selectedGroupWithStatus(state: ContentAccessAdminState) {
-  return activeGroupsWithStatus(state).filter((g) => g.id === state.groupPanel.selectedCard)[0];
-}
-
-export function selectedReductionValues(state: ContentAccessAdminState) {
-  return selectedGroup(state)
-    ? selectedGroup(state).selectedValues.map((i) =>
-      state.data.values.filter((v) => v.id === i)[0])
-    : [];
-}
-
 // Modified status selectors
 export function pendingReductionValues(state: ContentAccessAdminState) {
   const _selectedGroup = selectedGroup(state);
@@ -249,4 +226,36 @@ export function groupEntities(state: ContentAccessAdminState) {
     ...g,
     assignedUsers: g.assignedUsers.length,
   }));
+}
+
+// Selected entity selectors
+export function selectedClient(state: ContentAccessAdminState) {
+  return state.data.clients.filter((c) => c.id === state.clientPanel.selectedCard)[0];
+}
+export function activeSelectedClient(state: ContentAccessAdminState) {
+  return activeClients(state).filter((c) => c.id === state.clientPanel.selectedCard)[0];
+}
+
+export function selectedItem(state: ContentAccessAdminState) {
+  return state.data.items.filter((i) => i.id === state.itemPanel.selectedCard)[0];
+}
+export function activeSelectedItem(state: ContentAccessAdminState) {
+  return activeItems(state).filter((i) => i.id === state.itemPanel.selectedCard)[0];
+}
+
+function selectedGroup(state: ContentAccessAdminState) {
+  return state.data.groups.filter((g) => g.id === state.groupPanel.selectedCard)[0];
+}
+export function activeSelectedGroup(state: ContentAccessAdminState) {
+  return activeGroups(state).filter((g) => g.id === state.groupPanel.selectedCard)[0];
+}
+export function selectedGroupWithStatus(state: ContentAccessAdminState) {
+  return activeGroupsWithStatus(state).filter((g) => g.id === state.groupPanel.selectedCard)[0];
+}
+
+export function selectedReductionValues(state: ContentAccessAdminState) {
+  return selectedGroup(state)
+    ? selectedGroup(state).selectedValues.map((i) =>
+      state.data.values.filter((v) => v.id === i)[0])
+    : [];
 }

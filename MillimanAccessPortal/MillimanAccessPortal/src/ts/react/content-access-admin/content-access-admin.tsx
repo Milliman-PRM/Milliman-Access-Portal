@@ -5,7 +5,8 @@ import { connect } from 'react-redux';
 
 import { isPublicationActive, ReductionStatus } from '../../view-models/content-publishing';
 import {
-  Client, ReductionFieldset, RootContentItem, RootContentItemWithStatus, SelectionGroupWithStatus,
+  Client, ReductionFieldset, RootContentItem, RootContentItemWithStatus, SelectionGroup,
+  SelectionGroupWithStatus,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
@@ -24,10 +25,10 @@ import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import * as actions from './redux/actions';
 import {
-  activeGroupsWithStatus, activeItemsWithStatus, activeReductionFieldsets, allGroupsCollapsed,
-  allGroupsExpanded, clientEntities, groupEntities, itemCardAttributes, itemEntities,
-  modifiedReductionValues, pendingMaster, pendingReductionValues, selectedGroupWithStatus,
-  selectedItem, selectionsFormModified,
+  activeGroupsWithStatus, activeItemsWithStatus, activeReductionFieldsets, activeSelectedClient,
+  activeSelectedGroup, activeSelectedItem, allGroupsCollapsed, allGroupsExpanded, clientEntities,
+  groupEntities, itemCardAttributes, itemEntities, modifiedReductionValues, pendingMaster,
+  pendingReductionValues, selectedGroupWithStatus, selectedItem, selectionsFormModified,
 } from './redux/selectors';
 import { ContentAccessAdminState } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
@@ -74,6 +75,9 @@ interface ContentAccessAdminProps {
   };
   selectedItem: RootContentItem;
   selectedGroup: SelectionGroupWithStatus;
+  activeSelectedClient: Client;
+  activeSelectedItem: RootContentItem;
+  activeSelectedGroup: SelectionGroup;
   selectedValues: Guid[];
   modifiedValues: Guid[];
   selectedMaster: boolean;
@@ -161,8 +165,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   }
 
   private renderItemPanel() {
-    const { items, clientPanel, itemPanel, selectItemCard, setItemFilterText } = this.props;
-    return clientPanel.selectedCard && (
+    const { items, activeSelectedClient: activeClient, itemPanel, selectItemCard, setItemFilterText } = this.props;
+    return activeClient && (
       <CardPanel
         cards={itemPanel.cards}
         entities={items}
@@ -210,7 +214,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   private renderGroupPanel() {
     const {
       groups,
-      itemPanel,
+      activeSelectedClient: activeClient,
+      activeSelectedItem: activeItem,
       groupPanel,
       selectGroupCard,
       selectedItem: item,
@@ -241,7 +246,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         />
       );
 
-    return itemPanel.selectedCard && (
+    return activeClient && activeItem && (
       <CardPanel
         cards={groupPanel.cards}
         entities={groups}
@@ -326,7 +331,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       selectedItem: item,
       selectedGroup: group,
       reductionFieldsets,
-      groupPanel,
+      activeSelectedClient: activeClient,
+      activeSelectedItem: activeItem,
+      activeSelectedGroup: activeGroup,
       selectionsPanel,
       setValueSelected,
       setValueFilterText,
@@ -345,7 +352,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         onChange: (selected: boolean) => setValueSelected(v.id, selected),
       })),
     }));
-    return groupPanel.selectedCard && (
+    return activeClient && activeItem && activeGroup && (
       <SelectionsPanel
         isSuspended={group.isSuspended}
         doesReduce={item.doesReduce}
@@ -354,7 +361,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         onIsMasterChange={setMasterSelected}
         title={group.name}
         subtitle={item.name}
-        status={group.status ? group.status.taskStatus : ReductionStatus.Unspecified}
+        status={group.status.taskStatus || ReductionStatus.Unspecified}
         fieldsets={fieldsets}
       >
         <PanelSectionToolbar>
@@ -391,6 +398,9 @@ function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProp
     },
     selectedItem: selectedItem(state),
     selectedGroup: selectedGroupWithStatus(state),
+    activeSelectedClient: activeSelectedClient(state),
+    activeSelectedItem: activeSelectedItem(state),
+    activeSelectedGroup: activeSelectedGroup(state),
     selectedValues: pendingReductionValues(state)
       ? pendingReductionValues(state).map((v) => v.id)
       : [],
