@@ -179,7 +179,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("DefaultIconName")
                         .IsRequired();
 
-                    b.Property<string[]>("FileExtensions");
+                    b.Property<string[]>("FileExtensions")
+                        .HasDefaultValueSql("'{}'");
 
                     b.Property<string>("Name")
                         .IsRequired();

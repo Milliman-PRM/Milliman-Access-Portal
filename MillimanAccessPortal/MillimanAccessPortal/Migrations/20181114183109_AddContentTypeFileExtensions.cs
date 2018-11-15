@@ -11,7 +11,8 @@ namespace MillimanAccessPortal.Migrations
             migrationBuilder.AddColumn<string[]>(
                 name: "FileExtensions",
                 table: "ContentType",
-                nullable: true);
+                nullable: true,
+                defaultValueSql: "'{}'");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

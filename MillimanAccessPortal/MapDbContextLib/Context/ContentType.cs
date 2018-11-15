@@ -55,7 +55,8 @@ namespace MapDbContextLib.Context
         [Required]
         public string DefaultIconName { get; set; }
 
-        public string[] FileExtensions { get; set; }
+        [Required]
+        public string[] FileExtensions { get; set; } = new string[0];
 
         #region Database Initialization
         /// <summary>
