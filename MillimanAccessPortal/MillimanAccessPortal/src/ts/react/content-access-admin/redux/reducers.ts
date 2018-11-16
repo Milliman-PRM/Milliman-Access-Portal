@@ -1,296 +1,128 @@
-import * as moment from 'moment';
-import { Action } from 'redux';
+import { combineReducers } from 'redux';
 
-import { PublicationStatus, ReductionStatus } from '../../../view-models/content-publishing';
+import { Guid } from '../../models';
+import { CardAttributes } from '../../shared-components/card/card';
+import { AccessAction } from './actions';
 import {
-  ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, PublicationQueueDetails,
-  ReductionField, ReductionFieldValue, ReductionQueueDetails, RootContentItem,
-  SelectionGroupWithAssignedUsers, User,
-} from '../../models';
-import { ActionWithBoolean, ActionWithId, ActionWithString } from './actions';
-import { activeGroups } from './selectors';
-import { ContentAccessAdminState } from './store';
+  AccessStateData, AccessStateSelected, FilterState, ModalState,
+} from './store';
 
-const _clients: ClientWithEligibleUsers[] = [
-  { id: 'client1', name: 'client1', code: 'c1', eligibleUsers: ['user1', 'user2', 'user3'] },
-  { id: 'client2', name: 'client2', code: 'c2', eligibleUsers: ['user1', 'user4'] },
-  { id: 'client3', name: 'client3', code: 'c3', eligibleUsers: ['user5'] },
-  { id: 'client4', name: 'client4', code: 'c4', eligibleUsers: ['user6'] },
-];
-const _items: RootContentItem[] = [
-  { id: 'item1', name: 'item1', isSuspended: false, doesReduce: true, clientId: 'client1' },
-  { id: 'item2', name: 'item2', isSuspended: false, doesReduce: true, clientId: 'client1' },
-  { id: 'item3', name: 'item3', isSuspended: false, doesReduce: false, clientId: 'client1' },
-  { id: 'item4', name: 'item4', isSuspended: false, doesReduce: true, clientId: 'client2' },
-  { id: 'item5', name: 'item5', isSuspended: false, doesReduce: false, clientId: 'client2' },
-  { id: 'item6', name: 'item6', isSuspended: false, doesReduce: false, clientId: 'client4' },
-];
-const _groups: SelectionGroupWithAssignedUsers[] = [
-  { id: 'group1', name: 'group1', isSuspended: true, isMaster: false, rootContentItemId: 'item1',
-    selectedValues: [ 'value1', 'value2', 'value3', 'value4', 'value5' ], assignedUsers: ['user1'] },
-  { id: 'group2', name: 'group2', isSuspended: false, isMaster: false, rootContentItemId: 'item1',
-    selectedValues: [ 'value1' ], assignedUsers: ['user2', 'user3'] },
-  { id: 'group3', name: 'group3', isSuspended: false, isMaster: false, rootContentItemId: 'item1',
-    selectedValues: [ ], assignedUsers: [] },
-  { id: 'group4', name: 'group4', isSuspended: false, isMaster: true, rootContentItemId: 'item2',
-    selectedValues: [ ], assignedUsers: ['user1', 'user2', 'user3'] },
-  { id: 'group5', name: 'group5', isSuspended: false, isMaster: false, rootContentItemId: 'item4',
-    selectedValues: [ ], assignedUsers: ['user1'] },
-  { id: 'group6', name: 'group6', isSuspended: false, isMaster: false, rootContentItemId: 'item5',
-    selectedValues: [ ], assignedUsers: ['user1', 'user4'] },
-  { id: 'group7', name: 'group7', isSuspended: false, isMaster: false, rootContentItemId: 'item5',
-    selectedValues: [ ], assignedUsers: [] },
-  { id: 'group8', name: 'group8', isSuspended: false, isMaster: false, rootContentItemId: 'item6',
-    selectedValues: [ ], assignedUsers: [] },
-];
-const _users: User[] = [
-  { id: 'user1', activated: true, firstName: 'first1', lastName: 'last1', userName: 'username1',
-    email: 'email1', isSuspended: false },
-  { id: 'user2', activated: true, firstName: 'first2', lastName: 'last2', userName: 'username2',
-    email: 'email2', isSuspended: false },
-  { id: 'user3', activated: true, firstName: 'first3', lastName: 'last3', userName: 'username3',
-    email: 'email3', isSuspended: false },
-  { id: 'user4', activated: true, firstName: 'first4', lastName: 'last4', userName: 'username4',
-    email: 'email4', isSuspended: false },
-  { id: 'user5', activated: true, firstName: 'first5', lastName: 'last5', userName: 'username5',
-    email: 'email5', isSuspended: false },
-  { id: 'user6', activated: true, firstName: 'first6', lastName: 'last6', userName: 'username6',
-    email: 'email6', isSuspended: false },
-];
-const _fields: ReductionField[] = [
-  { id: 'field1', fieldName: 'field1', displayName: 'Field 1', valueDelimiter: '|',
-    rootContentItemId: 'item1' },
-  { id: 'field2', fieldName: 'field2', displayName: 'Field 2', valueDelimiter: '|',
-    rootContentItemId: 'item1' },
-  { id: 'field3', fieldName: 'field3', displayName: 'Field 3', valueDelimiter: '|',
-    rootContentItemId: 'item1' },
-];
-const _values: ReductionFieldValue[] = [
-  { id: 'value1', value: 'value1', reductionFieldId: 'field1' },
-  { id: 'value2', value: 'value2', reductionFieldId: 'field2' },
-  { id: 'value3', value: 'value3', reductionFieldId: 'field2' },
-  { id: 'value4', value: 'value4', reductionFieldId: 'field3' },
-  { id: 'value5', value: 'value5', reductionFieldId: 'field3' },
-  { id: 'value6', value: 'value6', reductionFieldId: 'field3' },
-];
-const _publications: ContentPublicationRequest[] = [
-  { id: 'publication1', applicationUserId: 'user1', requestStatus: PublicationStatus.Queued,
-    createDateTimeUtc: moment().toISOString(), rootContentItemId: 'item2' },
-];
-const _publicationQueue: PublicationQueueDetails[] = [
-  { publicationId: 'publication1', queuePosition: 1, queuedDurationMs: 42 },
-];
-const _reductions: ContentReductionTask[] = [
-  { id: 'reduction1', applicationUserId: 'user1', contentPublicationRequestId: null,
-    selectionGroupId: 'group1', selectedValues: [], taskStatus: ReductionStatus.Queued,
-    createDateTimeUtc: moment().toISOString() },
-];
-const _reductionQueue: ReductionQueueDetails[] = [
-  { reductionId: 'reduction1', queuePosition: 1, queuedDurationMs: 42 },
-];
-
-const _initialState: ContentAccessAdminState = {
-  data: {
-    clients: _clients,
-    items: _items,
-    groups: _groups,
-    users: _users,
-    fields: _fields,
-    values: _values,
-    publications: _publications,
-    publicationQueue: _publicationQueue,
-    reductions: _reductions,
-    reductionQueue: _reductionQueue,
-  },
-  clientPanel: {
-    selectedCard: null,
-    filterText: '',
-  },
-  itemPanel: {
-    cards: {},
-    selectedCard: null,
-    filterText: '',
-  },
-  groupPanel: {
-    cards: {},
-    selectedCard: null,
-    filterText: '',
-    isModalOpen: false,
-    modalValue: '',
-  },
-  selectionsPanel: {
-    isMaster: null,
-    values: {},
-    filterText: '',
-  },
-};
-
-export function contentAccessAdmin(state: ContentAccessAdminState = _initialState, action: Action) {
-  const id = (action as ActionWithId).id;
-  switch (action.type) {
-    case 'SELECT_CARD_CLIENT':
-      return {
-        ...state,
-        clientPanel: {
-          ...state.clientPanel,
-          selectedCard: id === state.clientPanel.selectedCard ? null : id,
-        },
-        itemPanel: {
-          ...state.itemPanel,
-          selectedCard: null,
-        },
-        groupPanel: {
-          ...state.groupPanel,
-          selectedCard: null,
-        },
-      };
-    case 'SELECT_CARD_ITEM':
-      return {
-        ...state,
-        itemPanel: {
-          ...state.itemPanel,
-          selectedCard: id === state.itemPanel.selectedCard ? null : id,
-        },
-        groupPanel: {
-          ...state.groupPanel,
-          selectedCard: null,
-        },
-      };
-    case 'SELECT_CARD_GROUP':
-      return {
-        ...state,
-        groupPanel: {
-          ...state.groupPanel,
-          selectedCard: id === state.groupPanel.selectedCard ? null : id,
-        },
-        selectionsPanel: {
-          isMaster: null,
-          values: {},
-          filterText: '',
-        },
-      };
-    case 'SET_GROUP_CARD_EXPANDED':
-      return {
-        ...state,
-        groupPanel: {
-          ...state.groupPanel,
-          cards: {
-            ...state.groupPanel.cards,
-            [id]: {
-              ...state.groupPanel.cards[id],
-              expanded: (action as ActionWithBoolean).bValue,
-            },
-          },
-        },
-      };
-    case 'EXPAND_ALL_GROUPS':
-      const groupCards = { ...state.groupPanel.cards };
-      activeGroups(state).forEach((g) => {
-        groupCards[g.id] = {
-          ...groupCards[g.id],
-          expanded: true,
-        };
-      });
-      return {
-        ...state,
-        groupPanel: {
-          ...state.groupPanel,
-          cards: groupCards,
-        },
-      };
-    case 'COLLAPSE_ALL_GROUPS':
-      const groupCardsC = { ...state.groupPanel.cards };
-      activeGroups(state).forEach((g) => {
-        groupCardsC[g.id] = {
-          ...groupCardsC[g.id],
-          expanded: false,
-        };
-      });
-      return {
-        ...state,
-        groupPanel: {
-          ...state.groupPanel,
-          cards: groupCardsC,
-        },
-      };
-    case 'SET_CLIENT_FILTER_TEXT':
-      return {
-        ...state,
-        clientPanel: {
-          ...state.clientPanel,
-          filterText: (action as ActionWithString).sValue,
-        },
-      };
-    case 'SET_ITEM_FILTER_TEXT':
-      return {
-        ...state,
-        itemPanel: {
-          ...state.itemPanel,
-          filterText: (action as ActionWithString).sValue,
-        },
-      };
-    case 'SET_GROUP_FILTER_TEXT':
-      return {
-        ...state,
-        groupPanel: {
-          ...state.groupPanel,
-          filterText: (action as ActionWithString).sValue,
-        },
-      };
-    case 'SET_VALUE_FILTER_TEXT':
-      return {
-        ...state,
-        selectionsPanel: {
-          ...state.selectionsPanel,
-          filterText: (action as ActionWithString).sValue,
-        },
-      };
-    case 'SET_MASTER_SELECTED':
-      return {
-        ...state,
-        selectionsPanel: {
-          ...state.selectionsPanel,
-          isMaster: (action as ActionWithBoolean).bValue,
-        },
-      };
-    case 'SET_VALUE_SELECTED':
-      return {
-        ...state,
-        selectionsPanel: {
-          ...state.selectionsPanel,
-          values: {
-            ...state.selectionsPanel.values,
-            [id]: (action as ActionWithBoolean).bValue,
-          },
-        },
-      };
-    case 'OPEN_ADD_GROUP_MODAL':
-      return {
-        ...state,
-        groupPanel: {
-          ...state.groupPanel,
-          isModalOpen: true,
-          modalValue: '',
-        },
-      };
-    case 'CLOSE_ADD_GROUP_MODAL':
-      return {
-        ...state,
-        groupPanel: {
-          ...state.groupPanel,
-          isModalOpen: false,
-        },
-      };
-    case 'SET_VALUE_ADD_GROUP_MODAL':
-      return {
-        ...state,
-        groupPanel: {
-          ...state.groupPanel,
-          modalValue: (action as ActionWithString).sValue,
-        },
-      };
-    case 'NOP':
-    default:
-      return state;
-  }
+// utility functions
+interface Handlers<TState, TAction> {
+  [type: string]: (state: TState, action: TAction) => TState;
 }
+function createReducer<TState>(initialState: TState, handlers: Handlers<TState, any>) {
+  return (state: TState = initialState, action) => {
+    return action.type in handlers
+      ? handlers[action.type](state, action)
+      : state;
+  };
+}
+const createFilterReducer = (actionType: AccessAction) =>
+  createReducer<FilterState>({ text: '' }, {
+    [actionType]: (state, action) => ({
+      ...state,
+      text: action.text,
+    }),
+  });
+const createModalReducer = (openActionType: AccessAction, closeActionType: AccessAction) =>
+  createReducer<ModalState>({ isOpen: false }, {
+    [openActionType]: (state) => ({
+      ...state,
+      isOpen: true,
+    }),
+    [closeActionType]: (state) => ({
+      ...state,
+      isOpen: false,
+    }),
+  });
+function updateList<T>(list: T[], selector: (item: T) => boolean, value?: T, transform?: (prev: T) => T): T[] {
+  const filtered = list.filter(selector);
+  return value === undefined
+      ? filtered
+    : transform === undefined
+      ? [...filtered, value].sort()
+    : list.length === filtered.length
+      ? [...filtered, transform(value)].sort()
+      : list.map((i) => selector(i) ? i : transform(i)).sort();
+}
+
+const groupCardAttributes = createReducer<CardAttributes[]>([],
+  {
+    [AccessAction.SetExpandedGroup]: (state, action) =>
+      updateList(state, (c) => c.id === action.id, { id: action.id }, (prev) => ({ ...prev, expanded: true })),
+    [AccessAction.SetCollapsedGroup]: (state, action) =>
+      updateList(state, (c) => c.id === action.id, { id: action.id }, (prev) => ({ ...prev, expanded: false })),
+    [AccessAction.SetAllExpandedGroup]: (state, action) =>
+      updateList(state, () => true, { id: action.id }, (prev) => ({ ...prev, expanded: true })),
+    [AccessAction.SetAllCollapsedGroup]: (state, action) =>
+      updateList(state, () => true, { id: action.id }, (prev) => ({ ...prev, expanded: false })),
+  },
+);
+const pendingIsMaster = createReducer<boolean>(false, {
+  [AccessAction.SetPendingIsMaster]: (_, action) => action.isMaster,
+});
+const pendingSelections = createReducer<Guid[]>([], {
+  [AccessAction.SetPendingSelectionOn]: (state, action) =>
+    updateList(state, (i) => i !== action.id, action.id),
+  [AccessAction.SetPendingSelectionOff]: (state, action) =>
+    updateList(state, (i) => i !== action.id),
+});
+const pendingNewGroupName = createReducer<string>('', {
+  [AccessAction.SetPendingGroupName]: (_, action) => action.name,
+});
+
+const data = (state: AccessStateData) => state;
+const selected = createReducer<AccessStateSelected>(
+  {
+    client: null,
+    item: null,
+    group: null,
+  },
+  {
+    [AccessAction.SelectClient]: (state, action) => action.id === state.client
+      ? state
+      : {
+        client: action.id,
+        item: null,
+        group: null,
+      },
+    [AccessAction.SelectItem]: (state, action) => action.id === state.item
+      ? state
+      : {
+        ...state,
+        item: action.id,
+        group: null,
+      },
+    [AccessAction.SelectGroup]: (state, action) => ({
+      ...state,
+      group: action.id,
+    }),
+  },
+);
+const cardAttributes = combineReducers({
+  group: groupCardAttributes,
+});
+const pending = combineReducers({
+  isMaster: pendingIsMaster,
+  selections: pendingSelections,
+  newGroupName: pendingNewGroupName,
+});
+const filters = combineReducers({
+  client: createFilterReducer(AccessAction.SetFilterTextClient),
+  item: createFilterReducer(AccessAction.SetFilterTextItem),
+  group: createFilterReducer(AccessAction.SetFilterTextGroup),
+  selections: createFilterReducer(AccessAction.SetFilterTextSelections),
+});
+const modals = combineReducers({
+  addGroup: createModalReducer(AccessAction.OpenAddGroupModal, AccessAction.CloseAddGroupModal),
+});
+
+export const contentAccessAdmin = combineReducers({
+  data,
+  selected,
+  cardAttributes,
+  pending,
+  filters,
+  modals,
+});

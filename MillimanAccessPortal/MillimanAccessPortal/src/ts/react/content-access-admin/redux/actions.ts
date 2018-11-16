@@ -11,9 +11,10 @@ export enum AccessAction {
   SetFilterTextClient = 'SET_FILTER_TEXT_CLIENT',
   SetFilterTextItem = 'SET_FILTER_TEXT_ITEM',
   SetFilterTextGroup = 'SET_FILTER_TEXT_GROUP',
-  SetFilterTextValue = 'SET_FILTER_TEXT_VALUE',
+  SetFilterTextSelections = 'SET_FILTER_TEXT_SELECTIONS',
   SetPendingIsMaster = 'SET_PENDING_IS_MASTER',
-  SetPendingSelection = 'SET_PENDING_SELECTION',
+  SetPendingSelectionOn = 'SET_PENDING_SELECTION_ON',
+  SetPendingSelectionOff = 'SET_PENDING_SELECTION_OFF',
   OpenAddGroupModal = 'OPEN_ADD_GROUP_MODAL',
   CloseAddGroupModal = 'CLOSE_ADD_GROUP_MODAL',
   SetPendingGroupName = 'SET_PENDING_GROUP_NAME',
@@ -34,14 +35,14 @@ export const setAllCollapsedGroup = () => ({ type: AccessAction.SetAllCollapsedG
 export const setFilterTextClient = (text: string) => ({ type: AccessAction.SetFilterTextClient, text });
 export const setFilterTextItem = (text: string) => ({ type: AccessAction.SetFilterTextItem, text });
 export const setFilterTextGroup = (text: string) => ({ type: AccessAction.SetFilterTextGroup, text });
-export const setFilterTextValue = (text: string) => ({ type: AccessAction.SetFilterTextValue, text });
+export const setFilterTextSelections = (text: string) => ({ type: AccessAction.SetFilterTextSelections, text });
 
 // Pending value selections
 export const setPendingIsMaster = (isMaster: boolean) => ({ type: AccessAction.SetPendingIsMaster, isMaster });
-export const setPendingSelection = (id: Guid, selected: boolean) =>
-  ({ type: AccessAction.SetPendingSelection, id, selected });
+export const setPendingSelectionOn = (id: Guid) => ({ type: AccessAction.SetPendingSelectionOn, id });
+export const setPendingSelectionOff = (id: Guid) => ({ type: AccessAction.SetPendingSelectionOff, id });
 
 // Add selection group modal
 export const openAddGroupModal = () => ({ type: AccessAction.OpenAddGroupModal });
 export const closeAddGroupModal = () => ({ type: AccessAction.CloseAddGroupModal });
-export const setPendingGroupName = () => ({ type: AccessAction.SetPendingGroupName });
+export const setPendingGroupName = (name: string) => ({ type: AccessAction.SetPendingGroupName, name });

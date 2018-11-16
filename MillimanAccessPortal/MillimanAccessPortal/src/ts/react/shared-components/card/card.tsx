@@ -1,9 +1,10 @@
 import * as React from 'react';
 
-import { PublicationWithQueueDetails, ReductionWithQueueDetails } from '../../models';
+import { Guid, PublicationWithQueueDetails, ReductionWithQueueDetails } from '../../models';
 import { CardStatus } from './card-status';
 
 export interface CardAttributes {
+  id: Guid;
   disabled?: boolean;
   expanded?: boolean;
   profitCenterModalOpen?: boolean;
