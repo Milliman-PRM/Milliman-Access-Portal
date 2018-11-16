@@ -112,7 +112,7 @@ namespace MillimanAccessPortal
                         // Only one mastercontent file is supported with this content type
                         if (files.Select(f => f.FilePurpose).Count(p => p.ToLower() == "mastercontent") > 1)
                         {
-                            throw new ApplicationException("Qlikview publication request cannot contain multiple MasterContent files");
+                            throw new ApplicationException("This publication request cannot contain multiple MasterContent files");
                         }
 
                         foreach (UploadedRelatedFile UploadedFileRef in files)
@@ -148,7 +148,7 @@ namespace MillimanAccessPortal
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    // PublicationRequest was set to canceled, no extra cleanup needed
+                    // PublicationRequest was likely set to canceled, no extra cleanup needed
                     return;
                 }
             }

@@ -404,24 +404,25 @@ namespace MillimanAccessPortal.Controllers
                 case ContentTypeEnum.Pdf:
                 case ContentTypeEnum.FileDownload:
                 default:
+                    // no additional requirements before deleting the folder
                     break;
             }
 
+            string ContentFolderPath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], rootContentItem.Id.ToString());
             try
             {
-                string ContentFolderPath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], rootContentItem.Id.ToString());
                 Directory.Delete(ContentFolderPath, true);
             }
             catch (DirectoryNotFoundException)
             {
                 // The root content item doesn't have any publications, this is fine so continue
             }
-            catch
+            catch (Exception e)
             {
                 if (! (new StackTrace()).GetFrames().Any(f => f.GetMethod().DeclaringType.Namespace == "MapTests"))
                 {
                     Log.Debug($"In ContentPublishingController.DeleteRootContentItem action: error while deleting folder for content {rootContentItem.Id}, aborting");
-                    throw;  // maybe this does not have to be done
+                    throw new ApplicationException($"Failed to delete content folder {ContentFolderPath}", e);
                 }
             }
 
@@ -859,10 +860,11 @@ namespace MillimanAccessPortal.Controllers
                         case ContentTypeEnum.Pdf:
                         case ContentTypeEnum.FileDownload:
                         default:
+                            // Nothing to do
                             break;
                     }
 
-                    // Can't move between different volumes
+                    // Can't move between different logical volumes, must copy
                     System.IO.File.Copy(Crf.FullPath, TargetFilePath);
                     FilesToDelete.Add(Crf.FullPath);
 
@@ -1009,6 +1011,7 @@ namespace MillimanAccessPortal.Controllers
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.FileDownload:
                     default:
+                        // Nothing to do
                         break;
                 }
 

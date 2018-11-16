@@ -471,27 +471,7 @@ namespace MillimanAccessPortal.Controllers
 
         public async Task<IActionResult> HtmlPreview(string purpose, Guid publicationRequestId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.HtmlPreview action: user {User.Identity.Name}, purpose {purpose}, publicationRequestId {publicationRequestId}");
-
-            purpose = purpose?.ToLower();
-
-            var PubRequest = DataContext.ContentPublicationRequest
-                                        .Include(r => r.RootContentItem)
-                                        .FirstOrDefault(r => r.Id == publicationRequestId);
-
-            #region Authorization
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
-            if (!Result1.Succeeded)
-            {
-                Log.Verbose($"In AuthorizedContentController.PdfPreview action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
-
-                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
-                return Unauthorized();
-            }
-            #endregion
-
-            return ;
+            return;
         }
     }
 }

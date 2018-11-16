@@ -189,6 +189,7 @@ namespace MillimanAccessPortal
                 case ContentTypeEnum.Pdf:
                 case ContentTypeEnum.FileDownload:
                 default:
+                    // Should never get here for non-reducible content
                     break;
             }
 
