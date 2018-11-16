@@ -1,123 +1,47 @@
-import { Action } from 'redux';
 import { Guid } from '../../models';
 
-export interface ActionWithId extends Action {
-  id: Guid;
+export enum AccessAction {
+  SelectClient = 'SELECT_CLIENT',
+  SelectItem = 'SELECT_ITEM',
+  SelectGroup = 'SELECT_GROUP',
+  SetExpandedGroup = 'SET_EXPANDED_GROUP',
+  SetCollapsedGroup = 'SET_COLLAPSED_GROUP',
+  SetAllExpandedGroup = 'SET_ALL_EXPANDED_GROUP',
+  SetAllCollapsedGroup = 'SET_ALL_COLLAPSED_GROUP',
+  SetFilterTextClient = 'SET_FILTER_TEXT_CLIENT',
+  SetFilterTextItem = 'SET_FILTER_TEXT_ITEM',
+  SetFilterTextGroup = 'SET_FILTER_TEXT_GROUP',
+  SetFilterTextValue = 'SET_FILTER_TEXT_VALUE',
+  SetPendingIsMaster = 'SET_PENDING_IS_MASTER',
+  SetPendingSelection = 'SET_PENDING_SELECTION',
+  OpenAddGroupModal = 'OPEN_ADD_GROUP_MODAL',
+  CloseAddGroupModal = 'CLOSE_ADD_GROUP_MODAL',
+  SetPendingGroupName = 'SET_PENDING_GROUP_NAME',
 }
 
-export interface ActionWithBoolean extends Action {
-  bValue: boolean;
-}
+// Card selection
+export const selectClient = (id: Guid) => ({ type: AccessAction.SelectClient, id });
+export const selectItem = (id: Guid) => ({ type: AccessAction.SelectItem, id });
+export const selectGroup = (id: Guid) => ({ type: AccessAction.SelectGroup, id });
 
-export interface ActionWithString extends Action {
-  sValue: string;
-}
+// Group card expansion
+export const setExpandedGroup = (id: Guid) => ({ type: AccessAction.SetExpandedGroup, id });
+export const setCollapsedGroup = (id: Guid) => ({ type: AccessAction.SetCollapsedGroup, id });
+export const setAllExpandedGroup = () => ({ type: AccessAction.SetAllExpandedGroup });
+export const setAllCollapsedGroup = () => ({ type: AccessAction.SetAllCollapsedGroup });
 
-export function nop(): Action {
-  return {
-    type: 'NOP',
-  };
-}
+// Card filters
+export const setFilterTextClient = (text: string) => ({ type: AccessAction.SetFilterTextClient, text });
+export const setFilterTextItem = (text: string) => ({ type: AccessAction.SetFilterTextItem, text });
+export const setFilterTextGroup = (text: string) => ({ type: AccessAction.SetFilterTextGroup, text });
+export const setFilterTextValue = (text: string) => ({ type: AccessAction.SetFilterTextValue, text });
 
-export function selectClientCard(id: Guid): ActionWithId {
-  return {
-    type: 'SELECT_CARD_CLIENT',
-    id,
-  };
-}
+// Pending value selections
+export const setPendingIsMaster = (isMaster: boolean) => ({ type: AccessAction.SetPendingIsMaster, isMaster });
+export const setPendingSelection = (id: Guid, selected: boolean) =>
+  ({ type: AccessAction.SetPendingSelection, id, selected });
 
-export function selectItemCard(id: Guid): ActionWithId {
-  return {
-    type: 'SELECT_CARD_ITEM',
-    id,
-  };
-}
-
-export function selectGroupCard(id: Guid): ActionWithId {
-  return {
-    type: 'SELECT_CARD_GROUP',
-    id,
-  };
-}
-
-export function setGroupCardExpanded(id: Guid, bValue: boolean): ActionWithId & ActionWithBoolean {
-  return {
-    type: 'SET_GROUP_CARD_EXPANDED',
-    id,
-    bValue,
-  };
-}
-
-export function expandAllGroups(): Action {
-  return {
-    type: 'EXPAND_ALL_GROUPS',
-  };
-}
-
-export function collapseAllGroups(): Action {
-  return {
-    type: 'COLLAPSE_ALL_GROUPS',
-  };
-}
-
-export function setClientFilterText(sValue: string): ActionWithString {
-  return {
-    type: 'SET_CLIENT_FILTER_TEXT',
-    sValue,
-  };
-}
-
-export function setItemFilterText(sValue: string): ActionWithString {
-  return {
-    type: 'SET_ITEM_FILTER_TEXT',
-    sValue,
-  };
-}
-
-export function setGroupFilterText(sValue: string): ActionWithString {
-  return {
-    type: 'SET_GROUP_FILTER_TEXT',
-    sValue,
-  };
-}
-
-export function setValueFilterText(sValue: string): ActionWithString {
-  return {
-    type: 'SET_VALUE_FILTER_TEXT',
-    sValue,
-  };
-}
-
-export function setMasterSelected(bValue: boolean): ActionWithBoolean {
-  return {
-    type: 'SET_MASTER_SELECTED',
-    bValue,
-  };
-}
-
-export function setValueSelected(id: Guid, bValue: boolean): ActionWithId & ActionWithBoolean {
-  return {
-    type: 'SET_VALUE_SELECTED',
-    id,
-    bValue,
-  };
-}
-
-export function openAddGroupModal(): Action {
-  return {
-    type: 'OPEN_ADD_GROUP_MODAL',
-  };
-}
-
-export function closeAddGroupModal(): Action {
-  return {
-    type: 'CLOSE_ADD_GROUP_MODAL',
-  };
-}
-
-export function setValueAddGroupModal(sValue: string): ActionWithString {
-  return {
-    type: 'SET_VALUE_ADD_GROUP_MODAL',
-    sValue,
-  };
-}
+// Add selection group modal
+export const openAddGroupModal = () => ({ type: AccessAction.OpenAddGroupModal });
+export const closeAddGroupModal = () => ({ type: AccessAction.CloseAddGroupModal });
+export const setPendingGroupName = () => ({ type: AccessAction.SetPendingGroupName });

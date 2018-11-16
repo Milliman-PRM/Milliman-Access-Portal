@@ -8,46 +8,55 @@ import {
 import { CardAttributes } from '../../shared-components/card/card';
 import { contentAccessAdmin } from './reducers';
 
-export interface ContentAccessAdminState {
-  data: {
-    clients: ClientWithEligibleUsers[];
-    items: RootContentItem[];
-    groups: SelectionGroupWithAssignedUsers[];
-    users: User[];
-    fields: ReductionField[];
-    values: ReductionFieldValue[];
-    publications: ContentPublicationRequest[];
-    publicationQueue: PublicationQueueDetails[];
-    reductions: ContentReductionTask[];
-    reductionQueue: ReductionQueueDetails[];
-  };
-  clientPanel: {
-    selectedCard: Guid;
-    filterText: string;
-  };
-  itemPanel: {
-    cards: {
-      [id: string]: CardAttributes;
-    };
-    selectedCard: Guid;
-    filterText: string;
-  };
-  groupPanel: {
-    cards: {
-      [id: string]: CardAttributes;
-    };
-    selectedCard: Guid;
-    filterText: string;
-    isModalOpen: boolean;
-    modalValue: string;
-  };
-  selectionsPanel: {
-    isMaster: boolean;
-    values: {
-      [id: string]: boolean;
-    };
-    filterText: string;
-  };
+export interface FilterState {
+  text: string;
+}
+export interface ModalState {
+  isOpen: boolean;
+}
+
+export interface AccessStateData {
+  clients: ClientWithEligibleUsers[];
+  items: RootContentItem[];
+  groups: SelectionGroupWithAssignedUsers[];
+  users: User[];
+  fields: ReductionField[];
+  values: ReductionFieldValue[];
+  publications: ContentPublicationRequest[];
+  publicationQueue: PublicationQueueDetails[];
+  reductions: ContentReductionTask[];
+  reductionQueue: ReductionQueueDetails[];
+}
+export interface AccessStateSelected {
+  client: Guid;
+  item: Guid;
+  group: Guid;
+}
+export interface AccessStateCardAttributes {
+  group: CardAttributes[];
+}
+export interface AccessStatePending {
+  isMaster: boolean;
+  selections: Guid[];
+  newGroupName: string;
+}
+export interface AccessStateFilters {
+  client: FilterState;
+  item: FilterState;
+  group: FilterState;
+  selections: FilterState;
+}
+export interface AccessStateModals {
+  addGroup: ModalState;
+}
+
+export interface AccessState {
+  data: AccessStateData;
+  selected: AccessStateSelected;
+  cardAttributes: AccessStateCardAttributes;
+  pending: AccessStatePending;
+  filters: AccessStateFilters;
+  modals: AccessStateModals;
 }
 
 export const store = createStore(contentAccessAdmin);
