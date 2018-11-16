@@ -4,56 +4,54 @@ import {
   isPublicationActive, isReductionActive, publicationStatusNames, reductionStatusNames,
 } from '../../../view-models/content-publishing';
 import { Guid, ReductionFieldset } from '../../models';
-import { ContentAccessAdminState } from './store';
+import { AccessState } from './store';
 
 // Modified status selectors
-export function pendingReductionValues(state: ContentAccessAdminState) {
+export function pendingReductionValues(state: AccessState) {
   const _selectedGroup = selectedGroup(state);
   const _relatedReduction = relatedReduction(state, _selectedGroup && _selectedGroup.id);
   return _selectedGroup
     ? (_relatedReduction && isReductionActive(_relatedReduction.taskStatus))
       ? _relatedReduction.selectedValues.map((i) =>
         state.data.values.filter((v) => v.id === i)[0])
-      : state.data.values.filter((v) => {
-        const panelValue = state.selectionsPanel.values[v.id];
-        return (_selectedGroup.selectedValues.indexOf(v.id) !== -1 && panelValue !== false) || panelValue;
-      })
+      : state.data.values.filter((v) => state.pending.selections.indexOf(v.id) !== -1)
     : [];
 }
-export function modifiedReductionValues(state: ContentAccessAdminState) {
+export function modifiedReductionValues(state: AccessState) {
   return xor(
     selectedReductionValues(state),
     pendingReductionValues(state),
   );
 }
-export function pendingMaster(state: ContentAccessAdminState) {
+export function pendingMaster(state: AccessState) {
   const _selectedGroup = selectedGroup(state);
+  const { isMaster } = state.pending;
   return _selectedGroup
-    ? state.selectionsPanel.isMaster === null
+    ? isMaster === null
       ? _selectedGroup.isMaster
-      : state.selectionsPanel.isMaster
+      : isMaster
     : false;
 }
-export function reductionValuesModified(state: ContentAccessAdminState) {
+export function reductionValuesModified(state: AccessState) {
   return !isEqual(
     selectedReductionValues(state),
     pendingReductionValues(state),
   );
 }
-export function masterModified(state: ContentAccessAdminState) {
+export function masterModified(state: AccessState) {
   const _selectedGroup = selectedGroup(state);
-  const { isMaster } = state.selectionsPanel;
+  const { isMaster } = state.pending;
   return _selectedGroup
     ? (isMaster !== null && isMaster !== _selectedGroup.isMaster)
     : false;
 }
-export function selectionsFormModified(state: ContentAccessAdminState) {
+export function selectionsFormModified(state: AccessState) {
   return reductionValuesModified(state) || masterModified(state);
 }
 
 // Filter selectors
-export function filteredClients(state: ContentAccessAdminState) {
-  const filterTextLower = state.clientPanel.filterText.toLowerCase();
+export function filteredClients(state: AccessState) {
+  const filterTextLower = state.filters.client.text.toLowerCase();
   return state.data.clients.filter((c) => {
     return (
       filterTextLower === ''
@@ -62,8 +60,8 @@ export function filteredClients(state: ContentAccessAdminState) {
     );
   });
 }
-export function filteredItems(state: ContentAccessAdminState) {
-  const filterTextLower = state.itemPanel.filterText.toLowerCase();
+export function filteredItems(state: AccessState) {
+  const filterTextLower = state.filters.item.text.toLowerCase();
   return state.data.items.filter((i) => {
     return (
       filterTextLower === ''
@@ -71,8 +69,8 @@ export function filteredItems(state: ContentAccessAdminState) {
     );
   });
 }
-export function filteredGroups(state: ContentAccessAdminState) {
-  const filterTextLower = state.groupPanel.filterText.toLowerCase();
+export function filteredGroups(state: AccessState) {
+  const filterTextLower = state.filters.group.text.toLowerCase();
   return state.data.groups.filter((g) => {
     return (
       filterTextLower === ''
@@ -80,12 +78,12 @@ export function filteredGroups(state: ContentAccessAdminState) {
     );
   });
 }
-export function filteredFields(state: ContentAccessAdminState) {
+export function filteredFields(state: AccessState) {
   const fieldIds = filteredValues(state).map((v) => v.reductionFieldId);
   return state.data.fields.filter((f) => fieldIds.indexOf(f.id) !== -1);
 }
-export function filteredValues(state: ContentAccessAdminState) {
-  const filterTextLower = state.selectionsPanel.filterText.toLowerCase();
+export function filteredValues(state: AccessState) {
+  const filterTextLower = state.filters.selections.text.toLowerCase();
   return state.data.values.filter((v) => {
     const field = state.data.fields.filter((f) => v.reductionFieldId === f.id)[0];
     return (
@@ -98,23 +96,23 @@ export function filteredValues(state: ContentAccessAdminState) {
 }
 
 // Active entity selectors
-export function activeClients(state: ContentAccessAdminState) {
+export function activeClients(state: AccessState) {
   return filteredClients(state);
 }
-function queueDetailsForPublication(state: ContentAccessAdminState, publicationId: Guid) {
+function queueDetailsForPublication(state: AccessState, publicationId: Guid) {
   return state.data.publicationQueue.filter((q) => q.publicationId === publicationId)[0];
 }
-function relatedPublication(state: ContentAccessAdminState, itemId: Guid) {
+function relatedPublication(state: AccessState, itemId: Guid) {
   const publication = state.data.publications.filter((p) => p.rootContentItemId === itemId)[0];
   const queueDetails = publication && queueDetailsForPublication(state, publication.id);
   return publication
     ? { ...publication, queueDetails }
     : null;
 }
-function activeItems(state: ContentAccessAdminState) {
-  return filteredItems(state).filter((i) => i.clientId === state.clientPanel.selectedCard);
+function activeItems(state: AccessState) {
+  return filteredItems(state).filter((i) => i.clientId === state.selected.client);
 }
-export function activeItemsWithStatus(state: ContentAccessAdminState) {
+export function activeItemsWithStatus(state: AccessState) {
   return activeItems(state).map((i) => {
     const publication = relatedPublication(state, i.id);
     return {
@@ -128,20 +126,20 @@ export function activeItemsWithStatus(state: ContentAccessAdminState) {
   });
 }
 
-function queueDetailsForReduction(state: ContentAccessAdminState, reductionId: Guid) {
+function queueDetailsForReduction(state: AccessState, reductionId: Guid) {
   return state.data.reductionQueue.filter((q) => q.reductionId === reductionId)[0];
 }
-function relatedReduction(state: ContentAccessAdminState, groupId: Guid) {
+function relatedReduction(state: AccessState, groupId: Guid) {
   const reduction = state.data.reductions.filter((r) => r.selectionGroupId === groupId)[0];
   const queueDetails = reduction && queueDetailsForReduction(state, reduction.id);
   return reduction
     ? { ...reduction, queueDetails }
     : null;
 }
-export function activeGroups(state: ContentAccessAdminState) {
-  return filteredGroups(state).filter((i) => i.rootContentItemId === state.itemPanel.selectedCard);
+export function activeGroups(state: AccessState) {
+  return filteredGroups(state).filter((i) => i.rootContentItemId === state.selected.item);
 }
-export function activeGroupsWithStatus(state: ContentAccessAdminState) {
+export function activeGroupsWithStatus(state: AccessState) {
   return activeGroups(state).map((g) => {
     const reduction = relatedReduction(state, g.id);
     return {
@@ -154,64 +152,50 @@ export function activeGroupsWithStatus(state: ContentAccessAdminState) {
     };
   });
 }
-export function allGroupsExpanded(state: ContentAccessAdminState) {
+export function allGroupsExpanded(state: AccessState) {
   return activeGroups(state).reduce((prev, g) => {
-    const card = state.groupPanel.cards[g.id];
+    const card = state.cardAttributes.group[g.id];
     return prev && card && card.expanded;
   }, true);
 }
-export function allGroupsCollapsed(state: ContentAccessAdminState) {
+export function allGroupsCollapsed(state: AccessState) {
   return activeGroups(state).reduce((prev, g) => {
-    const card = state.groupPanel.cards[g.id];
+    const card = state.cardAttributes.group[g.id];
     return prev && (!card || !card.expanded);
   }, true);
 }
 
-export function activeReductions(state: ContentAccessAdminState) {
+export function activeReductions(state: AccessState) {
   return state.data.reductions.filter((r) => (
     activeGroups(state).map((g) => g.id).indexOf(r.selectionGroupId) !== -1));
 }
 
-export function activeReductionFields(state: ContentAccessAdminState) {
+export function activeReductionFields(state: AccessState) {
   return selectedItem(state)
     ? filteredFields(state).filter((f) => selectedItem(state).id === f.rootContentItemId)
     : [];
 }
 
-export function activeReductionValues(state: ContentAccessAdminState) {
+export function activeReductionValues(state: AccessState) {
   const activeReductionFieldIds = activeReductionFields(state).map((f) => f.id);
   return filteredValues(state).filter((f) => activeReductionFieldIds.indexOf(f.reductionFieldId) !== -1);
 }
 
-export function activeReductionFieldsets(state: ContentAccessAdminState): ReductionFieldset[] {
+export function activeReductionFieldsets(state: AccessState): ReductionFieldset[] {
   return activeReductionFields(state).map((f) => ({
     field: f,
     values: activeReductionValues(state).filter((v) => v.reductionFieldId === f.id),
   }));
 }
 
-export function itemCardAttributes(state: ContentAccessAdminState) {
-  const cards = { ...state.itemPanel.cards };
-  state.data.publications.forEach((p) => {
-    if (isPublicationActive(p.requestStatus)) {
-      if (cards[p.rootContentItemId]) {
-        cards[p.rootContentItemId].disabled = true;
-      } else {
-        cards[p.rootContentItemId] = { disabled: true };
-      }
-    }
-  });
-  return cards;
-}
-
-export function clientEntities(state: ContentAccessAdminState) {
+export function clientEntities(state: AccessState) {
   return activeClients(state).map((c) => ({
     ...c,
     reports: state.data.items.filter((i) => i.clientId === c.id).length,
     eligibleUsers: c.eligibleUsers.length,
   }));
 }
-export function itemEntities(state: ContentAccessAdminState) {
+export function itemEntities(state: AccessState) {
   return activeItemsWithStatus(state).map((i) => {
     const groups = state.data.groups.filter((g) => g.rootContentItemId === i.id);
     return {
@@ -221,7 +205,7 @@ export function itemEntities(state: ContentAccessAdminState) {
     };
   });
 }
-export function groupEntities(state: ContentAccessAdminState) {
+export function groupEntities(state: AccessState) {
   return activeGroupsWithStatus(state).map((g) => ({
     ...g,
     assignedUsers: g.assignedUsers.length,
@@ -229,31 +213,31 @@ export function groupEntities(state: ContentAccessAdminState) {
 }
 
 // Selected entity selectors
-export function selectedClient(state: ContentAccessAdminState) {
-  return state.data.clients.filter((c) => c.id === state.clientPanel.selectedCard)[0];
+export function selectedClient(state: AccessState) {
+  return state.data.clients.filter((c) => c.id === state.selected.client)[0];
 }
-export function activeSelectedClient(state: ContentAccessAdminState) {
-  return activeClients(state).filter((c) => c.id === state.clientPanel.selectedCard)[0];
-}
-
-export function selectedItem(state: ContentAccessAdminState) {
-  return state.data.items.filter((i) => i.id === state.itemPanel.selectedCard)[0];
-}
-export function activeSelectedItem(state: ContentAccessAdminState) {
-  return activeItems(state).filter((i) => i.id === state.itemPanel.selectedCard)[0];
+export function activeSelectedClient(state: AccessState) {
+  return activeClients(state).filter((c) => c.id === state.selected.client)[0];
 }
 
-function selectedGroup(state: ContentAccessAdminState) {
-  return state.data.groups.filter((g) => g.id === state.groupPanel.selectedCard)[0];
+export function selectedItem(state: AccessState) {
+  return state.data.items.filter((i) => i.id === state.selected.item)[0];
 }
-export function activeSelectedGroup(state: ContentAccessAdminState) {
-  return activeGroups(state).filter((g) => g.id === state.groupPanel.selectedCard)[0];
-}
-export function selectedGroupWithStatus(state: ContentAccessAdminState) {
-  return activeGroupsWithStatus(state).filter((g) => g.id === state.groupPanel.selectedCard)[0];
+export function activeSelectedItem(state: AccessState) {
+  return activeItems(state).filter((i) => i.id === state.selected.item)[0];
 }
 
-export function selectedReductionValues(state: ContentAccessAdminState) {
+function selectedGroup(state: AccessState) {
+  return state.data.groups.filter((g) => g.id === state.selected.group)[0];
+}
+export function activeSelectedGroup(state: AccessState) {
+  return activeGroups(state).filter((g) => g.id === state.selected.group)[0];
+}
+export function selectedGroupWithStatus(state: AccessState) {
+  return activeGroupsWithStatus(state).filter((g) => g.id === state.selected.group)[0];
+}
+
+export function selectedReductionValues(state: AccessState) {
   return selectedGroup(state)
     ? selectedGroup(state).selectedValues.map((i) =>
       state.data.values.filter((v) => v.id === i)[0])

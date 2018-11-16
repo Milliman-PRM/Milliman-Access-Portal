@@ -71,7 +71,7 @@ export interface ContentPublicationRequest {
 }
 export interface ContentReductionTask {
   id: Guid;
-  contentPublicationRequestId: Guid;
+  contentPublicationRequestId?: Guid;
   applicationUserId: Guid;
   selectionGroupId: Guid;
   selectedValues: Guid[];
@@ -86,12 +86,10 @@ export interface ReductionFieldset {
 
 export interface PublicationQueueDetails {
   publicationId: Guid;
-  queuedDurationMs: number;
   queuePosition: number;
 }
 export interface ReductionQueueDetails {
   reductionId: Guid;
-  queuedDurationMs: number;
   queuePosition: number;
   queueTotal?: number;
 }

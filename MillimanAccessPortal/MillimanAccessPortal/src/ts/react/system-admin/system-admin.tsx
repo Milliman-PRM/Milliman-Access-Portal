@@ -156,7 +156,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     const secondaryColumnComponent = secondaryColumn
       ? (
         <CardPanel
-          cards={this.state.secondaryPanel.cards}
           entities={sEntities}
           renderEntity={(entity, key) => {
             let text;
@@ -199,7 +198,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           currentView={this.currentView}
         />
         <CardPanel
-          cards={this.state.primaryPanel.cards}
           entities={pEntities}
           renderEntity={(entity, key) => {
             let text;
@@ -1090,6 +1088,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     } = {};
     entityInfo.forEach((entity) => {
         cards[entity.id] = {
+          id: entity.id,
           expanded: false,
           profitCenterModalOpen: false,
         };

@@ -14,7 +14,7 @@ import { CardPanel } from '../shared-components/card-panel/card-panel';
 import {
   PanelSectionToolbar, PanelSectionToolbarButtons,
 } from '../shared-components/card-panel/panel-sections';
-import { Card, CardAttributes } from '../shared-components/card/card';
+import { Card } from '../shared-components/card/card';
 import CardButton from '../shared-components/card/card-button';
 import { CardExpansion } from '../shared-components/card/card-expansion';
 import {
@@ -27,11 +27,14 @@ import { NavBar } from '../shared-components/navbar';
 import * as actions from './redux/actions';
 import {
   activeReductionFieldsets, activeSelectedClient, activeSelectedGroup, activeSelectedItem,
-  allGroupsCollapsed, allGroupsExpanded, clientEntities, groupEntities, itemCardAttributes,
-  itemEntities, modifiedReductionValues, pendingMaster, pendingReductionValues,
-  selectedGroupWithStatus, selectedItem, selectionsFormModified,
+  allGroupsCollapsed, allGroupsExpanded, clientEntities, groupEntities, itemEntities,
+  modifiedReductionValues, pendingMaster, pendingReductionValues, selectedGroupWithStatus,
+  selectedItem, selectionsFormModified,
 } from './redux/selectors';
-import { ContentAccessAdminState } from './redux/store';
+import {
+  AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateModals, AccessStatePending,
+  AccessStateSelected,
+} from './redux/store';
 import { SelectionsPanel } from './selections-panel';
 
 interface ClientEntity extends Client {
@@ -51,30 +54,12 @@ interface ContentAccessAdminProps {
   items: RootContentItemEntity[];
   groups: SelectionGroupEntity[];
   reductionFieldsets: ReductionFieldset[];
-  clientPanel: {
-    selectedCard: Guid;
-    filterText: string;
-  };
-  itemPanel: {
-    cards: {
-      [id: string]: CardAttributes;
-    };
-    selectedCard: Guid;
-    filterText: string;
-  };
-  groupPanel: {
-    cards: {
-      [id: string]: CardAttributes;
-    };
-    allExpanded: boolean;
-    allCollapsed: boolean;
-    selectedCard: Guid;
-    filterText: string;
-    isModalOpen: boolean;
-  };
-  selectionsPanel: {
-    filterText: string;
-  };
+  selected: AccessStateSelected;
+  cardAttributes: AccessStateCardAttributes;
+  pending: AccessStatePending;
+  filters: AccessStateFilters;
+  modals: AccessStateModals;
+
   selectedItem: RootContentItem;
   selectedGroup: SelectionGroupWithStatus;
   activeSelectedClient: Client;
@@ -84,33 +69,37 @@ interface ContentAccessAdminProps {
   modifiedValues: Guid[];
   selectedMaster: boolean;
   formModified: boolean;
+
+  allGroupsExpanded: boolean;
+  allGroupsCollapsed: boolean;
 }
 interface ContentAccessAdminActions {
-  nop: () => void;
-  selectClientCard: (id: Guid) => actions.ActionWithId;
-  selectItemCard: (id: Guid) => actions.ActionWithId;
-  selectGroupCard: (id: Guid) => actions.ActionWithId;
-  setGroupCardExpanded: (id: Guid, bValue: boolean) => actions.ActionWithId & actions.ActionWithBoolean;
-  expandAllGroups: () => void;
-  collapseAllGroups: () => void;
-  setClientFilterText: (sValue: string) => void;
-  setItemFilterText: (sValue: string) => void;
-  setGroupFilterText: (sValue: string) => void;
-  setValueFilterText: (sValue: string) => void;
-  setMasterSelected: (bValue: boolean) => actions.ActionWithBoolean;
-  setValueSelected: (id: Guid, bValue: boolean) => actions.ActionWithId & actions.ActionWithBoolean;
+  selectClient: (id: Guid) => void;
+  selectItem: (id: Guid) => void;
+  selectGroup: (id: Guid) => void;
+
+  setExpandedGroup: (id: Guid) => void;
+  setCollapsedGroup: (id: Guid) => void;
+  setAllExpandedGroup: () => void;
+  setAllCollapsedGroup: () => void;
+
+  setFilterTextClient: (text: string) => void;
+  setFilterTextItem: (text: string) => void;
+  setFilterTextGroup: (text: string) => void;
+  setFilterTextSelections: (text: string) => void;
+
+  setPendingIsMaster: (isMaster: boolean) => void;
+  setPendingSelectionOn: (id: Guid) => void;
+  setPendingSelectionOff: (id: Guid) => void;
+
   openAddGroupModal: () => void;
   closeAddGroupModal: () => void;
-  setValueAddGroupModal: (sValue: string) => void;
+  setPendingGroupName: (name: string) => void;
 }
 
 class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & ContentAccessAdminActions> {
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
-
-  public componentDidMount() {
-    this.props.nop();
-  }
 
   public render() {
     return (
@@ -125,16 +114,15 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   }
 
   private renderClientPanel() {
-    const { clients, clientPanel, selectClientCard, setClientFilterText } = this.props;
+    const { clients, selected, filters } = this.props;
     return (
       <CardPanel
-        cards={{}}
         entities={clients}
         renderEntity={(entity, key) => (
           <Card
             key={key}
-            selected={clientPanel.selectedCard === entity.id}
-            onSelect={() => selectClientCard(entity.id)}
+            selected={selected.client === entity.id}
+            onSelect={() => this.props.selectClient(entity.id)}
           >
             <CardSectionMain>
               <CardText text={entity.name} subtext={entity.code} />
@@ -158,8 +146,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter clients...'}
-            setFilterText={setClientFilterText}
-            filterText={clientPanel.filterText}
+            setFilterText={this.props.setFilterTextClient}
+            filterText={filters.client.text}
           />
           <PanelSectionToolbarButtons>
             <div id="icons" />
@@ -170,17 +158,16 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   }
 
   private renderItemPanel() {
-    const { items, activeSelectedClient: activeClient, itemPanel, selectItemCard, setItemFilterText } = this.props;
+    const { activeSelectedClient: activeClient, items, selected, filters } = this.props;
     return activeClient && (
       <CardPanel
-        cards={itemPanel.cards}
         entities={items}
         renderEntity={(entity, key) => (
           <Card
             key={key}
             disabled={isPublicationActive(entity.status && entity.status.requestStatus)}
-            selected={itemPanel.selectedCard === entity.id}
-            onSelect={() => selectItemCard(entity.id)}
+            selected={selected.item === entity.id}
+            onSelect={() => this.props.selectItem(entity.id)}
             status={entity.status}
           >
             <CardSectionMain>
@@ -205,8 +192,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter content items...'}
-            setFilterText={setItemFilterText}
-            filterText={itemPanel.filterText}
+            setFilterText={this.props.setFilterTextItem}
+            filterText={filters.item.text}
           />
           <PanelSectionToolbarButtons>
             <div id="icons" />
@@ -221,48 +208,44 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       groups,
       activeSelectedClient: activeClient,
       activeSelectedItem: activeItem,
-      groupPanel,
-      selectGroupCard,
       selectedItem: item,
-      setGroupCardExpanded,
-      setGroupFilterText,
-      openAddGroupModal,
-      closeAddGroupModal,
-      setValueAddGroupModal,
-      expandAllGroups,
-      collapseAllGroups,
+      selected,
+      filters,
+      modals,
+      cardAttributes,
+      allGroupsExpanded: allExpanded,
+      allGroupsCollapsed: allCollapsed,
     } = this.props;
 
-    const expandAllIcon = groupPanel.allExpanded
+    const expandAllIcon = allExpanded
       ? null
       : (
         <ActionIcon
           label="Expand all"
           icon="expand-cards"
-          action={expandAllGroups}
+          action={this.props.setAllExpandedGroup}
         />
       );
-    const collapseAllIcon = groupPanel.allCollapsed
+    const collapseAllIcon = allCollapsed
       ? null
       : (
         <ActionIcon
           label="Collapse all"
           icon="collapse-cards"
-          action={collapseAllGroups}
+          action={this.props.setAllCollapsedGroup}
         />
       );
 
     return activeClient && activeItem && (
       <CardPanel
-        cards={groupPanel.cards}
         entities={groups}
         renderEntity={(entity, key) => {
-          const card = groupPanel.cards[entity.id] || {};
+          const card = cardAttributes.group.filter((c) => c.id === entity.id)[0];
           return (
             <Card
               key={key}
-              selected={groupPanel.selectedCard === entity.id}
-              onSelect={() => selectGroupCard(entity.id)}
+              selected={selected.group === entity.id}
+              onSelect={() => this.props.selectGroup(entity.id)}
               status={entity.status}
             >
               <CardSectionMain>
@@ -291,8 +274,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               </CardSectionMain>
               <CardExpansion
                 label={'Members'}
-                expanded={card.expanded}
-                setExpanded={(value) => setGroupCardExpanded(entity.id, value)}
+                expanded={card && card.expanded}
+                setExpanded={(value) => value
+                  ? this.props.setExpandedGroup(entity.id)
+                  : this.props.setCollapsedGroup(entity.id)}
               >
                 <ul>
                 {[{}].map((o: any, i) => (
@@ -320,15 +305,15 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter selection groups...'}
-            setFilterText={setGroupFilterText}
-            filterText={groupPanel.filterText}
+            setFilterText={this.props.setFilterTextGroup}
+            filterText={filters.group.text}
           />
           <PanelSectionToolbarButtons>
             {expandAllIcon}
             {collapseAllIcon}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
-        <div className="card-container" onClick={openAddGroupModal}>
+        <div className="card-container" onClick={this.props.openAddGroupModal}>
           <div className="card-body-container card-100 action-card">
             <h2 className="card-body-primary-text">
               <ActionIcon icon={'add'} />
@@ -337,8 +322,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
           </div>
         </div>
         <Modal
-          isOpen={groupPanel.isModalOpen}
-          onRequestClose={closeAddGroupModal}
+          isOpen={modals.addGroup.isOpen}
+          onRequestClose={this.props.closeAddGroupModal}
           ariaHideApp={false}
           className="modal"
           overlayClassName="modal-overlay"
@@ -349,16 +334,16 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
               alert('You created a selection group!');
-              closeAddGroupModal();
+              this.props.closeAddGroupModal();
             }}
           >
             <input
               type="text"
               placeholder="Selection group name"
-              onChange={(event) => setValueAddGroupModal(event.target.value)}
+              onChange={(event) => this.props.setPendingGroupName(event.target.value)}
             />
             <div className="button-container">
-              <button className="link-button" type="button" onClick={closeAddGroupModal}>
+              <button className="link-button" type="button" onClick={this.props.closeAddGroupModal}>
                 Cancel
               </button>
               <button className="blue-button" type="submit">
@@ -379,13 +364,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       activeSelectedClient: activeClient,
       activeSelectedItem: activeItem,
       activeSelectedGroup: activeGroup,
-      selectionsPanel,
-      setValueSelected,
-      setValueFilterText,
+      filters,
       selectedValues,
       modifiedValues,
       selectedMaster,
-      setMasterSelected,
       formModified,
     } = this.props;
     const fieldsets = reductionFieldsets.map((s) => ({
@@ -394,7 +376,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         name: v.value,
         selected: selectedValues.indexOf(v.id) !== -1,
         modified: modifiedValues.indexOf(v.id) !== -1,
-        onChange: (selected: boolean) => setValueSelected(v.id, selected),
+        onChange: (selected: boolean) => selected
+          ? this.props.setPendingSelectionOn(v.id)
+          : this.props.setPendingSelectionOff(v.id),
       })),
     }));
     return activeClient && activeItem && activeGroup && (
@@ -403,7 +387,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         doesReduce={item.doesReduce}
         isModified={formModified}
         isMaster={selectedMaster}
-        onIsMasterChange={setMasterSelected}
+        onIsMasterChange={this.props.setPendingIsMaster}
         title={group.name}
         subtitle={item.name}
         status={group.status.taskStatus || ReductionStatus.Unspecified}
@@ -412,8 +396,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter fields and values...'}
-            setFilterText={setValueFilterText}
-            filterText={selectionsPanel.filterText}
+            setFilterText={this.props.setFilterTextSelections}
+            filterText={filters.selections.text}
           />
         </PanelSectionToolbar>
       </SelectionsPanel>
@@ -421,26 +405,18 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   }
 }
 
-function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProps {
-  const { clientPanel, itemPanel, groupPanel, selectionsPanel } = state;
+function mapStateToProps(state: AccessState): ContentAccessAdminProps {
+  const { selected, cardAttributes, pending, filters, modals } = state;
   return {
     clients: clientEntities(state),
     items: itemEntities(state),
     groups: groupEntities(state),
     reductionFieldsets: activeReductionFieldsets(state),
-    clientPanel,
-    itemPanel: {
-      ...itemPanel,
-      cards: itemCardAttributes(state),
-    },
-    groupPanel: {
-      ...groupPanel,
-      allExpanded: allGroupsExpanded(state),
-      allCollapsed: allGroupsCollapsed(state),
-    },
-    selectionsPanel: {
-      filterText: selectionsPanel.filterText,
-    },
+    selected,
+    cardAttributes,
+    pending,
+    filters,
+    modals,
     selectedItem: selectedItem(state),
     selectedGroup: selectedGroupWithStatus(state),
     activeSelectedClient: activeSelectedClient(state),
@@ -454,6 +430,8 @@ function mapStateToProps(state: ContentAccessAdminState): ContentAccessAdminProp
       : [],
     selectedMaster: pendingMaster(state),
     formModified: selectionsFormModified(state),
+    allGroupsExpanded: allGroupsExpanded(state),
+    allGroupsCollapsed: allGroupsCollapsed(state),
   };
 }
 

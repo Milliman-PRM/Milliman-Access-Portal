@@ -2,14 +2,10 @@ import '../../../../scss/react/shared-components/card-panel.scss';
 
 import * as React from 'react';
 
-import { CardAttributes } from '../card/card';
 import { CardPanelSectionContent } from './card-panel-sections';
 import { PanelSectionContainer } from './panel-sections';
 
 export interface CardPanelProps<TEntity> {
-  cards: {
-    [id: string]: CardAttributes;
-  };
   entities: TEntity[];
   renderEntity: (entity: TEntity, key: number) => JSX.Element;
 }
