@@ -147,23 +147,19 @@ const selected = createReducer<AccessStateSelected>(
     group: null,
   },
   {
-    [AccessAction.SelectClient]: (state, action) => action.id === state.client
-      ? state
-      : {
-        client: action.id,
-        item: null,
-        group: null,
-      },
-    [AccessAction.SelectItem]: (state, action) => action.id === state.item
-      ? state
-      : {
-        ...state,
-        item: action.id,
-        group: null,
-      },
+    [AccessAction.SelectClient]: (state, action) => ({
+      client: action.id === state.client ? null : action.id,
+      item: null,
+      group: null,
+    }),
+    [AccessAction.SelectItem]: (state, action) => ({
+      ...state,
+      item: action.id === state.item ? null : action.id,
+      group: null,
+    }),
     [AccessAction.SelectGroup]: (state, action) => ({
       ...state,
-      group: action.id,
+      group: action.id === state.group ? null : action.id,
     }),
   },
 );

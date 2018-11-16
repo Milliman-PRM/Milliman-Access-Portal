@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { ReductionStatus } from '../../view-models/content-publishing';
+import { ReductionStatus, isReductionActive } from '../../view-models/content-publishing';
 import { PanelSectionContainer } from '../shared-components/card-panel/panel-sections';
 import { Filter } from '../shared-components/filter';
 import { Toggle } from '../shared-components/toggle';
@@ -44,7 +44,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderDoesReduceSection() {
-    const { doesReduce, isMaster, onIsMasterChange } = this.props;
+    const { doesReduce, isMaster, onIsMasterChange, status } = this.props;
     return doesReduce
       ? (
         <div className="selection-content">
@@ -52,7 +52,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
           <Toggle
             label={'Unrestricted Access'}
             checked={isMaster}
-            onClick={() => onIsMasterChange(!isMaster)}
+            onClick={() => !isReductionActive(status) && onIsMasterChange(!isMaster)}
           />
           {this.renderReductionSection()}
           {this.renderButtonSection()}
@@ -76,7 +76,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
     return fieldsets.map((fieldset) => (
       <Fieldset
         key={fieldset.name}
-        readOnly={status === ReductionStatus.Queued}
+        readOnly={isReductionActive(status)}
         {...fieldset}
       />
     ));

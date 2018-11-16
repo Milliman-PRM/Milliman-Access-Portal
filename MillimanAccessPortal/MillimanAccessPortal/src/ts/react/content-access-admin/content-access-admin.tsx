@@ -168,6 +168,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             disabled={isPublicationActive(entity.status && entity.status.requestStatus)}
             selected={selected.item === entity.id}
             onSelect={() => this.props.selectItem(entity.id)}
+            suspended={entity.isSuspended}
             status={entity.status}
           >
             <CardSectionMain>
@@ -246,6 +247,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               key={key}
               selected={selected.group === entity.id}
               onSelect={() => this.props.selectGroup(entity.id)}
+              suspended={entity.isSuspended}
               status={entity.status}
             >
               <CardSectionMain>
