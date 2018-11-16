@@ -44,6 +44,7 @@ interface ClientEntity extends Client {
 interface RootContentItemEntity extends RootContentItemWithStatus {
   selectionGroups: number;
   assignedUsers: number;
+  contentTypeName: string;
 }
 interface SelectionGroupEntity extends SelectionGroupWithStatus {
   assignedUsers: number;
@@ -172,7 +173,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             status={entity.status}
           >
             <CardSectionMain>
-              <CardText text={entity.name} subtext={'Content Type'} />
+              <CardText text={entity.name} subtext={entity.contentTypeName} />
               <CardSectionStats>
                 <CardStat
                   name={'Selection groups'}

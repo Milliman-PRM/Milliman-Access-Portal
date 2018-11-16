@@ -200,6 +200,7 @@ export function itemEntities(state: AccessState) {
     const groups = state.data.groups.filter((g) => g.rootContentItemId === i.id);
     return {
       ...i,
+      contentTypeName: state.data.contentTypes.filter((c) => c.id === i.contentTypeId)[0].name,
       selectionGroups: groups.length,
       assignedUsers: groups.reduce((prev, cur) => prev + cur.assignedUsers.length, 0),
     };

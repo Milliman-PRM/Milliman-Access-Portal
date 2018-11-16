@@ -14,12 +14,12 @@ const _initialData: AccessStateData = {
     { id: 'client4', name: 'client4', code: 'c4', eligibleUsers: [] },
   ],
   items: [
-    { id: 'item1', clientId: 'client1', name: 'item1', doesReduce: true, isSuspended: false },
-    { id: 'item2', clientId: 'client1', name: 'item2', doesReduce: true, isSuspended: false },
-    { id: 'item3', clientId: 'client1', name: 'item3', doesReduce: true, isSuspended: true },
-    { id: 'item4', clientId: 'client2', name: 'item4', doesReduce: true, isSuspended: false },
-    { id: 'item5', clientId: 'client2', name: 'item5', doesReduce: true, isSuspended: false },
-    { id: 'item6', clientId: 'client3', name: 'item6', doesReduce: false, isSuspended: false },
+    { id: 'item1', clientId: 'client1', contentTypeId: '1', name: 'item1', doesReduce: true, isSuspended: false },
+    { id: 'item2', clientId: 'client1', contentTypeId: '1', name: 'item2', doesReduce: true, isSuspended: false },
+    { id: 'item3', clientId: 'client1', contentTypeId: '1', name: 'item3', doesReduce: true, isSuspended: true },
+    { id: 'item4', clientId: 'client2', contentTypeId: '1', name: 'item4', doesReduce: true, isSuspended: false },
+    { id: 'item5', clientId: 'client2', contentTypeId: '1', name: 'item5', doesReduce: true, isSuspended: false },
+    { id: 'item6', clientId: 'client3', contentTypeId: '1', name: 'item6', doesReduce: false, isSuspended: false },
   ],
   groups: [
     { id: 'group1', rootContentItemId: 'item1', name: 'group1', isMaster: true, isSuspended: false,
@@ -56,6 +56,11 @@ const _initialData: AccessStateData = {
     { id: 'value3', reductionFieldId: 'field1', value: 'value3' },
     { id: 'value4', reductionFieldId: 'field2', value: 'value4' },
     { id: 'value5', reductionFieldId: 'field2', value: 'value5' },
+  ],
+  contentTypes: [
+    { id: '1', name: 'QlikView', canReduce: true, fileExtensions: [] },
+    { id: '2', name: 'HTML', canReduce: false, fileExtensions: [] },
+    { id: '3', name: 'PDF', canReduce: false, fileExtensions: [] },
   ],
   publications: [
     { id: 'p1', applicationUserId: 'user1', rootContentItemId: 'item2',

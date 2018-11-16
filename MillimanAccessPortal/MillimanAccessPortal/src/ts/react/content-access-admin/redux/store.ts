@@ -1,7 +1,7 @@
 import { createStore } from 'redux';
 
 import {
-  ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, Guid,
+  ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, ContentType, Guid,
   PublicationQueueDetails, ReductionField, ReductionFieldValue, ReductionQueueDetails,
   RootContentItem, SelectionGroupWithAssignedUsers, User,
 } from '../../models';
@@ -22,6 +22,7 @@ export interface AccessStateData {
   users: User[];
   fields: ReductionField[];
   values: ReductionFieldValue[];
+  contentTypes: ContentType[];
   publications: ContentPublicationRequest[];
   publicationQueue: PublicationQueueDetails[];
   reductions: ContentReductionTask[];

@@ -29,6 +29,7 @@ export interface ClientWithEligibleUsers extends Client {
 export interface RootContentItem {
   id: Guid;
   clientId?: Guid;
+  contentTypeId?: Guid;
   isSuspended: boolean;
   doesReduce: boolean;
   name: string;
@@ -77,6 +78,12 @@ export interface ContentReductionTask {
   selectedValues: Guid[];
   createDateTimeUtc: string;
   taskStatus: ReductionStatus;
+}
+export interface ContentType {
+  id: Guid;
+  canReduce: boolean;
+  name: string;
+  fileExtensions: string[];
 }
 
 export interface ReductionFieldset {
