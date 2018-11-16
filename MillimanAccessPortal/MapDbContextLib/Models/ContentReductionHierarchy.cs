@@ -118,6 +118,7 @@ namespace MapDbContextLib.Models
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.FileDownload:
                     default:
+                        // Should never get here because RelatedHierarchyFields should be empty for non-reducible types
                         ReductionField = null;
                         break;
                 }
@@ -175,6 +176,7 @@ namespace MapDbContextLib.Models
                         case ContentTypeEnum.Pdf:
                         case ContentTypeEnum.FileDownload:
                         default:
+                            // Should never get here because no hierarchy fields should exist for non-reducible types
                             break;
                     }
                 }
