@@ -2,7 +2,7 @@ import { combineReducers } from 'redux';
 
 import { PublicationStatus, ReductionStatus } from '../../../view-models/content-publishing';
 import { Guid } from '../../models';
-import { CardAttributes } from '../../shared-components/card/card';
+import { Card, CardAttributes } from '../../shared-components/card/card';
 import { AccessAction } from './actions';
 import { AccessStateData, AccessStateSelected, FilterState, ModalState } from './store';
 
@@ -74,6 +74,14 @@ const _initialData: AccessStateData = {
   ],
 };
 
+const _initialCards = new Map<Guid, CardAttributes>([
+  ['group1', {}],
+  ['group2', {}],
+  ['group3', {}],
+  ['group4', {}],
+  ['group5', {}],
+]);
+
 // utility functions
 interface Handlers<TState, TAction> {
   [type: string]: (state: TState, action: TAction) => TState;
@@ -103,27 +111,51 @@ const createModalReducer = (openActionType: AccessAction, closeActionType: Acces
       isOpen: false,
     }),
   });
-function updateList<T>(list: T[], selector: (item: T) => boolean, value?: T, transform?: (prev: T) => T): T[] {
+function updateList<T>(list: T[], selector: (item: T) => boolean, value?: T): T[] {
   const filtered = list.filter(selector);
   return value === undefined
-      ? filtered
-    : transform === undefined
-      ? [...filtered, value].sort()
-    : list.length === filtered.length
-      ? [...filtered, transform(value)].sort()
-      : list.map((i) => selector(i) ? i : transform(i)).sort();
+    ? filtered
+    : [...filtered, value].sort();
 }
 
-const groupCardAttributes = createReducer<CardAttributes[]>([],
+const groupCardAttributes = createReducer<Map<Guid, CardAttributes>>(_initialCards,
   {
-    [AccessAction.SetExpandedGroup]: (state, action) =>
-      updateList(state, (c) => c.id === action.id, { id: action.id }, (prev) => ({ ...prev, expanded: true })),
-    [AccessAction.SetCollapsedGroup]: (state, action) =>
-      updateList(state, (c) => c.id === action.id, { id: action.id }, (prev) => ({ ...prev, expanded: false })),
-    [AccessAction.SetAllExpandedGroup]: (state, action) =>
-      updateList(state, () => true, { id: action.id }, (prev) => ({ ...prev, expanded: true })),
-    [AccessAction.SetAllCollapsedGroup]: (state, action) =>
-      updateList(state, () => true, { id: action.id }, (prev) => ({ ...prev, expanded: false })),
+    [AccessAction.SetExpandedGroup]: (state, action) => {
+      const map = new Map<Guid, CardAttributes>(state);
+      map.set(action.id, {
+        ...map.get(action.id),
+        expanded: true,
+      });
+      return map;
+    },
+    [AccessAction.SetCollapsedGroup]: (state, action) => {
+      const map = new Map<Guid, CardAttributes>(state);
+      map.set(action.id, {
+        ...map.get(action.id),
+        expanded: false,
+      });
+      return map;
+    },
+    [AccessAction.SetAllExpandedGroup]: (state) => {
+      const map = new Map<Guid, CardAttributes>(state);
+      for (const key of map.keys()) {
+        map.set(key, {
+          ...map.get(key),
+          expanded: true,
+        });
+      }
+      return map;
+    },
+    [AccessAction.SetAllCollapsedGroup]: (state) => {
+      const map = new Map<Guid, CardAttributes>(state);
+      for (const key of map.keys()) {
+        map.set(key, {
+          ...map.get(key),
+          expanded: false,
+        });
+      }
+      return map;
+    },
   },
 );
 const pendingIsMaster = createReducer<boolean>(false, {

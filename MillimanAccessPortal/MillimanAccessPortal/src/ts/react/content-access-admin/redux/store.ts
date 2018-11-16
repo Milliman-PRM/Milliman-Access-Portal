@@ -33,7 +33,7 @@ export interface AccessStateSelected {
   group: Guid;
 }
 export interface AccessStateCardAttributes {
-  group: CardAttributes[];
+  group: Map<Guid, CardAttributes>;
 }
 export interface AccessStatePending {
   isMaster: boolean;

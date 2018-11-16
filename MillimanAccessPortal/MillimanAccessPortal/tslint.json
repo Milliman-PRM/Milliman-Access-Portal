@@ -6,6 +6,7 @@
     ],
     "jsRules": {},
     "rules": {
+        "forin": false,
         "interface-name": [true, "never-prefix"],
         "max-classes-per-file": [true, 3],
         "jsx-no-lambda": false,

@@ -241,7 +241,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       <CardPanel
         entities={groups}
         renderEntity={(entity, key) => {
-          const card = cardAttributes.group.filter((c) => c.id === entity.id)[0];
+          const card = cardAttributes.group.get(entity.id);
           return (
             <Card
               key={key}

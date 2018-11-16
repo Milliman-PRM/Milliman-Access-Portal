@@ -1088,7 +1088,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     } = {};
     entityInfo.forEach((entity) => {
         cards[entity.id] = {
-          id: entity.id,
           expanded: false,
           profitCenterModalOpen: false,
         };

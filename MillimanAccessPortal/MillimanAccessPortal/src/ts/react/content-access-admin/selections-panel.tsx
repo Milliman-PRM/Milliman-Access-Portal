@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { ReductionStatus, isReductionActive } from '../../view-models/content-publishing';
+import { isReductionActive, ReductionStatus } from '../../view-models/content-publishing';
 import { PanelSectionContainer } from '../shared-components/card-panel/panel-sections';
 import { Filter } from '../shared-components/filter';
 import { Toggle } from '../shared-components/toggle';
