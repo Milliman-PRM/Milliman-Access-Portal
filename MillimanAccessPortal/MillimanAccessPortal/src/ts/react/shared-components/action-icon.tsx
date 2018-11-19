@@ -2,6 +2,7 @@
 import '../../../images/collapse-cards.svg';
 import '../../../images/expand-cards.svg';
 import '../../../images/release-notes.svg';
+import '../../../images/user.svg';
 import '../../../images/userguide.svg';
 
 import 'tooltipster';
@@ -12,7 +13,7 @@ import * as React from 'react';
 
 export interface ActionIconProps {
   label: string;
-  icon: 'add' | 'collapse-cards' | 'expand-cards' | 'release-notes' | 'userguide';
+  icon: 'add' | 'collapse-cards' | 'expand-cards' | 'release-notes' | 'user' | 'userguide';
   action: () => void;
   inline: boolean;
 }
