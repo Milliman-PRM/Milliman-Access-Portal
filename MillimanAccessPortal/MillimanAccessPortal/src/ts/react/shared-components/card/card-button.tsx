@@ -1,3 +1,4 @@
+import '../../../../images/cancel.svg';
 import '../../../../images/checkmark.svg';
 import '../../../../images/delete.svg';
 import '../../../../images/edit.svg';
@@ -11,7 +12,7 @@ export interface CardButtonProps {
   color: 'red' | 'blue' | 'green';
   tooltip: string;
   onClick: () => void;
-  icon: 'checkmark' | 'delete' | 'edit' | 'email' | 'expand-card' | 'remove-circle';
+  icon: 'cancel' | 'checkmark' | 'delete' | 'edit' | 'email' | 'expand-card' | 'remove-circle';
   additionalClasses: string[];
 }
 

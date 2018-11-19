@@ -40,6 +40,9 @@ export interface AccessStatePending {
   isMaster: boolean;
   selections: Guid[];
   newGroupName: string;
+  group: Map<Guid, {
+    name: string;
+  }>;
 }
 export interface AccessStateFilters {
   client: FilterState;

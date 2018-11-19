@@ -86,6 +86,13 @@ const _initialCards = new Map<Guid, CardAttributes>([
   ['group4', {}],
   ['group5', {}],
 ]);
+const _initialPending = new Map<Guid, { name: string }>([
+  ['group1', { name: 'group1' }],
+  ['group2', { name: 'group2' }],
+  ['group3', { name: 'group3' }],
+  ['group4', { name: 'group4' }],
+  ['group5', { name: 'group5' }],
+]);
 
 // utility functions
 interface Handlers<TState, TAction> {
@@ -122,45 +129,33 @@ function updateList<T>(list: T[], selector: (item: T) => boolean, value?: T): T[
     ? filtered
     : [...filtered, value].sort();
 }
+// Not generic until there are more use cases
+function updateMap(map: Map<Guid, any>, key: Guid, value: Partial<any>) {
+  const clone = new Map<Guid, any>(map);
+  return clone.set(key, { ...clone.get(key), ...value });
+}
+function updateAllMap(map: Map<Guid, any>, value: Partial<any>) {
+  const clone = new Map<Guid, any>(map);
+  for (const key of clone.keys()) {
+    clone.set(key, { ...clone.get(key), ...value });
+  }
+  return clone;
+}
 
 const groupCardAttributes = createReducer<Map<Guid, CardAttributes>>(_initialCards,
   {
-    [AccessAction.SetExpandedGroup]: (state, action) => {
-      const map = new Map<Guid, CardAttributes>(state);
-      map.set(action.id, {
-        ...map.get(action.id),
-        expanded: true,
-      });
-      return map;
-    },
-    [AccessAction.SetCollapsedGroup]: (state, action) => {
-      const map = new Map<Guid, CardAttributes>(state);
-      map.set(action.id, {
-        ...map.get(action.id),
-        expanded: false,
-      });
-      return map;
-    },
-    [AccessAction.SetAllExpandedGroup]: (state) => {
-      const map = new Map<Guid, CardAttributes>(state);
-      for (const key of map.keys()) {
-        map.set(key, {
-          ...map.get(key),
-          expanded: true,
-        });
-      }
-      return map;
-    },
-    [AccessAction.SetAllCollapsedGroup]: (state) => {
-      const map = new Map<Guid, CardAttributes>(state);
-      for (const key of map.keys()) {
-        map.set(key, {
-          ...map.get(key),
-          expanded: false,
-        });
-      }
-      return map;
-    },
+    [AccessAction.SetExpandedGroup]: (state, action) =>
+      updateMap(state, action.id, { expanded: true }),
+    [AccessAction.SetCollapsedGroup]: (state, action) =>
+      updateMap(state, action.id, { expanded: false }),
+    [AccessAction.SetAllExpandedGroup]: (state) =>
+      updateAllMap(state, { expanded: true }),
+    [AccessAction.SetAllCollapsedGroup]: (state) =>
+      updateAllMap(state, { expanded: false }),
+    [AccessAction.SetGroupEditingOn]: (state, action) =>
+      updateMap(state, action.id, { editing: true }),
+    [AccessAction.SetGroupEditingOff]: (state, action) =>
+      updateMap(state, action.id, { editing: false }),
   },
 );
 const pendingIsMaster = createReducer<boolean>(false, {
@@ -173,7 +168,11 @@ const pendingSelections = createReducer<Guid[]>([], {
     updateList(state, (i) => i !== action.id),
 });
 const pendingNewGroupName = createReducer<string>('', {
-  [AccessAction.SetPendingGroupName]: (_, action) => action.name,
+  [AccessAction.SetPendingNewGroupName]: (_, action) => action.name,
+});
+const pendingGroups = createReducer<Map<Guid, { name: string }>>(_initialPending, {
+  [AccessAction.SetPendingGroupName]: (state, action) =>
+    updateMap(state, action.id, { name: action.name }),
 });
 
 const data = (state: AccessStateData = _initialData) => state;
@@ -207,6 +206,7 @@ const pending = combineReducers({
   isMaster: pendingIsMaster,
   selections: pendingSelections,
   newGroupName: pendingNewGroupName,
+  group: pendingGroups,
 });
 const filters = combineReducers({
   client: createFilterReducer(AccessAction.SetFilterTextClient),

@@ -95,7 +95,11 @@ interface ContentAccessAdminActions {
 
   openAddGroupModal: () => void;
   closeAddGroupModal: () => void;
-  setPendingGroupName: (name: string) => void;
+  setPendingNewGroupName: (name: string) => void;
+
+  setGroupEditingOn: (id: Guid) => void;
+  setGroupEditingOff: (id: Guid) => void;
+  setPendingGroupName: (id: Guid, name: string) => void;
 }
 
 class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & ContentAccessAdminActions> {
@@ -243,6 +247,39 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         entities={groups}
         renderEntity={(entity, key) => {
           const card = cardAttributes.group.get(entity.id);
+          const cardButtons = card.editing
+            ? (
+              <>
+                <CardButton
+                  color={'red'}
+                  tooltip={'Cancel'}
+                  onClick={() => this.props.setGroupEditingOff(entity.id)}
+                  icon={'cancel'}
+                />
+                <CardButton
+                  color={'green'}
+                  tooltip={'Save changes'}
+                  onClick={() => alert('You clicked save.')}
+                  icon={'checkmark'}
+                />
+              </>
+            )
+            : (
+              <>
+                <CardButton
+                  color={'red'}
+                  tooltip={'Delete selection group'}
+                  onClick={() => alert('You clicked delete.')}
+                  icon={'delete'}
+                />
+                <CardButton
+                  color={'blue'}
+                  tooltip={'Edit selection group'}
+                  onClick={() => this.props.setGroupEditingOn(entity.id)}
+                  icon={'edit'}
+                />
+              </>
+            );
           return (
             <Card
               key={key}
@@ -252,7 +289,12 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               status={entity.status}
             >
               <CardSectionMain>
-                <CardText text={entity.name} subtext={item.name} />
+                <CardText
+                  text={entity.name}
+                  subtext={item.name}
+                  editing={card.editing}
+                  setText={(text) => this.props.setPendingGroupName(entity.id, text)}
+                />
                 <CardSectionStats>
                   <CardStat
                     name={'Assigned users'}
@@ -261,18 +303,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                   />
                 </CardSectionStats>
                 <CardSectionButtons>
-                  <CardButton
-                    color={'red'}
-                    tooltip={'Delete selection group'}
-                    onClick={() => alert('You clicked delete.')}
-                    icon={'delete'}
-                  />
-                  <CardButton
-                    color={'blue'}
-                    tooltip={'Edit selection group'}
-                    onClick={() => alert('You clicked edit.')}
-                    icon={'edit'}
-                  />
+                  {cardButtons}
                 </CardSectionButtons>
               </CardSectionMain>
               <CardExpansion
@@ -343,7 +374,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             <input
               type="text"
               placeholder="Selection group name"
-              onChange={(event) => this.props.setPendingGroupName(event.target.value)}
+              onChange={(event) => this.props.setPendingNewGroupName(event.target.value)}
             />
             <div className="button-container">
               <button className="link-button" type="button" onClick={this.props.closeAddGroupModal}>

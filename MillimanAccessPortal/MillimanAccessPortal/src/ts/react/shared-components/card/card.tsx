@@ -6,6 +6,7 @@ import { CardStatus } from './card-status';
 export interface CardAttributes {
   disabled?: boolean;
   expanded?: boolean;
+  editing?: boolean;
   profitCenterModalOpen?: boolean;
 }
 

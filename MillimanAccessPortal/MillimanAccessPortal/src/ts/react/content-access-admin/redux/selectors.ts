@@ -210,6 +210,10 @@ export function groupEntities(state: AccessState) {
   return activeGroupsWithStatus(state).map((g) => ({
     ...g,
     assignedUsers: g.assignedUsers.length,
+    name: state.cardAttributes.group.get(g.id).editing && state.pending.group
+      ? state.pending.group.get(g.id).name
+      : g.name,
+
   }));
 }
 

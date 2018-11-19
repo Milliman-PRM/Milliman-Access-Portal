@@ -15,16 +15,30 @@ export const CardSectionButtons: React.SFC = (props) => (
 export interface CardTextProps {
   text: string;
   subtext: string;
+  editing: boolean;
+  setText: (text: string) => void;
 }
 export class CardText extends React.Component<CardTextProps> {
   public static defaultProps = {
     subtitle: '',
+    editing: false,
+    setText: () => null,
   };
   public render() {
-    const { text, subtext } = this.props;
+    const { text, subtext, editing, setText } = this.props;
     return (
       <div className="card-body-primary-container">
-        <h2 className="card-body-primary-text">{text}</h2>
+        <h2 className="card-body-primary-text">
+          {
+            editing
+              ? <input
+                value={text}
+                onChange={(event) => setText(event.target.value)}
+                onClick={(event) => event.stopPropagation()}
+              />
+              : text
+          }
+        </h2>
         <p className="card-body-secondary-text">{subtext}</p>
       </div>
     );
