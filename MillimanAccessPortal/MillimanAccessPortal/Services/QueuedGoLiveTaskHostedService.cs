@@ -41,6 +41,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             var auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
             var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            // Other content types may require their own services
             var qlikviewConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
 
             while (!cancellationToken.IsCancellationRequested)
@@ -63,19 +64,21 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
         IConfiguration configuration, QlikviewConfig qlikviewConfig)
     {
         #region Checksum verification
-        var publicationRequest = dbContext.ContentPublicationRequest
-            .Include(r => r.RootContentItem)
-                .ThenInclude(c => c.ContentType)
-            .Include(r => r.ApplicationUser)
-            .Where(r => r.Id == goLiveViewModel.PublicationRequestId)
-            .Where(r => r.RootContentItemId == goLiveViewModel.RootContentItemId)
-            .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Confirming);
+        var publicationRequest = goLiveViewModel == null
+            ? null
+            : dbContext.ContentPublicationRequest
+                .Include(r => r.RootContentItem)
+                    .ThenInclude(c => c.ContentType)
+                .Include(r => r.ApplicationUser)
+                .Where(r => r.Id == goLiveViewModel.PublicationRequestId)
+                .Where(r => r.RootContentItemId == goLiveViewModel.RootContentItemId)
+                .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Confirming);
 
         if (publicationRequest?.RootContentItem == null || publicationRequest?.ApplicationUser == null)
         {
             Log.Error(
                 "In QueueGoLiveTaskHostedService.ExecuteAsync action: " +
-                $"publication request {goLiveViewModel.PublicationRequestId} not found, " + 
+                $"publication request {goLiveViewModel?.PublicationRequestId} not found, " + 
                 $"or related user {publicationRequest?.ApplicationUserId} not found, " +
                 $"or related content item {publicationRequest?.RootContentItemId} not found");
             return;
