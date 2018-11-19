@@ -23,9 +23,9 @@ const _initialData: AccessStateData = {
   ],
   groups: [
     { id: 'group1', rootContentItemId: 'item1', name: 'group1', isMaster: true, isSuspended: false,
-      selectedValues: [], assignedUsers: [] },
+      selectedValues: [], assignedUsers: [ 'user1', 'user2' ] },
     { id: 'group2', rootContentItemId: 'item1', name: 'group2', isMaster: false, isSuspended: true,
-      selectedValues: [], assignedUsers: [] },
+      selectedValues: [], assignedUsers: [ 'user3' ] },
     { id: 'group3', rootContentItemId: 'item1', name: 'group3', isMaster: false, isSuspended: false,
       selectedValues: [], assignedUsers: [] },
     { id: 'group4', rootContentItemId: 'item2', name: 'group4', isMaster: false, isSuspended: false,

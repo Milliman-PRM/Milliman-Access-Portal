@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { isPublicationActive, ReductionStatus } from '../../view-models/content-publishing';
 import {
   Client, ReductionFieldset, RootContentItem, RootContentItemWithStatus, SelectionGroup,
-  SelectionGroupWithStatus,
+  SelectionGroupWithStatus, User,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
@@ -47,7 +47,7 @@ interface RootContentItemEntity extends RootContentItemWithStatus {
   contentTypeName: string;
 }
 interface SelectionGroupEntity extends SelectionGroupWithStatus {
-  assignedUsers: number;
+  assignedUsers: User[];
 }
 
 interface ContentAccessAdminProps {
@@ -280,6 +280,38 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                 />
               </>
             );
+          const cardExpansion = entity.assignedUsers.length
+            ? (
+              <CardExpansion
+                label={'Assigned Users'}
+                expanded={card && card.expanded}
+                setExpanded={(value) => value
+                  ? this.props.setExpandedGroup(entity.id)
+                  : this.props.setCollapsedGroup(entity.id)}
+              >
+                <ul className="detail-item-user-list">
+                  {entity.assignedUsers.map((u) => (
+                    <li key={u.id}>
+                      <span className="detail-item-user">
+                        <ActionIcon icon="user" />
+                        {/* <div class="detail-item-user-remove" style="display: none;">
+                          <div className="card-button-background card-button-delete">
+                            <svg className="card-button-icon">
+                              <use href="#remove-circle" />
+                            </svg>
+                          </div>
+                        </div> */}
+                        <div className="detail-item-user-name">
+                          <h4>{`${u.firstName} ${u.lastName}`}</h4>
+                          <span>{u.userName}</span>
+                        </div>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </CardExpansion>
+            )
+            : null;
           return (
             <Card
               key={key}
@@ -298,7 +330,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                 <CardSectionStats>
                   <CardStat
                     name={'Assigned users'}
-                    value={entity.assignedUsers}
+                    value={entity.assignedUsers.length}
                     icon={'user'}
                   />
                 </CardSectionStats>
@@ -306,31 +338,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                   {cardButtons}
                 </CardSectionButtons>
               </CardSectionMain>
-              <CardExpansion
-                label={'Members'}
-                expanded={card && card.expanded}
-                setExpanded={(value) => value
-                  ? this.props.setExpandedGroup(entity.id)
-                  : this.props.setCollapsedGroup(entity.id)}
-              >
-                <ul>
-                {[{}].map((o: any, i) => (
-                  <li key={i}>
-                    <span className="detail-item-user">
-                      <div className="detail-item-user-icon">
-                        <svg className="card-user-icon">
-                          <use xlinkHref={'user'} />
-                        </svg>
-                      </div>
-                      <div className="detail-item-user-name">
-                        <h4 className="first-last">{o.primaryText}</h4>
-                        <span className="user-name">{o.secondaryText}</span>
-                      </div>
-                    </span>
-                  </li>
-                ))}
-                </ul>
-              </CardExpansion>
+              {cardExpansion}
             </Card>
           );
         }}
