@@ -4,7 +4,10 @@ import { PublicationStatus, ReductionStatus } from '../../../view-models/content
 import { Guid } from '../../models';
 import { Card, CardAttributes } from '../../shared-components/card/card';
 import { AccessAction } from './actions';
-import { AccessStateData, AccessStateSelected, FilterState, ModalState } from './store';
+import {
+  AccessStateData, AccessStateSelected, FilterState, ModalState, PendingGroupState,
+  PendingGroupUserState,
+} from './store';
 
 const _initialData: AccessStateData = {
   clients: [
@@ -86,12 +89,12 @@ const _initialCards = new Map<Guid, CardAttributes>([
   ['group4', {}],
   ['group5', {}],
 ]);
-const _initialPending = new Map<Guid, { name: string }>([
-  ['group1', { name: 'group1' }],
-  ['group2', { name: 'group2' }],
-  ['group3', { name: 'group3' }],
-  ['group4', { name: 'group4' }],
-  ['group5', { name: 'group5' }],
+const _initialPending = new Map<Guid, PendingGroupState>([
+  ['group1', { name: 'group1', users: null }],
+  ['group2', { name: 'group2', users: null }],
+  ['group3', { name: 'group3', users: null }],
+  ['group4', { name: 'group4', users: null }],
+  ['group5', { name: 'group5', users: null }],
 ]);
 
 // utility functions
@@ -129,15 +132,16 @@ function updateList<T>(list: T[], selector: (item: T) => boolean, value?: T): T[
     ? filtered
     : [...filtered, value].sort();
 }
-// Not generic until there are more use cases
-function updateMap(map: Map<Guid, any>, key: Guid, value: Partial<any>) {
-  const clone = new Map<Guid, any>(map);
-  return clone.set(key, { ...clone.get(key), ...value });
+// Have to cast value to object and back because TypeScript does not support spread for generics
+// (as of 3.1.4)
+function updateMap<T extends object>(map: Map<Guid, T>, key: Guid, value: Partial<T>) {
+  const clone = new Map<Guid, T>(map);
+  return clone.set(key, { ...(clone.has(key) ? clone.get(key) : {}), ...(value as object) } as T);
 }
-function updateAllMap(map: Map<Guid, any>, value: Partial<any>) {
-  const clone = new Map<Guid, any>(map);
+function updateAllMap<T extends object>(map: Map<Guid, T>, value: Partial<T>) {
+  const clone = new Map<Guid, T>(map);
   for (const key of clone.keys()) {
-    clone.set(key, { ...clone.get(key), ...value });
+    clone.set(key, { ...(clone.has(key) ? clone.get(key) : {}), ...(value as object) } as T);
   }
   return clone;
 }
@@ -170,11 +174,19 @@ const pendingSelections = createReducer<Guid[]>([], {
 const pendingNewGroupName = createReducer<string>('', {
   [AccessAction.SetPendingNewGroupName]: (_, action) => action.name,
 });
-const pendingGroups = createReducer<Map<Guid, { name: string }>>(_initialPending, {
-  [AccessAction.SetGroupEditingOn]: (state, action) =>
-    updateMap(state, action.id, { name: null }),
+const pendingGroups = createReducer<Map<Guid, PendingGroupState>>(_initialPending, {
+  [AccessAction.SetGroupEditingOff]: (state, action) =>
+    updateMap(state, action.id, { name: null, users: null }),
   [AccessAction.SetPendingGroupName]: (state, action) =>
     updateMap(state, action.id, { name: action.name }),
+  [AccessAction.SetPendingGroupUserAssigned]: (state, action) =>
+    updateMap(state, action.groupId, {
+      users: updateMap(state.get(action.groupId).users, action.userId, { assigned: true }),
+    }),
+  [AccessAction.SetPendingGroupUserRemoved]: (state, action) =>
+    updateMap(state, action.groupId, {
+      users: updateMap(state.get(action.groupId).users, action.userId, { assigned: false }),
+    }),
 });
 
 const data = (state: AccessStateData = _initialData) => state;

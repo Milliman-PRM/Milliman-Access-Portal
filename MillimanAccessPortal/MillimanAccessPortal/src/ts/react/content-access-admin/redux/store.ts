@@ -14,6 +14,13 @@ export interface FilterState {
 export interface ModalState {
   isOpen: boolean;
 }
+export interface PendingGroupUserState {
+  assigned: boolean;
+}
+export interface PendingGroupState {
+  name: string;
+  users: Map<Guid, PendingGroupUserState>;
+}
 
 export interface AccessStateData {
   clients: ClientWithEligibleUsers[];
@@ -40,9 +47,7 @@ export interface AccessStatePending {
   isMaster: boolean;
   selections: Guid[];
   newGroupName: string;
-  group: Map<Guid, {
-    name: string;
-  }>;
+  group: Map<Guid, PendingGroupState>;
 }
 export interface AccessStateFilters {
   client: FilterState;

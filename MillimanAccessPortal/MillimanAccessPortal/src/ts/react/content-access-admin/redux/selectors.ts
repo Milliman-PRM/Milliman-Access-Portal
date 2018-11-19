@@ -48,6 +48,31 @@ export function masterModified(state: AccessState) {
 export function selectionsFormModified(state: AccessState) {
   return reductionValuesModified(state) || masterModified(state);
 }
+export function pendingGroupName(state: AccessState, groupId: Guid) {
+  const group = state.data.groups.find((g) => g.id === groupId);
+  return state.cardAttributes.group.get(groupId).editing
+       && state.pending.group
+       && state.pending.group.get(groupId).name !== null
+      ? state.pending.group.get(groupId).name
+      : group.name;
+}
+export function pendingGroupUserAssignments(state: AccessState, groupId: Guid) {
+  const group = state.data.groups.find((g) => g.id === groupId);
+  const users = [...group.assignedUsers];
+  const pendingUsers = state.pending.group.get(groupId).users || new Map();
+  for (const userId of pendingUsers.keys()) {
+    if (pendingUsers.get(userId).assigned) {
+      if (users.find((id) => id === userId) === undefined) {
+        users.push(userId);
+      }
+    } else {
+      if (users.find((id) => id === userId) !== undefined) {
+        users.splice(users.indexOf(userId), 1);
+      }
+    }
+  }
+  return users;
+}
 
 // Filter selectors
 export function filteredClients(state: AccessState) {
@@ -209,13 +234,9 @@ export function itemEntities(state: AccessState) {
 export function groupEntities(state: AccessState) {
   return activeGroupsWithStatus(state).map((g) => ({
     ...g,
-    assignedUsers: g.assignedUsers.map((id) => state.data.users.find((u) => u.id === id)),
-    name: state.cardAttributes.group.get(g.id).editing
-       && state.pending.group
-       && state.pending.group.get(g.id).name !== null
-      ? state.pending.group.get(g.id).name
-      : g.name,
-
+    assignedUsers: pendingGroupUserAssignments(state, g.id)
+      .map((id) => state.data.users.find((u) => u.id === id)),
+    name: pendingGroupName(state, g.id),
   }));
 }
 

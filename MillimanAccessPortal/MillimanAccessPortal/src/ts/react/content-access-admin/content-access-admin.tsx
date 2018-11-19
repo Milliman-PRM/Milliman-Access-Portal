@@ -100,6 +100,8 @@ interface ContentAccessAdminActions {
   setGroupEditingOn: (id: Guid) => void;
   setGroupEditingOff: (id: Guid) => void;
   setPendingGroupName: (id: Guid, name: string) => void;
+  setPendingGroupUserAssigned: (groupId: Guid, userId: Guid) => void;
+  setPendingGroupUserRemoved: (groupId: Guid, userId: Guid) => void;
 }
 
 class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & ContentAccessAdminActions> {
@@ -293,14 +295,17 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                   {entity.assignedUsers.map((u) => (
                     <li key={u.id}>
                       <span className="detail-item-user">
-                        <ActionIcon icon="user" />
-                        {/* <div class="detail-item-user-remove" style="display: none;">
-                          <div className="card-button-background card-button-delete">
-                            <svg className="card-button-icon">
-                              <use href="#remove-circle" />
-                            </svg>
-                          </div>
-                        </div> */}
+                      {
+                        card.editing
+                          ? <div className="detail-item-user-remove">
+                              <CardButton
+                                icon="remove-circle"
+                                color="red"
+                                onClick={() => this.props.setPendingGroupUserRemoved(entity.id, u.id)}
+                              />
+                            </div>
+                          : <ActionIcon icon="user" />
+                      }
                         <div className="detail-item-user-name">
                           <h4>{`${u.firstName} ${u.lastName}`}</h4>
                           <span>{u.userName}</span>
