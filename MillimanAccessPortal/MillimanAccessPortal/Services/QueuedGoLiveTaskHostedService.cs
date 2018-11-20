@@ -49,12 +49,19 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 // Retrieve the relevant data to finalize the goLive
                 var goLiveViewModel = await TaskQueue.DequeueAsync(cancellationToken);
 
-                await ProcessGoLive(
-                    goLiveViewModel,
-                    dbContext,
-                    auditLogger,
-                    configuration,
-                    qlikviewConfig);
+                try
+                {
+                    await ProcessGoLive(
+                        goLiveViewModel,
+                        dbContext,
+                        auditLogger,
+                        configuration,
+                        qlikviewConfig);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "In QueueGoLiveTaskHostedService.ExecuteAsync");
+                }
             }
         }
     }
