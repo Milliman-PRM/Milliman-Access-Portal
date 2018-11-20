@@ -491,7 +491,9 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            return ;
+            var masterContentRelatedFile = PubRequest.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
+
+            return File(masterContentRelatedFile.FullPath, "text/html");
         }
     }
 }
