@@ -30,6 +30,9 @@ let statusMonitor: PublicationStatusMonitor;
 
 let preLiveObject: PreLiveContentValidationSummary;
 
+const goLiveDisabledTooltip = 'Complete checks to proceed';
+const goLiveEnabledTooltip = 'Approve content and go live';
+
 function deleteRootContentItem(
   rootContentItemId: Guid,
   rootContentItemName: string,
@@ -190,7 +193,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     .removeAttr('disabled')
     .prop('checked', false);
   $('#confirmation-section-attestation .button-approve')
-    .attr('disabled', '');
+    .addClass('disabled')
+    .tooltipster('content', goLiveDisabledTooltip);
   // set src for iframes, conditionally marking iframes as unchanged
   const linkPairs: Array<{sectionName: string, link: string}> = [
     { sectionName: 'master-content', link: response.MasterContentLink },
@@ -274,7 +278,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     .filter((_, element) => $(element).attr('disabled') === undefined).length;
   if (!anyEnabled) {
     $('#confirmation-section-attestation .button-approve')
-      .removeAttr('disabled');
+      .removeClass('disabled')
+      .tooltipster('content', goLiveEnabledTooltip);
   }
 
   preLiveObject = response;
@@ -368,17 +373,21 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       data.split('&')
         .map((kvp) => kvp.split('='))
         .forEach((kvp) => dataArray[decodeURIComponent(kvp[0])] = decodeURIComponent(kvp[1]));
+      const fileChanges = ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
+        .map((file) => {
+          const fileData = dataArray[file].split('~');
+          return {
+            FileOriginalName: fileData[0],
+            FilePurpose: file,
+            FileUploadId: fileData[1],
+          };
+        });
       const publishRequest: PublishRequest = {
-        RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
-          .map((file) => {
-            const fileData = dataArray[file].split('~');
-            return {
-              FileOriginalName: fileData[0],
-              FilePurpose: file,
-              FileUploadId: fileData[1],
-            };
-          })
-          .filter((file) => file.FileUploadId),
+        NewRelatedFiles: fileChanges
+          .filter((file) => file.FileUploadId && file.FileUploadId !== 'delete'),
+        DeleteFilePurposes: fileChanges
+          .filter((file) => file.FileUploadId && file.FileUploadId === 'delete')
+          .map((file) => file.FilePurpose),
         RootContentItemId: dataArray.Id,
       };
       return publishRequest;
@@ -578,15 +587,20 @@ export function setup() {
   });
   $('#report-confirmation input[type="checkbox"]').change(() =>
     $('#confirmation-section-attestation .button-approve')
-      .attr('disabled', '')
+      .addClass('disabled')
+      .tooltipster('content', goLiveDisabledTooltip)
       .filter(() =>
         $('#report-confirmation input[type="checkbox"]').not('[disabled]').toArray()
           .map((checkbox: HTMLInputElement) => checkbox.checked)
           .reduce((cum, cur) => cum && cur, true))
-      .removeAttr('disabled'));
+      .removeClass('disabled')
+      .tooltipster('content', goLiveEnabledTooltip));
   $('#confirmation-section-attestation .button-reject').click((event) => {
     const $target = $(event.target);
-    $target.attr('disabled', '');
+    if ($target.hasClass('disabled')) {
+      return;
+    }
+    $target.addClass('disabled');
     const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
     showButtonSpinner($target, 'Rejecting');
     $.post({
@@ -607,13 +621,16 @@ export function setup() {
       hideButtonSpinner($target);
       $('#report-confirmation').hide();
       $('#root-content-items [selected]').removeAttr('selected');
-      $target.removeAttr('disabled');
+      $target.removeClass('disabled');
       statusMonitor.checkStatus();
     });
   });
   $('#confirmation-section-attestation .button-approve').click((event) => {
     const $target = $(event.target);
-    $target.attr('disabled', '');
+    if ($target.hasClass('disabled')) {
+      return;
+    }
+    $target.addClass('disabled');
     const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
     showButtonSpinner($target, 'Approving');
     $.post({
@@ -635,7 +652,7 @@ export function setup() {
       hideButtonSpinner($target);
       $('#report-confirmation').hide();
       $('#root-content-items [selected]').removeAttr('selected');
-      $target.removeAttr('disabled');
+      $target.removeClass('disabled');
       statusMonitor.checkStatus();
     });
   });
