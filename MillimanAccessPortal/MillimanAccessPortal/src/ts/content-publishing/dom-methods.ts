@@ -627,7 +627,7 @@ export function setup() {
       },
       url: 'ContentPublishing/GoLive/',
     }).done(() => {
-      toastr.success('Publication is now live.');
+      toastr.success('Publication queued to go live.');
     }).fail((response) => {
       toastr.warning(response.getResponseHeader('Warning')
         || 'An unknown error has occurred.');

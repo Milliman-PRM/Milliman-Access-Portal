@@ -25,6 +25,7 @@ namespace MapDbContextLib.Context
         Queued = 10,
         Processing = 20,
         Processed = 30,
+        Confirming = 35,
         Confirmed = 40,
         Replaced = 50,
         Error = 90,         // An error has occured
@@ -51,6 +52,7 @@ namespace MapDbContextLib.Context
                 PublicationStatus.Queued,
                 PublicationStatus.Processing,
                 PublicationStatus.Processed,
+                PublicationStatus.Confirming,
             };
 
             return blockingStatuses.Contains(status);
@@ -70,6 +72,7 @@ namespace MapDbContextLib.Context
             { PublicationStatus.Queued, "Queued"},
             { PublicationStatus.Processing, "Processing"},
             { PublicationStatus.Processed, "Processed"},
+            { PublicationStatus.Confirming, "Going Live"},
             { PublicationStatus.Confirmed, "Confirmed"},
             { PublicationStatus.Replaced, "Replaced" },
             { PublicationStatus.Error, "Error" },

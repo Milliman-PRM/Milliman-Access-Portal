@@ -190,6 +190,8 @@ namespace MillimanAccessPortal
             services.AddScoped<IUploadHelper, UploadHelper>();
             services.AddHostedService<QueuedUploadTaskHostedService>();
             services.AddSingleton<IUploadTaskQueue, UploadTaskQueue>();
+            services.AddHostedService<QueuedGoLiveTaskHostedService>();
+            services.AddSingleton<IGoLiveTaskQueue, GoLiveTaskQueue>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
