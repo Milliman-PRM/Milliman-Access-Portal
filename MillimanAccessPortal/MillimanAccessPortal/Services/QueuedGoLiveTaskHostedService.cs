@@ -91,6 +91,16 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             return;
         }
 
+        var LiveHierarchy = new ContentReductionHierarchy<ReductionFieldValue>
+        {
+            RootContentItemId = publicationRequest.RootContentItemId
+        };
+        var NewHierarchy = new ContentReductionHierarchy<ReductionFieldValue>
+        {
+            RootContentItemId = publicationRequest.RootContentItemId
+        };
+
+
         bool ReductionIsInvolved = publicationRequest.RootContentItem.DoesReduce
             && publicationRequest.LiveReadyFilesObj.Any(f => f.FilePurpose.ToLower() == "mastercontent");
 
@@ -145,6 +155,10 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     return;
                 }
             }
+
+            LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>
+                .GetHierarchyForRootContentItem(dbContext, publicationRequest.RootContentItemId);
+            NewHierarchy = relatedReductionTasks[0].MasterContentHierarchyObj;
         }
 
         // Validate Checksums of LiveReady files
@@ -303,10 +317,6 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 dbContext.ContentReductionTask.Update(PreviousLiveTask);
             }
             relatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
-
-            var LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>
-                .GetHierarchyForRootContentItem(dbContext, publicationRequest.RootContentItemId);
-            var NewHierarchy = relatedReductionTasks[0].MasterContentHierarchyObj;
 
             //3.3  HierarchyFieldValue due to hierarchy changes
             //3.3.1  If this is first publication for this root content item, add the fields to db
