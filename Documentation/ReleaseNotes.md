@@ -6,6 +6,10 @@
 
 - Added the ability to delete supporting files from a content item
 
+### v1.1.3
+
+- Fixed an issue where content go-live processing did not complete for large content files and/or many selection groups
+
 ### v1.1.2
 
 - Allow heirarchy comparison values to wrap in the Go Live preview to better support long values

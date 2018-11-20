@@ -191,6 +191,8 @@ namespace MillimanAccessPortal
             services.AddScoped<IUploadHelper, UploadHelper>();
             services.AddHostedService<QueuedUploadTaskHostedService>();
             services.AddSingleton<IUploadTaskQueue, UploadTaskQueue>();
+            services.AddHostedService<QueuedGoLiveTaskHostedService>();
+            services.AddSingleton<IGoLiveTaskQueue, GoLiveTaskQueue>();
             services.AddScoped<FileSystemTasks>();
         }
 
