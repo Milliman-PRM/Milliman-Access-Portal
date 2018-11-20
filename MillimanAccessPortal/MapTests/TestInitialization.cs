@@ -76,6 +76,9 @@ namespace MapTests
         public Mock<IUploadTaskQueue> MockUploadTaskQueue { get; set; }
         public IUploadTaskQueue UploadTaskQueueObject { get => MockUploadTaskQueue.Object; }
 
+        public Mock<IGoLiveTaskQueue> MockGoLiveTaskQueue { get; set; }
+        public IGoLiveTaskQueue GoLiveTaskQueueObject { get => MockGoLiveTaskQueue.Object; }
+
         public IConfiguration ConfigurationObject { get; set; }
 
         public Mock<IServiceProvider> MockServiceProvider { get; set; }
@@ -160,6 +163,7 @@ namespace MapTests
             MockMessageQueueService = GenerateMessageQueueService();
             MockUploadHelper = GenerateUploadHelper();
             MockUploadTaskQueue = new Mock<IUploadTaskQueue>();
+            MockGoLiveTaskQueue = new Mock<IGoLiveTaskQueue>();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
