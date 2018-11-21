@@ -129,6 +129,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                     Path = "/AuthorizedContent/PdfPreview",
                                     Query = $"purpose=mastercontent&publicationRequestId={PubRequest.Id}",
                                 };
+                                ReturnObj.MasterContentLink = pdfUrlBuilder.Uri.AbsoluteUri;
                                 break;
 
                             case ContentTypeEnum.Html:
@@ -140,6 +141,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                     Path = "/AuthorizedContent/HtmlPreview",
                                     Query = $"purpose=mastercontent&publicationRequestId={PubRequest.Id}",
                                 };
+                                ReturnObj.MasterContentLink = HtmlUri.Uri.AbsoluteUri;
                                 break;
 
                             case ContentTypeEnum.FileDownload:
