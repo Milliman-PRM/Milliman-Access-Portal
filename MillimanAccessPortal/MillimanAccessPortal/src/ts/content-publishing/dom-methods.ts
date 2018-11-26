@@ -551,10 +551,10 @@ export function setup() {
       .find(`option[value="${$contentTypeDropdown.val()}"]`)
       .data() as ContentType;
     if (!contentType.CanReduce) {
-      $doesReduceToggle.attr('readonly', '');
+      $doesReduceToggle.attr('disabled', '');
       $doesReduceToggle.prop('checked', false);
     } else {
-      $doesReduceToggle.removeAttr('readonly');
+      $doesReduceToggle.removeAttr('disabled');
     }
     formObject.inputSections.forEach((section) =>
       section.inputs.forEach((input) => {

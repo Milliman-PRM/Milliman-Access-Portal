@@ -82,7 +82,7 @@ export class FileUploadInput extends FormInput {
         };
         reader.readAsDataURL(resumableFile.file);
       }
-      $('#ContentTypeId').attr('readonly', '');
+      $('#ContentTypeId').attr('disabled', '');
     };
     this.upload.onFileSuccess = (fileGUID: string) => {
       this.value = `${this.originalName}~${fileGUID}`;
@@ -117,6 +117,7 @@ export class FileUploadInput extends FormInput {
       if (this.cancelable) {
         this.upload.cancel();
         this.$entryPoint.find('div.progress-bar-3').width('0');
+        $('#ContentTypeId').removeAttr('disabled');
         this.reset();
       } else {
         this.value = `${this.originalName}~delete`;
@@ -132,13 +133,15 @@ export class FileUploadInput extends FormInput {
     const $fileUpload = this.$entryPoint.find('input.file-upload');
     const fileUploadData = $fileUpload.data();
     $fileUpload.val(fileUploadData && fileUploadData.originalName || '');
+    if (fileUploadData && fileUploadData.originalName) {
+      $('#ContentTypeId').attr('disabled', '');
+    }
     this.$entryPoint.find('img.image-preview').removeAttr('src');
     if (this.upload) {
       this.upload.reset();
     }
     this.$entryPoint.find('.cancel-icon').show();
     this.setCancelable(false);
-    $('#ContentTypeId').removeAttr('readonly');
     this.$entryPoint.change(); // trigger a change event
   }
 
