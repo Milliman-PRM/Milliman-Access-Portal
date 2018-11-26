@@ -26,6 +26,8 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 .Select(usg => usg.SelectionGroup)
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rc => rc.Client)
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rc => rc.ContentType)
                 .ToList();
 
             var notLive = new List<SelectionGroup>();
@@ -97,6 +99,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                         Id = sg.Id,
                         Name = sg.RootContentItem.ContentName,
                         Description = sg.RootContentItem.Description,
+                        ContentTypeEnum = sg.RootContentItem.ContentType.TypeEnum,
                         ImageURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "thumbnail"))
                             ? $"{thumbnailUrlBuilder.Uri.AbsoluteUri}{sg.Id}"
                             : null,
@@ -128,6 +131,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public ContentTypeEnum ContentTypeEnum { get; set; }
         public string ImageURL { get; set; }
         public string ContentURL { get; set; }
         public string UserguideURL { get; set; }
