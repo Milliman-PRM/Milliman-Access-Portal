@@ -50,7 +50,7 @@ export class FileSniffer {
             initialBytesTrimmed[i] = initialBytes[i];
           }
           return sequenceEqual(byteSequence, initialBytesTrimmed);
-        }).reduce((cum, cur) => cum || cur, false);
+        }).reduce((cum, cur) => cum || cur, true);
 
         resolve(match);
       };
