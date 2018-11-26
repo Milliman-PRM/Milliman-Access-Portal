@@ -219,6 +219,9 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         }
                         break;
 
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.FileDownload:
                     default:
                         break;
                 }
@@ -400,7 +403,9 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             goLiveViewModel.RootContentItemId.ToString(), qlikviewConfig);
                     break;
 
-                case ContentTypeEnum.Unknown:
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.FileDownload:
                 default:
                     break;
             }

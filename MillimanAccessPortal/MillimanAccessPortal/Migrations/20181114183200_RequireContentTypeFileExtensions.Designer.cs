@@ -180,7 +180,8 @@ namespace MillimanAccessPortal.Migrations
                         .IsRequired();
 
                     b.Property<string[]>("FileExtensions")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasDefaultValueSql("'{}'");
 
                     b.Property<string>("Name")
                         .IsRequired();

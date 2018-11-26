@@ -655,7 +655,11 @@ namespace MillimanAccessPortal.Controllers
                         }
                         break;
 
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.FileDownload:
                     default:
+                        // for all non-reducible content types, do nothing.
                         break;
                 }
             }
@@ -879,8 +883,11 @@ namespace MillimanAccessPortal.Controllers
                         ContentTypeConfigObj = QvConfig;
                         break;
 
-                    case ContentTypeEnum.Unknown:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.FileDownload:
                     default:
+                        // should never get here because non-reducible content types are blocked in validation above
                         break;
                 }
                 ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath, ContentTypeConfigObj)));

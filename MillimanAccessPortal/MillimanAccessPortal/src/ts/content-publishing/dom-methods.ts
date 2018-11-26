@@ -402,7 +402,15 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
   });
 
   // Create/retrieve and bind the new form
-  formObject = new FormBase();
+  if (formObject === undefined) {
+    formObject = new FormBase();
+    get(
+      'ContentPublishing/AvailableContentTypes',
+      [ populateAvailableContentTypes ],
+    )();
+  } else {
+    formObject = new FormBase();
+  }
   formObject.bindToDOM($rootContentItemForm[0]);
   formObject.configure(
     [
@@ -540,7 +548,7 @@ function populateAvailableContentTypes(contentTypes: ContentType[]) {
   });
 
   $contentTypeDropdown.val(0);
-  // $contentTypeDropdown.change(); // trigger change event
+  $contentTypeDropdown.change(); // trigger change event
 }
 
 export function setup() {
@@ -677,10 +685,6 @@ export function setup() {
 
   $('.tooltip').tooltipster();
 
-  get(
-    'ContentPublishing/AvailableContentTypes',
-    [ populateAvailableContentTypes ],
-  )();
   get(
     'ContentPublishing/Clients',
     [ renderClientTree ],

@@ -12,6 +12,7 @@ namespace MillimanAccessPortal.Migrations
                 name: "FileExtensions",
                 table: "ContentType",
                 nullable: false,
+                defaultValueSql: "'{}'",
                 oldClrType: typeof(string[]),
                 oldNullable: true);
         }
@@ -22,6 +23,7 @@ namespace MillimanAccessPortal.Migrations
                 name: "FileExtensions",
                 table: "ContentType",
                 nullable: true,
+                defaultValueSql: "'{}'",
                 oldClrType: typeof(string[]));
         }
     }
