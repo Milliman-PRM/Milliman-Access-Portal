@@ -198,22 +198,43 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     .addClass('disabled')
     .tooltipster('content', goLiveDisabledTooltip);
   // set src for iframes, conditionally marking iframes as unchanged
-  const linkPairs: Array<{sectionName: string, link: string}> = [
-    { sectionName: 'master-content', link: response.MasterContentLink },
+  const linkPairs: Array<{sectionName: string, link: string, node?: string}> = [
+    {
+      sectionName: 'master-content',
+      link: response.MasterContentLink,
+      node: response.ContentTypeName === 'FileDownload'
+        ? '.content-preview-download'
+        : response.ContentTypeName === 'Html'
+          ? '.content-preview-sandbox'
+          : '.content-preview',
+    },
     { sectionName: 'user-guide', link: response.UserGuideLink },
     { sectionName: 'release-notes', link: response.ReleaseNotesLink },
   ];
   linkPairs.forEach((pair) => {
-    $(`#confirmation-section-${pair.sectionName} iframe`)
-      .removeAttr('srcdoc')
-      .attr('src', pair.link)
-      .siblings('a')
-      .attr('href', pair.link)
-      .filter(() => pair.link === null)
+    $(`#confirmation-section-${pair.sectionName} div`)
+      .filter(pair.node || '.content-preview')
+      .find('a,iframe')
+      .attr('src', function() {
+        return $(this).is('iframe')
+          ? pair.link
+          : null;
+      })
+      .attr('href', function() {
+        return $(this).is('a')
+          ? pair.link
+          : null;
+      })
+      .parent()
+      .show()
+      .siblings('div')
       .hide()
-      .siblings('iframe')
-      .removeAttr('src')
-      .attr('srcdoc', 'This file has not changed.')
+      .filter(() => pair.link === null)
+      .filter('.content-preview-none')
+      .show()
+      .siblings('div')
+      .hide()
+      .find('iframe')
       .closest('.confirmation-section').find('label')
       .hide()
       .find('input')
