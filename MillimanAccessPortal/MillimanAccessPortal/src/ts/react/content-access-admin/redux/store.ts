@@ -19,6 +19,7 @@ export interface PendingGroupUserState {
 }
 export interface PendingGroupState {
   name: string;
+  userQuery: string;
   users: Map<Guid, PendingGroupUserState>;
 }
 

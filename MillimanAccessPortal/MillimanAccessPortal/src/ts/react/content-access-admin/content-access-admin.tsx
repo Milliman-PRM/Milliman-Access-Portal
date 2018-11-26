@@ -3,6 +3,7 @@ import '../../../images/user.svg';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
+import Select from 'react-select';
 
 import { isPublicationActive, ReductionStatus } from '../../view-models/content-publishing';
 import {
@@ -48,6 +49,7 @@ interface RootContentItemEntity extends RootContentItemWithStatus {
 }
 interface SelectionGroupEntity extends SelectionGroupWithStatus {
   assignedUsers: User[];
+  userQuery: string;
 }
 
 interface ContentAccessAdminProps {
@@ -100,6 +102,7 @@ interface ContentAccessAdminActions {
   setGroupEditingOn: (id: Guid) => void;
   setGroupEditingOff: (id: Guid) => void;
   setPendingGroupName: (id: Guid, name: string) => void;
+  setPendingGroupUserQuery: (id: Guid, query: string) => void;
   setPendingGroupUserAssigned: (groupId: Guid, userId: Guid) => void;
   setPendingGroupUserRemoved: (groupId: Guid, userId: Guid) => void;
 }
@@ -297,7 +300,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                       <span className="detail-item-user">
                       {
                         card.editing
-                          ? <div className="detail-item-user-remove">
+                          ? <div>
                               <CardButton
                                 icon="remove-circle"
                                 color="red"
@@ -313,6 +316,30 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                       </span>
                     </li>
                   ))}
+                  {
+                    card.editing
+                      ? <li>
+                        <span className="detail-item-user">
+                          <div
+                            onClick={(event) => event.stopPropagation()}
+                            style={{ width: '100%' }}
+                          >
+                            <Select
+                              options={[{value: 'user4', label: 'user4'}]}
+                              onChange={(value, action) => {
+                                if (action.action === 'select-option') {
+                                  const singleValue = value as { value: string; label: string; };
+                                  this.props.setPendingGroupUserAssigned(entity.id, singleValue.value);
+                                }
+                              }}
+                              onInputChange={(newValue) => this.props.setPendingGroupUserQuery(entity.id, newValue)}
+                              inputValue={entity.userQuery}
+                            />
+                          </div>
+                        </span>
+                      </li>
+                      : null
+                  }
                 </ul>
               </CardExpansion>
             )

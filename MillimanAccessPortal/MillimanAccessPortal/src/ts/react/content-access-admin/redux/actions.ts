@@ -21,6 +21,7 @@ export enum AccessAction {
   SetGroupEditingOn = 'SET_GROUP_EDITING_ON',
   SetGroupEditingOff = 'SET_GROUP_EDITING_OFF',
   SetPendingGroupName = 'SET_PENDING_GROUP_NAME',
+  SetPendingGroupUserQuery = 'SET_PENDING_GROUP_USER_QUERY',
   SetPendingGroupUserAssigned = 'SET_PENDING_GROUP_USER_ASSIGNED',
   SetPendingGroupUserRemoved = 'SET_PENDING_GROUP_USER_REMOVED',
 }
@@ -56,6 +57,8 @@ export const setPendingNewGroupName = (name: string) => ({ type: AccessAction.Se
 export const setGroupEditingOn = (id: Guid) => ({ type: AccessAction.SetGroupEditingOn, id });
 export const setGroupEditingOff = (id: Guid) => ({ type: AccessAction.SetGroupEditingOff, id });
 export const setPendingGroupName = (id: Guid, name: string) => ({ type: AccessAction.SetPendingGroupName, id, name });
+export const setPendingGroupUserQuery = (id: Guid, query: string) =>
+  ({ type: AccessAction.SetPendingGroupUserQuery, id, query });
 export const setPendingGroupUserAssigned = (groupId: Guid, userId: Guid) =>
   ({ type: AccessAction.SetPendingGroupUserAssigned, groupId, userId });
 export const setPendingGroupUserRemoved = (groupId: Guid, userId: Guid) =>

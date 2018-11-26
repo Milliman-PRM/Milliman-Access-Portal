@@ -237,6 +237,7 @@ export function groupEntities(state: AccessState) {
     assignedUsers: pendingGroupUserAssignments(state, g.id)
       .map((id) => state.data.users.find((u) => u.id === id)),
     name: pendingGroupName(state, g.id),
+    userQuery: state.pending.group.get(g.id).userQuery,
   }));
 }
 
