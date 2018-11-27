@@ -180,6 +180,33 @@ namespace MapDbContextLib.Context
         public string ReducedContentChecksum { get; set; }
 
         public TaskActionEnum TaskAction { get; set; } = TaskActionEnum.Unspecified;
+
+        /// <summary>
+        /// May also be accessed through [NotMapped] property TaskMetadataObj
+        /// Intended to be serialization of type TaskMetadata
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string TaskMetadata { get; set; } = "{}";
+
+        /// <summary>
+        /// Identifies metadata about a publication request
+        /// </summary>
+        [NotMapped]
+        public TaskMetadata TaskMetadataObj
+        {
+            get
+            {
+                return string.IsNullOrWhiteSpace(TaskMetadata)
+                    ? new TaskMetadata { }
+                    : JsonConvert.DeserializeObject<TaskMetadata>(TaskMetadata);
+            }
+            set
+            {
+                TaskMetadata = value != null
+                    ? JsonConvert.SerializeObject(value)
+                    : "{}";
+            }
+        }
     }
 }
 
