@@ -279,6 +279,17 @@ namespace ContentPublishingLib.JobMonitors
                             break;
                         case PublishJobDetail.JobStatusEnum.Error:
                             DbRequest.RequestStatus = PublicationStatus.Error;
+                            RequestErrorReason reason = RequestErrorReason.Default;
+                            switch(JobDetail.StatusReason)
+                            {
+                                case PublishJobDetail.JobErrorReason.ReductionTaskErrors:
+                                    reason = RequestErrorReason.ReductionTaskError;
+                                    break;
+                            }
+                            DbRequest.RequestMetadataObj = new RequestMetadata
+                            {
+                                ErrorReason = reason,
+                            };
                             break;
                         case PublishJobDetail.JobStatusEnum.Success:
                             DbRequest.RequestStatus = PublicationStatus.Processed;

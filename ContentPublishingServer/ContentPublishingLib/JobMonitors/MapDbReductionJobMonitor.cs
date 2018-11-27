@@ -266,6 +266,17 @@ namespace ContentPublishingLib.JobMonitors
                             break;
                         case ReductionJobDetail.JobStatusEnum.Error:
                             DbTask.ReductionStatus = ReductionStatusEnum.Error;
+                            TaskErrorReason reason = TaskErrorReason.Default;
+                            switch(JobDetail.StatusReason)
+                            {
+                                case ReductionJobDetail.JobErrorReason.NoSelectedFieldValues:
+                                    reason = TaskErrorReason.NoSelectedFieldValues;
+                                    break;
+                            }
+                            DbTask.TaskMetadataObj = new TaskMetadata
+                            {
+                                ErrorReason = reason,
+                            };
                             break;
                         case ReductionJobDetail.JobStatusEnum.Success:
                             DbTask.ReductionStatus = ReductionStatusEnum.Reduced;

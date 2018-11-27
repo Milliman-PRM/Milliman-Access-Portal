@@ -224,6 +224,8 @@ namespace ContentPublishingLib.JobRunners
                     string Msg = $"Publication request terminating due to error in related reduction task(s):{Environment.NewLine}  {string.Join("  " + Environment.NewLine, FailedTasks.Select(t => t.Id.ToString() + " : " + t.ReductionStatusMessage))}";
                     GlobalFunctions.TraceWriteLine(Msg);
 
+                    JobDetail.StatusReason = PublishJobDetail.JobErrorReason.ReductionTaskErrors;
+
                     throw new ApplicationException(Msg);
                 }
 

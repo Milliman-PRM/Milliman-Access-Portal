@@ -4,19 +4,18 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using AuditLogLib;
+using AuditLogLib.Event;
+using MapCommonLib;
+using MapDbContextLib.Models;
+using QlikviewLib.Qms;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
-using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
-using AuditLogLib;
-using AuditLogLib.Services;
-using QlikviewLib.Qms;
-using MapCommonLib;
-using AuditLogLib.Event;
 
 namespace ContentPublishingLib.JobRunners
 {
@@ -427,6 +426,9 @@ namespace ContentPublishingLib.JobRunners
 
                 AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
                 GlobalFunctions.TraceWriteLine(Msg);
+
+                JobDetail.StatusReason = ReductionJobDetail.JobErrorReason.NoSelectedFieldValues;
+
                 throw new ApplicationException(Msg);
             }
 
