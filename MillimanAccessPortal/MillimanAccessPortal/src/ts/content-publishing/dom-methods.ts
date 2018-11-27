@@ -424,15 +424,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
   });
 
   // Create/retrieve and bind the new form
-  if (formObject === undefined) {
-    formObject = new FormBase();
-    get(
-      'ContentPublishing/AvailableContentTypes',
-      [ populateAvailableContentTypes ],
-    )();
-  } else {
-    formObject = new FormBase();
-  }
+  formObject = new FormBase();
   formObject.bindToDOM($rootContentItemForm[0]);
   formObject.configure(
     [
@@ -458,6 +450,17 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       },
     ],
   );
+  const $contentTypeDropdown = $('#ContentTypeId');
+  const contentType = $contentTypeDropdown
+    .find(`option[value="${$contentTypeDropdown.val()}"]`)
+    .data() as ContentType;
+  formObject.inputSections.forEach((section) =>
+    section.inputs.forEach((input) => {
+      if (contentType && isFileUploadInput(input)) {
+        input.fileTypes.set(UploadComponent.Content, contentType.FileExtensions);
+        input.configure();
+      }
+    }));
 
   $rootContentItemForm
     .removeData('validator')
@@ -570,7 +573,6 @@ function populateAvailableContentTypes(contentTypes: ContentType[]) {
   });
 
   $contentTypeDropdown.val(0);
-  $contentTypeDropdown.change(); // trigger change event
 }
 
 export function setup() {
@@ -580,7 +582,7 @@ export function setup() {
     const contentType = $contentTypeDropdown
       .find(`option[value="${$contentTypeDropdown.val()}"]`)
       .data() as ContentType;
-    if (!contentType.CanReduce) {
+    if (contentType && !contentType.CanReduce) {
       $doesReduceToggle.attr('disabled', '');
       $doesReduceToggle.prop('checked', false);
     } else {
@@ -588,7 +590,7 @@ export function setup() {
     }
     formObject.inputSections.forEach((section) =>
       section.inputs.forEach((input) => {
-        if (isFileUploadInput(input)) {
+        if (contentType && isFileUploadInput(input)) {
           input.fileTypes.set(UploadComponent.Content, contentType.FileExtensions);
           input.configure();
         }
@@ -710,6 +712,10 @@ export function setup() {
   get(
     'ContentPublishing/Clients',
     [ renderClientTree ],
+  )();
+  get(
+    'ContentPublishing/AvailableContentTypes',
+    [ populateAvailableContentTypes ],
   )();
 
   statusMonitor = new PublicationStatusMonitor();
