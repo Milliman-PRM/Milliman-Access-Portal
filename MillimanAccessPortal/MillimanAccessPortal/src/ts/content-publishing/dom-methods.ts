@@ -189,6 +189,7 @@ function addToDocumentCount(clientId: Guid, offset: number) {
 
 function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   // Show and clear all confirmation checkboxes
+  $('#report-confirmation .admin-panel-content-container')[0].scrollTop = 0;
   $('#report-confirmation label')
     .show()
     .find('input[type="checkbox"]')
