@@ -16,8 +16,6 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
     {
         public List<ReductionSummary> Status = new List<ReductionSummary>();
 
-        public string StatusMessage = string.Empty;
-
         internal static SelectionGroupStatus Build(ApplicationDbContext dbContext, ApplicationUser user)
         {
             SelectionGroupStatus model = new SelectionGroupStatus();
@@ -38,7 +36,13 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                     .Where(t => t.SelectionGroupId == selectionGroup.Id)
                     .OrderByDescending(r => r.CreateDateTimeUtc)
                     .FirstOrDefault();
-                model.Status.Add(reductionTask.ToSummaryWithQueueInformation(dbContext));
+                var summary = reductionTask.ToSummaryWithQueueInformation(dbContext);
+                if (!string.IsNullOrWhiteSpace(reductionTask.TaskMetadata))
+                {
+                    // No special messages for reduction tasks for now
+                    summary.StatusMessage = string.Empty;
+                }
+                model.Status.Add(summary);
             }
 
             return model;

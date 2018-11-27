@@ -443,6 +443,7 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
     },
     StatusEnum: 0,
     StatusName: '',
+    StatusMessage: '',
     SelectionGroupId: 0,
     RootContentItemId: 0,
     QueuedDurationMs: -1,
@@ -478,6 +479,10 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
         statusTop += ` (${details.QueuePosition}/${details.QueueTotal} completed)`;
       }
       statusBot += durationText;
+    } else if (details.StatusName === 'Error') {
+      if (details.StatusMessage) {
+        statusTop += ' (click for details)';
+      }
     } else if (details.StatusName === 'Processed') {
       statusBot += durationText;
     }
@@ -494,6 +499,12 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
   }
   $statusTop.html(statusTop);
   $statusBot.html(statusBot);
+  $statusContainer.off('click');
+  if (details.StatusName === 'Error' && details.StatusMessage) {
+    $statusContainer.on('click', () => {
+      toastr.warning(details.StatusMessage);
+    });
+  }
 }
 export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingStatusEnum: PublicationStatus) {
   $card.find('.card-button-dynamic').hide();

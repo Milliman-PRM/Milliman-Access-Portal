@@ -62,6 +62,7 @@ export interface PublicationSummary {
   User: UserInfo;
   StatusEnum: PublicationStatus;
   StatusName: string;
+  StatusMessage: string;
   SelectionGroupId: Guid;
   RootContentItemId: Guid;
   QueuedDurationMs?: number;

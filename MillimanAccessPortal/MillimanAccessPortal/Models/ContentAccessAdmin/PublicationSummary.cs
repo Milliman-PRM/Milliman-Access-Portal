@@ -34,7 +34,6 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 User = (UserInfoViewModel) contentPublicationRequest.ApplicationUser,
                 StatusEnum = contentPublicationRequest.RequestStatus,
                 RootContentItemId = contentPublicationRequest.RootContentItemId,
-                StatusMessage = contentPublicationRequest.StatusMessage,
                 QueuedDurationMs = (int)(contentPublicationRequest.RequestStatus.IsActive()
                     ? DateTime.UtcNow - contentPublicationRequest.CreateDateTimeUtc
                     : TimeSpan.Zero).TotalMilliseconds,

@@ -17,6 +17,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public UserInfoViewModel User { get; set; }
         public ReductionStatusEnum StatusEnum { get; set; }
         public string StatusName { get; set; }
+        public string StatusMessage { get; set; }
         public Guid SelectionGroupId { get; set; }
         public Guid? RootContentItemId { get; set; }
         public int QueuedDurationMs { get; set; }
