@@ -7,5 +7,7 @@
   "QvServerAdminUserPassword": "",
   "QvServerContentUriSubfolder": "",
   "QvsQmsApiUrl": "",
-  "QdsQmsApiUrl":  ""
+  "QdsQmsApiUrl": "",
+  "QvNamedCalDomainList": "",
+  "QvNamedCalUsernameList": ""
 }

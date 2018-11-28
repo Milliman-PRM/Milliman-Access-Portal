@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using Microsoft.AspNetCore.Http;
 using QlikviewLib.Internal;
@@ -91,6 +92,13 @@ namespace QlikviewLib
             return QvServerUri;
         }
 
+        /// <summary>
+        /// Assigns a Qlikview named user CAL or document CAL as appropriate, if none is already assigned
+        /// </summary>
+        /// <param name="DocumentFilePathRelativeToStorageContentRoot"></param>
+        /// <param name="UserName"></param>
+        /// <param name="ConfigInfo"></param>
+        /// <returns>true if user has a CAL for the document, false otherwise</returns>
         public async Task<bool> AssignDocumentUserLicense(string DocumentFilePathRelativeToStorageContentRoot, string UserName, QlikviewConfig ConfigInfo)
         {
             if (string.IsNullOrWhiteSpace(DocumentFilePathRelativeToStorageContentRoot))
@@ -115,6 +123,26 @@ namespace QlikviewLib
                                                        && c.QuarantinedUntil == DateTime.MinValue))
             {
                 return true;
+            }
+
+            // Define new CAL, will be added as named cal or doc cal
+            AssignedNamedCAL NewCal = new AssignedNamedCAL { UserName = UserName };
+
+            // Decide whether the username qualifies for a named user CAL
+            {
+                List<string> DomainList = ConfigInfo.QvNamedCalDomainList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                DomainList.ForEach(d => d.Trim());
+                List<string> UsernameList = ConfigInfo.QvNamedCalUsernameList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                UsernameList.ForEach(d => d.Trim());
+
+                if (GlobalFunctions.DoesEmailSatisfyClientWhitelists(UserName.Trim(), DomainList, UsernameList))
+                {
+                    List<AssignedNamedCAL> NamedCalList = CalConfig.NamedCALs.AssignedCALs.ToList();
+                    NamedCalList.Add(NewCal);
+                    CalConfig.NamedCALs.AssignedCALs = NamedCalList.ToArray();
+                    await Client.SaveCALConfigurationAsync(CalConfig);
+                    return true;
+                }
             }
 
             DocumentNode RequestedDocNode = null;
@@ -147,14 +175,7 @@ namespace QlikviewLib
                 DocMetadata.Licensing.CALsAllocated = CurrentDocCals.Count + 1;
             }
 
-            AssignedNamedCAL NewDocCal = new AssignedNamedCAL
-            {
-                UserName = UserName,
-                LastUsed = DateTime.Now,
-                QuarantinedUntil = DateTime.Now.AddDays(1),
-                MachineID = "",
-            };
-            CurrentDocCals.Add(NewDocCal);
+            CurrentDocCals.Add(NewCal);
 
             DocMetadata.Licensing.AssignedCALs = CurrentDocCals.ToArray();
 
