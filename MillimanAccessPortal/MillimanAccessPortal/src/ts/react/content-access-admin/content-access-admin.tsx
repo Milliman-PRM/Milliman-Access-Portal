@@ -287,7 +287,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                 />
               </>
             );
-          const cardExpansion = entity.assignedUsers.length
+          const cardExpansion = entity.assignedUsers.length || (card && card.editing)
             ? (
               <CardExpansion
                 label={'Assigned Users'}
