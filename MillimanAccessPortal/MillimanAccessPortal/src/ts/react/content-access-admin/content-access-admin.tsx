@@ -334,6 +334,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                               }}
                               onInputChange={(newValue) => this.props.setPendingGroupUserQuery(entity.id, newValue)}
                               inputValue={entity.userQuery}
+                              controlShouldRenderValue={false}
                             />
                           </div>
                         </span>
