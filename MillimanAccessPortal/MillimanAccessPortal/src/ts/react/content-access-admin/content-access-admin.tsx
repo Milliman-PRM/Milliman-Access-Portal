@@ -50,6 +50,7 @@ interface RootContentItemEntity extends RootContentItemWithStatus {
 interface SelectionGroupEntity extends SelectionGroupWithStatus {
   assignedUsers: User[];
   userQuery: string;
+  editing: boolean;
 }
 
 interface ContentAccessAdminProps {
@@ -102,10 +103,10 @@ interface ContentAccessAdminActions {
 
   setGroupEditingOn: (id: Guid) => void;
   setGroupEditingOff: (id: Guid) => void;
-  setPendingGroupName: (id: Guid, name: string) => void;
-  setPendingGroupUserQuery: (id: Guid, query: string) => void;
-  setPendingGroupUserAssigned: (groupId: Guid, userId: Guid) => void;
-  setPendingGroupUserRemoved: (groupId: Guid, userId: Guid) => void;
+  setPendingGroupName: (me: string) => void;
+  setPendingGroupUserQuery: (query: string) => void;
+  setPendingGroupUserAssigned: (id: Guid) => void;
+  setPendingGroupUserRemoved: (id: Guid) => void;
 }
 
 class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & ContentAccessAdminActions> {
@@ -221,6 +222,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       activeSelectedClient: activeClient,
       activeSelectedItem: activeItem,
       selectedItem: item,
+      pending,
       selected,
       filters,
       modals,
@@ -254,20 +256,20 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         entities={groups}
         renderEntity={(entity, key) => {
           const card = cardAttributes.group.get(entity.id);
-          const cardButtons = card.editing
+          const cardButtons = entity.editing
             ? (
               <>
-                <CardButton
-                  color={'red'}
-                  tooltip={'Cancel'}
-                  onClick={() => this.props.setGroupEditingOff(entity.id)}
-                  icon={'cancel'}
-                />
                 <CardButton
                   color={'green'}
                   tooltip={'Save changes'}
                   onClick={() => alert('You clicked save.')}
                   icon={'checkmark'}
+                />
+                <CardButton
+                  color={'red'}
+                  tooltip={'Cancel'}
+                  onClick={() => this.props.setGroupEditingOff(entity.id)}
+                  icon={'cancel'}
                 />
               </>
             )
@@ -279,15 +281,20 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                   onClick={() => alert('You clicked delete.')}
                   icon={'delete'}
                 />
-                <CardButton
-                  color={'blue'}
-                  tooltip={'Edit selection group'}
-                  onClick={() => this.props.setGroupEditingOn(entity.id)}
-                  icon={'edit'}
-                />
+                {pending.group.id === null
+                  ? (
+                    <CardButton
+                      color={'blue'}
+                      tooltip={'Edit selection group'}
+                      onClick={() => this.props.setGroupEditingOn(entity.id)}
+                      icon={'edit'}
+                    />
+                  )
+                  : null
+                }
               </>
             );
-          const cardExpansion = entity.assignedUsers.length || (card && card.editing)
+          const cardExpansion = entity.assignedUsers.length || entity.editing
             ? (
               <CardExpansion
                 label={'Assigned Users'}
@@ -301,12 +308,12 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                     <li key={u.id}>
                       <span className="detail-item-user">
                       {
-                        card.editing
+                        entity.editing
                           ? <div>
                               <CardButton
                                 icon="remove-circle"
                                 color="red"
-                                onClick={() => this.props.setPendingGroupUserRemoved(entity.id, u.id)}
+                                onClick={() => this.props.setPendingGroupUserRemoved(u.id)}
                               />
                             </div>
                           : <ActionIcon icon="user" />
@@ -319,7 +326,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                     </li>
                   ))}
                   {
-                    card.editing
+                    entity.editing
                       ? <li>
                         <span className="detail-item-user">
                           <div
@@ -334,10 +341,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                               onChange={(value, action) => {
                                 if (action.action === 'select-option') {
                                   const singleValue = value as { value: string; label: string; };
-                                  this.props.setPendingGroupUserAssigned(entity.id, singleValue.value);
+                                  this.props.setPendingGroupUserAssigned(singleValue.value);
                                 }
                               }}
-                              onInputChange={(newValue) => this.props.setPendingGroupUserQuery(entity.id, newValue)}
+                              onInputChange={(newValue) => this.props.setPendingGroupUserQuery(newValue)}
                               inputValue={entity.userQuery}
                               controlShouldRenderValue={false}
                             />
@@ -362,8 +369,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                 <CardText
                   text={entity.name}
                   subtext={item.name}
-                  editing={card.editing}
-                  setText={(text) => this.props.setPendingGroupName(entity.id, text)}
+                  editing={entity.editing}
+                  setText={(text) => this.props.setPendingGroupName(text)}
                 />
                 <CardSectionStats>
                   <CardStat

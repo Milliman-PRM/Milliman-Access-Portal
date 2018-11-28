@@ -56,10 +56,7 @@ export const setPendingNewGroupName = (name: string) => ({ type: AccessAction.Se
 // Selection group card editing
 export const setGroupEditingOn = (id: Guid) => ({ type: AccessAction.SetGroupEditingOn, id });
 export const setGroupEditingOff = (id: Guid) => ({ type: AccessAction.SetGroupEditingOff, id });
-export const setPendingGroupName = (id: Guid, name: string) => ({ type: AccessAction.SetPendingGroupName, id, name });
-export const setPendingGroupUserQuery = (id: Guid, query: string) =>
-  ({ type: AccessAction.SetPendingGroupUserQuery, id, query });
-export const setPendingGroupUserAssigned = (groupId: Guid, userId: Guid) =>
-  ({ type: AccessAction.SetPendingGroupUserAssigned, groupId, userId });
-export const setPendingGroupUserRemoved = (groupId: Guid, userId: Guid) =>
-  ({ type: AccessAction.SetPendingGroupUserRemoved, groupId, userId });
+export const setPendingGroupName = (name: string) => ({ type: AccessAction.SetPendingGroupName, name });
+export const setPendingGroupUserQuery = (query: string) => ({ type: AccessAction.SetPendingGroupUserQuery, query });
+export const setPendingGroupUserAssigned = (id: Guid) => ({ type: AccessAction.SetPendingGroupUserAssigned, id });
+export const setPendingGroupUserRemoved = (id: Guid) => ({ type: AccessAction.SetPendingGroupUserRemoved, id });

@@ -18,6 +18,7 @@ export interface PendingGroupUserState {
   assigned: boolean;
 }
 export interface PendingGroupState {
+  id: Guid;
   name: string;
   userQuery: string;
   users: Map<Guid, PendingGroupUserState>;
@@ -48,7 +49,7 @@ export interface AccessStatePending {
   isMaster: boolean;
   selections: Guid[];
   newGroupName: string;
-  group: Map<Guid, PendingGroupState>;
+  group: PendingGroupState;
 }
 export interface AccessStateFilters {
   client: FilterState;

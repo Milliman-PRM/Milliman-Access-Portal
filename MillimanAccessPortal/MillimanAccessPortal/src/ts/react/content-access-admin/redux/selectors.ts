@@ -50,16 +50,17 @@ export function selectionsFormModified(state: AccessState) {
 }
 export function pendingGroupName(state: AccessState, groupId: Guid) {
   const group = state.data.groups.find((g) => g.id === groupId);
-  return state.cardAttributes.group.get(groupId).editing
-       && state.pending.group
-       && state.pending.group.get(groupId).name !== null
-      ? state.pending.group.get(groupId).name
+  return state.pending.group.id === groupId
+      && state.pending.group.name !== null
+      ? state.pending.group.name
       : group.name;
 }
 export function pendingGroupUserAssignments(state: AccessState, groupId: Guid) {
   const group = state.data.groups.find((g) => g.id === groupId);
   const users = [...group.assignedUsers];
-  const pendingUsers = state.pending.group.get(groupId).users || new Map();
+  const pendingUsers = state.pending.group.id === group.id
+    ? state.pending.group.users
+    : new Map();
   for (const userId of pendingUsers.keys()) {
     if (pendingUsers.get(userId).assigned) {
       if (users.find((id) => id === userId) === undefined) {
@@ -237,7 +238,10 @@ export function groupEntities(state: AccessState) {
     assignedUsers: pendingGroupUserAssignments(state, g.id)
       .map((id) => state.data.users.find((u) => u.id === id)),
     name: pendingGroupName(state, g.id),
-    userQuery: state.pending.group.get(g.id).userQuery,
+    editing: state.pending.group.id === g.id,
+    userQuery: state.pending.group
+      ? state.pending.group.userQuery
+      : '',
   }));
 }
 

@@ -89,13 +89,12 @@ const _initialCards = new Map<Guid, CardAttributes>([
   ['group4', {}],
   ['group5', {}],
 ]);
-const _initialPending = new Map<Guid, PendingGroupState>([
-  ['group1', { name: 'group1', userQuery: '', users: null }],
-  ['group2', { name: 'group2', userQuery: '', users: null }],
-  ['group3', { name: 'group3', userQuery: '', users: null }],
-  ['group4', { name: 'group4', userQuery: '', users: null }],
-  ['group5', { name: 'group5', userQuery: '', users: null }],
-]);
+const _initialPendingGroups: PendingGroupState = {
+  id: null,
+  name: null,
+  userQuery: '',
+  users: new Map<Guid, PendingGroupUserState>(),
+};
 
 // utility functions
 interface Handlers<TState, TAction> {
@@ -156,10 +155,6 @@ const groupCardAttributes = createReducer<Map<Guid, CardAttributes>>(_initialCar
       updateAllMap(state, { expanded: true }),
     [AccessAction.SetAllCollapsedGroup]: (state) =>
       updateAllMap(state, { expanded: false }),
-    [AccessAction.SetGroupEditingOn]: (state, action) =>
-      updateMap(state, action.id, { editing: true }),
-    [AccessAction.SetGroupEditingOff]: (state, action) =>
-      updateMap(state, action.id, { editing: false }),
   },
 );
 const pendingIsMaster = createReducer<boolean>(false, {
@@ -174,22 +169,29 @@ const pendingSelections = createReducer<Guid[]>([], {
 const pendingNewGroupName = createReducer<string>('', {
   [AccessAction.SetPendingNewGroupName]: (_, action) => action.name,
 });
-const pendingGroups = createReducer<Map<Guid, PendingGroupState>>(_initialPending, {
-  [AccessAction.SetGroupEditingOff]: (state, action) =>
-    updateMap(state, action.id, { name: null, users: null }),
-  [AccessAction.SetPendingGroupName]: (state, action) =>
-    updateMap(state, action.id, { name: action.name }),
-  [AccessAction.SetPendingGroupUserQuery]: (state, action) =>
-    updateMap(state, action.id, { userQuery: action.query }),
-  [AccessAction.SetPendingGroupUserAssigned]: (state, action) =>
-    updateMap(state, action.groupId, {
-      users: updateMap(state.get(action.groupId).users, action.userId, { assigned: true }),
-      userQuery: '',
-    }),
-  [AccessAction.SetPendingGroupUserRemoved]: (state, action) =>
-    updateMap(state, action.groupId, {
-      users: updateMap(state.get(action.groupId).users, action.userId, { assigned: false }),
-    }),
+const pendingGroups = createReducer<PendingGroupState>(_initialPendingGroups, {
+  [AccessAction.SetGroupEditingOn]: (state, action) => ({
+    ...state,
+    id: action.id,
+  }),
+  [AccessAction.SetGroupEditingOff]: () => _initialPendingGroups,
+  [AccessAction.SetPendingGroupName]: (state, action) => ({
+    ...state,
+    name: action.name,
+  }),
+  [AccessAction.SetPendingGroupUserQuery]: (state, action) => ({
+    ...state,
+    userQuery: action.query,
+  }),
+  [AccessAction.SetPendingGroupUserAssigned]: (state, action) => ({
+    ...state,
+    users: updateMap(state.users, action.id, { assigned: true }),
+    userQuery: '',
+  }),
+  [AccessAction.SetPendingGroupUserRemoved]: (state, action) => ({
+    ...state,
+    users: updateMap(state.users, action.id, { assigned: false }),
+  }),
 });
 
 const data = (state: AccessStateData = _initialData) => state;
