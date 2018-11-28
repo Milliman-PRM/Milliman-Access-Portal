@@ -8,6 +8,7 @@ import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
 import { ContentCard } from './content-card';
 import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
+import { ContentTypeEnum } from '../../view-models/content-publishing';
 
 interface AuthorizedContentState extends ContentItemGroupList, Filterable { }
 export class AuthorizedContent extends React.Component<{}, AuthorizedContentState> {
@@ -20,6 +21,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     this.state = {
       ItemGroups: [],
       selectedContentURL: null,
+      selectedContentType: null,
       filterString: '',
     };
 
@@ -34,7 +36,10 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
         const hashName = location.hash.split('#!/')[1];
         if (hashName !== '' && window.location.hash === '') {
           if (this.state.selectedContentURL) {
-            this.setState({ selectedContentURL: null }, () => {
+            this.setState({
+              selectedContentURL: null,
+              selectedContentType: null
+            }, () => {
               const display = null;
               document.getElementById('page-header').style.display = display;
               document.getElementById('page-footer').style.display = display;
@@ -46,8 +51,11 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     };
   }
 
-  public selectContentItem = (contentURL: string) => {
-    this.setState({ selectedContentURL: contentURL }, () => {
+  public selectContentItem = (contentURL: string, contentType: ContentTypeEnum) => {
+    this.setState({
+      selectedContentURL: contentURL,
+      selectedContentType: contentType
+    }, () => {
       const display = (this.state.selectedContentURL) ? 'none' : null;
       document.getElementById('page-header').style.display = display;
       document.getElementById('page-footer').style.display = display;
@@ -91,6 +99,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
         <ContentContainer
           closeAction={this.selectContentItem}
           contentURL={this.state.selectedContentURL}
+          contentType={this.state.selectedContentType}
         />
       )
       : null;

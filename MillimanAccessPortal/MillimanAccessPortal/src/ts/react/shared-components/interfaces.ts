@@ -1,4 +1,6 @@
-﻿export interface QueryFilter {
+﻿import { ContentTypeEnum } from "../../view-models/content-publishing";
+
+export interface QueryFilter {
   userId?: string;
   clientId?: string;
   profitCenterId?: string;
@@ -23,7 +25,8 @@ export interface NavBarElement {
 
 export interface ContentContainerProps {
   contentURL: string;
-  closeAction: (URL: string) => void;
+  contentType: ContentTypeEnum;
+  closeAction: (URL: string, contentType?: ContentTypeEnum) => void;
 }
 
 export type Guid = string;

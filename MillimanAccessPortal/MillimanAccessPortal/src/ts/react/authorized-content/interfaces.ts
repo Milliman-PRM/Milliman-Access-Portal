@@ -25,8 +25,9 @@ export interface ContentItemGroup {
 export interface ContentItemGroupList {
   ItemGroups: ContentItemGroup[];
   selectedContentURL: string;
+  selectedContentType: ContentTypeEnum;
 }
 
 export interface ContentCardFunctions {
-  selectContent: (URL: string) => void;
+  selectContent: (URL: string, contentType: ContentTypeEnum) => void;
 }

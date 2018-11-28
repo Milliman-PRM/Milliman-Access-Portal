@@ -70,17 +70,17 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
 
   private selectContent(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.ContentURL);
+    this.props.selectContent(this.props.ContentURL, this.props.ContentTypeEnum);
   }
 
   private selectReleaseNotes(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.ReleaseNotesURL);
+    this.props.selectContent(this.props.ReleaseNotesURL, 3);
   }
 
   private selectUserGuide(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.UserguideURL);
+    this.props.selectContent(this.props.UserguideURL, 3);
   }
 
 }
