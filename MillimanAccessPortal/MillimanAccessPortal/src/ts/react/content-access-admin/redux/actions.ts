@@ -1,4 +1,4 @@
-import { Guid } from '../../models';
+import { Guid, Client } from '../../models';
 
 export enum AccessAction {
   SelectClient = 'SELECT_CLIENT',
@@ -24,7 +24,9 @@ export enum AccessAction {
   SetPendingGroupUserQuery = 'SET_PENDING_GROUP_USER_QUERY',
   SetPendingGroupUserAssigned = 'SET_PENDING_GROUP_USER_ASSIGNED',
   SetPendingGroupUserRemoved = 'SET_PENDING_GROUP_USER_REMOVED',
-  FetchClients = 'FETCH_CLIENTS',
+  FetchClientsRequested = 'FETCH_CLIENTS_REQUESTED',
+  FetchClientsSucceeded = 'FETCH_CLIENTS_SUCCEEDED',
+  FetchClientsFailed = 'FETCH_CLIENTS_FAILED',
 }
 
 // ~~ Page actions ~~
@@ -67,4 +69,6 @@ export const setPendingGroupUserRemoved = (id: Guid) => ({ type: AccessAction.Se
 // ~~ Server actions
 
 // Data fetches
-export const fetchClients = () => ({ type: AccessAction.FetchClients });
+export const fetchClients = () => ({ type: AccessAction.FetchClientsRequested });
+export const fetchClientsSucceeded = (clients: Client[]) => ({ type: AccessAction.FetchClientsSucceeded, clients });
+export const fetchClientsFailed = (error: Error) => ({ type: AccessAction.FetchClientsFailed, error });

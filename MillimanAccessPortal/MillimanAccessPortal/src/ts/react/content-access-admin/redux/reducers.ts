@@ -194,7 +194,12 @@ const pendingGroups = createReducer<PendingGroupState>(_initialPendingGroups, {
   }),
 });
 
-const data = (state: AccessStateData = _initialData) => state;
+const data = createReducer<AccessStateData>(_initialData, {
+  [AccessAction.FetchClientsSucceeded]: (state, action) => ({
+    ...state,
+    clients: action.clients,
+  }),
+});
 const selected = createReducer<AccessStateSelected>(
   {
     client: null,
