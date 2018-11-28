@@ -139,7 +139,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                     Host = Context.Request.Host.Host,
                                     Port = Context.Request.Host.Port ?? -1,
                                     Path = "/AuthorizedContent/HtmlPreview",
-                                    Query = $"purpose=mastercontent&publicationRequestId={PubRequest.Id}",
+                                    Query = $"publicationRequestId={PubRequest.Id}",
                                 };
                                 ReturnObj.MasterContentLink = HtmlUri.Uri.AbsoluteUri;
                                 break;
