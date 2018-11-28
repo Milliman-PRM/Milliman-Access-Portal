@@ -1,4 +1,5 @@
-import { createStore } from 'redux';
+import { applyMiddleware, createStore } from 'redux';
+import createSagaMiddleware from 'redux-saga';
 
 import {
   ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, ContentType, Guid,
@@ -7,6 +8,7 @@ import {
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { contentAccessAdmin } from './reducers';
+import sagas from './sagas';
 
 export interface FilterState {
   text: string;
@@ -70,4 +72,9 @@ export interface AccessState {
   modals: AccessStateModals;
 }
 
-export const store = createStore(contentAccessAdmin);
+const sagaMiddleware = createSagaMiddleware();
+export const store = createStore(
+  contentAccessAdmin,
+  applyMiddleware(sagaMiddleware),
+  );
+sagaMiddleware.run(sagas);

@@ -20,6 +20,7 @@
     "react-redux": "^5.1.0",
     "react-select": "^2.1.1",
     "redux": "^4.0.1",
+    "redux-saga": "^0.16.2",
     "resumablejs": "^1.1.0",
     "selectize": "0.12.6",
     "toastr": "2.1.4",

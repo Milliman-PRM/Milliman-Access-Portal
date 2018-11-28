@@ -3,6 +3,7 @@
     "lib": [
       "dom",
       "es2015",
+      "es2015.iterable",
       "es2016",
       "es5",
       "scripthost"

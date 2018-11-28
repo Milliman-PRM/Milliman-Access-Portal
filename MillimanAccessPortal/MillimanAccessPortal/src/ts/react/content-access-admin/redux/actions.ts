@@ -24,7 +24,10 @@ export enum AccessAction {
   SetPendingGroupUserQuery = 'SET_PENDING_GROUP_USER_QUERY',
   SetPendingGroupUserAssigned = 'SET_PENDING_GROUP_USER_ASSIGNED',
   SetPendingGroupUserRemoved = 'SET_PENDING_GROUP_USER_REMOVED',
+  FetchClients = 'FETCH_CLIENTS',
 }
+
+// ~~ Page actions ~~
 
 // Card selection
 export const selectClient = (id: Guid) => ({ type: AccessAction.SelectClient, id });
@@ -60,3 +63,8 @@ export const setPendingGroupName = (name: string) => ({ type: AccessAction.SetPe
 export const setPendingGroupUserQuery = (query: string) => ({ type: AccessAction.SetPendingGroupUserQuery, query });
 export const setPendingGroupUserAssigned = (id: Guid) => ({ type: AccessAction.SetPendingGroupUserAssigned, id });
 export const setPendingGroupUserRemoved = (id: Guid) => ({ type: AccessAction.SetPendingGroupUserRemoved, id });
+
+// ~~ Server actions
+
+// Data fetches
+export const fetchClients = () => ({ type: AccessAction.FetchClients });
