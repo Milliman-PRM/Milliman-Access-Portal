@@ -28,7 +28,7 @@ import { NavBar } from '../shared-components/navbar';
 import * as actions from './redux/actions';
 import {
   activeReductionFieldsets, activeSelectedClient, activeSelectedGroup, activeSelectedItem,
-  allGroupsCollapsed, allGroupsExpanded, clientEntities, groupEntities, itemEntities,
+  addableUsers, allGroupsCollapsed, allGroupsExpanded, clientEntities, groupEntities, itemEntities,
   modifiedReductionValues, pendingMaster, pendingReductionValues, selectedGroupWithStatus,
   selectedItem, selectionsFormModified,
 } from './redux/selectors';
@@ -72,6 +72,7 @@ interface ContentAccessAdminProps {
   modifiedValues: Guid[];
   selectedMaster: boolean;
   formModified: boolean;
+  addableUsers: User[];
 
   allGroupsExpanded: boolean;
   allGroupsCollapsed: boolean;
@@ -224,6 +225,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       filters,
       modals,
       cardAttributes,
+      addableUsers: users,
       allGroupsExpanded: allExpanded,
       allGroupsCollapsed: allCollapsed,
     } = this.props;
@@ -325,7 +327,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                             style={{ width: '100%' }}
                           >
                             <Select
-                              options={[{value: 'user4', label: 'user4'}]}
+                              options={users.map((u) => ({
+                                value: u.id,
+                                label: `${u.firstName} ${u.lastName}`,
+                              }))}
                               onChange={(value, action) => {
                                 if (action.action === 'select-option') {
                                   const singleValue = value as { value: string; label: string; };
@@ -481,7 +486,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
 }
 
 function mapStateToProps(state: AccessState): ContentAccessAdminProps {
-  const { selected, cardAttributes, pending, filters, modals } = state;
+  const { data, selected, cardAttributes, pending, filters, modals } = state;
   return {
     clients: clientEntities(state),
     items: itemEntities(state),
@@ -505,6 +510,7 @@ function mapStateToProps(state: AccessState): ContentAccessAdminProps {
       : [],
     selectedMaster: pendingMaster(state),
     formModified: selectionsFormModified(state),
+    addableUsers: addableUsers(state),
     allGroupsExpanded: allGroupsExpanded(state),
     allGroupsCollapsed: allGroupsCollapsed(state),
   };

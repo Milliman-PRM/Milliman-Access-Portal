@@ -1,4 +1,4 @@
-import { isEqual, xor } from 'lodash';
+import { difference, isEqual, xor } from 'lodash';
 
 import {
   isPublicationActive, isReductionActive, publicationStatusNames, reductionStatusNames,
@@ -270,5 +270,18 @@ export function selectedReductionValues(state: AccessState) {
   return selectedGroup(state)
     ? selectedGroup(state).selectedValues.map((i) =>
       state.data.values.filter((v) => v.id === i)[0])
+    : [];
+}
+
+export function addableUsers(state: AccessState) {
+  const client = selectedClient(state);
+  return client
+    ? difference(
+      client.eligibleUsers,
+      state.data.groups
+        .filter((g) => g.rootContentItemId === state.selected.item)
+        .map((g) => pendingGroupUserAssignments(state, g.id))
+        .reduce((prev, cur) => [...prev, ...cur], []),
+    ).map((id) => state.data.users.find((u) => u.id === id))
     : [];
 }
