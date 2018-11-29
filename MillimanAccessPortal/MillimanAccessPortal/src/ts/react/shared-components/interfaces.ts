@@ -26,7 +26,6 @@ export interface NavBarElement {
 export interface ContentContainerProps {
   contentURL: string;
   contentType: ContentTypeEnum;
-  closeAction: (URL: string, contentType?: ContentTypeEnum, openInNewTab?: boolean) => void;
 }
 
 export type Guid = string;
