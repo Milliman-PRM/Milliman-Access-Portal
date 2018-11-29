@@ -70,6 +70,11 @@ module.exports = {
         context: 'ViewTemplates',
         from: '**/*.cshtml',
         to: '../Views/',
+      },
+      {
+        context: 'ViewTemplates',
+        from: '**/*.html',
+        to: '../Views/',
       }
     ]),
     new webpack.ProvidePlugin({
