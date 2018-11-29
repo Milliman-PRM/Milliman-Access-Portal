@@ -5,6 +5,9 @@
 ### v1.2.0
 
 - Added the ability to delete supporting files from a content item
+- Added the ability to open content and supporting content in a new browser tab
+- Removed the close button in the content view to avoid blocking content
+- Fixed an issue where long content names were not being displayed properly in the content view
 
 ### v1.1.4
 
