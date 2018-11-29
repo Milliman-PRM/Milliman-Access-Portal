@@ -58,6 +58,6 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
 
   private close(event: React.MouseEvent<HTMLElement>) {
     event.preventDefault();
-    this.props.closeAction(null);
+    this.props.closeAction(null, null, false);
   }
 }

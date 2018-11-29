@@ -51,25 +51,29 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     };
   }
 
-  public selectContentItem = (contentURL: string, contentType: ContentTypeEnum) => {
-    this.setState({
-      selectedContentURL: contentURL,
-      selectedContentType: contentType
-    }, () => {
-      const display = (this.state.selectedContentURL) ? 'none' : null;
-      document.getElementById('page-header').style.display = display;
-      document.getElementById('page-footer').style.display = display;
-      document.getElementById('authorized-content-container').style.display = display;
-      if (!contentURL) {
-        // IE doesn't support popstate on URL hashchange so we need to treat it differently here.
-        const isIE = navigator.userAgent.indexOf('MSIE ') > -1 || navigator.userAgent.indexOf('Trident/') > -1;
-        if (!isIE) {
-          history.back();
-        } else {
-          location.reload();
+  public selectContentItem = (contentURL: string, contentType: ContentTypeEnum, openInNewTab: boolean) => {
+    if (openInNewTab) {
+      window.open(contentURL, '_blank', 'status=no,location=no,toolbar=no,menubar=no');
+    } else {
+      this.setState({
+        selectedContentURL: contentURL,
+        selectedContentType: contentType
+      }, () => {
+        const display = (this.state.selectedContentURL) ? 'none' : null;
+        document.getElementById('page-header').style.display = display;
+        document.getElementById('page-footer').style.display = display;
+        document.getElementById('authorized-content-container').style.display = display;
+        if (!contentURL) {
+          // IE doesn't support popstate on URL hashchange so we need to treat it differently here.
+          const isIE = navigator.userAgent.indexOf('MSIE ') > -1 || navigator.userAgent.indexOf('Trident/') > -1;
+          if (!isIE) {
+            history.back();
+          } else {
+            location.reload();
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   public setFilterString(filterString: string) {

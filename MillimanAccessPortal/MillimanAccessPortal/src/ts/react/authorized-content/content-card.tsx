@@ -6,6 +6,7 @@ import * as React from 'react';
 
 import { ActionIcon } from '../shared-components/action-icon';
 import { ContentCardFunctions, ContentItem } from './interfaces';
+import { ContentTypeEnum } from '../../view-models/content-publishing';
 
 require('tooltipster');
 require('tooltipster/src/css/tooltipster.css');
@@ -49,7 +50,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
       : null;
     return (
       <div className="content-card-container">
-        <div className="content-card" onClick={this.selectContent}>
+        <div className="content-card" onMouseDown={this.selectContent}>
           <div className="content-card-header">
             <h2 className="content-card-title">{this.props.Name}</h2>
             <div className="content-card-icons">
@@ -70,17 +71,26 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
 
   private selectContent(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.ContentURL, this.props.ContentTypeEnum);
+    if (event.button == 0 || event.button == 1) {
+      let openInNewTab = (event.button == 1) ? true : false;
+      this.props.selectContent(this.props.ContentURL, this.props.ContentTypeEnum, openInNewTab);
+    }
   }
 
   private selectReleaseNotes(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.ReleaseNotesURL, 3);
+    if (event.button == 0 || event.button == 1) {
+      let openInNewTab = (event.button == 1) ? true : false;
+      this.props.selectContent(this.props.ReleaseNotesURL, ContentTypeEnum.Pdf, openInNewTab);
+    }
   }
 
   private selectUserGuide(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.UserguideURL, 3);
+    if (event.button == 0 || event.button == 1) {
+      let openInNewTab = (event.button == 1) ? true : false;
+      this.props.selectContent(this.props.UserguideURL, ContentTypeEnum.Pdf, openInNewTab);
+    }
   }
 
 }

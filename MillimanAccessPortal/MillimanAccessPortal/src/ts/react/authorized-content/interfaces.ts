@@ -29,5 +29,5 @@ export interface ContentItemGroupList {
 }
 
 export interface ContentCardFunctions {
-  selectContent: (URL: string, contentType: ContentTypeEnum) => void;
+  selectContent: (URL: string, contentType: ContentTypeEnum, openInNewTab?: boolean) => void;
 }

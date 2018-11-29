@@ -17,7 +17,7 @@ export class ActionIcon extends React.Component<ActionIconProps, {}> {
       <div
         className={`action-icon-container${this.props.inline ? '-inline' : ''} tooltip`}
         title={this.props.title}
-        onClick={this.props.action}
+        onMouseDown={this.props.action}
       >
         <svg className="action-icon">
           <use xlinkHref={`#${this.props.icon}`} />
