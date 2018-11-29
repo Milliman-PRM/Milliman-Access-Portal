@@ -6,7 +6,7 @@ import * as React from 'react';
 
 export interface ActionIconProps {
   title: string;
-  action: (event: React.MouseEvent<HTMLElement>) => void;
+  action?: (event: React.MouseEvent<HTMLElement>) => void;
   icon: string;
   inline?: boolean;
 }
@@ -17,7 +17,7 @@ export class ActionIcon extends React.Component<ActionIconProps, {}> {
       <div
         className={`action-icon-container${this.props.inline ? '-inline' : ''} tooltip`}
         title={this.props.title}
-        onMouseDown={this.props.action}
+        onClick={this.props.action}
       >
         <svg className="action-icon">
           <use xlinkHref={`#${this.props.icon}`} />
