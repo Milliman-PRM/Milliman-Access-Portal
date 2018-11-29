@@ -78,7 +78,12 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
               {this.props.Description}
             </p>
           </div>
-          <a href={this.props.ContentURL} target="_blank" className="content-card-link" onClick={this.selectContent}></a>
+          <a
+            href={this.props.ContentURL}
+            target="_blank"
+            className="content-card-link"
+            onClick={this.selectContent}
+          ></a>
         </div>
       </div>
     );
