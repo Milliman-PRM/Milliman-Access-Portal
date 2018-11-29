@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: This API should typically provide relatively thin API methods and invoke methods from the .internal namespace
  */
 
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -122,6 +123,7 @@ namespace QlikviewLib
             if (CalConfig.NamedCALs.AssignedCALs.Any(c => string.Compare(c.UserName, UserName, true) == 0 
                                                        && c.QuarantinedUntil == DateTime.MinValue))
             {
+                Log.Information($"User {UserName} already has an assigned Qlikview named CAL, new license not assigned");
                 return true;
             }
 
@@ -129,17 +131,30 @@ namespace QlikviewLib
             AssignedNamedCAL NewCal = new AssignedNamedCAL { UserName = UserName };
 
             // Decide whether the username qualifies for a named user CAL
-            {
-                List<string> DomainList = ConfigInfo.QvNamedCalDomainList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
-                List<string> UsernameList = ConfigInfo.QvNamedCalUsernameList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
+            List<string> DomainList = ConfigInfo.QvNamedCalDomainList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
+            List<string> UsernameList = ConfigInfo.QvNamedCalUsernameList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
 
-                if (GlobalFunctions.DoesEmailSatisfyClientWhitelists(UserName.Trim(), DomainList, UsernameList))
+            if (GlobalFunctions.DoesEmailSatisfyClientWhitelists(UserName.Trim(), DomainList, UsernameList))
+            {
+                if (CalConfig.NamedCALs.Limit > CalConfig.NamedCALs.AssignedCALs.Length)
                 {
-                    List<AssignedNamedCAL> NamedCalList = CalConfig.NamedCALs.AssignedCALs.ToList();
-                    NamedCalList.Add(NewCal);
-                    CalConfig.NamedCALs.AssignedCALs = NamedCalList.ToArray();
-                    await Client.SaveCALConfigurationAsync(CalConfig);
-                    return true;
+                    try
+                    {
+                        List<AssignedNamedCAL> NamedCalList = CalConfig.NamedCALs.AssignedCALs.ToList();
+                        NamedCalList.Add(NewCal);
+                        CalConfig.NamedCALs.AssignedCALs = NamedCalList.ToArray();
+                        await Client.SaveCALConfigurationAsync(CalConfig);
+                        Log.Information($"Assigned Qlikview named CAL to user {UserName}, there are now {CalConfig.NamedCALs.AssignedCALs.Length} assigned named CALs");
+                        return true;
+                    }
+                    catch (System.Exception e)
+                    {
+                        Log.Error(e, $"Failed to assign Qlikview named CAL to user {UserName}, proceeding to document CAL assignment");
+                    }
+                }
+                else
+                {
+                    Log.Warning($"Unable to assign a Qlikview named CAL, limit of {CalConfig.NamedCALs.Limit} would be exceeded, proceeding to document CAL assignment");
                 }
             }
 
@@ -165,6 +180,7 @@ namespace QlikviewLib
             if (CurrentDocCals.Any(c => string.Compare(c.UserName, UserName, true) == 0
                                      && c.QuarantinedUntil == DateTime.MinValue))
             {
+                Log.Information($"User {UserName} already has an assigned Qlikview document CAL, new license not assigned");
                 return true; // user already has a doc CAL for this file, dont assign another
             }
 
@@ -180,9 +196,11 @@ namespace QlikviewLib
             try
             {
                 await Client.SaveDocumentMetaDataAsync(DocMetadata);
+                Log.Information($"Assigned Qlikview document CAL to user {UserName}");
             }
             catch (System.Exception e)
             {
+                Log.Information(e, $@"Failed to save document CAL for user {UserName}, document {DocumentRelativeFolderPath}\{DocumentFileName}");
                 if (e.Message.Contains("Too many document CALs allocated"))
                 {
                     return false;
