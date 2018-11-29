@@ -130,16 +130,8 @@ namespace QlikviewLib
 
             // Decide whether the username qualifies for a named user CAL
             {
-                List<string> DomainList = ConfigInfo.QvNamedCalDomainList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                for (int Index= 0; Index < DomainList.Count; Index++)
-                {
-                    DomainList[Index] = DomainList[Index].Trim();
-                }
-                List<string> UsernameList = ConfigInfo.QvNamedCalUsernameList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                for (int Index = 0; Index < UsernameList.Count; Index++)
-                {
-                    UsernameList[Index] = UsernameList[Index].Trim();
-                }
+                List<string> DomainList = ConfigInfo.QvNamedCalDomainList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
+                List<string> UsernameList = ConfigInfo.QvNamedCalUsernameList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
 
                 if (GlobalFunctions.DoesEmailSatisfyClientWhitelists(UserName.Trim(), DomainList, UsernameList))
                 {

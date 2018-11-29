@@ -150,7 +150,7 @@ namespace MapCommonLib
             }
         };
         /// <summary>
-        /// All argument values should be completely trimmed of any leading or trailing whitespace
+        /// All argument values are trimmed by the value comparer so need not be trimmed before calling
         /// </summary>
         /// <param name="email"></param>
         /// <param name="domains"></param>
