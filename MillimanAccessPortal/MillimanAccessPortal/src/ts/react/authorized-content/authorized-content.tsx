@@ -53,7 +53,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
 
   public selectContentItem = (contentURL: string, contentType: ContentTypeEnum, openInNewTab: boolean) => {
     if (openInNewTab) {
-      window.open(contentURL, '_blank', 'status=no,location=no,toolbar=no,menubar=no');
+      window.open(contentURL);
     } else {
       this.setState({
         selectedContentURL: contentURL,
