@@ -4,9 +4,9 @@ import '../../../scss/react/authorized-content/content-card.scss';
 
 import * as React from 'react';
 
+import { ContentTypeEnum } from '../../view-models/content-publishing';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ContentCardFunctions, ContentItem } from './interfaces';
-import { ContentTypeEnum } from '../../view-models/content-publishing';
 
 require('tooltipster');
 require('tooltipster/src/css/tooltipster.css');
@@ -39,7 +39,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
           onClick={this.selectReleaseNotes}
         >
           <ActionIcon
-            action={() => { return false; }}
+            action={() => false}
             title="View Release Notes"
             icon="release-notes"
           />
@@ -55,7 +55,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
           onClick={this.selectUserGuide}
         >
           <ActionIcon
-            action={() => { return false; }}
+            action={() => false}
             title="View Userguide"
             icon="userguide"
           />
@@ -83,7 +83,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
             target="_blank"
             className="content-card-link"
             onClick={this.selectContent}
-          ></a>
+          />
         </div>
       </div>
     );

@@ -1,13 +1,12 @@
 ﻿import '../../../scss/react/shared-components/content-container.scss';
-
 import 'tooltipster';
 import 'tooltipster/src/css/tooltipster.css';
 import '../../../images/cancel.svg';
 
 import * as React from 'react';
 
-import { ContentContainerProps } from './interfaces';
 import { ContentTypeEnum } from '../../view-models/content-publishing';
+import { ContentContainerProps } from './interfaces';
 
 export class ContentContainer extends React.Component<ContentContainerProps, {}> {
 
@@ -34,12 +33,15 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
         break;
       default:
         sandboxValues = '';
-
     }
+
+    const frame = this.props.contentType === ContentTypeEnum.Pdf
+      ? <object data={this.props.contentURL} type="application/pdf" />
+      : <iframe src={this.props.contentURL} sandbox={sandboxValues} />;
 
     return (
       <div id="iframe-container">
-        <iframe id="content-iframe" {...(sandboxValues !== null) ? { sandbox: sandboxValues } : {}} src={this.props.contentURL}></iframe>
+        {frame}
       </div>
     );
   }

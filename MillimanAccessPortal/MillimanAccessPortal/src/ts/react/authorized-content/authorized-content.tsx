@@ -3,12 +3,12 @@
 import * as React from 'react';
 
 import { getData } from '../../shared';
+import { ContentTypeEnum } from '../../view-models/content-publishing';
 import { ContentContainer } from '../shared-components/content-container';
 import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
 import { ContentCard } from './content-card';
 import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
-import { ContentTypeEnum } from '../../view-models/content-publishing';
 
 interface AuthorizedContentState extends ContentItemGroupList, Filterable { }
 export class AuthorizedContent extends React.Component<{}, AuthorizedContentState> {
@@ -38,7 +38,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
           if (this.state.selectedContentURL) {
             this.setState({
               selectedContentURL: null,
-              selectedContentType: null
+              selectedContentType: null,
             }, () => {
               const display = null;
               document.getElementById('page-header').style.display = display;
@@ -54,7 +54,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   public selectContentItem = (contentURL: string, contentType: ContentTypeEnum) => {
     this.setState({
       selectedContentURL: contentURL,
-      selectedContentType: contentType
+      selectedContentType: contentType,
     }, () => {
       const display = (this.state.selectedContentURL) ? 'none' : null;
       document.getElementById('page-header').style.display = display;
