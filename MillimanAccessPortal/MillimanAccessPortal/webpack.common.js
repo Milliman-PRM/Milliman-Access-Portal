@@ -67,7 +67,7 @@ module.exports = {
         flatten: true,
       },
       {
-        from: 'src/Error/502.html',
+        from: 'src/html/Error/502.html',
         to: 'Error/502.html',
       },
       {
