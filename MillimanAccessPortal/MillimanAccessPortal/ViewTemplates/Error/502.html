@@ -6,15 +6,24 @@
         <style>
             body {
                 background-color: #dfe8e8;
-                margin: 4em;
+                font-family: Helvetica Neue,sans-serif;
+                margin: 0;
+                min-height: 100vh;
+                min-width: 100vw;
+            }
+            #message-container {
+                position: fixed;
+                top: 50%;
+                width: 100%;
+                transform: translate(0, -50%);
                 display: flex;
                 flex-flow: column nowrap;
                 align-items: center;
-                font-family: Helvetica Neue,sans-serif;
             }
             h1, p {
                 color: #2b2b2b;
                 align-self: center;
+                text-align: center;
             }
             a {
                 color: #0095ff;
@@ -28,6 +37,7 @@
                 display: flex;
                 flex-flow: row nowrap;
                 align-items: flex-end;
+                margin-bottom: 1em;
             }
 
             #outerSquare {
@@ -97,23 +107,25 @@
         </style>
     </head>
     <body>
-        <div id="millimanImg">
-            <div id="outerSquare">
-                <div class="top-row">
-                    <div id="smallSquareOuter">
-                        <div id="smallSquare"></div>
+        <div id="message-container">
+            <div id="millimanImg">
+                <div id="outerSquare">
+                    <div class="top-row">
+                        <div id="smallSquareOuter">
+                            <div id="smallSquare"></div>
+                        </div>
+                        <div id="triangle"></div>
                     </div>
-                    <div id="triangle"></div>
+                    <div class="middle-row">
+                        <div id="innerSquare"></div>
+                        <div id="triangle"></div>
+                    </div>
                 </div>
-                <div class="middle-row">
-                    <div id="innerSquare"></div>
-                    <div id="triangle"></div>
-                </div>
+                <div id="smallBlueSquare"></div>
             </div>
-            <div id="smallBlueSquare"></div>
+            <h1>Oops... something went wrong.</h1>
+            <p>Try refreshing the page or trying the action again</p>
+            <p>We automatically track these errors, but if the issue persists, please contact <a href="mailto:map.support@milliman.com">map.support@milliman.com</a></p>
         </div>
-        <h1>Oops... something went wrong.</h1>
-        <p>Try refreshing the page or trying the action again</p>
-        <p>We automatically track these errors, but if the issue persists, please contact <a href="mailto:map.support@milliman.com">map.support@milliman.com</a></p>
     </body>
 </html>
