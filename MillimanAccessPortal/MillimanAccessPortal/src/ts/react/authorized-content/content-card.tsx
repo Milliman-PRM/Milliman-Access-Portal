@@ -32,7 +32,12 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
     );
     const releaseNotes = this.props.ReleaseNotesURL
       ? (
-        <a href={this.props.ReleaseNotesURL} target="_blank" className="action-icon-link" onClick={this.selectReleaseNotes}>
+        <a
+          href={this.props.ReleaseNotesURL}
+          target="_blank"
+          className="action-icon-link"
+          onClick={this.selectReleaseNotes}
+        >
           <ActionIcon
             action={() => { return false; }}
             title="View Release Notes"
@@ -43,7 +48,12 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
       : null;
     const userGuide = this.props.UserguideURL
       ? (
-        <a href={this.props.UserguideURL} target="_blank" className="action-icon-link" onClick={this.selectUserGuide}>
+        <a
+          href={this.props.UserguideURL}
+          target="_blank"
+          className="action-icon-link"
+          onClick={this.selectUserGuide}
+        >
           <ActionIcon
             action={() => { return false; }}
             title="View Userguide"
