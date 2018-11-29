@@ -67,15 +67,14 @@ module.exports = {
         flatten: true,
       },
       {
+        from: 'ViewTemplates/Error/502.html',
+        to: 'Error/502.html',
+      },
+      {
         context: 'ViewTemplates',
         from: '**/*.cshtml',
         to: '../Views/',
       },
-      {
-        context: 'ViewTemplates',
-        from: '**/*.html',
-        to: '../Views/',
-      }
     ]),
     new webpack.ProvidePlugin({
       $: 'jquery',
