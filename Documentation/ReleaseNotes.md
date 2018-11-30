@@ -5,6 +5,7 @@
 ### v1.2.0
 
 - Added the ability to delete supporting files from a content item
+- Removed status polling for hidden pages
 
 ### v1.1.4
 
