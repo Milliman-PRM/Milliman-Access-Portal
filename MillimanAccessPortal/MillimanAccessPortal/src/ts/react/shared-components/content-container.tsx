@@ -13,8 +13,6 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
 
   public constructor(props) {
     super(props);
-
-    this.close = this.close.bind(this);
   }
 
   public componentDidMount() {
@@ -23,7 +21,7 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
 
   public render() {
     let sandboxValues;
-    
+
     switch (this.props.contentType) {
       case ContentTypeEnum.Pdf:
         sandboxValues = null;
@@ -38,26 +36,11 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
         sandboxValues = '';
 
     }
-        
+
     return (
       <div id="iframe-container">
-        <div
-          id="close-content-container"
-          className="tooltip"
-          title="Close"
-          onClick={this.close}
-        >
-          <svg>
-            <use xlinkHref="#cancel" />
-          </svg>
-        </div>
-        <iframe id="content-iframe" {...(sandboxValues !== null) ? {sandbox: sandboxValues} : {}} src={this.props.contentURL}></iframe>
+        <iframe id="content-iframe" {...(sandboxValues !== null) ? { sandbox: sandboxValues } : {}} src={this.props.contentURL}></iframe>
       </div>
     );
-  }
-
-  private close(event: React.MouseEvent<HTMLElement>) {
-    event.preventDefault();
-    this.props.closeAction(null);
   }
 }

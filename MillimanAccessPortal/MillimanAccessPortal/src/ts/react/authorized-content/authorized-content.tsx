@@ -97,7 +97,6 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     const contentContainer = this.state.selectedContentURL
       ? (
         <ContentContainer
-          closeAction={this.selectContentItem}
           contentURL={this.state.selectedContentURL}
           contentType={this.state.selectedContentType}
         />

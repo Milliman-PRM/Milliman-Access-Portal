@@ -11,25 +11,4 @@
         overflow: auto;
         border: none;
     }
-
-    #close-content-container {
-        position: absolute;
-        top: 2em;
-        right: 2em;
-        height: 1.5em;
-        width: 1.5em;
-        color: $red;
-        cursor: pointer;
-        opacity: .2;
-        z-index: 1001;
-
-        &:hover {
-            opacity: 1;
-        }
-
-        svg {
-            height: 100%;
-            width: 100%;
-        }
-    }
 }

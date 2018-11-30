@@ -6,6 +6,7 @@ import * as React from 'react';
 
 import { ActionIcon } from '../shared-components/action-icon';
 import { ContentCardFunctions, ContentItem } from './interfaces';
+import { ContentTypeEnum } from '../../view-models/content-publishing';
 
 require('tooltipster');
 require('tooltipster/src/css/tooltipster.css');
@@ -31,25 +32,39 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
     );
     const releaseNotes = this.props.ReleaseNotesURL
       ? (
-        <ActionIcon
-          action={this.selectReleaseNotes}
-          title="View Release Notes"
-          icon="release-notes"
-        />
+        <a
+          href={this.props.ReleaseNotesURL}
+          target="_blank"
+          className="action-icon-link"
+          onClick={this.selectReleaseNotes}
+        >
+          <ActionIcon
+            action={() => { return false; }}
+            title="View Release Notes"
+            icon="release-notes"
+          />
+        </a>
       )
       : null;
     const userGuide = this.props.UserguideURL
       ? (
-        <ActionIcon
-          action={this.selectUserGuide}
-          title="View Userguide"
-          icon="userguide"
-        />
+        <a
+          href={this.props.UserguideURL}
+          target="_blank"
+          className="action-icon-link"
+          onClick={this.selectUserGuide}
+        >
+          <ActionIcon
+            action={() => { return false; }}
+            title="View Userguide"
+            icon="userguide"
+          />
+        </a>
       )
       : null;
     return (
       <div className="content-card-container">
-        <div className="content-card" onClick={this.selectContent}>
+        <div className="content-card">
           <div className="content-card-header">
             <h2 className="content-card-title">{this.props.Name}</h2>
             <div className="content-card-icons">
@@ -63,6 +78,12 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
               {this.props.Description}
             </p>
           </div>
+          <a
+            href={this.props.ContentURL}
+            target="_blank"
+            className="content-card-link"
+            onClick={this.selectContent}
+          ></a>
         </div>
       </div>
     );
@@ -70,17 +91,19 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
 
   private selectContent(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
+    event.preventDefault();
     this.props.selectContent(this.props.ContentURL, this.props.ContentTypeEnum);
   }
 
   private selectReleaseNotes(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.ReleaseNotesURL, 3);
+    event.preventDefault();
+    this.props.selectContent(this.props.ReleaseNotesURL, ContentTypeEnum.Pdf);
   }
 
   private selectUserGuide(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.UserguideURL, 3);
+    event.preventDefault();
+    this.props.selectContent(this.props.UserguideURL, ContentTypeEnum.Pdf);
   }
-
 }
