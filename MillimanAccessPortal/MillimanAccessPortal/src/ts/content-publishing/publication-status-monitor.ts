@@ -6,7 +6,7 @@ export class PublicationStatusMonitor {
   private readonly monitor: StatusMonitor<RootContentItemStatus>;
 
   private readonly url: string = 'ContentPublishing/Status';
-  private readonly interval: number = 20000;
+  private readonly interval: number = 5000;
 
   constructor() {
     this.monitor = new StatusMonitor<RootContentItemStatus>(

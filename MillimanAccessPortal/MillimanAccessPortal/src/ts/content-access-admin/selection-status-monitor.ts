@@ -6,7 +6,7 @@ export class SelectionStatusMonitor {
   private readonly monitor: StatusMonitor<ContentAccessStatus>;
 
   private readonly url: string = 'ContentAccessAdmin/Status';
-  private readonly interval: number = 20000;
+  private readonly interval: number = 5000;
 
   constructor() {
     this.monitor = new StatusMonitor<ContentAccessStatus>(
