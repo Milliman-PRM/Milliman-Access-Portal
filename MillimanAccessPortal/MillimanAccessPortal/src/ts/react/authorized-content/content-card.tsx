@@ -62,6 +62,21 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         </a>
       )
       : null;
+    const contentLink = (this.props.ContentTypeEnum === ContentTypeEnum.FileDownload)
+      ? (
+        <a
+          href={this.props.ContentURL}
+          download
+          className="content-card-link"
+        />
+      ) : (
+        <a
+          href={this.props.ContentURL}
+          target="_blank"
+          className="content-card-link"
+          onClick={this.selectContent}
+        />
+        )
     return (
       <div className="content-card-container">
         <div className="content-card">
@@ -78,12 +93,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
               {this.props.Description}
             </p>
           </div>
-          <a
-            href={this.props.ContentURL}
-            target="_blank"
-            className="content-card-link"
-            onClick={this.selectContent}
-          />
+          {contentLink}
         </div>
       </div>
     );
