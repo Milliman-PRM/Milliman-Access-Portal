@@ -485,7 +485,7 @@ namespace MillimanAccessPortal.Controllers
             if (PubRequest == null)
             {
                 string Msg = $"Failed to obtain the requested publication request";
-                Log.Error($"In AuthorizedContentController.PdfPreview action: user {Msg}, aborting");
+                Log.Error($"In AuthorizedContentController.HtmlPreview action: user {Msg}, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -494,7 +494,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.PdfPreview action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                Log.Verbose($"In AuthorizedContentController.HtmlPreview action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
@@ -520,6 +520,64 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Error(e, $"In AuthorizedContentController.HtmlPreview action: exception while returning PhysicalFile for publication request {PubRequest.Id}, aborting");
                 Response.Headers.Add("Warning", "Failed to load requested master HTML file for preview");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Handles a request to a preview of a download link
+        /// </summary>
+        /// <param name="publicationRequestId"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> FileDownloadPreview(Guid publicationRequestId)
+        {
+            Log.Verbose($"Entered AuthorizedContentController.FileDownloadPreview action: user {User.Identity.Name}, "
+                      + $"publicationRequestId {publicationRequestId}");
+
+            var PubRequest = DataContext.ContentPublicationRequest
+                                        .FirstOrDefault(r => r.Id == publicationRequestId);
+
+            #region Validation
+            if (PubRequest == null)
+            {
+                string Msg = $"Failed to obtain the requested publication request";
+                Log.Error($"In AuthorizedContentController.FileDownloadPreview action: user {Msg}, aborting");
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
+                User, null, new RoleInRootContentItemRequirement(
+                    RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
+            if (!Result1.Succeeded)
+            {
+                Log.Verbose($"In AuthorizedContentController.FileDownloadPreview action: authorization failed "
+                          + $"for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, "
+                          + $"role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            try
+            {
+                var contentFile = PubRequest.LiveReadyFilesObj
+                    .Single(f => f.FilePurpose.ToLower() == "mastercontent");
+
+                Log.Verbose($"In AuthorizedContentController.FileDownloadPreview action: success, "
+                          + $"returning file {contentFile.FullPath}");
+
+                return PhysicalFile(contentFile.FullPath, "application/octet-stream", contentFile.FileOriginalName);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "In AuthorizedContentController.FileDownloadPreview action: "
+                           + "exception while returning PhysicalFile "
+                          + $"for publication request {PubRequest.Id}, aborting");
+                Response.Headers.Add("Warning", "Failed to load requested master file download for preview");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

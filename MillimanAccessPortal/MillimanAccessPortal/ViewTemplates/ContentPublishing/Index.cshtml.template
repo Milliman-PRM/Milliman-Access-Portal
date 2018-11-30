@@ -279,7 +279,7 @@
                 <iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" src="about:blank"></iframe>
             </div>
             <div class="content-preview-download">
-                <a target="_blank">Click to download</a>
+                <a>Click to download</a>
             </div>
             <div class="content-preview-none" style="display: none;">
                 <p>This file has not changed.</p>
