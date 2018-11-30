@@ -8,6 +8,7 @@
 - Added the ability to open content and supporting content in a new browser tab
 - Removed the close button in the content view to avoid blocking content
 - Fixed an issue where long content names were not being displayed properly in the content view
+- Removed status polling for hidden pages
 
 ### v1.1.4
 

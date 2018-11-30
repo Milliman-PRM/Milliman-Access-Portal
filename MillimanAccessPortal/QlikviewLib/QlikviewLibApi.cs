@@ -4,11 +4,13 @@
  * DEVELOPER NOTES: This API should typically provide relatively thin API methods and invoke methods from the .internal namespace
  */
 
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using Microsoft.AspNetCore.Http;
 using QlikviewLib.Internal;
@@ -91,6 +93,13 @@ namespace QlikviewLib
             return QvServerUri;
         }
 
+        /// <summary>
+        /// Assigns a Qlikview named user CAL or document CAL as appropriate, if none is already assigned
+        /// </summary>
+        /// <param name="DocumentFilePathRelativeToStorageContentRoot"></param>
+        /// <param name="UserName"></param>
+        /// <param name="ConfigInfo"></param>
+        /// <returns>true if user has a CAL for the document, false otherwise</returns>
         public async Task<bool> AssignDocumentUserLicense(string DocumentFilePathRelativeToStorageContentRoot, string UserName, QlikviewConfig ConfigInfo)
         {
             if (string.IsNullOrWhiteSpace(DocumentFilePathRelativeToStorageContentRoot))
@@ -114,7 +123,39 @@ namespace QlikviewLib
             if (CalConfig.NamedCALs.AssignedCALs.Any(c => string.Compare(c.UserName, UserName, true) == 0 
                                                        && c.QuarantinedUntil == DateTime.MinValue))
             {
+                Log.Information($"User {UserName} already has an assigned Qlikview named CAL, new license not assigned");
                 return true;
+            }
+
+            // Define new CAL, will be added as named cal or doc cal
+            AssignedNamedCAL NewCal = new AssignedNamedCAL { UserName = UserName };
+
+            // Decide whether the username qualifies for a named user CAL
+            List<string> DomainList = ConfigInfo.QvNamedCalDomainList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
+            List<string> UsernameList = ConfigInfo.QvNamedCalUsernameList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
+
+            if (GlobalFunctions.DoesEmailSatisfyClientWhitelists(UserName.Trim(), DomainList, UsernameList))
+            {
+                if (CalConfig.NamedCALs.Limit > CalConfig.NamedCALs.AssignedCALs.Length)
+                {
+                    try
+                    {
+                        List<AssignedNamedCAL> NamedCalList = CalConfig.NamedCALs.AssignedCALs.ToList();
+                        NamedCalList.Add(NewCal);
+                        CalConfig.NamedCALs.AssignedCALs = NamedCalList.ToArray();
+                        await Client.SaveCALConfigurationAsync(CalConfig);
+                        Log.Information($"Assigned Qlikview named CAL to user {UserName}, there are now {CalConfig.NamedCALs.AssignedCALs.Length} assigned named CALs");
+                        return true;
+                    }
+                    catch (System.Exception e)
+                    {
+                        Log.Error(e, $"Failed to assign Qlikview named CAL to user {UserName}, proceeding to document CAL assignment");
+                    }
+                }
+                else
+                {
+                    Log.Warning($"Unable to assign a Qlikview named CAL, limit of {CalConfig.NamedCALs.Limit} would be exceeded, proceeding to document CAL assignment");
+                }
             }
 
             DocumentNode RequestedDocNode = null;
@@ -139,6 +180,7 @@ namespace QlikviewLib
             if (CurrentDocCals.Any(c => string.Compare(c.UserName, UserName, true) == 0
                                      && c.QuarantinedUntil == DateTime.MinValue))
             {
+                Log.Information($"User {UserName} already has an assigned Qlikview document CAL, new license not assigned");
                 return true; // user already has a doc CAL for this file, dont assign another
             }
 
@@ -147,23 +189,18 @@ namespace QlikviewLib
                 DocMetadata.Licensing.CALsAllocated = CurrentDocCals.Count + 1;
             }
 
-            AssignedNamedCAL NewDocCal = new AssignedNamedCAL
-            {
-                UserName = UserName,
-                LastUsed = DateTime.Now,
-                QuarantinedUntil = DateTime.Now.AddDays(1),
-                MachineID = "",
-            };
-            CurrentDocCals.Add(NewDocCal);
+            CurrentDocCals.Add(NewCal);
 
             DocMetadata.Licensing.AssignedCALs = CurrentDocCals.ToArray();
 
             try
             {
                 await Client.SaveDocumentMetaDataAsync(DocMetadata);
+                Log.Information($"Assigned Qlikview document CAL to user {UserName}");
             }
             catch (System.Exception e)
             {
+                Log.Information(e, $@"Failed to save document CAL for user {UserName}, document {DocumentRelativeFolderPath}\{DocumentFileName}");
                 if (e.Message.Contains("Too many document CALs allocated"))
                 {
                     return false;
