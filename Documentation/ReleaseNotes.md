@@ -6,6 +6,10 @@
 
 - Added the ability to delete supporting files from a content item
 
+### v1.1.5
+
+- Fixed an error during republished content go-live, where a hierarchy field value being removed exists in more than one live hierarchy field
+
 ### v1.1.4
 
 - Fixed an issue preventing nonreducing content from going live
