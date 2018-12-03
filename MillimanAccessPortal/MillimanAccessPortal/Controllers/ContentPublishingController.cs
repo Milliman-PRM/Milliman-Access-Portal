@@ -401,25 +401,29 @@ namespace MillimanAccessPortal.Controllers
                     }
                     break;
 
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.FileDownload:
                 default:
+                    // no content specific action
                     break;
             }
 
+            string ContentFolderPath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], rootContentItem.Id.ToString());
             try
             {
-                string ContentFolderPath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], rootContentItem.Id.ToString());
                 Directory.Delete(ContentFolderPath, true);
             }
             catch (DirectoryNotFoundException)
             {
                 // The root content item doesn't have any publications, this is fine so continue
             }
-            catch
+            catch (Exception e)
             {
                 if (! (new StackTrace()).GetFrames().Any(f => f.GetMethod().DeclaringType.Namespace == "MapTests"))
                 {
                     Log.Debug($"In ContentPublishingController.DeleteRootContentItem action: error while deleting folder for content {rootContentItem.Id}, aborting");
-                    throw;  // maybe this does not have to be done
+                    throw new ApplicationException($"Failed to delete content folder {ContentFolderPath}", e);
                 }
             }
 

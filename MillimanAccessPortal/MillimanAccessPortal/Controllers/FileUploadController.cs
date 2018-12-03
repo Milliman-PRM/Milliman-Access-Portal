@@ -31,7 +31,6 @@ using Serilog;
 using System;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -275,7 +274,8 @@ namespace MillimanAccessPortal.Controllers
 
         public static Encoding GetEncoding(MultipartSection section)
         {
-            var hasMediaTypeHeader = MediaTypeHeaderValue.TryParse(section.ContentType, out MediaTypeHeaderValue mediaType);
+            var hasMediaTypeHeader = MediaTypeHeaderValue
+                .TryParse(section.ContentType, out MediaTypeHeaderValue mediaType);
             // Use UTF-8 instead of UTF-7 if it is requested
             if (!hasMediaTypeHeader || Encoding.UTF7.Equals(mediaType.Encoding))
             {

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using MapDbContextLib.Models;
 using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using QlikviewLib;
@@ -116,6 +118,42 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
                                 UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, Context.User.Identity.Name, ContentTypeConfig, Context.Request);
                                 ReturnObj.MasterContentLink = QvwUri.Uri.AbsoluteUri;
+                                break;
+
+                            case ContentTypeEnum.Pdf:
+                                UriBuilder pdfUrlBuilder = new UriBuilder
+                                {
+                                    Host = Context.Request.Host.Host,
+                                    Scheme = Context.Request.Scheme,
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = "/AuthorizedContent/PdfPreview",
+                                    Query = $"purpose=mastercontent&publicationRequestId={PubRequest.Id}",
+                                };
+                                ReturnObj.MasterContentLink = pdfUrlBuilder.Uri.AbsoluteUri;
+                                break;
+
+                            case ContentTypeEnum.Html:
+                                UriBuilder HtmlUri = new UriBuilder
+                                {
+                                    Scheme = Context.Request.Scheme,
+                                    Host = Context.Request.Host.Host,
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = "/AuthorizedContent/HtmlPreview",
+                                    Query = $"publicationRequestId={PubRequest.Id}",
+                                };
+                                ReturnObj.MasterContentLink = HtmlUri.Uri.AbsoluteUri;
+                                break;
+
+                            case ContentTypeEnum.FileDownload:
+                                UriBuilder FileDownloadUri = new UriBuilder
+                                {
+                                    Scheme = Context.Request.Scheme,
+                                    Host = Context.Request.Host.Host,
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = "/AuthorizedContent/FileDownloadPreview",
+                                    Query = $"publicationRequestId={PubRequest.Id}",
+                                };
+                                ReturnObj.MasterContentLink = FileDownloadUri.Uri.AbsoluteUri;
                                 break;
 
                             default:

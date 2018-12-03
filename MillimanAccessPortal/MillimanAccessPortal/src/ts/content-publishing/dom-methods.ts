@@ -7,6 +7,7 @@ import * as toastr from 'toastr';
 import { AddRootContentItemActionCard, ClientCard, RootContentItemCard } from '../card';
 import { CancelContentPublicationRequestDialog, DeleteRootContentItemDialog } from '../dialog';
 import { FormBase } from '../form/form-base';
+import { isFileUploadInput } from '../form/form-input/file-upload';
 import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import { Guid } from '../react/shared-components/interfaces';
@@ -16,6 +17,7 @@ import {
   updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
 import { setUnloadAlert } from '../unload-alerts';
+import { UploadComponent } from '../upload/upload';
 import {
   BasicNode, ClientSummary, ClientTree, ContentType, PreLiveContentValidationSummary,
   PublishRequest, RootContentItemDetail, RootContentItemList, RootContentItemSummary,
@@ -187,6 +189,7 @@ function addToDocumentCount(clientId: Guid, offset: number) {
 
 function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   // Show and clear all confirmation checkboxes
+  $('#report-confirmation .admin-panel-content-container')[0].scrollTop = 0;
   $('#report-confirmation label')
     .show()
     .find('input[type="checkbox"]')
@@ -196,22 +199,48 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     .addClass('disabled')
     .tooltipster('content', goLiveDisabledTooltip);
   // set src for iframes, conditionally marking iframes as unchanged
-  const linkPairs: Array<{sectionName: string, link: string}> = [
-    { sectionName: 'master-content', link: response.MasterContentLink },
+  const linkPairs: Array<{sectionName: string, link: string, node?: string}> = [
+    {
+      sectionName: 'master-content',
+      link: response.MasterContentLink,
+      node: response.ContentTypeName === 'FileDownload'
+        ? '.content-preview-download'
+        : response.ContentTypeName === 'Html'
+          ? '.content-preview-sandbox'
+          : '.content-preview',
+    },
     { sectionName: 'user-guide', link: response.UserGuideLink },
     { sectionName: 'release-notes', link: response.ReleaseNotesLink },
   ];
   linkPairs.forEach((pair) => {
-    $(`#confirmation-section-${pair.sectionName} iframe`)
-      .removeAttr('srcdoc')
-      .attr('src', pair.link)
-      .siblings('a')
-      .attr('href', pair.link)
-      .filter(() => pair.link === null)
+    $(`#confirmation-section-${pair.sectionName} div`)
+      .filter(pair.node || '.content-preview')
+      .find('a,iframe,object')
+      .attr('src', function() {
+        return $(this).is('iframe')
+          ? pair.link
+          : null;
+      })
+      .attr('data', function() {
+        return $(this).is('object')
+          ? pair.link
+          : null;
+      })
+      .attr('href', function() {
+        return $(this).is('a')
+          ? pair.link
+          : null;
+      })
+      .parent()
+      .show()
+      .siblings('div')
       .hide()
-      .siblings('iframe')
-      .removeAttr('src')
-      .attr('srcdoc', 'This file has not changed.')
+      .filter(() => pair.link === null)
+      .filter('.content-preview-none')
+      .show()
+      .siblings('div')
+      .hide()
+      .find('iframe,object')
       .closest('.confirmation-section').find('label')
       .hide()
       .find('input')
@@ -426,6 +455,17 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       },
     ],
   );
+  const $contentTypeDropdown = $('#ContentTypeId');
+  const contentType = $contentTypeDropdown
+    .find(`option[value="${$contentTypeDropdown.val()}"]`)
+    .data() as ContentType;
+  formObject.inputSections.forEach((section) =>
+    section.inputs.forEach((input) => {
+      if (contentType && isFileUploadInput(input)) {
+        input.fileTypes.set(UploadComponent.Content, contentType.FileExtensions);
+        input.configure();
+      }
+    }));
 
   $rootContentItemForm
     .removeData('validator')
@@ -538,7 +578,6 @@ function populateAvailableContentTypes(contentTypes: ContentType[]) {
   });
 
   $contentTypeDropdown.val(0);
-  // $contentTypeDropdown.change(); // trigger change event
 }
 
 export function setup() {
@@ -548,12 +587,19 @@ export function setup() {
     const contentType = $contentTypeDropdown
       .find(`option[value="${$contentTypeDropdown.val()}"]`)
       .data() as ContentType;
-    if (!contentType.CanReduce) {
+    if (contentType && !contentType.CanReduce) {
       $doesReduceToggle.attr('disabled', '');
       $doesReduceToggle.prop('checked', false);
     } else {
       $doesReduceToggle.removeAttr('disabled');
     }
+    formObject.inputSections.forEach((section) =>
+      section.inputs.forEach((input) => {
+        if (contentType && isFileUploadInput(input)) {
+          input.fileTypes.set(UploadComponent.Content, contentType.FileExtensions);
+          input.configure();
+        }
+      }));
   });
 
   $('.action-icon-expand').click(expandAllListener);
@@ -669,12 +715,12 @@ export function setup() {
   $('.tooltip').tooltipster();
 
   get(
-    'ContentPublishing/AvailableContentTypes',
-    [ populateAvailableContentTypes ],
-  )();
-  get(
     'ContentPublishing/Clients',
     [ renderClientTree ],
+  )();
+  get(
+    'ContentPublishing/AvailableContentTypes',
+    [ populateAvailableContentTypes ],
   )();
 
   statusMonitor = new PublicationStatusMonitor();
