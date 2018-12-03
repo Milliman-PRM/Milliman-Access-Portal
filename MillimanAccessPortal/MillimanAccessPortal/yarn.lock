@@ -4675,7 +4675,7 @@ jquery-mask-plugin@1.14.15:
   resolved "https://registry.yarnpkg.com/jquery-mask-plugin/-/jquery-mask-plugin-1.14.15.tgz#9daabb41024383cba2a793bacfa46ef8f87273a5"
   integrity sha512-/mI1N5WG9E7JmjFWIQBIMuG/4QlZDAXuoNjHoqVWZSMah+go5hp/xKI/xC0Jud9Ly4HqqhFxY4AXLTUZT+J7Hg==
 
-jquery-validation-unobtrusive@3.2.11:
+jquery-validation-unobtrusive@^3.2.11:
   version "3.2.11"
   resolved "https://registry.yarnpkg.com/jquery-validation-unobtrusive/-/jquery-validation-unobtrusive-3.2.11.tgz#175ee46380385a0e33ed320f255fad321f68f9f5"
   integrity sha512-3FQPllaWdD+Aq55zJLGSW39+eXPDz1HhwAvrSwYi8zHQ8DVcu5IJ1HVeTiCl0BnCnrIBvfFU3zEB/DrGdcoRIQ==
@@ -4683,10 +4683,10 @@ jquery-validation-unobtrusive@3.2.11:
     jquery ">=1.8"
     jquery-validation ">=1.16"
 
-jquery-validation@1.18.0, jquery-validation@>=1.16:
-  version "1.18.0"
-  resolved "https://registry.yarnpkg.com/jquery-validation/-/jquery-validation-1.18.0.tgz#69898f6cddc3e8ef5811de84ff8b23fc24d93776"
-  integrity sha512-+MK0pvoegfLrJnwtCU6tx305Vgp9HWevpmdVwDf5TthmINkn0wqqLD0bpa75EERlHsBBjMmza//ppx5ZQPnW3Q==
+jquery-validation@<1.18, jquery-validation@>=1.16:
+  version "1.17.0"
+  resolved "https://registry.yarnpkg.com/jquery-validation/-/jquery-validation-1.17.0.tgz#ab66b6b583d7740b9bbd148993e50e8ac041f35b"
+  integrity sha512-XddiAwhGdWhcIJ+W3ri3KG8uTPMua4TPYuUIC8/E7lOyqdScG5xHuy9YishlKc0c/lIQai77EX7hxMdTSYCEjA==
   dependencies:
     jquery "^1.7 || ^2.0 || ^3.1"
 
