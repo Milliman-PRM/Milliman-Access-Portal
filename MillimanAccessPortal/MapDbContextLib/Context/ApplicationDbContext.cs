@@ -100,6 +100,7 @@ namespace MapDbContextLib.Context
             builder.Entity<ContentType>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.Property(x => x.FileExtensions).HasDefaultValueSql("'{}'");
             });
             builder.Entity<ProfitCenter>(b =>
             {

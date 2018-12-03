@@ -1,4 +1,5 @@
 ﻿import { Guid } from '../shared-components/interfaces';
+import { ContentTypeEnum } from '../../view-models/content-publishing';
 
 export interface Filterable {
   filterString: string;
@@ -8,6 +9,7 @@ export interface ContentItem {
   Id: Guid;
   Name: string;
   Description: string;
+  ContentTypeEnum: ContentTypeEnum;
   ContentURL: string;
   ImageURL?: string;
   UserguideURL?: string;
@@ -23,8 +25,9 @@ export interface ContentItemGroup {
 export interface ContentItemGroupList {
   ItemGroups: ContentItemGroup[];
   selectedContentURL: string;
+  selectedContentType: ContentTypeEnum;
 }
 
 export interface ContentCardFunctions {
-  selectContent: (URL: string) => void;
+  selectContent: (URL: string, contentType: ContentTypeEnum) => void;
 }

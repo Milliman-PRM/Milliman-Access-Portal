@@ -176,7 +176,9 @@ export class FormBase extends FormElement {
   }
 
   public serialize(sectionNames: string[]): string {
+    const disabled = this.$entryPoint.find('[disabled]').removeAttr('disabled');
     const allInputs = this.$entryPoint.serializeArray();
+    disabled.attr('disabled', '');
     const filteredInputs = (() => {
       return sectionNames
         ? allInputs.filter((input) =>

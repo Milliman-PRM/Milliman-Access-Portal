@@ -185,8 +185,11 @@ namespace MillimanAccessPortal
                     await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(reductionTask.SelectionGroup.RootContentItemId.ToString(), QvConfig);
                     break;
 
-                case ContentTypeEnum.Unknown:
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.FileDownload:
                 default:
+                    // Should never get here for non-reducible content
                     break;
             }
 

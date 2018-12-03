@@ -5,7 +5,14 @@
 ### v1.2.0
 
 - Added the ability to delete supporting files from a content item
+- Added the ability to open content and supporting content in a new browser tab
+- Removed the close button in the content view to avoid blocking content
+- Fixed an issue where long content names were not being displayed properly in the content view
 - Removed status polling for hidden pages
+
+### v1.1.5
+
+- Fixed an error during republished content go-live, where a hierarchy field value being removed exists in more than one live hierarchy field
 
 ### v1.1.4
 

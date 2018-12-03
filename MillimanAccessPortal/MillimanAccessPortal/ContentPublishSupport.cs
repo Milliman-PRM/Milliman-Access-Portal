@@ -85,6 +85,7 @@ namespace MillimanAccessPortal
 
                 Thread.Sleep(1000);
             }
+            // Validation of all uploads is complete
 
             Guid ThisRequestGuid = Guid.NewGuid();
 
@@ -105,13 +106,18 @@ namespace MillimanAccessPortal
                 switch (rootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.Qlikview:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.FileDownload:
+                        // Only one mastercontent file is supported with this content type
                         if (files.Select(f => f.FilePurpose).Count(p => p.ToLower() == "mastercontent") > 1)
                         {
-                            throw new ApplicationException("Qlikview publication request cannot contain multiple MasterContent files");
+                            throw new ApplicationException("This publication request cannot contain multiple MasterContent files");
                         }
 
                         foreach (UploadedRelatedFile UploadedFileRef in files)
                         {
+                            // move uploaded file(s) to content folder with temporary name(s)
                             ContentRelatedFile Crf = HandleRelatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath, rootContentItem.ContentType.TypeEnum);
 
                             if (Crf != null)
@@ -142,12 +148,22 @@ namespace MillimanAccessPortal
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    // PublicationRequest was set to canceled, no extra cleanup needed
+                    // PublicationRequest was likely set to canceled, no extra cleanup needed
                     return;
                 }
             }
         }
 
+        /// <summary>
+        /// Copies an uploaded file to the proper content item folder and purges the file from uploads
+        /// </summary>
+        /// <param name="Db"></param>
+        /// <param name="RelatedFile"></param>
+        /// <param name="ContentItem"></param>
+        /// <param name="PubRequestId"></param>
+        /// <param name="contentItemRootPath"></param>
+        /// <param name="contentType"></param>
+        /// <returns></returns>
         private static ContentRelatedFile HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath, ContentTypeEnum contentType)
         {
             ContentRelatedFile ReturnObj = null;
@@ -179,6 +195,9 @@ namespace MillimanAccessPortal
                 switch (contentType)
                 {  // This is where any dependence on ContentType would be incorporated to override base behavior
                     case ContentTypeEnum.Qlikview:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.FileDownload:
                         break;
                     default:
                         break;
@@ -187,7 +206,7 @@ namespace MillimanAccessPortal
 
                 // Create the root content folder if it does not already exist
                 Directory.CreateDirectory(RootContentFolder);
-                System.IO.File.Copy(FileUploadRecord.StoragePath, DestinationFullPath, true);
+                File.Copy(FileUploadRecord.StoragePath, DestinationFullPath, true);
 
                 ReturnObj = new ContentRelatedFile
                 {
@@ -199,7 +218,7 @@ namespace MillimanAccessPortal
 
                 // Remove FileUpload record(s) for this file path
                 List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == FileUploadRecord.StoragePath).ToList();
-                System.IO.File.Delete(FileUploadRecord.StoragePath);  // delete the file
+                File.Delete(FileUploadRecord.StoragePath);  // delete the file
                 Db.FileUpload.RemoveRange(Uploads);  // remove the record
 
                 Db.SaveChanges();
@@ -209,6 +228,14 @@ namespace MillimanAccessPortal
             return ReturnObj;
         }
 
+        /// <summary>
+        /// Copies a master content file to the FileExchange share
+        /// </summary>
+        /// <param name="FileDetails"></param>
+        /// <param name="RequestGuid"></param>
+        /// <param name="DoesReduce"></param>
+        /// <param name="exchangePath"></param>
+        /// <returns></returns>
         private static ContentRelatedFile ProcessMasterContentFile(ContentRelatedFile FileDetails, Guid RequestGuid, bool DoesReduce, string exchangePath)
         {
             if (DoesReduce)
@@ -216,7 +243,7 @@ namespace MillimanAccessPortal
                 string MapPublishingServerExchangeRequestFolder = Path.Combine(exchangePath, RequestGuid.ToString("D"));
                 Directory.CreateDirectory(MapPublishingServerExchangeRequestFolder);
                 string DestinationFullPath = Path.Combine(MapPublishingServerExchangeRequestFolder, Path.GetFileName(FileDetails.FullPath));
-                System.IO.File.Copy(FileDetails.FullPath, DestinationFullPath, true);
+                File.Copy(FileDetails.FullPath, DestinationFullPath, true);
 
                 return new ContentRelatedFile
                 {
