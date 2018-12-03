@@ -273,7 +273,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // 3. The user's email must match address or domain requirement of the client
-            if (!Queries.DoesEmailSatisfyClientWhitelists(Model.Email, RequestedClient.AcceptedEmailDomainList, RequestedClient.AcceptedEmailAddressExceptionList))
+            if (!GlobalFunctions.DoesEmailSatisfyClientWhitelists(Model.Email, RequestedClient.AcceptedEmailDomainList, RequestedClient.AcceptedEmailAddressExceptionList))
             {
                 Log.Verbose($"In ClientAdminController.SaveNewUser action: Validation failed, requested new user email {Model.Email} not permitted for this client");
                 Response.Headers.Add("Warning", $"The requested user email ({Model.Email}) is not permitted for the requested client.");
@@ -811,7 +811,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion Validation
 
             // Make sure current user is allowed by email or domain whitelist
-            if (!Queries.DoesEmailSatisfyClientWhitelists(CurrentApplicationUser.Email, Model.AcceptedEmailDomainList, Model.AcceptedEmailAddressExceptionList))
+            if (!GlobalFunctions.DoesEmailSatisfyClientWhitelists(CurrentApplicationUser.Email, Model.AcceptedEmailDomainList, Model.AcceptedEmailAddressExceptionList))
             {
                 Model.AcceptedEmailAddressExceptionList = Model.AcceptedEmailAddressExceptionList.Append(CurrentApplicationUser.Email).ToArray();
                 Log.Verbose($"In ClientAdminController.SaveNewClient action: automatically added current user {CurrentApplicationUser.UserName} to email exception list of new client");
@@ -1016,7 +1016,7 @@ namespace MillimanAccessPortal.Controllers
                     IQueryable<ApplicationUser> AllClientMemberUsers = DbContext.ApplicationUser.Where(u => AllClientMemberUserIds.Contains(u.Id));
                     foreach (ApplicationUser ClientMemberUser in AllClientMemberUsers)
                     {
-                        if (!Queries.DoesEmailSatisfyClientWhitelists(ClientMemberUser.Email, Model.AcceptedEmailDomainList, Model.AcceptedEmailAddressExceptionList))
+                        if (!GlobalFunctions.DoesEmailSatisfyClientWhitelists(ClientMemberUser.Email, Model.AcceptedEmailDomainList, Model.AcceptedEmailAddressExceptionList))
                         {
                             // Make sure RemoveUserFromClient() doesn't start using a transaction iternally
                             IActionResult result = await RemoveUserFromClient(new ClientUserAssociationViewModel { UserId = ClientMemberUser.Id, ClientId = Model.Id });

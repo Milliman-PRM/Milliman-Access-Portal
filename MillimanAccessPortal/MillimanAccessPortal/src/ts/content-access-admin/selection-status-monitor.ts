@@ -13,6 +13,7 @@ export class SelectionStatusMonitor {
       this.url,
       statusCallback,
       this.interval,
+      true,
     );
   }
 

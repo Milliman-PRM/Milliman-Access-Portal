@@ -375,10 +375,9 @@ namespace MapTests
             try
             {
                 // Test that a content view was returned
-                Assert.IsType<FileStreamResult>(result);
-                FileStreamResult fileResult = result as FileStreamResult;
-                Assert.Equal(UserGuideTestPath, ((System.IO.FileStream)fileResult.FileStream).Name);
-                fileResult.FileStream.Close();
+                Assert.IsType<PhysicalFileResult>(result);
+                PhysicalFileResult fileResult = result as PhysicalFileResult;
+                Assert.Equal(UserGuideTestPath, fileResult.FileName);
             }
             finally
             {

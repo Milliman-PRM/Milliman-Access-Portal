@@ -13,6 +13,7 @@ export class PublicationStatusMonitor {
       this.url,
       statusCallback,
       this.interval,
+      true,
     );
   }
 

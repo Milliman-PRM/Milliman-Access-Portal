@@ -215,9 +215,14 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   linkPairs.forEach((pair) => {
     $(`#confirmation-section-${pair.sectionName} div`)
       .filter(pair.node || '.content-preview')
-      .find('a,iframe')
+      .find('a,iframe,object')
       .attr('src', function() {
         return $(this).is('iframe')
+          ? pair.link
+          : null;
+      })
+      .attr('data', function() {
+        return $(this).is('object')
           ? pair.link
           : null;
       })
@@ -235,7 +240,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       .show()
       .siblings('div')
       .hide()
-      .find('iframe')
+      .find('iframe,object')
       .closest('.confirmation-section').find('label')
       .hide()
       .find('input')

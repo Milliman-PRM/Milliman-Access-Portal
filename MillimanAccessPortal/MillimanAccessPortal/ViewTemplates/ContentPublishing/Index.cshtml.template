@@ -273,13 +273,13 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-master-content">
             <h4>Master Content</h4>
             <div class="content-preview">
-                <iframe src="about:blank"></iframe>
+                <object data="about:blank" type="application/pdf"></object>
             </div>
             <div class="content-preview-sandbox">
                 <iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" src="about:blank"></iframe>
             </div>
             <div class="content-preview-download">
-                <a target="_blank">Click to download</a>
+                <a download>Click to download</a>
             </div>
             <div class="content-preview-none" style="display: none;">
                 <p>This file has not changed.</p>
@@ -293,7 +293,7 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-user-guide">
             <h4>User Guide</h4>
             <div class="content-preview">
-                <iframe src="about:blank"></iframe>
+                <object data="about:blank" type="application/pdf"></object>
             </div>
             <div class="content-preview-none" style="display: none;">
                 <p>This file has not changed.</p>
@@ -307,7 +307,7 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-release-notes">
             <h4>Release Notes</h4>
             <div class="content-preview">
-                <iframe src="about:blank"></iframe>
+                <object data="about:blank" type="application/pdf"></object>
             </div>
             <div class="content-preview-none" style="display: none;">
                 <p>This file has not changed.</p>

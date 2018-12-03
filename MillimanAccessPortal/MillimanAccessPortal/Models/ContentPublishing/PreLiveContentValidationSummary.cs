@@ -139,13 +139,21 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                     Host = Context.Request.Host.Host,
                                     Port = Context.Request.Host.Port ?? -1,
                                     Path = "/AuthorizedContent/HtmlPreview",
-                                    Query = $"purpose=mastercontent&publicationRequestId={PubRequest.Id}",
+                                    Query = $"publicationRequestId={PubRequest.Id}",
                                 };
                                 ReturnObj.MasterContentLink = HtmlUri.Uri.AbsoluteUri;
                                 break;
 
                             case ContentTypeEnum.FileDownload:
-                                // for preview, probably need to delivery html with a button that downloads the content file
+                                UriBuilder FileDownloadUri = new UriBuilder
+                                {
+                                    Scheme = Context.Request.Scheme,
+                                    Host = Context.Request.Host.Host,
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = "/AuthorizedContent/FileDownloadPreview",
+                                    Query = $"publicationRequestId={PubRequest.Id}",
+                                };
+                                ReturnObj.MasterContentLink = FileDownloadUri.Uri.AbsoluteUri;
                                 break;
 
                             default:

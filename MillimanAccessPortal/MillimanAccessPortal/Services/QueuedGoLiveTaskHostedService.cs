@@ -374,7 +374,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 {
                     HierarchyFieldValue ObsoleteRecord = dbContext.HierarchyFieldValue
                         .Single(v =>
-                            v.HierarchyField.RootContentItemId == publicationRequest.RootContentItemId
+                            v.HierarchyFieldId == MatchingLiveField.Id
                             && v.Value == RemovedValue);
                     dbContext.HierarchyFieldValue.Remove(ObsoleteRecord);
                 }

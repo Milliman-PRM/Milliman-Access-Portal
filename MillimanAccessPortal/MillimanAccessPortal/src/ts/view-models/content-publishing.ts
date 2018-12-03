@@ -85,9 +85,17 @@ export interface RootContentItemList {
   SelectedRootContentItemId: Guid;
 }
 
+export enum ContentTypeEnum {
+  Unknown = 0,
+  Qlikview = 1,
+  Html = 2,
+  Pdf = 3,
+  FileDownload = 4,
+}
+
 export interface ContentType {
   Id: Guid;
-  TypeEnum: number;
+  TypeEnum: ContentTypeEnum;
   Name: string;
   CanReduce: boolean;
   FileExtensions: string[];

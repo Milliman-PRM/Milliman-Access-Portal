@@ -103,7 +103,6 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
-        [Authorize]
         public async Task<IActionResult> WebHostedContent(Guid selectionGroupId)
         {
             Log.Verbose($"Entered AuthorizedContentController.WebHostedContent action: user {User.Identity.Name}, selectionGroupId {selectionGroupId}");
@@ -224,7 +223,6 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
-        [Authorize]
         public IActionResult Thumbnail(Guid selectionGroupId)
         {
             Log.Verbose($"Entered AuthorizedContentController.Thumbnail action: user {User.Identity.Name}, selectionGroupId {selectionGroupId}");
@@ -253,14 +251,14 @@ namespace MillimanAccessPortal.Controllers
                     switch (Path.GetExtension(contentRelatedThumbnail.FullPath).ToLower())
                     {
                         case ".png":
-                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/png");
+                            return PhysicalFile(contentRelatedThumbnail.FullPath, "image/png");
 
                         case ".gif":
-                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/gif");
+                            return PhysicalFile(contentRelatedThumbnail.FullPath, "image/gif");
 
                         case ".jpg":
                         case ".jpeg":
-                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/jpeg");
+                            return PhysicalFile(contentRelatedThumbnail.FullPath, "image/jpeg");
 
                         default:
                             Log.Error($"In AuthorizedContentController.Thumbnail action: unsupported file extension <{contentRelatedThumbnail.FullPath}> encountered, aborting");
@@ -288,7 +286,6 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         /// <param name="publicationRequestId">The primary key value of the ContentPublicationRequest associated with this request</param>
         /// <returns>A View (and model) that displays the requested content</returns>
-        [Authorize]
         public IActionResult ThumbnailPreview(Guid publicationRequestId)
         {
             Log.Verbose($"Entered AuthorizedContentController.ThumbnailPreview action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}");
@@ -316,14 +313,14 @@ namespace MillimanAccessPortal.Controllers
                     switch (Path.GetExtension(contentRelatedThumbnail.FullPath).ToLower())
                     {
                         case ".png":
-                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/png");
+                            return PhysicalFile(contentRelatedThumbnail.FullPath, "image/png");
 
                         case ".gif":
-                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/gif");
+                            return PhysicalFile(contentRelatedThumbnail.FullPath, "image/gif");
 
                         case ".jpg":
                         case ".jpeg":
-                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/jpeg");
+                            return PhysicalFile(contentRelatedThumbnail.FullPath, "image/jpeg");
 
                         default:
                             Log.Error($"In AuthorizedContentController.ThumbnailPreview action: unsupported file extension <{contentRelatedThumbnail.FullPath}> encountered, aborting");
@@ -346,7 +343,12 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
-        [Authorize]
+        /// <summary>
+        /// Loads a live PDF file related to main content (e.g. user guide, release notes)
+        /// </summary>
+        /// <param name="purpose"></param>
+        /// <param name="selectionGroupId"></param>
+        /// <returns></returns>
         public async Task<IActionResult> RelatedPdf(string purpose, Guid selectionGroupId)
         {
             Log.Verbose($"Entered AuthorizedContentController.RelatedPdf action: user {User.Identity.Name}, purpose {purpose}, selectionGroupId {selectionGroupId}");
@@ -378,13 +380,12 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
 
-            #region File verification
-
             ContentRelatedFile contentRelatedPdf = selectionGroup.RootContentItem.ContentFilesList.Single(cf => cf.FilePurpose.ToLower() == purpose.ToLower());
 
+            #region File verification
             if (!contentRelatedPdf.ValidateChecksum())
             {
-                
+
                 var ErrMsg = new List<string>
                 {
                     $"The system could not validate the checksum of {purpose} PDF file for selection group {selectionGroup.GroupName}.",
@@ -402,9 +403,8 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                FileStream fileStream = System.IO.File.OpenRead(contentRelatedPdf.FullPath);
                 Log.Verbose($"In AuthorizedContentController.RelatedPdf action: success, returning file {contentRelatedPdf.FullPath}");
-                return File(fileStream, "application/pdf");
+                return PhysicalFile(contentRelatedPdf.FullPath, "application/pdf");
             }
             catch
             {
@@ -415,21 +415,22 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
-        [Authorize]
+        /// <summary>
+        /// Handles a request to display a preview of a PDF content or related file
+        /// </summary>
+        /// <param name="publicationRequestId"></param>
+        /// <returns></returns>
         public async Task<IActionResult> PdfPreview(string purpose, Guid publicationRequestId)
         {
             Log.Verbose($"Entered AuthorizedContentController.PdfPreview action: user {User.Identity.Name}, purpose {purpose}, publicationRequestId {publicationRequestId}");
 
-            purpose = purpose?.ToLower();
-
             var PubRequest = DataContext.ContentPublicationRequest
-                                        .Include(r => r.RootContentItem)
                                         .FirstOrDefault(r => r.Id == publicationRequestId);
 
             #region Validation
-            if (PubRequest == null || PubRequest.RootContentItem == null)
+            if (PubRequest == null)
             {
-                string Msg = $"Failed to obtain the requested publication request or related content item";
+                string Msg = $"Failed to obtain the requested publication request";
                 Log.Error($"In AuthorizedContentController.PdfPreview action: user {Msg}, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
@@ -449,41 +450,51 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                string FullFilePath = Path.Combine(
-                    ApplicationConfig["Storage:ContentItemRootPath"], 
-                    PubRequest.RootContentItemId.ToString(), 
-                    PubRequest.LiveReadyFilesObj.Single(f => f.FilePurpose.ToLower() == purpose).FullPath
-                );
-                FileStream fileStream = System.IO.File.OpenRead(FullFilePath);
+                string FullFilePath = PubRequest.LiveReadyFilesObj.Single(f => f.FilePurpose.ToLower() == purpose).FullPath;
+                if (System.IO.Path.GetExtension(FullFilePath).ToLower() != ".pdf")
+                {
+                    Log.Error($"In AuthorizedContentController.PdfPreview action: Error, requested PDF file {FullFilePath} has unexpected extension, aborting");
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
 
                 Log.Verbose($"In AuthorizedContentController.PdfPreview action: success, returning file {FullFilePath}");
 
-                return File(fileStream, "application/pdf");
+                return PhysicalFile(FullFilePath, "application/pdf");
             }
             catch (Exception e)
             {
-                string ErrMsg = $"Failed to load requested PDF for RootContentItem {PubRequest.RootContentItemId}";
-                Log.Error(e, $"In AuthorizedContentController.PdfPreview action: exception while returning file for RootContentItem {PubRequest.RootContentItemId}, aborting");
-                Response.Headers.Add("Warning", ErrMsg);
+                Log.Error(e, $"In AuthorizedContentController.PdfPreview action: exception while returning PhysicalFile for publication request {PubRequest.Id}, aborting");
+                Response.Headers.Add("Warning", "Failed to load requested master PDF file for preview");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
-        public async Task<IActionResult> HtmlPreview(string purpose, Guid publicationRequestId)
+        /// <summary>
+        /// Handles a request to display a preview of a master HTML content file
+        /// </summary>
+        /// <param name="publicationRequestId"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> HtmlPreview(Guid publicationRequestId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.HtmlPreview action: user {User.Identity.Name}, purpose {purpose}, publicationRequestId {publicationRequestId}");
-
-            purpose = purpose?.ToLower();
+            Log.Verbose($"Entered AuthorizedContentController.HtmlPreview action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}");
 
             var PubRequest = DataContext.ContentPublicationRequest
-                                        .Include(r => r.RootContentItem)
                                         .FirstOrDefault(r => r.Id == publicationRequestId);
+
+            #region Validation
+            if (PubRequest == null)
+            {
+                string Msg = $"Failed to obtain the requested publication request";
+                Log.Error($"In AuthorizedContentController.HtmlPreview action: user {Msg}, aborting");
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            #endregion
 
             #region Authorization
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.PdfPreview action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                Log.Verbose($"In AuthorizedContentController.HtmlPreview action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
@@ -491,9 +502,84 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var masterContentRelatedFile = PubRequest.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
+            try
+            {
+                string FullFilePath = PubRequest.LiveReadyFilesObj.Single(f => f.FilePurpose.ToLower() == "mastercontent").FullPath;
 
-            return File(masterContentRelatedFile.FullPath, "text/html");
+                if (!System.IO.Path.GetExtension(FullFilePath).ToLower().Contains(".htm"))  // could be htm or html
+                {
+                    Log.Error($"In AuthorizedContentController.HtmlPreview action: Error, requested HTML file {FullFilePath} has unexpected extension, aborting");
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+
+                Log.Verbose($"In AuthorizedContentController.HtmlPreview action: success, returning file {FullFilePath}");
+
+                return PhysicalFile(FullFilePath, "text/html");
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"In AuthorizedContentController.HtmlPreview action: exception while returning PhysicalFile for publication request {PubRequest.Id}, aborting");
+                Response.Headers.Add("Warning", "Failed to load requested master HTML file for preview");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Handles a request to a preview of a download link
+        /// </summary>
+        /// <param name="publicationRequestId"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> FileDownloadPreview(Guid publicationRequestId)
+        {
+            Log.Verbose($"Entered AuthorizedContentController.FileDownloadPreview action: user {User.Identity.Name}, "
+                      + $"publicationRequestId {publicationRequestId}");
+
+            var PubRequest = DataContext.ContentPublicationRequest
+                                        .FirstOrDefault(r => r.Id == publicationRequestId);
+
+            #region Validation
+            if (PubRequest == null)
+            {
+                string Msg = $"Failed to obtain the requested publication request";
+                Log.Error($"In AuthorizedContentController.FileDownloadPreview action: user {Msg}, aborting");
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
+                User, null, new RoleInRootContentItemRequirement(
+                    RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
+            if (!Result1.Succeeded)
+            {
+                Log.Verbose($"In AuthorizedContentController.FileDownloadPreview action: authorization failed "
+                          + $"for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, "
+                          + $"role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            try
+            {
+                var contentFile = PubRequest.LiveReadyFilesObj
+                    .Single(f => f.FilePurpose.ToLower() == "mastercontent");
+
+                Log.Verbose($"In AuthorizedContentController.FileDownloadPreview action: success, "
+                          + $"returning file {contentFile.FullPath}");
+
+                return PhysicalFile(contentFile.FullPath, "application/octet-stream", contentFile.FileOriginalName);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "In AuthorizedContentController.FileDownloadPreview action: "
+                           + "exception while returning PhysicalFile "
+                          + $"for publication request {PubRequest.Id}, aborting");
+                Response.Headers.Add("Warning", "Failed to load requested master file download for preview");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
     }
 }
