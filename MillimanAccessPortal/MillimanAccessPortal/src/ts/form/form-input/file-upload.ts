@@ -117,8 +117,10 @@ export class FileUploadInput extends FormInput {
       if (this.cancelable) {
         this.upload.cancel();
         this.$entryPoint.find('div.progress-bar-3').width('0');
-        $('#ContentTypeId').removeAttr('disabled');
         this.reset();
+        if (this.component === 'MasterContent') {
+          $('#ContentTypeId').removeAttr('disabled');
+        }
       } else {
         this.value = `${this.originalName}~delete`;
         this.$entryPoint.find('input.file-upload').val('[Delete pending]');
@@ -160,7 +162,8 @@ export class FileUploadInput extends FormInput {
   protected validFn = () => {
     const uploadValid = (this.upload && this.upload.valid());
     const deleteValid = this.value.endsWith('delete') || undefined;
-    return uploadValid || deleteValid;
+    // return undefined only if there is no upload object and the input is not deletable
+    return deleteValid || uploadValid;
   }
 
   public get component(): UploadComponent {
