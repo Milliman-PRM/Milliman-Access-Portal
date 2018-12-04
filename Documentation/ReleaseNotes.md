@@ -4,8 +4,11 @@
 
 ### v1.2.0
 
-- Added the ability to delete supporting files from a content item
-- Added the ability to open content and supporting content in a new browser tab
+- Added support for PDF content type
+- Added support for HTML content type
+- Added support for downloadable file content type
+- Added the ability to delete previously published supporting files (e.g. release notes, etc.) from a content item
+- Added the ability to open content and related files (e.g. user guide) in a new browser tab
 - Removed the close button in the content view to avoid blocking content
 - Fixed an issue where long content names were not being displayed properly in the content view
 - Removed status polling for hidden pages
