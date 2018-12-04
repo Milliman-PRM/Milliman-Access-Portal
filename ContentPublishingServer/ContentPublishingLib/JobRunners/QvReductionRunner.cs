@@ -154,6 +154,7 @@ namespace ContentPublishingLib.JobRunners
                     }
 
                     JobDetail.Status = ReductionJobDetail.JobStatusEnum.Success;
+                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.Success;
                 }
             }
             catch (OperationCanceledException e)
@@ -366,6 +367,7 @@ namespace ContentPublishingLib.JobRunners
                     ExceptionMessage = e.Message,
                 };
                 AuditLog.Log(AuditEventType.HierarchyExtractionFailed.ToEvent(DetailObj));
+                throw;
             }
             finally
             {
@@ -427,7 +429,7 @@ namespace ContentPublishingLib.JobRunners
                 AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
                 GlobalFunctions.TraceWriteLine(Msg);
 
-                JobDetail.StatusReason = ReductionJobDetail.JobErrorReason.NoSelectedFieldValues;
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueMatchesNewContent;
 
                 throw new ApplicationException(Msg);
             }

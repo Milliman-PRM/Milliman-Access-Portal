@@ -36,9 +36,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                     .OrderByDescending(r => r.CreateDateTimeUtc)
                     .FirstOrDefault();
                 var summary = publicationRequest.ToSummaryWithQueueInformation(dbContext);
-                if (!string.IsNullOrWhiteSpace(publicationRequest.RequestMetadata))
+                if (!string.IsNullOrWhiteSpace(publicationRequest.OutcomeMetadata))
                 {
-                    if (publicationRequest.RequestMetadataObj.ErrorReason == RequestErrorReason.ReductionTaskError)
+                    if (publicationRequest.OutcomeMetadataObj.ErrorReason == PublicationRequestErrorReason.ReductionTaskError)
                     {
                         var reductionTaskCount = dbContext.ContentReductionTask
                             .Where(rt => rt.ContentPublicationRequestId == publicationRequest.Id)

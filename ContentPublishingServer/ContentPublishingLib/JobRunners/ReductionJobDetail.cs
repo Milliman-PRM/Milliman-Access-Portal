@@ -36,10 +36,11 @@ namespace ContentPublishingLib.JobRunners
             Error,
         }
 
-        public enum JobErrorReason
+        public enum JobOutcomeReason
         {
             Unspecified,
-            NoSelectedFieldValues,
+            Success,
+            NoSelectedFieldValueMatchesNewContent,
         }
 
 
@@ -47,7 +48,6 @@ namespace ContentPublishingLib.JobRunners
         public ReductionJobResult Result;
         public Guid TaskId { get; set; } = Guid.Empty;
         public JobStatusEnum Status { get; set; } = JobStatusEnum.Unspecified;
-        public JobErrorReason StatusReason { get; set; } = JobErrorReason.Unspecified;
 
         // cast operator to convert a MAP ContentReductionTask to this type
         public static explicit operator ReductionJobDetail(ContentReductionTask DbTask)
@@ -87,6 +87,7 @@ namespace ContentPublishingLib.JobRunners
             public ExtractedHierarchy MasterContentHierarchy { get; set; } = null;
             public ExtractedHierarchy ReducedContentHierarchy { get; set; } = null;
             public string ReducedContentFileChecksum { get; set; } = string.Empty;
+            public JobOutcomeReason OutcomeReason { get; set; } = JobOutcomeReason.Unspecified;
         }
 
         public class ReductionJobRequest

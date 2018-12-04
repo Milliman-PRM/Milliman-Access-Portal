@@ -37,7 +37,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                     .OrderByDescending(r => r.CreateDateTimeUtc)
                     .FirstOrDefault();
                 var summary = reductionTask.ToSummaryWithQueueInformation(dbContext);
-                if (!string.IsNullOrWhiteSpace(reductionTask.TaskMetadata))
+                if (!string.IsNullOrWhiteSpace(reductionTask.OutcomeMetadata))
                 {
                     // No special messages for reduction tasks for now
                     summary.StatusMessage = string.Empty;

@@ -127,7 +127,7 @@ namespace MapDbContextLib.Context
         /// Intended to be serialization of type RequestMetadata
         /// </summary>
         [Column(TypeName = "jsonb")]
-        public string RequestMetadata { get; set; } = "{}";
+        public string OutcomeMetadata { get; set; } = "{}";
 
         /// <summary>
         /// Identifies files associated with work of the publishing server (input and output)
@@ -192,17 +192,17 @@ namespace MapDbContextLib.Context
         /// Identifies metadata about a publication request
         /// </summary>
         [NotMapped]
-        public RequestMetadata RequestMetadataObj
+        public PublicationRequestOutcomeMetadata OutcomeMetadataObj
         {
             get
             {
-                return string.IsNullOrWhiteSpace(RequestMetadata)
-                    ? new RequestMetadata { }
-                    : JsonConvert.DeserializeObject<RequestMetadata>(RequestMetadata);
+                return string.IsNullOrWhiteSpace(OutcomeMetadata)
+                    ? new PublicationRequestOutcomeMetadata { }
+                    : JsonConvert.DeserializeObject<PublicationRequestOutcomeMetadata>(OutcomeMetadata);
             }
             set
             {
-                RequestMetadata = value != null
+                OutcomeMetadata = value != null
                     ? JsonConvert.SerializeObject(value)
                     : "{}";
             }

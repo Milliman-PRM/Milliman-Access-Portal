@@ -279,14 +279,14 @@ namespace ContentPublishingLib.JobMonitors
                             break;
                         case PublishJobDetail.JobStatusEnum.Error:
                             DbRequest.RequestStatus = PublicationStatus.Error;
-                            RequestErrorReason reason = RequestErrorReason.Default;
+                            PublicationRequestErrorReason reason = PublicationRequestErrorReason.Default;
                             switch(JobDetail.StatusReason)
                             {
                                 case PublishJobDetail.JobErrorReason.ReductionTaskErrors:
-                                    reason = RequestErrorReason.ReductionTaskError;
+                                    reason = PublicationRequestErrorReason.ReductionTaskError;
                                     break;
                             }
-                            DbRequest.RequestMetadataObj = new RequestMetadata
+                            DbRequest.OutcomeMetadataObj = new PublicationRequestOutcomeMetadata
                             {
                                 ErrorReason = reason,
                             };

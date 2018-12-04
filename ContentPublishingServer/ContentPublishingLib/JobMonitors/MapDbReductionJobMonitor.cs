@@ -266,16 +266,16 @@ namespace ContentPublishingLib.JobMonitors
                             break;
                         case ReductionJobDetail.JobStatusEnum.Error:
                             DbTask.ReductionStatus = ReductionStatusEnum.Error;
-                            TaskErrorReason reason = TaskErrorReason.Default;
-                            switch(JobDetail.StatusReason)
+                            MapDbReductionTaskOutcomeReason reason = MapDbReductionTaskOutcomeReason.Default;
+                            switch(JobDetail.Result.OutcomeReason)
                             {
-                                case ReductionJobDetail.JobErrorReason.NoSelectedFieldValues:
-                                    reason = TaskErrorReason.NoSelectedFieldValues;
+                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueMatchesNewContent:
+                                    reason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchesNewContent;
                                     break;
                             }
-                            DbTask.TaskMetadataObj = new TaskMetadata
+                            DbTask.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
                             {
-                                ErrorReason = reason,
+                                OutcomeSummary = reason,
                             };
                             break;
                         case ReductionJobDetail.JobStatusEnum.Success:

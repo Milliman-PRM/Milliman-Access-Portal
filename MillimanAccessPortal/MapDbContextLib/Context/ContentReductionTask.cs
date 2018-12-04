@@ -186,23 +186,23 @@ namespace MapDbContextLib.Context
         /// Intended to be serialization of type TaskMetadata
         /// </summary>
         [Column(TypeName = "jsonb")]
-        public string TaskMetadata { get; set; } = "{}";
+        public string OutcomeMetadata { get; set; } = "{}";
 
         /// <summary>
         /// Identifies metadata about a publication request
         /// </summary>
         [NotMapped]
-        public TaskMetadata TaskMetadataObj
+        public ReductionTaskOutcomeMetadata OutcomeMetadataObj
         {
             get
             {
-                return string.IsNullOrWhiteSpace(TaskMetadata)
-                    ? new TaskMetadata { }
-                    : JsonConvert.DeserializeObject<TaskMetadata>(TaskMetadata);
+                return string.IsNullOrWhiteSpace(OutcomeMetadata)
+                    ? new ReductionTaskOutcomeMetadata { }
+                    : JsonConvert.DeserializeObject<ReductionTaskOutcomeMetadata>(OutcomeMetadata);
             }
             set
             {
-                TaskMetadata = value != null
+                OutcomeMetadata = value != null
                     ? JsonConvert.SerializeObject(value)
                     : "{}";
             }
