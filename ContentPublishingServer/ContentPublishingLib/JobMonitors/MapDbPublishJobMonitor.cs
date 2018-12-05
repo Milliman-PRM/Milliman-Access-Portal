@@ -261,16 +261,23 @@ namespace ContentPublishingLib.JobMonitors
                         return false;
                     }
 
+                    List<ContentReductionTask> RelatedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id).ToList();
+
                     // Canceled here implies that the application does not want the update
                     if (DbRequest.RequestStatus == PublicationStatus.Canceled)
                     {
-                        List<ContentReductionTask> RelatedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id).ToList();
                         RelatedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
                         Db.ContentReductionTask.UpdateRange(RelatedTasks);
                         Db.SaveChanges();
                         Transaction.Commit();
                         return true;
                     }
+
+                    DbRequest.OutcomeMetadataObj = new PublicationRequestOutcomeMetadata
+                    {
+                        ReductionTaskFailOutcomeList = JobDetail.Result.ReductionTaskFailList,
+                        ReductionTaskSuccessOutcomeList = JobDetail.Result.ReductionTaskSuccessList,
+                    };
 
                     switch (JobDetail.Status)
                     {
@@ -279,17 +286,6 @@ namespace ContentPublishingLib.JobMonitors
                             break;
                         case PublishJobDetail.JobStatusEnum.Error:
                             DbRequest.RequestStatus = PublicationStatus.Error;
-                            PublicationRequestErrorReason reason = PublicationRequestErrorReason.Default;
-                            switch(JobDetail.StatusReason)
-                            {
-                                case PublishJobDetail.JobErrorReason.ReductionTaskErrors:
-                                    reason = PublicationRequestErrorReason.ReductionTaskError;
-                                    break;
-                            }
-                            DbRequest.OutcomeMetadataObj = new PublicationRequestOutcomeMetadata
-                            {
-                                ErrorReason = reason,
-                            };
                             break;
                         case PublishJobDetail.JobStatusEnum.Success:
                             DbRequest.RequestStatus = PublicationStatus.Processed;

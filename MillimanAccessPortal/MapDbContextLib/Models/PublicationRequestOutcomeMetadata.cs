@@ -1,4 +1,12 @@
-﻿namespace MapDbContextLib.Models
+﻿/*
+ * CODE OWNERS: Joseph Sweeney, Tom Puckett
+ * OBJECTIVE: Declares the class representing overall outcome of publication request processing
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System.Collections.Generic;
+
+namespace MapDbContextLib.Models
 {
     public enum PublicationRequestErrorReason
     {
@@ -8,6 +16,7 @@
 
     public class PublicationRequestOutcomeMetadata
     {
-        public PublicationRequestErrorReason ErrorReason { get; set; } = PublicationRequestErrorReason.Default;
+        public List<ReductionTaskOutcomeMetadata> ReductionTaskFailOutcomeList = new List<ReductionTaskOutcomeMetadata>();
+        public List<ReductionTaskOutcomeMetadata> ReductionTaskSuccessOutcomeList = new List<ReductionTaskOutcomeMetadata>();
     }
 }

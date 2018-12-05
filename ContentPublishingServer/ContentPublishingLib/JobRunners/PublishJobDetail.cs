@@ -58,6 +58,8 @@ namespace ContentPublishingLib.JobRunners
         {
             public string StatusMessage { get; set; } = string.Empty;
             public List<ContentRelatedFile> ResultingRelatedFiles { get; set; } = new List<ContentRelatedFile>();
+            public List<ReductionTaskOutcomeMetadata> ReductionTaskFailList { get; set; } = new List<ReductionTaskOutcomeMetadata>();
+            public List<ReductionTaskOutcomeMetadata> ReductionTaskSuccessList { get; set; } = new List<ReductionTaskOutcomeMetadata>();
         }
 
         public class PublishJobRequest

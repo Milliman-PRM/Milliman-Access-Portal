@@ -94,10 +94,13 @@ namespace ContentPublishingLib.JobRunners
                 ReductionJobActionEnum.HierarchyAndReduction
             };
 
+            DateTime ProcessingStartTime = DateTime.UtcNow;
+
             try
             {
                 if (!SupportedJobActions.Contains(JobDetail.Request.JobAction))
                 {
+                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
                     throw new ApplicationException($"QvReductionRunner.Execute() refusing to process job with unsupported requested action: {JobDetail.Request.JobAction.ToString()}");
                 }
                 else
@@ -160,6 +163,7 @@ namespace ContentPublishingLib.JobRunners
             catch (OperationCanceledException e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Canceled;
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.Canceled;
                 GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
                 AuditLog.Log(AuditEventType.ContentReductionTaskCanceled.ToEvent(new { ReductionTaskId = JobDetail.TaskId }));
@@ -167,6 +171,7 @@ namespace ContentPublishingLib.JobRunners
             catch (ApplicationException e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
+                // JobDetail.Result.OutcomeReason is expected to be set where the exception is thrown
                 GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
                 // Security related audit logs are generated at the time ApplicationException is thrown, where appropriate.  Don't repeat that here. 
@@ -182,10 +187,15 @@ namespace ContentPublishingLib.JobRunners
                     ExceptionMessage = GlobalFunctions.LoggableExceptionString(e),
                 };
                 AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
+                if (JobDetail.Result.OutcomeReason == ReductionJobDetail.JobOutcomeReason.Unspecified)
+                {
+                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
+                }
             }
             finally
             {
-                // Don't touch TaskResultObj.Status in the finally block. This value should always be finalized before we get here. 
+                // Don't touch JobDetail.Result.Status or JobDetail.Result.OutcomeReason in the finally block. This value should always be set before we get here. 
+                JobDetail.Result.ProcessingDuration = DateTime.UtcNow - ProcessingStartTime;
                 Cleanup();
             }
 
@@ -247,6 +257,7 @@ namespace ContentPublishingLib.JobRunners
 
                 Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}: {Msg}";
 
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
                 throw new System.ApplicationException(Msg);
             }
         }
@@ -269,6 +280,7 @@ namespace ContentPublishingLib.JobRunners
 
                 if (!File.Exists(JobDetail.Request.MasterFilePath))
                 {
+                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
                     throw new ApplicationException($"Master file {JobDetail.Request.MasterFilePath} does not exist");
                 }
 
@@ -277,6 +289,7 @@ namespace ContentPublishingLib.JobRunners
 
                 if (GlobalFunctions.GetFileChecksum(MasterFileDestinationPath).ToLower() != JobDetail.Request.MasterContentChecksum.ToLower())
                 {
+                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
                     throw new ApplicationException("Master content file integrity check failed, mismatch of file hash");
                 }
 
@@ -290,6 +303,7 @@ namespace ContentPublishingLib.JobRunners
 
             if (MasterDocumentNode == null)
             {
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
                 throw new ApplicationException("Failed to obtain DocumentNode object from Qlikview Publisher for master content file");
             }
             return true;
@@ -409,6 +423,7 @@ namespace ContentPublishingLib.JobRunners
                         Error = Msg,
                     };
 
+                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
                     AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
                     GlobalFunctions.TraceWriteLine(Msg);
                     throw new ApplicationException(Msg);
@@ -419,7 +434,7 @@ namespace ContentPublishingLib.JobRunners
             if (!JobDetail.Request.SelectionCriteria.Any(s => s.Selected &&
                                                               JobDetail.Result.MasterContentHierarchy.Fields.Any(f => f.FieldName == s.FieldName && f.FieldValues.Contains(s.FieldValue))))
             {
-                string Msg = $"No requested selections exist in the master hierarchy";
+                string Msg = $"None of the {JobDetail.Request.SelectionCriteria.Count} specified selections exist in the master content hierarchy";
                 object DetailObj = new {
                     ReductionJobId = JobDetail.TaskId.ToString(),
                     RequestesSelections = JobDetail.Request.SelectionCriteria,
@@ -429,7 +444,7 @@ namespace ContentPublishingLib.JobRunners
                 AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
                 GlobalFunctions.TraceWriteLine(Msg);
 
-                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueMatchesNewContent;
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueMatchInNewContent;
 
                 throw new ApplicationException(Msg);
             }
@@ -444,6 +459,7 @@ namespace ContentPublishingLib.JobRunners
 
             if (ReducedDocumentNode == null)
             {
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
                 string Msg = $"Failed to get DocumentNode for file {JobDetail.Request.RequestedOutputFileName} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}";
                 GlobalFunctions.TraceWriteLine(Msg);
                 throw new ApplicationException(Msg);

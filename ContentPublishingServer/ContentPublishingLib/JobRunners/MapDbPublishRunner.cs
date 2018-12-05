@@ -144,6 +144,19 @@ namespace ContentPublishingLib.JobRunners
                     AllRelatedReductionTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToList();
                 }
 
+                foreach (ContentReductionTask RelatedTask in AllRelatedReductionTasks)
+                {
+                    ReductionTaskOutcomeMetadata TaskOutcome = RelatedTask.OutcomeMetadataObj;
+                    if (TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.Success)
+                    {
+                        JobDetail.Result.ReductionTaskSuccessList.Add(TaskOutcome);
+                    }
+                    else
+                    {
+                        JobDetail.Result.ReductionTaskFailList.Add(TaskOutcome);
+                    }
+                }
+
                 // Check the actual status of reduction tasks to assign publication status
                 if (AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Reduced))
                 {
@@ -193,6 +206,25 @@ namespace ContentPublishingLib.JobRunners
                 GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 JobDetail.Result.StatusMessage = msg;
+            }
+            finally
+            {
+                using (ApplicationDbContext Db = GetDbContext())
+                {
+                    foreach (ContentReductionTask RelatedTask in Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToList())
+                    {
+                        ReductionTaskOutcomeMetadata TaskOutcome = RelatedTask.OutcomeMetadataObj;
+                        if (TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.Success)
+                        {
+                            JobDetail.Result.ReductionTaskSuccessList.Add(TaskOutcome);
+                        }
+                        else
+                        {
+                            JobDetail.Result.ReductionTaskFailList.Add(TaskOutcome);
+                        }
+                    }
+                }
+
             }
 
             return JobDetail;

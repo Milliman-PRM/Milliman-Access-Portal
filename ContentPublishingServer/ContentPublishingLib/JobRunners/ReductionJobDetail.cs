@@ -40,9 +40,13 @@ namespace ContentPublishingLib.JobRunners
         {
             Unspecified,
             Success,
-            NoSelectedFieldValueMatchesNewContent,
-        }
+            Canceled,
+            BadRequest,
 
+            UnspecifiedError,
+            NoSelectedFieldValues,
+            NoSelectedFieldValueMatchInNewContent,
+        }
 
         public ReductionJobRequest Request;
         public ReductionJobResult Result;
@@ -88,6 +92,7 @@ namespace ContentPublishingLib.JobRunners
             public ExtractedHierarchy ReducedContentHierarchy { get; set; } = null;
             public string ReducedContentFileChecksum { get; set; } = string.Empty;
             public JobOutcomeReason OutcomeReason { get; set; } = JobOutcomeReason.Unspecified;
+            public TimeSpan ProcessingDuration { get; set; } = new TimeSpan(0);
         }
 
         public class ReductionJobRequest

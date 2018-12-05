@@ -259,6 +259,13 @@ namespace ContentPublishingLib.JobMonitors
                         return false;
                     }
 
+                    ReductionTaskOutcomeMetadata OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                    {
+                        ReductionTaskId = JobDetail.TaskId,
+                        ProcessingDuration = JobDetail.Result.ProcessingDuration,
+                        OutcomeReason = MapDbReductionTaskOutcomeReason.Default,
+                    };
+
                     switch (JobDetail.Status)
                     {
                         case ReductionJobDetail.JobStatusEnum.Unspecified:
@@ -266,22 +273,29 @@ namespace ContentPublishingLib.JobMonitors
                             break;
                         case ReductionJobDetail.JobStatusEnum.Error:
                             DbTask.ReductionStatus = ReductionStatusEnum.Error;
-                            MapDbReductionTaskOutcomeReason reason = MapDbReductionTaskOutcomeReason.Default;
                             switch(JobDetail.Result.OutcomeReason)
                             {
-                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueMatchesNewContent:
-                                    reason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchesNewContent;
+                                case ReductionJobDetail.JobOutcomeReason.BadRequest:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.BadRequest;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.Unspecified:
+                                case ReductionJobDetail.JobOutcomeReason.UnspecifiedError:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.UnspecifiedError;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValues:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueMatchInNewContent:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent;
                                     break;
                             }
-                            DbTask.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
-                            {
-                                OutcomeSummary = reason,
-                            };
                             break;
                         case ReductionJobDetail.JobStatusEnum.Success:
+                            OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.Success;
                             DbTask.ReductionStatus = ReductionStatusEnum.Reduced;
                             break;
                         case ReductionJobDetail.JobStatusEnum.Canceled:
+                            OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.Canceled;
                             DbTask.ReductionStatus = ReductionStatusEnum.Canceled;
                             break;
                         default:
@@ -297,6 +311,8 @@ namespace ContentPublishingLib.JobMonitors
                     DbTask.ReducedContentChecksum = JobDetail.Result.ReducedContentFileChecksum;
 
                     DbTask.ReductionStatusMessage = JobDetail.Result.StatusMessage;
+
+                    DbTask.OutcomeMetadataObj = OutcomeMetadataObj;
 
                     Db.ContentReductionTask.Update(DbTask);
                     Db.SaveChanges();
