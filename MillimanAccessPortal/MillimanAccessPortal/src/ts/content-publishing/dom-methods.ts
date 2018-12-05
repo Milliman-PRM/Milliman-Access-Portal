@@ -595,9 +595,11 @@ export function setup() {
       .data() as ContentType;
     if (contentType && !contentType.CanReduce) {
       $doesReduceToggle.attr('disabled', '');
+      $doesReduceToggle.closest('.form-input-toggle').hide();
       $doesReduceToggle.prop('checked', false);
     } else {
       $doesReduceToggle.removeAttr('disabled');
+      $doesReduceToggle.closest('.form-input-toggle').show();
     }
     formObject.inputSections.forEach((section) =>
       section.inputs.forEach((input) => {
