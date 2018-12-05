@@ -189,7 +189,9 @@ function addToDocumentCount(clientId: Guid, offset: number) {
 
 function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   // Show and clear all confirmation checkboxes
-  $('#report-confirmation .admin-panel-content-container')[0].scrollTop = 0;
+  $('#report-confirmation .loading-wrapper').hide();
+  $('#report-confirmation .admin-panel-content-container')
+    .show()[0].scrollTop = 0;
   $('#report-confirmation label')
     .show()
     .find('input[type="checkbox"]')
@@ -501,7 +503,10 @@ function renderRootContentItem(item: RootContentItemSummary) {
     }),
     rootContentItemDeleteClickHandler,
     rootContentItemCancelClickHandler,
-    wrapCardIconCallback(get(
+    wrapCardIconCallback((card) => {
+      $('#report-confirmation .admin-panel-content-container').hide();
+      $('#report-confirmation .loading-wrapper').show();
+      get(
         'ContentPublishing/PreLiveSummary',
         [
           renderConfirmationPane,
@@ -509,7 +514,8 @@ function renderRootContentItem(item: RootContentItemSummary) {
         (data) => ({
           rootContentItemId: data && data.rootContentItemId,
         }),
-      ), () => formObject, {count: 1, offset: 1}, () => false),
+      )(card);
+    }, () => formObject, {count: 1, offset: 1}, () => false),
   ).build();
   updateCardStatus($rootContentItemCard, item.PublicationDetails);
   updateCardStatusButtons($rootContentItemCard, item.PublicationDetails && item.PublicationDetails.StatusEnum);
