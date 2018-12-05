@@ -107,6 +107,19 @@ interface ContentAccessAdminActions {
   setPendingGroupUserQuery: (query: string) => void;
   setPendingGroupUserAssigned: (id: Guid) => void;
   setPendingGroupUserRemoved: (id: Guid) => void;
+
+  fetchClients: () => void;
+  fetchItems: (id: Guid) => void;
+  fetchGroups: (id: Guid) => void;
+  fetchSelections: (id: Guid) => void;
+  fetchStatus: () => void;
+
+  createGroup: (id: Guid, name: string) => void;
+  updateGroup: (id: Guid, name: string, users: Guid[]) => void;
+  deleteGroup: (id: Guid) => void;
+  suspendGroup: (id: Guid, isSuspended: boolean) => void;
+  updateSelections: (id: Guid, isMaster: boolean, selections: Guid[]) => void;
+  cancelReduction: (id: Guid) => void;
 }
 
 class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & ContentAccessAdminActions> {
