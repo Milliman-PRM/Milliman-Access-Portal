@@ -85,7 +85,8 @@
             background-color: $blue;
         }
 
-        &.status-30 {
+        &.status-30,
+        &.status-35 {
             display: block;
             background-color: $green;
         }

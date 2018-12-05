@@ -8,6 +8,7 @@ export class StatusMonitor<T> {
     readonly url: string,
     readonly callback: (response: T) => void = () => null,
     interval?: number,
+    readonly activeWindowOnly: boolean = false,
   ) {
     if (!isNaN(interval)) {
       this.interval = interval;
@@ -39,7 +40,9 @@ export class StatusMonitor<T> {
 
   private monitor() {
     if (this.active) {
-      this.checkStatus();
+      if (!(this.activeWindowOnly && document.hidden)) {
+        this.checkStatus();
+      }
       setTimeout(this.monitor, this.interval);
     }
   }

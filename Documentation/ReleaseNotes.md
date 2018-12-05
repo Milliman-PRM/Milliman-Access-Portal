@@ -5,6 +5,29 @@
 ### v1.2.0
 
 - Added the ability to delete supporting files from a content item
+- Added the ability to open content and supporting content in a new browser tab
+- Removed the close button in the content view to avoid blocking content
+- Fixed an issue where long content names were not being displayed properly in the content view
+- Removed status polling for hidden pages
+
+### v1.1.5
+
+- Fixed an error during republished content go-live, where a hierarchy field value being removed exists in more than one live hierarchy field
+
+### v1.1.4
+
+- Fixed an issue preventing nonreducing content from going live
+
+### v1.1.3
+
+- Fixed an issue where content go-live processing did not complete for large content files and/or many selection groups
+
+### v1.1.2
+
+- Allow heirarchy comparison values to wrap in the Go Live preview to better support long values
+- Fixed an issue with Qlikview content where a special character (e.g. ~ ' ") in a selectable value of a reduction hierarchy field would become quoted
+- Fixed an issue with upload of large content files
+- Fixed an issue where long running Qlikview reductions would fail to complete
 
 ### v1.1.1
 

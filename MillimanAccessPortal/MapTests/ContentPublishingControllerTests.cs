@@ -41,6 +41,7 @@ namespace MapTests
                 TestResources.AuthorizationService,
                 TestResources.DbContextObject,
                 TestResources.FileSystemTasksObject,
+                TestResources.GoLiveTaskQueueObject,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
@@ -397,10 +398,16 @@ namespace MapTests
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("user3");
+            var goLiveViewModel = new GoLiveViewModel
+            {
+                RootContentItemId = TestUtil.MakeTestGuid(1),
+                PublicationRequestId = TestUtil.MakeTestGuid(1),
+                ValidationSummaryId = "",
+            };
             #endregion
 
             #region Act
-            var view = await controller.GoLive(TestUtil.MakeTestGuid(1), TestUtil.MakeTestGuid(1), "");
+            var view = await controller.GoLive(goLiveViewModel);
             #endregion
 
             #region Assert
@@ -424,10 +431,16 @@ namespace MapTests
                 ReductionRelatedFilesObj = new List<ReductionRelatedFiles> { },
                 CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0),
             });
+            var goLiveViewModel = new GoLiveViewModel
+            {
+                RootContentItemId = TestUtil.MakeTestGuid(3),
+                PublicationRequestId = TestUtil.MakeTestGuid(999),
+                ValidationSummaryId = "",
+            };
             #endregion
 
             #region Act
-            var view = await controller.GoLive(TestUtil.MakeTestGuid(3), TestUtil.MakeTestGuid(999), "");
+            var view = await controller.GoLive(goLiveViewModel);
             #endregion
 
             #region Assert

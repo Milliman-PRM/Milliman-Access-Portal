@@ -273,12 +273,16 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-master-content">
             <h4>Master Content</h4>
             <div class="content-preview">
-                <iframe src="about:blank"></iframe>
-                <a href="about:blank" target="_blank">
-                    <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
-                        <use xlink:href="#upload"></use>
-                    </svg>
-                </a>
+                <object data="about:blank" type="application/pdf"></object>
+            </div>
+            <div class="content-preview-sandbox">
+                <iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" src="about:blank"></iframe>
+            </div>
+            <div class="content-preview-download">
+                <a download>Click to download</a>
+            </div>
+            <div class="content-preview-none" style="display: none;">
+                <p>This file has not changed.</p>
             </div>
             <label for="confirmation-master-content" class="selection-option-label">
                 <input type="checkbox" name="master-content" value="confirmation-master-content" id="confirmation-master-content" class="selection-option-value">
@@ -289,12 +293,10 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-user-guide">
             <h4>User Guide</h4>
             <div class="content-preview">
-                <iframe src="about:blank"></iframe>
-                <a href="about:blank" target="_blank">
-                    <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
-                        <use xlink:href="#upload"></use>
-                    </svg>
-                </a>
+                <object data="about:blank" type="application/pdf"></object>
+            </div>
+            <div class="content-preview-none" style="display: none;">
+                <p>This file has not changed.</p>
             </div>
             <label for="confirmation-user-guide" class="selection-option-label">
                 <input type="checkbox" name="user-guide" value="confirmation-user-guide" id="confirmation-user-guide" class="selection-option-value">
@@ -305,12 +307,10 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-release-notes">
             <h4>Release Notes</h4>
             <div class="content-preview">
-                <iframe src="about:blank"></iframe>
-                <a href="about:blank" target="_blank">
-                    <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
-                        <use xlink:href="#upload"></use>
-                    </svg>
-                </a>
+                <object data="about:blank" type="application/pdf"></object>
+            </div>
+            <div class="content-preview-none" style="display: none;">
+                <p>This file has not changed.</p>
             </div>
             <label for="confirmation-release-notes" class="selection-option-label">
                 <input type="checkbox" name="release-notes" value="confirmation-release-notes" id="confirmation-release-notes" class="selection-option-value">
@@ -352,7 +352,7 @@
             <div class="attestation-language">
             </div>
             <div class="confirmation-section-button-container">
-                <button type="button" class="button-reject red-button">Reject</button>
+                <button type="button" class="button-reject red-button tooltip" title="Reject pending changes">Reject</button>
                 <button type="button" class="button-approve green-button tooltip disabled" title="Complete checks to proceed">Approve</button>
             </div>
         </div>

@@ -65,7 +65,6 @@ namespace MillimanAccessPortal
         /// <param name="connectionString"></param>
         internal static async Task MonitorReductionTaskForGoLive(Guid TaskGuid, string connectionString, string contentRootFolder, object ContentTypeConfig = null)
         {
-            TimeSpan timeoutDuration = new TimeSpan(0, 8, 0);
             ContentReductionTask thisContentReductionTask = null;
 
             DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString);
@@ -82,9 +81,7 @@ namespace MillimanAccessPortal
             }
             while (thisContentReductionTask.ReductionStatus == ReductionStatusEnum.Queued);
 
-            // The task might stay queued a while, waiting for other tasks.  Don't start timing till it has started
-            DateTime expireTimeUtc = DateTime.UtcNow + timeoutDuration;
-
+            // Do not enforce a timeout - instead, rely on the publishing service to time out properly.
             while (thisContentReductionTask.ReductionStatus != ReductionStatusEnum.Reduced)
             {
                 Thread.Sleep(2000);
@@ -92,11 +89,6 @@ namespace MillimanAccessPortal
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     thisContentReductionTask = Db.ContentReductionTask.Find(TaskGuid);
-                }
-
-                if (DateTime.UtcNow > expireTimeUtc)
-                {
-                    return;
                 }
 
                 if (thisContentReductionTask.ReductionStatus == ReductionStatusEnum.Canceled || 
@@ -193,8 +185,11 @@ namespace MillimanAccessPortal
                     await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(reductionTask.SelectionGroup.RootContentItemId.ToString(), QvConfig);
                     break;
 
-                case ContentTypeEnum.Unknown:
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.FileDownload:
                 default:
+                    // Should never get here for non-reducible content
                     break;
             }
 

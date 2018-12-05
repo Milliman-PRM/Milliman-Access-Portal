@@ -28,7 +28,7 @@ namespace MapDbContextLib.Context
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Convenience property to automatically translate between persisted string and enumeration
+        /// Convenience property to automatically translate from the persisted Name to corresponding enumeration
         /// </summary>
         [NotMapped]
         public ContentTypeEnum TypeEnum
@@ -39,7 +39,14 @@ namespace MapDbContextLib.Context
             }
             get
             {
-                return (ContentTypeEnum) Enum.Parse(typeof(ContentTypeEnum), Name, true);
+                if (Enum.TryParse(Name, true, out ContentTypeEnum result))
+                {
+                    return result;
+                }
+                else
+                {
+                    return (ContentTypeEnum)int.MaxValue;
+                }
             }
         }
 
@@ -55,7 +62,8 @@ namespace MapDbContextLib.Context
         [Required]
         public string DefaultIconName { get; set; }
 
-        public string[] FileExtensions { get; set; }
+        [Required]
+        public string[] FileExtensions { get; set; } = new string[0];
 
         #region Database Initialization
         /// <summary>
@@ -76,19 +84,19 @@ namespace MapDbContextLib.Context
                 new ContentType {
                     TypeEnum = ContentTypeEnum.Html,
                     CanReduce = false,
-                    DefaultIconName = "QlikView_Icon.png",
+                    DefaultIconName = "HTML_Icon.png",
                     FileExtensions = new string[] { "html", "htm" },
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.Pdf,
                     CanReduce = false,
-                    DefaultIconName = "QlikView_Icon.png",
+                    DefaultIconName = "PDF_Icon.png",
                     FileExtensions = new string[] { "pdf" },
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.FileDownload,
                     CanReduce = false,
-                    DefaultIconName = "QlikView_Icon.png",
+                    DefaultIconName = "FileDownload_Icon.png",
                     FileExtensions = new string[] { },
                 },
             };

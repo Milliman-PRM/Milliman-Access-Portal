@@ -180,6 +180,10 @@ namespace MillimanAccessPortal
             // Add application services.
             services.AddTransient<IMessageQueue, MessageQueueServices>();
             services.AddScoped<IUploadHelper, UploadHelper>();
+            services.AddHostedService<QueuedUploadTaskHostedService>();
+            services.AddSingleton<IUploadTaskQueue, UploadTaskQueue>();
+            services.AddHostedService<QueuedGoLiveTaskHostedService>();
+            services.AddSingleton<IGoLiveTaskQueue, GoLiveTaskQueue>();
             services.AddScoped<FileSystemTasks>();
         }
 

@@ -13,8 +13,8 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20181029200653_AddContentTypeFileExtensions")]
-    partial class AddContentTypeFileExtensions
+    [Migration("20181113150312_ExpandFileUpload")]
+    partial class ExpandFileUpload
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -179,8 +179,6 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("DefaultIconName")
                         .IsRequired();
 
-                    b.Property<string[]>("FileExtensions");
-
                     b.Property<string>("Name")
                         .IsRequired();
 
@@ -195,16 +193,20 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<string>("Checksum")
-                        .IsRequired();
+                    b.Property<string>("Checksum");
 
                     b.Property<string>("ClientFileIdentifier")
                         .IsRequired();
 
                     b.Property<DateTime>("CreatedDateTimeUtc");
 
-                    b.Property<string>("StoragePath")
-                        .IsRequired();
+                    b.Property<DateTime>("InitiatedDateTimeUtc");
+
+                    b.Property<int>("Status");
+
+                    b.Property<string>("StatusMessage");
+
+                    b.Property<string>("StoragePath");
 
                     b.HasKey("Id");
 

@@ -174,7 +174,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("DefaultIconName")
                         .IsRequired();
 
-                    b.Property<string[]>("FileExtensions");
+                    b.Property<string[]>("FileExtensions")
+                        .IsRequired();
 
                     b.Property<string>("Name")
                         .IsRequired();
@@ -190,16 +191,20 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<string>("Checksum")
-                        .IsRequired();
+                    b.Property<string>("Checksum");
 
                     b.Property<string>("ClientFileIdentifier")
                         .IsRequired();
 
                     b.Property<DateTime>("CreatedDateTimeUtc");
 
-                    b.Property<string>("StoragePath")
-                        .IsRequired();
+                    b.Property<DateTime>("InitiatedDateTimeUtc");
+
+                    b.Property<int>("Status");
+
+                    b.Property<string>("StatusMessage");
+
+                    b.Property<string>("StoragePath");
 
                     b.HasKey("Id");
 

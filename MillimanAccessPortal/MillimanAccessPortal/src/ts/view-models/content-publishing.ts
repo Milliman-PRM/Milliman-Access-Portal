@@ -41,6 +41,7 @@ export enum PublicationStatus {
   Queued = 10,
   Processing = 20,
   Processed = 30,
+  Confirming = 35,
   Confirmed = 40,
   Replaced = 50,
   Error = 90,
@@ -113,9 +114,17 @@ export interface RootContentItemList {
   selectedRootContentItemId: Guid;
 }
 
+export enum ContentTypeEnum {
+  Unknown = 0,
+  Qlikview = 1,
+  Html = 2,
+  Pdf = 3,
+  FileDownload = 4,
+}
+
 export interface ContentType {
   id: Guid;
-  typeEnum: number;
+  typeEnum: ContentTypeEnum;
   name: string;
   canReduce: boolean;
   fileExtensions: string[];

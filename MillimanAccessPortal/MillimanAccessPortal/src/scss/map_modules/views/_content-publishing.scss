@@ -11,12 +11,14 @@
         margin-top: 1em;
     }
 
-    .content-preview {
+    .content-preview,
+    .content-preview-sandbox {
         width: 100%;
         height: 20em;
         position: relative;
 
-        iframe {
+        iframe,
+        object {
             width: 100%;
             height: 100%;
             border: 1px solid $charcoal;
@@ -43,7 +45,6 @@
         display: flex;
         flex-flow: row nowrap;
         width: 100%;
-        white-space: nowrap;
 
         .hierarchy {
             background-color: $white;

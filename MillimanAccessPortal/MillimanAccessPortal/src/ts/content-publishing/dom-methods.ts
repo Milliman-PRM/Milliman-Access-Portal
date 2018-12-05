@@ -7,6 +7,7 @@ import * as toastr from 'toastr';
 import { AddRootContentItemActionCard, ClientCard, RootContentItemCard } from '../card';
 import { CancelContentPublicationRequestDialog, DeleteRootContentItemDialog } from '../dialog';
 import { FormBase } from '../form/form-base';
+import { isFileUploadInput } from '../form/form-input/file-upload';
 import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import { Guid } from '../react/shared-components/interfaces';
@@ -16,6 +17,7 @@ import {
   updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
 import { setUnloadAlert } from '../unload-alerts';
+import { UploadComponent } from '../upload/upload';
 import {
   BasicNode, ClientSummary, ClientTree, ContentType, PreLiveContentValidationSummary,
   PublishRequest, RootContentItemDetail, RootContentItemList, RootContentItemSummary,
@@ -29,6 +31,9 @@ let formObject: FormBase;
 let statusMonitor: PublicationStatusMonitor;
 
 let preLiveObject: PreLiveContentValidationSummary;
+
+const goLiveDisabledTooltip = 'Complete checks to proceed';
+const goLiveEnabledTooltip = 'Approve content and go live';
 
 function deleteRootContentItem(
   rootContentItemId: Guid,
@@ -120,7 +125,7 @@ export function openNewRootContentItemForm() {
   }
   const clientId = $('#client-tree [selected]').parent().data().clientId;
   renderRootContentItemForm({
-    clientId: clientId,
+    clientId,
     contentName: '',
     contentTypeId: '0',
     description: '',
@@ -184,6 +189,9 @@ function addToDocumentCount(clientId: Guid, offset: number) {
 
 function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   // Show and clear all confirmation checkboxes
+  $('#report-confirmation .loading-wrapper').hide();
+  $('#report-confirmation .admin-panel-content-container')
+    .show()[0].scrollTop = 0;
   $('#report-confirmation label')
     .show()
     .find('input[type="checkbox"]')
@@ -191,24 +199,50 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     .prop('checked', false);
   $('#confirmation-section-attestation .button-approve')
     .addClass('disabled')
-    .tooltipster('enable');
+    .tooltipster('content', goLiveDisabledTooltip);
   // set src for iframes, conditionally marking iframes as unchanged
-  const linkPairs: Array<{sectionName: string, link: string}> = [
-    { sectionName: 'master-content', link: response.masterContentLink },
+  const linkPairs: Array<{sectionName: string, link: string, node?: string}> = [
+    {
+      sectionName: 'master-content',
+      link: response.masterContentLink,
+      node: response.contentTypeName === 'FileDownload'
+        ? '.content-preview-download'
+        : response.contentTypeName === 'Html'
+          ? '.content-preview-sandbox'
+          : '.content-preview',
+    },
     { sectionName: 'user-guide', link: response.userGuideLink },
     { sectionName: 'release-notes', link: response.releaseNotesLink },
   ];
   linkPairs.forEach((pair) => {
-    $(`#confirmation-section-${pair.sectionName} iframe`)
-      .removeAttr('srcdoc')
-      .attr('src', pair.link)
-      .siblings('a')
-      .attr('href', pair.link)
-      .filter(() => pair.link === null)
+    $(`#confirmation-section-${pair.sectionName} div`)
+      .filter(pair.node || '.content-preview')
+      .find('a,iframe,object')
+      .attr('src', function() {
+        return $(this).is('iframe')
+          ? pair.link
+          : null;
+      })
+      .attr('data', function() {
+        return $(this).is('object')
+          ? pair.link
+          : null;
+      })
+      .attr('href', function() {
+        return $(this).is('a')
+          ? pair.link
+          : null;
+      })
+      .parent()
+      .show()
+      .siblings('div')
       .hide()
-      .siblings('iframe')
-      .removeAttr('src')
-      .attr('srcdoc', 'This file has not changed.')
+      .filter(() => pair.link === null)
+      .filter('.content-preview-none')
+      .show()
+      .siblings('div')
+      .hide()
+      .find('iframe,object')
       .closest('.confirmation-section').find('label')
       .hide()
       .find('input')
@@ -276,7 +310,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   if (!anyEnabled) {
     $('#confirmation-section-attestation .button-approve')
       .removeClass('disabled')
-      .tooltipster('disable');
+      .tooltipster('content', goLiveEnabledTooltip);
   }
 
   preLiveObject = response;
@@ -423,6 +457,17 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       },
     ],
   );
+  const $contentTypeDropdown = $('#ContentTypeId');
+  const contentType = $contentTypeDropdown
+    .find(`option[value="${$contentTypeDropdown.val()}"]`)
+    .data() as ContentType;
+  formObject.inputSections.forEach((section) =>
+    section.inputs.forEach((input) => {
+      if (contentType && isFileUploadInput(input)) {
+        input.fileTypes.set(UploadComponent.Content, contentType.fileExtensions);
+        input.configure();
+      }
+    }));
 
   $rootContentItemForm
     .removeData('validator')
@@ -458,7 +503,10 @@ function renderRootContentItem(item: RootContentItemSummary) {
     }),
     rootContentItemDeleteClickHandler,
     rootContentItemCancelClickHandler,
-    wrapCardIconCallback(get(
+    wrapCardIconCallback((card) => {
+      $('#report-confirmation .admin-panel-content-container').hide();
+      $('#report-confirmation .loading-wrapper').show();
+      get(
         'ContentPublishing/PreLiveSummary',
         [
           renderConfirmationPane,
@@ -466,7 +514,8 @@ function renderRootContentItem(item: RootContentItemSummary) {
         (data) => ({
           rootContentItemId: data && data.rootContentItemId,
         }),
-      ), () => formObject, {count: 1, offset: 1}, () => false),
+      )(card);
+    }, () => formObject, {count: 1, offset: 1}, () => false),
   ).build();
   updateCardStatus($rootContentItemCard, item.publicationDetails);
   updateCardStatusButtons($rootContentItemCard, item.publicationDetails && item.publicationDetails.statusEnum);
@@ -535,7 +584,6 @@ function populateAvailableContentTypes(contentTypes: ContentType[]) {
   });
 
   $contentTypeDropdown.val(0);
-  // $contentTypeDropdown.change(); // trigger change event
 }
 
 export function setup() {
@@ -545,12 +593,19 @@ export function setup() {
     const contentType = $contentTypeDropdown
       .find(`option[value="${$contentTypeDropdown.val()}"]`)
       .data() as ContentType;
-    if (!contentType.canReduce) {
+    if (contentType && !contentType.canReduce) {
       $doesReduceToggle.attr('disabled', '');
       $doesReduceToggle.prop('checked', false);
     } else {
       $doesReduceToggle.removeAttr('disabled');
     }
+    formObject.inputSections.forEach((section) =>
+      section.inputs.forEach((input) => {
+        if (contentType && isFileUploadInput(input)) {
+          input.fileTypes.set(UploadComponent.Content, contentType.fileExtensions);
+          input.configure();
+        }
+      }));
   });
 
   $('.action-icon-expand').click(expandAllListener);
@@ -585,13 +640,13 @@ export function setup() {
   $('#report-confirmation input[type="checkbox"]').change(() =>
     $('#confirmation-section-attestation .button-approve')
       .addClass('disabled')
-      .tooltipster('enable')
+      .tooltipster('content', goLiveDisabledTooltip)
       .filter(() =>
         $('#report-confirmation input[type="checkbox"]').not('[disabled]').toArray()
           .map((checkbox: HTMLInputElement) => checkbox.checked)
           .reduce((cum, cur) => cum && cur, true))
       .removeClass('disabled')
-      .tooltipster('disable'));
+      .tooltipster('content', goLiveEnabledTooltip));
   $('#confirmation-section-attestation .button-reject').click((event) => {
     const $target = $(event.target);
     if ($target.hasClass('disabled')) {
@@ -641,7 +696,7 @@ export function setup() {
       },
       url: 'ContentPublishing/GoLive/',
     }).done(() => {
-      toastr.success('Publication is now live.');
+      toastr.success('Publication queued to go live.');
     }).fail((response) => {
       toastr.warning(response.getResponseHeader('Warning')
         || 'An unknown error has occurred.');
@@ -666,12 +721,12 @@ export function setup() {
   $('.tooltip').tooltipster();
 
   get(
-    'ContentPublishing/AvailableContentTypes',
-    [ populateAvailableContentTypes ],
-  )();
-  get(
     'ContentPublishing/Clients',
     [ renderClientTree ],
+  )();
+  get(
+    'ContentPublishing/AvailableContentTypes',
+    [ populateAvailableContentTypes ],
   )();
 
   statusMonitor = new PublicationStatusMonitor();

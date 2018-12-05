@@ -73,6 +73,12 @@ namespace MapTests
         public Mock<IUploadHelper> MockUploadHelper { get; set; }
         public IUploadHelper UploadHelperObject { get => MockUploadHelper.Object; }
 
+        public Mock<IUploadTaskQueue> MockUploadTaskQueue { get; set; }
+        public IUploadTaskQueue UploadTaskQueueObject { get => MockUploadTaskQueue.Object; }
+
+        public Mock<IGoLiveTaskQueue> MockGoLiveTaskQueue { get; set; }
+        public IGoLiveTaskQueue GoLiveTaskQueueObject { get => MockGoLiveTaskQueue.Object; }
+
         public IConfiguration ConfigurationObject { get; set; }
 
         public Mock<IServiceProvider> MockServiceProvider { get; set; }
@@ -156,6 +162,8 @@ namespace MapTests
             MockRoleManager = GenerateRoleManager(MockDbContext);
             MockMessageQueueService = GenerateMessageQueueService();
             MockUploadHelper = GenerateUploadHelper();
+            MockUploadTaskQueue = new Mock<IUploadTaskQueue>();
+            MockGoLiveTaskQueue = new Mock<IGoLiveTaskQueue>();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
@@ -478,7 +486,14 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
                 { 
-                    new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1),
+                        ContentFilesList = new List<ContentRelatedFile>{
+                            new ContentRelatedFile {
+                                FileOriginalName = "filename",
+                                FilePurpose = "mastercontent",
+                            },
+                        },
+                    },
                     new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(2), ContentName="RootContent 2", ContentTypeId=TestUtil.MakeTestGuid(1) },
                     new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(8), ContentName="RootContent 3", ContentTypeId=TestUtil.MakeTestGuid(1) },
                     new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=TestUtil.MakeTestGuid(1) },
