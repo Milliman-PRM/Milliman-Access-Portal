@@ -12,6 +12,7 @@
 - Removed the close button in the content view to avoid blocking content
 - Fixed an issue where long content names were not being displayed properly in the content view
 - Removed status polling for hidden pages
+- Adjusted the navigation bar size to a fixed fraction of the screen to accommodate browser magnification changes
 
 ### v1.1.5
 
