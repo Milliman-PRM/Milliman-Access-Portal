@@ -24,6 +24,16 @@ namespace MapDbContextLib.Context
 
     public class ContentType
     {
+        [NotMapped]
+        public static Dictionary<ContentTypeEnum, string> ContentTypeString = new Dictionary<ContentTypeEnum, string>
+        {
+            { ContentTypeEnum.Unknown, "Unknown" },
+            { ContentTypeEnum.Qlikview, "QlikView" },
+            { ContentTypeEnum.Html, "HTML" },
+            { ContentTypeEnum.Pdf, "PDF" },
+            { ContentTypeEnum.FileDownload, "File Download" },
+        };
+
         [Key]
         public Guid Id { get; set; }
 

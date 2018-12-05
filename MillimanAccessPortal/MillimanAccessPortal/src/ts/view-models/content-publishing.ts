@@ -97,6 +97,7 @@ export interface ContentType {
   TypeEnum: ContentTypeEnum;
   Name: string;
   CanReduce: boolean;
+  DefaultIconName: string;
   FileExtensions: string[];
 }
 

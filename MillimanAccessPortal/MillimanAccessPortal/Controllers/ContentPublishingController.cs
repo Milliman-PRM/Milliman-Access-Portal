@@ -90,7 +90,11 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public IActionResult AvailableContentTypes()
         {
-            var model = DbContext.ContentType.ToList();
+            var model = new List<ContentTypeNormalized>();
+            foreach (var type in DbContext.ContentType)
+            {
+                model.Add((ContentTypeNormalized)type);
+            }
 
             return new JsonResult(model);
         }
