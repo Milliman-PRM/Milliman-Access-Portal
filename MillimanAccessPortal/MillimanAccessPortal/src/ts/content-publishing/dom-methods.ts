@@ -461,6 +461,11 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
   const contentType = $contentTypeDropdown
     .find(`option[value="${$contentTypeDropdown.val()}"]`)
     .data() as ContentType;
+  if (contentType && !contentType.CanReduce) {
+    $('#DoesReduce').closest('.form-input-toggle').hide();
+  } else {
+    $('#DoesReduce').closest('.form-input-toggle').show();
+  }
   formObject.inputSections.forEach((section) =>
     section.inputs.forEach((input) => {
       if (contentType && isFileUploadInput(input)) {
