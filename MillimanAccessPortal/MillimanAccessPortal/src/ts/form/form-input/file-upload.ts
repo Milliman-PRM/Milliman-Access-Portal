@@ -185,7 +185,7 @@ export class FileUploadInput extends FormInput {
       this.$entryPoint.find('.upload-icon').show();
       if (!this.deletable
           || this.$entryPoint.find('.file-upload').val() === ''
-          || this.value.endsWith('delete')) {
+          || this.value.match(/delete$/)) {
         this.$entryPoint.find('.cancel-icon').hide();
       }
       this.$entryPoint.find('.progress-bars').css('visibility', 'hidden');
