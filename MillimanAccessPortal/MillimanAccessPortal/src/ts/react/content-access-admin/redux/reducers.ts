@@ -1,94 +1,27 @@
 import { combineReducers } from 'redux';
 
-import { PublicationStatus, ReductionStatus } from '../../../view-models/content-publishing';
 import { Guid } from '../../models';
-import { Card, CardAttributes } from '../../shared-components/card/card';
-import { AccessAction } from './actions';
+import { CardAttributes } from '../../shared-components/card/card';
+import { AccessAction, DataSuffixes } from './actions';
 import {
   AccessStateData, AccessStateSelected, FilterState, ModalState, PendingGroupState,
   PendingGroupUserState,
 } from './store';
 
 const _initialData: AccessStateData = {
-  clients: [
-    { id: 'client1', name: 'client1', code: 'c1', eligibleUsers: ['user1', 'user2', 'user3', 'user4', 'user5'] },
-    { id: 'client2', name: 'client2', code: 'c2', eligibleUsers: ['user1', 'user2', 'user3', 'user4', 'user5'] },
-    { id: 'client3', name: 'client3', code: 'c3', eligibleUsers: ['user1', 'user2', 'user3'] },
-    { id: 'client4', name: 'client4', code: 'c4', eligibleUsers: [] },
-  ],
-  items: [
-    { id: 'item1', clientId: 'client1', contentTypeId: '1', name: 'item1', doesReduce: true, isSuspended: false },
-    { id: 'item2', clientId: 'client1', contentTypeId: '1', name: 'item2', doesReduce: true, isSuspended: false },
-    { id: 'item3', clientId: 'client1', contentTypeId: '1', name: 'item3', doesReduce: true, isSuspended: true },
-    { id: 'item4', clientId: 'client2', contentTypeId: '1', name: 'item4', doesReduce: true, isSuspended: false },
-    { id: 'item5', clientId: 'client2', contentTypeId: '1', name: 'item5', doesReduce: true, isSuspended: false },
-    { id: 'item6', clientId: 'client3', contentTypeId: '1', name: 'item6', doesReduce: false, isSuspended: false },
-  ],
-  groups: [
-    { id: 'group1', rootContentItemId: 'item1', name: 'group1', isMaster: true, isSuspended: false,
-      selectedValues: [], assignedUsers: [ 'user1', 'user2' ] },
-    { id: 'group2', rootContentItemId: 'item1', name: 'group2', isMaster: false, isSuspended: true,
-      selectedValues: [], assignedUsers: [ 'user3' ] },
-    { id: 'group3', rootContentItemId: 'item1', name: 'group3', isMaster: false, isSuspended: false,
-      selectedValues: [], assignedUsers: [] },
-    { id: 'group4', rootContentItemId: 'item2', name: 'group4', isMaster: false, isSuspended: false,
-      selectedValues: [], assignedUsers: [] },
-    { id: 'group5', rootContentItemId: 'item3', name: 'group5', isMaster: false, isSuspended: false,
-      selectedValues: [], assignedUsers: [] },
-  ],
-  users: [
-    { id: 'user1', firstName: 'Ichi', lastName: 'One',   userName: 'user1', email: 'user1@a.a',
-      activated: true, isSuspended: false },
-    { id: 'user2', firstName: 'Ni',   lastName: 'Two',   userName: 'user2', email: 'user2@a.a',
-      activated: true, isSuspended: false },
-    { id: 'user3', firstName: 'San',  lastName: 'Three', userName: 'user3', email: 'user3@a.a',
-      activated: true, isSuspended: false },
-    { id: 'user4', firstName: 'Shi',  lastName: 'Four',  userName: 'user4', email: 'user4@a.a',
-      activated: true, isSuspended: false },
-    { id: 'user5', firstName: 'Go',   lastName: 'Five',  userName: 'user5', email: 'user5@a.a',
-      activated: true, isSuspended: false },
-  ],
-  fields: [
-    { id: 'field1', fieldName: 'field1', displayName: 'field1', rootContentItemId: 'item1', valueDelimiter: '' },
-    { id: 'field2', fieldName: 'field2', displayName: 'field2', rootContentItemId: 'item1', valueDelimiter: '' },
-    { id: 'field3', fieldName: 'field3', displayName: 'field3', rootContentItemId: 'item1', valueDelimiter: '' },
-  ],
-  values: [
-    { id: 'value1', reductionFieldId: 'field1', value: 'value1' },
-    { id: 'value2', reductionFieldId: 'field1', value: 'value2' },
-    { id: 'value3', reductionFieldId: 'field1', value: 'value3' },
-    { id: 'value4', reductionFieldId: 'field2', value: 'value4' },
-    { id: 'value5', reductionFieldId: 'field2', value: 'value5' },
-  ],
-  contentTypes: [
-    { id: '1', name: 'QlikView', canReduce: true, fileExtensions: [] },
-    { id: '2', name: 'HTML', canReduce: false, fileExtensions: [] },
-    { id: '3', name: 'PDF', canReduce: false, fileExtensions: [] },
-  ],
-  publications: [
-    { id: 'p1', applicationUserId: 'user1', rootContentItemId: 'item2',
-      createDateTimeUtc: '2018-04-02T00:00:00.000Z', requestStatus: PublicationStatus.Queued },
-  ],
-  publicationQueue: [
-    { publicationId: 'p1', queuePosition: 2 },
-  ],
-  reductions: [
-    { id: 'r1', applicationUserId: 'user2', selectionGroupId: 'group1',
-      createDateTimeUtc: '2018-02-11T00:00:00.000Z', taskStatus: ReductionStatus.Queued,
-      selectedValues: [] },
-  ],
-  reductionQueue: [
-    { reductionId: 'r1', queuePosition: 1 },
-  ],
+  clients: [],
+  items: [],
+  groups: [],
+  users: [],
+  fields: [],
+  values: [],
+  contentTypes: [],
+  publications: [],
+  publicationQueue: [],
+  reductions: [],
+  reductionQueue: [],
 };
-
-const _initialCards = new Map<Guid, CardAttributes>([
-  ['group1', {}],
-  ['group2', {}],
-  ['group3', {}],
-  ['group4', {}],
-  ['group5', {}],
-]);
+const _initialCards = new Map<Guid, CardAttributes>([]);
 const _initialPendingGroups: PendingGroupState = {
   id: null,
   name: null,
@@ -155,6 +88,15 @@ const groupCardAttributes = createReducer<Map<Guid, CardAttributes>>(_initialCar
       updateAllMap(state, { expanded: true }),
     [AccessAction.SetAllCollapsedGroup]: (state) =>
       updateAllMap(state, { expanded: false }),
+    [AccessAction.FetchGroups + DataSuffixes.Succeeded]: (state, action) => {
+      const clone = new Map(state);
+      action.payload.groups.forEach((group) => {
+        if (!clone.has(group.id)) {
+          clone.set(group.id, {});
+        }
+      });
+      return clone;
+    },
   },
 );
 const pendingIsMaster = createReducer<boolean>(false, {
@@ -195,6 +137,36 @@ const pendingGroups = createReducer<PendingGroupState>(_initialPendingGroups, {
 });
 
 const data = createReducer<AccessStateData>(_initialData, {
+  [AccessAction.FetchClients + DataSuffixes.Succeeded]: (state, action) => ({
+    ...state,
+    clients: action.payload.clients,
+    users: action.payload.users,
+  }),
+  [AccessAction.FetchItems + DataSuffixes.Succeeded]: (state, action) => ({
+    ...state,
+    items: action.payload.items,
+    contentTypes: action.payload.contentTypes,
+    publications: action.payload.publications,
+    publicationQueue: action.payload.publicationQueue,
+  }),
+  [AccessAction.FetchGroups + DataSuffixes.Succeeded]: (state, action) => ({
+    ...state,
+    groups: action.payload.groups,
+    reductions: action.payload.reductions,
+    reductionQueue: action.payload.reductionQueue,
+  }),
+  [AccessAction.FetchSelections + DataSuffixes.Succeeded]: (state, action) => ({
+    ...state,
+    groups: state.groups.map((g) => {
+      const grp = action.payload.groups.find((f) => f.id === g.id);
+      return {
+        ...g,
+        selectedValues: grp ? grp.selectedValues : [],
+      };
+    }),
+    fields: action.payload.fields,
+    values: action.payload.values,
+  }),
 });
 const selected = createReducer<AccessStateSelected>(
   {

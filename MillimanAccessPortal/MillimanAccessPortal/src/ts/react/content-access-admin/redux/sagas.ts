@@ -1,13 +1,13 @@
 import { all, apply, put, takeLatest } from 'redux-saga/effects';
 
-import { AccessAction, DataAction, DataArgs, RequestSuffixes } from './actions';
+import { AccessAction, DataAction, DataArgs, DataSuffixes } from './actions';
 
 function* dataSaga<T extends DataArgs, R>(action: DataAction<T, R>) {
   try {
     const payload = yield apply(action, action.callback as any, action.args as any);
-    yield put({ type: action.type + RequestSuffixes.Succeeded, payload });
+    yield put({ type: action.type + DataSuffixes.Succeeded, payload });
   } catch (error) {
-    yield put({ type: action.type + RequestSuffixes.Failed, error });
+    yield put({ type: action.type + DataSuffixes.Failed, error });
   }
 }
 

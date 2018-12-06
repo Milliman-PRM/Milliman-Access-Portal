@@ -40,7 +40,7 @@ export enum AccessAction {
   CancelReduction = 'CANCEL_REDUCTION',
 }
 
-export enum RequestSuffixes {
+export enum DataSuffixes {
   None = '',
   Succeeded = '_SUCCEEDED',
   Failed = '_FAILED',

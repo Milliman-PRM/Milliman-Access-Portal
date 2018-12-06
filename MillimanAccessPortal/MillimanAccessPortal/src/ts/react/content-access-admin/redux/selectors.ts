@@ -271,7 +271,7 @@ export function selectedGroupWithStatus(state: AccessState) {
 }
 
 export function selectedReductionValues(state: AccessState) {
-  return selectedGroup(state)
+  return selectedGroup(state) && selectedGroup(state).selectedValues
     ? selectedGroup(state).selectedValues.map((i) =>
       state.data.values.filter((v) => v.id === i)[0])
     : [];

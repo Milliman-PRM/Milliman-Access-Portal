@@ -126,6 +126,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
+  public componentDidMount() {
+    this.props.fetchClients();
+  }
+
   public render() {
     return (
       <>
@@ -147,7 +151,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
           <Card
             key={key}
             selected={selected.client === entity.id}
-            onSelect={() => this.props.selectClient(entity.id)}
+            onSelect={() => {
+              this.props.fetchItems(entity.id);
+              this.props.selectClient(entity.id);
+            }}
           >
             <CardSectionMain>
               <CardText text={entity.name} subtext={entity.code} />
@@ -192,7 +199,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             key={key}
             disabled={isPublicationActive(entity.status && entity.status.requestStatus)}
             selected={selected.item === entity.id}
-            onSelect={() => this.props.selectItem(entity.id)}
+            onSelect={() => {
+              this.props.fetchGroups(entity.id);
+              this.props.selectItem(entity.id);
+            }}
             suspended={entity.isSuspended}
             status={entity.status}
           >
@@ -275,7 +285,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                 <CardButton
                   color={'green'}
                   tooltip={'Save changes'}
-                  onClick={() => alert('You clicked save.')}
+                  onClick={() => this.props.updateGroup(entity.id, entity.name, entity.assignedUsers.map((u) => u.id))}
                   icon={'checkmark'}
                 />
                 <CardButton
@@ -291,7 +301,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                 <CardButton
                   color={'red'}
                   tooltip={'Delete selection group'}
-                  onClick={() => alert('You clicked delete.')}
+                  onClick={() => this.props.deleteGroup(entity.id)}
                   icon={'delete'}
                 />
                 {pending.group.id === null
@@ -374,7 +384,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             <Card
               key={key}
               selected={selected.group === entity.id}
-              onSelect={() => this.props.selectGroup(entity.id)}
+              onSelect={() => {
+                this.props.fetchSelections(entity.id);
+                this.props.selectGroup(entity.id);
+              }}
               suspended={entity.isSuspended}
               status={entity.status}
             >
@@ -433,8 +446,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
           <form
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              alert('You created a selection group!');
-              this.props.closeAddGroupModal();
+              this.props.createGroup(this.props.selectedItem.id, this.props.pending.newGroupName);
             }}
           >
             <input
@@ -484,6 +496,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
     return activeClient && activeItem && activeGroup && (
       <SelectionsPanel
         isSuspended={group.isSuspended}
+        onIsSuspendedChange={(value) => this.props.suspendGroup(group.id, value)}
         doesReduce={item.doesReduce}
         isModified={formModified}
         isMaster={selectedMaster}
@@ -491,6 +504,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         title={group.name}
         subtitle={item.name}
         status={group.status.taskStatus || ReductionStatus.Unspecified}
+        onBeginReduction={() => this.props.updateSelections(group.id, selectedMaster, [])}
+        onCancelReduction={() => this.props.cancelReduction(group.id)}
         fieldsets={fieldsets}
       >
         <PanelSectionToolbar>

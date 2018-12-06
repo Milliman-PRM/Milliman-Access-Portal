@@ -2,12 +2,12 @@ import * as React from 'react';
 
 import { isReductionActive, ReductionStatus } from '../../view-models/content-publishing';
 import { PanelSectionContainer } from '../shared-components/card-panel/panel-sections';
-import { Filter } from '../shared-components/filter';
 import { Toggle } from '../shared-components/toggle';
 import { Fieldset, FieldsetData } from './fieldset';
 
 export interface SelectionsPanelProps {
   isSuspended: boolean;
+  onIsSuspendedChange: (value: boolean) => void;
   doesReduce: boolean;
   isModified: boolean;
   isMaster: boolean;
@@ -15,6 +15,8 @@ export interface SelectionsPanelProps {
   title: string;
   subtitle: string;
   status: ReductionStatus;
+  onBeginReduction: () => void;
+  onCancelReduction: () => void;
   fieldsets: FieldsetData[];
 }
 
@@ -33,7 +35,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
               <Toggle
                 label={'Suspend Access'}
                 checked={isSuspended}
-                onClick={() => null}
+                onClick={() => this.props.onIsSuspendedChange(!isSuspended)}
               />
               {this.renderDoesReduceSection()}
             </form>
@@ -90,10 +92,26 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
       case ReductionStatus.Live:
       case ReductionStatus.Error:
         return this.props.isModified
-          ? <button type="button" className="blue-button">Submit</button>
+          ? (
+            <button
+              type="button"
+              className="blue-button"
+              onClick={this.props.onBeginReduction}
+            >
+              Submit
+            </button>
+          )
           : null;
       case ReductionStatus.Queued:
-        return <button type="button" className="red-button">Cancel</button>;
+        return (
+          <button
+            type="button"
+            className="red-button"
+            onClick={this.props.onCancelReduction}
+          >
+            Cancel
+          </button>
+        );
       default:
         return null;
     }
