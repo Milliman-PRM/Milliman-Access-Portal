@@ -19,6 +19,12 @@ export interface ModalState {
 export interface PendingGroupUserState {
   assigned: boolean;
 }
+export interface PendingDataState {
+  clients: boolean;
+  items: boolean;
+  groups: boolean;
+  selections: boolean;
+}
 export interface PendingGroupState {
   id: Guid;
   name: string;
@@ -48,6 +54,7 @@ export interface AccessStateCardAttributes {
   group: Map<Guid, CardAttributes>;
 }
 export interface AccessStatePending {
+  data: PendingDataState;
   isMaster: boolean;
   selections: Map<Guid, { selected: boolean }>;
   newGroupName: string;

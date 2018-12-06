@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { isReductionActive, ReductionStatus } from '../../view-models/content-publishing';
 import { PanelSectionContainer } from '../shared-components/card-panel/panel-sections';
+import { LoadingSpinner } from '../shared-components/loading-spinner';
 import { Toggle } from '../shared-components/toggle';
 import { Fieldset, FieldsetData } from './fieldset';
 
@@ -17,16 +18,27 @@ export interface SelectionsPanelProps {
   status: ReductionStatus;
   onBeginReduction: () => void;
   onCancelReduction: () => void;
+  loading?: boolean;
   fieldsets: FieldsetData[];
 }
 
 export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   public render() {
-    const { children, title, subtitle, isSuspended } = this.props;
+    const { children } = this.props;
     return (
       <PanelSectionContainer>
         <h3 className="admin-panel-header">Selections</h3>
         {children}
+        {this.renderFormSection()}
+      </PanelSectionContainer>
+    );
+  }
+
+  private renderFormSection() {
+    const { title, subtitle, isSuspended, loading } = this.props;
+    return loading
+      ? <LoadingSpinner />
+      : (
         <div className="admin-panel-form">
           <div className="admin-panel-content-container">
             <form className="admin-panel-content">
@@ -41,8 +53,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
             </form>
           </div>
         </div>
-      </PanelSectionContainer>
-    );
+      );
   }
 
   private renderDoesReduceSection() {

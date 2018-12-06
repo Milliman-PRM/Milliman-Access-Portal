@@ -1,7 +1,7 @@
 import { difference, isEqual, xor } from 'lodash';
 
 import {
-  isPublicationActive, isReductionActive, publicationStatusNames, reductionStatusNames,
+  isReductionActive, publicationStatusNames, reductionStatusNames,
 } from '../../../view-models/content-publishing';
 import { Guid, ReductionFieldset } from '../../models';
 import { AccessState } from './store';

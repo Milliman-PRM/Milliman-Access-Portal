@@ -143,10 +143,11 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters } = this.props;
+    const { clients, selected, filters, pending } = this.props;
     return (
       <CardPanel
         entities={clients}
+        loading={pending.data.clients}
         renderEntity={(entity, key) => (
           <Card
             key={key}
@@ -190,10 +191,11 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   }
 
   private renderItemPanel() {
-    const { activeSelectedClient: activeClient, items, selected, filters } = this.props;
+    const { activeSelectedClient: activeClient, items, selected, filters, pending } = this.props;
     return activeClient && (
       <CardPanel
         entities={items}
+        loading={pending.data.items}
         renderEntity={(entity, key) => (
           <Card
             key={key}
@@ -277,6 +279,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
     return activeClient && activeItem && (
       <CardPanel
         entities={groups}
+        loading={pending.data.groups}
         renderEntity={(entity, key) => {
           const card = cardAttributes.group.get(entity.id);
           const cardButtons = entity.editing
@@ -477,6 +480,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       activeSelectedItem: activeItem,
       activeSelectedGroup: activeGroup,
       filters,
+      pending,
       selectedValues,
       modifiedValues,
       selectedMaster,
@@ -506,6 +510,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         status={group.status.taskStatus || ReductionStatus.Unspecified}
         onBeginReduction={() => this.props.updateSelections(group.id, selectedMaster, [])}
         onCancelReduction={() => this.props.cancelReduction(group.id)}
+        loading={pending.data.selections}
         fieldsets={fieldsets}
       >
         <PanelSectionToolbar>

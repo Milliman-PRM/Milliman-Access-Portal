@@ -6,6 +6,7 @@ import { AccessAction, DataSuffixes } from './actions';
 import {
   AccessStateData, AccessStateSelected, FilterState, ModalState, PendingGroupState,
   PendingGroupUserState,
+  PendingDataState,
 } from './store';
 
 const _initialData: AccessStateData = {
@@ -22,6 +23,12 @@ const _initialData: AccessStateData = {
   reductionQueue: [],
 };
 const _initialCards = new Map<Guid, CardAttributes>([]);
+const _initialPendingData: PendingDataState = {
+  clients: false,
+  items: false,
+  groups: false,
+  selections: false,
+};
 const _initialPendingGroups: PendingGroupState = {
   id: null,
   name: null,
@@ -99,6 +106,40 @@ const groupCardAttributes = createReducer<Map<Guid, CardAttributes>>(_initialCar
     },
   },
 );
+const pendingData = createReducer<PendingDataState>(_initialPendingData, {
+  [AccessAction.FetchClients]: (state) => ({
+    ...state,
+    clients: true,
+  }),
+  [AccessAction.FetchClients + DataSuffixes.Succeeded]: (state) => ({
+    ...state,
+    clients: false,
+  }),
+  [AccessAction.FetchItems]: (state) => ({
+    ...state,
+    items: true,
+  }),
+  [AccessAction.FetchItems + DataSuffixes.Succeeded]: (state) => ({
+    ...state,
+    items: false,
+  }),
+  [AccessAction.FetchGroups]: (state) => ({
+    ...state,
+    groups: true,
+  }),
+  [AccessAction.FetchGroups + DataSuffixes.Succeeded]: (state) => ({
+    ...state,
+    groups: false,
+  }),
+  [AccessAction.FetchSelections]: (state) => ({
+    ...state,
+    selections: true,
+  }),
+  [AccessAction.FetchSelections + DataSuffixes.Succeeded]: (state) => ({
+    ...state,
+    selections: false,
+  }),
+});
 const pendingIsMaster = createReducer<boolean>(false, {
   [AccessAction.SetPendingIsMaster]: (_, action) => action.isMaster,
 });
@@ -196,6 +237,7 @@ const cardAttributes = combineReducers({
   group: groupCardAttributes,
 });
 const pending = combineReducers({
+  data: pendingData,
   isMaster: pendingIsMaster,
   selections: pendingSelections,
   newGroupName: pendingNewGroupName,

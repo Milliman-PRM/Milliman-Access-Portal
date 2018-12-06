@@ -14,18 +14,25 @@ export interface CardPanelProps<TEntity> {
 
 export class CardPanel<TEntity> extends React.Component<CardPanelProps<TEntity>> {
   public render() {
-    const { loading, entities, renderEntity, children } = this.props;
-    return  loading
-    ? <LoadingSpinner />
-    : (
+    const { children } = this.props;
+    return (
       <PanelSectionContainer>
         {children}
+        {this.renderContentSection()}
+      </PanelSectionContainer>
+    );
+  }
+
+  private renderContentSection() {
+    const { loading, entities, renderEntity } = this.props;
+    return loading
+      ? <LoadingSpinner />
+      : (
         <CardPanelSectionContent>
           <ul className="admin-panel-content">
             {entities.map((entity, i) => renderEntity(entity, i))}
           </ul>
         </CardPanelSectionContent>
-      </PanelSectionContainer>
-    );
+      );
   }
 }
