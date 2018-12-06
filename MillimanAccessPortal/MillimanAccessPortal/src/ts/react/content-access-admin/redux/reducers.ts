@@ -102,11 +102,12 @@ const groupCardAttributes = createReducer<Map<Guid, CardAttributes>>(_initialCar
 const pendingIsMaster = createReducer<boolean>(false, {
   [AccessAction.SetPendingIsMaster]: (_, action) => action.isMaster,
 });
-const pendingSelections = createReducer<Guid[]>([], {
+const pendingSelections = createReducer<Map<Guid, { selected: boolean }>>(new Map(), {
   [AccessAction.SetPendingSelectionOn]: (state, action) =>
-    updateList(state, (i) => i !== action.id, action.id),
+    updateMap(state, action.id, { selected: true }),
   [AccessAction.SetPendingSelectionOff]: (state, action) =>
-    updateList(state, (i) => i !== action.id),
+    updateMap(state, action.id, { selected: false }),
+  [AccessAction.SelectGroup]: () => new Map(),
 });
 const pendingNewGroupName = createReducer<string>('', {
   [AccessAction.SetPendingNewGroupName]: (_, action) => action.name,

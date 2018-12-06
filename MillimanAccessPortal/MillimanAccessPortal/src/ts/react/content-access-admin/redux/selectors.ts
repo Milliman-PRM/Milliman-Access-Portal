@@ -14,7 +14,12 @@ export function pendingReductionValues(state: AccessState) {
     ? (_relatedReduction && isReductionActive(_relatedReduction.taskStatus))
       ? _relatedReduction.selectedValues.map((i) =>
         state.data.values.filter((v) => v.id === i)[0])
-      : state.data.values.filter((v) => state.pending.selections.indexOf(v.id) !== -1)
+      : state.data.values.filter((v) => {
+        const selectionChanges = state.pending.selections || new Map();
+        return _selectedGroup.selectedValues && _selectedGroup.selectedValues.find((sv) => sv === v.id)
+          ? !selectionChanges.has(v.id) || selectionChanges.get(v.id).selected
+          : selectionChanges.has(v.id) && selectionChanges.get(v.id).selected;
+      })
     : [];
 }
 export function modifiedReductionValues(state: AccessState) {

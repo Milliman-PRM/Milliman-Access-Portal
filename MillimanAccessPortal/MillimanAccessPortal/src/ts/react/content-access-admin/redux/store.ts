@@ -49,7 +49,7 @@ export interface AccessStateCardAttributes {
 }
 export interface AccessStatePending {
   isMaster: boolean;
-  selections: Guid[];
+  selections: Map<Guid, { selected: boolean }>;
   newGroupName: string;
   group: PendingGroupState;
 }
