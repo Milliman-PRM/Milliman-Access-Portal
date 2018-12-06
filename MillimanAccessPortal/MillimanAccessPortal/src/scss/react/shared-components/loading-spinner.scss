@@ -1,0 +1,101 @@
+@import "../../map_modules/variables";
+
+$period:            1.5s;
+$duty-cycle:        40%;
+$bar-count:         5;
+$delay-ratio:       0.1;
+$bar-height-max:    50px;
+$bar-height-min:    10px;
+$bar-margin-v:      ($bar-height-max - $bar-height-min) / 2;
+$bar-width:         10px;
+$bar-margin-h:      5px;
+$loading-height:    $bar-height-max;
+$loading-width:     ($bar-count * ($bar-width + $bar-margin-h) - $bar-margin-h);
+
+.loading-wrapper-r {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 8;
+  background: radial-gradient(
+    circle,
+    rgba($light-grey, .75) 25%,
+    rgba($light-grey, 0.5),
+    rgba($light-grey, 0),
+  );
+}
+
+.loading-indicator-r {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  list-style: none;
+  height: $loading-height;
+  padding: 0;
+  margin: 0;
+
+  li {
+    background-color: $blue;
+    border: 1px solid $charcoal;
+    width: $bar-width;
+    height: $bar-height-min;
+    float: right;
+    margin: $bar-margin-v $bar-margin-h $bar-margin-v 0;
+  }
+
+  @for $i from 1 through $bar-count {
+    li:nth-child(#{$i}) {
+      -webkit-animation: loadbars $period ease-in-out infinite
+        #{($bar-count - $i) * $delay-ratio * $period};
+      animation: loadbars $period ease-in-out infinite
+        #{($bar-count - $i) * $delay-ratio * $period};
+    }
+  }
+
+  @keyframes loadbars {
+    0% {
+      height: $bar-height-min;
+      margin-top: $bar-margin-v;
+    }
+
+    #{100% - $duty-cycle} {
+      height: $bar-height-min;
+      margin-top: $bar-margin-v;
+    }
+
+    #{100% - ($duty-cycle / 2)} {
+      height: $bar-height-max;
+      margin-top: 0;
+    }
+
+    100% {
+      height: $bar-height-min;
+      margin-top: $bar-margin-v;
+    }
+  }
+
+  @-webkit-keyframes loadbars {
+    0% {
+      height: $bar-height-min;
+      margin-top: $bar-margin-v;
+    }
+
+    #{100% - $duty-cycle} {
+    height: $bar-height-min;
+    margin-top: $bar-margin-v;
+    }
+
+    #{100% - ($duty-cycle / 2)} {
+      height: $bar-height-max;
+      margin-top: 0;
+    }
+
+    100% {
+    height: $bar-height-min;
+    margin-top: $bar-margin-v;
+    }
+  }
+}
