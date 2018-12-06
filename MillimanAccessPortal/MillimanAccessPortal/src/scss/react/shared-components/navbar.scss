@@ -69,3 +69,38 @@ nav {
         }
     }
 }
+
+/* IE Specific overrides */
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+
+    .navbar-offset {
+        padding-left: 4rem;
+    }
+
+    nav {
+        left: -18.5em;
+        width: 18.5em;
+
+        &.loaded {
+            left: -14.5em;
+        }
+
+        &:hover {
+            left: 0;
+        }
+
+        .nav-element {
+            margin-bottom: .25em;
+
+            .nav-element-label {
+                font-size: 1em;
+            }
+
+            .nav-element-icon {
+                width: 4em;
+                height: 4em;
+                padding: .5rem;
+            }
+        }
+    }
+}
