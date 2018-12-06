@@ -179,16 +179,20 @@ export function activeGroupsWithStatus(state: AccessState) {
   });
 }
 export function allGroupsExpanded(state: AccessState) {
-  return activeGroups(state).reduce((prev, g) => {
-    const card = state.cardAttributes.group.get(g.id);
-    return prev && card && card.expanded;
-  }, true);
+  return activeGroups(state)
+    .filter((g) => g.assignedUsers.length || state.pending.group.id === g.id)
+    .reduce((prev, g) => {
+      const card = state.cardAttributes.group.get(g.id);
+      return prev && card && card.expanded;
+    }, true);
 }
 export function allGroupsCollapsed(state: AccessState) {
-  return activeGroups(state).reduce((prev, g) => {
-    const card = state.cardAttributes.group.get(g.id);
-    return prev && (!card || !card.expanded);
-  }, true);
+  return activeGroups(state)
+    .filter((g) => g.assignedUsers.length)
+    .reduce((prev, g) => {
+      const card = state.cardAttributes.group.get(g.id);
+      return prev && (!card || !card.expanded);
+    }, true);
 }
 
 export function activeReductions(state: AccessState) {
