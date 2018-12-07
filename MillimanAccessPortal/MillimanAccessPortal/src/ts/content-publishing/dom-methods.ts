@@ -208,8 +208,10 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       node: response.ContentTypeName === 'FileDownload'
         ? '.content-preview-download'
         : response.ContentTypeName === 'Pdf'
-          ? '.content-preview'
-          : '.content-preview-sandbox',
+          ? '.content-preview-pdf'
+          : response.ContentTypeName === 'Html'
+            ? '.content-preview-sandbox'
+            : '.content-preview',
     },
     { sectionName: 'user-guide', link: response.UserGuideLink },
     { sectionName: 'release-notes', link: response.ReleaseNotesLink },

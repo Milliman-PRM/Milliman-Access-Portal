@@ -273,6 +273,9 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-master-content">
             <h4>Master Content</h4>
             <div class="content-preview">
+                <iframe src="about:blank"></iframe>
+            </div>
+            <div class="content-preview-pdf">
                 <object data="about:blank" type="application/pdf"></object>
             </div>
             <div class="content-preview-sandbox">
