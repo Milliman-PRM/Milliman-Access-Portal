@@ -29,7 +29,7 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
         sandboxValues = 'allow-scripts allow-popups allow-modals allow-forms';
         break;
       case ContentTypeEnum.Qlikview:
-        sandboxValues = 'allow-same-origin allow-scripts allow-popups allow-forms';
+        sandboxValues = null;
         break;
       default:
         sandboxValues = '';
