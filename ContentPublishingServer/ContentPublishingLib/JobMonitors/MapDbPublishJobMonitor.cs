@@ -261,16 +261,23 @@ namespace ContentPublishingLib.JobMonitors
                         return false;
                     }
 
+                    List<ContentReductionTask> RelatedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id).ToList();
+
                     // Canceled here implies that the application does not want the update
                     if (DbRequest.RequestStatus == PublicationStatus.Canceled)
                     {
-                        List<ContentReductionTask> RelatedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id).ToList();
                         RelatedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
                         Db.ContentReductionTask.UpdateRange(RelatedTasks);
                         Db.SaveChanges();
                         Transaction.Commit();
                         return true;
                     }
+
+                    DbRequest.OutcomeMetadataObj = new PublicationRequestOutcomeMetadata
+                    {
+                        ReductionTaskFailOutcomeList = JobDetail.Result.ReductionTaskFailList,
+                        ReductionTaskSuccessOutcomeList = JobDetail.Result.ReductionTaskSuccessList,
+                    };
 
                     switch (JobDetail.Status)
                     {

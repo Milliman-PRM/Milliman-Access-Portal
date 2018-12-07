@@ -123,6 +123,13 @@ namespace MapDbContextLib.Context
         public string StatusMessage { get; set; } = string.Empty;
 
         /// <summary>
+        /// May also be accessed through [NotMapped] property RequestMetadataObj
+        /// Intended to be serialization of type RequestMetadata
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string OutcomeMetadata { get; set; } = "{}";
+
+        /// <summary>
         /// Identifies files associated with work of the publishing server (input and output)
         /// </summary>
         [NotMapped]
@@ -178,6 +185,26 @@ namespace MapDbContextLib.Context
                 UploadedRelatedFiles = value != null
                     ? JsonConvert.SerializeObject(value)
                     : "[]";
+            }
+        }
+
+        /// <summary>
+        /// Identifies metadata about a publication request
+        /// </summary>
+        [NotMapped]
+        public PublicationRequestOutcomeMetadata OutcomeMetadataObj
+        {
+            get
+            {
+                return string.IsNullOrWhiteSpace(OutcomeMetadata)
+                    ? new PublicationRequestOutcomeMetadata { }
+                    : JsonConvert.DeserializeObject<PublicationRequestOutcomeMetadata>(OutcomeMetadata);
+            }
+            set
+            {
+                OutcomeMetadata = value != null
+                    ? JsonConvert.SerializeObject(value)
+                    : "{}";
             }
         }
     }

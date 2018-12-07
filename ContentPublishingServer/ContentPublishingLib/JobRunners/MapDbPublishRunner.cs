@@ -194,6 +194,29 @@ namespace ContentPublishingLib.JobRunners
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 JobDetail.Result.StatusMessage = msg;
             }
+            finally
+            {
+                using (ApplicationDbContext Db = GetDbContext())
+                {
+                    foreach (ContentReductionTask RelatedTask in Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToList())
+                    {
+                        ReductionTaskOutcomeMetadata TaskOutcome = RelatedTask.OutcomeMetadataObj;
+                        if (TaskOutcome.ReductionTaskId == Guid.Empty)
+                        {
+                            TaskOutcome.ReductionTaskId = RelatedTask.Id;
+                        }
+                        if (TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.Success)
+                        {
+                            JobDetail.Result.ReductionTaskSuccessList.Add(TaskOutcome);
+                        }
+                        else
+                        {
+                            JobDetail.Result.ReductionTaskFailList.Add(TaskOutcome);
+                        }
+                    }
+                }
+
+            }
 
             return JobDetail;
         }
@@ -223,6 +246,8 @@ namespace ContentPublishingLib.JobRunners
 
                     string Msg = $"Publication request terminating due to error in related reduction task(s):{Environment.NewLine}  {string.Join("  " + Environment.NewLine, FailedTasks.Select(t => t.Id.ToString() + " : " + t.ReductionStatusMessage))}";
                     GlobalFunctions.TraceWriteLine(Msg);
+
+                    JobDetail.StatusReason = PublishJobDetail.JobErrorReason.ReductionTaskErrors;
 
                     throw new ApplicationException(Msg);
                 }

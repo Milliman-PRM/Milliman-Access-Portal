@@ -36,6 +36,18 @@ namespace ContentPublishingLib.JobRunners
             Error,
         }
 
+        public enum JobOutcomeReason
+        {
+            Unspecified,
+            Success,
+            Canceled,
+            BadRequest,
+
+            UnspecifiedError,
+            NoSelectedFieldValues,
+            NoSelectedFieldValueMatchInNewContent,
+        }
+
         public ReductionJobRequest Request;
         public ReductionJobResult Result;
         public Guid TaskId { get; set; } = Guid.Empty;
@@ -79,6 +91,8 @@ namespace ContentPublishingLib.JobRunners
             public ExtractedHierarchy MasterContentHierarchy { get; set; } = null;
             public ExtractedHierarchy ReducedContentHierarchy { get; set; } = null;
             public string ReducedContentFileChecksum { get; set; } = string.Empty;
+            public JobOutcomeReason OutcomeReason { get; set; } = JobOutcomeReason.Unspecified;
+            public TimeSpan ProcessingDuration { get; set; } = new TimeSpan(0);
         }
 
         public class ReductionJobRequest
