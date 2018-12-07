@@ -149,9 +149,11 @@ mkdir -p ${rootPath}\_test_results
 
 
 #region Exit if only notes have changed within the current branch (comparing against develop)
-
-$command = "$gitExePath diff --name-only origin/develop 2>&1"
-$diffOutput = Invoke-Expression "$command" | out-string
+# unless the branch is develop, master, or pre-release
+if (!($BranchName -eq 'master' -or $BranchName -eq 'develop' -or $BranchName -like 'pre-release*')) {
+    $command = "$gitExePath diff --name-only origin/develop 2>&1"
+    $diffOutput = Invoke-Expression "$command" | out-string
+}
 
 log_statement "git diff Output:"
 write-output $diffOutput
