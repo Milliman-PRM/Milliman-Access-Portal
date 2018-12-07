@@ -27,7 +27,7 @@ namespace MapDbContextLib.Models
     public class ReductionTaskOutcomeMetadata
     {
         public Guid ReductionTaskId { get; set; }
-        public TimeSpan ProcessingDuration { get; set; } = TimeSpan.MinValue;
+        public TimeSpan ProcessingDuration { get; set; } = TimeSpan.Zero;
         public MapDbReductionTaskOutcomeReason OutcomeReason { get; set; } = MapDbReductionTaskOutcomeReason.Default;
     }
 }

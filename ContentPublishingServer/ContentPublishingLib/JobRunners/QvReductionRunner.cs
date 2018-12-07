@@ -434,7 +434,7 @@ namespace ContentPublishingLib.JobRunners
             if (!JobDetail.Request.SelectionCriteria.Any(s => s.Selected &&
                                                               JobDetail.Result.MasterContentHierarchy.Fields.Any(f => f.FieldName == s.FieldName && f.FieldValues.Contains(s.FieldValue))))
             {
-                string Msg = $"None of the {JobDetail.Request.SelectionCriteria.Count} specified selections exist in the master content hierarchy";
+                string Msg = $"None of the {JobDetail.Request.SelectionCriteria.Where(s => s.Selected).Count()} specified selections exist in the master content hierarchy";
                 object DetailObj = new {
                     ReductionJobId = JobDetail.TaskId.ToString(),
                     RequestesSelections = JobDetail.Request.SelectionCriteria,
