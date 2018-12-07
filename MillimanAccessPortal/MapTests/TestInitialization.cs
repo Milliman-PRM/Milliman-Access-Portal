@@ -22,6 +22,7 @@ using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
+using MillimanAccessPortal.Utilities;
 using Moq;
 using QlikviewLib;
 using System;
@@ -82,6 +83,9 @@ namespace MapTests
 
         public Mock<IServiceProvider> MockServiceProvider { get; set; }
         public IServiceProvider ServiceProviderObject { get => MockServiceProvider.Object; }
+
+        public Mock<FileSystemTasks> MockFileSystemTasks { get; set; }
+        public FileSystemTasks FileSystemTasksObject { get => MockFileSystemTasks.Object; }
 
         public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
 
@@ -166,6 +170,7 @@ namespace MapTests
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject, MockAuditLogger.Object);
             ConfigurationObject = GenerateConfiguration();
             MockServiceProvider = GenerateServiceProvider();
+            MockFileSystemTasks = new Mock<FileSystemTasks>();
         }
 
         /// <summary>
@@ -481,7 +486,14 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
                 { 
-                    new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1),
+                        ContentFilesList = new List<ContentRelatedFile>{
+                            new ContentRelatedFile {
+                                FileOriginalName = "filename",
+                                FilePurpose = "mastercontent",
+                            },
+                        },
+                    },
                     new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(2), ContentName="RootContent 2", ContentTypeId=TestUtil.MakeTestGuid(1) },
                     new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(8), ContentName="RootContent 3", ContentTypeId=TestUtil.MakeTestGuid(1) },
                     new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=TestUtil.MakeTestGuid(1) },

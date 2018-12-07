@@ -1,9 +1,11 @@
 ﻿import '../../../images/release-notes.svg';
 import '../../../images/userguide.svg';
+import '../../../images/download.svg';
 import '../../../scss/react/authorized-content/content-card.scss';
 
 import * as React from 'react';
 
+import { ContentTypeEnum } from '../../view-models/content-publishing';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ContentCardFunctions, ContentItem } from './interfaces';
 
@@ -31,25 +33,60 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
     );
     const releaseNotes = this.props.ReleaseNotesURL
       ? (
-        <ActionIcon
-          action={this.selectReleaseNotes}
-          title="View Release Notes"
-          icon="release-notes"
-        />
+        <a
+          href={this.props.ReleaseNotesURL}
+          target="_blank"
+          className="action-icon-link"
+          onClick={this.selectReleaseNotes}
+        >
+          <ActionIcon
+            action={() => false}
+            title="View Release Notes"
+            icon="release-notes"
+          />
+        </a>
       )
       : null;
     const userGuide = this.props.UserguideURL
       ? (
-        <ActionIcon
-          action={this.selectUserGuide}
-          title="View Userguide"
-          icon="userguide"
-        />
+        <a
+          href={this.props.UserguideURL}
+          target="_blank"
+          className="action-icon-link"
+          onClick={this.selectUserGuide}
+        >
+          <ActionIcon
+            action={() => false}
+            title="View Userguide"
+            icon="userguide"
+          />
+        </a>
       )
       : null;
+    const contentLink = (this.props.ContentTypeEnum === ContentTypeEnum.FileDownload)
+      ? (
+        <a
+          href={this.props.ContentURL}
+          download
+          className="content-card-link content-card-download"
+        >
+          <div className="content-card-download-indicator">
+            <svg className="content-card-download-icon">
+              <use xlinkHref="#download"/>
+            </svg>
+          </div>
+        </a>
+      ) : (
+        <a
+          href={this.props.ContentURL}
+          target="_blank"
+          className="content-card-link"
+          onClick={this.selectContent}
+        />
+        )
     return (
       <div className="content-card-container">
-        <div className="content-card" onClick={this.selectContent}>
+        <div className="content-card">
           <div className="content-card-header">
             <h2 className="content-card-title">{this.props.Name}</h2>
             <div className="content-card-icons">
@@ -63,6 +100,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
               {this.props.Description}
             </p>
           </div>
+          {contentLink}
         </div>
       </div>
     );
@@ -70,17 +108,19 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
 
   private selectContent(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.ContentURL);
+    event.preventDefault();
+    this.props.selectContent(this.props.ContentURL, this.props.ContentTypeEnum);
   }
 
   private selectReleaseNotes(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.ReleaseNotesURL);
+    event.preventDefault();
+    this.props.selectContent(this.props.ReleaseNotesURL, ContentTypeEnum.Pdf);
   }
 
   private selectUserGuide(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
-    this.props.selectContent(this.props.UserguideURL);
+    event.preventDefault();
+    this.props.selectContent(this.props.UserguideURL, ContentTypeEnum.Pdf);
   }
-
 }

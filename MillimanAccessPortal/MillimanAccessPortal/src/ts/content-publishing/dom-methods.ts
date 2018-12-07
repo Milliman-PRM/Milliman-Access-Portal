@@ -7,6 +7,7 @@ import * as toastr from 'toastr';
 import { AddRootContentItemActionCard, ClientCard, RootContentItemCard } from '../card';
 import { CancelContentPublicationRequestDialog, DeleteRootContentItemDialog } from '../dialog';
 import { FormBase } from '../form/form-base';
+import { isFileUploadInput } from '../form/form-input/file-upload';
 import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import { Guid } from '../react/shared-components/interfaces';
@@ -16,6 +17,7 @@ import {
   updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
 import { setUnloadAlert } from '../unload-alerts';
+import { UploadComponent } from '../upload/upload';
 import {
   BasicNode, ClientSummary, ClientTree, ContentType, PreLiveContentValidationSummary,
   PublishRequest, RootContentItemDetail, RootContentItemList, RootContentItemSummary,
@@ -29,6 +31,9 @@ let formObject: FormBase;
 let statusMonitor: PublicationStatusMonitor;
 
 let preLiveObject: PreLiveContentValidationSummary;
+
+const goLiveDisabledTooltip = 'Complete checks to proceed';
+const goLiveEnabledTooltip = 'Approve content and go live';
 
 function deleteRootContentItem(
   rootContentItemId: Guid,
@@ -184,30 +189,60 @@ function addToDocumentCount(clientId: Guid, offset: number) {
 
 function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   // Show and clear all confirmation checkboxes
+  $('#report-confirmation .loading-wrapper').hide();
+  $('#report-confirmation .admin-panel-content-container')
+    .show()[0].scrollTop = 0;
   $('#report-confirmation label')
     .show()
     .find('input[type="checkbox"]')
     .removeAttr('disabled')
     .prop('checked', false);
   $('#confirmation-section-attestation .button-approve')
-    .attr('disabled', '');
+    .addClass('disabled')
+    .tooltipster('content', goLiveDisabledTooltip);
   // set src for iframes, conditionally marking iframes as unchanged
-  const linkPairs: Array<{sectionName: string, link: string}> = [
-    { sectionName: 'master-content', link: response.MasterContentLink },
+  const linkPairs: Array<{sectionName: string, link: string, node?: string}> = [
+    {
+      sectionName: 'master-content',
+      link: response.MasterContentLink,
+      node: response.ContentTypeName === 'FileDownload'
+        ? '.content-preview-download'
+        : response.ContentTypeName === 'Html'
+          ? '.content-preview-sandbox'
+          : '.content-preview',
+    },
     { sectionName: 'user-guide', link: response.UserGuideLink },
     { sectionName: 'release-notes', link: response.ReleaseNotesLink },
   ];
   linkPairs.forEach((pair) => {
-    $(`#confirmation-section-${pair.sectionName} iframe`)
-      .removeAttr('srcdoc')
-      .attr('src', pair.link)
-      .siblings('a')
-      .attr('href', pair.link)
-      .filter(() => pair.link === null)
+    $(`#confirmation-section-${pair.sectionName} div`)
+      .filter(pair.node || '.content-preview')
+      .find('a,iframe,object')
+      .attr('src', function() {
+        return $(this).is('iframe')
+          ? pair.link
+          : null;
+      })
+      .attr('data', function() {
+        return $(this).is('object')
+          ? pair.link
+          : null;
+      })
+      .attr('href', function() {
+        return $(this).is('a')
+          ? pair.link
+          : null;
+      })
+      .parent()
+      .show()
+      .siblings('div')
       .hide()
-      .siblings('iframe')
-      .removeAttr('src')
-      .attr('srcdoc', 'This file has not changed.')
+      .filter(() => pair.link === null)
+      .filter('.content-preview-none')
+      .show()
+      .siblings('div')
+      .hide()
+      .find('iframe,object')
       .closest('.confirmation-section').find('label')
       .hide()
       .find('input')
@@ -274,7 +309,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     .filter((_, element) => $(element).attr('disabled') === undefined).length;
   if (!anyEnabled) {
     $('#confirmation-section-attestation .button-approve')
-      .removeAttr('disabled');
+      .removeClass('disabled')
+      .tooltipster('content', goLiveEnabledTooltip);
   }
 
   preLiveObject = response;
@@ -368,17 +404,21 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       data.split('&')
         .map((kvp) => kvp.split('='))
         .forEach((kvp) => dataArray[decodeURIComponent(kvp[0])] = decodeURIComponent(kvp[1]));
+      const fileChanges = ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
+        .map((file) => {
+          const fileData = dataArray[file].split('~');
+          return {
+            FileOriginalName: fileData[0],
+            FilePurpose: file,
+            FileUploadId: fileData[1],
+          };
+        });
       const publishRequest: PublishRequest = {
-        RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
-          .map((file) => {
-            const fileData = dataArray[file].split('~');
-            return {
-              FileOriginalName: fileData[0],
-              FilePurpose: file,
-              FileUploadId: fileData[1],
-            };
-          })
-          .filter((file) => file.FileUploadId),
+        NewRelatedFiles: fileChanges
+          .filter((file) => file.FileUploadId && file.FileUploadId !== 'delete'),
+        DeleteFilePurposes: fileChanges
+          .filter((file) => file.FileUploadId && file.FileUploadId === 'delete')
+          .map((file) => file.FilePurpose),
         RootContentItemId: dataArray.Id,
       };
       return publishRequest;
@@ -417,6 +457,22 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       },
     ],
   );
+  const $contentTypeDropdown = $('#ContentTypeId');
+  const contentType = $contentTypeDropdown
+    .find(`option[value="${$contentTypeDropdown.val()}"]`)
+    .data() as ContentType;
+  if (contentType && !contentType.CanReduce) {
+    $('#DoesReduce').closest('.form-input-toggle').hide();
+  } else {
+    $('#DoesReduce').closest('.form-input-toggle').show();
+  }
+  formObject.inputSections.forEach((section) =>
+    section.inputs.forEach((input) => {
+      if (contentType && isFileUploadInput(input)) {
+        input.fileTypes.set(UploadComponent.Content, contentType.FileExtensions);
+        input.configure();
+      }
+    }));
 
   $rootContentItemForm
     .removeData('validator')
@@ -452,7 +508,10 @@ function renderRootContentItem(item: RootContentItemSummary) {
     }),
     rootContentItemDeleteClickHandler,
     rootContentItemCancelClickHandler,
-    wrapCardIconCallback(get(
+    wrapCardIconCallback((card) => {
+      $('#report-confirmation .admin-panel-content-container').hide();
+      $('#report-confirmation .loading-wrapper').show();
+      get(
         'ContentPublishing/PreLiveSummary',
         [
           renderConfirmationPane,
@@ -460,7 +519,8 @@ function renderRootContentItem(item: RootContentItemSummary) {
         (data) => ({
           rootContentItemId: data && data.rootContentItemId,
         }),
-      ), () => formObject, {count: 1, offset: 1}, () => false),
+      )(card);
+    }, () => formObject, {count: 1, offset: 1}, () => false),
   ).build();
   updateCardStatus($rootContentItemCard, item.PublicationDetails);
   updateCardStatusButtons($rootContentItemCard, item.PublicationDetails && item.PublicationDetails.StatusEnum);
@@ -529,7 +589,6 @@ function populateAvailableContentTypes(contentTypes: ContentType[]) {
   });
 
   $contentTypeDropdown.val(0);
-  // $contentTypeDropdown.change(); // trigger change event
 }
 
 export function setup() {
@@ -539,12 +598,21 @@ export function setup() {
     const contentType = $contentTypeDropdown
       .find(`option[value="${$contentTypeDropdown.val()}"]`)
       .data() as ContentType;
-    if (!contentType.CanReduce) {
+    if (contentType && !contentType.CanReduce) {
       $doesReduceToggle.attr('disabled', '');
+      $doesReduceToggle.closest('.form-input-toggle').hide();
       $doesReduceToggle.prop('checked', false);
     } else {
       $doesReduceToggle.removeAttr('disabled');
+      $doesReduceToggle.closest('.form-input-toggle').show();
     }
+    formObject.inputSections.forEach((section) =>
+      section.inputs.forEach((input) => {
+        if (contentType && isFileUploadInput(input)) {
+          input.fileTypes.set(UploadComponent.Content, contentType.FileExtensions);
+          input.configure();
+        }
+      }));
   });
 
   $('.action-icon-expand').click(expandAllListener);
@@ -578,15 +646,20 @@ export function setup() {
   });
   $('#report-confirmation input[type="checkbox"]').change(() =>
     $('#confirmation-section-attestation .button-approve')
-      .attr('disabled', '')
+      .addClass('disabled')
+      .tooltipster('content', goLiveDisabledTooltip)
       .filter(() =>
         $('#report-confirmation input[type="checkbox"]').not('[disabled]').toArray()
           .map((checkbox: HTMLInputElement) => checkbox.checked)
           .reduce((cum, cur) => cum && cur, true))
-      .removeAttr('disabled'));
+      .removeClass('disabled')
+      .tooltipster('content', goLiveEnabledTooltip));
   $('#confirmation-section-attestation .button-reject').click((event) => {
     const $target = $(event.target);
-    $target.attr('disabled', '');
+    if ($target.hasClass('disabled')) {
+      return;
+    }
+    $target.addClass('disabled');
     const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
     showButtonSpinner($target, 'Rejecting');
     $.post({
@@ -607,13 +680,16 @@ export function setup() {
       hideButtonSpinner($target);
       $('#report-confirmation').hide();
       $('#root-content-items [selected]').removeAttr('selected');
-      $target.removeAttr('disabled');
+      $target.removeClass('disabled');
       statusMonitor.checkStatus();
     });
   });
   $('#confirmation-section-attestation .button-approve').click((event) => {
     const $target = $(event.target);
-    $target.attr('disabled', '');
+    if ($target.hasClass('disabled')) {
+      return;
+    }
+    $target.addClass('disabled');
     const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
     showButtonSpinner($target, 'Approving');
     $.post({
@@ -635,7 +711,7 @@ export function setup() {
       hideButtonSpinner($target);
       $('#report-confirmation').hide();
       $('#root-content-items [selected]').removeAttr('selected');
-      $target.removeAttr('disabled');
+      $target.removeClass('disabled');
       statusMonitor.checkStatus();
     });
   });
@@ -652,12 +728,12 @@ export function setup() {
   $('.tooltip').tooltipster();
 
   get(
-    'ContentPublishing/AvailableContentTypes',
-    [ populateAvailableContentTypes ],
-  )();
-  get(
     'ContentPublishing/Clients',
     [ renderClientTree ],
+  )();
+  get(
+    'ContentPublishing/AvailableContentTypes',
+    [ populateAvailableContentTypes ],
   )();
 
   statusMonitor = new PublicationStatusMonitor();

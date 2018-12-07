@@ -84,11 +84,21 @@ export interface RootContentItemList {
   SelectedRootContentItemId: Guid;
 }
 
+export enum ContentTypeEnum {
+  Unknown = 0,
+  Qlikview = 1,
+  Html = 2,
+  Pdf = 3,
+  FileDownload = 4,
+}
+
 export interface ContentType {
   Id: Guid;
-  TypeEnum: number;
+  TypeEnum: ContentTypeEnum;
   Name: string;
   CanReduce: boolean;
+  DefaultIconName: string;
+  FileExtensions: string[];
 }
 
 export interface RootContentItemDetail {
@@ -119,7 +129,8 @@ export interface ContentRelatedFile {
 }
 export interface PublishRequest {
   RootContentItemId: Guid;
-  RelatedFiles: ContentRelatedFile[];
+  NewRelatedFiles: ContentRelatedFile[];
+  DeleteFilePurposes: string[];
 }
 
 export interface PreLiveContentValidationSummary {

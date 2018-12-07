@@ -905,7 +905,7 @@ export function RootContentItemCard(
     color: 'green',
     dynamic: true,
     icon: 'checkmark',
-    tooltip: 'Go Live',
+    tooltip: 'Review publication',
   });
   this.addComponent('status', {});
 

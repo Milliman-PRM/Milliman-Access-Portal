@@ -1,5 +1,8 @@
 ﻿@import "../../map_modules/variables";
 
+.navbar-offset {
+    padding-left: 6.5vmin;
+}
 
 nav {
     position: fixed;
@@ -7,8 +10,8 @@ nav {
     flex-flow: column nowrap;
     justify-content: center;
     top: 0;
-    left: -18.5em;
-    width: 18.5rem;
+    left: -28vmin;
+    width: 28vmin;
     bottom: 0;
     transition: all 0.3s;
     background-color: $charcoal;
@@ -17,7 +20,7 @@ nav {
     z-index: 101;
 
     &.loaded {
-        left: -14.5em;
+        left: -21.5vmin;
     }
 
     &:hover {
@@ -35,7 +38,7 @@ nav {
         align-items: center;
         width: 100%;
         cursor: pointer;
-        margin-bottom: .25em;
+        margin-bottom: .25vmin;
 
         &:hover {
             color: $blue;
@@ -51,19 +54,53 @@ nav {
 
         .nav-element-label {
             flex: 1 0 auto;
-            margin: 0 0 0 1em;
+            margin: 0 0 0 2vmin;
+            font-size: 2vmin;
             font-weight: bold;
             order: 1;
         }
 
         .nav-element-icon {
             flex: none;
-            width: 4em;
-            height: 4em;
-            padding: .5rem;
+            width: 6.5vmin;
+            height: 6.5vmin;
+            padding: 1vmin;
             order: 2;
         }
     }
+}
 
+/* IE Specific overrides */
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
 
+    .navbar-offset {
+        padding-left: 4rem;
+    }
+
+    nav {
+        left: -18.5em;
+        width: 18.5em;
+
+        &.loaded {
+            left: -14.5em;
+        }
+
+        &:hover {
+            left: 0;
+        }
+
+        .nav-element {
+            margin-bottom: .25em;
+
+            .nav-element-label {
+                font-size: 1em;
+            }
+
+            .nav-element-icon {
+                width: 4em;
+                height: 4em;
+                padding: .5rem;
+            }
+        }
+    }
 }

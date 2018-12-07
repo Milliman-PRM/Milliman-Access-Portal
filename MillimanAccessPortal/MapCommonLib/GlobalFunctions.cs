@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography;
 using System.IO;
 using System.Reflection;
@@ -129,6 +131,36 @@ namespace MapCommonLib
         {
             string messageTemplate = configuration.GetSection("Global")["ErrorMessageTemplate"];
             return string.Format(messageTemplate, subject);
+        }
+
+        /// <summary>
+        /// Intended for internal use by DoesEmailSatisfyClientWhitelists method
+        /// </summary>
+        public class TrimCaseInsensitiveStringComparer : IEqualityComparer<string>
+        {
+            public bool Equals(string l, string r)
+            {
+                if (ReferenceEquals(l, r)) return true;
+                if (ReferenceEquals(l, null) || ReferenceEquals(r, null)) return false;
+                return l.Trim().ToLower() == r.Trim().ToLower();
+            }
+            public int GetHashCode(string Arg)
+            {
+                return Arg.Trim().ToLower().GetHashCode();
+            }
+        };
+        /// <summary>
+        /// All argument values are trimmed by the value comparer so need not be trimmed before calling
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="domains"></param>
+        /// <param name="addresses"></param>
+        /// <returns></returns>
+        public static bool DoesEmailSatisfyClientWhitelists(string email, IEnumerable<string> domains, IEnumerable<string> addresses)
+        {
+            IEqualityComparer<string> comparer = new TrimCaseInsensitiveStringComparer();
+
+            return domains.Contains(email.Substring(email.IndexOf('@') + 1), comparer) || addresses.Contains(email, comparer);
         }
 
     }

@@ -6,7 +6,7 @@ import * as React from 'react';
 
 export interface ActionIconProps {
   title: string;
-  action: (event: React.MouseEvent<HTMLElement>) => void;
+  action?: (event: React.MouseEvent<HTMLElement>) => void;
   icon: string;
   inline?: boolean;
 }

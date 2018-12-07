@@ -17,15 +17,28 @@ namespace MapDbContextLib.Context
     {
         Unknown = 0,
         Qlikview,
+        Html,
+        Pdf,
+        FileDownload,
     }
 
     public class ContentType
     {
+        [NotMapped]
+        public static Dictionary<ContentTypeEnum, string> ContentTypeString = new Dictionary<ContentTypeEnum, string>
+        {
+            { ContentTypeEnum.Unknown, "Unknown" },
+            { ContentTypeEnum.Qlikview, "QlikView" },
+            { ContentTypeEnum.Html, "HTML" },
+            { ContentTypeEnum.Pdf, "PDF" },
+            { ContentTypeEnum.FileDownload, "File Download" },
+        };
+
         [Key]
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Convenience property to automatically translate between persisted string and enumeration
+        /// Convenience property to automatically translate from the persisted Name to corresponding enumeration
         /// </summary>
         [NotMapped]
         public ContentTypeEnum TypeEnum
@@ -36,7 +49,14 @@ namespace MapDbContextLib.Context
             }
             get
             {
-                return (ContentTypeEnum) Enum.Parse(typeof(ContentTypeEnum), Name, true);
+                if (Enum.TryParse(Name, true, out ContentTypeEnum result))
+                {
+                    return result;
+                }
+                else
+                {
+                    return (ContentTypeEnum)int.MaxValue;
+                }
             }
         }
 
@@ -52,6 +72,9 @@ namespace MapDbContextLib.Context
         [Required]
         public string DefaultIconName { get; set; }
 
+        [Required]
+        public string[] FileExtensions { get; set; } = new string[0];
+
         #region Database Initialization
         /// <summary>
         /// Initialize the database with known content types
@@ -62,8 +85,30 @@ namespace MapDbContextLib.Context
         {
             List<ContentType> AllProposedContentTypes = new List<ContentType>
             {
-                new ContentType { TypeEnum=ContentTypeEnum.Qlikview, CanReduce = true, DefaultIconName = "QlikView_Icon.png" },
-                //new ContentType { TypeEnum = ContentTypeEnum.AnotherType, CanReduce = trueorfalse, DefaultIconName = ""},
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.Qlikview,
+                    CanReduce = true,
+                    DefaultIconName = "QlikView_Icon.png",
+                    FileExtensions = new string[] { "qvw" },
+                },
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.Html,
+                    CanReduce = false,
+                    DefaultIconName = "HTML_Icon.png",
+                    FileExtensions = new string[] { "html", "htm" },
+                },
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.Pdf,
+                    CanReduce = false,
+                    DefaultIconName = "PDF_Icon.png",
+                    FileExtensions = new string[] { "pdf" },
+                },
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.FileDownload,
+                    CanReduce = false,
+                    DefaultIconName = "FileDownload_Icon.png",
+                    FileExtensions = new string[] { },
+                },
             };
 
             ApplicationDbContext Db = serviceProvider.GetService<Context.ApplicationDbContext>();
@@ -80,6 +125,7 @@ namespace MapDbContextLib.Context
                     fromDb.Name = type.Name;
                     fromDb.CanReduce = type.CanReduce;
                     fromDb.DefaultIconName = type.DefaultIconName;
+                    fromDb.FileExtensions = type.FileExtensions;
                     Db.ContentType.Update(fromDb);
                 }
             }

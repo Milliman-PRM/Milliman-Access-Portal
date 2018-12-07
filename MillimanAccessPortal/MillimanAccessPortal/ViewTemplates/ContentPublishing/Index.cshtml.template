@@ -115,7 +115,7 @@
                                 <span asp-validation-for="ContentTypeId" class="text-danger"></span>
                             </div>
                         </div>
-                        <div class="form-input form-input-toggle form-input-flex content-item-flex-none align-self-end">
+                        <div class="form-input form-input-toggle form-input-flex content-item-flex-none align-self-end" style="display: none;">
                             <div class="switch-container">
                                 <div class="toggle-switch">
                                     <input type="checkbox" class="toggle-switch-checkbox" name="DoesReduce" id="DoesReduce" value="true">
@@ -133,16 +133,18 @@
                     <h4 class="form-section-title">Files</h4>
                     <div class="form-input-container">
                         <div class="form-input-container content-item-flex-none align-self-start">
-                            <div class="form-input form-input-file-upload">
+                            <div class="form-input form-input-file-upload deletable">
                                 <label for="Thumbnail" class="input-with-upload image">
                                     Thumbnail Image
                                     <input class="file-upload" type="text" readonly />
-                                    <svg class="upload-icon tooltip" title="Upload thumbnail image">
-                                        <use xlink:href="#upload"></use>
-                                    </svg>
-                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
-                                        <use xlink:href="#cancel"></use>
-                                    </svg>
+                                    <div class="file-upload-icons">
+                                        <svg class="cancel-icon tooltip" title="Remove file">
+                                            <use xlink:href="#cancel"></use>
+                                        </svg>
+                                        <svg class="upload-icon tooltip" title="Upload thumbnail image">
+                                            <use xlink:href="#upload"></use>
+                                        </svg>
+                                    </div>
                                     <div class="progress-bars" style="visibility: hidden;">
                                         <div class="progress-bar progress-bar-1"></div>
                                         <div class="progress-bar progress-bar-2"></div>
@@ -158,12 +160,14 @@
                                 <label for="MasterContent" class="input-with-upload">
                                     File
                                     <input class="file-upload" type="text" readonly />
-                                    <svg class="upload-icon tooltip" title="Upload master content">
-                                        <use xlink:href="#upload"></use>
-                                    </svg>
-                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
-                                        <use xlink:href="#cancel"></use>
-                                    </svg>
+                                    <div class="file-upload-icons">
+                                        <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
+                                            <use xlink:href="#cancel"></use>
+                                        </svg>
+                                        <svg class="upload-icon tooltip" title="Upload master content">
+                                            <use xlink:href="#upload"></use>
+                                        </svg>
+                                    </div>
                                     <div class="progress-bars" style="visibility: hidden;">
                                         <div class="progress-bar progress-bar-1"></div>
                                         <div class="progress-bar progress-bar-2"></div>
@@ -172,16 +176,18 @@
                                 </label>
                                 <input class="file-upload-guid" type="text" id="MasterContent" name="MasterContent" style="display: none;" />
                             </div>
-                            <div class="form-input form-input-file-upload">
+                            <div class="form-input form-input-file-upload deletable">
                                 <label for="UserGuide" class="input-with-upload">
                                     Userguide
                                     <input class="file-upload" type="text" readonly />
-                                    <svg class="upload-icon tooltip" title="Upload user guide">
-                                        <use xlink:href="#upload"></use>
-                                    </svg>
-                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
-                                        <use xlink:href="#cancel"></use>
-                                    </svg>
+                                    <div class="file-upload-icons">
+                                        <svg class="cancel-icon tooltip" title="Remove file">
+                                            <use xlink:href="#cancel"></use>
+                                        </svg>
+                                        <svg class="upload-icon tooltip" title="Upload user guide">
+                                            <use xlink:href="#upload"></use>
+                                        </svg>
+                                    </div>
                                     <div class="progress-bars" style="visibility: hidden;">
                                         <div class="progress-bar progress-bar-1"></div>
                                         <div class="progress-bar progress-bar-2"></div>
@@ -190,16 +196,18 @@
                                 </label>
                                 <input class="file-upload-guid" type="text" id="UserGuide" name="UserGuide" style="display: none;" />
                             </div>
-                            <div class="form-input form-input-file-upload">
+                            <div class="form-input form-input-file-upload deletable">
                                 <label for="ReleaseNotes" class="input-with-upload">
                                     Release Notes
                                     <input class="file-upload" type="text" readonly />
-                                    <svg class="upload-icon tooltip" title="Upload release notes">
-                                        <use xlink:href="#upload"></use>
-                                    </svg>
-                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
-                                        <use xlink:href="#cancel"></use>
-                                    </svg>
+                                    <div class="file-upload-icons">
+                                        <svg class="cancel-icon tooltip" title="Remove file">
+                                            <use xlink:href="#cancel"></use>
+                                        </svg>
+                                        <svg class="upload-icon tooltip" title="Upload release notes">
+                                            <use xlink:href="#upload"></use>
+                                        </svg>
+                                    </div>
                                     <div class="progress-bars" style="visibility: hidden;">
                                         <div class="progress-bar progress-bar-1"></div>
                                         <div class="progress-bar progress-bar-2"></div>
@@ -266,11 +274,18 @@
             <h4>Master Content</h4>
             <div class="content-preview">
                 <iframe src="about:blank"></iframe>
-                <a href="about:blank" target="_blank">
-                    <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
-                        <use xlink:href="#upload"></use>
-                    </svg>
-                </a>
+            </div>
+            <div class="content-preview-pdf">
+                <object data="about:blank" type="application/pdf"></object>
+            </div>
+            <div class="content-preview-sandbox">
+                <iframe sandbox="allow-scripts allow-popups allow-modals allow-forms" src="about:blank"></iframe>
+            </div>
+            <div class="content-preview-download">
+                <a download>Click to download</a>
+            </div>
+            <div class="content-preview-none" style="display: none;">
+                <p>This file has not changed.</p>
             </div>
             <label for="confirmation-master-content" class="selection-option-label">
                 <input type="checkbox" name="master-content" value="confirmation-master-content" id="confirmation-master-content" class="selection-option-value">
@@ -282,11 +297,9 @@
             <h4>User Guide</h4>
             <div class="content-preview">
                 <iframe src="about:blank"></iframe>
-                <a href="about:blank" target="_blank">
-                    <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
-                        <use xlink:href="#upload"></use>
-                    </svg>
-                </a>
+            </div>
+            <div class="content-preview-none" style="display: none;">
+                <p>This file has not changed.</p>
             </div>
             <label for="confirmation-user-guide" class="selection-option-label">
                 <input type="checkbox" name="user-guide" value="confirmation-user-guide" id="confirmation-user-guide" class="selection-option-value">
@@ -298,11 +311,9 @@
             <h4>Release Notes</h4>
             <div class="content-preview">
                 <iframe src="about:blank"></iframe>
-                <a href="about:blank" target="_blank">
-                    <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
-                        <use xlink:href="#upload"></use>
-                    </svg>
-                </a>
+            </div>
+            <div class="content-preview-none" style="display: none;">
+                <p>This file has not changed.</p>
             </div>
             <label for="confirmation-release-notes" class="selection-option-label">
                 <input type="checkbox" name="release-notes" value="confirmation-release-notes" id="confirmation-release-notes" class="selection-option-value">
@@ -344,8 +355,8 @@
             <div class="attestation-language">
             </div>
             <div class="confirmation-section-button-container">
-                <button type="button" class="button-reject red-button">Reject</button>
-                <button type="button" class="button-approve green-button" disabled>Approve</button>
+                <button type="button" class="button-reject red-button tooltip" title="Reject pending changes">Reject</button>
+                <button type="button" class="button-approve green-button tooltip disabled" title="Complete checks to proceed">Approve</button>
             </div>
         </div>
     </div>
