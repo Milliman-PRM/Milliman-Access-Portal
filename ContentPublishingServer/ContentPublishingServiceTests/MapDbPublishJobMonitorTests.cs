@@ -354,9 +354,8 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Assert
-            // The request is taken off the queue because no reduction task is timestamped earlier
-            // No reductions are indicated so status goes quickly to `Processed`
-            Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
+            // The request should be taken off the queue because no reduction task is timestamped earlier
+            Assert.Contains(DbRequest.RequestStatus, new PublicationStatus[] { PublicationStatus.Processing, PublicationStatus.Processed });
             #endregion
         }
 
