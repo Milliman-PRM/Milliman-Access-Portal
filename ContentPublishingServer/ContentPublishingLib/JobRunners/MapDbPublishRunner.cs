@@ -334,19 +334,33 @@ namespace ContentPublishingLib.JobRunners
                             CreateDateTimeUtc = DateTime.UtcNow,
                             MasterFilePath = contentRelatedFile.FullPath,
                             MasterContentChecksum = contentRelatedFile.Checksum,
-                            ReductionStatus = ReductionStatusEnum.Queued,
                             SelectionGroupId = SelGrp.Id,
                         };
 
                         if (SelGrp.IsMaster)
                         {
                             NewTask.TaskAction = TaskActionEnum.HierarchyOnly;
+                            NewTask.ReductionStatus = ReductionStatusEnum.Queued;
                             MasterHierarchyHasBeenRequested = true;
                         }
                         else
                         {
-                            NewTask.SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
                             NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
+                            NewTask.SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
+                            if (NewTask.SelectionCriteriaObj.Fields.Any(f => f.Values.Any(v => v.SelectionStatus)))
+                            {
+                                NewTask.ReductionStatus = ReductionStatusEnum.Queued;
+                            }
+                            else
+                            {
+                                // There are no values selected
+                                NewTask.ReductionStatus = ReductionStatusEnum.Error;
+                                NewTask.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                                {
+                                    OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
+                                    ReductionTaskId = NewTask.Id,
+                                };
+                            }
                         }
 
                         Db.ContentReductionTask.Add(NewTask);
