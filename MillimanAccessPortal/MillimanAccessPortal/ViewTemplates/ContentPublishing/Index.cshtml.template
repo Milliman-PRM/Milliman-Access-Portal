@@ -279,7 +279,7 @@
                 <object data="about:blank" type="application/pdf"></object>
             </div>
             <div class="content-preview-sandbox">
-                <iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" src="about:blank"></iframe>
+                <iframe sandbox="allow-scripts allow-popups allow-modals allow-forms" src="about:blank"></iframe>
             </div>
             <div class="content-preview-download">
                 <a download>Click to download</a>
@@ -296,7 +296,7 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-user-guide">
             <h4>User Guide</h4>
             <div class="content-preview">
-                <object data="about:blank" type="application/pdf"></object>
+                <iframe src="about:blank"></iframe>
             </div>
             <div class="content-preview-none" style="display: none;">
                 <p>This file has not changed.</p>
@@ -310,7 +310,7 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-release-notes">
             <h4>Release Notes</h4>
             <div class="content-preview">
-                <object data="about:blank" type="application/pdf"></object>
+                <iframe src="about:blank"></iframe>
             </div>
             <div class="content-preview-none" style="display: none;">
                 <p>This file has not changed.</p>
