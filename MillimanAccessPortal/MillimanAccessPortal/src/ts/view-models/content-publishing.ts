@@ -161,6 +161,8 @@ export interface SelectionGroupSummary {
   WasInactive: boolean;
   IsInactive: boolean;
   InactiveReason?: string;
+  LiveSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
+  PendingSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
 }
 
 export interface ContentReductionHierarchy<T extends ReductionFieldValue> {
@@ -181,4 +183,7 @@ export interface ReductionFieldValue {
 }
 export interface ReductionFieldValueSelection extends ReductionFieldValue {
   SelectionStatus: boolean;
+}
+export function isSelection(value: ReductionFieldValue): value is ReductionFieldValueSelection {
+  return value && (value as ReductionFieldValueSelection).SelectionStatus !== undefined;
 }

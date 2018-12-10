@@ -42,42 +42,49 @@
         }
     }
 
+    .selection-group-list {
+        padding-left: 0;
+    }
+
     .hierarchy-container {
         display: flex;
         flex-flow: row nowrap;
         width: 100%;
+        margin-bottom: 0.8em;
 
-        .hierarchy {
+        .hierarchy-diff-field {
+            margin-left: 0.5em;
+            margin-top: 0.3em;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .hierarchy-diff-values {
+            margin-left: 1.0em;
+            font-size: 0.95rem;
+        }
+
+        table {
             background-color: $white;
-            padding: 1.0em;
-            border: 1px solid $charcoal;
-            box-sizing: border-box;
-            flex: 1 0 50%;
 
-            &.hierarchy-left {
-                border-radius: 1em 0 0 1em;
+            td {
+                padding-left: 10px;
+                padding-right: 10px;
             }
 
-            &.hierarchy-right {
-                border-left: none;
-                border-radius: 0 1em 1em 0;
-            }
+            td.hierarchy-diff-symbol { 
+                width: 60px;
+                background-color: $white;
 
-            & > ul {
-                margin-left: 0.5em;
-
-                h6 {
-                    margin: 0;
+                &.plus { 
+                    background-color: lighten($green, 30%);
                 }
 
-                & > li + li {
-                    margin-top: 0.5em;
-                }
-
-                ul {
-                    margin-left: 0.5em;
+                &.minus { 
+                    background-color: lighten($red, 30%);
                 }
             }
+
         }
     }
 
@@ -112,9 +119,11 @@
 
         .pre-live-group-active {
             color: darken($green, 10%);
+            font-variant-caps: all-small-caps;
         }
         .pre-live-group-inactive {
             color: darken($orange, 10%);
+            font-variant-caps: all-small-caps;
         }
     }
 

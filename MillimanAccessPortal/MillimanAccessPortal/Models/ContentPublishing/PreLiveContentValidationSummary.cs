@@ -115,6 +115,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             WasInactive = task.SelectionGroup.ContentInstanceUrl == null,
                             IsInactive = task.ReductionStatus == ReductionStatusEnum.Error,
                             InactiveReason = task.OutcomeMetadataObj.OutcomeReason.ToString(),
+                            LiveSelections = ContentReductionHierarchy<ReductionFieldValueSelection>
+                                .GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId),
+                            PendingSelections = task.SelectionCriteriaObj,
                         });
                     }
 
@@ -234,5 +237,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public bool WasInactive { get; set; }
         public bool IsInactive { get; set; }
         public string InactiveReason { get; set; } = null;
+        public ContentReductionHierarchy<ReductionFieldValueSelection> LiveSelections { get; set; }
+        public ContentReductionHierarchy<ReductionFieldValueSelection> PendingSelections { get; set; }
     }
 }

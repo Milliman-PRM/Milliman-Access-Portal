@@ -324,14 +324,6 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-hierarchy-diff">
             <h4>Hierarchy Changes</h4>
             <div class="hierarchy-container">
-                <div class="hierarchy hierarchy-left">
-                    <h5>Old Hierarchy Values</h5>
-                    <ul class="hierarchy-list"></ul>
-                </div>
-                <div class="hierarchy hierarchy-right">
-                    <h5>New Hierarchy Values</h5>
-                    <ul class="hierarchy-list"></ul>
-                </div>
             </div>
             <label for="confirmation-hierarchy-diff" class="selection-option-label">
                 <input type="checkbox" name="hierarchy-diff" value="confirmation-hierarchy-diff" id="confirmation-hierarchy-diff" class="selection-option-value">
@@ -342,7 +334,7 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-hierarchy-stats">
             <h4>Reduction Results</h4>
             <div>
-                <ul></ul>
+                <ul class="selection-group-list"></ul>
             </div>
             <label for="confirmation-hierarchy-stats" class="selection-option-label">
                 <input type="checkbox" name="hierarchy-stats" value="confirmation-hierarchy-stats" id="confirmation-hierarchy-stats" class="selection-option-value">
