@@ -93,15 +93,34 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 {
                     newHierarchy.Sort();
 
+                    var selectionGroups = new List<SelectionGroupSummary>();
+                    foreach (var task in AllTasks)
+                    {
+                        var selectionGroupUsers = new List<UserInfoViewModel>();
+                        var userQuery = Db.UserInSelectionGroup
+                            .Where(usg => usg.SelectionGroupId == task.SelectionGroup.Id)
+                            .Select(usg => usg.User);
+                        foreach (var user in userQuery)
+                        {
+                            var userInfo = (UserInfoViewModel)user;
+                            selectionGroupUsers.Add(userInfo); 
+                        }
+                        selectionGroups.Add(new SelectionGroupSummary
+                        {
+                            Id = task.SelectionGroup.Id,
+                            Name = task.SelectionGroup.GroupName,
+                            IsMaster = task.SelectionGroup.IsMaster,
+                            Duration = task.OutcomeMetadataObj.ProcessingDuration,
+                            Users = selectionGroupUsers,
+                            WasInactive = task.SelectionGroup.ContentInstanceUrl == null,
+                            IsInactive = task.ReductionStatus == ReductionStatusEnum.Error,
+                            InactiveReason = task.OutcomeMetadataObj.OutcomeReason.ToString(),
+                        });
+                    }
+
                     ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
                     ReturnObj.NewHierarchy = newHierarchy;
-                    ReturnObj.SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary
-                        {
-                            Name = t.SelectionGroup.GroupName,
-                            IsMaster = t.SelectionGroup.IsMaster,
-                            UserCount = Db.UserInSelectionGroup.Count(usg => usg.SelectionGroupId == t.SelectionGroup.Id),
-                        }
-                    ).ToList();
+                    ReturnObj.SelectionGroups = selectionGroups;
                 }
             }
 
@@ -207,6 +226,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
     public class SelectionGroupSummary
     {
+        public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public bool IsMaster { get; set; }
         public TimeSpan Duration { get; set; } = TimeSpan.Zero;
@@ -214,6 +234,5 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public bool WasInactive { get; set; }
         public bool IsInactive { get; set; }
         public string InactiveReason { get; set; } = null;
-
     }
 }

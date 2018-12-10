@@ -153,6 +153,7 @@ export interface PreLiveContentValidationSummary {
   SelectionGroups: SelectionGroupSummary[];
 }
 export interface SelectionGroupSummary {
+  Id: Guid;
   Name: string;
   IsMaster: boolean;
   Duration: string;

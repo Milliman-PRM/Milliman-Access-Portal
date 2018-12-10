@@ -289,18 +289,75 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     }
     // populate hierarchy stats
     $('#confirmation-section-hierarchy-stats > div > ul').children().remove();
+    const $statsList = $('#confirmation-section-hierarchy-stats > div > ul');
     response.SelectionGroups.forEach((selectionGroup) => {
-      $('#confirmation-section-hierarchy-stats > div > ul')
-        .append(`<li><div class="selection-group-summary">
-          <h5>${selectionGroup.Name}${selectionGroup.IsMaster ? ' (Master)' : ''}</h5>
-          <ul>
-            <li><div class="selection-group-stat">
-              <span class="selection-group-stat-label">Users:</span>
-              <span class="selection-group-stat-value">${selectionGroup.UserCount}</span>
-            </div></li>
-          </ul>
+      const $selectionGroupStats = $(`<li data-id="${selectionGroup.Id}"><div class="selection-group-summary">
+          <h5>
+            ${selectionGroup.IsMaster ? '<strong>[Master]</strong>&nbsp' : ''}
+            ${selectionGroup.Name}&nbsp
+          </h5>
+          <div class="selection-group-stat">
+            <span class="selection-group-stat-label">Duration:</span>
+            <span class="selection-group-stat-value">${selectionGroup.Duration.split('.')[0]}</span>
+          </div>
+          <div class="selection-group-stat pre-live-users-stat">
+            <span class="selection-group-stat-label">Users:</span>
+            <span class="selection-group-stat-value">${selectionGroup.Users.length}</span>
+          </div>
+          <div class="pre-live-user-list" style="display: none;">
+            <ul></ul>
+          </div>
         </div></li>`);
+      function activeIndicator(isInactive: boolean) {
+        return isInactive
+          ? '<span class="pre-live-group-inactive">Inactive</span>'
+          : '<span class="pre-live-group-active">Active</span>';
+      }
+      const $activeStatus = selectionGroup.WasInactive === selectionGroup.IsInactive
+        ? $(`<span>[ ${activeIndicator(selectionGroup.IsInactive)} ]</span>`)
+        : $(`<span>[ ${activeIndicator(selectionGroup.WasInactive)} → `
+            + `${activeIndicator(selectionGroup.IsInactive)} ]</span>`);
+      $selectionGroupStats.find('h5').append($activeStatus);
+      if (selectionGroup.InactiveReason !== null) {
+        $selectionGroupStats.find('.selection-group-summary').append(`
+          <div class="selection-group-stat">
+            <span class="selection-group-stat-label">Error information:</span>
+            <span class="selection-group-stat-value">${selectionGroup.InactiveReason}</span>
+          </div>
+        `);
+      }
+      const $userExpansion = $('<span class="pre-live-list-toggle">(<a href="">expand</a>)</span>');
+      $userExpansion.find('a').click((event) => {
+        event.preventDefault();
+        const $statsListNew  = $('#confirmation-section-hierarchy-stats > div > ul');
+        const $stat = $statsListNew
+          .children('li')
+          .filter((_, element) => $(element).data().id === selectionGroup.Id);
+        const $userExpansionNew = $stat.find('.pre-live-list-toggle > a');
+        const $userList = $stat.find('.pre-live-user-list');
+        if ($userExpansionNew[0].innerHTML === 'expand') {
+          $userExpansionNew[0].innerHTML = 'collapse';
+          $userList.show(100);
+        } else {
+          $userExpansionNew[0].innerHTML = 'expand';
+          $userList.hide(100);
+        }
+      });
+      $selectionGroupStats.find('.pre-live-users-stat').append($userExpansion);
+      selectionGroup.Users.forEach((user) => {
+        $selectionGroupStats.find('.pre-live-user-list > ul')
+          .append(`<li>${user.FirstName} ${user.LastName} (${user.UserName})</li>`);
+      });
+      $statsList.append($selectionGroupStats);
     });
+    if (response.SelectionGroups.find((sg) => sg.IsInactive)) {
+      $statsList.prepend(`<div>
+        Some selection groups will be marked <strong>inactive</strong> if this publication goes live
+        due to reduction failures.
+        Members of inactive selection groups will be unable to access this content
+        until the reduction failure is resolved.
+      </div>`);
+    }
   }
   // populate attestation
   $('#confirmation-section-attestation .attestation-language').html(response.AttestationLanguage);

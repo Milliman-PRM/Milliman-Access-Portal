@@ -106,8 +106,15 @@
             }
 
             .selection-group-stat-value {
-                color: red;
+                color: $black;
             }
+        }
+
+        .pre-live-group-active {
+            color: $green;
+        }
+        .pre-live-group-inactive {
+            color: $red;
         }
     }
 
