@@ -316,7 +316,7 @@ namespace ContentPublishingLib.JobRunners
                             Id = Guid.NewGuid(),  // In normal operation db could generate a value; this is done for unit tests
                             ApplicationUserId = JobDetail.Request.ApplicationUserId,
                             ContentPublicationRequestId = JobDetail.JobId,
-                            CreateDateTimeUtc = DateTime.UtcNow,
+                            CreateDateTimeUtc = JobDetail.Request.CreateDateTimeUtc,
                             MasterFilePath = contentRelatedFile.FullPath,
                             MasterContentChecksum = contentRelatedFile.Checksum,
                             SelectionGroupId = SelGrp.Id,
