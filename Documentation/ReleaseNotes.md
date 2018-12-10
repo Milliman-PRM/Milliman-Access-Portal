@@ -7,6 +7,7 @@
 - A publication request involving any reduction error will no longer be aborted (reduced content only). 
 - Each selection group associated with a reduction error will become inactive (reduced content only). 
 - The publication go-live preview now displays detailed information about each associated reduction outcome. 
+- Fixed an issue where the status of a queued publication changed to 'Processing' before processing could actually begin. 
 
 ### v1.2.0
 
