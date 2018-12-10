@@ -288,6 +288,9 @@ namespace ContentPublishingLib.JobMonitors
                                 case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueMatchInNewContent:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent;
                                     break;
+                                case ReductionJobDetail.JobOutcomeReason.SelectionForInvalidFieldName:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName;
+                                    break;
                             }
                             break;
                         case ReductionJobDetail.JobStatusEnum.Success:
