@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### v1.3.0
+
+- A publication request involving any reduction error will no longer be aborted (reduced content only). 
+- Each selection group associated with a reduction error will become inactive (reduced content only). 
+- The publication go-live preview now displays detailed information about each associated reduction outcome. 
+
 ### v1.2.0
 
 - Added support for PDF content type
