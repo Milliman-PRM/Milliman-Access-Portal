@@ -111,10 +111,10 @@
         }
 
         .pre-live-group-active {
-            color: $green;
+            color: darken($green, 10%);
         }
         .pre-live-group-inactive {
-            color: $red;
+            color: darken($orange, 10%);
         }
     }
 

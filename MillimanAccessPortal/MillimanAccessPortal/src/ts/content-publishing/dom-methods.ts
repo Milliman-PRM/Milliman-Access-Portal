@@ -2,6 +2,7 @@ import 'jquery-validation';
 import 'jquery-validation-unobtrusive';
 
 import * as $ from 'jquery';
+import * as moment from 'moment';
 import * as toastr from 'toastr';
 
 import { AddRootContentItemActionCard, ClientCard, RootContentItemCard } from '../card';
@@ -291,6 +292,12 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     $('#confirmation-section-hierarchy-stats > div > ul').children().remove();
     const $statsList = $('#confirmation-section-hierarchy-stats > div > ul');
     response.SelectionGroups.forEach((selectionGroup) => {
+      const duration = moment.duration(selectionGroup.Duration);
+      const timeDisplay = ((hours, minutes, seconds) => (`
+        ${hours ? hours + ' hour' + (hours === 1 ? ' ' : 's ') : ''}
+        ${(hours || minutes) ? minutes + ' minute' + (minutes === 1 ? ' ' : 's ') : ''}
+        ${seconds + ' second' + (seconds === 1 ? ' ' : 's ')}
+      `))(duration.hours(), duration.minutes(), duration.seconds());
       const $selectionGroupStats = $(`<li data-id="${selectionGroup.Id}"><div class="selection-group-summary">
           <h5>
             ${selectionGroup.IsMaster ? '<strong>[Master]</strong>&nbsp' : ''}
@@ -298,7 +305,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           </h5>
           <div class="selection-group-stat">
             <span class="selection-group-stat-label">Duration:</span>
-            <span class="selection-group-stat-value">${selectionGroup.Duration.split('.')[0]}</span>
+            <span class="selection-group-stat-value">${timeDisplay}</span>
           </div>
           <div class="selection-group-stat pre-live-users-stat">
             <span class="selection-group-stat-label">Users:</span>
