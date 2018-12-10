@@ -263,5 +263,102 @@ namespace ContentPublishingServiceTests
             #endregion
         }
 
+        /// <summary>
+        /// Tests that a pub request dated later than a queued reduction task is not taken off its queue to start processing
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task PublicationWaitsForEarlierStampedReduction()
+        {
+            #region Arrange
+            Guid ReductionTaskOfThisTest = TestUtil.MakeTestGuid(2);
+            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(2);
+
+            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
+
+            // Modify the reduction task to be tested
+            ContentReductionTask DbTask = MockContext.Object.ContentReductionTask.Single(t => t.Id == ReductionTaskOfThisTest);
+            DbTask.ReductionStatus = ReductionStatusEnum.Queued;
+            DbTask.CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0);
+
+            // Modify the publishing request to be tested
+            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
+            DbRequest.RequestStatus = PublicationStatus.Queued;
+            DbRequest.CreateDateTimeUtc = DateTime.UtcNow;
+
+            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor
+            {
+                MockContext = MockContext,
+            };
+
+            CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
+            #endregion
+
+            #region Act
+            Task MonitorTask = Task.Run(() => TestMonitor.Start(CancelTokenSource.Token), CancelTokenSource.Token);
+            Thread.Sleep(4000);
+            try
+            {
+                CancelTokenSource.Cancel();
+                await MonitorTask;
+            }
+            catch { }
+            #endregion
+
+            #region Assert
+            // The request should not be taken off the queue because a reduction task is timestamped earlier
+            Assert.Equal(PublicationStatus.Queued, DbRequest.RequestStatus);
+            #endregion
+        }
+
+        /// <summary>
+        /// Tests that a pub request dated earlier than all queued reduction tasks is taken off its queue to start processing
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task PublicationStartsProcessingBeforeLaterStampedReduction()
+        {
+            #region Arrange
+            Guid ReductionTaskOfThisTest = TestUtil.MakeTestGuid(2);
+            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(2);
+
+            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
+
+            // Modify the reduction task to be tested
+            ContentReductionTask DbTask = MockContext.Object.ContentReductionTask.Single(t => t.Id == ReductionTaskOfThisTest);
+            DbTask.ReductionStatus = ReductionStatusEnum.Queued;
+            DbTask.CreateDateTimeUtc = DateTime.UtcNow;
+
+            // Modify the publishing request to be tested
+            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
+            DbRequest.RequestStatus = PublicationStatus.Queued;
+            DbRequest.CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0);
+
+            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor
+            {
+                MockContext = MockContext,
+            };
+
+            CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
+            #endregion
+
+            #region Act
+            Task MonitorTask = Task.Run(() => TestMonitor.Start(CancelTokenSource.Token), CancelTokenSource.Token);
+            Thread.Sleep(8000);
+            try
+            {
+                CancelTokenSource.Cancel();
+                await MonitorTask;
+            }
+            catch { }
+            #endregion
+
+            #region Assert
+            // The request is taken off the queue because no reduction task is timestamped earlier
+            // No reductions are indicated so status goes quickly to `Processed`
+            Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
+            #endregion
+        }
+
     }
 }
