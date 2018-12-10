@@ -237,21 +237,6 @@ namespace ContentPublishingLib.JobRunners
                     _CancellationToken.ThrowIfCancellationRequested();
                 }
 
-                List<ContentReductionTask> FailedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Error).ToList(); 
-                if (FailedTasks.Any())
-                {
-                    // Cancel any task still queued
-                    List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
-                    await CancelReductionTasks(QueuedTasks);
-
-                    string Msg = $"Publication request terminating due to error in related reduction task(s):{Environment.NewLine}  {string.Join("  " + Environment.NewLine, FailedTasks.Select(t => t.Id.ToString() + " : " + t.ReductionStatusMessage))}";
-                    GlobalFunctions.TraceWriteLine(Msg);
-
-                    JobDetail.StatusReason = PublishJobDetail.JobErrorReason.ReductionTaskErrors;
-
-                    throw new ApplicationException(Msg);
-                }
-
                 return AllRelatedReductionTasks.Count(t => t.ReductionStatus == ReductionStatusEnum.Queued
                                                         || t.ReductionStatus == ReductionStatusEnum.Reducing);
             }
