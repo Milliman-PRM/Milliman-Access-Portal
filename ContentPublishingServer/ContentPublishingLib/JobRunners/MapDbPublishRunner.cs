@@ -237,21 +237,6 @@ namespace ContentPublishingLib.JobRunners
                     _CancellationToken.ThrowIfCancellationRequested();
                 }
 
-                List<ContentReductionTask> FailedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Error).ToList(); 
-                if (FailedTasks.Any())
-                {
-                    // Cancel any task still queued
-                    List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
-                    await CancelReductionTasks(QueuedTasks);
-
-                    string Msg = $"Publication request terminating due to error in related reduction task(s):{Environment.NewLine}  {string.Join("  " + Environment.NewLine, FailedTasks.Select(t => t.Id.ToString() + " : " + t.ReductionStatusMessage))}";
-                    GlobalFunctions.TraceWriteLine(Msg);
-
-                    JobDetail.StatusReason = PublishJobDetail.JobErrorReason.ReductionTaskErrors;
-
-                    throw new ApplicationException(Msg);
-                }
-
                 return AllRelatedReductionTasks.Count(t => t.ReductionStatus == ReductionStatusEnum.Queued
                                                         || t.ReductionStatus == ReductionStatusEnum.Reducing);
             }
@@ -334,19 +319,33 @@ namespace ContentPublishingLib.JobRunners
                             CreateDateTimeUtc = DateTime.UtcNow,
                             MasterFilePath = contentRelatedFile.FullPath,
                             MasterContentChecksum = contentRelatedFile.Checksum,
-                            ReductionStatus = ReductionStatusEnum.Queued,
                             SelectionGroupId = SelGrp.Id,
                         };
 
                         if (SelGrp.IsMaster)
                         {
                             NewTask.TaskAction = TaskActionEnum.HierarchyOnly;
+                            NewTask.ReductionStatus = ReductionStatusEnum.Queued;
                             MasterHierarchyHasBeenRequested = true;
                         }
                         else
                         {
-                            NewTask.SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
                             NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
+                            NewTask.SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
+                            if (NewTask.SelectionCriteriaObj.Fields.Any(f => f.Values.Any(v => v.SelectionStatus)))
+                            {
+                                NewTask.ReductionStatus = ReductionStatusEnum.Queued;
+                            }
+                            else
+                            {
+                                // There are no values selected
+                                NewTask.ReductionStatus = ReductionStatusEnum.Error;
+                                NewTask.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                                {
+                                    OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
+                                    ReductionTaskId = NewTask.Id,
+                                };
+                            }
                         }
 
                         Db.ContentReductionTask.Add(NewTask);

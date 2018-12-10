@@ -46,6 +46,7 @@ namespace ContentPublishingLib.JobRunners
             UnspecifiedError,
             NoSelectedFieldValues,
             NoSelectedFieldValueMatchInNewContent,
+            SelectionForInvalidFieldName,
         }
 
         public ReductionJobRequest Request;
