@@ -215,7 +215,7 @@ namespace ContentPublishingLib.JobMonitors
 
                     if (EarliestTaskTimestamp == default(DateTime))  // if no tasks are queued or processing
                     {
-                        EarliestTaskTimestamp = DateTime.MaxValue;  // DateTime.MaxValue is < max value of a timestamp field in PostgreSQL
+                        EarliestTaskTimestamp = DateTime.MaxValue;  // DateTime.MaxValue does not exceed max value of a timestamp in PostgreSQL (so this is ok)
                     }
                         
                     List<ContentPublicationRequest> TopItems = Db.ContentPublicationRequest.Where(r => DateTime.UtcNow - r.CreateDateTimeUtc > TaskAgeBeforeExecution)
