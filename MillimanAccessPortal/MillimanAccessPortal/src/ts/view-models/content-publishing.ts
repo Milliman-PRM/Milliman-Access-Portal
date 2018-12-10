@@ -154,8 +154,12 @@ export interface PreLiveContentValidationSummary {
 }
 export interface SelectionGroupSummary {
   Name: string;
-  UserCount: number;
   IsMaster: boolean;
+  Duration: string;
+  Users: UserInfo[];
+  WasInactive: boolean;
+  IsInactive: boolean;
+  InactiveReason?: string;
 }
 
 export interface ContentReductionHierarchy<T extends ReductionFieldValue> {

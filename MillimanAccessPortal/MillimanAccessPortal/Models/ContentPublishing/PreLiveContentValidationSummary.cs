@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using QlikviewLib;
+using MillimanAccessPortal.Models.AccountViewModels;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -207,7 +208,12 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     public class SelectionGroupSummary
     {
         public string Name { get; set; } = string.Empty;
-        public int UserCount { get; set; } = 0;
         public bool IsMaster { get; set; }
+        public TimeSpan Duration { get; set; } = TimeSpan.Zero;
+        public List<UserInfoViewModel> Users { get; set; } = new List<UserInfoViewModel>();
+        public bool WasInactive { get; set; }
+        public bool IsInactive { get; set; }
+        public string InactiveReason { get; set; } = null;
+
     }
 }
