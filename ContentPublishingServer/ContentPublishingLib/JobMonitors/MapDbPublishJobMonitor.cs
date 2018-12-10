@@ -207,13 +207,25 @@ namespace ContentPublishingLib.JobMonitors
             {
                 try
                 {
+                    DateTime EarliestTaskTimestamp = Db.ContentReductionTask
+                        .Where(t => new ReductionStatusEnum[] { ReductionStatusEnum.Queued, ReductionStatusEnum.Reducing }.Contains(t.ReductionStatus))
+                        .OrderBy(t => t.CreateDateTimeUtc)
+                        .Select(t => t.CreateDateTimeUtc)
+                        .FirstOrDefault();
+
+                    if (EarliestTaskTimestamp == default(DateTime))  // if no tasks are queued or processing
+                    {
+                        EarliestTaskTimestamp = DateTime.MaxValue;  // DateTime.MaxValue is < max value of a timestamp field in PostgreSQL
+                    }
+                        
                     List<ContentPublicationRequest> TopItems = Db.ContentPublicationRequest.Where(r => DateTime.UtcNow - r.CreateDateTimeUtc > TaskAgeBeforeExecution)
-                                                                                 .Where(r => r.RequestStatus == PublicationStatus.Queued)
-                                                                                 .Include(r => r.RootContentItem)
-                                                                                 .OrderBy(r => r.RootContentItem.DoesReduce)  // false < true
-                                                                                     .ThenBy(r => r.CreateDateTimeUtc)
-                                                                                 .Take(ReturnNoMoreThan)
-                                                                                 .ToList();
+                                                                                           .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                                                                                           .Where(r => r.CreateDateTimeUtc < EarliestTaskTimestamp)
+                                                                                           .Include(r => r.RootContentItem)
+                                                                                           .OrderBy(r => r.RootContentItem.DoesReduce)  // false < true
+                                                                                               .ThenBy(r => r.CreateDateTimeUtc)
+                                                                                           .Take(ReturnNoMoreThan)
+                                                                                           .ToList();
                     if (TopItems.Count > 0)
                     {
                         TopItems.ForEach(r => r.RequestStatus = PublicationStatus.Processing);
