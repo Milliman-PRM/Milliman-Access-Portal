@@ -35,7 +35,8 @@ let statusMonitor: PublicationStatusMonitor;
 
 let preLiveObject: PreLiveContentValidationSummary;
 
-let hideUnchangedValues: boolean = true;
+// whether unchanged values in the prelive panel should be displayed
+let hideUnchangedValues: boolean = false;
 
 const goLiveDisabledTooltip = 'Complete checks to proceed';
 const goLiveEnabledTooltip = 'Approve content and go live';
@@ -359,6 +360,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
               $diffSymbol.addClass('minus');
             } else if (!liveData) {
               $diffSymbol.addClass('plus');
+            } else {
+              $row.addClass('no-change');
             }
 
             $row.append($diffSymbol);
@@ -368,12 +371,19 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
         });
         $diff.append($table);
       });
+      $diff.find('.no-change').show().filter(() => hideUnchangedValues).hide();
       return $diff;
     };
     $('#confirmation-section-hierarchy-diff .hierarchy-container')
       .children('div').remove();
     $('#confirmation-section-hierarchy-diff .hierarchy-container')
       .append(renderHierarchyDiff(response.LiveHierarchy, response.NewHierarchy, false));
+    $('#hide-unchanged').prop('checked', hideUnchangedValues);
+    $('#hide-unchanged').change(() => {
+      hideUnchangedValues = $('#hide-unchanged').prop('checked');
+      $('#confirmation-section-hierarchy-diff .hierarchy-container')
+        .find('.no-change').show().filter(() => hideUnchangedValues).hide();
+    });
     // populate hierarchy stats
     $('#confirmation-section-hierarchy-stats > div > ul').children().remove();
     const $statsList = $('#confirmation-section-hierarchy-stats > div > ul');

@@ -323,6 +323,11 @@
         </div>
         <div class="confirmation-section requires-confirmation" id="confirmation-section-hierarchy-diff">
             <h4>Hierarchy Changes</h4>
+            <label for="hide-unchanged" class="selection-option-label">
+                <input type="checkbox" name="hide-unchanged" value="hide-unchanged" id="hide-unchanged" class="selection-option-value">
+                <span class="selection-option-checkmark"></span>
+                Hide unchanged values
+            </label>
             <div class="hierarchy-container">
             </div>
             <label for="confirmation-hierarchy-diff" class="selection-option-label">
