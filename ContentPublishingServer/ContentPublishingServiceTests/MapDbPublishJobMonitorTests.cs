@@ -31,6 +31,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
+                QueueServicedEvent = new ManualResetEvent(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -113,6 +114,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
+                QueueServicedEvent = new ManualResetEvent(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -213,13 +215,16 @@ namespace ContentPublishingServiceTests
             };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
+            var ResetEvent = new ManualResetEvent(false);
             MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
+                QueueServicedEvent = ResetEvent,
             };
             MapDbReductionJobMonitor ReductionJobMonitor = new MapDbReductionJobMonitor
             {
                 MockContext = MockContext,
+                MapDbPublishQueueServicedEvent = ResetEvent,
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -289,6 +294,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
+                QueueServicedEvent = new ManualResetEvent(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -337,6 +343,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
+                QueueServicedEvent = new ManualResetEvent(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
