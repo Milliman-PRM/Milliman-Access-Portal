@@ -33,11 +33,9 @@ namespace ContentPublishingLib.JobMonitors
 
         override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxSimultaneousRequests";
 
-        public ManualResetEvent QueueServicedEvent
-        {
-            private get;
-            set;
-        }
+        public ManualResetEvent QueueServicedEvent { private get; set; }
+
+        private bool IsTestMode { get { return MockContext != null; } }
 
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<PublishJobTrackingItem> ActivePublicationRunnerItems = new List<PublishJobTrackingItem>();
@@ -96,7 +94,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <returns></returns>
         public override Task Start(CancellationToken Token)
         {
-            if (ContextOptions == null && MockContext == null)
+            if (ContextOptions == null && !IsTestMode)
             {
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
@@ -109,6 +107,8 @@ namespace ContentPublishingLib.JobMonitors
             MethodBase Method = MethodBase.GetCurrentMethod();
             while (!Token.IsCancellationRequested)
             {
+                bool doSignal = true;
+
                 // Remove completed tasks from the RunningTasks collection. 
                 // .ToList() is needed because the body changes the original List. 
                 foreach (PublishJobTrackingItem CompletedPublishRunnerItem in ActivePublicationRunnerItems.Where(t => t.task.IsCompleted).ToList())
@@ -121,6 +121,7 @@ namespace ContentPublishingLib.JobMonitors
                 if (ActivePublicationRunnerItems.Count < MaxConcurrentRunners)
                 {
                     List<ContentPublicationRequest> Responses = GetReadyRequests(MaxConcurrentRunners - ActivePublicationRunnerItems.Count);
+                    doSignal = (Responses.Count == 0);
 
                     foreach (ContentPublicationRequest DbRequest in Responses)
                     {
@@ -129,7 +130,7 @@ namespace ContentPublishingLib.JobMonitors
 
                         // Do I need a switch on ContentType?  (example in MapDbReductionJobMonitor)
                         MapDbPublishRunner Runner;
-                        using (ApplicationDbContext Db = MockContext != null
+                        using (ApplicationDbContext Db = IsTestMode
                                                          ? MockContext.Object
                                                          : new ApplicationDbContext(ContextOptions))
                         {
@@ -138,7 +139,7 @@ namespace ContentPublishingLib.JobMonitors
                                 JobDetail = PublishJobDetail.New(DbRequest, Db),
                             };
                         }
-                        if (MockContext != null)
+                        if (IsTestMode)
                         {
                             Runner.MockContext = MockContext;
                             Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
@@ -155,6 +156,14 @@ namespace ContentPublishingLib.JobMonitors
                             ActivePublicationRunnerItems.Add(new PublishJobTrackingItem { requestId = DbRequest.Id, task = NewTask, tokenSource = cancelSource });
                         }
                     }
+                }
+
+                if (doSignal)
+                {
+                    Thread.Sleep(1000);
+                    // Signal to all subscribed threads that this JobMonitor's polling operation is completed
+                    QueueServicedEvent.Set();
+                    QueueServicedEvent.Reset();
                 }
 
                 Thread.Sleep(1000);
@@ -206,7 +215,7 @@ namespace ContentPublishingLib.JobMonitors
                 return new List<ContentPublicationRequest>();
             }
 
-            using (ApplicationDbContext Db = MockContext != null
+            using (ApplicationDbContext Db = IsTestMode
                                              ? MockContext.Object
                                              : new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
@@ -239,12 +248,7 @@ namespace ContentPublishingLib.JobMonitors
                         Db.SaveChanges();
                         Transaction.Commit();
                     }
-                    else
-                    {
-                        // Signal to all subscribed threads that this polling operation is completed
-                        QueueServicedEvent.Set();
-                        QueueServicedEvent.Reset();
-                    }
+
                     return TopItems;
                 }
                 catch (Exception e)
@@ -273,7 +277,7 @@ namespace ContentPublishingLib.JobMonitors
             try
             {
                 // Use a transaction so that there is no concurrency issue after we get the current db record
-                using (ApplicationDbContext Db = MockContext != null
+                using (ApplicationDbContext Db = IsTestMode
                                                  ? MockContext.Object
                                                  : new ApplicationDbContext(ContextOptions))
                 using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
