@@ -35,6 +35,18 @@ namespace ContentPublishingLib.JobMonitors
 
         override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxParallelTasks";
 
+        public ManualResetEvent MapDbPublishQueueServicedEvent
+        {
+            private get;
+            set;
+        }
+
+        public TimeSpan MapDbPublishQueueServicedEventTimeout
+        {
+            set;
+            private get;
+        } = new TimeSpan(0, 0, 20);
+
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<ReductionJobTrackingItem> ActiveReductionRunnerItems = new List<ReductionJobTrackingItem>();
 
@@ -115,6 +127,13 @@ namespace ContentPublishingLib.JobMonitors
                 // Start more tasks if there is room in the RunningTasks collection. 
                 if (ActiveReductionRunnerItems.Count < MaxConcurrentRunners)
                 {
+                    if (!MapDbPublishQueueServicedEvent.WaitOne(MapDbPublishQueueServicedEventTimeout))
+                    {
+                        // the PublishJobMonitor thread must be down
+                        string msg = "In MapDbReductionJobMonitor.JobMonitorThreadMain, timeout while waiting for MapDbPublishQueueServicedEvent signal";
+                        GlobalFunctions.TraceWriteLine(msg);
+                        throw new ApplicationException(msg);
+                    }
                     List<ContentReductionTask> Responses = GetReadyTasks(MaxConcurrentRunners - ActiveReductionRunnerItems.Count);
 
                     foreach (ContentReductionTask DbTask in Responses)
@@ -149,8 +168,6 @@ namespace ContentPublishingLib.JobMonitors
                         }
                     }
                 }
-
-                Thread.Sleep(1000);
             }
 
             GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");

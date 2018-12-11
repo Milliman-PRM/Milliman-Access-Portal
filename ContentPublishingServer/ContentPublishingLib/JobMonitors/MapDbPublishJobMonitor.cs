@@ -33,6 +33,12 @@ namespace ContentPublishingLib.JobMonitors
 
         override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxSimultaneousRequests";
 
+        public ManualResetEvent QueueServicedEvent
+        {
+            private get;
+            set;
+        }
+
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<PublishJobTrackingItem> ActivePublicationRunnerItems = new List<PublishJobTrackingItem>();
 
@@ -232,6 +238,12 @@ namespace ContentPublishingLib.JobMonitors
                         Db.ContentPublicationRequest.UpdateRange(TopItems);
                         Db.SaveChanges();
                         Transaction.Commit();
+                    }
+                    else
+                    {
+                        // Signal to all subscribed threads that this polling operation is completed
+                        QueueServicedEvent.Set();
+                        QueueServicedEvent.Reset();
                     }
                     return TopItems;
                 }
