@@ -53,8 +53,15 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent:
                             summary.StatusMessage += $"{lineBreak}No selected field values match data in the new content file";
                             break;
+                        case MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName:
+                            summary.StatusMessage += $"{lineBreak}An invalid field name was selected";
+                            break;
                         case MapDbReductionTaskOutcomeReason.UnspecifiedError:
                             summary.StatusMessage += $"{lineBreak}Unspecified error in selection group processing";
+                            break;
+                        default:
+                            // should never be here
+                            summary.StatusMessage += $"{lineBreak}Unhandled reduction error {taskOutcome.OutcomeReason}, please report to map.support@milliman.com";
                             break;
                     }
                 }

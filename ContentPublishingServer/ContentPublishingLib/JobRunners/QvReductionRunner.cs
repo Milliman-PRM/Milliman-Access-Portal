@@ -423,7 +423,7 @@ namespace ContentPublishingLib.JobRunners
                         Error = Msg,
                     };
 
-                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
+                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.SelectionForInvalidFieldName;
                     AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
                     GlobalFunctions.TraceWriteLine(Msg);
                     throw new ApplicationException(Msg);
