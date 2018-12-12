@@ -149,48 +149,43 @@ mkdir -p ${rootPath}\_test_results
 
 
 #region Exit if only notes have changed within the current branch (comparing against develop)
-# unless the branch is develop, master, or pre-release
-if (!($BranchName -eq 'master' -or $BranchName -eq 'develop' -or $BranchName -like 'pre-release*')) {
+# if we're not building in "Release" mode
+if ($buildType -ne "Release")
+{
     $command = "$gitExePath diff --name-only origin/develop 2>&1"
     $diffOutput = Invoke-Expression "$command" | out-string
-}
 
-log_statement "git diff Output:"
-write-output $diffOutput
 
-if ($diffOutput -like "git*:*fatal:*")
-{
-  exit 42
-}
+    log_statement "git diff Output:"
+    write-output $diffOutput
 
-$diffOutput = $diffOutput.Split([Environment]::NewLine)
-
-$codeChangeFound = $false
-
-foreach ($diff in $diffOutput)
-{
-  # If both of these are true, the line being examined is likely a change to the software that needs testing
-  if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike '.github/*' -and $diff -notlike 'UtilityScripts/*')
-  {
-    log_statement "Code change found in $diff"
-    $codeChangeFound = $true
-    break
-  }
-}
-
-# If no code changes were found, we don't have to run the rest of this script
-if ($codeChangeFound -eq $false)
-{
-    if ($BranchName -in "master", "develop")
+    if ($diffOutput -like "git*:*fatal:*")
     {
-        log_statement "Branch name $BranchName is always built and deployed"
+    exit 42
     }
-    else {
+
+    $diffOutput = $diffOutput.Split([Environment]::NewLine)
+
+    $codeChangeFound = $false
+
+    foreach ($diff in $diffOutput)
+    {
+    # If both of these are true, the line being examined is likely a change to the software that needs testing
+    if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike '.github/*' -and $diff -notlike 'UtilityScripts/*')
+    {
+        log_statement "Code change found in $diff"
+        $codeChangeFound = $true
+        break
+    }
+    }
+
+    # If no code changes were found, we don't have to run the rest of this script
+    if ($codeChangeFound -eq $false)
+    {
         log_statement "Code changes were not found. No build or deployment is needed."
         exit 0
     }
 }
-
 #endregion
 
 #region Run unit tests and exit if any fail
