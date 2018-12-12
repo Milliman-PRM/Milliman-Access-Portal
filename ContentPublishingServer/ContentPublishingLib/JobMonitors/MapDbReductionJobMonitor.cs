@@ -35,6 +35,12 @@ namespace ContentPublishingLib.JobMonitors
 
         override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxParallelTasks";
 
+        public ManualResetEvent MapDbPublishQueueServicedEvent { private get; set; }
+
+        public TimeSpan MapDbPublishQueueServicedEventTimeout { private get; set;  } = new TimeSpan(0, 0, 20);
+
+        private bool IsTestMode { get { return MockContext != null; } }
+
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<ReductionJobTrackingItem> ActiveReductionRunnerItems = new List<ReductionJobTrackingItem>();
 
@@ -70,7 +76,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <returns></returns>
         public override Task Start(CancellationToken Token)
         {
-            if (ContextOptions == null && MockContext == null)
+            if (ContextOptions == null && !IsTestMode)
             {
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
@@ -89,7 +95,7 @@ namespace ContentPublishingLib.JobMonitors
             while (!Token.IsCancellationRequested)
             {
                 // Request to cancel active runners for canceled (in db) ContentReductionTasks. 
-                using (ApplicationDbContext Db = MockContext != null
+                using (ApplicationDbContext Db = IsTestMode
                                                ? MockContext.Object
                                                : new ApplicationDbContext(ContextOptions))
                 {
@@ -115,6 +121,13 @@ namespace ContentPublishingLib.JobMonitors
                 // Start more tasks if there is room in the RunningTasks collection. 
                 if (ActiveReductionRunnerItems.Count < MaxConcurrentRunners)
                 {
+                    if (!IsTestMode && !MapDbPublishQueueServicedEvent.WaitOne(MapDbPublishQueueServicedEventTimeout))
+                    {
+                        // the PublishJobMonitor thread must be down
+                        string msg = "In MapDbReductionJobMonitor.JobMonitorThreadMain, timeout while waiting for MapDbPublishQueueServicedEvent signal";
+                        GlobalFunctions.TraceWriteLine(msg);
+                        throw new ApplicationException(msg);
+                    }
                     List<ContentReductionTask> Responses = GetReadyTasks(MaxConcurrentRunners - ActiveReductionRunnerItems.Count);
 
                     foreach (ContentReductionTask DbTask in Responses)
@@ -129,7 +142,7 @@ namespace ContentPublishingLib.JobMonitors
                                 {
                                     JobDetail = (ReductionJobDetail)DbTask,
                                 };
-                                if (MockContext != null)
+                                if (IsTestMode)
                                 {
                                     Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
                                 }
@@ -149,8 +162,6 @@ namespace ContentPublishingLib.JobMonitors
                         }
                     }
                 }
-
-                Thread.Sleep(1000);
             }
 
             GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
@@ -199,7 +210,7 @@ namespace ContentPublishingLib.JobMonitors
                 return new List<ContentReductionTask>();
             }
 
-            using (ApplicationDbContext Db = MockContext != null
+            using (ApplicationDbContext Db = IsTestMode
                                              ? MockContext.Object
                                              : new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
@@ -246,7 +257,7 @@ namespace ContentPublishingLib.JobMonitors
             try
             {
                 // Use a transaction so that there is no concurrency issue after we get the current db record
-                using (ApplicationDbContext Db = MockContext != null
+                using (ApplicationDbContext Db = IsTestMode
                                                ? MockContext.Object
                                                : new ApplicationDbContext(ContextOptions))
                 using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())

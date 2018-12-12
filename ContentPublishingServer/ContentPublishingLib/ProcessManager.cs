@@ -93,16 +93,26 @@ namespace ContentPublishingLib
         /// <param name="ProcessConfig"></param>
         public void Start()
         {
+            ManualResetEvent MapDbPublishQueueServicedEvent = new ManualResetEvent(false);
+
             JobMonitorDict.Add(0, new JobMonitorInfo
             {
-                Monitor = new MapDbReductionJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection" },
+                Monitor = new MapDbReductionJobMonitor
+                {
+                    ConfiguredConnectionStringParamName = "DefaultConnection",
+                    MapDbPublishQueueServicedEvent = MapDbPublishQueueServicedEvent
+                },
                 TokenSource = new CancellationTokenSource(),
                 AwaitableTask = null
             });
 
             JobMonitorDict.Add(1, new JobMonitorInfo
             {
-                Monitor = new MapDbPublishJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection" },
+                Monitor = new MapDbPublishJobMonitor
+                {
+                    ConfiguredConnectionStringParamName = "DefaultConnection",
+                    QueueServicedEvent = MapDbPublishQueueServicedEvent
+                },
                 TokenSource = new CancellationTokenSource(),
                 AwaitableTask = null
             });

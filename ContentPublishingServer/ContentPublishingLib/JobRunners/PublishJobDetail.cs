@@ -48,6 +48,7 @@ namespace ContentPublishingLib.JobRunners
                     MasterContentFile = DbTask.ReductionRelatedFilesObj.Select(rrf => rrf.MasterContentFile).SingleOrDefault(),
                     RootContentId = DbTask.RootContentItemId,
                     ApplicationUserId = DbTask.ApplicationUserId,
+                    CreateDateTimeUtc = DbTask.CreateDateTimeUtc,
                 },
                 Result = new PublishJobResult(),
             };
@@ -68,6 +69,7 @@ namespace ContentPublishingLib.JobRunners
             public ContentRelatedFile MasterContentFile { get; set; }
             public Guid RootContentId { get; set; }
             public Guid ApplicationUserId { get; set; }
+            public DateTime CreateDateTimeUtc { get; set; }
         }
 
     }

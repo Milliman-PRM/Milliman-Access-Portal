@@ -31,6 +31,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
+                QueueServicedEvent = new ManualResetEvent(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -113,6 +114,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
+                QueueServicedEvent = new ManualResetEvent(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -213,13 +215,16 @@ namespace ContentPublishingServiceTests
             };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
+            var ResetEvent = new ManualResetEvent(false);
             MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
+                QueueServicedEvent = ResetEvent,
             };
             MapDbReductionJobMonitor ReductionJobMonitor = new MapDbReductionJobMonitor
             {
                 MockContext = MockContext,
+                MapDbPublishQueueServicedEvent = ResetEvent,
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -260,6 +265,104 @@ namespace ContentPublishingServiceTests
             {
                 Directory.Delete(ProposedRequestExchangeFolder, true);
             }
+            #endregion
+        }
+
+        /// <summary>
+        /// Tests that a pub request dated later than a queued reduction task is not taken off its queue to start processing
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task PublicationWaitsForEarlierStampedReduction()
+        {
+            #region Arrange
+            Guid ReductionTaskOfThisTest = TestUtil.MakeTestGuid(2);
+            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(2);
+
+            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
+
+            // Modify the reduction task to be tested
+            ContentReductionTask DbTask = MockContext.Object.ContentReductionTask.Single(t => t.Id == ReductionTaskOfThisTest);
+            DbTask.ReductionStatus = ReductionStatusEnum.Queued;
+            DbTask.CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0);
+
+            // Modify the publishing request to be tested
+            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
+            DbRequest.RequestStatus = PublicationStatus.Queued;
+            DbRequest.CreateDateTimeUtc = DateTime.UtcNow;
+
+            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor
+            {
+                MockContext = MockContext,
+                QueueServicedEvent = new ManualResetEvent(false),
+            };
+
+            CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
+            #endregion
+
+            #region Act
+            Task MonitorTask = Task.Run(() => TestMonitor.Start(CancelTokenSource.Token), CancelTokenSource.Token);
+            Thread.Sleep(4000);
+            try
+            {
+                CancelTokenSource.Cancel();
+                await MonitorTask;
+            }
+            catch { }
+            #endregion
+
+            #region Assert
+            // The request should not be taken off the queue because a reduction task is timestamped earlier
+            Assert.Equal(PublicationStatus.Queued, DbRequest.RequestStatus);
+            #endregion
+        }
+
+        /// <summary>
+        /// Tests that a pub request dated earlier than all queued reduction tasks is taken off its queue to start processing
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task PublicationStartsProcessingBeforeLaterStampedReduction()
+        {
+            #region Arrange
+            Guid ReductionTaskOfThisTest = TestUtil.MakeTestGuid(2);
+            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(2);
+
+            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
+
+            // Modify the reduction task to be tested
+            ContentReductionTask DbTask = MockContext.Object.ContentReductionTask.Single(t => t.Id == ReductionTaskOfThisTest);
+            DbTask.ReductionStatus = ReductionStatusEnum.Queued;
+            DbTask.CreateDateTimeUtc = DateTime.UtcNow;
+
+            // Modify the publishing request to be tested
+            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
+            DbRequest.RequestStatus = PublicationStatus.Queued;
+            DbRequest.CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0);
+
+            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor
+            {
+                MockContext = MockContext,
+                QueueServicedEvent = new ManualResetEvent(false),
+            };
+
+            CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
+            #endregion
+
+            #region Act
+            Task MonitorTask = Task.Run(() => TestMonitor.Start(CancelTokenSource.Token), CancelTokenSource.Token);
+            Thread.Sleep(8000);
+            try
+            {
+                CancelTokenSource.Cancel();
+                await MonitorTask;
+            }
+            catch { }
+            #endregion
+
+            #region Assert
+            // The request should be taken off the queue because no reduction task is timestamped earlier
+            Assert.Contains(DbRequest.RequestStatus, new PublicationStatus[] { PublicationStatus.Processing, PublicationStatus.Processed });
             #endregion
         }
 
