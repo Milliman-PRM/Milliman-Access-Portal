@@ -288,7 +288,7 @@
                 <p>This file has not changed.</p>
             </div>
             <label for="confirmation-master-content" class="selection-option-label">
-                <input type="checkbox" name="master-content" value="confirmation-master-content" id="confirmation-master-content" class="selection-option-value">
+                <input type="checkbox" name="master-content" value="confirmation-master-content" id="confirmation-master-content" class="selection-option-value requires-confirmation">
                 <span class="selection-option-checkmark"></span>
                 Content is as expected
             </label>
@@ -302,7 +302,7 @@
                 <p>This file has not changed.</p>
             </div>
             <label for="confirmation-user-guide" class="selection-option-label">
-                <input type="checkbox" name="user-guide" value="confirmation-user-guide" id="confirmation-user-guide" class="selection-option-value">
+                <input type="checkbox" name="user-guide" value="confirmation-user-guide" id="confirmation-user-guide" class="selection-option-value requires-confirmation">
                 <span class="selection-option-checkmark"></span>
                 User guide is as expected
             </label>
@@ -316,7 +316,7 @@
                 <p>This file has not changed.</p>
             </div>
             <label for="confirmation-release-notes" class="selection-option-label">
-                <input type="checkbox" name="release-notes" value="confirmation-release-notes" id="confirmation-release-notes" class="selection-option-value">
+                <input type="checkbox" name="release-notes" value="confirmation-release-notes" id="confirmation-release-notes" class="selection-option-value requires-confirmation">
                 <span class="selection-option-checkmark"></span>
                 Release notes are as expected
             </label>
@@ -331,7 +331,7 @@
             <div class="hierarchy-container">
             </div>
             <label for="confirmation-hierarchy-diff" class="selection-option-label">
-                <input type="checkbox" name="hierarchy-diff" value="confirmation-hierarchy-diff" id="confirmation-hierarchy-diff" class="selection-option-value">
+                <input type="checkbox" name="hierarchy-diff" value="confirmation-hierarchy-diff" id="confirmation-hierarchy-diff" class="selection-option-value requires-confirmation">
                 <span class="selection-option-checkmark"></span>
                 Hierarchy changes are as expected
             </label>
@@ -342,7 +342,7 @@
                 <ul class="selection-group-list"></ul>
             </div>
             <label for="confirmation-hierarchy-stats" class="selection-option-label">
-                <input type="checkbox" name="hierarchy-stats" value="confirmation-hierarchy-stats" id="confirmation-hierarchy-stats" class="selection-option-value">
+                <input type="checkbox" name="hierarchy-stats" value="confirmation-hierarchy-stats" id="confirmation-hierarchy-stats" class="selection-option-value requires-confirmation">
                 <span class="selection-option-checkmark"></span>
                 Reduction results are as expected
             </label>

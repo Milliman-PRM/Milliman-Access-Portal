@@ -188,5 +188,39 @@ namespace MapDbContextLib.Models
                 return null;
             }
         }
+
+        public static ContentReductionHierarchy<ReductionFieldValueSelection> Apply(
+            ContentReductionHierarchy<ReductionFieldValue> hierarchy,
+            ContentReductionHierarchy<ReductionFieldValueSelection> selections
+        )
+        {
+            var result = new ContentReductionHierarchy<ReductionFieldValueSelection>
+            {
+                RootContentItemId = hierarchy?.RootContentItemId ?? selections.RootContentItemId,
+            };
+
+            foreach (var field in hierarchy?.Fields ?? new List<ReductionField<ReductionFieldValue>> { })
+            {
+                var sourceField = selections.Fields.SingleOrDefault((f) => f.FieldName == field.FieldName);
+                var values = field.Values.Select((v) => new ReductionFieldValueSelection
+                {
+                    Id = v.Id,
+                    Value = v.Value,
+                    SelectionStatus = sourceField?.Values
+                        .SingleOrDefault((sv) => sv.Value == v.Value)?.SelectionStatus ?? false,
+                }).ToList();
+                result.Fields.Add(new ReductionField<ReductionFieldValueSelection>
+                {
+                    Id = field.Id,
+                    FieldName = field.FieldName,
+                    DisplayName = field.DisplayName,
+                    StructureType = field.StructureType,
+                    ValueDelimiter = field.ValueDelimiter,
+                    Values = values,
+                });
+            }
+
+            return result;
+        }
     }
 }

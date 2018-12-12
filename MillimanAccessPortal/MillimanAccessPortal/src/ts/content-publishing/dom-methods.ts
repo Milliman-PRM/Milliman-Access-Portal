@@ -258,11 +258,11 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   if (!response.DoesReduce || !response.SelectionGroups) {
     $('#confirmation-section-hierarchy-diff')
       .hide()
-      .find('input[type="checkbox"]')
+      .find('input[type="checkbox"].requires-confirmation')
       .attr('disabled', '');
     $('#confirmation-section-hierarchy-stats')
       .hide()
-      .find('input[type="checkbox"]')
+      .find('input[type="checkbox"].requires-confirmation')
       .attr('disabled', '');
   } else {
     $('#confirmation-section-hierarchy-diff')
@@ -290,10 +290,10 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     ) => {
       // assume fields match
       const $diff = $('<div></div>');
-      if (!live && !pending) {
+      if (live.Fields.length === 0 && pending.Fields.length === 0) {
         return $diff;
       }
-      if (!live) {
+      if (live.Fields.length === 0) {
         live = {
           ...pending,
           Fields: pending.Fields.map((f) => ({
@@ -302,7 +302,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           })),
         };
       }
-      if (!pending) {
+      if (pending.Fields.length === 0) {
         pending = {
           ...live,
           Fields: live.Fields.map((f) => ({
@@ -311,17 +311,16 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           })),
         };
       }
-      live.Fields.forEach(({ Values: liveValues, DisplayName }, i) => {
+      live.Fields.forEach(({ Values: liveValues, FieldName, DisplayName }) => {
         $diff.append(`<div class="hierarchy-diff-field">${DisplayName}</div>`);
-        const pendingValues = pending.Fields[i].Values;
+        const pendingValues = pending.Fields.find((f) => f.FieldName === FieldName).Values;
         const allValues = unionWith(liveValues, pendingValues,
           (v1: TValue, v2: TValue) => v1.Value === v2.Value);
         const filteredValues = allValues.filter((value) => {
           const liveData = liveValues.find((v) => v.Value === value.Value);
           const pendingData = pendingValues.find((v) => v.Value === value.Value);
           if (selectedOnly) {
-            if (liveData && isSelection(liveData) && !liveData.SelectionStatus
-              && pendingData && isSelection(pendingData) && !pendingData.SelectionStatus) {
+            if (liveData && isSelection(liveData) && !liveData.SelectionStatus) {
               return false;
             }
           }
@@ -348,7 +347,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           if (selectedOnly) {
             const $diffSymbol = $(`
               <td class="hierarchy-diff-symbol"><div>${pendingData ? '' : '-'}</div></td>`);
-            if (!pendingData) {
+            if (!pendingData || (isSelection(pendingData) && !pendingData.SelectionStatus)) {
               $diffSymbol.addClass('minus');
             }
             $row.append($diffSymbol);
@@ -394,12 +393,16 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
         ${(hours || minutes) ? minutes + ' minute' + (minutes === 1 ? ' ' : 's ') : ''}
         ${seconds + ' second' + (seconds === 1 ? ' ' : 's ')}
       `))(duration.hours(), duration.minutes(), duration.seconds());
-      const liveSelectionCount = selectionGroup.LiveSelections.Fields
-        .map((f) => f.Values.reduce((prev, cur) => prev + (cur.SelectionStatus ? 1 : 0), 0))
-        .reduce((prev, cur) => prev + cur, 0);
-      const pendingSelectionCount = selectionGroup.PendingSelections.Fields
-        .map((f) => f.Values.reduce((prev, cur) => prev + (cur.SelectionStatus ? 1 : 0), 0))
-        .reduce((prev, cur) => prev + cur, 0);
+      const liveSelectionCount = selectionGroup.IsMaster
+        ? 0
+        : selectionGroup.LiveSelections.Fields
+          .map((f) => f.Values.reduce((prev, cur) => prev + (cur.SelectionStatus ? 1 : 0), 0))
+          .reduce((prev, cur) => prev + cur, 0);
+      const pendingSelectionCount = selectionGroup.IsMaster
+        ? 0
+        : selectionGroup.PendingSelections && selectionGroup.PendingSelections.Fields
+          .map((f) => f.Values.reduce((prev, cur) => prev + (cur.SelectionStatus ? 1 : 0), 0))
+          .reduce((prev, cur) => prev + cur, 0);
       const $selectionGroupStats = $(`<li data-id="${selectionGroup.Id}"><div class="selection-group-summary">
           <h5>
             ${selectionGroup.IsMaster ? '<strong>[Master]</strong>&nbsp' : ''}
@@ -419,9 +422,11 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           <div class="selection-group-stat pre-live-selection-summary">
             <span class="selection-group-stat-label">Selections:</span>
             <span class="selection-group-stat-value">
-              ${liveSelectionCount === pendingSelectionCount
-                ? `${pendingSelectionCount}`
-                : `${liveSelectionCount} → ${pendingSelectionCount}`}
+              ${selectionGroup.IsMaster
+                ? 'N/A'
+                : liveSelectionCount === pendingSelectionCount
+                  ? `${pendingSelectionCount}`
+                  : `${liveSelectionCount} → ${pendingSelectionCount}`}
             </span>
           </div>
           <div class="pre-live-selections-table hierarchy-container" style="display: none;">
@@ -440,7 +445,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       if (selectionGroup.InactiveReason !== null) {
         $selectionGroupStats.find('.selection-group-summary').append(`
           <div class="selection-group-stat">
-            <span class="selection-group-stat-label">Error information:</span>
+            <span class="selection-group-stat-label">Inactive reason:</span>
             <span class="selection-group-stat-value">${selectionGroup.InactiveReason}</span>
           </div>
         `);
@@ -479,14 +484,18 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           $selectionsList.hide(100);
         }
       });
-      $selectionGroupStats.find('.pre-live-users-stat').append($userExpansion);
-      $selectionGroupStats.find('.pre-live-selection-summary').append($selectionsExpansion);
-      selectionGroup.Users.forEach((user) => {
-        $selectionGroupStats.find('.pre-live-user-list > ul')
-          .append(`<li>${user.FirstName} ${user.LastName} (${user.UserName})</li>`);
-      });
-      $selectionGroupStats.find('.pre-live-selections-table')
-        .append(renderHierarchyDiff(selectionGroup.LiveSelections, selectionGroup.PendingSelections, true));
+      if (selectionGroup.Users.length > 0) {
+        $selectionGroupStats.find('.pre-live-users-stat').append($userExpansion);
+        selectionGroup.Users.forEach((user) => {
+          $selectionGroupStats.find('.pre-live-user-list > ul')
+            .append(`<li>${user.FirstName} ${user.LastName} (${user.UserName})</li>`);
+        });
+      }
+      if (!selectionGroup.IsMaster) {
+        $selectionGroupStats.find('.pre-live-selection-summary').append($selectionsExpansion);
+        $selectionGroupStats.find('.pre-live-selections-table')
+          .append(renderHierarchyDiff(selectionGroup.LiveSelections, selectionGroup.PendingSelections, true));
+      }
       $statsList.append($selectionGroupStats);
     });
     if (response.SelectionGroups.find((sg) => sg.IsInactive)) {
@@ -501,7 +510,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   // populate attestation
   $('#confirmation-section-attestation .attestation-language').html(response.AttestationLanguage);
 
-  const anyEnabled = $('#report-confirmation input[type="checkbox"]')
+  const anyEnabled = $('#report-confirmation input[type="checkbox"].requires-confirmation')
     .filter((_, element) => $(element).attr('disabled') === undefined).length;
   if (!anyEnabled) {
     $('#confirmation-section-attestation .button-approve')
@@ -840,12 +849,12 @@ export function setup() {
     $('#root-content-items [selected]').click();
     statusMonitor.checkStatus();
   });
-  $('#report-confirmation input[type="checkbox"]').change(() =>
+  $('#report-confirmation input[type="checkbox"].requires-confirmation').change(() =>
     $('#confirmation-section-attestation .button-approve')
       .addClass('disabled')
       .tooltipster('content', goLiveDisabledTooltip)
       .filter(() =>
-        $('#report-confirmation input[type="checkbox"]').not('[disabled]').toArray()
+        $('#report-confirmation input[type="checkbox"].requires-confirmation').not('[disabled]').toArray()
           .map((checkbox: HTMLInputElement) => checkbox.checked)
           .reduce((cum, cur) => cum && cur, true))
       .removeClass('disabled')

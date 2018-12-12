@@ -105,6 +105,18 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             var userInfo = (UserInfoViewModel)user;
                             selectionGroupUsers.Add(userInfo); 
                         }
+
+                        string errorMessage = null;
+                        switch (task.OutcomeMetadataObj.OutcomeReason)
+                        {
+                            case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
+                                errorMessage = "This group has no selections.";
+                                break;
+                            case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent:
+                                errorMessage = "None of this group's selections are in the new hierarchy.";
+                                break;
+                        }
+
                         selectionGroups.Add(new SelectionGroupSummary
                         {
                             Id = task.SelectionGroup.Id,
@@ -113,11 +125,16 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             Duration = task.OutcomeMetadataObj.ProcessingDuration,
                             Users = selectionGroupUsers,
                             WasInactive = task.SelectionGroup.ContentInstanceUrl == null,
-                            IsInactive = task.ReductionStatus == ReductionStatusEnum.Error,
-                            InactiveReason = task.OutcomeMetadataObj.OutcomeReason.ToString(),
-                            LiveSelections = ContentReductionHierarchy<ReductionFieldValueSelection>
-                                .GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId),
-                            PendingSelections = task.SelectionCriteriaObj,
+                            IsInactive = task.ReductionStatus != ReductionStatusEnum.Reduced,
+                            InactiveReason = errorMessage,
+                            LiveSelections = task.SelectionGroup.IsMaster
+                                ? null
+                                : ContentReductionHierarchy<ReductionFieldValueSelection>
+                                    .GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId),
+                            PendingSelections = task.SelectionGroup.IsMaster
+                                ? null
+                                : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(
+                                    task.MasterContentHierarchyObj, task.SelectionCriteriaObj),
                         });
                     }
 
