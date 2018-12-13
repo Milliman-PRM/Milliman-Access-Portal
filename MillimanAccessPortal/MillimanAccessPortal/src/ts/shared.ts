@@ -483,8 +483,6 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
         statusTop += ` (behind ${details.QueuePosition + 1} other reduction${details.QueuePosition ? 's' : ''})`;
       }
       statusBot += durationText;
-    } else if (details.StatusName === 'Error') {
-      details.StatusEnum = 0;  // don't display reduction errors; use the invalid mechanism instead
     } else if (details.StatusName === 'Processing' || details.StatusName === 'Processed') {
       statusBot += durationText;
     }
