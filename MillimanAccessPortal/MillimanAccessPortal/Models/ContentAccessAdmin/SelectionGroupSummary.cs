@@ -22,6 +22,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public ReductionSummary ReductionDetails { get; set; }
         public string RootContentItemName { get; set; }
         public bool IsSuspended { get; set; }
+        public bool IsInvalid { get; set; }
 
         internal static SelectionGroupSummary Build(ApplicationDbContext dbContext, SelectionGroup selectionGroup)
         {
@@ -44,6 +45,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 ReductionDetails = reductionDetails,
                 RootContentItemName = selectionGroup.RootContentItem.ContentName,
                 IsSuspended = selectionGroup.IsSuspended,
+                IsInvalid = selectionGroup.ContentInstanceUrl == null,
             };
 
             // Retrieve users that are members of the specified selection group

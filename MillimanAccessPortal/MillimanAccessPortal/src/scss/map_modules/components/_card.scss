@@ -125,6 +125,10 @@
             border-color: $red;
         }
 
+        &.invalid {
+            border-color: $orange;
+        }
+
         .card-body-main-container {
             position: relative;
             padding: .25em;

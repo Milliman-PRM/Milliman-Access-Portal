@@ -36,7 +36,7 @@ const userSubstringMatcher = (users) => {
 
 export function Dialog(
   title, message, buttons, color, input,
-  callback, submitHandler,
+  callback, submitHandler: (data, callback: () => void, origText: string) => void,
 ) {
   const self = this;
   this.title = title;
@@ -333,3 +333,23 @@ export function CancelContentPublicationRequestDialog(rootContentItemId, rootCon
 }
 CancelContentPublicationRequestDialog.prototype = Object.create(Dialog.prototype);
 CancelContentPublicationRequestDialog.prototype.constructor = CancelContentPublicationRequestDialog;
+
+export function NoSelectionsDialog(submitHandler) {
+  Dialog.call(
+    this,
+    'Warning',
+    'You have not selected any values for this selection group. '
+    + 'Submitting no selections will cause the group to become inactive '
+    + 'and all of its users will be unable to view its content until values are selected.',
+    [
+      { type: vex.dialog.buttons.yes, text: 'Proceed' },
+      { type: vex.dialog.buttons.no, text: 'Cancel' },
+    ],
+    'orange',
+    null,
+    null,
+    submitHandler,
+  );
+}
+NoSelectionsDialog.prototype = Object.create(Dialog.prototype);
+NoSelectionsDialog.prototype.constructor = NoSelectionsDialog;

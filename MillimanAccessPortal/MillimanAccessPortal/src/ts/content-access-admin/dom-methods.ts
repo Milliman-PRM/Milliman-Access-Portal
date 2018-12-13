@@ -7,15 +7,17 @@ import '../lib-options';
 
 import * as $ from 'jquery';
 import * as toastr from 'toastr';
+import { callbackify } from 'util';
 
 import {
   AddSelectionGroupActionCard, ClientCard, RootContentItemCard, SelectionGroupCard,
 } from '../card';
-import { AddSelectionGroupDialog, DeleteSelectionGroupDialog } from '../dialog';
+import { AddSelectionGroupDialog, DeleteSelectionGroupDialog, NoSelectionsDialog } from '../dialog';
+import { FormBase } from '../form/form-base';
 import {
-  collapseAllListener, del, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, post, setExpanded, showButtonSpinner, updateCardStatus, updateToolbarIcons,
-  wrapCardCallback,
+  collapseAllListener, confirmAndContinue, confirmAndContinueForm, del, expandAllListener,
+  filterFormListener, filterTreeListener, get, hideButtonSpinner, post, setExpanded,
+  showButtonSpinner, updateCardStatus, updateToolbarIcons, wrapCardCallback,
 } from '../shared';
 import {
   SelectionDetails, SelectionGroupList, SelectionGroupSummary, SelectionsDetail,
@@ -129,7 +131,9 @@ function submitSelectionForm() {
     renderSelections(response);
     toastr.success(data.IsMaster
       ? 'Unrestricted access granted.'
-      : 'A reduction task has been queued.');
+      : data.Selections.length === 0
+        ? 'Selection group invalidated.'
+        : 'A reduction task has been queued.');
   }).fail(function onFail(response) {
     hideButtonSpinner($button);
     toastr.warning(response.getResponseHeader('Warning')
@@ -407,7 +411,19 @@ export function setup() {
 
   $('#selection-groups ul.admin-panel-content-action')
     .append(new AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
-  $('#selection-info .blue-button').click(submitSelectionForm);
+  $('#selection-info .blue-button').click(() => {
+    const anySelected = $('#selection-info .selection-content input[type="checkbox"]')
+      .toArray().map((element) => $(element).prop('checked'))
+      .reduce((cum, cur) => cum || cur, false);
+    if (!anySelected) {
+      new NoSelectionsDialog((_, callback) => {
+        callback();
+        submitSelectionForm();
+      }).open();
+    } else {
+      submitSelectionForm();
+    }
+  });
   $('#selection-info .red-button').click(cancelSelectionForm);
 
   $('#IsMaster').click(() => {
