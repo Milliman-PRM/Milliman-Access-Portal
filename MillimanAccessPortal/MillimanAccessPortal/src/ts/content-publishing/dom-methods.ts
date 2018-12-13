@@ -255,6 +255,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       .attr('disabled', '');
   });
 
+  // render hierarchy diff and selection group changes
   if (!response.DoesReduce || !response.SelectionGroups) {
     $('#confirmation-section-hierarchy-diff')
       .hide()
@@ -269,30 +270,22 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       .show();
     $('#confirmation-section-hierarchy-stats')
       .show();
-    // populate (after calculating, if need be) hierarchy diff
+    
+    // render master hierarchy diff
     $('#confirmation-section-hierarchy-diff .hierarchy > ul').children().remove();
-    if (!response.LiveHierarchy) {
-      $('#confirmation-section-hierarchy-diff .hierarchy-left > ul').append('<div>None</div>');
-    } else {
-      response.LiveHierarchy.Fields.forEach((field) => {
-        const subList = $(`<li><h6>${field.DisplayName}</h6><ul class="hierarchy-list"></ul></li>`);
-        field.Values.forEach((value) =>
-            subList.find('ul').append(`<li>${value.Value}</li>`));
-        $('#confirmation-section-hierarchy-diff .hierarchy-left > ul')
-          .append(subList);
-      });
-    }
 
+    // common function for diffing two hierarchies
     const renderHierarchyDiff = <TValue extends ReductionFieldValue>(
       live: ContentReductionHierarchy<TValue>,
       pending: ContentReductionHierarchy<TValue>,
-      selectedOnly: boolean,
+      selectedOnly: boolean,  // whether to only display values that are selected in live
     ) => {
       // assume fields match
       const $diff = $('<div></div>');
       if (live.Fields.length === 0 && pending.Fields.length === 0) {
         return $diff;
       }
+      // if one of the hierarchies has no fields, set them from the other
       if (live.Fields.length === 0) {
         live = {
           ...pending,
@@ -316,9 +309,10 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
         const pendingValues = pending.Fields.find((f) => f.FieldName === FieldName).Values;
         const allValues = unionWith(liveValues, pendingValues,
           (v1: TValue, v2: TValue) => v1.Value === v2.Value);
+
+        // exclude values that aren't in the live hierarchy if using selectedOnly
         const filteredValues = allValues.filter((value) => {
           const liveData = liveValues.find((v) => v.Value === value.Value);
-          const pendingData = pendingValues.find((v) => v.Value === value.Value);
           if (selectedOnly) {
             if (liveData && isSelection(liveData) && !liveData.SelectionStatus) {
               return false;
@@ -326,12 +320,14 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           }
           return true;
         });
+        // display special message if no hierarchy changes
         if (!filteredValues.length) {
           if (!selectedOnly) {
             $diff.append('<div class="hierarchy-diff-values">No values have changed for this field.</div>');
           }
           return;
         }
+        // build a table to hold the diff
         const $table = $(`<table class="hierarchy-diff-values">
           <colgroup>
             <col width="50">
@@ -345,13 +341,14 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           const pendingData = pendingValues.find((v) => v.Value === value.Value);
           const $row = $('<tr></tr>');
           if (selectedOnly) {
+            // accounts for removal of selection as well as removal of value from new hierarchy
             const $diffSymbol = $(`
-              <td class="hierarchy-diff-symbol"><div>${pendingData ? '' : '-'}</div></td>`);
-            if (!pendingData || (isSelection(pendingData) && !pendingData.SelectionStatus)) {
+              <td class="hierarchy-diff-symbol"><div>${!pendingData ? '-' : ''}</div></td>`);
+            if (!pendingData) {
               $diffSymbol.addClass('minus');
             }
             $row.append($diffSymbol);
-            $row.append($(`<td><div>${liveData ? liveData.Value : '-'}</div></td>`));
+            $row.append($(`<td><div>${liveData.Value}</div></td>`));
           } else {
             const $diffSymbol = $(`
               <td class="hierarchy-diff-symbol"><div>${!pendingData ? '-' : !liveData ? '+' : ''}</div></td>`);
@@ -373,16 +370,20 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       $diff.find('.no-change').show().filter(() => hideUnchangedValues).hide();
       return $diff;
     };
+
+    // call the diff function for the master hierarchies
     $('#confirmation-section-hierarchy-diff .hierarchy-container')
       .children('div').remove();
     $('#confirmation-section-hierarchy-diff .hierarchy-container')
       .append(renderHierarchyDiff(response.LiveHierarchy, response.NewHierarchy, false));
+    // handlers for toggling visible unchanged selections
     $('#hide-unchanged').prop('checked', hideUnchangedValues);
     $('#hide-unchanged').change(() => {
       hideUnchangedValues = $('#hide-unchanged').prop('checked');
       $('#confirmation-section-hierarchy-diff .hierarchy-container')
         .find('.no-change').show().filter(() => hideUnchangedValues).hide();
     });
+
     // populate hierarchy stats
     $('#confirmation-section-hierarchy-stats > div > ul').children().remove();
     const $statsList = $('#confirmation-section-hierarchy-stats > div > ul');
@@ -450,6 +451,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           </div>
         `);
       }
+      // fill in the list of users for this selection group
       const $userExpansion = $('<span class="pre-live-list-toggle">(<a href="">expand</a>)</span>');
       $userExpansion.find('a').click((event) => {
         event.preventDefault();
@@ -467,6 +469,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           $userList.hide(100);
         }
       });
+      // fill in the selection diff for this selection group
       const $selectionsExpansion = $('<span class="pre-live-selections-toggle">(<a href="">expand</a>)</span>');
       $selectionsExpansion.find('a').click((event) => {
         event.preventDefault();
@@ -491,13 +494,14 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
             .append(`<li>${user.FirstName} ${user.LastName} (${user.UserName})</li>`);
         });
       }
-      if (!selectionGroup.IsMaster) {
+      if (!selectionGroup.IsMaster && (!selectionGroup.IsInactive || !selectionGroup.WasInactive)) {
         $selectionGroupStats.find('.pre-live-selection-summary').append($selectionsExpansion);
         $selectionGroupStats.find('.pre-live-selections-table')
           .append(renderHierarchyDiff(selectionGroup.LiveSelections, selectionGroup.PendingSelections, true));
       }
       $statsList.append($selectionGroupStats);
     });
+    // add a message explaining what inactive means
     if (response.SelectionGroups.find((sg) => sg.IsInactive)) {
       $statsList.prepend(`<div>
         Some selection groups will be marked <strong>inactive</strong> if this publication goes live
