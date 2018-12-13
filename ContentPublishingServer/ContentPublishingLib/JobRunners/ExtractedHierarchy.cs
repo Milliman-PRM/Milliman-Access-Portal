@@ -23,6 +23,37 @@ namespace ContentPublishingLib.JobRunners
         public List<string> FieldValues { get; set; } = new List<string>();
 
         /// <summary>
+        /// Explicit cast operator for conversion from MapDbContextLib.Models.ReductionField to ExtractedField
+        /// </summary>
+        /// <param name="ExtractedField"></param>
+        public static explicit operator ExtractedField(ReductionField<ReductionFieldValue> FieldArg)
+        {
+            ExtractedField NewField = new ExtractedField
+            {
+                FieldName = FieldArg.FieldName,
+                DisplayName = FieldArg.DisplayName,
+                Delimiter = FieldArg.ValueDelimiter,
+                FieldValues = FieldArg.Values.Select(v => v.Value).ToList(),
+            };
+
+            switch (FieldArg.StructureType)
+            {
+                case FieldStructureType.Flat:
+                    NewField.ValueStructure = "list";
+                    break;
+                case FieldStructureType.Tree:
+                    NewField.ValueStructure = "tree";
+                    break;
+                case FieldStructureType.Unknown:
+                default:
+                    NewField.ValueStructure = "Unknown";
+                    break;
+            }
+
+            return NewField;
+        }
+
+        /// <summary>
         /// Explicit cast operator for conversion to MapDbContextLib.Models.ReductionField
         /// </summary>
         /// <param name="ExtractedField"></param>
@@ -76,6 +107,25 @@ namespace ContentPublishingLib.JobRunners
             foreach (ExtractedField Field in Hierarchy.Fields)
             {
                 ReturnObject.Fields.Add((ReductionField<ReductionFieldValue>)Field);
+            };
+
+            return ReturnObject;
+        }
+
+        /// <summary>
+        /// Explicit cast operator for conversion to MapDbContextLib.Models.ContentReductionHierarchy
+        /// </summary>
+        public static explicit operator ExtractedHierarchy(ContentReductionHierarchy<ReductionFieldValue> Hierarchy)
+        {
+            if (Hierarchy == null)
+            {
+                return null;
+            }
+
+            ExtractedHierarchy ReturnObject = new ExtractedHierarchy();
+            foreach (var Field in Hierarchy.Fields)
+            {
+                ReturnObject.Fields.Add((ExtractedField)Field);
             };
 
             return ReturnObject;

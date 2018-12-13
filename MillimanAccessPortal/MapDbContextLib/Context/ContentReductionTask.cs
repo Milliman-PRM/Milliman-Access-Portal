@@ -66,6 +66,7 @@ namespace MapDbContextLib.Context
         Unspecified = 0,    // Default unknown state
         HierarchyOnly = 1,
         HierarchyAndReduction = 2,
+        ReductionOnly = 3,
     }
 
     public class ContentReductionTask

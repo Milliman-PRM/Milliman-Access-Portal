@@ -91,7 +91,8 @@ namespace ContentPublishingLib.JobRunners
             ReductionJobActionEnum[] SupportedJobActions = new ReductionJobActionEnum[] 
             {
                 ReductionJobActionEnum.HierarchyOnly,
-                ReductionJobActionEnum.HierarchyAndReduction
+                ReductionJobActionEnum.HierarchyAndReduction,
+                ReductionJobActionEnum.ReductionOnly,
             };
 
             DateTime ProcessingStartTime = DateTime.UtcNow;
@@ -112,20 +113,24 @@ namespace ContentPublishingLib.JobRunners
                     _CancellationToken.ThrowIfCancellationRequested();
 
                     #region Extract master content hierarchy
-                    JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
+                    if (JobDetail.Request.JobAction != ReductionJobActionEnum.ReductionOnly)
+                    {
+                        JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
 
-                    DetailObj = new {
-                        ReductionJobId = JobDetail.TaskId.ToString(),
-                        JobAction = JobDetail.Request.JobAction,
-                        Hierarchy = JobDetail.Result.MasterContentHierarchy,
-                        ContentFile = "Master",
-                    };
-                    AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj));
+                        DetailObj = new
+                        {
+                            ReductionJobId = JobDetail.TaskId.ToString(),
+                            JobAction = JobDetail.Request.JobAction,
+                            Hierarchy = JobDetail.Result.MasterContentHierarchy,
+                            ContentFile = "Master",
+                        };
+                        AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj));
+                    }
                     #endregion
 
                     _CancellationToken.ThrowIfCancellationRequested();
 
-                    if (JobDetail.Request.JobAction == ReductionJobActionEnum.HierarchyAndReduction)
+                    if (JobDetail.Request.JobAction != ReductionJobActionEnum.HierarchyOnly)
                     {
                         #region Create reduced content
                         await CreateReducedContent();
@@ -235,6 +240,12 @@ namespace ContentPublishingLib.JobRunners
                 Msg = $"No selected field values are included in the reduction request";
             }
 
+            else if (JobDetail.Request.JobAction != ReductionJobActionEnum.ReductionOnly
+                  && JobDetail.Result.MasterContentHierarchy == null)
+            {
+                Msg = $"ReductionOnly processing was requested without a provided master hierarchy";
+            }
+
             else if (!Directory.Exists(SourceDocFolder.General.Path))
             {
                 Msg = $"SourceDocFolder {SourceDocFolder.General.Path} not found";
@@ -267,17 +278,19 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         private async Task<bool> PreTaskSetup()
         {
-            WorkingFolderRelative = JobDetail.TaskId.ToString();  // Folder is named for the task guid from the database
+            WorkingFolderRelative = JobDetail.TaskId.ToString();  // Folder is named for the reduction task guid
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
             string MasterFileDestinationPath = Path.Combine(WorkingFolderAbsolute, MasterFileName);
 
             try
             {
+                // remove pre-existing task folder of same name, normally won't exist but maybe in development environment
                 if (Directory.Exists(WorkingFolderAbsolute) && !string.IsNullOrWhiteSpace(WorkingFolderRelative))
                 {
                     FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
                 }
 
+                // Make sure the requested master content file exists
                 if (!File.Exists(JobDetail.Request.MasterFilePath))
                 {
                     JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
@@ -287,12 +300,14 @@ namespace ContentPublishingLib.JobRunners
                 Directory.CreateDirectory(WorkingFolderAbsolute);
                 File.Copy(JobDetail.Request.MasterFilePath, MasterFileDestinationPath);
 
+                // TODO do we need this check?
                 if (GlobalFunctions.GetFileChecksum(MasterFileDestinationPath).ToLower() != JobDetail.Request.MasterContentChecksum.ToLower())
                 {
                     JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
-                    throw new ApplicationException("Master content file integrity check failed, mismatch of file hash");
+                    throw new ApplicationException("In PreTaskSetup(), master content file integrity check failed after copy to SourceDocuments folder, mismatch of file hash");
                 }
 
+                // Set this.MasterDocumentNode, which is used elsewhere in this class
                 MasterDocumentNode = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
             }
             catch (System.Exception e)

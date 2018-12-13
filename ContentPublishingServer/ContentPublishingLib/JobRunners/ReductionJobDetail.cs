@@ -20,6 +20,7 @@ namespace ContentPublishingLib.JobRunners
         Unspecified = 0,    // Default unknown state
         HierarchyOnly = 1,
         HierarchyAndReduction = 2,
+        ReductionOnly = 3,
     }
 
     /// <summary>
@@ -75,11 +76,17 @@ namespace ContentPublishingLib.JobRunners
                                 ? ReductionJobActionEnum.HierarchyOnly
                                 : DbTask.TaskAction == TaskActionEnum.HierarchyAndReduction 
                                 ? ReductionJobActionEnum.HierarchyAndReduction
+                                : DbTask.TaskAction == TaskActionEnum.ReductionOnly
+                                ? ReductionJobActionEnum.ReductionOnly
                                 : ReductionJobActionEnum.Unspecified,
                     RequestedOutputFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(DbTask.SelectionGroup.Id, DbTask.SelectionGroup.RootContentItemId, Path.GetExtension(DbTask.MasterFilePath)),
                     // if there is any ContentType dependency for the output file name, that can be reassigned after this object construction. 
                 },
-                Result = new ReductionJobResult(),
+                Result = new ReductionJobResult
+                {
+                    // A non-null master hierarchy is expected if requested JobAction is ReductionOnly
+                    MasterContentHierarchy = (ExtractedHierarchy)DbTask.MasterContentHierarchyObj,
+                },
             };
 
             return ReturnObj;
