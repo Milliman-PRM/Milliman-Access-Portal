@@ -21,6 +21,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
             // All selection groups of which user is a member
             var selectionGroups = dbContext.UserInSelectionGroup
                 .Where(usg => usg.UserId == user.Id)
+                .Where(usg => usg.SelectionGroup.ContentInstanceUrl != null)
                 .Where(usg => !usg.SelectionGroup.IsSuspended)
                 .Where(usg => !usg.SelectionGroup.RootContentItem.IsSuspended)
                 .Select(usg => usg.SelectionGroup)
