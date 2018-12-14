@@ -144,12 +144,9 @@ namespace ContentPublishingLib.JobRunners
                     AllRelatedReductionTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToList();
                 }
 
-                // Check the actual status of reduction tasks to assign publication status
-                if (AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Reduced))
-                {
-                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
+                JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
 
-                    #region Log audit event
+                #region Log audit event
                     var DetailObj = new
                     {
                         PublicationRequestId = JobDetail.JobId,
@@ -159,26 +156,6 @@ namespace ContentPublishingLib.JobRunners
                     };
                     AuditLog.Log(AuditEventType.PublicationRequestProcessingSuccess.ToEvent(DetailObj));
                     #endregion
-
-                }
-                else if (AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Canceled))
-                {
-                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
-
-                    #region Log audit event
-                    var DetailObj = new
-                    {
-                        PublicationRequestId = JobDetail.JobId,
-                        JobDetail.Request.DoesReduce,
-                    };
-                    AuditLog.Log(AuditEventType.ContentPublicationRequestCanceled.ToEvent(DetailObj));
-                    #endregion
-
-                }
-                else
-                {
-                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
-                }
             }
             catch (OperationCanceledException e)
             {
