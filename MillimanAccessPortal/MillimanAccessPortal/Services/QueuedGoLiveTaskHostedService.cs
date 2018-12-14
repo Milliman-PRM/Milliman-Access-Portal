@@ -265,11 +265,11 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             publicationRequest.RootContentItem.ContentFilesList = UpdatedContentFilesList;
 
             // 2 Rename reduced content files to live names
-            foreach (var ThisTask in relatedReductionTasks.Where(t => !t.SelectionGroup.IsMaster))
+            foreach (var ThisTask in relatedReductionTasks.Where(t => t.SelectionGroupId.HasValue).Where(t => !t.SelectionGroup.IsMaster))
             {
                 // This assignment defines the live file name for any reduced content file
                 string TargetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(
-                    ThisTask.SelectionGroupId,
+                    ThisTask.SelectionGroupId.Value,
                     publicationRequest.RootContentItemId,
                     Path.GetExtension(ThisTask.ResultFilePath));
                 string TargetFilePath = Path.Combine(

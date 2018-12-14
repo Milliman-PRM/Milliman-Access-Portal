@@ -98,7 +98,7 @@ namespace MapDbContextLib.Context
         public ApplicationUser ApplicationUser { get; set; }
 
         [ForeignKey("SelectionGroup")]
-        public Guid SelectionGroupId { get; set; }
+        public Guid? SelectionGroupId { get; set; }
         public SelectionGroup SelectionGroup { get; set; }
 
         [Required]
@@ -183,8 +183,8 @@ namespace MapDbContextLib.Context
         public TaskActionEnum TaskAction { get; set; } = TaskActionEnum.Unspecified;
 
         /// <summary>
-        /// May also be accessed through [NotMapped] property TaskMetadataObj
         /// Intended to be serialization of type TaskMetadata
+        /// May be accessed through [NotMapped] property TaskMetadataObj
         /// </summary>
         [Column(TypeName = "jsonb")]
         public string OutcomeMetadata { get; set; } = "{}";

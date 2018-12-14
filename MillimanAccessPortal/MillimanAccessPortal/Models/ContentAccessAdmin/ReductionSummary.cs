@@ -25,7 +25,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 
         public static explicit operator ReductionSummary(ContentReductionTask contentReductionTask)
         {
-            if (contentReductionTask == null)
+            if (contentReductionTask == null || !contentReductionTask.SelectionGroupId.HasValue)
             {
                 return null;
             }
@@ -34,7 +34,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 User = ((UserInfoViewModel)contentReductionTask.ApplicationUser),
                 StatusEnum = contentReductionTask.ReductionStatus,
                 StatusName = ContentReductionTask.ReductionStatusDisplayNames[contentReductionTask.ReductionStatus],
-                SelectionGroupId = contentReductionTask.SelectionGroupId,
+                SelectionGroupId = contentReductionTask.SelectionGroupId.Value,
                 RootContentItemId = contentReductionTask.ContentPublicationRequest?.RootContentItemId,
                 QueuedDurationMs = (int)(contentReductionTask.ReductionStatus.IsActive()
                     ? DateTime.UtcNow - contentReductionTask.CreateDateTimeUtc

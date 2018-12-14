@@ -145,7 +145,7 @@ namespace MillimanAccessPortal
                 throw new ApplicationException("ContentAccessSupport.PositionReducedContentForGoLive called for ContentReductionTask with null SelectionCriteria");
             }
 
-            string targetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(reductionTask.SelectionGroupId, reductionTask.SelectionGroup.RootContentItemId, Path.GetExtension(reductionTask.ResultFilePath));
+            string targetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(reductionTask.SelectionGroupId.Value, reductionTask.SelectionGroup.RootContentItemId, Path.GetExtension(reductionTask.ResultFilePath));
             string targetFilePath = Path.Combine(contentRootShareFolder, reductionTask.SelectionGroup.RootContentItemId.ToString(), targetFileName);
             string backupFilePath = targetFilePath + ".bak";
 
