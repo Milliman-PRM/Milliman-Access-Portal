@@ -140,19 +140,23 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 }
 
                 // Validate file checksum for reduced content
-                var currentChecksum = GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower();
-                if (currentChecksum != ThisTask.ReducedContentChecksum.ToLower())
+                // Reductions that will result in invalid selection groups have no result file
+                if (!string.IsNullOrWhiteSpace(ThisTask.ResultFilePath))
                 {
-                    Log.Error($"In QueueGoLiveTaskHostedService.ExecuteAsync action: " +
-                        "for selection group {relatedSelectionGroup.Id}, " +
-                        "reduced content file {ThisTask.ResultFilePath} failed checksum validation, " +
-                        "aborting");
-                    auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
-                        publicationRequest.RootContentItem, publicationRequest));
-                    await FailGoLive(dbContext, publicationRequest,
-                        $"Reduced content file failed integrity check, " +
-                        "cannot complete the go-live request.");
-                    return;
+                    var currentChecksum = GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower();
+                    if (currentChecksum != ThisTask.ReducedContentChecksum.ToLower())
+                    {
+                        Log.Error($"In QueueGoLiveTaskHostedService.ExecuteAsync action: " +
+                            "for selection group {relatedSelectionGroup.Id}, " +
+                            "reduced content file {ThisTask.ResultFilePath} failed checksum validation, " +
+                            "aborting");
+                        auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
+                            publicationRequest.RootContentItem, publicationRequest));
+                        await FailGoLive(dbContext, publicationRequest,
+                            $"Reduced content file failed integrity check, " +
+                            "cannot complete the go-live request.");
+                        return;
+                    }
                 }
             }
 
@@ -277,9 +281,19 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     publicationRequest.RootContentItemId.ToString(),
                     TargetFileName);
 
+                bool isInvalid = string.IsNullOrWhiteSpace(ThisTask.ResultFilePath);
+
                 // Set url in SelectionGroup
-                ThisTask.SelectionGroup.SetContentUrl(TargetFileName);
-                ThisTask.SelectionGroup.ReducedContentChecksum = ThisTask.ReducedContentChecksum;
+                if (isInvalid)
+                {
+                    ThisTask.SelectionGroup.ContentInstanceUrl = null;
+                    ThisTask.SelectionGroup.ReducedContentChecksum = null;
+                }
+                else
+                {
+                    ThisTask.SelectionGroup.SetContentUrl(TargetFileName);
+                    ThisTask.SelectionGroup.ReducedContentChecksum = ThisTask.ReducedContentChecksum;
+                }
                 dbContext.SelectionGroup.Update(ThisTask.SelectionGroup);
 
                 // Move the existing file to backed up name if exists
@@ -294,8 +308,11 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     FilesToDelete.Add(BackupFilePath);
                 }
 
-                File.Copy(ThisTask.ResultFilePath, TargetFilePath);
-                FilesToDelete.Add(ThisTask.ResultFilePath);
+                if (!isInvalid)
+                {
+                    File.Copy(ThisTask.ResultFilePath, TargetFilePath);
+                    FilesToDelete.Add(ThisTask.ResultFilePath);
+                }
             }
 
             //3 Update db:
@@ -435,7 +452,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
         if (ReductionIsInvolved)
         {
-            //Delete temporary folder of publication job (contains temporary reduced content files)
+            // Delete temporary folder of publication job (contains temporary reduced content files)
             string PubJobTempFolder = Path.GetDirectoryName(relatedReductionTasks[0].MasterFilePath);
             Directory.Delete(PubJobTempFolder, true);
         }
