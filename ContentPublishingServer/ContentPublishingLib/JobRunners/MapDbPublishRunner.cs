@@ -146,14 +146,9 @@ namespace ContentPublishingLib.JobRunners
                     AllRelatedReductionTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToList();
                 }
 
-                var handleableErrorEnums = new List<MapDbReductionTaskOutcomeReason>
-                {
-                    MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
-                    MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent,
-                };
                 var unhandleableErrors = AllRelatedReductionTasks
                     .Where(t => t.ReductionStatus == ReductionStatusEnum.Error)
-                    .Where(t => !handleableErrorEnums.Contains(t.OutcomeMetadataObj.OutcomeReason));
+                    .Where(t => !t.OutcomeMetadataObj.OutcomeReason.PreventsPublication());
                 if (unhandleableErrors.Any())
                 {
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
