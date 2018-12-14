@@ -61,6 +61,8 @@ namespace ContentPublishingLib.JobRunners
             public List<ContentRelatedFile> ResultingRelatedFiles { get; set; } = new List<ContentRelatedFile>();
             public List<ReductionTaskOutcomeMetadata> ReductionTaskFailList { get; set; } = new List<ReductionTaskOutcomeMetadata>();
             public List<ReductionTaskOutcomeMetadata> ReductionTaskSuccessList { get; set; } = new List<ReductionTaskOutcomeMetadata>();
+            public DateTime StartDateTime { get; set; }
+            public TimeSpan ElapsedTime { get; set; } = TimeSpan.Zero;
         }
 
         public class PublishJobRequest

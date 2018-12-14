@@ -13,8 +13,10 @@ namespace MapDbContextLib.Models
         Default = 0,
 
         Success = 10,
-        Canceled = 11,
-        BadRequest = 12,
+        MasterHierarchyAssigned = 11,
+
+        Canceled = 20,
+        BadRequest = 21,
 
         UnspecifiedError = 100,
         NoSelectedFieldValues = 101,
@@ -28,7 +30,7 @@ namespace MapDbContextLib.Models
     public class ReductionTaskOutcomeMetadata
     {
         public Guid ReductionTaskId { get; set; }
-        public TimeSpan ProcessingDuration { get; set; } = TimeSpan.Zero;
+        public TimeSpan ElapsedTime { get; set; } = TimeSpan.Zero;
         public MapDbReductionTaskOutcomeReason OutcomeReason { get; set; } = MapDbReductionTaskOutcomeReason.Default;
     }
 }

@@ -79,7 +79,6 @@ namespace ContentPublishingLib.JobRunners
                                 : DbTask.TaskAction == TaskActionEnum.ReductionOnly
                                 ? ReductionJobActionEnum.ReductionOnly
                                 : ReductionJobActionEnum.Unspecified,
-                    RequestedOutputFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(DbTask.SelectionGroup.Id, DbTask.SelectionGroup.RootContentItemId, Path.GetExtension(DbTask.MasterFilePath)),
                     // if there is any ContentType dependency for the output file name, that can be reassigned after this object construction. 
                 },
                 Result = new ReductionJobResult
@@ -88,6 +87,11 @@ namespace ContentPublishingLib.JobRunners
                     MasterContentHierarchy = (ExtractedHierarchy)DbTask.MasterContentHierarchyObj,
                 },
             };
+
+            if (DbTask.SelectionGroupId.HasValue && new TaskActionEnum[] { TaskActionEnum.HierarchyAndReduction, TaskActionEnum.ReductionOnly }.Contains(DbTask.TaskAction))
+            {
+                ReturnObj.Request.RequestedOutputFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(DbTask.SelectionGroup.Id, DbTask.SelectionGroup.RootContentItemId, Path.GetExtension(DbTask.MasterFilePath));
+            }
 
             return ReturnObj;
         }

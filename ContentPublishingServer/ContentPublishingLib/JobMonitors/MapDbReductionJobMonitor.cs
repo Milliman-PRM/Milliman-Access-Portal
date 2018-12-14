@@ -130,7 +130,13 @@ namespace ContentPublishingLib.JobMonitors
                             Task<ReductionJobDetail> NewTask = null;
                             CancellationTokenSource cancelSource = new CancellationTokenSource();
 
-                            switch (DbTask.SelectionGroup.RootContentItem.ContentType.TypeEnum)
+                            ContentTypeEnum type = DbTask.SelectionGroupId.HasValue
+                                ? DbTask.SelectionGroup.RootContentItem.ContentType.TypeEnum
+                                : DbTask.ContentPublicationRequestId.HasValue
+                                ? DbTask.ContentPublicationRequest.RootContentItem.ContentType.TypeEnum
+                                : ContentTypeEnum.Unknown;
+
+                            switch (type)
                             {
                                 case ContentTypeEnum.Qlikview:
                                     QvReductionRunner Runner = new QvReductionRunner
@@ -223,7 +229,7 @@ namespace ContentPublishingLib.JobMonitors
                 try
                 {
                     DateTime EarliestPublicationRequestTimestamp = Db.ContentPublicationRequest
-                        .Where(r => new PublicationStatus[] { PublicationStatus.Queued, PublicationStatus.Processing }.Contains(r.RequestStatus))
+                        .Where(r => r.RequestStatus == PublicationStatus.Queued)
                         .OrderBy(r => r.CreateDateTimeUtc)
                         .Select(r => r.CreateDateTimeUtc)
                         .FirstOrDefault();
@@ -236,6 +242,7 @@ namespace ContentPublishingLib.JobMonitors
                     List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
                                                                                  .Where(t => t.CreateDateTimeUtc < EarliestPublicationRequestTimestamp)
                                                                                  .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
+                                                                                 .Include(t => t.ContentPublicationRequest).ThenInclude(r => r.RootContentItem).ThenInclude(rc => rc.ContentType)
                                                                                  .OrderBy(t => t.CreateDateTimeUtc)
                                                                                  .Take(ReturnNoMoreThan)
                                                                                  .ToList();
@@ -290,7 +297,7 @@ namespace ContentPublishingLib.JobMonitors
                     ReductionTaskOutcomeMetadata OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
                     {
                         ReductionTaskId = JobDetail.TaskId,
-                        ProcessingDuration = JobDetail.Result.ProcessingDuration,
+                        ElapsedTime = JobDetail.Result.ProcessingDuration,
                         OutcomeReason = MapDbReductionTaskOutcomeReason.Default,
                     };
 

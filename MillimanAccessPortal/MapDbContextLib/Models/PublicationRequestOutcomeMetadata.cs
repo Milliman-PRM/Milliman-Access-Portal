@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using System;
 using System.Collections.Generic;
 
 namespace MapDbContextLib.Models
@@ -16,7 +17,9 @@ namespace MapDbContextLib.Models
 
     public class PublicationRequestOutcomeMetadata
     {
-        public List<ReductionTaskOutcomeMetadata> ReductionTaskFailOutcomeList = new List<ReductionTaskOutcomeMetadata>();
-        public List<ReductionTaskOutcomeMetadata> ReductionTaskSuccessOutcomeList = new List<ReductionTaskOutcomeMetadata>();
+        public DateTime StartDateTime { get; set; }
+        public TimeSpan ElapsedTime { get; set; } = TimeSpan.Zero;
+        public List<ReductionTaskOutcomeMetadata> ReductionTaskFailOutcomeList { get; set; } = new List<ReductionTaskOutcomeMetadata>();
+        public List<ReductionTaskOutcomeMetadata> ReductionTaskSuccessOutcomeList { get; set; } = new List<ReductionTaskOutcomeMetadata>();
     }
 }

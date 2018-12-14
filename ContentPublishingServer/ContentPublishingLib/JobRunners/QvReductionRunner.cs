@@ -240,7 +240,7 @@ namespace ContentPublishingLib.JobRunners
                 Msg = $"No selected field values are included in the reduction request";
             }
 
-            else if (JobDetail.Request.JobAction != ReductionJobActionEnum.ReductionOnly
+            else if (JobDetail.Request.JobAction == ReductionJobActionEnum.ReductionOnly
                   && JobDetail.Result.MasterContentHierarchy == null)
             {
                 Msg = $"ReductionOnly processing was requested without a provided master hierarchy";

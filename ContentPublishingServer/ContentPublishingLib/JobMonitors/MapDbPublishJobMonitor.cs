@@ -305,6 +305,8 @@ namespace ContentPublishingLib.JobMonitors
 
                     DbRequest.OutcomeMetadataObj = new PublicationRequestOutcomeMetadata
                     {
+                        StartDateTime = JobDetail.Result.StartDateTime,
+                        ElapsedTime = JobDetail.Result.ElapsedTime,
                         ReductionTaskFailOutcomeList = JobDetail.Result.ReductionTaskFailList,
                         ReductionTaskSuccessOutcomeList = JobDetail.Result.ReductionTaskSuccessList,
                     };
