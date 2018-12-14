@@ -36,18 +36,18 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
     protected async override Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        using (var scope = Services.CreateScope())
+        while (!cancellationToken.IsCancellationRequested)
         {
-            var auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
-            var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            // Other content types may require their own services
-            var qlikviewConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
+            // Retrieve the relevant data to finalize the goLive
+            var goLiveViewModel = await TaskQueue.DequeueAsync(cancellationToken);
 
-            while (!cancellationToken.IsCancellationRequested)
+            using (var scope = Services.CreateScope())
             {
-                // Retrieve the relevant data to finalize the goLive
-                var goLiveViewModel = await TaskQueue.DequeueAsync(cancellationToken);
+                var auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
+                var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                // Other content types may require their own services
+                var qlikviewConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
 
                 try
                 {
