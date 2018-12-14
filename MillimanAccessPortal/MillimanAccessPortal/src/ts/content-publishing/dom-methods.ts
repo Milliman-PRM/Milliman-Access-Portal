@@ -319,6 +319,16 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
             }
           }
           return true;
+        }).sort((a, b) => {
+          const aUpper = a.Value.toUpperCase();
+          const bUpper = b.Value.toUpperCase();
+          if (aUpper < bUpper) {
+            return -1;
+          } else if (aUpper > bUpper) {
+            return 1;
+          } else {
+            return 0;
+          }
         });
         // display special message if no hierarchy changes
         if (!filteredValues.length) {
