@@ -39,7 +39,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 var summary = publicationRequest.ToSummaryWithQueueInformation(dbContext);
 
                 // Assemble the list of messages for all failed reductions
-                string lineBreak = Environment.NewLine;
+                string lineBreak = "<BR>";
                 foreach (ReductionTaskOutcomeMetadata taskOutcome in publicationRequest.OutcomeMetadataObj.ReductionTaskFailOutcomeList)
                 {
                     switch (taskOutcome.OutcomeReason)
