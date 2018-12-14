@@ -35,7 +35,7 @@ namespace ContentPublishingLib.JobMonitors
 
         override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxParallelTasks";
 
-        public ManualResetEvent MapDbPublishQueueServicedEvent { private get; set; }
+        public Mutex QueueMutex { private get; set; }
 
         public TimeSpan MapDbPublishQueueServicedEventTimeout { private get; set;  } = new TimeSpan(0, 0, 20);
 
@@ -121,46 +121,51 @@ namespace ContentPublishingLib.JobMonitors
                 // Start more tasks if there is room in the RunningTasks collection. 
                 if (ActiveReductionRunnerItems.Count < MaxConcurrentRunners)
                 {
-                    if (!IsTestMode && !MapDbPublishQueueServicedEvent.WaitOne(MapDbPublishQueueServicedEventTimeout))
+                    if (QueueMutex.WaitOne(MapDbPublishQueueServicedEventTimeout))
                     {
-                        // the PublishJobMonitor thread must be down
-                        string msg = "In MapDbReductionJobMonitor.JobMonitorThreadMain, timeout while waiting for MapDbPublishQueueServicedEvent signal";
-                        GlobalFunctions.TraceWriteLine(msg);
-                        throw new ApplicationException(msg);
-                    }
-                    List<ContentReductionTask> Responses = GetReadyTasks(MaxConcurrentRunners - ActiveReductionRunnerItems.Count);
+                        List<ContentReductionTask> Responses = GetReadyTasks(MaxConcurrentRunners - ActiveReductionRunnerItems.Count);
 
-                    foreach (ContentReductionTask DbTask in Responses)
-                    {
-                        Task<ReductionJobDetail> NewTask = null;
-                        CancellationTokenSource cancelSource = new CancellationTokenSource();
-
-                        switch (DbTask.SelectionGroup.RootContentItem.ContentType.TypeEnum)
+                        foreach (ContentReductionTask DbTask in Responses)
                         {
-                            case ContentTypeEnum.Qlikview:
-                                QvReductionRunner Runner = new QvReductionRunner
-                                {
-                                    JobDetail = (ReductionJobDetail)DbTask,
-                                };
-                                if (IsTestMode)
-                                {
-                                    Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
-                                }
+                            Task<ReductionJobDetail> NewTask = null;
+                            CancellationTokenSource cancelSource = new CancellationTokenSource();
 
-                                NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
-                                GlobalFunctions.TraceWriteLine($"Started new Reduction task ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentRunners})");
-                                break;
+                            switch (DbTask.SelectionGroup.RootContentItem.ContentType.TypeEnum)
+                            {
+                                case ContentTypeEnum.Qlikview:
+                                    QvReductionRunner Runner = new QvReductionRunner
+                                    {
+                                        JobDetail = (ReductionJobDetail)DbTask,
+                                    };
+                                    if (IsTestMode)
+                                    {
+                                        Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
+                                    }
 
-                            default:
-                                GlobalFunctions.TraceWriteLine($"Task record discovered for unsupported content type");
-                                break;
+                                    NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
+                                    GlobalFunctions.TraceWriteLine($"Started new Reduction task ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentRunners})");
+                                    break;
+
+                                default:
+                                    GlobalFunctions.TraceWriteLine($"Task record discovered for unsupported content type");
+                                    break;
+                            }
+
+                            if (NewTask != null)
+                            {
+                                ActiveReductionRunnerItems.Add(new ReductionJobTrackingItem { dbTask = DbTask, task = NewTask, tokenSource = cancelSource });
+                            }
                         }
 
-                        if (NewTask != null)
-                        {
-                            ActiveReductionRunnerItems.Add( new ReductionJobTrackingItem { dbTask = DbTask, task = NewTask, tokenSource = cancelSource } );
-                        }
+                        Thread.Sleep(1000);  // Allow time for any new runner(s) to start executing
+                        QueueMutex.ReleaseMutex();
                     }
+                    else
+                    {
+                        // Mutex was not acquired
+                    }
+
+                    Thread.Sleep(1000);
                 }
             }
 
@@ -217,7 +222,19 @@ namespace ContentPublishingLib.JobMonitors
             {
                 try
                 {
+                    DateTime EarliestPublicationRequestTimestamp = Db.ContentPublicationRequest
+                        .Where(r => new PublicationStatus[] { PublicationStatus.Queued, PublicationStatus.Processing }.Contains(r.RequestStatus))
+                        .OrderBy(r => r.CreateDateTimeUtc)
+                        .Select(r => r.CreateDateTimeUtc)
+                        .FirstOrDefault();
+
+                    if (EarliestPublicationRequestTimestamp == default(DateTime))  // if no publications are queued or processing
+                    {
+                        EarliestPublicationRequestTimestamp = DateTime.MaxValue;  // DateTime.MaxValue does not exceed max value of a timestamp in PostgreSQL (so this is ok)
+                    }
+
                     List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
+                                                                                 .Where(t => t.CreateDateTimeUtc < EarliestPublicationRequestTimestamp)
                                                                                  .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
                                                                                  .OrderBy(t => t.CreateDateTimeUtc)
                                                                                  .Take(ReturnNoMoreThan)

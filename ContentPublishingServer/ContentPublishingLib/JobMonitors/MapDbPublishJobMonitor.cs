@@ -33,7 +33,7 @@ namespace ContentPublishingLib.JobMonitors
 
         override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxSimultaneousRequests";
 
-        public ManualResetEvent QueueServicedEvent { private get; set; }
+        public Mutex QueueMutex { private get; set; }
 
         private bool IsTestMode { get { return MockContext != null; } }
 
@@ -105,10 +105,10 @@ namespace ContentPublishingLib.JobMonitors
         public override void JobMonitorThreadMain(CancellationToken Token)
         {
             MethodBase Method = MethodBase.GetCurrentMethod();
+
+            // Main loop
             while (!Token.IsCancellationRequested)
             {
-                bool doSignal = true;
-
                 // Remove completed tasks from the RunningTasks collection. 
                 // .ToList() is needed because the body changes the original List. 
                 foreach (PublishJobTrackingItem CompletedPublishRunnerItem in ActivePublicationRunnerItems.Where(t => t.task.IsCompleted).ToList())
@@ -120,55 +120,57 @@ namespace ContentPublishingLib.JobMonitors
                 // Start more tasks if there is room in the RunningTasks collection. 
                 if (ActivePublicationRunnerItems.Count < MaxConcurrentRunners)
                 {
-                    List<ContentPublicationRequest> Responses = GetReadyRequests(MaxConcurrentRunners - ActivePublicationRunnerItems.Count);
-                    doSignal = (Responses.Count == 0);
-
-                    foreach (ContentPublicationRequest DbRequest in Responses)
+                    if (QueueMutex.WaitOne(new TimeSpan(0, 0, 20)))
                     {
-                        Task<PublishJobDetail> NewTask = null;
-                        CancellationTokenSource cancelSource = new CancellationTokenSource();
+                        List<ContentPublicationRequest> Responses = GetReadyRequests(MaxConcurrentRunners - ActivePublicationRunnerItems.Count);
 
-                        // Do I need a switch on ContentType?  (example in MapDbReductionJobMonitor)
-                        MapDbPublishRunner Runner;
-                        using (ApplicationDbContext Db = IsTestMode
-                                                         ? MockContext.Object
-                                                         : new ApplicationDbContext(ContextOptions))
+                        foreach (ContentPublicationRequest DbRequest in Responses)
                         {
-                            Runner = new MapDbPublishRunner
+                            Task<PublishJobDetail> NewTask = null;
+                            CancellationTokenSource cancelSource = new CancellationTokenSource();
+
+                            // Do I need a switch on ContentType?  (example in MapDbReductionJobMonitor)
+                            MapDbPublishRunner Runner;
+                            using (ApplicationDbContext Db = IsTestMode
+                                                             ? MockContext.Object
+                                                             : new ApplicationDbContext(ContextOptions))
                             {
-                                JobDetail = PublishJobDetail.New(DbRequest, Db),
-                            };
-                        }
-                        if (IsTestMode)
-                        {
-                            Runner.MockContext = MockContext;
-                            Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
-                        }
-                        else
-                        {
-                            Runner.ConnectionString = ConnectionString;
+                                Runner = new MapDbPublishRunner
+                                {
+                                    JobDetail = PublishJobDetail.New(DbRequest, Db),
+                                };
+                            }
+                            if (IsTestMode)
+                            {
+                                Runner.MockContext = MockContext;
+                                Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
+                            }
+                            else
+                            {
+                                Runner.ConnectionString = ConnectionString;
+                            }
+
+                            NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
+
+                            if (NewTask != null)
+                            {
+                                ActivePublicationRunnerItems.Add(new PublishJobTrackingItem { requestId = DbRequest.Id, task = NewTask, tokenSource = cancelSource });
+                            }
                         }
 
-                        NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
-
-                        if (NewTask != null)
-                        {
-                            ActivePublicationRunnerItems.Add(new PublishJobTrackingItem { requestId = DbRequest.Id, task = NewTask, tokenSource = cancelSource });
-                        }
+                        Thread.Sleep(1000);  // Allow time for any new runner(s) to start executing
+                        QueueMutex.ReleaseMutex();
                     }
-                }
-
-                if (doSignal)
-                {
-                    Thread.Sleep(1000);
-                    // Signal to all subscribed threads that this JobMonitor's polling operation is completed
-                    QueueServicedEvent.Set();
-                    QueueServicedEvent.Reset();
+                    else
+                    {
+                        // Mutex was not acquired
+                    }
                 }
 
                 Thread.Sleep(1000);
             }
 
+            // Cancel was requested
             GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} stopping {ActivePublicationRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
 
             if (ActivePublicationRunnerItems.Count != 0)
@@ -222,20 +224,20 @@ namespace ContentPublishingLib.JobMonitors
             {
                 try
                 {
-                    DateTime EarliestTaskTimestamp = Db.ContentReductionTask
+                    DateTime EarliestReductionTaskTimestamp = Db.ContentReductionTask
                         .Where(t => new ReductionStatusEnum[] { ReductionStatusEnum.Queued, ReductionStatusEnum.Reducing }.Contains(t.ReductionStatus))
                         .OrderBy(t => t.CreateDateTimeUtc)
                         .Select(t => t.CreateDateTimeUtc)
                         .FirstOrDefault();
 
-                    if (EarliestTaskTimestamp == default(DateTime))  // if no tasks are queued or processing
+                    if (EarliestReductionTaskTimestamp == default(DateTime))  // if no tasks are queued or processing
                     {
-                        EarliestTaskTimestamp = DateTime.MaxValue;  // DateTime.MaxValue does not exceed max value of a timestamp in PostgreSQL (so this is ok)
+                        EarliestReductionTaskTimestamp = DateTime.MaxValue;  // DateTime.MaxValue does not exceed max value of a timestamp in PostgreSQL (so this is ok)
                     }
                         
                     List<ContentPublicationRequest> TopItems = Db.ContentPublicationRequest.Where(r => DateTime.UtcNow - r.CreateDateTimeUtc > TaskAgeBeforeExecution)
                                                                                            .Where(r => r.RequestStatus == PublicationStatus.Queued)
-                                                                                           .Where(r => r.CreateDateTimeUtc < EarliestTaskTimestamp)
+                                                                                           .Where(r => r.CreateDateTimeUtc < EarliestReductionTaskTimestamp)
                                                                                            .Include(r => r.RootContentItem)
                                                                                            .OrderBy(r => r.RootContentItem.DoesReduce)  // false < true
                                                                                                .ThenBy(r => r.CreateDateTimeUtc)

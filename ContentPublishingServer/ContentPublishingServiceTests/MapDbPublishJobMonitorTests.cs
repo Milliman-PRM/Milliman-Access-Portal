@@ -31,7 +31,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
-                QueueServicedEvent = new ManualResetEvent(false),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -114,7 +114,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
-                QueueServicedEvent = new ManualResetEvent(false),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -215,16 +215,16 @@ namespace ContentPublishingServiceTests
             };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
-            var ResetEvent = new ManualResetEvent(false);
+            var QueueMutex = new Mutex(false);
             MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
-                QueueServicedEvent = ResetEvent,
+                QueueMutex = QueueMutex,
             };
             MapDbReductionJobMonitor ReductionJobMonitor = new MapDbReductionJobMonitor
             {
                 MockContext = MockContext,
-                MapDbPublishQueueServicedEvent = ResetEvent,
+                QueueMutex = QueueMutex,
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -294,7 +294,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
-                QueueServicedEvent = new ManualResetEvent(false),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -343,7 +343,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
-                QueueServicedEvent = new ManualResetEvent(false),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
