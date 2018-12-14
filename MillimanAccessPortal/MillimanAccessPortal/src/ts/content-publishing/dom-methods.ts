@@ -270,7 +270,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       .show();
     $('#confirmation-section-hierarchy-stats')
       .show();
-    
+
     // render master hierarchy diff
     $('#confirmation-section-hierarchy-diff .hierarchy > ul').children().remove();
 
