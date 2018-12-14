@@ -314,7 +314,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
         const filteredValues = allValues.filter((value) => {
           const liveData = liveValues.find((v) => v.Value === value.Value);
           if (selectedOnly) {
-            if (liveData && isSelection(liveData) && !liveData.SelectionStatus) {
+            if (!liveData || (liveData && isSelection(liveData) && !liveData.SelectionStatus)) {
               return false;
             }
           }
