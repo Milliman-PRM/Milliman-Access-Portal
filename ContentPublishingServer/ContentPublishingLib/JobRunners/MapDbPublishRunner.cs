@@ -146,9 +146,23 @@ namespace ContentPublishingLib.JobRunners
                     AllRelatedReductionTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToList();
                 }
 
-                JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
+                var handleableErrorEnums = new List<MapDbReductionTaskOutcomeReason>
+                {
+                    MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
+                    MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent,
+                };
+                var unhandleableErrors = AllRelatedReductionTasks
+                    .Where(t => t.ReductionStatus == ReductionStatusEnum.Error)
+                    .Where(t => !handleableErrorEnums.Contains(t.OutcomeMetadataObj.OutcomeReason));
+                if (unhandleableErrors.Any())
+                {
+                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
+                }
+                else
+                {
+                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
 
-                #region Log audit event
+                    #region Log audit event
                     var DetailObj = new
                     {
                         PublicationRequestId = JobDetail.JobId,
@@ -158,6 +172,7 @@ namespace ContentPublishingLib.JobRunners
                     };
                     AuditLog.Log(AuditEventType.PublicationRequestProcessingSuccess.ToEvent(DetailObj));
                     #endregion
+                }
             }
             catch (OperationCanceledException e)
             {
