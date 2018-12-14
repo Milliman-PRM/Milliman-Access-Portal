@@ -866,7 +866,7 @@ namespace MillimanAccessPortal.Controllers
                             OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
                             ReductionTaskId = NewTaskGuid,
                         },
-                        ReductionStatus = ReductionStatusEnum.Error,
+                        ReductionStatus = ReductionStatusEnum.Live,
                         ReductionStatusMessage = "In ContentAccessAdminController.UpdateSelections, no selections, reduction task not queued",
                         SelectionGroupId = selectionGroup.Id,
                         TaskAction = TaskActionEnum.Unspecified,
