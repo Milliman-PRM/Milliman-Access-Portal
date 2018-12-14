@@ -459,7 +459,7 @@ namespace ContentPublishingLib.JobRunners
                 AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
                 GlobalFunctions.TraceWriteLine(Msg);
 
-                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueMatchInNewContent;
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent;
 
                 throw new ApplicationException(Msg);
             }
@@ -474,7 +474,7 @@ namespace ContentPublishingLib.JobRunners
 
             if (ReducedDocumentNode == null)
             {
-                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated;
                 string Msg = $"Failed to get DocumentNode for file {JobDetail.Request.RequestedOutputFileName} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}";
                 GlobalFunctions.TraceWriteLine(Msg);
                 throw new ApplicationException(Msg);

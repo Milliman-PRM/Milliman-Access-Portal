@@ -20,8 +20,9 @@ namespace MapDbContextLib.Models
 
         UnspecifiedError = 100,
         NoSelectedFieldValues = 101,
-        NoSelectedFieldValueMatchInNewContent = 102,
+        NoSelectedFieldValueExistsInNewContent = 102,
         SelectionForInvalidFieldName = 103,
+        NoReducedFileCreated = 104,
     }
 
     /// <summary>

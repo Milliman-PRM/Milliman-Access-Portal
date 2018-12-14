@@ -325,7 +325,12 @@ namespace ContentPublishingLib.JobRunners
                     while (new ReductionStatusEnum[] { ReductionStatusEnum.Queued, ReductionStatusEnum.Reducing }.Contains(MasterHierarchyTask.ReductionStatus))
                     {
                         Thread.Sleep(2000);
-                        Db.Entry(MasterHierarchyTask).State = EntityState.Detached;
+
+                        var EntryInfo = Db.Entry(MasterHierarchyTask);
+                        if (EntryInfo != null) // needed for unit tests, this is not mocked
+                        {
+                            Db.Entry(MasterHierarchyTask).State = EntityState.Detached;
+                        }
                         MasterHierarchyTask = Db.ContentReductionTask.Find(MasterHierarchyTask.Id);
                     }
 

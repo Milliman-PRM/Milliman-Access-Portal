@@ -46,7 +46,8 @@ namespace ContentPublishingLib.JobRunners
 
             UnspecifiedError,
             NoSelectedFieldValues,
-            NoSelectedFieldValueMatchInNewContent,
+            NoSelectedFieldValueExistsInNewContent,
+            NoReducedFileCreated,
             SelectionForInvalidFieldName,
         }
 

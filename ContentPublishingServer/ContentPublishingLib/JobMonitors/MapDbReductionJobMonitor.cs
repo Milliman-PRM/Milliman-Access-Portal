@@ -320,8 +320,11 @@ namespace ContentPublishingLib.JobMonitors
                                 case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValues:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues;
                                     break;
-                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueMatchInNewContent:
-                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent;
+                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoReducedFileCreated;
                                     break;
                                 case ReductionJobDetail.JobOutcomeReason.SelectionForInvalidFieldName:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName;
