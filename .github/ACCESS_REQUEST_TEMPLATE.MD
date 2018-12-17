@@ -16,6 +16,12 @@ _The listed supervisor and/or the PRM security manager must approve the requeste
 
 _In this section, describe the business reason the user requires the requested access._
 
+## Timeline required
+
+**Access needed by:** _date/time_
+
+**Access can be revoked:** _date/time or unknown_
+
 ## Access Requested
 
 _In this section, **remove** any access that is **not** being requested. If access types seem to be missing, contact the PRM security manager._
