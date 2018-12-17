@@ -132,7 +132,7 @@ function submitSelectionForm() {
     toastr.success(data.IsMaster
       ? 'Unrestricted access granted.'
       : data.Selections.length === 0
-        ? 'Selection group invalidated.'
+        ? 'Selection group made inactive.'
         : 'A reduction task has been queued.');
   }).fail(function onFail(response) {
     hideButtonSpinner($button);
