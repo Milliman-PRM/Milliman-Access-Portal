@@ -50,7 +50,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
                             summary.StatusMessage += $"{lineBreak}No field values are selected";
                             break;
-                        case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent:
+                        case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
                             summary.StatusMessage += $"{lineBreak}No selected field values match data in the new content file";
                             break;
                         case MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName:
