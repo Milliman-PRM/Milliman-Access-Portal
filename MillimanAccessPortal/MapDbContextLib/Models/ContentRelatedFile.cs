@@ -15,6 +15,10 @@ namespace MapDbContextLib.Models
             set { _Checksum = value?.ToLower(); }
         }
 
+        /// <summary>
+        /// Validates the bytes of a file agains the stored checksum property of this ContentRelatedFile instance
+        /// </summary>
+        /// <returns>true if the stored checksum matches the file content</returns>
         public bool ValidateChecksum()
         {
             return Checksum == GlobalFunctions.GetFileChecksum(FullPath).ToLower();

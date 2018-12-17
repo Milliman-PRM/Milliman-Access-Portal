@@ -300,13 +300,6 @@ namespace ContentPublishingLib.JobRunners
                 Directory.CreateDirectory(WorkingFolderAbsolute);
                 File.Copy(JobDetail.Request.MasterFilePath, MasterFileDestinationPath);
 
-                // TODO do we need this check?
-                if (GlobalFunctions.GetFileChecksum(MasterFileDestinationPath).ToLower() != JobDetail.Request.MasterContentChecksum.ToLower())
-                {
-                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
-                    throw new ApplicationException("In PreTaskSetup(), master content file integrity check failed after copy to SourceDocuments folder, mismatch of file hash");
-                }
-
                 // Set this.MasterDocumentNode, which is used elsewhere in this class
                 MasterDocumentNode = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
             }
