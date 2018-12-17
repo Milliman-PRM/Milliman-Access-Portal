@@ -153,6 +153,19 @@ namespace ContentPublishingLib.JobRunners
                 {
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 }
+                else if (AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Canceled))
+                {
+                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
+
+                    #region Log audit event
+                    var DetailObj = new
+                    {
+                        PublicationRequestId = JobDetail.JobId,
+                        JobDetail.Request.DoesReduce,
+                    };
+                    AuditLog.Log(AuditEventType.ContentPublicationRequestCanceled.ToEvent(DetailObj));
+                    #endregion
+                }
                 else
                 {
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;

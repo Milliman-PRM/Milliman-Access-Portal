@@ -319,13 +319,10 @@ namespace ContentPublishingLib.JobMonitors
                         case PublishJobDetail.JobStatusEnum.Error:
                             DbRequest.RequestStatus = PublicationStatus.Error;
                             break;
+                        case PublishJobDetail.JobStatusEnum.Canceled:
+                            DbRequest.RequestStatus = PublicationStatus.Canceled;
+                            break;
                         case PublishJobDetail.JobStatusEnum.Success:
-                            // respect canceled requests
-                            if (DbRequest.RequestStatus == PublicationStatus.Canceled)
-                            {
-                                break;
-                            }
-
                             DbRequest.RequestStatus = PublicationStatus.Processed;
                             DbRequest.ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
                             {
