@@ -873,6 +873,7 @@ namespace MillimanAccessPortal.Controllers
                     });
 
                     // Update selection group fields
+                    selectionGroup.IsMaster = false;
                     selectionGroup.SelectedHierarchyFieldValueList = new Guid[0];
                     selectionGroup.ContentInstanceUrl = null;
 
