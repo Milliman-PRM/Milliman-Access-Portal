@@ -31,7 +31,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
-                QueueServicedEvent = new ManualResetEvent(false),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -114,7 +114,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
-                QueueServicedEvent = new ManualResetEvent(false),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -215,16 +215,16 @@ namespace ContentPublishingServiceTests
             };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
-            var ResetEvent = new ManualResetEvent(false);
+            var QueueMutex = new Mutex(false);
             MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
-                QueueServicedEvent = ResetEvent,
+                QueueMutex = QueueMutex,
             };
             MapDbReductionJobMonitor ReductionJobMonitor = new MapDbReductionJobMonitor
             {
                 MockContext = MockContext,
-                MapDbPublishQueueServicedEvent = ResetEvent,
+                QueueMutex = QueueMutex,
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -257,9 +257,11 @@ namespace ContentPublishingServiceTests
                 Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
                 Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
                 Assert.Equal(string.Empty, DbRequest.StatusMessage);
-                Assert.Equal(2, Tasks.Count);
-                Assert.True(File.Exists(Tasks.ElementAt(0).ResultFilePath));
-                Assert.True(File.Exists(Tasks.ElementAt(1).ResultFilePath));
+                Assert.Equal(3, Tasks.Count);
+                List<ContentReductionTask> NonNullTasks = Tasks.Where(t => t.SelectionGroupId != null).ToList();
+                Assert.Equal(2, NonNullTasks.Count);
+                Assert.True(File.Exists(NonNullTasks.ElementAt(0).ResultFilePath));
+                Assert.True(File.Exists(NonNullTasks.ElementAt(1).ResultFilePath));
             }
             finally
             {
@@ -294,7 +296,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
-                QueueServicedEvent = new ManualResetEvent(false),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -343,7 +345,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockContext,
-                QueueServicedEvent = new ManualResetEvent(false),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();

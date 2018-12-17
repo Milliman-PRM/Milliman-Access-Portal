@@ -113,7 +113,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
                                 errorMessage = "This group has no selections.";
                                 break;
-                            case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent:
+                            case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
                                 errorMessage = "None of this group's selections are in the new hierarchy.";
                                 break;
                             default:
@@ -128,7 +128,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             Id = task.SelectionGroup.Id,
                             Name = task.SelectionGroup.GroupName,
                             IsMaster = task.SelectionGroup.IsMaster,
-                            Duration = task.OutcomeMetadataObj.ProcessingDuration,
+                            Duration = task.OutcomeMetadataObj.ElapsedTime,
                             Users = selectionGroupUsers,
                             WasInactive = task.SelectionGroup.ContentInstanceUrl == null,
                             IsInactive = task.ReductionStatus != ReductionStatusEnum.Reduced,
@@ -136,7 +136,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             LiveSelections = task.SelectionGroup.IsMaster
                                 ? null
                                 : ContentReductionHierarchy<ReductionFieldValueSelection>
-                                    .GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId),
+                                    .GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId.Value),
                             PendingSelections = task.SelectionGroup.IsMaster
                                 ? null
                                 : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(

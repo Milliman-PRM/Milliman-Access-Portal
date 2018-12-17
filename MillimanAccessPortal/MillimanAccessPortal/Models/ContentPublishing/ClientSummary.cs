@@ -26,7 +26,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public long EligibleUserCount { get; set; }
         public long RootContentItemCount { get; set; }
         
-        async public static Task<ClientSummary> Build(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, ApplicationUser currentUser, Client client, RoleEnum roleInClient)
+        public static ClientSummary Build(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, ApplicationUser currentUser, Client client, RoleEnum roleInClient)
         {
             var clientDetail = new ClientSummary
             {
