@@ -18,7 +18,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     {
         public long SelectedClientId { get; set; } = 0;
 
-        async public static Task<ClientTree> Build(ApplicationUser currentUser, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, RoleEnum roleInClient)
+        public static ClientTree Build(ApplicationUser currentUser, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, RoleEnum roleInClient)
         {
             #region Validation
             if (currentUser == null)

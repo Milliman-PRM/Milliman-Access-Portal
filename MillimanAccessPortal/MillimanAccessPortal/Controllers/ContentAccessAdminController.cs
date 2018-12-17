@@ -101,7 +101,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientTree model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentAccessAdmin);
+            ClientTree model = ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentAccessAdmin);
 
             return Json(model);
         }

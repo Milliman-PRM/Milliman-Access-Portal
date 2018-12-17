@@ -33,7 +33,7 @@ namespace MapDbContextLib.Models
             var okayReasons = new List<MapDbReductionTaskOutcomeReason>
             {
                 MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
-                MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent,
+                MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent,
             };
 
             return !okayReasons.Contains(reason);
