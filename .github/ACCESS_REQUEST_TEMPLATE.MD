@@ -20,27 +20,35 @@ _In this section, describe the business reason the user requires the requested a
 
 _In this section, **remove** any access that is **not** being requested. If access types seem to be missing, contact the PRM security manager._
 
-**Read-Only File/System Access**
+**Read-Only File/Database Access**
 
 - Production application log files
 - Production live content files
 - Production reduction queue
 - Production upload quarantine
+- Production application database
+- Production audit log database
 - Staging live content files
 - Staging reduction queue 
 - Staging upload quarantine
 - Staging application log files
+- Staging application database
+- Staging audit log database
 
-**Read/Write File Access**
+**Read/Write File/Database Access**
 
 - Production application log files
 - Production live content files
 - Production reduction queue
 - Production upload quarantine
+- Production application database
+- Production audit log database
 - Staging live content files
 - Staging reduction queue 
 - Staging upload quarantine
 - Staging application log files
+- Staging application database
+- Staging audit log database
 
 **Remote Desktop access**
 
