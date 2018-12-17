@@ -189,6 +189,12 @@ namespace MapDbContextLib.Models
             }
         }
 
+        /// <summary>
+        /// Applies selection status from provided selections to a provided hierarchy, preserving the value list of the hierarchy
+        /// </summary>
+        /// <param name="hierarchy"></param>
+        /// <param name="selections"></param>
+        /// <returns></returns>
         public static ContentReductionHierarchy<ReductionFieldValueSelection> Apply(
             ContentReductionHierarchy<ReductionFieldValue> hierarchy,
             ContentReductionHierarchy<ReductionFieldValueSelection> selections
