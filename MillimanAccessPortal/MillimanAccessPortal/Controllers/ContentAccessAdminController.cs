@@ -636,7 +636,9 @@ namespace MillimanAccessPortal.Controllers
                     case ContentTypeEnum.Qlikview:
                         if (!selectionGroup.IsMaster && !string.IsNullOrWhiteSpace(selectionGroup.ContentInstanceUrl))
                         {
-                            string ContentFileFullPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), selectionGroup.ContentInstanceUrl);
+                            string ContentFileFullPath = Path.Combine(
+                                ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"),
+                                selectionGroup.ContentInstanceUrl);
 
                             await new QlikviewLibApi().ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl, QvConfig);
 
@@ -866,7 +868,7 @@ namespace MillimanAccessPortal.Controllers
                             OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
                             ReductionTaskId = NewTaskGuid,
                         },
-                        ReductionStatus = ReductionStatusEnum.Error,
+                        ReductionStatus = ReductionStatusEnum.Live,
                         ReductionStatusMessage = "In ContentAccessAdminController.UpdateSelections, no selections, reduction task not queued",
                         SelectionGroupId = selectionGroup.Id,
                         TaskAction = TaskActionEnum.Unspecified,
