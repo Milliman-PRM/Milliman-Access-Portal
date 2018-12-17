@@ -427,9 +427,9 @@ const components = Object.assign(
               this.addClass(component, 'suspended');
             }
           }
-          if (Object.hasOwnProperty.call(properties, 'invalid')) {
-            if (properties.invalid) {
-              this.addClass(component, 'invalid');
+          if (Object.hasOwnProperty.call(properties, 'inactive')) {
+            if (properties.inactive) {
+              this.addClass(component, 'inactive');
             }
           }
         };
@@ -954,13 +954,13 @@ export function SelectionGroupCard(
 
   this.addComponent('body', {
     suspended: selectionGroup.IsSuspended,
-    invalid: selectionGroup.IsInvalid,
+    inactive: selectionGroup.IsInactive,
   });
   this.addComponent('primaryTextBox', {
     text: selectionGroup.Name + (selectionGroup.IsSuspended
       ? ' (Suspended)'
-      : selectionGroup.IsInvalid
-        ? ' (Invalid)'
+      : selectionGroup.IsInactive
+        ? ' (Inactive)'
         : ''),
   });
   this.addComponent('secondaryText', { text: selectionGroup.RootContentItemName });
