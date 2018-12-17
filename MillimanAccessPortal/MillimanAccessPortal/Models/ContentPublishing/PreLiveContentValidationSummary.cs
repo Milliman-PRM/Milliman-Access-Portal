@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using QlikviewLib;
 using MillimanAccessPortal.Models.AccountViewModels;
+using Serilog;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -106,7 +107,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             selectionGroupUsers.Add(userInfo); 
                         }
 
-                        string errorMessage = null;
+                        string errorMessage;
                         switch (task.OutcomeMetadataObj.OutcomeReason)
                         {
                             case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
@@ -114,6 +115,11 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 break;
                             case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent:
                                 errorMessage = "None of this group's selections are in the new hierarchy.";
+                                break;
+                            default:
+                                errorMessage = null;
+                                Log.Warning("Unexpected outcome reason in go live preview "
+                                    + $"for reduction task {task.Id}: {task.OutcomeMetadataObj.OutcomeReason}");
                                 break;
                         }
 
