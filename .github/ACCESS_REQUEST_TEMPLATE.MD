@@ -1,0 +1,65 @@
+# MAP Network Access Request
+
+_Use this issue template to request access to MAP internal resources within the production & staging environments. These access requests are required under the Milliman Information Security Policy._
+
+## User information
+
+**Name:**
+
+**Role or Job Title:**
+
+**Supervisor's Name:**
+
+_The listed supervisor and/or the PRM security manager must approve the requested access before it is granted._ 
+
+## Reason for Request
+
+_In this section, describe the business reason the user requires the requested access._
+
+## Access Requested
+
+_In this section, **remove** any access that is **not** being requested. If access types seem to be missing, contact the PRM security manager._
+
+**Read-Only File/System Access**
+
+- Production application log files
+- Production live content files
+- Production reduction queue
+- Production upload quarantine
+- Staging live content files
+- Staging reduction queue 
+- Staging upload quarantine
+- Staging application log files
+
+**Read/Write File Access**
+
+- Production application log files
+- Production live content files
+- Production reduction queue
+- Production upload quarantine
+- Staging live content files
+- Staging reduction queue 
+- Staging upload quarantine
+- Staging application log files
+
+**Remote Desktop access**
+
+- Production jump box _Required for users with no existing Remote Desktop access_
+- Production web server
+- Production QlikView Server
+- Production QlikView Publisher server
+- Production File server
+- Production domain controllers
+
+**Local Admin rights**
+
+- Production jump box _Required for users with no existing Remote Desktop access_
+- Production web server
+- Production QlikView Server
+- Production QlikView Publisher server
+- Production File server
+- Production domain controllers
+
+**Low-level privileges**
+
+- Domain administrator
