@@ -115,6 +115,23 @@ button,
             cursor: default;
         }
     }
+
+    &.orange-button {
+        background-color: $orange;
+        color: $white;
+
+        &:hover {
+            background-color: lighten($orange, 5%);
+        }
+
+        &:disabled,
+        &.disabled {
+            border: 1px solid $orange;
+            color: $orange;
+            background-color: transparent;
+            cursor: default;
+        }
+    }
 }
 
 label {

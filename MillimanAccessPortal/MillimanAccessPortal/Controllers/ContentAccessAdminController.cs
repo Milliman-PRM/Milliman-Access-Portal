@@ -860,6 +860,7 @@ namespace MillimanAccessPortal.Controllers
                         ApplicationUserId = (await Queries.GetCurrentApplicationUser(User)).Id,
                         CreateDateTimeUtc = DateTime.UtcNow,
                         Id = NewTaskGuid,
+                        MasterFilePath = "",  // required field - consider removing non null requirement
                         OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
                         {
                             OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
@@ -872,6 +873,7 @@ namespace MillimanAccessPortal.Controllers
                     });
 
                     // Update selection group fields
+                    selectionGroup.IsMaster = false;
                     selectionGroup.SelectedHierarchyFieldValueList = new Guid[0];
                     selectionGroup.ContentInstanceUrl = null;
 

@@ -36,6 +36,10 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                     .Where(t => t.SelectionGroupId == selectionGroup.Id)
                     .OrderByDescending(r => r.CreateDateTimeUtc)
                     .FirstOrDefault();
+                if (reductionTask == null)
+                {
+                    continue;
+                }
                 var summary = reductionTask.ToSummaryWithQueueInformation(dbContext);
                 if (!string.IsNullOrWhiteSpace(reductionTask.OutcomeMetadata))
                 {

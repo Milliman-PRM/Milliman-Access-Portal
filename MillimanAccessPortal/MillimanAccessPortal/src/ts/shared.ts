@@ -452,16 +452,6 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
     ...reductionDetails,
   };
 
-  $statusContainer
-    .removeClass((_, classString) => {
-      const classNames = classString.split(' ');
-      return classNames
-        .filter((className) => {
-          return className.indexOf('status-') === 0;
-        })
-        .join(' ');
-    })
-    .addClass('status-' + details.StatusEnum);
   let statusTop = `<strong>${details.StatusName}</strong>`;
   let statusBot = `Initiated by ${details.User.FirstName[0]}. ${details.User.LastName}`;
   const durationText = details.QueuedDurationMs > 0
@@ -499,6 +489,16 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
   }
   $statusTop.html(statusTop);
   $statusBot.html(statusBot);
+  $statusContainer
+    .removeClass((_, classString) => {
+      const classNames = classString.split(' ');
+      return classNames
+        .filter((className) => {
+          return className.indexOf('status-') === 0;
+        })
+        .join(' ');
+    })
+    .addClass('status-' + details.StatusEnum);
   $statusContainer.off('click');
   if (details.StatusName === 'Error' && details.StatusMessage) {
     $statusContainer.on('click', () => {
