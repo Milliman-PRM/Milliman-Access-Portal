@@ -62,7 +62,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                     .Count();
                 var completedReductionTaskCount = dbContext.ContentReductionTask
                     .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
-                    .Where(t => t.ReductionStatus == ReductionStatusEnum.Reduced)
+                    .Where(t => t.ReductionStatus != ReductionStatusEnum.Queued)
+                    .Where(t => t.ReductionStatus != ReductionStatusEnum.Reducing)
                     .Count();
                 publicationSummary.QueuePosition = completedReductionTaskCount;
                 publicationSummary.QueueTotal = relatedReductionTaskCount;

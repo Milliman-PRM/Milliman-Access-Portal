@@ -427,6 +427,11 @@ const components = Object.assign(
               this.addClass(component, 'suspended');
             }
           }
+          if (Object.hasOwnProperty.call(properties, 'inactive')) {
+            if (properties.inactive) {
+              this.addClass(component, 'inactive');
+            }
+          }
         };
       },
     },
@@ -947,11 +952,16 @@ export function SelectionGroupCard(
     return acc.concat(cur);
   }, []);
 
-  this.addComponent('body', { suspended: selectionGroup.IsSuspended });
+  this.addComponent('body', {
+    suspended: selectionGroup.IsSuspended,
+    inactive: selectionGroup.IsInactive,
+  });
   this.addComponent('primaryTextBox', {
     text: selectionGroup.Name + (selectionGroup.IsSuspended
       ? ' (Suspended)'
-      : ''),
+      : selectionGroup.IsInactive
+        ? ' (Inactive)'
+        : ''),
   });
   this.addComponent('secondaryText', { text: selectionGroup.RootContentItemName });
   this.addComponent('statistic', {

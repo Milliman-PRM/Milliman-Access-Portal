@@ -55,6 +55,7 @@ export interface SelectionGroupSummary {
   ReductionDetails: ReductionSummary;
   RootContentItemName: string;
   IsSuspended: boolean;
+  IsInactive: boolean;
 }
 export interface SelectionGroupList {
   SelectionGroups: SelectionGroupSummary[];

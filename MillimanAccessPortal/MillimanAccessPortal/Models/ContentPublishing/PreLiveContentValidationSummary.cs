@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using QlikviewLib;
+using MillimanAccessPortal.Models.AccountViewModels;
+using Serilog;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -92,15 +94,59 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 {
                     newHierarchy.Sort();
 
+                    var selectionGroups = new List<SelectionGroupSummary>();
+                    foreach (var task in AllTasks)
+                    {
+                        var selectionGroupUsers = new List<UserInfoViewModel>();
+                        var userQuery = Db.UserInSelectionGroup
+                            .Where(usg => usg.SelectionGroupId == task.SelectionGroup.Id)
+                            .Select(usg => usg.User);
+                        foreach (var user in userQuery)
+                        {
+                            var userInfo = (UserInfoViewModel)user;
+                            selectionGroupUsers.Add(userInfo); 
+                        }
+
+                        string errorMessage;
+                        switch (task.OutcomeMetadataObj.OutcomeReason)
+                        {
+                            case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
+                                errorMessage = "This group has no selections.";
+                                break;
+                            case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent:
+                                errorMessage = "None of this group's selections are in the new hierarchy.";
+                                break;
+                            default:
+                                errorMessage = null;
+                                Log.Warning("Unexpected outcome reason in go live preview "
+                                    + $"for reduction task {task.Id}: {task.OutcomeMetadataObj.OutcomeReason}");
+                                break;
+                        }
+
+                        selectionGroups.Add(new SelectionGroupSummary
+                        {
+                            Id = task.SelectionGroup.Id,
+                            Name = task.SelectionGroup.GroupName,
+                            IsMaster = task.SelectionGroup.IsMaster,
+                            Duration = task.OutcomeMetadataObj.ProcessingDuration,
+                            Users = selectionGroupUsers,
+                            WasInactive = task.SelectionGroup.ContentInstanceUrl == null,
+                            IsInactive = task.ReductionStatus != ReductionStatusEnum.Reduced,
+                            InactiveReason = errorMessage,
+                            LiveSelections = task.SelectionGroup.IsMaster
+                                ? null
+                                : ContentReductionHierarchy<ReductionFieldValueSelection>
+                                    .GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId),
+                            PendingSelections = task.SelectionGroup.IsMaster
+                                ? null
+                                : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(
+                                    task.MasterContentHierarchyObj, task.SelectionCriteriaObj),
+                        });
+                    }
+
                     ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
                     ReturnObj.NewHierarchy = newHierarchy;
-                    ReturnObj.SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary
-                        {
-                            Name = t.SelectionGroup.GroupName,
-                            IsMaster = t.SelectionGroup.IsMaster,
-                            UserCount = Db.UserInSelectionGroup.Count(usg => usg.SelectionGroupId == t.SelectionGroup.Id),
-                        }
-                    ).ToList();
+                    ReturnObj.SelectionGroups = selectionGroups;
                 }
             }
 
@@ -206,8 +252,15 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
     public class SelectionGroupSummary
     {
+        public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public int UserCount { get; set; } = 0;
         public bool IsMaster { get; set; }
+        public TimeSpan Duration { get; set; } = TimeSpan.Zero;
+        public List<UserInfoViewModel> Users { get; set; } = new List<UserInfoViewModel>();
+        public bool WasInactive { get; set; }
+        public bool IsInactive { get; set; }
+        public string InactiveReason { get; set; } = null;
+        public ContentReductionHierarchy<ReductionFieldValueSelection> LiveSelections { get; set; }
+        public ContentReductionHierarchy<ReductionFieldValueSelection> PendingSelections { get; set; }
     }
 }

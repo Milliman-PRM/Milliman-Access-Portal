@@ -39,33 +39,30 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 var summary = publicationRequest.ToSummaryWithQueueInformation(dbContext);
 
                 // Assemble the list of messages for all failed reductions
-                string lineBreak = Environment.NewLine;
-                foreach (ReductionTaskOutcomeMetadata taskOutcome in publicationRequest.OutcomeMetadataObj.ReductionTaskFailOutcomeList)
+                var messages = new List<string> { };
+                foreach (var taskOutcome in publicationRequest.OutcomeMetadataObj.ReductionTaskFailOutcomeList)
                 {
                     switch (taskOutcome.OutcomeReason)
                     {
-                        case MapDbReductionTaskOutcomeReason.BadRequest:
-                            summary.StatusMessage += $"{lineBreak}Bad request";
+                        case MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName:
+                            messages.Add("A value in an invalid field was selected.");
                             break;
                         case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
-                            summary.StatusMessage += $"{lineBreak}No field values are selected";
-                            break;
                         case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent:
-                            summary.StatusMessage += $"{lineBreak}No selected field values match data in the new content file";
+                            // these reasons do not contribute to error status
                             break;
-                        case MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName:
-                            summary.StatusMessage += $"{lineBreak}An invalid field name was selected";
-                            break;
+                        case MapDbReductionTaskOutcomeReason.BadRequest:
                         case MapDbReductionTaskOutcomeReason.UnspecifiedError:
-                            summary.StatusMessage += $"{lineBreak}Unspecified error in selection group processing";
-                            break;
                         default:
-                            // should never be here
-                            summary.StatusMessage += $"{lineBreak}Unhandled reduction error {taskOutcome.OutcomeReason}, please report to map.support@milliman.com";
+                            // these reasons won't mean anything to a user but could help us
+                            messages.Add("Unexpected error. Please retry the publication and "
+                                + "contact support if the problem persists.");
                             break;
                     }
                 }
-                summary.StatusMessage.TrimStart($"{lineBreak}".ToCharArray());
+
+                // don't overwhelm the user with a giant error message
+                summary.StatusMessage = messages.FirstOrDefault();
 
                 model.Status.Add(summary);
             }
