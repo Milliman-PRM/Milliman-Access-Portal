@@ -148,7 +148,7 @@ namespace ContentPublishingLib.JobRunners
 
                 var unhandleableErrors = AllRelatedReductionTasks
                     .Where(t => t.ReductionStatus == ReductionStatusEnum.Error)
-                    .Where(t => !t.OutcomeMetadataObj.OutcomeReason.PreventsPublication());
+                    .Where(t => t.OutcomeMetadataObj.OutcomeReason.PreventsPublication());
                 if (unhandleableErrors.Any())
                 {
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;

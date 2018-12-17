@@ -109,6 +109,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 .ThenInclude(g => g.RootContentItem)
                     .ThenInclude(c => c.ContentType)
             .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
+            .Where(t => t.SelectionGroup != null)
             .ToList();
 
         if (ReductionIsInvolved)

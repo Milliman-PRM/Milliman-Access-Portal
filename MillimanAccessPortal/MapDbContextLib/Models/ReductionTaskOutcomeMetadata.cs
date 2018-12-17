@@ -34,6 +34,7 @@ namespace MapDbContextLib.Models
             {
                 MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
                 MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent,
+                MapDbReductionTaskOutcomeReason.NoReducedFileCreated,
             };
 
             return !okayReasons.Contains(reason);
