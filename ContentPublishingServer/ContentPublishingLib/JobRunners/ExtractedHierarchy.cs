@@ -28,6 +28,11 @@ namespace ContentPublishingLib.JobRunners
         /// <param name="ExtractedField"></param>
         public static explicit operator ExtractedField(ReductionField<ReductionFieldValue> FieldArg)
         {
+            if (FieldArg == null)
+            {
+                return null;
+            }
+
             ExtractedField NewField = new ExtractedField
             {
                 FieldName = FieldArg.FieldName,
@@ -59,6 +64,11 @@ namespace ContentPublishingLib.JobRunners
         /// <param name="ExtractedField"></param>
         public static explicit operator ReductionField<ReductionFieldValue>(ExtractedField ExtractedField)
         {
+            if (ExtractedField == null)
+            {
+                return null;
+            }
+
             ReductionField<ReductionFieldValue> NewField = new ReductionField<ReductionFieldValue>
             {
                 FieldName = ExtractedField.FieldName,
