@@ -2,6 +2,8 @@
 
 _Use this issue template to request access to MAP internal resources within the production & staging environments. These access requests are required under the Milliman Information Security Policy._
 
+_Add the Compliance label to the issue when opening it._
+
 ## User information
 
 **Name:**
