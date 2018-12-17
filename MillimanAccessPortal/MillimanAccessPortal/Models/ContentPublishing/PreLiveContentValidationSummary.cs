@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using QlikviewLib;
 using MillimanAccessPortal.Models.AccountViewModels;
+using Serilog;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -106,14 +107,19 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             selectionGroupUsers.Add(userInfo); 
                         }
 
-                        string errorMessage = null;
+                        string errorMessage;
                         switch (task.OutcomeMetadataObj.OutcomeReason)
                         {
                             case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
                                 errorMessage = "This group has no selections.";
                                 break;
-                            case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent:
+                            case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
                                 errorMessage = "None of this group's selections are in the new hierarchy.";
+                                break;
+                            default:
+                                errorMessage = null;
+                                Log.Warning("Unexpected outcome reason in go live preview "
+                                    + $"for reduction task {task.Id}: {task.OutcomeMetadataObj.OutcomeReason}");
                                 break;
                         }
 
@@ -122,7 +128,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             Id = task.SelectionGroup.Id,
                             Name = task.SelectionGroup.GroupName,
                             IsMaster = task.SelectionGroup.IsMaster,
-                            Duration = task.OutcomeMetadataObj.ProcessingDuration,
+                            Duration = task.OutcomeMetadataObj.ElapsedTime,
                             Users = selectionGroupUsers,
                             WasInactive = task.SelectionGroup.ContentInstanceUrl == null,
                             IsInactive = task.ReductionStatus != ReductionStatusEnum.Reduced,
@@ -130,7 +136,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             LiveSelections = task.SelectionGroup.IsMaster
                                 ? null
                                 : ContentReductionHierarchy<ReductionFieldValueSelection>
-                                    .GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId),
+                                    .GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId.Value),
                             PendingSelections = task.SelectionGroup.IsMaster
                                 ? null
                                 : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(

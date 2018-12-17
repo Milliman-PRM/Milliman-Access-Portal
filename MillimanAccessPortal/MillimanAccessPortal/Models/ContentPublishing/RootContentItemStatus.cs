@@ -48,7 +48,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             messages.Add("A value in an invalid field was selected.");
                             break;
                         case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
-                        case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent:
+                        case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
                             // these reasons do not contribute to error status
                             break;
                         case MapDbReductionTaskOutcomeReason.BadRequest:

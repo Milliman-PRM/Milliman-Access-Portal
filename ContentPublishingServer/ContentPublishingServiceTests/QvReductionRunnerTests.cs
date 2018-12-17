@@ -241,7 +241,7 @@ namespace ContentPublishingServiceTests
             Assert.Single(TaskResult.ReducedContentHierarchy.Fields[1].FieldValues);
             Assert.Equal(7, TaskResult.ReducedContentHierarchy.Fields[2].FieldValues.Count);
 
-            Assert.Equal($@"\\indy-syn01\prm_test\Sample Data\Test1\{ContentTypeSpecificApiBase.GenerateReducedContentFileName(DbTask.SelectionGroupId, DbTask.SelectionGroup.RootContentItemId, ".qvw")}" ,TaskResult.ReducedContentFilePath);
+            Assert.Equal($@"\\indy-syn01\prm_test\Sample Data\Test1\{ContentTypeSpecificApiBase.GenerateReducedContentFileName(DbTask.SelectionGroupId.Value, DbTask.SelectionGroup.RootContentItemId, ".qvw")}" ,TaskResult.ReducedContentFilePath);
             Assert.Equal(40, TaskResult.ReducedContentFileChecksum.Length);
             Assert.True(File.Exists(TaskResult.ReducedContentFilePath));
             #endregion

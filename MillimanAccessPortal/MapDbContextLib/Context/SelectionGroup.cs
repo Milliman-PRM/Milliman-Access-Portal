@@ -20,6 +20,9 @@ namespace MapDbContextLib.Context
         [Required]
         public string GroupName { get; set; }
 
+        /// <summary>
+        /// null value indicates inactive selection group due to an error e.g. reduction
+        /// </summary>
         public string ContentInstanceUrl { get; set; }
 
         [ForeignKey("RootContentItem")]
