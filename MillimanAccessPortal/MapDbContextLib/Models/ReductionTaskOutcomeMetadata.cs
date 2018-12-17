@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 
 namespace MapDbContextLib.Models
 {
@@ -23,6 +24,20 @@ namespace MapDbContextLib.Models
         NoSelectedFieldValueExistsInNewContent = 102,
         SelectionForInvalidFieldName = 103,
         NoReducedFileCreated = 104,
+    }
+    public static class MapDbReductionTaskOutcomeReasonExtensions
+    {
+        public static bool PreventsPublication(this MapDbReductionTaskOutcomeReason reason)
+        {
+            // MAP knows how to handle these errors so don't prevent a publication if they happen
+            var okayReasons = new List<MapDbReductionTaskOutcomeReason>
+            {
+                MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
+                MapDbReductionTaskOutcomeReason.NoSelectedFieldValueMatchInNewContent,
+            };
+
+            return !okayReasons.Contains(reason);
+        }
     }
 
     /// <summary>

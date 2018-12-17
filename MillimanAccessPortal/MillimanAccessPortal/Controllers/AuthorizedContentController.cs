@@ -113,6 +113,7 @@ namespace MillimanAccessPortal.Controllers
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rc => rc.Client)
                 .Where(sg => sg.Id == selectionGroupId)
+                .Where(sg => sg.ContentInstanceUrl != null)
                 .Where(sg => !sg.IsSuspended)
                 .Where(sg => !sg.RootContentItem.IsSuspended)
                 .FirstOrDefault();
