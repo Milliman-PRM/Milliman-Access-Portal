@@ -140,7 +140,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 }
 
                 // Validate file checksum for reduced content
-                // Reductions that will result in invalid selection groups have no result file
+                // Reductions that will result in inactive selection groups have no result file
                 if (!string.IsNullOrWhiteSpace(ThisTask.ResultFilePath))
                 {
                     var currentChecksum = GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower();
@@ -281,10 +281,10 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     publicationRequest.RootContentItemId.ToString(),
                     TargetFileName);
 
-                bool isInvalid = string.IsNullOrWhiteSpace(ThisTask.ResultFilePath);
+                bool isInactive = string.IsNullOrWhiteSpace(ThisTask.ResultFilePath);
 
                 // Set url in SelectionGroup
-                if (isInvalid)
+                if (isInactive)
                 {
                     ThisTask.SelectionGroup.ContentInstanceUrl = null;
                     ThisTask.SelectionGroup.ReducedContentChecksum = null;
@@ -308,7 +308,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     FilesToDelete.Add(BackupFilePath);
                 }
 
-                if (!isInvalid)
+                if (!isInactive)
                 {
                     File.Copy(ThisTask.ResultFilePath, TargetFilePath);
                     FilesToDelete.Add(ThisTask.ResultFilePath);
