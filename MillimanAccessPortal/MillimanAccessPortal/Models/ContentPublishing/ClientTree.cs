@@ -32,7 +32,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             var clientDetails = new List<ClientSummary>();
             foreach (var client in dbContext.Client.OrderBy(c => c.Name))
             {
-                clientDetails.Add(await ClientSummary.Build(dbContext, userManager, currentUser, client, roleInClient));
+                clientDetails.Add(ClientSummary.Build(dbContext, userManager, currentUser, client, roleInClient));
             }
 
             Model.Root.Populate(ref clientDetails);
