@@ -153,7 +153,8 @@ namespace ContentPublishingLib.JobRunners
                 {
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 }
-                else if (AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Canceled))
+                else if (AllRelatedReductionTasks.Any()
+                    && AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Canceled))
                 {
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
 
