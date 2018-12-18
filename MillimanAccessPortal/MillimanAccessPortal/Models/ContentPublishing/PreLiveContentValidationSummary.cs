@@ -119,6 +119,10 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
                                 errorMessage = "None of this group's selections are in the new hierarchy.";
                                 break;
+                            case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
+                                errorMessage = "The reduction did not produce an output file. "
+                                    + "This could be caused by selections that result in no matching data.";
+                                break;
                             default:
                                 errorMessage = null;
                                 Log.Warning("Unexpected outcome reason in go live preview "

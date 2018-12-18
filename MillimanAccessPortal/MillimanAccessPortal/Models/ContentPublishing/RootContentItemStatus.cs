@@ -49,6 +49,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             break;
                         case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
                         case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
+                        case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
                             // these reasons do not contribute to error status
                             break;
                         case MapDbReductionTaskOutcomeReason.BadRequest:
