@@ -24,6 +24,7 @@ namespace MapDbContextLib.Models
         NoSelectedFieldValueExistsInNewContent = 102,
         SelectionForInvalidFieldName = 103,
         NoReducedFileCreated = 104,
+        ReductionTimeout = 105,
     }
     public static class MapDbReductionTaskOutcomeReasonExtensions
     {

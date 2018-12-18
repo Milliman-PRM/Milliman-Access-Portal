@@ -49,6 +49,7 @@ namespace ContentPublishingLib.JobRunners
             NoSelectedFieldValueExistsInNewContent,
             NoReducedFileCreated,
             SelectionForInvalidFieldName,
+            ReductionProcessingTimeout,
         }
 
         public ReductionJobRequest Request;
