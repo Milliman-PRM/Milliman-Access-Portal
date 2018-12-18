@@ -803,8 +803,11 @@ namespace MillimanAccessPortal.Controllers
                             $"Go live request failed to verify related content reduction task {ThisTask.Id}.");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
+
                     // The reduced content file identified in the ContentReductionTask must exist
-                    if (!System.IO.File.Exists(ThisTask.ResultFilePath))
+                    // Reductions that will result in inactive selection groups have no result file
+                    bool isInactive = string.IsNullOrWhiteSpace(ThisTask.ResultFilePath);
+                    if (!isInactive && !System.IO.File.Exists(ThisTask.ResultFilePath))
                     {
                         Log.Error($"In ContentPublishingController.GoLive action: " +
                             $"for selection group {relatedSelectionGroup.Id}, " +

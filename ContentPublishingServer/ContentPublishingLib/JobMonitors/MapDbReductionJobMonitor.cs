@@ -329,6 +329,9 @@ namespace ContentPublishingLib.JobMonitors
                                 case ReductionJobDetail.JobOutcomeReason.SelectionForInvalidFieldName:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName;
                                     break;
+                                case ReductionJobDetail.JobOutcomeReason.ReductionProcessingTimeout:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.ReductionTimeout;
+                                    break;
                             }
                             break;
                         case ReductionJobDetail.JobStatusEnum.Success:

@@ -659,7 +659,8 @@ namespace MillimanAccessPortal.Migrations
 
                     b.HasOne("MapDbContextLib.Context.SelectionGroup", "SelectionGroup")
                         .WithMany()
-                        .HasForeignKey("SelectionGroupId");
+                        .HasForeignKey("SelectionGroupId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.HierarchyField", b =>

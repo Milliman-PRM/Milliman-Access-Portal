@@ -732,6 +732,7 @@ namespace ContentPublishingLib.JobRunners
                 {
                     if (DateTime.Now - StartTime > MaxStartDelay)
                     {
+                        JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.ReductionProcessingTimeout;
                         throw new System.Exception($"Qlikview publisher failed to start task {TaskIdGuid.ToString("D")} before timeout");
                     }
 
@@ -750,6 +751,7 @@ namespace ContentPublishingLib.JobRunners
                 {
                     if (DateTime.Now - RunningStartTime > MaxElapsedRun)
                     {
+                        JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.ReductionProcessingTimeout;
                         throw new System.Exception($"Qlikview publisher failed to finish task {TaskIdGuid.ToString("D")} before timeout");
                     }
 
@@ -760,9 +762,25 @@ namespace ContentPublishingLib.JobRunners
                 } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
                 GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} finished running after {DateTime.Now - RunningStartTime}");
 
-                if (Status.General.Status == TaskStatusValue.Failed || Status.General.Status == TaskStatusValue.Warning)
+                switch (Status.General.Status)
                 {
-                    throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
+                    case TaskStatusValue.Warning:
+                        string ExpectedReducedFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, JobDetail.Request.RequestedOutputFileName);
+                        if (DocTask.Reload.Mode == TaskReloadMode.None // reduction task, not hierarchy extraction
+                            && !File.Exists(ExpectedReducedFilePath))
+                        {
+                            JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated;
+                        }
+                        // else if (other outcomes) as we discover them go here
+                        else
+                        {
+                            JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
+                        }
+                        throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
+
+                    case TaskStatusValue.Failed:
+                        JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
+                        throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
                 }
             }
             finally

@@ -319,15 +319,19 @@ namespace ContentPublishingLib.JobMonitors
                         case PublishJobDetail.JobStatusEnum.Error:
                             DbRequest.RequestStatus = PublicationStatus.Error;
                             break;
+                        case PublishJobDetail.JobStatusEnum.Canceled:
+                            DbRequest.RequestStatus = PublicationStatus.Canceled;
+                            break;
                         case PublishJobDetail.JobStatusEnum.Success:
                             DbRequest.RequestStatus = PublicationStatus.Processed;
                             DbRequest.ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
                             {
-                                new ReductionRelatedFiles{ MasterContentFile = JobDetail.Request.MasterContentFile, ReducedContentFileList = JobDetail.Result.ResultingRelatedFiles }
+                                new ReductionRelatedFiles
+                                {
+                                    MasterContentFile = JobDetail.Request.MasterContentFile,
+                                    ReducedContentFileList = JobDetail.Result.ResultingRelatedFiles,
+                                },
                             };
-                            break;
-                        case PublishJobDetail.JobStatusEnum.Canceled:
-                            DbRequest.RequestStatus = PublicationStatus.Canceled;
                             break;
                         default:
                             GlobalFunctions.TraceWriteLine("Unsupported job result status in MapDbPublishJobMonitor.UpdateTask().");

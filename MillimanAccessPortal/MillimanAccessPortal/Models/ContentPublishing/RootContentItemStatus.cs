@@ -47,8 +47,13 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         case MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName:
                             messages.Add("A value in an invalid field was selected.");
                             break;
+                        case MapDbReductionTaskOutcomeReason.ReductionTimeout:
+                            messages.Add("The reduction timed out. Please retry the publication and "
+                                + "contact support if the problem persists.");
+                            break;
                         case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
                         case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
+                        case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
                             // these reasons do not contribute to error status
                             break;
                         case MapDbReductionTaskOutcomeReason.BadRequest:

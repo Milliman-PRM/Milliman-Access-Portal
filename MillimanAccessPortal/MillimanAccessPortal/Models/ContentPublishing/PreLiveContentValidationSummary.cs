@@ -75,9 +75,12 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             ReturnObj.SelectionGroups = null;
             if (PubRequest.RootContentItem.DoesReduce)
             {
+                // retrieve all reduction tasks for this publication, filtering out the request
+                // responsible for extracting the new hierarchy
                 List<ContentReductionTask> AllTasks = Db.ContentReductionTask
                                                         .Include(t => t.SelectionGroup)
                                                         .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
+                                                        .Where(t => t.SelectionGroup != null)
                                                         .ToList();
                 #region Validation of reduction tasks and related nav properties from db
                 if (AllTasks.Any(t => t.SelectionGroup == null)
@@ -115,6 +118,10 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 break;
                             case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
                                 errorMessage = "None of this group's selections are in the new hierarchy.";
+                                break;
+                            case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
+                                errorMessage = "The reduction did not produce an output file. "
+                                    + "This could be caused by selections that result in no matching data.";
                                 break;
                             default:
                                 errorMessage = null;

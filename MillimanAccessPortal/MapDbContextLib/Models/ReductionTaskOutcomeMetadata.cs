@@ -24,16 +24,26 @@ namespace MapDbContextLib.Models
         NoSelectedFieldValueExistsInNewContent = 102,
         SelectionForInvalidFieldName = 103,
         NoReducedFileCreated = 104,
+        ReductionTimeout = 105,
     }
     public static class MapDbReductionTaskOutcomeReasonExtensions
     {
+        /// <summary>
+        /// Whether a reduction outcome reason indicates its publication should be aborted
+        /// </summary>
+        /// <remarks>Applies to all outcome reasons regardless of reduction task status</remarks>
         public static bool PreventsPublication(this MapDbReductionTaskOutcomeReason reason)
         {
-            // MAP knows how to handle these errors so don't prevent a publication if they happen
+            // MAP knows how to handle these outcomes so don't prevent a publication if they happen
+            // Whitelist outcome reasons that allow publication. For outcome reasons associated with error status,
+            // only whitelist if it results from expected system usage AND it can be handled gracefully.
             var okayReasons = new List<MapDbReductionTaskOutcomeReason>
             {
+                MapDbReductionTaskOutcomeReason.Success,
+                MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
                 MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
                 MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent,
+                MapDbReductionTaskOutcomeReason.NoReducedFileCreated,
             };
 
             return !okayReasons.Contains(reason);

@@ -13,7 +13,7 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20181214154719_NullableFkReductionTaskToSelectionGroup")]
+    [Migration("20181218172624_NullableFkReductionTaskToSelectionGroup")]
     partial class NullableFkReductionTaskToSelectionGroup
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -660,7 +660,8 @@ namespace MillimanAccessPortal.Migrations
 
                     b.HasOne("MapDbContextLib.Context.SelectionGroup", "SelectionGroup")
                         .WithMany()
-                        .HasForeignKey("SelectionGroupId");
+                        .HasForeignKey("SelectionGroupId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.HierarchyField", b =>
