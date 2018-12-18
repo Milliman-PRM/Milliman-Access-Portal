@@ -156,6 +156,7 @@ namespace ContentPublishingLib.JobRunners
                 else if (AllRelatedReductionTasks.Any()
                     && AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Canceled))
                 {
+                    // If a publication timeout happens queued tasks are canceled but we won't get here because that also throws ApplicationException
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
 
                     #region Log audit event
@@ -258,7 +259,15 @@ namespace ContentPublishingLib.JobRunners
             {
                 try
                 {
-                    TasksToCancel.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
+                    TasksToCancel.ForEach(t =>
+                    {
+                        t.ReductionStatus = ReductionStatusEnum.Canceled;
+                        t.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                        {
+                            OutcomeReason = MapDbReductionTaskOutcomeReason.Canceled,
+                            ReductionTaskId = t.Id,
+                        };
+                    });
                     Db.ContentReductionTask.UpdateRange(TasksToCancel);
                     await Db.SaveChangesAsync();
                     return true;
