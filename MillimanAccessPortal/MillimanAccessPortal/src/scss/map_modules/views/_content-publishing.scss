@@ -11,6 +11,18 @@
         margin-top: 1em;
     }
 
+    .confirmation-section-title {
+        width: 100%;
+        display: inline-block;
+
+        h4 {
+            float: left;
+        }
+        span {
+            float: right;
+        }
+    }
+
     .content-preview,
     .content-preview-pdf,
     .content-preview-sandbox {

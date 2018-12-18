@@ -271,7 +271,10 @@
     </div>
     <div class="admin-panel-content-container">
         <div class="confirmation-section requires-confirmation" id="confirmation-section-master-content">
-            <h4>Master Content</h4>
+            <div class="confirmation-section-title">
+                <h4>Master Content</h4>
+                <span>[<a target="_blank">Open in new tab</a>]</span>
+            </div>
             <div class="content-preview">
                 <iframe src="about:blank"></iframe>
             </div>
@@ -294,7 +297,10 @@
             </label>
         </div>
         <div class="confirmation-section requires-confirmation" id="confirmation-section-user-guide">
-            <h4>User Guide</h4>
+            <div class="confirmation-section-title">
+                <h4>User Guide</h4>
+                <span>[<a target="_blank">Open in new tab</a>]</span>
+            </div>
             <div class="content-preview">
                 <iframe src="about:blank"></iframe>
             </div>
@@ -308,7 +314,10 @@
             </label>
         </div>
         <div class="confirmation-section requires-confirmation" id="confirmation-section-release-notes">
-            <h4>Release Notes</h4>
+            <div class="confirmation-section-title">
+                <h4>Release Notes</h4>
+                <span>[<a target="_blank">Open in new tab</a>]</span>
+            </div>
             <div class="content-preview">
                 <iframe src="about:blank"></iframe>
             </div>

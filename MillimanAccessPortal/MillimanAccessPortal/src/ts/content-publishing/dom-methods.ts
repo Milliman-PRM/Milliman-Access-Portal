@@ -241,18 +241,26 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       })
       .parent()
       .show()
-      .siblings('div')
+      .siblings('div:not(.confirmation-section-title)')
       .hide()
       .filter(() => pair.link === null)
       .filter('.content-preview-none')
       .show()
-      .siblings('div')
+      .siblings('div:not(.confirmation-section-title)')
       .hide()
       .find('iframe,object')
       .closest('.confirmation-section').find('label')
       .hide()
       .find('input')
       .attr('disabled', '');
+    // hide/show new tab links
+    $(`#confirmation-section-${pair.sectionName} .confirmation-section-title > span`)
+      .show()
+      .find('a')
+      .attr('href', pair.link)
+      .filter(() => pair.link === null)
+      .parent()
+      .hide();
   });
 
   // render hierarchy diff and selection group changes
