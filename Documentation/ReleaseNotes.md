@@ -9,7 +9,7 @@
 - The publication go-live preview now displays more detailed information about each associated reduction outcome
 - Fixed an issue where the status of a queued publication changed to 'Processing' before processing could actually begin
 - Reduced processing time for publication of a reducing content item
-- Processing of non-reducing content publications now occurs almost immediately and no longer waits to run after any reducing content item
+- Processing of non-reducing content publications no longer waits to run after queued reducing content publications
 
 ### v1.2.0
 
