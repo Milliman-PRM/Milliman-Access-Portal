@@ -879,6 +879,13 @@ namespace MillimanAccessPortal.Controllers
                     selectionGroup.SelectedHierarchyFieldValueList = new Guid[0];
                     selectionGroup.ContentInstanceUrl = null;
 
+                    // set live reduction to replaced
+                    var liveReductionTasks = DbContext.ContentReductionTask
+                        .Where(t => t.SelectionGroupId == selectionGroup.Id)
+                        .Where(t => t.ReductionStatus == ReductionStatusEnum.Live)
+                        .ToList();
+                    liveReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Replaced);
+
                     DbContext.SaveChanges();
 
                     Log.Debug($"In ContentAccessAdminController.UpdateSelections action: request to update selection group {selectionGroup.Id} with no selections, cannot be processed, aborting");
