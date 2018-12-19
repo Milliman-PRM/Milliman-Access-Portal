@@ -109,7 +109,18 @@ namespace ContentPublishingLib
 
             JobMonitorDict.Add(1, new JobMonitorInfo
             {
-                Monitor = new MapDbPublishJobMonitor
+                Monitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.NonReducingPublications)
+                {
+                    ConfiguredConnectionStringParamName = "DefaultConnection",
+                    QueueMutex = QueueMutex,
+                },
+                TokenSource = new CancellationTokenSource(),
+                AwaitableTask = null
+            });
+
+            JobMonitorDict.Add(2, new JobMonitorInfo
+            {
+                Monitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
                 {
                     ConfiguredConnectionStringParamName = "DefaultConnection",
                     QueueMutex = QueueMutex,
