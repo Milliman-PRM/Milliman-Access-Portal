@@ -28,7 +28,7 @@ namespace ContentPublishingServiceTests
         public async Task CorrectRequestStatusAfterCancelWhileIdle()
         {
             #region arrange
-            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
+            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
             {
                 MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
                 QueueMutex = new Mutex(false),
@@ -111,7 +111,7 @@ namespace ContentPublishingServiceTests
             };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
-            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
+            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.NonReducingPublications)
             {
                 MockContext = MockContext,
                 QueueMutex = new Mutex(false),
@@ -216,7 +216,7 @@ namespace ContentPublishingServiceTests
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
             var QueueMutex = new Mutex(false);
-            MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor
+            MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
             {
                 MockContext = MockContext,
                 QueueMutex = QueueMutex,
@@ -279,7 +279,7 @@ namespace ContentPublishingServiceTests
         {
             #region Arrange
             Guid ReductionTaskOfThisTest = TestUtil.MakeTestGuid(2);
-            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(2);
+            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(3);
 
             Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
 
@@ -293,7 +293,7 @@ namespace ContentPublishingServiceTests
             DbRequest.RequestStatus = PublicationStatus.Queued;
             DbRequest.CreateDateTimeUtc = DateTime.UtcNow;
 
-            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor
+            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
             {
                 MockContext = MockContext,
                 QueueMutex = new Mutex(false),
@@ -328,7 +328,7 @@ namespace ContentPublishingServiceTests
         {
             #region Arrange
             Guid ReductionTaskOfThisTest = TestUtil.MakeTestGuid(2);
-            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(2);
+            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(3);
 
             Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
 
@@ -342,7 +342,7 @@ namespace ContentPublishingServiceTests
             DbRequest.RequestStatus = PublicationStatus.Queued;
             DbRequest.CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0);
 
-            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor
+            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
             {
                 MockContext = MockContext,
                 QueueMutex = new Mutex(false),

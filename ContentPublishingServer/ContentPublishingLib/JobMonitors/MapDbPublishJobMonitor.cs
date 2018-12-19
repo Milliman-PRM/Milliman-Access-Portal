@@ -24,6 +24,21 @@ namespace ContentPublishingLib.JobMonitors
 {
     public class MapDbPublishJobMonitor : JobMonitorBase
     {
+        public enum MapDbPublishJobMonitorType
+        {
+            ReducingPublications,
+            NonReducingPublications,
+        }
+
+        /// <summary>
+        /// ctor, requires a type specifier to instantiate this class
+        /// </summary>
+        /// <param name="Type"></param>
+        public MapDbPublishJobMonitor(MapDbPublishJobMonitorType Type)
+        {
+            JobMonitorType = Type;
+        }
+
         internal class PublishJobTrackingItem
         {
             internal Task<PublishJobDetail> task;
@@ -32,6 +47,8 @@ namespace ContentPublishingLib.JobMonitors
         }
 
         override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxSimultaneousRequests";
+
+        private MapDbPublishJobMonitorType JobMonitorType { get; set; }
 
         public Mutex QueueMutex { private get; set; }
 
@@ -224,25 +241,41 @@ namespace ContentPublishingLib.JobMonitors
             {
                 try
                 {
-                    DateTime EarliestReductionTaskTimestamp = Db.ContentReductionTask
-                        .Where(t => new ReductionStatusEnum[] { ReductionStatusEnum.Queued, ReductionStatusEnum.Reducing }.Contains(t.ReductionStatus))
-                        .OrderBy(t => t.CreateDateTimeUtc)
-                        .Select(t => t.CreateDateTimeUtc)
-                        .FirstOrDefault();
+                    var QueuedPublicationQuery = Db.ContentPublicationRequest.Where(r => DateTime.UtcNow - r.CreateDateTimeUtc > TaskAgeBeforeExecution)
+                                                                             .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                                                                             .Include(r => r.RootContentItem)
+                                                                             .OrderBy(r => r.CreateDateTimeUtc)
+                                                                             .Take(ReturnNoMoreThan);
 
-                    if (EarliestReductionTaskTimestamp == default(DateTime))  // if no tasks are queued or processing
+                    // Customize the query based on this job monitor type
+                    switch (JobMonitorType)
                     {
-                        EarliestReductionTaskTimestamp = DateTime.MaxValue;  // DateTime.MaxValue does not exceed max value of a timestamp in PostgreSQL (so this is ok)
+                        case MapDbPublishJobMonitorType.NonReducingPublications:
+                            QueuedPublicationQuery = QueuedPublicationQuery.Where(r => !r.RootContentItem.DoesReduce);
+                            break;
+
+                        case MapDbPublishJobMonitorType.ReducingPublications:
+                            DateTime EarliestReductionTaskTimestamp = Db.ContentReductionTask
+                                .Where(t => new ReductionStatusEnum[] { ReductionStatusEnum.Queued, ReductionStatusEnum.Reducing }.Contains(t.ReductionStatus))
+                                .OrderBy(t => t.CreateDateTimeUtc)
+                                .Select(t => t.CreateDateTimeUtc)
+                                .FirstOrDefault();
+
+                            if (EarliestReductionTaskTimestamp == default(DateTime))  // if no tasks are queued or processing
+                            {
+                                EarliestReductionTaskTimestamp = DateTime.MaxValue;  // DateTime.MaxValue does not exceed max value of a timestamp in PostgreSQL (so this is ok)
+                            }
+
+                            QueuedPublicationQuery = QueuedPublicationQuery.Where(r => r.RootContentItem.DoesReduce)
+                                                                           .Where(r => r.CreateDateTimeUtc < EarliestReductionTaskTimestamp);
+                            break;
+
+                        default:
+                            throw new ApplicationException($"Cannot query publication job queue using unsupported JobMonitorType {JobMonitorType.ToString()}");
                     }
-                        
-                    List<ContentPublicationRequest> TopItems = Db.ContentPublicationRequest.Where(r => DateTime.UtcNow - r.CreateDateTimeUtc > TaskAgeBeforeExecution)
-                                                                                           .Where(r => r.RequestStatus == PublicationStatus.Queued)
-                                                                                           .Where(r => r.CreateDateTimeUtc < EarliestReductionTaskTimestamp)
-                                                                                           .Include(r => r.RootContentItem)
-                                                                                           .OrderBy(r => r.RootContentItem.DoesReduce)  // false < true
-                                                                                               .ThenBy(r => r.CreateDateTimeUtc)
-                                                                                           .Take(ReturnNoMoreThan)
-                                                                                           .ToList();
+
+                    List<ContentPublicationRequest> TopItems = QueuedPublicationQuery.ToList();
+
                     if (TopItems.Count > 0)
                     {
                         TopItems.ForEach(r => r.RequestStatus = PublicationStatus.Processing);
