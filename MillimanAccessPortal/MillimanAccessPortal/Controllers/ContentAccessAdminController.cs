@@ -868,7 +868,7 @@ namespace MillimanAccessPortal.Controllers
                             OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
                             ReductionTaskId = NewTaskGuid,
                         },
-                        ReductionStatus = ReductionStatusEnum.Error,
+                        ReductionStatus = ReductionStatusEnum.Live,
                         ReductionStatusMessage = "In ContentAccessAdminController.UpdateSelections, no selections, reduction task not queued",
                         SelectionGroupId = selectionGroup.Id,
                         TaskAction = TaskActionEnum.Unspecified,
@@ -878,6 +878,13 @@ namespace MillimanAccessPortal.Controllers
                     selectionGroup.IsMaster = false;
                     selectionGroup.SelectedHierarchyFieldValueList = new Guid[0];
                     selectionGroup.ContentInstanceUrl = null;
+
+                    // set live reduction to replaced
+                    var liveReductionTasks = DbContext.ContentReductionTask
+                        .Where(t => t.SelectionGroupId == selectionGroup.Id)
+                        .Where(t => t.ReductionStatus == ReductionStatusEnum.Live)
+                        .ToList();
+                    liveReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Replaced);
 
                     DbContext.SaveChanges();
 

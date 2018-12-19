@@ -52,6 +52,10 @@
         width: 100%;
         margin-bottom: 0.8em;
 
+        & > div {
+            width: 100%;
+        }
+
         .hierarchy-diff-field {
             margin-left: 0.5em;
             margin-top: 0.3em;
@@ -59,8 +63,16 @@
             font-weight: 600;
         }
 
+        .hierarchy-diff-container {
+            border-radius: 1em;
+            border: 1px solid $charcoal;
+            overflow: hidden;
+            width: 100%;
+            margin-bottom: 1em;
+        }
+
         .hierarchy-diff-values {
-            margin-left: 1.0em;
+            width: 100%;
             font-size: 0.95rem;
         }
 
@@ -72,19 +84,20 @@
                 padding-right: 10px;
             }
 
-            td.hierarchy-diff-symbol { 
+            td.hierarchy-diff-symbol {
                 width: 60px;
                 background-color: $white;
 
-                &.plus { 
+                &.plus,
+                &.plus + td {
                     background-color: lighten($green, 30%);
                 }
 
-                &.minus { 
+                &.minus,
+                &.minus + td {
                     background-color: lighten($red, 30%);
                 }
             }
-
         }
     }
 
@@ -121,6 +134,7 @@
             color: darken($green, 10%);
             font-variant-caps: all-small-caps;
         }
+
         .pre-live-group-inactive {
             color: darken($orange, 10%);
             font-variant-caps: all-small-caps;

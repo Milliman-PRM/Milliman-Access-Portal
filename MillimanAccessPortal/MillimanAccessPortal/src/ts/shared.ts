@@ -483,6 +483,10 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
         statusTop += ` (behind ${details.QueuePosition + 1} other reduction${details.QueuePosition ? 's' : ''})`;
       }
       statusBot += durationText;
+    } else if (details.StatusName === 'Error') {
+      if (details.StatusMessage) {
+        statusTop += ' (click for details)';
+      }
     } else if (details.StatusName === 'Processing' || details.StatusName === 'Processed') {
       statusBot += durationText;
     }
@@ -500,7 +504,7 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
     })
     .addClass('status-' + details.StatusEnum);
   $statusContainer.off('click');
-  if (details.StatusName === 'Error' && details.StatusMessage) {
+  if (details.StatusName.match(/^Error/) && details.StatusMessage) {
     $statusContainer.on('click', () => {
       toastr.warning(details.StatusMessage);
     });

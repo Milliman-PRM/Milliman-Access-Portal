@@ -305,7 +305,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
         };
       }
       live.Fields.forEach(({ Values: liveValues, FieldName, DisplayName }) => {
-        $diff.append(`<div class="hierarchy-diff-field">${DisplayName}</div>`);
+        $diff.append(`<h3 class="hierarchy-diff-field">${DisplayName}</h3>`);
         const pendingValues = pending.Fields.find((f) => f.FieldName === FieldName).Values;
         const allValues = unionWith(liveValues, pendingValues,
           (v1: TValue, v2: TValue) => v1.Value === v2.Value);
@@ -338,14 +338,16 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           return;
         }
         // build a table to hold the diff
-        const $table = $(`<table class="hierarchy-diff-values">
-          <colgroup>
-            <col width="50">
-            <col>
-          </colgroup>
-          <tbody>
-          </tbody>
-        </table>`);
+        const $table = $(`<div class="hierarchy-diff-container">
+          <table class="hierarchy-diff-values">
+            <colgroup>
+              <col width="50">
+              <col>
+            </colgroup>
+            <tbody>
+            </tbody>
+          </table>
+        </div>`);
         filteredValues.forEach((value) => {
           const liveData = liveValues.find((v) => v.Value === value.Value);
           const pendingData = pendingValues.find((v) => v.Value === value.Value);
@@ -361,7 +363,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
             $row.append($(`<td><div>${liveData.Value}</div></td>`));
           } else {
             const $diffSymbol = $(`
-              <td class="hierarchy-diff-symbol"><div>${!pendingData ? '-' : !liveData ? '+' : ''}</div></td>`);
+              <td class="hierarchy-diff-symbol"><div>${!pendingData ? 'Removed' : !liveData ? 'Added' : ''}</div></td>`);
             if (!pendingData) {
               $diffSymbol.addClass('minus');
             } else if (!liveData) {
