@@ -28,6 +28,8 @@ import {
 } from '../view-models/content-publishing';
 import { PublicationStatusMonitor } from './publication-status-monitor';
 
+import '../../images/expand-frame.svg';
+
 require('tooltipster');
 
 let formObject: FormBase;
@@ -221,9 +223,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     { sectionName: 'release-notes', link: response.ReleaseNotesLink },
   ];
   linkPairs.forEach((pair) => {
-    $(`#confirmation-section-${pair.sectionName} div`)
-      .filter(pair.node || '.content-preview')
-      .find('a,iframe,object')
+    $(`#confirmation-section-${pair.sectionName} .content-preview-container`)
+      .find(pair.node || '.content-preview')
       .attr('src', function() {
         return $(this).is('iframe')
           ? pair.link
@@ -239,27 +240,23 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           ? pair.link
           : null;
       })
-      .parent()
       .show()
-      .siblings('div:not(.confirmation-section-title)')
+      .siblings()
       .hide()
       .filter(() => pair.link === null)
       .filter('.content-preview-none')
       .show()
-      .siblings('div:not(.confirmation-section-title)')
+      .siblings()
       .hide()
-      .find('iframe,object')
       .closest('.confirmation-section').find('label')
       .hide()
       .find('input')
       .attr('disabled', '');
     // hide/show new tab links
-    $(`#confirmation-section-${pair.sectionName} .confirmation-section-title > span`)
+    $(`#confirmation-section-${pair.sectionName} .new-tab-icon`)
       .show()
-      .find('a')
       .attr('href', pair.link)
       .filter(() => pair.link === null)
-      .parent()
       .hide();
   });
 
@@ -371,7 +368,9 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
             $row.append($(`<td><div>${liveData.Value}</div></td>`));
           } else {
             const $diffSymbol = $(`
-              <td class="hierarchy-diff-symbol"><div>${!pendingData ? 'Removed' : !liveData ? 'Added' : ''}</div></td>`);
+              <td class="hierarchy-diff-symbol"><div>
+                ${!pendingData ? 'Removed' : !liveData ? 'Added' : ''}
+              </div></td>`);
             if (!pendingData) {
               $diffSymbol.addClass('minus');
             } else if (!liveData) {

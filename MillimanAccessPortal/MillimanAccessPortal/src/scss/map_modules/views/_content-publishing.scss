@@ -23,21 +23,26 @@
         }
     }
 
-    .content-preview,
-    .content-preview-pdf,
-    .content-preview-sandbox {
-        width: 100%;
-        height: 20em;
+
+    .content-preview-container {
         position: relative;
 
-        iframe,
-        object {
+        .content-preview,
+        .content-preview-pdf,
+        .content-preview-sandbox {
             width: 100%;
-            height: 100%;
-            border: 1px solid $charcoal;
+            height: 20em;
+            position: relative;
+
+            iframe,
+            object {
+                width: 100%;
+                height: 100%;
+                border: 1px solid $charcoal;
+            }
         }
 
-        svg {
+        .new-tab-icon > svg {
             color: $charcoal;
             position: absolute;
             top: 0.2em;
@@ -45,8 +50,6 @@
             width: 2em;
             height: 2em;
             z-index: 1;
-            // Temporarily hide this button until this functionality is completely implemented.
-            display: none;
 
             &:hover {
                 color: $green;
