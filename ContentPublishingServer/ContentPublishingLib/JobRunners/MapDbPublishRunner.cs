@@ -382,7 +382,7 @@ namespace ContentPublishingLib.JobRunners
                         }
                         else
                         {
-                            NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
+                            NewTask.TaskAction = TaskActionEnum.ReductionOnly;
                             NewTask.SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
                             if (NewTask.SelectionCriteriaObj.Fields.Any(f => f.Values.Any(v => v.SelectionStatus)))
                             {
