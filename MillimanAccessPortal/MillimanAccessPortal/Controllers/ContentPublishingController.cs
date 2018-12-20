@@ -90,7 +90,11 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public IActionResult AvailableContentTypes()
         {
-            var model = DbContext.ContentType.ToList();
+            var model = new List<ContentTypeNormalized>();
+            foreach (var type in DbContext.ContentType)
+            {
+                model.Add((ContentTypeNormalized)type);
+            }
 
             return new JsonResult(model);
         }
@@ -110,7 +114,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentPublisher);
+            var model = ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentPublisher);
 
             return new JsonResult(model);
         }
@@ -799,8 +803,11 @@ namespace MillimanAccessPortal.Controllers
                             $"Go live request failed to verify related content reduction task {ThisTask.Id}.");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
+
                     // The reduced content file identified in the ContentReductionTask must exist
-                    if (!System.IO.File.Exists(ThisTask.ResultFilePath))
+                    // Reductions that will result in inactive selection groups have no result file
+                    bool isInactive = string.IsNullOrWhiteSpace(ThisTask.ResultFilePath);
+                    if (!isInactive && !System.IO.File.Exists(ThisTask.ResultFilePath))
                     {
                         Log.Error($"In ContentPublishingController.GoLive action: " +
                             $"for selection group {relatedSelectionGroup.Id}, " +

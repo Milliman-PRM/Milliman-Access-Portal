@@ -92,6 +92,7 @@ export interface PublicationSummary {
   user: UserInfo;
   statusEnum: PublicationStatus;
   statusName: string;
+  statusMessage: string;
   selectionGroupId: Guid;
   rootContentItemId: Guid;
   queuedDurationMs?: number;
@@ -127,6 +128,7 @@ export interface ContentType {
   typeEnum: ContentTypeEnum;
   name: string;
   canReduce: boolean;
+  defaultIconName: string;
   fileExtensions: string[];
 }
 
@@ -181,9 +183,16 @@ export interface PreLiveContentValidationSummary {
   selectionGroups: SelectionGroupSummary[];
 }
 export interface SelectionGroupSummary {
+  id: Guid;
   name: string;
-  userCount: number;
   isMaster: boolean;
+  duration: string;
+  users: UserInfo[];
+  wasInactive: boolean;
+  isInactive: boolean;
+  inactiveReason?: string;
+  liveSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
+  pendingSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
 }
 
 export interface ContentReductionHierarchy<T extends ReductionFieldValue> {
@@ -208,4 +217,7 @@ export interface ReductionFieldValue extends ReductionFieldValueInfo {
 }
 export interface ReductionFieldValueSelection extends ReductionFieldValue {
   selectionStatus: boolean;
+}
+export function isSelection(value: ReductionFieldValue): value is ReductionFieldValueSelection {
+  return value && (value as ReductionFieldValueSelection).selectionStatus !== undefined;
 }

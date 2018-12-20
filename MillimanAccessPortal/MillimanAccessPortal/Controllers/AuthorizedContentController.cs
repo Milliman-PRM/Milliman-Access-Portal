@@ -113,6 +113,7 @@ namespace MillimanAccessPortal.Controllers
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rc => rc.Client)
                 .Where(sg => sg.Id == selectionGroupId)
+                .Where(sg => sg.ContentInstanceUrl != null)
                 .Where(sg => !sg.IsSuspended)
                 .Where(sg => !sg.RootContentItem.IsSuspended)
                 .FirstOrDefault();
@@ -142,9 +143,13 @@ namespace MillimanAccessPortal.Controllers
             var masterContentRelatedFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
             var requestedContentFile = selectionGroup.IsMaster
                 ? masterContentRelatedFile
-                : new ContentRelatedFile
+                : selectionGroup.ContentInstanceUrl == null
+                    ? null
+                    : new ContentRelatedFile
                     {
-                        FullPath = Path.Combine(ApplicationConfig["Storage:ContentItemRootPath"], selectionGroup.ContentInstanceUrl),
+                        FullPath = Path.Combine(
+                            ApplicationConfig["Storage:ContentItemRootPath"],
+                            selectionGroup.ContentInstanceUrl),
                         Checksum = selectionGroup.ReducedContentChecksum,
                         FileOriginalName = masterContentRelatedFile.FileOriginalName,
                     };

@@ -15,7 +15,7 @@ import * as toastr from 'toastr';
 
 import * as shared from './shared';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
-import { UserInfo, RootContentItemSummary } from './view-models/content-publishing';
+import { RootContentItemSummary, UserInfo } from './view-models/content-publishing';
 
 const cardLayout = {
   card: {
@@ -425,6 +425,11 @@ const components = Object.assign(
           if (Object.hasOwnProperty.call(properties, 'suspended')) {
             if (properties.suspended) {
               this.addClass(component, 'suspended');
+            }
+          }
+          if (Object.hasOwnProperty.call(properties, 'inactive')) {
+            if (properties.inactive) {
+              this.addClass(component, 'inactive');
             }
           }
         };
@@ -947,11 +952,16 @@ export function SelectionGroupCard(
     return acc.concat(cur);
   }, []);
 
-  this.addComponent('body', { suspended: selectionGroup.isSuspended });
+  this.addComponent('body', {
+    suspended: selectionGroup.isSuspended,
+    inactive: selectionGroup.isInactive,
+  });
   this.addComponent('primaryTextBox', {
     text: selectionGroup.name + (selectionGroup.isSuspended
       ? ' (Suspended)'
-      : ''),
+      : selectionGroup.isInactive
+        ? ' (Inactive)'
+        : ''),
   });
   this.addComponent('secondaryText', { text: selectionGroup.rootContentItemName });
   this.addComponent('statistic', {

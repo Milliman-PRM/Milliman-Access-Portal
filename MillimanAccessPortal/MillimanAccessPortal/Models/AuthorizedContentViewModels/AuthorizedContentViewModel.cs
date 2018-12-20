@@ -21,6 +21,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
             // All selection groups of which user is a member
             var selectionGroups = dbContext.UserInSelectionGroup
                 .Where(usg => usg.UserId == user.Id)
+                .Where(usg => usg.SelectionGroup.ContentInstanceUrl != null)
                 .Where(usg => !usg.SelectionGroup.IsSuspended)
                 .Where(usg => !usg.SelectionGroup.RootContentItem.IsSuspended)
                 .Select(usg => usg.SelectionGroup)
@@ -30,23 +31,23 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                     .ThenInclude(rc => rc.ContentType)
                 .ToList();
 
-            var notLive = new List<SelectionGroup>();
+            var notActive = new List<SelectionGroup>();
             foreach (var selectionGroup in selectionGroups)
             {
                 var masterContentFile = selectionGroup.RootContentItem.ContentFilesList.FirstOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
-                if (masterContentFile == null)
+                if (masterContentFile == null || string.IsNullOrWhiteSpace(selectionGroup.ContentInstanceUrl))
                 {
-                    notLive.Add(selectionGroup);
+                    notActive.Add(selectionGroup);
                     continue;
                 }
                 var fileName = Path.GetFileName(selectionGroup.ContentInstanceUrl);
                 var filePath = Path.Combine(Path.GetDirectoryName(masterContentFile.FullPath), fileName);
                 if (!File.Exists(filePath))
                 {
-                    notLive.Add(selectionGroup);
+                    notActive.Add(selectionGroup);
                 }
             }
-            selectionGroups.RemoveAll(sg => notLive.Contains(sg));
+            selectionGroups.RemoveAll(sg => notActive.Contains(sg));
 
             var clients = selectionGroups
                 .Select(sg => sg.RootContentItem.Client)

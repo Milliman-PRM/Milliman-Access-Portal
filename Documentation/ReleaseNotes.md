@@ -2,13 +2,26 @@
 
 ## Release Notes
 
+### v1.3.0
+
+- A publication request involving any reduction error will no longer be aborted (reduced content only)
+- Each selection group associated with a reduction error will become inactive (reduced content only)
+- The publication go-live preview now displays more detailed information about each associated reduction outcome
+- Fixed an issue where the status of a queued publication changed to 'Processing' before processing could actually begin
+- Reduced processing time for publication of a reducing content item
+- Processing of non-reducing content publications no longer waits to run after queued reducing content publications
+
 ### v1.2.0
 
-- Added the ability to delete supporting files from a content item
-- Added the ability to open content and supporting content in a new browser tab
+- Added support for PDF content type
+- Added support for HTML content type
+- Added support for downloadable file content type
+- Added the ability to delete previously published supporting files from a content item
+- Added the ability to open content and supporting files in a new browser tab
 - Removed the close button in the content view to avoid blocking content
 - Fixed an issue where long content names were not being displayed properly in the content view
 - Removed status polling for hidden pages
+- Adjusted the navigation bar size to a fixed fraction of the screen to accommodate browser magnification changes
 
 ### v1.1.5
 

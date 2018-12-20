@@ -34,7 +34,6 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 User = (UserInfoViewModel) contentPublicationRequest.ApplicationUser,
                 StatusEnum = contentPublicationRequest.RequestStatus,
                 RootContentItemId = contentPublicationRequest.RootContentItemId,
-                StatusMessage = contentPublicationRequest.StatusMessage,
                 QueuedDurationMs = (int)(contentPublicationRequest.RequestStatus.IsActive()
                     ? DateTime.UtcNow - contentPublicationRequest.CreateDateTimeUtc
                     : TimeSpan.Zero).TotalMilliseconds,
@@ -60,10 +59,13 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             {
                 var relatedReductionTaskCount = dbContext.ContentReductionTask
                     .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
+                    .Where(t => t.SelectionGroup != null)
                     .Count();
                 var completedReductionTaskCount = dbContext.ContentReductionTask
                     .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
-                    .Where(t => t.ReductionStatus == ReductionStatusEnum.Reduced)
+                    .Where(t => t.SelectionGroup != null)
+                    .Where(t => t.ReductionStatus != ReductionStatusEnum.Queued)
+                    .Where(t => t.ReductionStatus != ReductionStatusEnum.Reducing)
                     .Count();
                 publicationSummary.QueuePosition = completedReductionTaskCount;
                 publicationSummary.QueueTotal = relatedReductionTaskCount;

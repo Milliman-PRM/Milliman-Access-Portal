@@ -66,6 +66,7 @@ namespace MapDbContextLib.Context
         Unspecified = 0,    // Default unknown state
         HierarchyOnly = 1,
         HierarchyAndReduction = 2,
+        ReductionOnly = 3,
     }
 
     public class ContentReductionTask
@@ -97,7 +98,7 @@ namespace MapDbContextLib.Context
         public ApplicationUser ApplicationUser { get; set; }
 
         [ForeignKey("SelectionGroup")]
-        public Guid SelectionGroupId { get; set; }
+        public Guid? SelectionGroupId { get; set; }
         public SelectionGroup SelectionGroup { get; set; }
 
         [Required]
@@ -180,6 +181,33 @@ namespace MapDbContextLib.Context
         public string ReducedContentChecksum { get; set; }
 
         public TaskActionEnum TaskAction { get; set; } = TaskActionEnum.Unspecified;
+
+        /// <summary>
+        /// Intended to be serialization of type TaskMetadata
+        /// May be accessed through [NotMapped] property TaskMetadataObj
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string OutcomeMetadata { get; set; } = "{}";
+
+        /// <summary>
+        /// Identifies metadata about a publication request
+        /// </summary>
+        [NotMapped]
+        public ReductionTaskOutcomeMetadata OutcomeMetadataObj
+        {
+            get
+            {
+                return string.IsNullOrWhiteSpace(OutcomeMetadata)
+                    ? new ReductionTaskOutcomeMetadata { }
+                    : JsonConvert.DeserializeObject<ReductionTaskOutcomeMetadata>(OutcomeMetadata);
+            }
+            set
+            {
+                OutcomeMetadata = value != null
+                    ? JsonConvert.SerializeObject(value)
+                    : "{}";
+            }
+        }
     }
 }
 

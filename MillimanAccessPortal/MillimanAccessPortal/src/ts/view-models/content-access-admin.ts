@@ -19,6 +19,7 @@ export interface ReductionSummary {
   user: UserInfo;
   statusEnum: ReductionStatus;
   statusName: string;
+  statusMessage: string;
   selectionGroupId: Guid;
   rootContentItemId?: string;
   queuedDurationMs?: number;
@@ -54,6 +55,7 @@ export interface SelectionGroupSummary {
   reductionDetails: ReductionSummary;
   rootContentItemName: string;
   isSuspended: boolean;
+  isInactive: boolean;
 }
 export interface SelectionGroupList {
   selectionGroups: SelectionGroupSummary[];

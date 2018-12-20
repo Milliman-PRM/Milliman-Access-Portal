@@ -35,6 +35,12 @@ namespace ContentPublishingLib.JobMonitors
 
         override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxParallelTasks";
 
+        public Mutex QueueMutex { private get; set; }
+
+        public TimeSpan MapDbPublishQueueServicedEventTimeout { private get; set;  } = new TimeSpan(0, 0, 20);
+
+        private bool IsTestMode { get { return MockContext != null; } }
+
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<ReductionJobTrackingItem> ActiveReductionRunnerItems = new List<ReductionJobTrackingItem>();
 
@@ -70,7 +76,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <returns></returns>
         public override Task Start(CancellationToken Token)
         {
-            if (ContextOptions == null && MockContext == null)
+            if (ContextOptions == null && !IsTestMode)
             {
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
@@ -89,7 +95,7 @@ namespace ContentPublishingLib.JobMonitors
             while (!Token.IsCancellationRequested)
             {
                 // Request to cancel active runners for canceled (in db) ContentReductionTasks. 
-                using (ApplicationDbContext Db = MockContext != null
+                using (ApplicationDbContext Db = IsTestMode
                                                ? MockContext.Object
                                                : new ApplicationDbContext(ContextOptions))
                 {
@@ -115,42 +121,58 @@ namespace ContentPublishingLib.JobMonitors
                 // Start more tasks if there is room in the RunningTasks collection. 
                 if (ActiveReductionRunnerItems.Count < MaxConcurrentRunners)
                 {
-                    List<ContentReductionTask> Responses = GetReadyTasks(MaxConcurrentRunners - ActiveReductionRunnerItems.Count);
-
-                    foreach (ContentReductionTask DbTask in Responses)
+                    if (QueueMutex.WaitOne(MapDbPublishQueueServicedEventTimeout))
                     {
-                        Task<ReductionJobDetail> NewTask = null;
-                        CancellationTokenSource cancelSource = new CancellationTokenSource();
+                        List<ContentReductionTask> Responses = GetReadyTasks(MaxConcurrentRunners - ActiveReductionRunnerItems.Count);
 
-                        switch (DbTask.SelectionGroup.RootContentItem.ContentType.TypeEnum)
+                        foreach (ContentReductionTask DbTask in Responses)
                         {
-                            case ContentTypeEnum.Qlikview:
-                                QvReductionRunner Runner = new QvReductionRunner
-                                {
-                                    JobDetail = (ReductionJobDetail)DbTask,
-                                };
-                                if (MockContext != null)
-                                {
-                                    Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
-                                }
+                            Task<ReductionJobDetail> NewTask = null;
+                            CancellationTokenSource cancelSource = new CancellationTokenSource();
 
-                                NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
-                                GlobalFunctions.TraceWriteLine($"Started new Reduction task ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentRunners})");
-                                break;
+                            ContentTypeEnum type = DbTask.SelectionGroupId.HasValue
+                                ? DbTask.SelectionGroup.RootContentItem.ContentType.TypeEnum
+                                : DbTask.ContentPublicationRequestId.HasValue
+                                ? DbTask.ContentPublicationRequest.RootContentItem.ContentType.TypeEnum
+                                : ContentTypeEnum.Unknown;
 
-                            default:
-                                GlobalFunctions.TraceWriteLine($"Task record discovered for unsupported content type");
-                                break;
+                            switch (type)
+                            {
+                                case ContentTypeEnum.Qlikview:
+                                    QvReductionRunner Runner = new QvReductionRunner
+                                    {
+                                        JobDetail = (ReductionJobDetail)DbTask,
+                                    };
+                                    if (IsTestMode)
+                                    {
+                                        Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
+                                    }
+
+                                    NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
+                                    GlobalFunctions.TraceWriteLine($"Started new Reduction task ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentRunners})");
+                                    break;
+
+                                default:
+                                    GlobalFunctions.TraceWriteLine($"Task record discovered for unsupported content type");
+                                    break;
+                            }
+
+                            if (NewTask != null)
+                            {
+                                ActiveReductionRunnerItems.Add(new ReductionJobTrackingItem { dbTask = DbTask, task = NewTask, tokenSource = cancelSource });
+                            }
                         }
 
-                        if (NewTask != null)
-                        {
-                            ActiveReductionRunnerItems.Add( new ReductionJobTrackingItem { dbTask = DbTask, task = NewTask, tokenSource = cancelSource } );
-                        }
+                        Thread.Sleep(1000);  // Allow time for any new runner(s) to start executing
+                        QueueMutex.ReleaseMutex();
                     }
-                }
+                    else
+                    {
+                        // Mutex was not acquired
+                    }
 
-                Thread.Sleep(1000);
+                    Thread.Sleep(1000);
+                }
             }
 
             GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
@@ -199,15 +221,28 @@ namespace ContentPublishingLib.JobMonitors
                 return new List<ContentReductionTask>();
             }
 
-            using (ApplicationDbContext Db = MockContext != null
+            using (ApplicationDbContext Db = IsTestMode
                                              ? MockContext.Object
                                              : new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
                 try
                 {
+                    DateTime EarliestPublicationRequestTimestamp = Db.ContentPublicationRequest
+                        .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                        .OrderBy(r => r.CreateDateTimeUtc)
+                        .Select(r => r.CreateDateTimeUtc)
+                        .FirstOrDefault();
+
+                    if (EarliestPublicationRequestTimestamp == default(DateTime))  // if no publications are queued or processing
+                    {
+                        EarliestPublicationRequestTimestamp = DateTime.MaxValue;  // DateTime.MaxValue does not exceed max value of a timestamp in PostgreSQL (so this is ok)
+                    }
+
                     List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
+                                                                                 .Where(t => t.CreateDateTimeUtc < EarliestPublicationRequestTimestamp)
                                                                                  .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
+                                                                                 .Include(t => t.ContentPublicationRequest).ThenInclude(r => r.RootContentItem).ThenInclude(rc => rc.ContentType)
                                                                                  .OrderBy(t => t.CreateDateTimeUtc)
                                                                                  .Take(ReturnNoMoreThan)
                                                                                  .ToList();
@@ -246,7 +281,7 @@ namespace ContentPublishingLib.JobMonitors
             try
             {
                 // Use a transaction so that there is no concurrency issue after we get the current db record
-                using (ApplicationDbContext Db = MockContext != null
+                using (ApplicationDbContext Db = IsTestMode
                                                ? MockContext.Object
                                                : new ApplicationDbContext(ContextOptions))
                 using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
@@ -259,6 +294,13 @@ namespace ContentPublishingLib.JobMonitors
                         return false;
                     }
 
+                    ReductionTaskOutcomeMetadata OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                    {
+                        ReductionTaskId = JobDetail.TaskId,
+                        ElapsedTime = JobDetail.Result.ProcessingDuration,
+                        OutcomeReason = MapDbReductionTaskOutcomeReason.Default,
+                    };
+
                     switch (JobDetail.Status)
                     {
                         case ReductionJobDetail.JobStatusEnum.Unspecified:
@@ -266,11 +308,38 @@ namespace ContentPublishingLib.JobMonitors
                             break;
                         case ReductionJobDetail.JobStatusEnum.Error:
                             DbTask.ReductionStatus = ReductionStatusEnum.Error;
+                            switch(JobDetail.Result.OutcomeReason)
+                            {
+                                case ReductionJobDetail.JobOutcomeReason.BadRequest:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.BadRequest;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.Unspecified:
+                                case ReductionJobDetail.JobOutcomeReason.UnspecifiedError:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.UnspecifiedError;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValues:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoReducedFileCreated;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.SelectionForInvalidFieldName:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.ReductionProcessingTimeout:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.ReductionTimeout;
+                                    break;
+                            }
                             break;
                         case ReductionJobDetail.JobStatusEnum.Success:
+                            OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.Success;
                             DbTask.ReductionStatus = ReductionStatusEnum.Reduced;
                             break;
                         case ReductionJobDetail.JobStatusEnum.Canceled:
+                            OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.Canceled;
                             DbTask.ReductionStatus = ReductionStatusEnum.Canceled;
                             break;
                         default:
@@ -286,6 +355,8 @@ namespace ContentPublishingLib.JobMonitors
                     DbTask.ReducedContentChecksum = JobDetail.Result.ReducedContentFileChecksum;
 
                     DbTask.ReductionStatusMessage = JobDetail.Result.StatusMessage;
+
+                    DbTask.OutcomeMetadataObj = OutcomeMetadataObj;
 
                     Db.ContentReductionTask.Update(DbTask);
                     Db.SaveChanges();

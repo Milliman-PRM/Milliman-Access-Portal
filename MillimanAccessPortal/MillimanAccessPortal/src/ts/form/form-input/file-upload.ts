@@ -161,7 +161,7 @@ export class FileUploadInput extends FormInput {
 
   protected validFn = () => {
     const uploadValid = (this.upload && this.upload.valid());
-    const deleteValid = this.value.endsWith('delete') || undefined;
+    const deleteValid = this.value.match(/delete$/) !== null || undefined;
     // return undefined only if there is no upload object and the input is not deletable
     return deleteValid || uploadValid;
   }
@@ -185,7 +185,7 @@ export class FileUploadInput extends FormInput {
       this.$entryPoint.find('.upload-icon').show();
       if (!this.deletable
           || this.$entryPoint.find('.file-upload').val() === ''
-          || this.value.endsWith('delete')) {
+          || this.value.match(/delete$/)) {
         this.$entryPoint.find('.cancel-icon').hide();
       }
       this.$entryPoint.find('.progress-bars').css('visibility', 'hidden');

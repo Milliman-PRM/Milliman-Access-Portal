@@ -6,8 +6,10 @@ import * as toastr from 'toastr';
 
 import { DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
 import { FormBase } from './form/form-base';
-import { ReductionStatus, SelectionGroupSummary, ReductionSummary } from './view-models/content-access-admin';
-import { PublicationStatus, UserInfo, PublicationSummary } from './view-models/content-publishing';
+import {
+  ReductionStatus, ReductionSummary, SelectionGroupSummary,
+} from './view-models/content-access-admin';
+import { PublicationStatus, PublicationSummary, UserInfo } from './view-models/content-publishing';
 
 const SHOW_DURATION = 50;
 const ajaxStatus = [];
@@ -390,7 +392,7 @@ export function userSubstringMatcher(users: any) {
     const regex = new RegExp(query, 'i');
 
     $.each(users, function check(_, user) {
-      if (regex.test(user.Email) ||
+      if (regex.test(user.email) ||
           regex.test(user.userName) ||
           regex.test(user.firstName + ' ' + user.lastName)) {
         matches.push(user);
@@ -443,6 +445,7 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
     },
     statusEnum: 0,
     statusName: '',
+    statusMessage: '',
     selectionGroupId: 0,
     rootContentItemId: 0,
     queuedDurationMs: -1,
@@ -451,16 +454,6 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
     ...reductionDetails,
   };
 
-  $statusContainer
-    .removeClass((_, classString) => {
-      const classNames = classString.split(' ');
-      return classNames
-        .filter((className) => {
-          return className.indexOf('status-') === 0;
-        })
-        .join(' ');
-    })
-    .addClass('status-' + details.statusEnum);
   let statusTop = `<strong>${details.statusName}</strong>`;
   let statusBot = `Initiated by ${details.user.firstName[0]}. ${details.user.lastName}`;
   const durationText = details.queuedDurationMs > 0
@@ -478,6 +471,10 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
         statusTop += ` (${details.queuePosition}/${details.queueTotal} completed)`;
       }
       statusBot += durationText;
+    } else if (details.statusName === 'Error') {
+      if (details.statusMessage) {
+        statusTop += ' (click for details)';
+      }
     } else if (details.statusName === 'Processed') {
       statusBot += durationText;
     }
@@ -488,12 +485,32 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
         statusTop += ` (behind ${details.queuePosition + 1} other reduction${details.queuePosition ? 's' : ''})`;
       }
       statusBot += durationText;
+    } else if (details.statusName === 'Error') {
+      if (details.statusMessage) {
+        statusTop += ' (click for details)';
+      }
     } else if (details.statusName === 'Processing' || details.statusName === 'Processed') {
       statusBot += durationText;
     }
   }
   $statusTop.html(statusTop);
   $statusBot.html(statusBot);
+  $statusContainer
+    .removeClass((_, classString) => {
+      const classNames = classString.split(' ');
+      return classNames
+        .filter((className) => {
+          return className.indexOf('status-') === 0;
+        })
+        .join(' ');
+    })
+    .addClass('status-' + details.statusEnum);
+  $statusContainer.off('click');
+  if (details.statusName.match(/^Error/) && details.statusMessage) {
+    $statusContainer.on('click', () => {
+      toastr.warning(details.statusMessage);
+    });
+  }
 }
 export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingStatusEnum: PublicationStatus) {
   $card.find('.card-button-dynamic').hide();

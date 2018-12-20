@@ -101,7 +101,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientTree model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentAccessAdmin);
+            ClientTree model = ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentAccessAdmin);
 
             return Json(model);
         }
@@ -636,7 +636,9 @@ namespace MillimanAccessPortal.Controllers
                     case ContentTypeEnum.Qlikview:
                         if (!selectionGroup.IsMaster && !string.IsNullOrWhiteSpace(selectionGroup.ContentInstanceUrl))
                         {
-                            string ContentFileFullPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), selectionGroup.ContentInstanceUrl);
+                            string ContentFileFullPath = Path.Combine(
+                                ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"),
+                                selectionGroup.ContentInstanceUrl);
 
                             await new QlikviewLibApi().ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl, QvConfig);
 
@@ -850,49 +852,89 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                // Stage the master file in a task folder in the file exchange share
                 Guid NewTaskGuid = Guid.NewGuid();
-                string TaskFolderPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:MapPublishingServerExchangePath"), NewTaskGuid.ToString("D"));
-                Directory.CreateDirectory(TaskFolderPath);
-                string MasterFileCopyTarget = Path.Combine(TaskFolderPath, Path.GetFileName(LiveMasterFile.FullPath));
-                System.IO.File.Copy(LiveMasterFile.FullPath, MasterFileCopyTarget);
 
-                var contentReductionTask = new ContentReductionTask
+                if (selections.Count() == 0)
                 {
-                    Id = NewTaskGuid,
-                    ApplicationUser = await Queries.GetCurrentApplicationUser(User),
-                    SelectionGroupId = selectionGroup.Id,
-                    MasterFilePath = MasterFileCopyTarget,
-                    MasterContentChecksum = LiveMasterFile.Checksum,
-                    ContentPublicationRequest = null,
-                    SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections),
-                    ReductionStatus = ReductionStatusEnum.Queued,
-                    CreateDateTimeUtc = DateTime.UtcNow,
-                    TaskAction = TaskActionEnum.HierarchyAndReduction,
-                };
-                DbContext.ContentReductionTask.Add(contentReductionTask);
-                DbContext.SaveChanges();
+                    // Insert a new reduction task to record the unprocessable condition
+                    DbContext.ContentReductionTask.Add(new ContentReductionTask
+                    {
+                        ApplicationUserId = (await Queries.GetCurrentApplicationUser(User)).Id,
+                        CreateDateTimeUtc = DateTime.UtcNow,
+                        Id = NewTaskGuid,
+                        MasterFilePath = "",  // required field - consider removing non null requirement
+                        OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                        {
+                            OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
+                            ReductionTaskId = NewTaskGuid,
+                        },
+                        ReductionStatus = ReductionStatusEnum.Live,
+                        ReductionStatusMessage = "In ContentAccessAdminController.UpdateSelections, no selections, reduction task not queued",
+                        SelectionGroupId = selectionGroup.Id,
+                        TaskAction = TaskActionEnum.Unspecified,
+                    });
 
-                string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
-                string ContentItemRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
+                    // Update selection group fields
+                    selectionGroup.IsMaster = false;
+                    selectionGroup.SelectedHierarchyFieldValueList = new Guid[0];
+                    selectionGroup.ContentInstanceUrl = null;
 
-                object ContentTypeConfigObj = null;
-                switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
-                {
-                    case ContentTypeEnum.Qlikview:
-                        ContentTypeConfigObj = QvConfig;
-                        break;
+                    // set live reduction to replaced
+                    var liveReductionTasks = DbContext.ContentReductionTask
+                        .Where(t => t.SelectionGroupId == selectionGroup.Id)
+                        .Where(t => t.ReductionStatus == ReductionStatusEnum.Live)
+                        .ToList();
+                    liveReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Replaced);
 
-                    case ContentTypeEnum.Html:
-                    case ContentTypeEnum.Pdf:
-                    case ContentTypeEnum.FileDownload:
-                    default:
-                        // should never get here because non-reducible content types are blocked in validation above
-                        break;
+                    DbContext.SaveChanges();
+
+                    Log.Debug($"In ContentAccessAdminController.UpdateSelections action: request to update selection group {selectionGroup.Id} with no selections, cannot be processed, aborting");
                 }
-                ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath, ContentTypeConfigObj)));
+                else
+                {
+                    // Stage the master file in a task folder in the file exchange share
+                    string TaskFolderPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:MapPublishingServerExchangePath"), NewTaskGuid.ToString("D"));
+                    Directory.CreateDirectory(TaskFolderPath);
+                    string MasterFileCopyTarget = Path.Combine(TaskFolderPath, Path.GetFileName(LiveMasterFile.FullPath));
+                    System.IO.File.Copy(LiveMasterFile.FullPath, MasterFileCopyTarget);
 
-                AuditLogger.Log(AuditEventType.SelectionChangeReductionQueued.ToEvent(selectionGroup, contentReductionTask));
+                    var contentReductionTask = new ContentReductionTask
+                    {
+                        Id = NewTaskGuid,
+                        ApplicationUser = await Queries.GetCurrentApplicationUser(User),
+                        SelectionGroupId = selectionGroup.Id,
+                        MasterFilePath = MasterFileCopyTarget,
+                        MasterContentChecksum = LiveMasterFile.Checksum,
+                        ContentPublicationRequest = null,
+                        SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections),
+                        ReductionStatus = ReductionStatusEnum.Queued,
+                        CreateDateTimeUtc = DateTime.UtcNow,
+                        TaskAction = TaskActionEnum.HierarchyAndReduction,
+                    };
+                    DbContext.ContentReductionTask.Add(contentReductionTask);
+                    DbContext.SaveChanges();
+
+                    string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
+                    string ContentItemRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
+
+                    object ContentTypeConfigObj = null;
+                    switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
+                    {
+                        case ContentTypeEnum.Qlikview:
+                            ContentTypeConfigObj = QvConfig;
+                            break;
+
+                        case ContentTypeEnum.Html:
+                        case ContentTypeEnum.Pdf:
+                        case ContentTypeEnum.FileDownload:
+                        default:
+                            // should never get here because non-reducible content types are blocked in validation above
+                            break;
+                    }
+                    ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath, ContentTypeConfigObj)));
+
+                    AuditLogger.Log(AuditEventType.SelectionChangeReductionQueued.ToEvent(selectionGroup, contentReductionTask));
+                }
             }
             Log.Verbose("In ContentAccessAdminController.UpdateSelections action: success");
             SelectionsDetail model = SelectionsDetail.Build(DbContext, Queries, selectionGroup);

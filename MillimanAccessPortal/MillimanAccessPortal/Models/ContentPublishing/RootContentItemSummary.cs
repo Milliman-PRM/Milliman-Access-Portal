@@ -44,7 +44,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             {
                 Id = rootContentItem.Id,
                 ContentName = rootContentItem.ContentName,
-                ContentTypeName = rootContentItem.ContentType.Name,
+                ContentTypeName = ContentType.ContentTypeString[rootContentItem.ContentType.TypeEnum],
                 GroupCount = dbContext.SelectionGroup
                     .Where(sg => sg.RootContentItemId == rootContentItem.Id)
                     .Count(),

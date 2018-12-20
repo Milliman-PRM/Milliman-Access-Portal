@@ -111,6 +111,7 @@ namespace MapDbContextLib.Context
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
                 b.Property(x => x.ReductionStatus).HasDefaultValue(ReductionStatusEnum.Unspecified);
                 b.HasOne(x => x.ContentPublicationRequest).WithMany().OnDelete(DeleteBehavior.Cascade);
+                b.HasOne(x => x.SelectionGroup).WithMany().OnDelete(DeleteBehavior.Cascade);
                 b.ForNpgsqlUseXminAsConcurrencyToken();
             });
             builder.Entity<ContentPublicationRequest>(b =>

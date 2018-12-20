@@ -93,16 +93,38 @@ namespace ContentPublishingLib
         /// <param name="ProcessConfig"></param>
         public void Start()
         {
+            ManualResetEvent MapDbPublishQueueServicedEvent = new ManualResetEvent(false);
+            Mutex QueueMutex = new Mutex(false);
+
             JobMonitorDict.Add(0, new JobMonitorInfo
             {
-                Monitor = new MapDbReductionJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection" },
+                Monitor = new MapDbReductionJobMonitor
+                {
+                    ConfiguredConnectionStringParamName = "DefaultConnection",
+                    QueueMutex = QueueMutex,
+                },
                 TokenSource = new CancellationTokenSource(),
                 AwaitableTask = null
             });
 
             JobMonitorDict.Add(1, new JobMonitorInfo
             {
-                Monitor = new MapDbPublishJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection" },
+                Monitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.NonReducingPublications)
+                {
+                    ConfiguredConnectionStringParamName = "DefaultConnection",
+                    QueueMutex = QueueMutex,
+                },
+                TokenSource = new CancellationTokenSource(),
+                AwaitableTask = null
+            });
+
+            JobMonitorDict.Add(2, new JobMonitorInfo
+            {
+                Monitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
+                {
+                    ConfiguredConnectionStringParamName = "DefaultConnection",
+                    QueueMutex = QueueMutex,
+                },
                 TokenSource = new CancellationTokenSource(),
                 AwaitableTask = null
             });
