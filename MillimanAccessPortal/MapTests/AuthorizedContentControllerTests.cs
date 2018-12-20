@@ -165,12 +165,8 @@ namespace MapTests
             RedirectResult viewResult = actionResult as RedirectResult;
             UriBuilder Uri = new UriBuilder(viewResult.Url);
             Assert.Equal("https", Uri.Scheme);
-            Assert.Equal(@"/qvajaxzfc/Authenticate.aspx", Uri.Path);
-            Assert.Contains("type=html", Uri.Query);
-            Assert.Contains(@"try=/qvajaxzfc/opendoc.htm", Uri.Query);
+            Assert.Equal(@"/qvajaxzfc/opendoc.htm", Uri.Path);
             Assert.Contains("document=", Uri.Query);
-            Assert.Contains("back=", Uri.Query);
-            Assert.Contains("webticket=", Uri.Query);
             #endregion
         }
 
