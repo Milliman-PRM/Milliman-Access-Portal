@@ -58,12 +58,34 @@ namespace QlikviewLib
 
             string QvServerUriScheme = "https";  // Scheme of the iframe should match scheme of the top page
 
+            string QlikviewWebTicket = await QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ UserName, ConfigInfo as QlikviewConfig);
+
+            UriBuilder backUriBuilder = new UriBuilder
+            {
+                Scheme = QvServerUriScheme,
+                Host = thisHttpRequest.Host.HasValue
+                    ? thisHttpRequest.Host.Host
+                    : $"localhost",  // result is probably error in production but won't crash
+                Port = thisHttpRequest.Host.Port.HasValue
+                    ? thisHttpRequest.Host.Port.Value
+                    : -1,
+                Path = $"/Shared/Message",
+                Query = "Msg=An error occurred while loading this content. Please contact MAP support if this problem persists",
+            };
+            string[] QueryStringItems = new string[]
+            {
+                $"type=html",
+                $"try=/qvajaxzfc/opendoc.htm?document={ContentUrl}",
+                $"back=/qvajaxzfc/opendoc.htm?document={ContentUrl}",
+                $"webticket={QlikviewWebTicket}",
+            };
+
             UriBuilder QvServerUri = new UriBuilder
             {
                 Scheme = QvServerUriScheme,
                 Host = ConfigInfo.QvServerHost,
-                Path = $"/qvajaxzfc/opendoc.htm",
-                Query = $"document={ContentUrl}",
+                Path = "/qvajaxzfc/Authenticate.aspx",
+                Query = string.Join("&", QueryStringItems),
             };
 
             await AssignDocumentUserLicense(FilePathRelativeToContentRoot, UserName, ConfigInfo);
