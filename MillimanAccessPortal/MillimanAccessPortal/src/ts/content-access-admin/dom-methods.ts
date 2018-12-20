@@ -131,7 +131,7 @@ function submitSelectionForm() {
     renderSelections(response);
     toastr.success(data.isMaster
       ? 'Unrestricted access granted.'
-      : data.Selections.length === 0
+      : data.selections.length === 0
         ? 'Selection group made inactive.'
         : 'A reduction task has been queued.');
   }).fail(function onFail(response) {
