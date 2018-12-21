@@ -223,6 +223,72 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
+        public async Task<IActionResult> QvwPreview(Guid publicationRequestId)
+        {
+            Log.Verbose($"Entered AuthorizedContentController.QvwPreview action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}");
+
+            var PubRequest = DataContext.ContentPublicationRequest
+                                        .FirstOrDefault(r => r.Id == publicationRequestId);
+
+            #region Validation
+            if (PubRequest == null)
+            {
+                string Msg = $"Failed to obtain the requested publication request";
+                Log.Error($"In AuthorizedContentController.QvwPreview action: user {Msg}, aborting");
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
+                User, null, new RoleInRootContentItemRequirement(
+                    RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
+            if (!Result1.Succeeded)
+            {
+                Log.Verbose("In AuthorizedContentController.QvwPreview action: "
+                    + $"authorization failed for user {User.Identity.Name}, "
+                    + $"content item {PubRequest.RootContentItemId}, "
+                    + $"role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            try
+            {
+                string ContentRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
+                string FullFilePath = PubRequest.LiveReadyFilesObj
+                    .Single(f => f.FilePurpose.ToLower() == "mastercontent")
+                    .FullPath;
+                if (Path.GetExtension(FullFilePath).ToLower() != ".qvw")
+                {
+                    Log.Error("In AuthorizedContentController.QvwPreview action: "
+                        + $"Error, requested QVW file {FullFilePath} has unexpected extension, aborting");
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+
+                string Link = Path.GetRelativePath(ContentRootPath, FullFilePath);
+                await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(
+                        Path.GetDirectoryName(Link), QlikviewConfig, Path.GetFileName(Link));
+
+                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(
+                    Link, User.Identity.Name, QlikviewConfig, Request);
+
+                Log.Verbose("In AuthorizedContentController.QvwPreview action: success, redirecting");
+
+                return Redirect(QvwUri.Uri.AbsoluteUri);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "In AuthorizedContentController.QvwPreview action: "
+                    + $"exception while redirecting for publication request {PubRequest.Id}, aborting");
+                Response.Headers.Add("Warning", "Failed to load requested master HTML file for preview");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
         /// <summary>
         /// Handles a request to display a content items associated thumbnail 
         /// </summary>

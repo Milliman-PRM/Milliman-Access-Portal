@@ -76,7 +76,6 @@ namespace QlikviewLib
             {
                 $"type=html",
                 $"try=/qvajaxzfc/opendoc.htm?document={ContentUrl}",
-                $"back='{backUriBuilder.Uri.OriginalString}'",
                 $"webticket={QlikviewWebTicket}",
             };
 

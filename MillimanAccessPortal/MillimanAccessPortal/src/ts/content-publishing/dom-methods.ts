@@ -28,6 +28,8 @@ import {
 } from '../view-models/content-publishing';
 import { PublicationStatusMonitor } from './publication-status-monitor';
 
+import '../../images/expand-frame.svg';
+
 require('tooltipster');
 
 let formObject: FormBase;
@@ -221,9 +223,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     { sectionName: 'release-notes', link: response.ReleaseNotesLink },
   ];
   linkPairs.forEach((pair) => {
-    $(`#confirmation-section-${pair.sectionName} div`)
-      .filter(pair.node || '.content-preview')
-      .find('a,iframe,object')
+    $(`#confirmation-section-${pair.sectionName} .content-preview-container`)
+      .find(pair.node || '.content-preview')
       .attr('src', function() {
         return $(this).is('iframe')
           ? pair.link
@@ -239,20 +240,24 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           ? pair.link
           : null;
       })
-      .parent()
       .show()
-      .siblings('div')
+      .siblings()
       .hide()
       .filter(() => pair.link === null)
       .filter('.content-preview-none')
       .show()
-      .siblings('div')
+      .siblings()
       .hide()
-      .find('iframe,object')
       .closest('.confirmation-section').find('label')
       .hide()
       .find('input')
       .attr('disabled', '');
+    // hide/show new tab links
+    $(`#confirmation-section-${pair.sectionName} .new-tab-icon`)
+      .show()
+      .attr('href', pair.link)
+      .filter(() => pair.link === null)
+      .hide();
   });
 
   // render hierarchy diff and selection group changes
@@ -363,7 +368,9 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
             $row.append($(`<td><div>${liveData.Value}</div></td>`));
           } else {
             const $diffSymbol = $(`
-              <td class="hierarchy-diff-symbol"><div>${!pendingData ? 'Removed' : !liveData ? 'Added' : ''}</div></td>`);
+              <td class="hierarchy-diff-symbol"><div>
+                ${!pendingData ? 'Removed' : !liveData ? 'Added' : ''}
+              </div></td>`);
             if (!pendingData) {
               $diffSymbol.addClass('minus');
             } else if (!liveData) {
