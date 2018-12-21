@@ -134,6 +134,10 @@
         border: 1px solid $charcoal;
         padding: 1.0em;
 
+        .pre-live-user-list ul {
+            padding: .5em;
+        }
+
         .selection-group-stat {
             .selection-group-stat-label {
                 width: 20%;
