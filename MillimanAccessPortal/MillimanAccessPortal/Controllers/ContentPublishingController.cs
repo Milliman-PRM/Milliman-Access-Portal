@@ -796,7 +796,7 @@ namespace MillimanAccessPortal.Controllers
                         TaskActionEnum.ReductionOnly,
                         TaskActionEnum.HierarchyAndReduction,
                     };
-                    if (reducingTaskAction.Contains(ThisTask.TaskAction))
+                    if (!reducingTaskAction.Contains(ThisTask.TaskAction))
                     {
                         Log.Error($"In ContentPublishingController.GoLive action: " +
                             $"for selection group {relatedSelectionGroup.Id}, " +
