@@ -149,7 +149,7 @@ namespace ContentPublishingLib.JobMonitors
                                     }
 
                                     NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
-                                    GlobalFunctions.TraceWriteLine($"Started new Reduction task ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentRunners})");
+                                    GlobalFunctions.TraceWriteLine($"ReductionJobMonitor executing TaskAction {DbTask.TaskAction.ToString()} for task {DbTask.Id}, ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentRunners})");
                                     break;
 
                                 default:
@@ -163,8 +163,8 @@ namespace ContentPublishingLib.JobMonitors
                             }
                         }
 
-                        Thread.Sleep(1000);  // Allow time for any new runner(s) to start executing
                         QueueMutex.ReleaseMutex();
+                        Thread.Sleep(500 * (1 + JobMonitorInstanceCounter));  // Allow time for any new runner(s) to start executing
                     }
                     else
                     {
