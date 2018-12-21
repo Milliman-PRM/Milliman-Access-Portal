@@ -791,12 +791,18 @@ namespace MillimanAccessPortal.Controllers
                     }
 
                     // This ContentReductionTask must be a reducing task
-                    if (ThisTask.TaskAction != TaskActionEnum.HierarchyAndReduction)
+                    var reducingTaskAction = new List<TaskActionEnum>
+                    {
+                        TaskActionEnum.ReductionOnly,
+                        TaskActionEnum.HierarchyAndReduction,
+                    };
+                    if (!reducingTaskAction.Contains(ThisTask.TaskAction))
                     {
                         Log.Error($"In ContentPublishingController.GoLive action: " +
                             $"for selection group {relatedSelectionGroup.Id}, " +
                             $"reduction task {ThisTask.Id} " +
                             $"should have action {TaskActionEnum.HierarchyAndReduction.ToString()} " +
+                            $"or {TaskActionEnum.ReductionOnly.ToString()} " +
                             $"but is {ThisTask.TaskAction.ToString()}, " +
                             "aborting");
                         Response.Headers.Add("Warning",

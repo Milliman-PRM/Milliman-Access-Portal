@@ -16,6 +16,18 @@ namespace ContentPublishingLib.JobMonitors
 {
     public abstract class JobMonitorBase
     {
+        protected JobMonitorBase()
+        {
+            JobMonitorInstanceCounter++;
+        }
+
+        ~JobMonitorBase()
+        {
+            JobMonitorInstanceCounter--;
+        }
+
+        protected static int JobMonitorInstanceCounter = 0;
+
         public abstract Task Start(CancellationToken Token);
         public abstract void JobMonitorThreadMain(CancellationToken Token);
 
