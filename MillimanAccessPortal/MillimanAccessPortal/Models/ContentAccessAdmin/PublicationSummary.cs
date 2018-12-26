@@ -74,35 +74,38 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             }
 
             // Assemble the list of messages for all failed reductions
-            var messages = new List<string> { };
-            foreach (var taskOutcome in publicationRequest.OutcomeMetadataObj.ReductionTaskFailOutcomeList)
+            if (publicationRequest != null)
             {
-                switch (taskOutcome.OutcomeReason)
+                var messages = new List<string> { };
+                foreach (var taskOutcome in publicationRequest.OutcomeMetadataObj.ReductionTaskFailOutcomeList)
                 {
-                    case MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName:
-                        messages.Add("A value in an invalid field was selected.");
-                        break;
-                    case MapDbReductionTaskOutcomeReason.ReductionTimeout:
-                        messages.Add("The reduction timed out. Please retry the publication and "
-                            + "contact support if the problem persists.");
-                        break;
-                    case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
-                    case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
-                    case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
-                        // these reasons do not contribute to error status
-                        break;
-                    case MapDbReductionTaskOutcomeReason.BadRequest:
-                    case MapDbReductionTaskOutcomeReason.UnspecifiedError:
-                    default:
-                        // these reasons won't mean anything to a user but could help us
-                        messages.Add("Unexpected error. Please retry the publication and "
-                            + "contact support if the problem persists.");
-                        break;
+                    switch (taskOutcome.OutcomeReason)
+                    {
+                        case MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName:
+                            messages.Add("A value in an invalid field was selected.");
+                            break;
+                        case MapDbReductionTaskOutcomeReason.ReductionTimeout:
+                            messages.Add("The reduction timed out. Please retry the publication and "
+                                + "contact support if the problem persists.");
+                            break;
+                        case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
+                        case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
+                        case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
+                            // these reasons do not contribute to error status
+                            break;
+                        case MapDbReductionTaskOutcomeReason.BadRequest:
+                        case MapDbReductionTaskOutcomeReason.UnspecifiedError:
+                        default:
+                            // these reasons won't mean anything to a user but could help us
+                            messages.Add("Unexpected error. Please retry the publication and "
+                                + "contact support if the problem persists.");
+                            break;
+                    }
                 }
-            }
 
-            // don't overwhelm the user with a giant error message
-            publicationSummary.StatusMessage = messages.FirstOrDefault();
+                // don't overwhelm the user with a giant error message
+                publicationSummary.StatusMessage = messages.FirstOrDefault();
+            }
 
             return publicationSummary;
         }

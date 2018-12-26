@@ -59,7 +59,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 reductionSummary.QueuePosition = precedingReductionTaskCount;
             }
 
-            if (!string.IsNullOrWhiteSpace(reductionTask.OutcomeMetadata))
+            if (!string.IsNullOrWhiteSpace(reductionTask?.OutcomeMetadata))
             {
                 // Assemble the list of messages for all failed reductions
                 string message;
