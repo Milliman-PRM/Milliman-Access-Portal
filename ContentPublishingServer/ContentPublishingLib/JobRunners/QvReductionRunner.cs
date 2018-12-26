@@ -201,7 +201,14 @@ namespace ContentPublishingLib.JobRunners
             {
                 // Don't touch JobDetail.Result.Status or JobDetail.Result.OutcomeReason in the finally block. This value should always be set before we get here. 
                 JobDetail.Result.ProcessingDuration = DateTime.UtcNow - ProcessingStartTime;
-                Cleanup();
+                try
+                {
+                    Cleanup();
+                }
+                catch (System.Exception e)  // fail safe in case any exception gets to this point
+                {
+                    GlobalFunctions.TraceWriteLine($"In QvReductionRunner.Execute(), Cleanup method failed with exception: {Environment.NewLine}{GlobalFunctions.LoggableExceptionString(e)}");
+                }
             }
 
             return JobDetail;
