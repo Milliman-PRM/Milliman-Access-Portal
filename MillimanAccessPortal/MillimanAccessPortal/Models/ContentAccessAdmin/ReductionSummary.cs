@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using MillimanAccessPortal.Models.AccountViewModels;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdmin
@@ -56,6 +57,27 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                     .Where(r => r.ReductionStatus.IsCancelable())
                     .Count();
                 reductionSummary.QueuePosition = precedingReductionTaskCount;
+            }
+
+            if (!string.IsNullOrWhiteSpace(reductionTask.OutcomeMetadata))
+            {
+                // Assemble the list of messages for all failed reductions
+                string message;
+                switch (reductionTask.OutcomeMetadataObj.OutcomeReason)
+                {
+                    case MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName:
+                        message = "A value in an invalid field was selected.";
+                        break;
+                    case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
+                        message = "The selected values do not match any data.";
+                        break;
+                    default:
+                        message = "Unexpected error. Please retry the selection update and "
+                            + "contact support if the problem persists.";
+                        break;
+                }
+
+                reductionSummary.StatusMessage = message;
             }
 
             return reductionSummary;

@@ -5,9 +5,11 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using MillimanAccessPortal.Models.AccountViewModels;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdmin
@@ -70,6 +72,37 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 publicationSummary.QueuePosition = completedReductionTaskCount;
                 publicationSummary.QueueTotal = relatedReductionTaskCount;
             }
+
+            // Assemble the list of messages for all failed reductions
+            var messages = new List<string> { };
+            foreach (var taskOutcome in publicationRequest.OutcomeMetadataObj.ReductionTaskFailOutcomeList)
+            {
+                switch (taskOutcome.OutcomeReason)
+                {
+                    case MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName:
+                        messages.Add("A value in an invalid field was selected.");
+                        break;
+                    case MapDbReductionTaskOutcomeReason.ReductionTimeout:
+                        messages.Add("The reduction timed out. Please retry the publication and "
+                            + "contact support if the problem persists.");
+                        break;
+                    case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
+                    case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
+                    case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
+                        // these reasons do not contribute to error status
+                        break;
+                    case MapDbReductionTaskOutcomeReason.BadRequest:
+                    case MapDbReductionTaskOutcomeReason.UnspecifiedError:
+                    default:
+                        // these reasons won't mean anything to a user but could help us
+                        messages.Add("Unexpected error. Please retry the publication and "
+                            + "contact support if the problem persists.");
+                        break;
+                }
+            }
+
+            // don't overwhelm the user with a giant error message
+            publicationSummary.StatusMessage = messages.FirstOrDefault();
 
             return publicationSummary;
         }
