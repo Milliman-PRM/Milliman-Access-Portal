@@ -502,7 +502,15 @@ namespace ContentPublishingLib.JobRunners
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
             if (!string.IsNullOrWhiteSpace(WorkingFolderRelative) && Directory.Exists(WorkingFolderAbsolute))
             {
-                FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
+                try
+                {
+                    FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
+                }
+                catch (System.Exception e)  // Do not let this throw upward
+                {
+                    // Log this as an error or warning when switching to Serilog
+                    GlobalFunctions.TraceWriteLine($"In QvReductionRunner.Cleanup(), failed to delete reduction directory {WorkingFolderAbsolute}, exception was: {Environment.NewLine}{GlobalFunctions.LoggableExceptionString(e)}");
+                }
             }
 
             GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed Cleanup");
