@@ -311,13 +311,13 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       }
       live.Fields.forEach(({ Values: liveValues, FieldName, DisplayName }) => {
         $diff.append(`<h3 class="hierarchy-diff-field">${DisplayName}</h3>`);
-        const pendingValues = pending.Fields.find((f) => f.FieldName === FieldName).Values;
+        const pendingValues = pending.Fields.filter((f) => f.FieldName === FieldName)[0].Values;
         const allValues = unionWith(liveValues, pendingValues,
           (v1: TValue, v2: TValue) => v1.Value === v2.Value);
 
         // exclude values that aren't in the live hierarchy if using selectedOnly
         const filteredValues = allValues.filter((value) => {
-          const liveData = liveValues.find((v) => v.Value === value.Value);
+          const liveData = liveValues.filter((v) => v.Value === value.Value)[0];
           if (selectedOnly) {
             if (!liveData || (liveData && isSelection(liveData) && !liveData.SelectionStatus)) {
               return false;
@@ -354,8 +354,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           </table>
         </div>`);
         filteredValues.forEach((value) => {
-          const liveData = liveValues.find((v) => v.Value === value.Value);
-          const pendingData = pendingValues.find((v) => v.Value === value.Value);
+          const liveData = liveValues.filter((v) => v.Value === value.Value)[0];
+          const pendingData = pendingValues.filter((v) => v.Value === value.Value)[0];
           const $row = $('<tr></tr>');
           if (selectedOnly) {
             // accounts for removal of selection as well as removal of value from new hierarchy
@@ -521,7 +521,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       $statsList.append($selectionGroupStats);
     });
     // add a message explaining what inactive means
-    if (response.SelectionGroups.find((sg) => sg.IsInactive)) {
+    if (response.SelectionGroups.filter((sg) => sg.IsInactive)[0]) {
       $statsList.prepend(`<div>
         Some selection groups will be marked <strong>inactive</strong> if this publication goes live
         due to reduction failures.
