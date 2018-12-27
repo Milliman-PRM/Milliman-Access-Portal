@@ -28,6 +28,8 @@ import {
 } from '../view-models/content-publishing';
 import { PublicationStatusMonitor } from './publication-status-monitor';
 
+import '../../images/expand-frame.svg';
+
 require('tooltipster');
 
 let formObject: FormBase;
@@ -221,9 +223,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     { sectionName: 'release-notes', link: response.ReleaseNotesLink },
   ];
   linkPairs.forEach((pair) => {
-    $(`#confirmation-section-${pair.sectionName} div`)
-      .filter(pair.node || '.content-preview')
-      .find('a,iframe,object')
+    $(`#confirmation-section-${pair.sectionName} .content-preview-container`)
+      .find(pair.node || '.content-preview')
       .attr('src', function() {
         return $(this).is('iframe')
           ? pair.link
@@ -239,20 +240,24 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           ? pair.link
           : null;
       })
-      .parent()
       .show()
-      .siblings('div')
+      .siblings()
       .hide()
       .filter(() => pair.link === null)
       .filter('.content-preview-none')
       .show()
-      .siblings('div')
+      .siblings()
       .hide()
-      .find('iframe,object')
       .closest('.confirmation-section').find('label')
       .hide()
       .find('input')
       .attr('disabled', '');
+    // hide/show new tab links
+    $(`#confirmation-section-${pair.sectionName} .new-tab-icon`)
+      .show()
+      .attr('href', pair.link)
+      .filter(() => pair.link === null)
+      .hide();
   });
 
   // render hierarchy diff and selection group changes
@@ -306,13 +311,13 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       }
       live.Fields.forEach(({ Values: liveValues, FieldName, DisplayName }) => {
         $diff.append(`<h3 class="hierarchy-diff-field">${DisplayName}</h3>`);
-        const pendingValues = pending.Fields.find((f) => f.FieldName === FieldName).Values;
+        const pendingValues = pending.Fields.filter((f) => f.FieldName === FieldName)[0].Values;
         const allValues = unionWith(liveValues, pendingValues,
           (v1: TValue, v2: TValue) => v1.Value === v2.Value);
 
         // exclude values that aren't in the live hierarchy if using selectedOnly
         const filteredValues = allValues.filter((value) => {
-          const liveData = liveValues.find((v) => v.Value === value.Value);
+          const liveData = liveValues.filter((v) => v.Value === value.Value)[0];
           if (selectedOnly) {
             if (!liveData || (liveData && isSelection(liveData) && !liveData.SelectionStatus)) {
               return false;
@@ -349,8 +354,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           </table>
         </div>`);
         filteredValues.forEach((value) => {
-          const liveData = liveValues.find((v) => v.Value === value.Value);
-          const pendingData = pendingValues.find((v) => v.Value === value.Value);
+          const liveData = liveValues.filter((v) => v.Value === value.Value)[0];
+          const pendingData = pendingValues.filter((v) => v.Value === value.Value)[0];
           const $row = $('<tr></tr>');
           if (selectedOnly) {
             // accounts for removal of selection as well as removal of value from new hierarchy
@@ -363,7 +368,9 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
             $row.append($(`<td><div>${liveData.Value}</div></td>`));
           } else {
             const $diffSymbol = $(`
-              <td class="hierarchy-diff-symbol"><div>${!pendingData ? 'Removed' : !liveData ? 'Added' : ''}</div></td>`);
+              <td class="hierarchy-diff-symbol"><div>
+                ${!pendingData ? 'Removed' : !liveData ? 'Added' : ''}
+              </div></td>`);
             if (!pendingData) {
               $diffSymbol.addClass('minus');
             } else if (!liveData) {
@@ -514,7 +521,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       $statsList.append($selectionGroupStats);
     });
     // add a message explaining what inactive means
-    if (response.SelectionGroups.find((sg) => sg.IsInactive)) {
+    if (response.SelectionGroups.filter((sg) => sg.IsInactive)[0]) {
       $statsList.prepend(`<div>
         Some selection groups will be marked <strong>inactive</strong> if this publication goes live
         due to reduction failures.

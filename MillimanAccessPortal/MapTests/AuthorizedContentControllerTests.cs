@@ -169,7 +169,6 @@ namespace MapTests
             Assert.Contains("type=html", Uri.Query);
             Assert.Contains(@"try=/qvajaxzfc/opendoc.htm", Uri.Query);
             Assert.Contains("document=", Uri.Query);
-            Assert.Contains("back=", Uri.Query);
             Assert.Contains("webticket=", Uri.Query);
             #endregion
         }

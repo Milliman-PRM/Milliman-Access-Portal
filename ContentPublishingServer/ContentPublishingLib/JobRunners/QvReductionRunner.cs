@@ -201,7 +201,14 @@ namespace ContentPublishingLib.JobRunners
             {
                 // Don't touch JobDetail.Result.Status or JobDetail.Result.OutcomeReason in the finally block. This value should always be set before we get here. 
                 JobDetail.Result.ProcessingDuration = DateTime.UtcNow - ProcessingStartTime;
-                Cleanup();
+                try
+                {
+                    Cleanup();
+                }
+                catch (System.Exception e)  // fail safe in case any exception gets to this point
+                {
+                    GlobalFunctions.TraceWriteLine($"In QvReductionRunner.Execute(), Cleanup method failed with exception: {Environment.NewLine}{GlobalFunctions.LoggableExceptionString(e)}");
+                }
             }
 
             return JobDetail;
@@ -334,7 +341,9 @@ namespace ContentPublishingLib.JobRunners
             // Run Qlikview publisher (QDS) task
             try
             {
-                await RunQdsTask(HierarchyTask, 5);
+                string AbsoluteDocPath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, DocumentNodeArg.Name);
+                int FileSizeHectoMillionBytes = (int)(new FileInfo(AbsoluteDocPath).Length / 1E8 );
+                await RunQdsTask(HierarchyTask, Math.Max(FileSizeHectoMillionBytes, 5));  // Allow 1 minute per 1E8 Bytes, at least 5 minutes
             }
             finally
             {
@@ -502,7 +511,15 @@ namespace ContentPublishingLib.JobRunners
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
             if (!string.IsNullOrWhiteSpace(WorkingFolderRelative) && Directory.Exists(WorkingFolderAbsolute))
             {
-                FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
+                try
+                {
+                    FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
+                }
+                catch (System.Exception e)  // Do not let this throw upward
+                {
+                    // Log this as an error or warning when switching to Serilog
+                    GlobalFunctions.TraceWriteLine($"In QvReductionRunner.Cleanup(), failed to delete reduction directory {WorkingFolderAbsolute}, exception was: {Environment.NewLine}{GlobalFunctions.LoggableExceptionString(e)}");
+                }
             }
 
             GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed Cleanup");

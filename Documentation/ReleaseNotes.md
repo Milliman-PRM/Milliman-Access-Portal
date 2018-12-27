@@ -4,12 +4,13 @@
 
 ### v1.3.0
 
-- A publication request involving any reduction error will no longer be aborted (reduced content only)
-- Each selection group associated with a reduction error will become inactive (reduced content only)
-- The publication go-live preview now displays more detailed information about each associated reduction outcome
+- Publication requests involving reduction errors will no longer be aborted
+- Added the ability to put selection groups in an inactive state
+- Added additional information about Selection Group reduction outcomes to the Go-Live preview for reduced content
+- Non-reducing content publications will now be published independently of the reducible content items
+- Improved process efficiency for reducing content items
 - Fixed an issue where the status of a queued publication changed to 'Processing' before processing could actually begin
-- Reduced processing time for publication of a reducing content item
-- Processing of non-reducing content publications no longer waits to run after queued reducing content publications
+- Fixed an issue where a timeout of a hierarchy extraction task would cause the publication service to crash
 
 ### v1.2.0
 

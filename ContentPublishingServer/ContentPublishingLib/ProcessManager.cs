@@ -135,7 +135,7 @@ namespace ContentPublishingLib
                 JobMonitorInfo MonitorInfo = MonitorKvp.Value;
                 MonitorInfo.AwaitableTask = MonitorInfo.Monitor.Start(MonitorInfo.TokenSource.Token);
 
-                GlobalFunctions.TraceWriteLine($"JobMonitor of type {MonitorInfo.Monitor.GetType().Name} started");
+                GlobalFunctions.TraceWriteLine($"JobMonitor {MonitorKvp.Key} of type {MonitorInfo.Monitor.GetType().Name} started");
             }
 
             // Initiate periodic checking of the Task status of each JobMonitor
