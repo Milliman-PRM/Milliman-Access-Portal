@@ -341,7 +341,9 @@ namespace ContentPublishingLib.JobRunners
             // Run Qlikview publisher (QDS) task
             try
             {
-                await RunQdsTask(HierarchyTask, 5);
+                string AbsoluteDocPath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, DocumentNodeArg.Name);
+                int FileSizeHectoMillionBytes = (int)(new FileInfo(AbsoluteDocPath).Length / 1E8 );
+                await RunQdsTask(HierarchyTask, Math.Max(FileSizeHectoMillionBytes, 5));  // Allow 1 minute per 1E8 Bytes, at least 5 minutes
             }
             finally
             {
