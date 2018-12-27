@@ -1,4 +1,4 @@
-import { difference, isEqual, xor } from 'lodash';
+import * as _ from 'lodash';
 
 import {
   isReductionActive, publicationStatusNames, reductionStatusNames,
@@ -12,9 +12,8 @@ export function pendingReductionValues(state: AccessState) {
   const _relatedReduction = relatedReduction(state, _selectedGroup && _selectedGroup.id);
   return _selectedGroup
     ? (_relatedReduction && isReductionActive(_relatedReduction.taskStatus))
-      ? _relatedReduction.selectedValues.map((i) =>
-        state.data.values.filter((v) => v.id === i)[0])
-      : state.data.values.filter((v) => {
+      ? _relatedReduction.selectedValues.map((i) => state.data.values[i])
+      : _.filter(state.data.values, (v) => {
         const selectionChanges = state.pending.selections || new Map();
         return _selectedGroup.selectedValues && _selectedGroup.selectedValues.find((sv) => sv === v.id)
           ? !selectionChanges.has(v.id) || selectionChanges.get(v.id).selected
@@ -23,7 +22,7 @@ export function pendingReductionValues(state: AccessState) {
     : [];
 }
 export function modifiedReductionValues(state: AccessState) {
-  return xor(
+  return _.xor(
     selectedReductionValues(state),
     pendingReductionValues(state),
   );
@@ -38,7 +37,7 @@ export function pendingMaster(state: AccessState) {
     : false;
 }
 export function reductionValuesModified(state: AccessState) {
-  return !isEqual(
+  return !_.isEqual(
     selectedReductionValues(state),
     pendingReductionValues(state),
   );
@@ -54,14 +53,14 @@ export function selectionsFormModified(state: AccessState) {
   return reductionValuesModified(state) || masterModified(state);
 }
 export function pendingGroupName(state: AccessState, groupId: Guid) {
-  const group = state.data.groups.find((g) => g.id === groupId);
+  const group = state.data.groups[groupId];
   return state.pending.group.id === groupId
       && state.pending.group.name !== null
       ? state.pending.group.name
       : group.name;
 }
 export function pendingGroupUserAssignments(state: AccessState, groupId: Guid) {
-  const group = state.data.groups.find((g) => g.id === groupId);
+  const group = state.data.groups[groupId];
   const users = [...group.assignedUsers];
   const pendingUsers = state.pending.group.id === group.id
     ? state.pending.group.users
@@ -83,43 +82,37 @@ export function pendingGroupUserAssignments(state: AccessState, groupId: Guid) {
 // Filter selectors
 export function filteredClients(state: AccessState) {
   const filterTextLower = state.filters.client.text.toLowerCase();
-  return state.data.clients.filter((c) => {
-    return (
-      filterTextLower === ''
-      || c.name.toLowerCase().indexOf(filterTextLower) !== -1
-      || c.code.toLowerCase().indexOf(filterTextLower) !== -1
-    );
-  });
+  return _.filter(state.data.clients, (client) => (
+    filterTextLower === ''
+    || client.name.toLowerCase().indexOf(filterTextLower) !== -1
+    || client.code.toLowerCase().indexOf(filterTextLower) !== -1
+  ));
 }
 export function filteredItems(state: AccessState) {
   const filterTextLower = state.filters.item.text.toLowerCase();
-  return state.data.items.filter((i) => {
-    return (
-      filterTextLower === ''
-      || i.name.toLowerCase().indexOf(filterTextLower) !== -1
-    );
-  });
+  return _.filter(state.data.items, (item) => (
+    filterTextLower === ''
+    || item.name.toLowerCase().indexOf(filterTextLower) !== -1
+  ));
 }
 export function filteredGroups(state: AccessState) {
   const filterTextLower = state.filters.group.text.toLowerCase();
-  return state.data.groups.filter((g) => {
-    return (
-      filterTextLower === ''
-      || g.name.toLowerCase().indexOf(filterTextLower) !== -1
-    );
-  });
+  return _.filter(state.data.groups, (group) => (
+    filterTextLower === ''
+    || group.name.toLowerCase().indexOf(filterTextLower) !== -1
+  ));
 }
 export function filteredFields(state: AccessState) {
   const fieldIds = filteredValues(state).map((v) => v.reductionFieldId);
-  return state.data.fields.filter((f) => fieldIds.indexOf(f.id) !== -1);
+  return _.filter(state.data.fields, (field) => fieldIds.indexOf(field.id) !== -1);
 }
 export function filteredValues(state: AccessState) {
   const filterTextLower = state.filters.selections.text.toLowerCase();
-  return state.data.values.filter((v) => {
-    const field = state.data.fields.filter((f) => v.reductionFieldId === f.id)[0];
+  return _.filter(state.data.values, (value) => {
+    const field = state.data.fields[value.reductionFieldId];
     return (
       filterTextLower === ''
-      || v.value.toLowerCase().indexOf(filterTextLower) !== -1
+      || value.value.toLowerCase().indexOf(filterTextLower) !== -1
       || field.fieldName.toLowerCase().indexOf(filterTextLower) !== -1
       || field.displayName.toLowerCase().indexOf(filterTextLower) !== -1
     );
@@ -131,10 +124,10 @@ export function activeClients(state: AccessState) {
   return filteredClients(state);
 }
 function queueDetailsForPublication(state: AccessState, publicationId: Guid) {
-  return state.data.publicationQueue.filter((q) => q.publicationId === publicationId)[0];
+  return state.data.publicationQueue[publicationId];
 }
 function relatedPublication(state: AccessState, itemId: Guid) {
-  const publication = state.data.publications.filter((p) => p.rootContentItemId === itemId)[0];
+  const publication = state.data.publications[itemId];
   const queueDetails = publication && queueDetailsForPublication(state, publication.id);
   return publication
     ? { ...publication, queueDetails }
@@ -150,7 +143,7 @@ export function activeItemsWithStatus(state: AccessState) {
       ...i,
       status: {
         ...publication,
-        applicationUser: publication && state.data.users.filter((u) => u.id === publication.applicationUserId)[0],
+        applicationUser: publication && state.data.users[publication.applicationUserId],
         requestStatusName: publication && publicationStatusNames[publication.requestStatus],
       },
     };
@@ -158,10 +151,10 @@ export function activeItemsWithStatus(state: AccessState) {
 }
 
 function queueDetailsForReduction(state: AccessState, reductionId: Guid) {
-  return state.data.reductionQueue.filter((q) => q.reductionId === reductionId)[0];
+  return state.data.reductionQueue[reductionId];
 }
 function relatedReduction(state: AccessState, groupId: Guid) {
-  const reduction = state.data.reductions.filter((r) => r.selectionGroupId === groupId)[0];
+  const reduction = state.data.reductions[groupId];
   const queueDetails = reduction && queueDetailsForReduction(state, reduction.id);
   return reduction
     ? { ...reduction, queueDetails }
@@ -177,7 +170,7 @@ export function activeGroupsWithStatus(state: AccessState) {
       ...g,
       status: {
         ...reduction,
-        applicationUser: reduction && state.data.users.filter((u) => u.id === reduction.applicationUserId)[0],
+        applicationUser: reduction && state.data.users[reduction.applicationUserId],
         taskStatusName: reduction && reductionStatusNames[reduction.taskStatus],
       },
     };
@@ -201,8 +194,8 @@ export function allGroupsCollapsed(state: AccessState) {
 }
 
 export function activeReductions(state: AccessState) {
-  return state.data.reductions.filter((r) => (
-    activeGroups(state).map((g) => g.id).indexOf(r.selectionGroupId) !== -1));
+  return _.filter(state.data.reductions, (reduction) =>
+    activeGroups(state).map((g) => g.id).indexOf(reduction.selectionGroupId) !== -1);
 }
 
 export function activeReductionFields(state: AccessState) {
@@ -226,16 +219,16 @@ export function activeReductionFieldsets(state: AccessState): ReductionFieldset[
 export function clientEntities(state: AccessState) {
   return activeClients(state).map((c) => ({
     ...c,
-    reports: state.data.items.filter((i) => i.clientId === c.id).length,
+    reports: _.filter(state.data.items, (i) => i.clientId === c.id).length,
     eligibleUsers: c.eligibleUsers.length,
   }));
 }
 export function itemEntities(state: AccessState) {
   return activeItemsWithStatus(state).map((i) => {
-    const groups = state.data.groups.filter((g) => g.rootContentItemId === i.id);
+    const groups = _.filter(state.data.groups, (g) => g.rootContentItemId === i.id);
     return {
       ...i,
-      contentTypeName: state.data.contentTypes.filter((c) => c.id === i.contentTypeId)[0].name,
+      contentTypeName: state.data.contentTypes[i.contentTypeId].name,
       selectionGroups: groups.length,
       assignedUsers: groups.reduce((prev, cur) => prev + cur.assignedUsers.length, 0),
     };
@@ -244,8 +237,7 @@ export function itemEntities(state: AccessState) {
 export function groupEntities(state: AccessState) {
   return activeGroupsWithStatus(state).map((g) => ({
     ...g,
-    assignedUsers: pendingGroupUserAssignments(state, g.id)
-      .map((id) => state.data.users.find((u) => u.id === id)),
+    assignedUsers: pendingGroupUserAssignments(state, g.id).map((id) => state.data.users[id]),
     name: pendingGroupName(state, g.id),
     editing: state.pending.group.id === g.id,
     userQuery: state.pending.group
@@ -256,21 +248,21 @@ export function groupEntities(state: AccessState) {
 
 // Selected entity selectors
 export function selectedClient(state: AccessState) {
-  return state.data.clients.filter((c) => c.id === state.selected.client)[0];
+  return state.data.clients[state.selected.client];
 }
 export function activeSelectedClient(state: AccessState) {
   return activeClients(state).filter((c) => c.id === state.selected.client)[0];
 }
 
 export function selectedItem(state: AccessState) {
-  return state.data.items.filter((i) => i.id === state.selected.item)[0];
+  return state.data.items[state.selected.item];
 }
 export function activeSelectedItem(state: AccessState) {
   return activeItems(state).filter((i) => i.id === state.selected.item)[0];
 }
 
 function selectedGroup(state: AccessState) {
-  return state.data.groups.filter((g) => g.id === state.selected.group)[0];
+  return state.data.groups[state.selected.group];
 }
 export function activeSelectedGroup(state: AccessState) {
   return activeGroups(state).filter((g) => g.id === state.selected.group)[0];
@@ -282,19 +274,18 @@ export function selectedGroupWithStatus(state: AccessState) {
 export function selectedReductionValues(state: AccessState) {
   return selectedGroup(state) && selectedGroup(state).selectedValues
     ? selectedGroup(state).selectedValues.map((i) =>
-      state.data.values.filter((v) => v.id === i)[0])
+      state.data.values[i])
     : [];
 }
 
 export function addableUsers(state: AccessState) {
   const client = selectedClient(state);
   return client
-    ? difference(
+    ? _.difference(
       client.eligibleUsers,
-      state.data.groups
-        .filter((g) => g.rootContentItemId === state.selected.item)
+      _.filter(state.data.groups, (g) => g.rootContentItemId === state.selected.item)
         .map((g) => pendingGroupUserAssignments(state, g.id))
         .reduce((prev, cur) => [...prev, ...cur], []),
-    ).map((id) => state.data.users.find((u) => u.id === id))
+    ).map((id) => state.data.users[id])
     : [];
 }

@@ -1,27 +1,25 @@
+import * as _ from 'lodash';
+
 import { PublicationStatus, ReductionStatus } from '../../../view-models/content-publishing';
 import { Guid } from '../../models';
 
+/* tslint:disable:max-line-length */
 export function fetchClients() {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const clients = [
-        { id: 'client1', name: 'client1', code: 'c1', eligibleUsers: ['user1', 'user2', 'user3', 'user4', 'user5'] },
-        { id: 'client2', name: 'client2', code: 'c2', eligibleUsers: ['user1', 'user2', 'user3', 'user4', 'user5'] },
-        { id: 'client3', name: 'client3', code: 'c3', eligibleUsers: ['user1', 'user2', 'user3'] },
-        { id: 'client4', name: 'client4', code: 'c4', eligibleUsers: [] },
-      ];
-      const users = [
-        { id: 'user1', firstName: 'Ichi', lastName: 'One',   userName: 'user1', email: 'user1@a.a',
-          activated: true, isSuspended: false },
-        { id: 'user2', firstName: 'Ni',   lastName: 'Two',   userName: 'user2', email: 'user2@a.a',
-          activated: true, isSuspended: false },
-        { id: 'user3', firstName: 'San',  lastName: 'Three', userName: 'user3', email: 'user3@a.a',
-          activated: true, isSuspended: false },
-        { id: 'user4', firstName: 'Shi',  lastName: 'Four',  userName: 'user4', email: 'user4@a.a',
-          activated: true, isSuspended: false },
-        { id: 'user5', firstName: 'Go',   lastName: 'Five',  userName: 'user5', email: 'user5@a.a',
-          activated: true, isSuspended: false },
-      ];
+      const clients = {
+        client1: { id: 'client1', name: 'client1', code: 'c1', eligibleUsers: ['user1', 'user2', 'user3', 'user4', 'user5'] },
+        client2: { id: 'client2', name: 'client2', code: 'c2', eligibleUsers: ['user1', 'user2', 'user3', 'user4', 'user5'] },
+        client3: { id: 'client3', name: 'client3', code: 'c3', eligibleUsers: ['user1', 'user2', 'user3'] },
+        client4: { id: 'client4', name: 'client4', code: 'c4', eligibleUsers: [] },
+      };
+      const users = {
+        user1: { id: 'user1', firstName: 'Ichi', lastName: 'One',   userName: 'user1', email: 'user1@a.a', activated: true, isSuspended: false },
+        user2: { id: 'user2', firstName: 'Ni',   lastName: 'Two',   userName: 'user2', email: 'user2@a.a', activated: true, isSuspended: false },
+        user3: { id: 'user3', firstName: 'San',  lastName: 'Three', userName: 'user3', email: 'user3@a.a', activated: true, isSuspended: false },
+        user4: { id: 'user4', firstName: 'Shi',  lastName: 'Four',  userName: 'user4', email: 'user4@a.a', activated: true, isSuspended: false },
+        user5: { id: 'user5', firstName: 'Go',   lastName: 'Five',  userName: 'user5', email: 'user5@a.a', activated: true, isSuspended: false },
+      };
       resolve({ clients, users });
     }, 500);
   });
@@ -30,28 +28,34 @@ export function fetchClients() {
 export function fetchItems(clientId: Guid) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const items = [
-        { id: 'item1', clientId: 'client1', contentTypeId: '1', name: 'item1', doesReduce: true, isSuspended: false },
-        { id: 'item2', clientId: 'client1', contentTypeId: '1', name: 'item2', doesReduce: true, isSuspended: false },
-        { id: 'item3', clientId: 'client1', contentTypeId: '1', name: 'item3', doesReduce: true, isSuspended: true },
-        { id: 'item4', clientId: 'client2', contentTypeId: '1', name: 'item4', doesReduce: true, isSuspended: false },
-        { id: 'item5', clientId: 'client2', contentTypeId: '1', name: 'item5', doesReduce: true, isSuspended: false },
-        { id: 'item6', clientId: 'client3', contentTypeId: '1', name: 'item6', doesReduce: false, isSuspended: false },
-      ];
-      const contentTypes = [
-        { id: '1', name: 'QlikView', canReduce: true, fileExtensions: [] },
-        { id: '2', name: 'HTML', canReduce: false, fileExtensions: [] },
-        { id: '3', name: 'PDF', canReduce: false, fileExtensions: [] },
-      ];
-      const publications = [
-        { id: 'p1', applicationUserId: 'user1', rootContentItemId: 'item2',
-          createDateTimeUtc: '2018-04-02T00:00:00.000Z', requestStatus: PublicationStatus.Queued },
-      ];
-      const publicationQueue = [
-        { publicationId: 'p1', queuePosition: 2 },
-      ];
+      const items = {
+        item1: { id: 'item1', clientId: 'client1', contentTypeId: '1', name: 'item1', doesReduce: true, isSuspended: false },
+        item2: { id: 'item2', clientId: 'client1', contentTypeId: '1', name: 'item2', doesReduce: true, isSuspended: false },
+        item3: { id: 'item3', clientId: 'client1', contentTypeId: '1', name: 'item3', doesReduce: true, isSuspended: true },
+        item4: { id: 'item4', clientId: 'client2', contentTypeId: '1', name: 'item4', doesReduce: true, isSuspended: false },
+        item5: { id: 'item5', clientId: 'client2', contentTypeId: '1', name: 'item5', doesReduce: true, isSuspended: false },
+        item6: { id: 'item6', clientId: 'client3', contentTypeId: '1', name: 'item6', doesReduce: false, isSuspended: false },
+      };
+      const contentTypes = {
+        1: { id: '1', name: 'QlikView', canReduce: true, fileExtensions: [] },
+        2: { id: '2', name: 'HTML', canReduce: false, fileExtensions: [] },
+        3: { id: '3', name: 'PDF', canReduce: false, fileExtensions: [] },
+      };
+      const publications = {
+        p1: { id: 'p1', applicationUserId: 'user1', rootContentItemId: 'item2', createDateTimeUtc: '2018-04-02T00:00:00.000Z', requestStatus: PublicationStatus.Queued },
+      };
+      const publicationQueue = {
+        p1: { publicationId: 'p1', queuePosition: 2 },
+      };
+
+      const ro = {};
+      Object.keys(items).forEach((i) => {
+        if (items[i].clientId === clientId) {
+          ro[i] = items[i];
+        }
+      });
       resolve({
-        items: items.filter((i) => i.clientId === clientId),
+        items: ro,
         contentTypes,
         publications,
         publicationQueue,
@@ -63,28 +67,28 @@ export function fetchItems(clientId: Guid) {
 export function fetchGroups(itemId: Guid) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const groups = [
-        { id: 'group1', rootContentItemId: 'item1', name: 'group1', isMaster: true, isSuspended: false,
-          assignedUsers: [ 'user1', 'user2' ] },
-        { id: 'group2', rootContentItemId: 'item1', name: 'group2', isMaster: false, isSuspended: true,
-          assignedUsers: [ 'user3' ] },
-        { id: 'group3', rootContentItemId: 'item1', name: 'group3', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-        { id: 'group4', rootContentItemId: 'item2', name: 'group4', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-        { id: 'group5', rootContentItemId: 'item3', name: 'group5', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-      ];
-      const reductions = [
-        { id: 'r1', applicationUserId: 'user2', selectionGroupId: 'group1',
-          createDateTimeUtc: '2018-02-11T00:00:00.000Z', taskStatus: ReductionStatus.Queued,
-          selectedValues: [] },
-      ];
-      const reductionQueue = [
-        { reductionId: 'r1', queuePosition: 1 },
-      ];
+      const groups = {
+        group1: { id: 'group1', rootContentItemId: 'item1', name: 'group1', isMaster: true, isSuspended: false, assignedUsers: [ 'user1', 'user2' ] },
+        group2: { id: 'group2', rootContentItemId: 'item1', name: 'group2', isMaster: false, isSuspended: true, assignedUsers: [ 'user3' ] },
+        group3: { id: 'group3', rootContentItemId: 'item1', name: 'group3', isMaster: false, isSuspended: false, assignedUsers: [] },
+        group4: { id: 'group4', rootContentItemId: 'item2', name: 'group4', isMaster: false, isSuspended: false, assignedUsers: [] },
+        group5: { id: 'group5', rootContentItemId: 'item3', name: 'group5', isMaster: false, isSuspended: false, assignedUsers: [] },
+      };
+      const reductions = {
+        r1: { id: 'r1', applicationUserId: 'user2', selectionGroupId: 'group1', createDateTimeUtc: '2018-02-11T00:00:00.000Z', taskStatus: ReductionStatus.Queued, selectedValues: [] },
+      };
+      const reductionQueue = {
+        r1: { reductionId: 'r1', queuePosition: 1 },
+      };
+
+      const ro = {};
+      Object.keys(groups).forEach((g) => {
+        if (groups[g].rootContentItemId === itemId) {
+          ro[g] = groups[g];
+        }
+      });
       resolve({
-        groups: groups.filter((g) => g.rootContentItemId === itemId),
+        groups: ro,
         reductions,
         reductionQueue,
       });
@@ -95,25 +99,25 @@ export function fetchGroups(itemId: Guid) {
 export function fetchSelections(groupId: Guid) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const groups = [
-        { id: 'group1', selectedValues: [] },
-        { id: 'group2', selectedValues: [] },
-        { id: 'group3', selectedValues: [] },
-        { id: 'group4', selectedValues: [] },
-        { id: 'group5', selectedValues: [] },
-      ];
-      const fields = [
-        { id: 'field1', fieldName: 'field1', displayName: 'field1', rootContentItemId: 'item1', valueDelimiter: '' },
-        { id: 'field2', fieldName: 'field2', displayName: 'field2', rootContentItemId: 'item1', valueDelimiter: '' },
-        { id: 'field3', fieldName: 'field3', displayName: 'field3', rootContentItemId: 'item1', valueDelimiter: '' },
-      ];
-      const values = [
-        { id: 'value1', reductionFieldId: 'field1', value: 'value1' },
-        { id: 'value2', reductionFieldId: 'field1', value: 'value2' },
-        { id: 'value3', reductionFieldId: 'field1', value: 'value3' },
-        { id: 'value4', reductionFieldId: 'field2', value: 'value4' },
-        { id: 'value5', reductionFieldId: 'field2', value: 'value5' },
-      ];
+      const groups = {
+        group1: { id: 'group1', selectedValues: [] },
+        group2: { id: 'group2', selectedValues: [] },
+        group3: { id: 'group3', selectedValues: [] },
+        group4: { id: 'group4', selectedValues: [] },
+        group5: { id: 'group5', selectedValues: [] },
+      };
+      const fields = {
+        field1: { id: 'field1', fieldName: 'field1', displayName: 'field1', rootContentItemId: 'item1', valueDelimiter: '' },
+        field2: { id: 'field2', fieldName: 'field2', displayName: 'field2', rootContentItemId: 'item1', valueDelimiter: '' },
+        field3: { id: 'field3', fieldName: 'field3', displayName: 'field3', rootContentItemId: 'item1', valueDelimiter: '' },
+      };
+      const values = {
+        value1: { id: 'value1', reductionFieldId: 'field1', value: 'value1' },
+        value2: { id: 'value2', reductionFieldId: 'field1', value: 'value2' },
+        value3: { id: 'value3', reductionFieldId: 'field1', value: 'value3' },
+        value4: { id: 'value4', reductionFieldId: 'field2', value: 'value4' },
+        value5: { id: 'value5', reductionFieldId: 'field2', value: 'value5' },
+      };
       resolve({
         groupId,
         groups,
@@ -127,21 +131,18 @@ export function fetchSelections(groupId: Guid) {
 export function fetchStatus() {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const publications = [
-        { id: 'p1', applicationUserId: 'user1', rootContentItemId: 'item2',
-          createDateTimeUtc: '2018-04-02T00:00:00.000Z', requestStatus: PublicationStatus.Queued },
-      ];
-      const publicationQueue = [
-        { publicationId: 'p1', queuePosition: 2 },
-      ];
-      const reductions = [
-        { id: 'r1', applicationUserId: 'user2', selectionGroupId: 'group1',
-          createDateTimeUtc: '2018-02-11T00:00:00.000Z', taskStatus: ReductionStatus.Queued,
-          selectedValues: [] },
-      ];
-      const reductionQueue = [
-        { reductionId: 'r1', queuePosition: 1 },
-      ];
+      const publications = {
+        p1: { id: 'p1', applicationUserId: 'user1', rootContentItemId: 'item2', createDateTimeUtc: '2018-04-02T00:00:00.000Z', requestStatus: PublicationStatus.Queued },
+      };
+      const publicationQueue = {
+        p1: { publicationId: 'p1', queuePosition: 2 },
+      };
+      const reductions = {
+        r1: { id: 'r1', applicationUserId: 'user2', selectionGroupId: 'group1', createDateTimeUtc: '2018-02-11T00:00:00.000Z', taskStatus: ReductionStatus.Queued, selectedValues: [] },
+      };
+      const reductionQueue = {
+        r1: { reductionId: 'r1', queuePosition: 1 },
+      };
       resolve({ publications, publicationQueue, reductions, reductionQueue });
     }, 500);
   });
@@ -150,21 +151,8 @@ export function fetchStatus() {
 export function createGroup(itemId: Guid, name: string) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const groups = [
-        { id: 'group1', rootContentItemId: 'item1', name: 'group1', isMaster: true, isSuspended: false,
-          assignedUsers: [ 'user1', 'user2' ] },
-        { id: 'group2', rootContentItemId: 'item1', name: 'group2', isMaster: false, isSuspended: true,
-          assignedUsers: [ 'user3' ] },
-        { id: 'group3', rootContentItemId: 'item1', name: 'group3', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-        { id: 'group4', rootContentItemId: 'item2', name: 'group4', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-        { id: 'group5', rootContentItemId: 'item3', name: 'group5', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-        { id: 'group6', rootContentItemId: itemId, name, isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-      ];
-      resolve({ groups });
+      alert({ itemId, name });
+      resolve({});
     }, 500);
   });
 }
@@ -172,22 +160,8 @@ export function createGroup(itemId: Guid, name: string) {
 export function updateGroup(groupId: Guid, name: string, users: Guid[]) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const groups = [
-        { id: 'group1', rootContentItemId: 'item1', name: 'group1', isMaster: true, isSuspended: false,
-          assignedUsers: [ 'user1', 'user2' ] },
-        { id: 'group2', rootContentItemId: 'item1', name: 'group2', isMaster: false, isSuspended: true,
-          assignedUsers: [ 'user3' ] },
-        { id: 'group3', rootContentItemId: 'item1', name: 'group3', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-        { id: 'group4', rootContentItemId: 'item2', name: 'group4', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-        { id: 'group5', rootContentItemId: 'item3', name: 'group5', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-      ];
-      const i = groups.findIndex((g) => g.id === groupId);
-      groups[i].name = name;
-      groups[i].assignedUsers = users;
-      resolve({ groups });
+      alert({ groupId, name, users });
+      resolve({});
     }, 500);
   });
 }
@@ -195,19 +169,8 @@ export function updateGroup(groupId: Guid, name: string, users: Guid[]) {
 export function deleteGroup(groupId: Guid) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const groups = [
-        { id: 'group1', rootContentItemId: 'item1', name: 'group1', isMaster: true, isSuspended: false,
-          assignedUsers: [ 'user1', 'user2' ] },
-        { id: 'group2', rootContentItemId: 'item1', name: 'group2', isMaster: false, isSuspended: true,
-          assignedUsers: [ 'user3' ] },
-        { id: 'group3', rootContentItemId: 'item1', name: 'group3', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-        { id: 'group4', rootContentItemId: 'item2', name: 'group4', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-        { id: 'group5', rootContentItemId: 'item3', name: 'group5', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-      ];
-      resolve({ groups: groups.filter((g) => g.id !== groupId) });
+      alert(groupId);
+      resolve({});
     }, 500);
   });
 }
@@ -215,21 +178,8 @@ export function deleteGroup(groupId: Guid) {
 export function suspendGroup(groupId: Guid, isSuspended: boolean) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const groups = [
-        { id: 'group1', rootContentItemId: 'item1', name: 'group1', isMaster: true, isSuspended: false,
-          assignedUsers: [ 'user1', 'user2' ] },
-        { id: 'group2', rootContentItemId: 'item1', name: 'group2', isMaster: false, isSuspended: true,
-          assignedUsers: [ 'user3' ] },
-        { id: 'group3', rootContentItemId: 'item1', name: 'group3', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-        { id: 'group4', rootContentItemId: 'item2', name: 'group4', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-        { id: 'group5', rootContentItemId: 'item3', name: 'group5', isMaster: false, isSuspended: false,
-          assignedUsers: [] },
-      ];
-      const i = groups.findIndex((g) => g.id === groupId);
-      groups[i].isSuspended = isSuspended;
-      resolve({ groups });
+      alert({ groupId, isSuspended });
+      resolve({});
     }, 500);
   });
 }
@@ -251,3 +201,4 @@ export function cancelReduction(groupId: Guid) {
     }, 500);
   });
 }
+/* tslint:enable:max-line-length */

@@ -1,26 +1,26 @@
+import { mapValues } from 'lodash';
 import { combineReducers } from 'redux';
 
 import { Guid } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { AccessAction, DataSuffixes } from './actions';
 import {
-  AccessStateData, AccessStateSelected, FilterState, ModalState, PendingGroupState,
-  PendingGroupUserState,
-  PendingDataState,
+  AccessStateData, AccessStateSelected, FilterState, ModalState, PendingDataState,
+  PendingGroupState, PendingGroupUserState,
 } from './store';
 
 const _initialData: AccessStateData = {
-  clients: [],
-  items: [],
-  groups: [],
-  users: [],
-  fields: [],
-  values: [],
-  contentTypes: [],
-  publications: [],
-  publicationQueue: [],
-  reductions: [],
-  reductionQueue: [],
+  clients: {},
+  items: {},
+  groups: {},
+  users: {},
+  fields: {},
+  values: {},
+  contentTypes: {},
+  publications: {},
+  publicationQueue: {},
+  reductions: {},
+  reductionQueue: {},
 };
 const _initialCards = new Map<Guid, CardAttributes>([]);
 const _initialPendingData: PendingDataState = {
@@ -97,9 +97,9 @@ const groupCardAttributes = createReducer<Map<Guid, CardAttributes>>(_initialCar
       updateAllMap(state, { expanded: false }),
     [AccessAction.FetchGroups + DataSuffixes.Succeeded]: (state, action) => {
       const clone = new Map(state);
-      action.payload.groups.forEach((group) => {
-        if (!clone.has(group.id)) {
-          clone.set(group.id, {});
+      Object.keys(action.payload.groups).forEach((group) => {
+        if (!clone.has(group)) {
+          clone.set(group, {});
         }
       });
       return clone;
@@ -197,18 +197,20 @@ const data = createReducer<AccessStateData>(_initialData, {
     reductions: action.payload.reductions,
     reductionQueue: action.payload.reductionQueue,
   }),
-  [AccessAction.FetchSelections + DataSuffixes.Succeeded]: (state, action) => ({
-    ...state,
-    groups: state.groups.map((g) => {
-      const grp = action.payload.groups.find((f) => f.id === g.id);
-      return {
-        ...g,
-        selectedValues: grp ? grp.selectedValues : [],
-      };
-    }),
-    fields: action.payload.fields,
-    values: action.payload.values,
-  }),
+  [AccessAction.FetchSelections + DataSuffixes.Succeeded]: (state, action) => {
+    return {
+      ...state,
+      groups: mapValues(state.groups, (value, key) => {
+        const grp = action.payload.groups[key];
+        return {
+          ...value,
+          selectedValues: grp ? grp.selectedValues : [],
+        };
+      }),
+      fields: action.payload.fields,
+      values: action.payload.values,
+    };
+  },
 });
 const selected = createReducer<AccessStateSelected>(
   {

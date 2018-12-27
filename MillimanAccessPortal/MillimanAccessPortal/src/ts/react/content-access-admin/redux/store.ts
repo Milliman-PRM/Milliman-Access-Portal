@@ -10,6 +10,10 @@ import { CardAttributes } from '../../shared-components/card/card';
 import { contentAccessAdmin } from './reducers';
 import sagas from './sagas';
 
+export interface Dict<T> {
+  [key: string]: T;
+}
+
 export interface FilterState {
   text: string;
 }
@@ -33,17 +37,17 @@ export interface PendingGroupState {
 }
 
 export interface AccessStateData {
-  clients: ClientWithEligibleUsers[];
-  items: RootContentItem[];
-  groups: SelectionGroupWithAssignedUsers[];
-  users: User[];
-  fields: ReductionField[];
-  values: ReductionFieldValue[];
-  contentTypes: ContentType[];
-  publications: ContentPublicationRequest[];
-  publicationQueue: PublicationQueueDetails[];
-  reductions: ContentReductionTask[];
-  reductionQueue: ReductionQueueDetails[];
+  clients: Dict<ClientWithEligibleUsers>;
+  items: Dict<RootContentItem>;
+  groups: Dict<SelectionGroupWithAssignedUsers>;
+  users: Dict<User>;
+  fields: Dict<ReductionField>;
+  values: Dict<ReductionFieldValue>;
+  contentTypes: Dict<ContentType>;
+  publications: Dict<ContentPublicationRequest>;
+  publicationQueue: Dict<PublicationQueueDetails>;
+  reductions: Dict<ContentReductionTask>;
+  reductionQueue: Dict<ReductionQueueDetails>;
 }
 export interface AccessStateSelected {
   client: Guid;
