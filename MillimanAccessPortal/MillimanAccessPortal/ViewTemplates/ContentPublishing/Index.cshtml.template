@@ -272,69 +272,74 @@
     <div class="admin-panel-content-container">
         <div class="confirmation-section requires-confirmation" id="confirmation-section-master-content">
             <h4>Master Content</h4>
-            <div class="content-preview">
-                <iframe src="about:blank"></iframe>
-            </div>
-            <div class="content-preview-pdf">
-                <object data="about:blank" type="application/pdf"></object>
-            </div>
-            <div class="content-preview-sandbox">
-                <iframe sandbox="allow-scripts allow-popups allow-modals allow-forms" src="about:blank"></iframe>
-            </div>
-            <div class="content-preview-download">
-                <a download>Click to download</a>
-            </div>
-            <div class="content-preview-none" style="display: none;">
-                <p>This file has not changed.</p>
+            <div class="content-preview-container">
+                <iframe src="about:blank" class="content-preview"></iframe>
+                <object data="about:blank" type="application/pdf" class="content-preview-pdf"></object>
+                <iframe sandbox="allow-scripts allow-popups allow-modals allow-forms" src="about:blank" class="content-preview-sandbox"></iframe>
+                <a download class="content-preview-download">Click to download</a>
+                <p class="content-preview-none" style="display: none;">This file has not changed.</p>
+                <a class="new-tab-icon" target="_blank">
+                    <svg class="action-icon-expand-frame action-icon tooltip" title="Open in new tab">
+                        <use xlink:href="#expand-frame"></use>
+                    </svg>
+                </a>
             </div>
             <label for="confirmation-master-content" class="selection-option-label">
-                <input type="checkbox" name="master-content" value="confirmation-master-content" id="confirmation-master-content" class="selection-option-value">
+                <input type="checkbox" name="master-content" value="confirmation-master-content" id="confirmation-master-content" class="selection-option-value requires-confirmation">
                 <span class="selection-option-checkmark"></span>
                 Content is as expected
             </label>
         </div>
         <div class="confirmation-section requires-confirmation" id="confirmation-section-user-guide">
             <h4>User Guide</h4>
-            <div class="content-preview">
-                <iframe src="about:blank"></iframe>
-            </div>
-            <div class="content-preview-none" style="display: none;">
-                <p>This file has not changed.</p>
+            <div class="content-preview-container">
+                <iframe src="about:blank" class="content-preview"></iframe>
+                <p class="content-preview-none" style="display: none;">This file has not changed.</p>
+                <a class="new-tab-icon" target="_blank">
+                    <svg class="action-icon-expand-frame action-icon tooltip" title="Open in new tab">
+                        <use xlink:href="#expand-frame"></use>
+                    </svg>
+                </a>
             </div>
             <label for="confirmation-user-guide" class="selection-option-label">
-                <input type="checkbox" name="user-guide" value="confirmation-user-guide" id="confirmation-user-guide" class="selection-option-value">
+                <input type="checkbox" name="user-guide" value="confirmation-user-guide" id="confirmation-user-guide" class="selection-option-value requires-confirmation">
                 <span class="selection-option-checkmark"></span>
                 User guide is as expected
             </label>
         </div>
         <div class="confirmation-section requires-confirmation" id="confirmation-section-release-notes">
             <h4>Release Notes</h4>
-            <div class="content-preview">
-                <iframe src="about:blank"></iframe>
-            </div>
-            <div class="content-preview-none" style="display: none;">
-                <p>This file has not changed.</p>
+            <div class="content-preview-container">
+                <iframe src="about:blank" class="content-preview"></iframe>
+                <p class="content-preview-none" style="display: none;">This file has not changed.</p>
+                <a class="new-tab-icon" target="_blank">
+                    <svg class="action-icon-expand-frame action-icon tooltip" title="Open in new tab">
+                        <use xlink:href="#expand-frame"></use>
+                    </svg>
+                </a>
             </div>
             <label for="confirmation-release-notes" class="selection-option-label">
-                <input type="checkbox" name="release-notes" value="confirmation-release-notes" id="confirmation-release-notes" class="selection-option-value">
+                <input type="checkbox" name="release-notes" value="confirmation-release-notes" id="confirmation-release-notes" class="selection-option-value requires-confirmation">
                 <span class="selection-option-checkmark"></span>
                 Release notes are as expected
             </label>
         </div>
         <div class="confirmation-section requires-confirmation" id="confirmation-section-hierarchy-diff">
             <h4>Hierarchy Changes</h4>
+            <div class="switch-container">
+                <div class="toggle-switch">
+                    <input type="checkbox" class="toggle-switch-checkbox" id="hide-unchanged" name="hide-unchanged">
+                    <label class="toggle-switch-label" for="hide-unchanged">
+                        <span class="toggle-switch-inner"></span>
+                        <span class="toggle-switch-switch"></span>
+                    </label>
+                </div>
+                <label class="switch-label" for="hide-unchanged">Hide unchanged values</label>
+            </div>
             <div class="hierarchy-container">
-                <div class="hierarchy hierarchy-left">
-                    <h5>Old Hierarchy Values</h5>
-                    <ul class="hierarchy-list"></ul>
-                </div>
-                <div class="hierarchy hierarchy-right">
-                    <h5>New Hierarchy Values</h5>
-                    <ul class="hierarchy-list"></ul>
-                </div>
             </div>
             <label for="confirmation-hierarchy-diff" class="selection-option-label">
-                <input type="checkbox" name="hierarchy-diff" value="confirmation-hierarchy-diff" id="confirmation-hierarchy-diff" class="selection-option-value">
+                <input type="checkbox" name="hierarchy-diff" value="confirmation-hierarchy-diff" id="confirmation-hierarchy-diff" class="selection-option-value requires-confirmation">
                 <span class="selection-option-checkmark"></span>
                 Hierarchy changes are as expected
             </label>
@@ -342,10 +347,10 @@
         <div class="confirmation-section requires-confirmation" id="confirmation-section-hierarchy-stats">
             <h4>Reduction Results</h4>
             <div>
-                <ul></ul>
+                <ul class="selection-group-list"></ul>
             </div>
             <label for="confirmation-hierarchy-stats" class="selection-option-label">
-                <input type="checkbox" name="hierarchy-stats" value="confirmation-hierarchy-stats" id="confirmation-hierarchy-stats" class="selection-option-value">
+                <input type="checkbox" name="hierarchy-stats" value="confirmation-hierarchy-stats" id="confirmation-hierarchy-stats" class="selection-option-value requires-confirmation">
                 <span class="selection-option-checkmark"></span>
                 Reduction results are as expected
             </label>

@@ -114,7 +114,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentPublisher);
+            var model = ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentPublisher);
 
             return new JsonResult(model);
         }
@@ -791,20 +791,29 @@ namespace MillimanAccessPortal.Controllers
                     }
 
                     // This ContentReductionTask must be a reducing task
-                    if (ThisTask.TaskAction != TaskActionEnum.HierarchyAndReduction)
+                    var reducingTaskAction = new List<TaskActionEnum>
+                    {
+                        TaskActionEnum.ReductionOnly,
+                        TaskActionEnum.HierarchyAndReduction,
+                    };
+                    if (!reducingTaskAction.Contains(ThisTask.TaskAction))
                     {
                         Log.Error($"In ContentPublishingController.GoLive action: " +
                             $"for selection group {relatedSelectionGroup.Id}, " +
                             $"reduction task {ThisTask.Id} " +
                             $"should have action {TaskActionEnum.HierarchyAndReduction.ToString()} " +
+                            $"or {TaskActionEnum.ReductionOnly.ToString()} " +
                             $"but is {ThisTask.TaskAction.ToString()}, " +
                             "aborting");
                         Response.Headers.Add("Warning",
                             $"Go live request failed to verify related content reduction task {ThisTask.Id}.");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
+
                     // The reduced content file identified in the ContentReductionTask must exist
-                    if (!System.IO.File.Exists(ThisTask.ResultFilePath))
+                    // Reductions that will result in inactive selection groups have no result file
+                    bool isInactive = string.IsNullOrWhiteSpace(ThisTask.ResultFilePath);
+                    if (!isInactive && !System.IO.File.Exists(ThisTask.ResultFilePath))
                     {
                         Log.Error($"In ContentPublishingController.GoLive action: " +
                             $"for selection group {relatedSelectionGroup.Id}, " +

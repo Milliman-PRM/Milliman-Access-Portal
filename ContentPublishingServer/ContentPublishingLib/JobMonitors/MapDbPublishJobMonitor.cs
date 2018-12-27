@@ -24,6 +24,21 @@ namespace ContentPublishingLib.JobMonitors
 {
     public class MapDbPublishJobMonitor : JobMonitorBase
     {
+        public enum MapDbPublishJobMonitorType
+        {
+            ReducingPublications,
+            NonReducingPublications,
+        }
+
+        /// <summary>
+        /// ctor, requires a type specifier to instantiate this class
+        /// </summary>
+        /// <param name="Type"></param>
+        public MapDbPublishJobMonitor(MapDbPublishJobMonitorType Type)
+        {
+            JobMonitorType = Type;
+        }
+
         internal class PublishJobTrackingItem
         {
             internal Task<PublishJobDetail> task;
@@ -32,6 +47,12 @@ namespace ContentPublishingLib.JobMonitors
         }
 
         override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxSimultaneousRequests";
+
+        private MapDbPublishJobMonitorType JobMonitorType { get; set; }
+
+        public Mutex QueueMutex { private get; set; }
+
+        private bool IsTestMode { get { return MockContext != null; } }
 
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<PublishJobTrackingItem> ActivePublicationRunnerItems = new List<PublishJobTrackingItem>();
@@ -90,7 +111,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <returns></returns>
         public override Task Start(CancellationToken Token)
         {
-            if (ContextOptions == null && MockContext == null)
+            if (ContextOptions == null && !IsTestMode)
             {
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
@@ -101,6 +122,8 @@ namespace ContentPublishingLib.JobMonitors
         public override void JobMonitorThreadMain(CancellationToken Token)
         {
             MethodBase Method = MethodBase.GetCurrentMethod();
+
+            // Main loop
             while (!Token.IsCancellationRequested)
             {
                 // Remove completed tasks from the RunningTasks collection. 
@@ -114,46 +137,57 @@ namespace ContentPublishingLib.JobMonitors
                 // Start more tasks if there is room in the RunningTasks collection. 
                 if (ActivePublicationRunnerItems.Count < MaxConcurrentRunners)
                 {
-                    List<ContentPublicationRequest> Responses = GetReadyRequests(MaxConcurrentRunners - ActivePublicationRunnerItems.Count);
-
-                    foreach (ContentPublicationRequest DbRequest in Responses)
+                    if (QueueMutex.WaitOne(new TimeSpan(0, 0, 20)))
                     {
-                        Task<PublishJobDetail> NewTask = null;
-                        CancellationTokenSource cancelSource = new CancellationTokenSource();
+                        List<ContentPublicationRequest> Responses = GetReadyRequests(MaxConcurrentRunners - ActivePublicationRunnerItems.Count);
 
-                        // Do I need a switch on ContentType?  (example in MapDbReductionJobMonitor)
-                        MapDbPublishRunner Runner;
-                        using (ApplicationDbContext Db = MockContext != null
-                                                         ? MockContext.Object
-                                                         : new ApplicationDbContext(ContextOptions))
+                        foreach (ContentPublicationRequest DbRequest in Responses)
                         {
-                            Runner = new MapDbPublishRunner
+                            Task<PublishJobDetail> NewTask = null;
+                            CancellationTokenSource cancelSource = new CancellationTokenSource();
+
+                            // Do I need a switch on ContentType?  (example in MapDbReductionJobMonitor)
+                            MapDbPublishRunner Runner;
+                            using (ApplicationDbContext Db = IsTestMode
+                                                             ? MockContext.Object
+                                                             : new ApplicationDbContext(ContextOptions))
                             {
-                                JobDetail = PublishJobDetail.New(DbRequest, Db),
-                            };
-                        }
-                        if (MockContext != null)
-                        {
-                            Runner.MockContext = MockContext;
-                            Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
-                        }
-                        else
-                        {
-                            Runner.ConnectionString = ConnectionString;
+                                Runner = new MapDbPublishRunner
+                                {
+                                    JobDetail = PublishJobDetail.New(DbRequest, Db),
+                                };
+                            }
+                            if (IsTestMode)
+                            {
+                                Runner.MockContext = MockContext;
+                                Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
+                            }
+                            else
+                            {
+                                Runner.ConnectionString = ConnectionString;
+                            }
+
+                            NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
+
+                            if (NewTask != null)
+                            {
+                                ActivePublicationRunnerItems.Add(new PublishJobTrackingItem { requestId = DbRequest.Id, task = NewTask, tokenSource = cancelSource });
+                            }
                         }
 
-                        NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
-
-                        if (NewTask != null)
-                        {
-                            ActivePublicationRunnerItems.Add(new PublishJobTrackingItem { requestId = DbRequest.Id, task = NewTask, tokenSource = cancelSource });
-                        }
+                        QueueMutex.ReleaseMutex();
+                        Thread.Sleep(500 * (1 + JobMonitorInstanceCounter));  // Allow time for any new runner(s) to start executing
+                    }
+                    else
+                    {
+                        // Mutex was not acquired
                     }
                 }
 
                 Thread.Sleep(1000);
             }
 
+            // Cancel was requested
             GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} stopping {ActivePublicationRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
 
             if (ActivePublicationRunnerItems.Count != 0)
@@ -200,27 +234,59 @@ namespace ContentPublishingLib.JobMonitors
                 return new List<ContentPublicationRequest>();
             }
 
-            using (ApplicationDbContext Db = MockContext != null
+            using (ApplicationDbContext Db = IsTestMode
                                              ? MockContext.Object
                                              : new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
                 try
                 {
-                    List<ContentPublicationRequest> TopItems = Db.ContentPublicationRequest.Where(r => DateTime.UtcNow - r.CreateDateTimeUtc > TaskAgeBeforeExecution)
-                                                                                 .Where(r => r.RequestStatus == PublicationStatus.Queued)
-                                                                                 .Include(r => r.RootContentItem)
-                                                                                 .OrderBy(r => r.RootContentItem.DoesReduce)  // false < true
-                                                                                     .ThenBy(r => r.CreateDateTimeUtc)
-                                                                                 .Take(ReturnNoMoreThan)
-                                                                                 .ToList();
+                    IQueryable<ContentPublicationRequest> QueuedPublicationQuery = Db.ContentPublicationRequest.Where(r => DateTime.UtcNow - r.CreateDateTimeUtc > TaskAgeBeforeExecution)
+                                                                                                               .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                                                                                                               .Include(r => r.RootContentItem)
+                                                                                                               .OrderBy(r => r.CreateDateTimeUtc);
+
+                    // Customize the query based on this job monitor type
+                    switch (JobMonitorType)
+                    {
+                        case MapDbPublishJobMonitorType.NonReducingPublications:
+                            QueuedPublicationQuery = QueuedPublicationQuery.Where(r => !r.RootContentItem.DoesReduce);
+                            break;
+
+                        case MapDbPublishJobMonitorType.ReducingPublications:
+                            DateTime EarliestReductionTaskTimestamp = Db.ContentReductionTask
+                                .Where(t => new ReductionStatusEnum[] { ReductionStatusEnum.Queued, ReductionStatusEnum.Reducing }.Contains(t.ReductionStatus))
+                                .OrderBy(t => t.CreateDateTimeUtc)
+                                .Select(t => t.CreateDateTimeUtc)
+                                .FirstOrDefault();
+
+                            if (EarliestReductionTaskTimestamp == default(DateTime))  // if no tasks are queued or processing
+                            {
+                                EarliestReductionTaskTimestamp = DateTime.MaxValue;  // DateTime.MaxValue does not exceed max value of a timestamp in PostgreSQL (so this is ok)
+                            }
+
+                            QueuedPublicationQuery = QueuedPublicationQuery.Where(r => r.RootContentItem.DoesReduce)
+                                                                           .Where(r => r.CreateDateTimeUtc < EarliestReductionTaskTimestamp);
+                            break;
+
+                        default:
+                            throw new ApplicationException($"Cannot query publication job queue using unsupported JobMonitorType {JobMonitorType.ToString()}");
+                    }
+
+                    List<ContentPublicationRequest> TopItems = QueuedPublicationQuery.Take(ReturnNoMoreThan).ToList();
+
                     if (TopItems.Count > 0)
                     {
-                        TopItems.ForEach(r => r.RequestStatus = PublicationStatus.Processing);
+                        TopItems.ForEach(r =>
+                        {
+                            r.RequestStatus = PublicationStatus.Processing;
+                            GlobalFunctions.TraceWriteLine($"PublishJobMonitor({JobMonitorType.ToString()}) initiating processing for request {r.Id.ToString()}");
+                        });
                         Db.ContentPublicationRequest.UpdateRange(TopItems);
                         Db.SaveChanges();
                         Transaction.Commit();
-                    }
+                }
+
                     return TopItems;
                 }
                 catch (Exception e)
@@ -249,7 +315,7 @@ namespace ContentPublishingLib.JobMonitors
             try
             {
                 // Use a transaction so that there is no concurrency issue after we get the current db record
-                using (ApplicationDbContext Db = MockContext != null
+                using (ApplicationDbContext Db = IsTestMode
                                                  ? MockContext.Object
                                                  : new ApplicationDbContext(ContextOptions))
                 using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
@@ -261,16 +327,25 @@ namespace ContentPublishingLib.JobMonitors
                         return false;
                     }
 
+                    List<ContentReductionTask> RelatedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id).ToList();
+
                     // Canceled here implies that the application does not want the update
                     if (DbRequest.RequestStatus == PublicationStatus.Canceled)
                     {
-                        List<ContentReductionTask> RelatedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id).ToList();
                         RelatedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
                         Db.ContentReductionTask.UpdateRange(RelatedTasks);
                         Db.SaveChanges();
                         Transaction.Commit();
                         return true;
                     }
+
+                    DbRequest.OutcomeMetadataObj = new PublicationRequestOutcomeMetadata
+                    {
+                        StartDateTime = JobDetail.Result.StartDateTime,
+                        ElapsedTime = JobDetail.Result.ElapsedTime,
+                        ReductionTaskFailOutcomeList = JobDetail.Result.ReductionTaskFailList,
+                        ReductionTaskSuccessOutcomeList = JobDetail.Result.ReductionTaskSuccessList,
+                    };
 
                     switch (JobDetail.Status)
                     {
@@ -280,15 +355,19 @@ namespace ContentPublishingLib.JobMonitors
                         case PublishJobDetail.JobStatusEnum.Error:
                             DbRequest.RequestStatus = PublicationStatus.Error;
                             break;
+                        case PublishJobDetail.JobStatusEnum.Canceled:
+                            DbRequest.RequestStatus = PublicationStatus.Canceled;
+                            break;
                         case PublishJobDetail.JobStatusEnum.Success:
                             DbRequest.RequestStatus = PublicationStatus.Processed;
                             DbRequest.ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
                             {
-                                new ReductionRelatedFiles{ MasterContentFile = JobDetail.Request.MasterContentFile, ReducedContentFileList = JobDetail.Result.ResultingRelatedFiles }
+                                new ReductionRelatedFiles
+                                {
+                                    MasterContentFile = JobDetail.Request.MasterContentFile,
+                                    ReducedContentFileList = JobDetail.Result.ResultingRelatedFiles,
+                                },
                             };
-                            break;
-                        case PublishJobDetail.JobStatusEnum.Canceled:
-                            DbRequest.RequestStatus = PublicationStatus.Canceled;
                             break;
                         default:
                             GlobalFunctions.TraceWriteLine("Unsupported job result status in MapDbPublishJobMonitor.UpdateTask().");

@@ -443,6 +443,7 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
     },
     StatusEnum: 0,
     StatusName: '',
+    StatusMessage: '',
     SelectionGroupId: 0,
     RootContentItemId: 0,
     QueuedDurationMs: -1,
@@ -451,16 +452,6 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
     ...reductionDetails,
   };
 
-  $statusContainer
-    .removeClass((_, classString) => {
-      const classNames = classString.split(' ');
-      return classNames
-        .filter((className) => {
-          return className.indexOf('status-') === 0;
-        })
-        .join(' ');
-    })
-    .addClass('status-' + details.StatusEnum);
   let statusTop = `<strong>${details.StatusName}</strong>`;
   let statusBot = `Initiated by ${details.User.FirstName[0]}. ${details.User.LastName}`;
   const durationText = details.QueuedDurationMs > 0
@@ -478,6 +469,10 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
         statusTop += ` (${details.QueuePosition}/${details.QueueTotal} completed)`;
       }
       statusBot += durationText;
+    } else if (details.StatusName === 'Error') {
+      if (details.StatusMessage) {
+        statusTop += ' (click for details)';
+      }
     } else if (details.StatusName === 'Processed') {
       statusBot += durationText;
     }
@@ -488,12 +483,32 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
         statusTop += ` (behind ${details.QueuePosition + 1} other reduction${details.QueuePosition ? 's' : ''})`;
       }
       statusBot += durationText;
+    } else if (details.StatusName === 'Error') {
+      if (details.StatusMessage) {
+        statusTop += ' (click for details)';
+      }
     } else if (details.StatusName === 'Processing' || details.StatusName === 'Processed') {
       statusBot += durationText;
     }
   }
   $statusTop.html(statusTop);
   $statusBot.html(statusBot);
+  $statusContainer
+    .removeClass((_, classString) => {
+      const classNames = classString.split(' ');
+      return classNames
+        .filter((className) => {
+          return className.indexOf('status-') === 0;
+        })
+        .join(' ');
+    })
+    .addClass('status-' + details.StatusEnum);
+  $statusContainer.off('click');
+  if (details.StatusName.match(/^Error/) && details.StatusMessage) {
+    $statusContainer.on('click', () => {
+      toastr.warning(details.StatusMessage);
+    });
+  }
 }
 export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingStatusEnum: PublicationStatus) {
   $card.find('.card-button-dynamic').hide();

@@ -24,15 +24,16 @@ public class QueuedUploadTaskHostedService : BackgroundService
 
     protected async override Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        using (var scope = Services.CreateScope())
+        while (!cancellationToken.IsCancellationRequested)
         {
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var uploadHelper = scope.ServiceProvider.GetRequiredService<IUploadHelper>();
+            // Retrieve the relevant data to finalize the upload
+            var resumableInfo = await TaskQueue.DequeueAsync(cancellationToken);
 
-            while (!cancellationToken.IsCancellationRequested)
+            using (var scope = Services.CreateScope())
             {
-                // Retrieve the relevant data to finalize the upload
-                var resumableInfo = await TaskQueue.DequeueAsync(cancellationToken);
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var uploadHelper = scope.ServiceProvider.GetRequiredService<IUploadHelper>();
+
                 var fileUpload = dbContext.FileUpload
                     .OrderByDescending(f => f.InitiatedDateTimeUtc)
                     .First(f => f.ClientFileIdentifier == resumableInfo.UID);

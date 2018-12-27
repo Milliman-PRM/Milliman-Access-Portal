@@ -28,9 +28,10 @@ namespace ContentPublishingServiceTests
         public async Task CorrectRequestStatusAfterCancelWhileIdle()
         {
             #region arrange
-            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
+            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
             {
                 MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -110,9 +111,10 @@ namespace ContentPublishingServiceTests
             };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
-            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
+            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.NonReducingPublications)
             {
                 MockContext = MockContext,
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -213,13 +215,16 @@ namespace ContentPublishingServiceTests
             };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
-            MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor
+            var QueueMutex = new Mutex(false);
+            MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
             {
                 MockContext = MockContext,
+                QueueMutex = QueueMutex,
             };
             MapDbReductionJobMonitor ReductionJobMonitor = new MapDbReductionJobMonitor
             {
                 MockContext = MockContext,
+                QueueMutex = QueueMutex,
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -252,14 +257,114 @@ namespace ContentPublishingServiceTests
                 Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
                 Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
                 Assert.Equal(string.Empty, DbRequest.StatusMessage);
-                Assert.Equal(2, Tasks.Count);
-                Assert.True(File.Exists(Tasks.ElementAt(0).ResultFilePath));
-                Assert.True(File.Exists(Tasks.ElementAt(1).ResultFilePath));
+                Assert.Equal(3, Tasks.Count);
+                List<ContentReductionTask> NonNullTasks = Tasks.Where(t => t.SelectionGroupId != null).ToList();
+                Assert.Equal(2, NonNullTasks.Count);
+                Assert.True(File.Exists(NonNullTasks.ElementAt(0).ResultFilePath));
+                Assert.True(File.Exists(NonNullTasks.ElementAt(1).ResultFilePath));
             }
             finally
             {
                 Directory.Delete(ProposedRequestExchangeFolder, true);
             }
+            #endregion
+        }
+
+        /// <summary>
+        /// Tests that a pub request dated later than a queued reduction task is not taken off its queue to start processing
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task PublicationWaitsForEarlierStampedReduction()
+        {
+            #region Arrange
+            Guid ReductionTaskOfThisTest = TestUtil.MakeTestGuid(2);
+            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(3);
+
+            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
+
+            // Modify the reduction task to be tested
+            ContentReductionTask DbTask = MockContext.Object.ContentReductionTask.Single(t => t.Id == ReductionTaskOfThisTest);
+            DbTask.ReductionStatus = ReductionStatusEnum.Queued;
+            DbTask.CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0);
+
+            // Modify the publishing request to be tested
+            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
+            DbRequest.RequestStatus = PublicationStatus.Queued;
+            DbRequest.CreateDateTimeUtc = DateTime.UtcNow;
+
+            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
+            {
+                MockContext = MockContext,
+                QueueMutex = new Mutex(false),
+            };
+
+            CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
+            #endregion
+
+            #region Act
+            Task MonitorTask = Task.Run(() => TestMonitor.Start(CancelTokenSource.Token), CancelTokenSource.Token);
+            Thread.Sleep(4000);
+            try
+            {
+                CancelTokenSource.Cancel();
+                await MonitorTask;
+            }
+            catch { }
+            #endregion
+
+            #region Assert
+            // The request should not be taken off the queue because a reduction task is timestamped earlier
+            Assert.Equal(PublicationStatus.Queued, DbRequest.RequestStatus);
+            #endregion
+        }
+
+        /// <summary>
+        /// Tests that a pub request dated earlier than all queued reduction tasks is taken off its queue to start processing
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task PublicationStartsProcessingBeforeLaterStampedReduction()
+        {
+            #region Arrange
+            Guid ReductionTaskOfThisTest = TestUtil.MakeTestGuid(2);
+            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(3);
+
+            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
+
+            // Modify the reduction task to be tested
+            ContentReductionTask DbTask = MockContext.Object.ContentReductionTask.Single(t => t.Id == ReductionTaskOfThisTest);
+            DbTask.ReductionStatus = ReductionStatusEnum.Queued;
+            DbTask.CreateDateTimeUtc = DateTime.UtcNow;
+
+            // Modify the publishing request to be tested
+            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
+            DbRequest.RequestStatus = PublicationStatus.Queued;
+            DbRequest.CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0);
+
+            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
+            {
+                MockContext = MockContext,
+                QueueMutex = new Mutex(false),
+            };
+
+            CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
+            #endregion
+
+            #region Act
+            Task MonitorTask = Task.Run(() => TestMonitor.Start(CancelTokenSource.Token), CancelTokenSource.Token);
+            Thread.Sleep(8000);
+            try
+            {
+                CancelTokenSource.Cancel();
+                await MonitorTask;
+            }
+            catch { }
+            #endregion
+
+            #region Assert
+            // The request should be taken off the queue because no reduction task is timestamped earlier
+            Assert.Contains(DbRequest.RequestStatus, new PublicationStatus[] { PublicationStatus.Processing, PublicationStatus.Processed });
             #endregion
         }
 

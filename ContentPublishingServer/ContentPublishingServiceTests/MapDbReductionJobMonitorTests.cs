@@ -23,6 +23,7 @@ namespace ContentPublishingServiceTests
             MapDbReductionJobMonitor JobMonitor = new MapDbReductionJobMonitor
             {
                 MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();

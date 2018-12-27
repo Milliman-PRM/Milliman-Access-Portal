@@ -6,8 +6,10 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,8 +18,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     public class RootContentItemStatus
     {
         public List<PublicationSummary> Status = new List<PublicationSummary>();
-
-        public string StatusMessage = string.Empty;
 
         internal static RootContentItemStatus Build(ApplicationDbContext dbContext, ApplicationUser user)
         {
@@ -36,7 +36,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                     .Where(r => r.RootContentItemId == rootContentItem.Id)
                     .OrderByDescending(r => r.CreateDateTimeUtc)
                     .FirstOrDefault();
-                model.Status.Add(publicationRequest.ToSummaryWithQueueInformation(dbContext));
+                var summary = publicationRequest.ToSummaryWithQueueInformation(dbContext);
+                model.Status.Add(summary);
             }
 
             return model;

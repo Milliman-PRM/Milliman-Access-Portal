@@ -2,6 +2,16 @@
 
 ## Release Notes
 
+### v1.3.0
+
+- Publication requests involving reduction errors will no longer be aborted
+- Added the ability to put selection groups in an inactive state
+- Added additional information about Selection Group reduction outcomes to the Go-Live preview for reduced content
+- Non-reducing content publications will now be published independently of the reducible content items
+- Improved process efficiency for reducing content items
+- Fixed an issue where the status of a queued publication changed to 'Processing' before processing could actually begin
+- Fixed an issue where a timeout of a hierarchy extraction task would cause the publication service to crash
+
 ### v1.2.0
 
 - Added support for PDF content type

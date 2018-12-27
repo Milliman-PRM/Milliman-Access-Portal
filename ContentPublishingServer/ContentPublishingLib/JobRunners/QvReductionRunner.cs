@@ -4,19 +4,18 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using AuditLogLib;
+using AuditLogLib.Event;
+using MapCommonLib;
+using MapDbContextLib.Models;
+using QlikviewLib.Qms;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
-using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
-using AuditLogLib;
-using AuditLogLib.Services;
-using QlikviewLib.Qms;
-using MapCommonLib;
-using AuditLogLib.Event;
 
 namespace ContentPublishingLib.JobRunners
 {
@@ -92,13 +91,17 @@ namespace ContentPublishingLib.JobRunners
             ReductionJobActionEnum[] SupportedJobActions = new ReductionJobActionEnum[] 
             {
                 ReductionJobActionEnum.HierarchyOnly,
-                ReductionJobActionEnum.HierarchyAndReduction
+                ReductionJobActionEnum.HierarchyAndReduction,
+                ReductionJobActionEnum.ReductionOnly,
             };
+
+            DateTime ProcessingStartTime = DateTime.UtcNow;
 
             try
             {
                 if (!SupportedJobActions.Contains(JobDetail.Request.JobAction))
                 {
+                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
                     throw new ApplicationException($"QvReductionRunner.Execute() refusing to process job with unsupported requested action: {JobDetail.Request.JobAction.ToString()}");
                 }
                 else
@@ -110,20 +113,24 @@ namespace ContentPublishingLib.JobRunners
                     _CancellationToken.ThrowIfCancellationRequested();
 
                     #region Extract master content hierarchy
-                    JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
+                    if (JobDetail.Request.JobAction != ReductionJobActionEnum.ReductionOnly)
+                    {
+                        JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
 
-                    DetailObj = new {
-                        ReductionJobId = JobDetail.TaskId.ToString(),
-                        JobAction = JobDetail.Request.JobAction,
-                        Hierarchy = JobDetail.Result.MasterContentHierarchy,
-                        ContentFile = "Master",
-                    };
-                    AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj));
+                        DetailObj = new
+                        {
+                            ReductionJobId = JobDetail.TaskId.ToString(),
+                            JobAction = JobDetail.Request.JobAction,
+                            Hierarchy = JobDetail.Result.MasterContentHierarchy,
+                            ContentFile = "Master",
+                        };
+                        AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj));
+                    }
                     #endregion
 
                     _CancellationToken.ThrowIfCancellationRequested();
 
-                    if (JobDetail.Request.JobAction == ReductionJobActionEnum.HierarchyAndReduction)
+                    if (JobDetail.Request.JobAction != ReductionJobActionEnum.HierarchyOnly)
                     {
                         #region Create reduced content
                         await CreateReducedContent();
@@ -155,11 +162,13 @@ namespace ContentPublishingLib.JobRunners
                     }
 
                     JobDetail.Status = ReductionJobDetail.JobStatusEnum.Success;
+                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.Success;
                 }
             }
             catch (OperationCanceledException e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Canceled;
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.Canceled;
                 GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
                 AuditLog.Log(AuditEventType.ContentReductionTaskCanceled.ToEvent(new { ReductionTaskId = JobDetail.TaskId }));
@@ -167,6 +176,7 @@ namespace ContentPublishingLib.JobRunners
             catch (ApplicationException e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
+                // JobDetail.Result.OutcomeReason is expected to be set where the exception is thrown
                 GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
                 // Security related audit logs are generated at the time ApplicationException is thrown, where appropriate.  Don't repeat that here. 
@@ -182,11 +192,23 @@ namespace ContentPublishingLib.JobRunners
                     ExceptionMessage = GlobalFunctions.LoggableExceptionString(e),
                 };
                 AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
+                if (JobDetail.Result.OutcomeReason == ReductionJobDetail.JobOutcomeReason.Unspecified)
+                {
+                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
+                }
             }
             finally
             {
-                // Don't touch TaskResultObj.Status in the finally block. This value should always be finalized before we get here. 
-                Cleanup();
+                // Don't touch JobDetail.Result.Status or JobDetail.Result.OutcomeReason in the finally block. This value should always be set before we get here. 
+                JobDetail.Result.ProcessingDuration = DateTime.UtcNow - ProcessingStartTime;
+                try
+                {
+                    Cleanup();
+                }
+                catch (System.Exception e)  // fail safe in case any exception gets to this point
+                {
+                    GlobalFunctions.TraceWriteLine($"In QvReductionRunner.Execute(), Cleanup method failed with exception: {Environment.NewLine}{GlobalFunctions.LoggableExceptionString(e)}");
+                }
             }
 
             return JobDetail;
@@ -225,6 +247,12 @@ namespace ContentPublishingLib.JobRunners
                 Msg = $"No selected field values are included in the reduction request";
             }
 
+            else if (JobDetail.Request.JobAction == ReductionJobActionEnum.ReductionOnly
+                  && JobDetail.Result.MasterContentHierarchy == null)
+            {
+                Msg = $"ReductionOnly processing was requested without a provided master hierarchy";
+            }
+
             else if (!Directory.Exists(SourceDocFolder.General.Path))
             {
                 Msg = $"SourceDocFolder {SourceDocFolder.General.Path} not found";
@@ -247,6 +275,7 @@ namespace ContentPublishingLib.JobRunners
 
                 Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}: {Msg}";
 
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
                 throw new System.ApplicationException(Msg);
             }
         }
@@ -256,30 +285,29 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         private async Task<bool> PreTaskSetup()
         {
-            WorkingFolderRelative = JobDetail.TaskId.ToString();  // Folder is named for the task guid from the database
+            WorkingFolderRelative = JobDetail.TaskId.ToString();  // Folder is named for the reduction task guid
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
             string MasterFileDestinationPath = Path.Combine(WorkingFolderAbsolute, MasterFileName);
 
             try
             {
+                // remove pre-existing task folder of same name, normally won't exist but maybe in development environment
                 if (Directory.Exists(WorkingFolderAbsolute) && !string.IsNullOrWhiteSpace(WorkingFolderRelative))
                 {
                     FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
                 }
 
+                // Make sure the requested master content file exists
                 if (!File.Exists(JobDetail.Request.MasterFilePath))
                 {
+                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
                     throw new ApplicationException($"Master file {JobDetail.Request.MasterFilePath} does not exist");
                 }
 
                 Directory.CreateDirectory(WorkingFolderAbsolute);
                 File.Copy(JobDetail.Request.MasterFilePath, MasterFileDestinationPath);
 
-                if (GlobalFunctions.GetFileChecksum(MasterFileDestinationPath).ToLower() != JobDetail.Request.MasterContentChecksum.ToLower())
-                {
-                    throw new ApplicationException("Master content file integrity check failed, mismatch of file hash");
-                }
-
+                // Set this.MasterDocumentNode, which is used elsewhere in this class
                 MasterDocumentNode = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
             }
             catch (System.Exception e)
@@ -290,6 +318,7 @@ namespace ContentPublishingLib.JobRunners
 
             if (MasterDocumentNode == null)
             {
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
                 throw new ApplicationException("Failed to obtain DocumentNode object from Qlikview Publisher for master content file");
             }
             return true;
@@ -312,7 +341,9 @@ namespace ContentPublishingLib.JobRunners
             // Run Qlikview publisher (QDS) task
             try
             {
-                await RunQdsTask(HierarchyTask, 5);
+                string AbsoluteDocPath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, DocumentNodeArg.Name);
+                int FileSizeHectoMillionBytes = (int)(new FileInfo(AbsoluteDocPath).Length / 1E8 );
+                await RunQdsTask(HierarchyTask, Math.Max(FileSizeHectoMillionBytes, 5));  // Allow 1 minute per 1E8 Bytes, at least 5 minutes
             }
             finally
             {
@@ -367,6 +398,7 @@ namespace ContentPublishingLib.JobRunners
                     ExceptionMessage = e.Message,
                 };
                 AuditLog.Log(AuditEventType.HierarchyExtractionFailed.ToEvent(DetailObj));
+                throw;
             }
             finally
             {
@@ -408,6 +440,7 @@ namespace ContentPublishingLib.JobRunners
                         Error = Msg,
                     };
 
+                    JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.SelectionForInvalidFieldName;
                     AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
                     GlobalFunctions.TraceWriteLine(Msg);
                     throw new ApplicationException(Msg);
@@ -418,7 +451,7 @@ namespace ContentPublishingLib.JobRunners
             if (!JobDetail.Request.SelectionCriteria.Any(s => s.Selected &&
                                                               JobDetail.Result.MasterContentHierarchy.Fields.Any(f => f.FieldName == s.FieldName && f.FieldValues.Contains(s.FieldValue))))
             {
-                string Msg = $"No requested selections exist in the master hierarchy";
+                string Msg = $"None of the {JobDetail.Request.SelectionCriteria.Where(s => s.Selected).Count()} specified selections exist in the master content hierarchy";
                 object DetailObj = new {
                     ReductionJobId = JobDetail.TaskId.ToString(),
                     RequestesSelections = JobDetail.Request.SelectionCriteria,
@@ -427,6 +460,9 @@ namespace ContentPublishingLib.JobRunners
 
                 AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
                 GlobalFunctions.TraceWriteLine(Msg);
+
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent;
+
                 throw new ApplicationException(Msg);
             }
 
@@ -440,6 +476,7 @@ namespace ContentPublishingLib.JobRunners
 
             if (ReducedDocumentNode == null)
             {
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated;
                 string Msg = $"Failed to get DocumentNode for file {JobDetail.Request.RequestedOutputFileName} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}";
                 GlobalFunctions.TraceWriteLine(Msg);
                 throw new ApplicationException(Msg);
@@ -474,7 +511,15 @@ namespace ContentPublishingLib.JobRunners
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
             if (!string.IsNullOrWhiteSpace(WorkingFolderRelative) && Directory.Exists(WorkingFolderAbsolute))
             {
-                FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
+                try
+                {
+                    FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
+                }
+                catch (System.Exception e)  // Do not let this throw upward
+                {
+                    // Log this as an error or warning when switching to Serilog
+                    GlobalFunctions.TraceWriteLine($"In QvReductionRunner.Cleanup(), failed to delete reduction directory {WorkingFolderAbsolute}, exception was: {Environment.NewLine}{GlobalFunctions.LoggableExceptionString(e)}");
+                }
             }
 
             GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed Cleanup");
@@ -704,6 +749,7 @@ namespace ContentPublishingLib.JobRunners
                 {
                     if (DateTime.Now - StartTime > MaxStartDelay)
                     {
+                        JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.ReductionProcessingTimeout;
                         throw new System.Exception($"Qlikview publisher failed to start task {TaskIdGuid.ToString("D")} before timeout");
                     }
 
@@ -722,6 +768,7 @@ namespace ContentPublishingLib.JobRunners
                 {
                     if (DateTime.Now - RunningStartTime > MaxElapsedRun)
                     {
+                        JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.ReductionProcessingTimeout;
                         throw new System.Exception($"Qlikview publisher failed to finish task {TaskIdGuid.ToString("D")} before timeout");
                     }
 
@@ -732,9 +779,25 @@ namespace ContentPublishingLib.JobRunners
                 } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
                 GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} finished running after {DateTime.Now - RunningStartTime}");
 
-                if (Status.General.Status == TaskStatusValue.Failed || Status.General.Status == TaskStatusValue.Warning)
+                switch (Status.General.Status)
                 {
-                    throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
+                    case TaskStatusValue.Warning:
+                        string ExpectedReducedFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, JobDetail.Request.RequestedOutputFileName);
+                        if (DocTask.Reload.Mode == TaskReloadMode.None // reduction task, not hierarchy extraction
+                            && !File.Exists(ExpectedReducedFilePath))
+                        {
+                            JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated;
+                        }
+                        // else if (other outcomes) as we discover them go here
+                        else
+                        {
+                            JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
+                        }
+                        throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
+
+                    case TaskStatusValue.Failed:
+                        JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
+                        throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
                 }
             }
             finally

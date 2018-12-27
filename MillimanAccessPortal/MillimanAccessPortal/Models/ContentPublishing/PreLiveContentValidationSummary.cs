@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using QlikviewLib;
+using MillimanAccessPortal.Models.AccountViewModels;
+using Serilog;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -73,9 +75,12 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             ReturnObj.SelectionGroups = null;
             if (PubRequest.RootContentItem.DoesReduce)
             {
+                // retrieve all reduction tasks for this publication, filtering out the request
+                // responsible for extracting the new hierarchy
                 List<ContentReductionTask> AllTasks = Db.ContentReductionTask
                                                         .Include(t => t.SelectionGroup)
                                                         .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
+                                                        .Where(t => t.SelectionGroup != null)
                                                         .ToList();
                 #region Validation of reduction tasks and related nav properties from db
                 if (AllTasks.Any(t => t.SelectionGroup == null)
@@ -92,15 +97,63 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 {
                     newHierarchy.Sort();
 
+                    var selectionGroups = new List<SelectionGroupSummary>();
+                    foreach (var task in AllTasks)
+                    {
+                        var selectionGroupUsers = new List<UserInfoViewModel>();
+                        var userQuery = Db.UserInSelectionGroup
+                            .Where(usg => usg.SelectionGroupId == task.SelectionGroup.Id)
+                            .Select(usg => usg.User);
+                        foreach (var user in userQuery)
+                        {
+                            var userInfo = (UserInfoViewModel)user;
+                            selectionGroupUsers.Add(userInfo); 
+                        }
+
+                        string errorMessage;
+                        switch (task.OutcomeMetadataObj.OutcomeReason)
+                        {
+                            case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
+                                errorMessage = "This group has no selections.";
+                                break;
+                            case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
+                                errorMessage = "None of this group's selections are in the new hierarchy.";
+                                break;
+                            case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
+                                errorMessage = "The reduction did not produce an output file. "
+                                    + "This could be caused by selections that result in no matching data.";
+                                break;
+                            default:
+                                errorMessage = null;
+                                Log.Warning("Unexpected outcome reason in go live preview "
+                                    + $"for reduction task {task.Id}: {task.OutcomeMetadataObj.OutcomeReason}");
+                                break;
+                        }
+
+                        selectionGroups.Add(new SelectionGroupSummary
+                        {
+                            Id = task.SelectionGroup.Id,
+                            Name = task.SelectionGroup.GroupName,
+                            IsMaster = task.SelectionGroup.IsMaster,
+                            Duration = task.OutcomeMetadataObj.ElapsedTime,
+                            Users = selectionGroupUsers,
+                            WasInactive = task.SelectionGroup.ContentInstanceUrl == null,
+                            IsInactive = task.ReductionStatus != ReductionStatusEnum.Reduced,
+                            InactiveReason = errorMessage,
+                            LiveSelections = task.SelectionGroup.IsMaster
+                                ? null
+                                : ContentReductionHierarchy<ReductionFieldValueSelection>
+                                    .GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId.Value),
+                            PendingSelections = task.SelectionGroup.IsMaster
+                                ? null
+                                : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(
+                                    task.MasterContentHierarchyObj, task.SelectionCriteriaObj),
+                        });
+                    }
+
                     ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
                     ReturnObj.NewHierarchy = newHierarchy;
-                    ReturnObj.SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary
-                        {
-                            Name = t.SelectionGroup.GroupName,
-                            IsMaster = t.SelectionGroup.IsMaster,
-                            UserCount = Db.UserInSelectionGroup.Count(usg => usg.SelectionGroupId == t.SelectionGroup.Id),
-                        }
-                    ).ToList();
+                    ReturnObj.SelectionGroups = selectionGroups;
                 }
             }
 
@@ -114,10 +167,15 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         switch (PubRequest.RootContentItem.ContentType.TypeEnum)
                         {
                             case ContentTypeEnum.Qlikview:
-                                await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(Path.GetDirectoryName(Link), ContentTypeConfig as QlikviewConfig, Path.GetFileName(Link));
-
-                                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, Context.User.Identity.Name, ContentTypeConfig, Context.Request);
-                                ReturnObj.MasterContentLink = QvwUri.Uri.AbsoluteUri;
+                                UriBuilder qvwUrlBuilder = new UriBuilder
+                                {
+                                    Host = Context.Request.Host.Host,
+                                    Scheme = Context.Request.Scheme,
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = "/AuthorizedContent/QvwPreview",
+                                    Query = $"publicationRequestId={PubRequest.Id}",
+                                };
+                                ReturnObj.MasterContentLink = qvwUrlBuilder.Uri.AbsoluteUri;
                                 break;
 
                             case ContentTypeEnum.Pdf:
@@ -206,8 +264,15 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
     public class SelectionGroupSummary
     {
+        public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public int UserCount { get; set; } = 0;
         public bool IsMaster { get; set; }
+        public TimeSpan Duration { get; set; } = TimeSpan.Zero;
+        public List<UserInfoViewModel> Users { get; set; } = new List<UserInfoViewModel>();
+        public bool WasInactive { get; set; }
+        public bool IsInactive { get; set; }
+        public string InactiveReason { get; set; } = null;
+        public ContentReductionHierarchy<ReductionFieldValueSelection> LiveSelections { get; set; }
+        public ContentReductionHierarchy<ReductionFieldValueSelection> PendingSelections { get; set; }
     }
 }

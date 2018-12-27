@@ -102,6 +102,8 @@ namespace ContentPublishingLib.JobRunners
         public async Task<PublishJobDetail> Execute(CancellationToken cancellationToken)
         {
             MethodBase Method = MethodBase.GetCurrentMethod();
+
+            JobDetail.Result.StartDateTime = DateTime.UtcNow;
             DateTime WaitEndUtc = DateTime.UtcNow + TimeLimit;
 
             _CancellationToken = cancellationToken;
@@ -144,8 +146,29 @@ namespace ContentPublishingLib.JobRunners
                     AllRelatedReductionTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToList();
                 }
 
-                // Check the actual status of reduction tasks to assign publication status
-                if (AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Reduced))
+                var unhandleableErrors = AllRelatedReductionTasks
+                    .Where(t => t.ReductionStatus == ReductionStatusEnum.Error)
+                    .Where(t => t.OutcomeMetadataObj.OutcomeReason.PreventsPublication());
+                if (unhandleableErrors.Any())
+                {
+                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
+                }
+                else if (AllRelatedReductionTasks.Any()
+                    && AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Canceled))
+                {
+                    // If a publication timeout happens queued tasks are canceled but we won't get here because that also throws ApplicationException
+                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
+
+                    #region Log audit event
+                    var DetailObj = new
+                    {
+                        PublicationRequestId = JobDetail.JobId,
+                        JobDetail.Request.DoesReduce,
+                    };
+                    AuditLog.Log(AuditEventType.ContentPublicationRequestCanceled.ToEvent(DetailObj));
+                    #endregion
+                }
+                else
                 {
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
 
@@ -159,25 +182,6 @@ namespace ContentPublishingLib.JobRunners
                     };
                     AuditLog.Log(AuditEventType.PublicationRequestProcessingSuccess.ToEvent(DetailObj));
                     #endregion
-
-                }
-                else if (AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Canceled))
-                {
-                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
-
-                    #region Log audit event
-                    var DetailObj = new
-                    {
-                        PublicationRequestId = JobDetail.JobId,
-                        JobDetail.Request.DoesReduce,
-                    };
-                    AuditLog.Log(AuditEventType.ContentPublicationRequestCanceled.ToEvent(DetailObj));
-                    #endregion
-
-                }
-                else
-                {
-                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 }
             }
             catch (OperationCanceledException e)
@@ -193,6 +197,31 @@ namespace ContentPublishingLib.JobRunners
                 GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 JobDetail.Result.StatusMessage = msg;
+            }
+            finally
+            {
+                using (ApplicationDbContext Db = GetDbContext())
+                {
+                    foreach (ContentReductionTask RelatedTask in Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToList())
+                    {
+                        ReductionTaskOutcomeMetadata TaskOutcome = RelatedTask.OutcomeMetadataObj;
+                        if (TaskOutcome.ReductionTaskId == Guid.Empty)
+                        {
+                            TaskOutcome.ReductionTaskId = RelatedTask.Id;
+                        }
+                        if (TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.Success ||
+                            TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned)
+                        {
+                            JobDetail.Result.ReductionTaskSuccessList.Add(TaskOutcome);
+                        }
+                        else
+                        {
+                            JobDetail.Result.ReductionTaskFailList.Add(TaskOutcome);
+                        }
+                    }
+                }
+
+                JobDetail.Result.ElapsedTime = DateTime.UtcNow - JobDetail.Result.StartDateTime;
             }
 
             return JobDetail;
@@ -214,19 +243,6 @@ namespace ContentPublishingLib.JobRunners
                     _CancellationToken.ThrowIfCancellationRequested();
                 }
 
-                List<ContentReductionTask> FailedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Error).ToList(); 
-                if (FailedTasks.Any())
-                {
-                    // Cancel any task still queued
-                    List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
-                    await CancelReductionTasks(QueuedTasks);
-
-                    string Msg = $"Publication request terminating due to error in related reduction task(s):{Environment.NewLine}  {string.Join("  " + Environment.NewLine, FailedTasks.Select(t => t.Id.ToString() + " : " + t.ReductionStatusMessage))}";
-                    GlobalFunctions.TraceWriteLine(Msg);
-
-                    throw new ApplicationException(Msg);
-                }
-
                 return AllRelatedReductionTasks.Count(t => t.ReductionStatus == ReductionStatusEnum.Queued
                                                         || t.ReductionStatus == ReductionStatusEnum.Reducing);
             }
@@ -243,7 +259,15 @@ namespace ContentPublishingLib.JobRunners
             {
                 try
                 {
-                    TasksToCancel.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
+                    TasksToCancel.ForEach(t =>
+                    {
+                        t.ReductionStatus = ReductionStatusEnum.Canceled;
+                        t.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                        {
+                            OutcomeReason = MapDbReductionTaskOutcomeReason.Canceled,
+                            ReductionTaskId = t.Id,
+                        };
+                    });
                     Db.ContentReductionTask.UpdateRange(TasksToCancel);
                     await Db.SaveChangesAsync();
                     return true;
@@ -287,41 +311,93 @@ namespace ContentPublishingLib.JobRunners
             {
                 string QvSourceDocumentsPath = Configuration.ApplicationConfiguration.GetSection("Storage")["QvSourceDocumentsPath"];
 
+                // Create a single master hierarchy extraction
+                ContentReductionTask MasterHierarchyTask = new ContentReductionTask
+                {
+                    Id = Guid.NewGuid(),  // In normal operation db could generate a value; this is done for unit tests
+                    ApplicationUserId = JobDetail.Request.ApplicationUserId,
+                    ContentPublicationRequestId = JobDetail.JobId,
+                    CreateDateTimeUtc = JobDetail.Request.CreateDateTimeUtc,
+                    MasterFilePath = contentRelatedFile.FullPath,
+                    MasterContentChecksum = contentRelatedFile.Checksum,
+                    SelectionGroupId = null,
+                    ReductionStatus = ReductionStatusEnum.Queued,
+                    TaskAction = TaskActionEnum.HierarchyOnly,
+                };
+
+                // Queue hierarchy extraction task and wait for completion
                 using (ApplicationDbContext Db = GetDbContext())
                 {
-                    bool MasterHierarchyHasBeenRequested = false;
+                    Db.ContentReductionTask.Add(MasterHierarchyTask);
+                    Db.SaveChanges();
 
+                    // Wait for hierarchy extraction task to finish
+                    while (new ReductionStatusEnum[] { ReductionStatusEnum.Queued, ReductionStatusEnum.Reducing }.Contains(MasterHierarchyTask.ReductionStatus))
+                    {
+                        Thread.Sleep(2000);
+
+                        var EntryInfo = Db.Entry(MasterHierarchyTask);
+                        if (EntryInfo != null) // needed for unit tests, this is not mocked
+                        {
+                            Db.Entry(MasterHierarchyTask).State = EntityState.Detached;
+                        }
+                        MasterHierarchyTask = Db.ContentReductionTask.Find(MasterHierarchyTask.Id);
+                    }
+
+                    // Hierarchy task is no longer waiting to finish processing
+                    if (MasterHierarchyTask.ReductionStatus != ReductionStatusEnum.Reduced
+                     || MasterHierarchyTask.MasterContentHierarchyObj == null)
+                    {
+                        return;
+                    }
+                }
+
+                using (ApplicationDbContext Db = GetDbContext())
+                {
                     foreach (SelectionGroup SelGrp in Db.SelectionGroup
                                                         .Where(g => g.RootContentItemId == JobDetail.Request.RootContentId)
                                                         .ToList())
                     {
-                        if (SelGrp.IsMaster && MasterHierarchyHasBeenRequested)
-                        {
-                            // Only handle IsMaster SelectionGroups once
-                            continue;
-                        }
-
                         ContentReductionTask NewTask = new ContentReductionTask
                         {
                             Id = Guid.NewGuid(),  // In normal operation db could generate a value; this is done for unit tests
                             ApplicationUserId = JobDetail.Request.ApplicationUserId,
                             ContentPublicationRequestId = JobDetail.JobId,
-                            CreateDateTimeUtc = DateTime.UtcNow,
+                            CreateDateTimeUtc = JobDetail.Request.CreateDateTimeUtc,
                             MasterFilePath = contentRelatedFile.FullPath,
                             MasterContentChecksum = contentRelatedFile.Checksum,
-                            ReductionStatus = ReductionStatusEnum.Queued,
                             SelectionGroupId = SelGrp.Id,
-                        };
+                            MasterContentHierarchyObj = MasterHierarchyTask.MasterContentHierarchyObj,
+                    };
 
                         if (SelGrp.IsMaster)
                         {
                             NewTask.TaskAction = TaskActionEnum.HierarchyOnly;
-                            MasterHierarchyHasBeenRequested = true;
+                            NewTask.ReductionStatus = ReductionStatusEnum.Reduced;
+                            NewTask.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                            {
+                                OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
+                                ReductionTaskId = NewTask.Id,
+                            };
                         }
                         else
                         {
+                            NewTask.TaskAction = TaskActionEnum.ReductionOnly;
                             NewTask.SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
-                            NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
+                            if (NewTask.SelectionCriteriaObj.Fields.Any(f => f.Values.Any(v => v.SelectionStatus)))
+                            {
+                                NewTask.ReductionStatus = ReductionStatusEnum.Queued;
+                            }
+                            else
+                            {
+                                // There are no values selected
+                                NewTask.ReductionStatus = ReductionStatusEnum.Error;
+                                NewTask.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                                {
+                                    OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
+                                    ReductionTaskId = NewTask.Id,
+                                };
+                            }
                         }
 
                         Db.ContentReductionTask.Add(NewTask);
