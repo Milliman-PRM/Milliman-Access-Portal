@@ -9,42 +9,9 @@ export async function fetchClients() {
   return await getData('/ContentAccessAdmin/Clients');
 }
 
-export function fetchItems(clientId: Guid) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const items = {
-        item1: { id: 'item1', clientId: 'client1', contentTypeId: '1', name: 'item1', doesReduce: true, isSuspended: false },
-        item2: { id: 'item2', clientId: 'client1', contentTypeId: '1', name: 'item2', doesReduce: true, isSuspended: false },
-        item3: { id: 'item3', clientId: 'client1', contentTypeId: '1', name: 'item3', doesReduce: true, isSuspended: true },
-        item4: { id: 'item4', clientId: 'client2', contentTypeId: '1', name: 'item4', doesReduce: true, isSuspended: false },
-        item5: { id: 'item5', clientId: 'client2', contentTypeId: '1', name: 'item5', doesReduce: true, isSuspended: false },
-        item6: { id: 'item6', clientId: 'client3', contentTypeId: '1', name: 'item6', doesReduce: false, isSuspended: false },
-      };
-      const contentTypes = {
-        1: { id: '1', name: 'QlikView', canReduce: true, fileExtensions: [] },
-        2: { id: '2', name: 'HTML', canReduce: false, fileExtensions: [] },
-        3: { id: '3', name: 'PDF', canReduce: false, fileExtensions: [] },
-      };
-      const publications = {
-        p1: { id: 'p1', applicationUserId: 'user1', rootContentItemId: 'item2', createDateTimeUtc: '2018-04-02T00:00:00.000Z', requestStatus: PublicationStatus.Queued },
-      };
-      const publicationQueue = {
-        p1: { publicationId: 'p1', queuePosition: 2 },
-      };
-
-      const ro = {};
-      Object.keys(items).forEach((i) => {
-        if (items[i].clientId === clientId) {
-          ro[i] = items[i];
-        }
-      });
-      resolve({
-        items: ro,
-        contentTypes,
-        publications,
-        publicationQueue,
-      });
-    }, 500);
+export async function fetchItems(clientId: Guid) {
+  return await getData('/ContentAccessAdmin/ContentItems', {
+    clientId,
   });
 }
 

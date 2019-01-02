@@ -12,7 +12,6 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -24,20 +23,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Services;
+using MillimanAccessPortal.Utilities;
+using NetEscapades.AspNetCore.SecurityHeaders;
 using QlikviewLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NetEscapades.AspNetCore.SecurityHeaders;
-using MillimanAccessPortal.Utilities;
 
 namespace MillimanAccessPortal
 {
@@ -181,6 +180,8 @@ namespace MillimanAccessPortal
             services.AddScoped<ContentAccessAdminQueries>();
 
             services.AddScoped<ClientQueries>();
+            services.AddScoped<ContentItemQueries>();
+            services.AddScoped<PublicationQueries>();
             services.AddScoped<UserQueries>();
 
             // Add application services.

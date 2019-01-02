@@ -4,7 +4,7 @@ import createSagaMiddleware from 'redux-saga';
 import {
   ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, ContentType, Guid,
   PublicationQueueDetails, ReductionField, ReductionFieldValue, ReductionQueueDetails,
-  RootContentItem, SelectionGroupWithAssignedUsers, User,
+  RootContentItemWithStats, SelectionGroupWithAssignedUsers, User,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { contentAccessAdmin } from './reducers';
@@ -38,7 +38,7 @@ export interface PendingGroupState {
 
 export interface AccessStateData {
   clients: Dict<ClientWithEligibleUsers>;
-  items: Dict<RootContentItem>;
+  items: Dict<RootContentItemWithStats>;
   groups: Dict<SelectionGroupWithAssignedUsers>;
   users: Dict<User>;
   fields: Dict<ReductionField>;

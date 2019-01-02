@@ -38,7 +38,11 @@ export interface RootContentItem {
   doesReduce: boolean;
   name: string;
 }
-export interface RootContentItemWithStatus extends RootContentItem {
+export interface RootContentItemWithStats extends RootContentItem {
+  selectionGroupCount: number;
+  assignedUserCount: number;
+}
+export interface RootContentItemWithPublication extends RootContentItemWithStats {
   status: PublicationWithQueueDetails;
 }
 export interface SelectionGroup {

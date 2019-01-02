@@ -7,7 +7,7 @@ import Select from 'react-select';
 
 import { isPublicationActive, ReductionStatus } from '../../view-models/content-publishing';
 import {
-  Client, ClientWithEligibleUsers, ReductionFieldset, RootContentItem, RootContentItemWithStatus,
+  Client, ClientWithEligibleUsers, ReductionFieldset, RootContentItem, RootContentItemWithPublication,
   SelectionGroup, SelectionGroupWithStatus, User,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
@@ -38,9 +38,7 @@ import {
 } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
 
-interface RootContentItemEntity extends RootContentItemWithStatus {
-  selectionGroups: number;
-  assignedUsers: number;
+interface RootContentItemEntity extends RootContentItemWithPublication {
   contentTypeName: string;
 }
 interface SelectionGroupEntity extends SelectionGroupWithStatus {
@@ -162,7 +160,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                   icon={'reports'}
                 />
                 <CardStat
-                  name={'Eligible users'}
+                  name={'Users'}
                   value={entity.userCount}
                   icon={'user'}
                 />
@@ -209,12 +207,12 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               <CardSectionStats>
                 <CardStat
                   name={'Selection groups'}
-                  value={entity.selectionGroups}
+                  value={entity.selectionGroupCount}
                   icon={'group'}
                 />
                 <CardStat
                   name={'Assigned users'}
-                  value={entity.assignedUsers}
+                  value={entity.assignedUserCount}
                   icon={'user'}
                 />
               </CardSectionStats>

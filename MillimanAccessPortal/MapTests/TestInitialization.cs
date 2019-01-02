@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
@@ -95,6 +96,8 @@ namespace MapTests
 
         public StandardQueries QueriesObj { get; set; }
         public ClientQueries ClientQueriesObj { get; set; }
+        public ContentItemQueries ContentItemQueriesObj { get; set; }
+        public PublicationQueries PublicationQueriesObj { get; set; }
         public UserQueries UserQueriesObj { get; set; }
         public ContentAccessAdminQueries ContentAccessAdminQueriesObj { get; set; }
         #endregion
@@ -172,8 +175,11 @@ namespace MapTests
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject, MockAuditLogger.Object);
             ClientQueriesObj = new ClientQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
+            ContentItemQueriesObj = new ContentItemQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
+            PublicationQueriesObj = new PublicationQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
             UserQueriesObj = new UserQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
-            ContentAccessAdminQueriesObj = new ContentAccessAdminQueries(ClientQueriesObj, UserQueriesObj);
+            ContentAccessAdminQueriesObj = new ContentAccessAdminQueries(
+                ClientQueriesObj, ContentItemQueriesObj, PublicationQueriesObj, UserQueriesObj);
             ConfigurationObject = GenerateConfiguration();
             MockServiceProvider = GenerateServiceProvider();
             MockFileSystemTasks = new Mock<FileSystemTasks>();

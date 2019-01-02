@@ -227,8 +227,6 @@ export function itemEntities(state: AccessState) {
     return {
       ...i,
       contentTypeName: state.data.contentTypes[i.contentTypeId].name,
-      selectionGroups: groups.length,
-      assignedUsers: groups.reduce((prev, cur) => prev + cur.assignedUsers.length, 0),
     };
   });
 }

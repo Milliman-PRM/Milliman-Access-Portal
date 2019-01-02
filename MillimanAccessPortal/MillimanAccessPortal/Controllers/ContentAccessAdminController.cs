@@ -1044,9 +1044,40 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var clients = await _queries.SelectClients(await _standardQueries.GetCurrentApplicationUser(User));
+            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
+            var clients = await _queries.SelectClients(currentUser);
 
             return Json(clients);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ContentItems(Guid clientId)
+        {
+            var client = DbContext.Client.Find(clientId);
+
+            #region Preliminary validation
+            if (client == null)
+            {
+                Response.Headers.Add("Warning", "The requested client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var roleResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, clientId));
+            if (!roleResult.Succeeded)
+            {
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access for this client.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
+            var contentItems = await _queries.SelectContentItems(currentUser, clientId);
+
+            return Json(contentItems);
         }
     }
 }

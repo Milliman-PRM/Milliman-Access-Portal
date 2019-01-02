@@ -34,6 +34,7 @@ namespace MillimanAccessPortal.DataQueries
                 .Where(r => clientIds.Contains(r.ClientId))
                 .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
                 .Select(r => r.User)
+                .Distinct()
                 .Select(u => new BasicUser
                 {
                     Id = u.Id,

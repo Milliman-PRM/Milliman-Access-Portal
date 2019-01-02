@@ -64,7 +64,8 @@ namespace MillimanAccessPortal.DataQueries
             }
             return clientsWith;
         }
-        private async Task<List<BasicClientWithEligibleUsers>> _withEligibleUsers(List<BasicClientWithStats> clients)
+        private async Task<List<BasicClientWithEligibleUsers>> _withEligibleUsers(
+            List<BasicClientWithStats> clients)
         {
             var clientsWith = new List<BasicClientWithEligibleUsers> { };
             foreach (var client in clients)
