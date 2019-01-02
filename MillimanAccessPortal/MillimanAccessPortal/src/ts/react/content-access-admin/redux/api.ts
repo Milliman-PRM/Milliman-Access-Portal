@@ -1,28 +1,12 @@
 import * as _ from 'lodash';
 
+import { getData } from '../../../shared';
 import { PublicationStatus, ReductionStatus } from '../../../view-models/content-publishing';
 import { Guid } from '../../models';
 
 /* tslint:disable:max-line-length */
-export function fetchClients() {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const clients = {
-        client1: { id: 'client1', name: 'client1', code: 'c1', eligibleUsers: ['user1', 'user2', 'user3', 'user4', 'user5'] },
-        client2: { id: 'client2', name: 'client2', code: 'c2', eligibleUsers: ['user1', 'user2', 'user3', 'user4', 'user5'] },
-        client3: { id: 'client3', name: 'client3', code: 'c3', eligibleUsers: ['user1', 'user2', 'user3'] },
-        client4: { id: 'client4', name: 'client4', code: 'c4', eligibleUsers: [] },
-      };
-      const users = {
-        user1: { id: 'user1', firstName: 'Ichi', lastName: 'One',   userName: 'user1', email: 'user1@a.a', activated: true, isSuspended: false },
-        user2: { id: 'user2', firstName: 'Ni',   lastName: 'Two',   userName: 'user2', email: 'user2@a.a', activated: true, isSuspended: false },
-        user3: { id: 'user3', firstName: 'San',  lastName: 'Three', userName: 'user3', email: 'user3@a.a', activated: true, isSuspended: false },
-        user4: { id: 'user4', firstName: 'Shi',  lastName: 'Four',  userName: 'user4', email: 'user4@a.a', activated: true, isSuspended: false },
-        user5: { id: 'user5', firstName: 'Go',   lastName: 'Five',  userName: 'user5', email: 'user5@a.a', activated: true, isSuspended: false },
-      };
-      resolve({ clients, users });
-    }, 500);
-  });
+export async function fetchClients() {
+  return await getData('/ContentAccessAdmin/Clients');
 }
 
 export function fetchItems(clientId: Guid) {

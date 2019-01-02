@@ -175,7 +175,13 @@ namespace MillimanAccessPortal
             // These depend on UserManager from Identity, which is scoped, so don't add the following as singleton
             services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();
             services.AddScoped<IAuditLogger, AuditLogger>();
+
+            // Queries
             services.AddScoped<StandardQueries>();
+            services.AddScoped<ContentAccessAdminQueries>();
+
+            services.AddScoped<ClientQueries>();
+            services.AddScoped<UserQueries>();
 
             // Add application services.
             services.AddTransient<IMessageQueue, MessageQueueServices>();

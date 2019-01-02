@@ -4,7 +4,7 @@ export type Guid = string;
 
 export interface User {
   id: Guid;
-  activated: boolean;
+  isActivated: boolean;
   isSuspended: boolean;
   firstName: string;
   lastName: string;
@@ -23,7 +23,11 @@ export interface Client {
   name: string;
   code: string;
 }
-export interface ClientWithEligibleUsers extends Client {
+export interface ClientWithStats extends Client {
+  contentItemCount: number;
+  userCount: number;
+}
+export interface ClientWithEligibleUsers extends ClientWithStats {
   eligibleUsers: Guid[];
 }
 export interface RootContentItem {

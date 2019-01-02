@@ -94,6 +94,9 @@ namespace MapTests
         public ILoggerFactory LoggerFactory { get; set; }
 
         public StandardQueries QueriesObj { get; set; }
+        public ClientQueries ClientQueriesObj { get; set; }
+        public UserQueries UserQueriesObj { get; set; }
+        public ContentAccessAdminQueries ContentAccessAdminQueriesObj { get; set; }
         #endregion
 
         /// <summary>
@@ -168,6 +171,9 @@ namespace MapTests
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject, MockAuditLogger.Object);
+            ClientQueriesObj = new ClientQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
+            UserQueriesObj = new UserQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
+            ContentAccessAdminQueriesObj = new ContentAccessAdminQueries(ClientQueriesObj, UserQueriesObj);
             ConfigurationObject = GenerateConfiguration();
             MockServiceProvider = GenerateServiceProvider();
             MockFileSystemTasks = new Mock<FileSystemTasks>();

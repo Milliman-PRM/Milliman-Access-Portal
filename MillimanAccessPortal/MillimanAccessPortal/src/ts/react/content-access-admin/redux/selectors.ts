@@ -219,8 +219,6 @@ export function activeReductionFieldsets(state: AccessState): ReductionFieldset[
 export function clientEntities(state: AccessState) {
   return activeClients(state).map((c) => ({
     ...c,
-    reports: _.filter(state.data.items, (i) => i.clientId === c.id).length,
-    eligibleUsers: c.eligibleUsers.length,
   }));
 }
 export function itemEntities(state: AccessState) {
@@ -248,14 +246,18 @@ export function groupEntities(state: AccessState) {
 
 // Selected entity selectors
 export function selectedClient(state: AccessState) {
-  return state.data.clients[state.selected.client];
+  return state.selected.client
+    ? state.data.clients[state.selected.client]
+    : null;
 }
 export function activeSelectedClient(state: AccessState) {
   return activeClients(state).filter((c) => c.id === state.selected.client)[0];
 }
 
 export function selectedItem(state: AccessState) {
-  return state.data.items[state.selected.item];
+  return state.selected.item
+    ? state.data.items[state.selected.item]
+    : null;
 }
 export function activeSelectedItem(state: AccessState) {
   return activeItems(state).filter((i) => i.id === state.selected.item)[0];

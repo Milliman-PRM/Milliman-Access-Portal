@@ -39,7 +39,8 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService AuthorizationService;
         private readonly IConfiguration ApplicationConfig;
         private readonly ApplicationDbContext DbContext;
-        private readonly StandardQueries Queries;
+        private readonly StandardQueries _standardQueries;
+        private readonly ContentAccessAdminQueries _queries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly QlikviewConfig QvConfig;
 
@@ -48,6 +49,7 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext DbContextArg,
             StandardQueries QueriesArg,
+            ContentAccessAdminQueries queries,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
             IOptions<QlikviewConfig> QvConfigArg
@@ -56,7 +58,8 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DbContext = DbContextArg;
-            Queries = QueriesArg;
+            _standardQueries = QueriesArg;
+            _queries = queries;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
             QvConfig = QvConfigArg.Value;
@@ -101,7 +104,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientTree model = ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentAccessAdmin);
+            ClientTree model = ClientTree.Build(await _standardQueries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentAccessAdmin);
 
             return Json(model);
         }
@@ -136,7 +139,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var model = Models.ContentAccessAdmin.RootContentItemList.Build(DbContext, Client, await Queries.GetCurrentApplicationUser(User), RoleEnum.ContentAccessAdmin);
+            var model = Models.ContentAccessAdmin.RootContentItemList.Build(DbContext, Client, await _standardQueries.GetCurrentApplicationUser(User), RoleEnum.ContentAccessAdmin);
 
             return Json(model);
         }
@@ -549,7 +552,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ContentAccessAdminController.SetSuspendedSelectionGroup action: success");
             AuditLogger.Log(AuditEventType.SelectionGroupSuspensionUpdate.ToEvent(selectionGroup, isSuspended, ""));
 
-            var model = SelectionsDetail.Build(DbContext, Queries, selectionGroup);
+            var model = SelectionsDetail.Build(DbContext, _standardQueries, selectionGroup);
 
             return Json(model);
         }
@@ -711,7 +714,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            SelectionsDetail Model = SelectionsDetail.Build(DbContext, Queries, SelectionGroup);
+            SelectionsDetail Model = SelectionsDetail.Build(DbContext, _standardQueries, SelectionGroup);
 
             return Json(Model);
         }
@@ -859,7 +862,7 @@ namespace MillimanAccessPortal.Controllers
                     // Insert a new reduction task to record the unprocessable condition
                     DbContext.ContentReductionTask.Add(new ContentReductionTask
                     {
-                        ApplicationUserId = (await Queries.GetCurrentApplicationUser(User)).Id,
+                        ApplicationUserId = (await _standardQueries.GetCurrentApplicationUser(User)).Id,
                         CreateDateTimeUtc = DateTime.UtcNow,
                         Id = NewTaskGuid,
                         MasterFilePath = "",  // required field - consider removing non null requirement
@@ -901,7 +904,7 @@ namespace MillimanAccessPortal.Controllers
                     var contentReductionTask = new ContentReductionTask
                     {
                         Id = NewTaskGuid,
-                        ApplicationUser = await Queries.GetCurrentApplicationUser(User),
+                        ApplicationUser = await _standardQueries.GetCurrentApplicationUser(User),
                         SelectionGroupId = selectionGroup.Id,
                         MasterFilePath = MasterFileCopyTarget,
                         MasterContentChecksum = LiveMasterFile.Checksum,
@@ -937,7 +940,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
             Log.Verbose("In ContentAccessAdminController.UpdateSelections action: success");
-            SelectionsDetail model = SelectionsDetail.Build(DbContext, Queries, selectionGroup);
+            SelectionsDetail model = SelectionsDetail.Build(DbContext, _standardQueries, selectionGroup);
 
             return Json(model);
         }
@@ -1007,7 +1010,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(SelectionGroup, Task));
             }
 
-            SelectionsDetail Model = SelectionsDetail.Build(DbContext, Queries, SelectionGroup);
+            SelectionsDetail Model = SelectionsDetail.Build(DbContext, _standardQueries, SelectionGroup);
 
             return Json(Model);
         }
@@ -1016,8 +1019,8 @@ namespace MillimanAccessPortal.Controllers
         [PreventAuthRefresh]
         public async Task<IActionResult> Status()
         {
-            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
-            var selectionGroupStatusList = SelectionGroupStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
+            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await _standardQueries.GetCurrentApplicationUser(User));
+            var selectionGroupStatusList = SelectionGroupStatus.Build(DbContext, await _standardQueries.GetCurrentApplicationUser(User));
 
             var model = new
             {
@@ -1026,6 +1029,24 @@ namespace MillimanAccessPortal.Controllers
             };
 
             return new JsonResult(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Clients()
+        {
+            #region Authorization
+            var roleResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+            if (!roleResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var clients = await _queries.SelectClients(await _standardQueries.GetCurrentApplicationUser(User));
+
+            return Json(clients);
         }
     }
 }
