@@ -15,35 +15,9 @@ export async function fetchItems(clientId: Guid) {
   });
 }
 
-export function fetchGroups(itemId: Guid) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const groups = {
-        group1: { id: 'group1', rootContentItemId: 'item1', name: 'group1', isMaster: true, isSuspended: false, assignedUsers: [ 'user1', 'user2' ] },
-        group2: { id: 'group2', rootContentItemId: 'item1', name: 'group2', isMaster: false, isSuspended: true, assignedUsers: [ 'user3' ] },
-        group3: { id: 'group3', rootContentItemId: 'item1', name: 'group3', isMaster: false, isSuspended: false, assignedUsers: [] },
-        group4: { id: 'group4', rootContentItemId: 'item2', name: 'group4', isMaster: false, isSuspended: false, assignedUsers: [] },
-        group5: { id: 'group5', rootContentItemId: 'item3', name: 'group5', isMaster: false, isSuspended: false, assignedUsers: [] },
-      };
-      const reductions = {
-        r1: { id: 'r1', applicationUserId: 'user2', selectionGroupId: 'group1', createDateTimeUtc: '2018-02-11T00:00:00.000Z', taskStatus: ReductionStatus.Queued, selectedValues: [] },
-      };
-      const reductionQueue = {
-        r1: { reductionId: 'r1', queuePosition: 1 },
-      };
-
-      const ro = {};
-      Object.keys(groups).forEach((g) => {
-        if (groups[g].rootContentItemId === itemId) {
-          ro[g] = groups[g];
-        }
-      });
-      resolve({
-        groups: ro,
-        reductions,
-        reductionQueue,
-      });
-    }, 500);
+export async function fetchGroups(itemId: Guid) {
+  return await getData('/ContentAccessAdmin/SelectionGroupss', {
+    itemId,
   });
 }
 

@@ -82,7 +82,7 @@ export interface ContentReductionTask {
   id: Guid;
   contentPublicationRequestId?: Guid;
   applicationUserId: Guid;
-  selectionGroupId: Guid;
+  selectionGroupId?: Guid;
   selectedValues: Guid[];
   createDateTimeUtc: string;
   taskStatus: ReductionStatus;

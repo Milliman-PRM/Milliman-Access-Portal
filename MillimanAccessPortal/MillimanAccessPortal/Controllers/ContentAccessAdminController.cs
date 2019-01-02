@@ -1079,5 +1079,34 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(contentItems);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> SelectionGroupss(Guid itemId)
+        {
+            var item = DbContext.RootContentItem.Find(itemId);
+
+            #region Preliminary validation
+            if (item == null)
+            {
+                Response.Headers.Add("Warning", "The requested content item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var roleResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
+            if (!roleResult.Succeeded)
+            {
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access for this content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var selectionGroups = await _queries.SelectSelectionGroups(itemId);
+
+            return Json(selectionGroups);
+        }
     }
 }

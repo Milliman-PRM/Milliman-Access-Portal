@@ -12,17 +12,20 @@ namespace MillimanAccessPortal.DataQueries
     {
         private readonly ClientQueries _clientQueries;
         private readonly ContentItemQueries _contentItemQueries;
+        private readonly SelectionGroupQueries _selectionGroupQueries;
         private readonly PublicationQueries _publicationQueries;
         private readonly UserQueries _userQueries;
 
         public ContentAccessAdminQueries(
             ClientQueries clientQueries,
             ContentItemQueries contentItemQueries,
+            SelectionGroupQueries selectionGroupQueries,
             PublicationQueries publicationQueries,
             UserQueries userQueries)
         {
             _clientQueries = clientQueries;
             _contentItemQueries = contentItemQueries;
+            _selectionGroupQueries = selectionGroupQueries;
             _publicationQueries = publicationQueries;
             _userQueries = userQueries;
         }
@@ -58,6 +61,24 @@ namespace MillimanAccessPortal.DataQueries
                 ContentTypes = contentTypes.ToDictionary(t => t.Id),
                 Publications = publications.ToDictionary(p => p.Id),
                 PublicationQueue = queueDetails.ToDictionary(q => q.PublicationId),
+            };
+        }
+
+        public async Task<SelectionGroupsViewModel> SelectSelectionGroups(Guid rootContentItemId)
+        {
+            var groups = await _selectionGroupQueries.SelectSelectionGroupsWithAssignedUsers(rootContentItemId);
+            var groupIds = groups.ConvertAll(g => g.Id);
+
+            var reductions = await _publicationQueries.SelectReductionsWhereSelectionGroupIn(groupIds);
+            var reductionIds = reductions.ConvertAll(r => r.Id);
+
+            var queueDetails = await _publicationQueries.SelectQueueDetailsWhereReductionIn(reductionIds);
+
+            return new SelectionGroupsViewModel
+            {
+                Groups = groups.ToDictionary(g => g.Id),
+                Reductions = reductions.ToDictionary(r => r.Id),
+                ReductionQueue = queueDetails.ToDictionary(q => q.ReductionId),
             };
         }
     }

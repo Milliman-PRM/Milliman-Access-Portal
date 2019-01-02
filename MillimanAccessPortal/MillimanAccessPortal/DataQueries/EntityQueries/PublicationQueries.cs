@@ -72,5 +72,50 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             return queueDetails;
         }
+
+        internal async Task<List<BasicReduction>> SelectReductionsWhereSelectionGroupIn(List<Guid> selectionGroupIds)
+        {
+            var reductions = new List<BasicReduction> { };
+            foreach (var contentItemId in selectionGroupIds)
+            {
+                var reductionTask = await _dbContext.ContentReductionTask
+                    .Where(t => t.SelectionGroupId == contentItemId)
+                    .OrderByDescending(r => r.CreateDateTimeUtc)
+                    .FirstOrDefaultAsync();
+
+                var reduction = (BasicReduction)reductionTask;
+                if (reduction != null)
+                {
+                    reductions.Add(reduction);
+                }
+            }
+
+            return reductions;
+        }
+
+        internal async Task<List<ReductionQueueDetails>> SelectQueueDetailsWhereReductionIn(
+            List<Guid> reductionIds)
+        {
+            var queueDetails = new List<ReductionQueueDetails> { };
+            foreach (var reductionId in reductionIds)
+            {
+                var reduction = await _dbContext.ContentReductionTask
+                    .SingleAsync(r => r.Id == reductionId);
+                if (reduction.ReductionStatus.IsCancelable())
+                {
+                    var precedingReductionTaskCount = _dbContext.ContentReductionTask
+                        .Where(r => r.CreateDateTimeUtc < reduction.CreateDateTimeUtc)
+                        .Where(r => r.ReductionStatus.IsCancelable())
+                        .Count();
+                    queueDetails.Add(new ReductionQueueDetails
+                    {
+                        ReductionId = reductionId,
+                        QueuePosition = precedingReductionTaskCount,
+                    });
+                }
+            }
+
+            return queueDetails;
+        }
     }
 }
