@@ -21,55 +21,16 @@ export async function fetchGroups(itemId: Guid) {
   });
 }
 
-export function fetchSelections(groupId: Guid) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const groups = {
-        group1: { id: 'group1', selectedValues: [] },
-        group2: { id: 'group2', selectedValues: [] },
-        group3: { id: 'group3', selectedValues: [] },
-        group4: { id: 'group4', selectedValues: [] },
-        group5: { id: 'group5', selectedValues: [] },
-      };
-      const fields = {
-        field1: { id: 'field1', fieldName: 'field1', displayName: 'field1', rootContentItemId: 'item1', valueDelimiter: '' },
-        field2: { id: 'field2', fieldName: 'field2', displayName: 'field2', rootContentItemId: 'item1', valueDelimiter: '' },
-        field3: { id: 'field3', fieldName: 'field3', displayName: 'field3', rootContentItemId: 'item1', valueDelimiter: '' },
-      };
-      const values = {
-        value1: { id: 'value1', reductionFieldId: 'field1', value: 'value1' },
-        value2: { id: 'value2', reductionFieldId: 'field1', value: 'value2' },
-        value3: { id: 'value3', reductionFieldId: 'field1', value: 'value3' },
-        value4: { id: 'value4', reductionFieldId: 'field2', value: 'value4' },
-        value5: { id: 'value5', reductionFieldId: 'field2', value: 'value5' },
-      };
-      resolve({
-        groupId,
-        groups,
-        fields,
-        values,
-      });
-    }, 500);
+export async function fetchSelections(groupId: Guid) {
+  return await getData('/ContentAccessAdmin/Selectionss', {
+    groupId,
   });
 }
 
-export function fetchStatus() {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const publications = {
-        p1: { id: 'p1', applicationUserId: 'user1', rootContentItemId: 'item2', createDateTimeUtc: '2018-04-02T00:00:00.000Z', requestStatus: PublicationStatus.Queued },
-      };
-      const publicationQueue = {
-        p1: { publicationId: 'p1', queuePosition: 2 },
-      };
-      const reductions = {
-        r1: { id: 'r1', applicationUserId: 'user2', selectionGroupId: 'group1', createDateTimeUtc: '2018-02-11T00:00:00.000Z', taskStatus: ReductionStatus.Queued, selectedValues: [] },
-      };
-      const reductionQueue = {
-        r1: { reductionId: 'r1', queuePosition: 1 },
-      };
-      resolve({ publications, publicationQueue, reductions, reductionQueue });
-    }, 500);
+export async function fetchStatus(clientId, itemId) {
+  return await getData('/ContentAccessAdmin/Statuss', {
+    clientId,
+    itemId,
   });
 }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.EntityModels.SelectionGroupModels
 {
@@ -7,7 +6,6 @@ namespace MillimanAccessPortal.Models.EntityModels.SelectionGroupModels
     {
         public Guid Id { get; set; }
         public Guid RootContentItemId { get; set; }
-        public List<Guid> SelectedValues { get; set; }
         public bool IsSuspended { get; set; }
         public bool IsMaster { get; set; }
         public string Name { get; set; }

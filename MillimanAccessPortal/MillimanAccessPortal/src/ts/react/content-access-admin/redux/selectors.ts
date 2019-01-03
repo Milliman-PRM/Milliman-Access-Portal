@@ -12,7 +12,7 @@ export function pendingReductionValues(state: AccessState) {
   const _relatedReduction = relatedReduction(state, _selectedGroup && _selectedGroup.id);
   return _selectedGroup
     ? (_relatedReduction && isReductionActive(_relatedReduction.taskStatus))
-      ? _relatedReduction.selectedValues.map((i) => state.data.values[i])
+      ? _relatedReduction.selectedValues.map((i) => state.data.values[i]).filter((i) => i)
       : _.filter(state.data.values, (v) => {
         const selectionChanges = state.pending.selections || new Map();
         return _selectedGroup.selectedValues && _selectedGroup.selectedValues.find((sv) => sv === v.id)
@@ -127,7 +127,7 @@ function queueDetailsForPublication(state: AccessState, publicationId: Guid) {
   return state.data.publicationQueue[publicationId];
 }
 function relatedPublication(state: AccessState, itemId: Guid) {
-  const publication = state.data.publications[itemId];
+  const publication = _.find(state.data.publications, (p) => p.rootContentItemId === itemId);
   const queueDetails = publication && queueDetailsForPublication(state, publication.id);
   return publication
     ? { ...publication, queueDetails }

@@ -12,6 +12,7 @@ namespace MillimanAccessPortal.DataQueries
     {
         private readonly ClientQueries _clientQueries;
         private readonly ContentItemQueries _contentItemQueries;
+        private readonly HierarchyQueries _hierarchyQueries;
         private readonly SelectionGroupQueries _selectionGroupQueries;
         private readonly PublicationQueries _publicationQueries;
         private readonly UserQueries _userQueries;
@@ -19,12 +20,14 @@ namespace MillimanAccessPortal.DataQueries
         public ContentAccessAdminQueries(
             ClientQueries clientQueries,
             ContentItemQueries contentItemQueries,
+            HierarchyQueries hierarchyQueries,
             SelectionGroupQueries selectionGroupQueries,
             PublicationQueries publicationQueries,
             UserQueries userQueries)
         {
             _clientQueries = clientQueries;
             _contentItemQueries = contentItemQueries;
+            _hierarchyQueries = hierarchyQueries;
             _selectionGroupQueries = selectionGroupQueries;
             _publicationQueries = publicationQueries;
             _userQueries = userQueries;
@@ -79,6 +82,45 @@ namespace MillimanAccessPortal.DataQueries
                 Groups = groups.ToDictionary(g => g.Id),
                 Reductions = reductions.ToDictionary(r => r.Id),
                 ReductionQueue = queueDetails.ToDictionary(q => q.ReductionId),
+            };
+        }
+
+        public async Task<SelectionsViewModel> SelectSelections(Guid selectionGroupId)
+        {
+            var selections = await _selectionGroupQueries.SelectSelectionGroupSelections(selectionGroupId);
+            var fields = await _hierarchyQueries.SelectFieldsWhereSelectionGroup(selectionGroupId);
+            var values = await _hierarchyQueries.SelectValuesWhereSelectionGroup(selectionGroupId);
+
+            return new SelectionsViewModel
+            {
+                Selections = selections,
+                Fields = fields.ToDictionary(f => f.Id),
+                Values = values.ToDictionary(v => v.Id),
+            };
+        }
+
+        public async Task<StatusViewModel> SelectStatus(Guid clientId, Guid rootContentItemId)
+        {
+            var contentItemIds = (await _contentItemQueries
+                .SelectContentItemsWhereClient(clientId))
+                .ConvertAll((i) => i.Id);
+            var selectionGroupIds = (await _selectionGroupQueries
+                .SelectSelectionGroupsWhereContentItem(rootContentItemId))
+                .ConvertAll((g) => g.Id);
+
+            var publications = await _publicationQueries.SelectPublicationsWhereContentItemIn(contentItemIds);
+            var reductions = await _publicationQueries.SelectReductionsWhereSelectionGroupIn(selectionGroupIds);
+            var publicationQueue = await _publicationQueries
+                .SelectQueueDetailsWherePublicationIn(publications.ConvertAll((p) => p.Id));
+            var reductionQueue = await _publicationQueries
+                .SelectQueueDetailsWhereReductionIn(reductions.ConvertAll((r) => r.Id));
+
+            return new StatusViewModel
+            {
+                Publications = publications.ToDictionary((p) => p.Id),
+                PublicationQueue = publicationQueue.ToDictionary((p) => p.PublicationId),
+                Reductions = reductions.ToDictionary((r) => r.Id),
+                ReductionQueue = reductionQueue.ToDictionary((r) => r.ReductionId),
             };
         }
     }

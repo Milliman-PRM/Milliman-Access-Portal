@@ -36,7 +36,6 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 {
                     Id = g.Id,
                     RootContentItemId = g.RootContentItemId,
-                    SelectedValues = g.SelectedHierarchyFieldValueList.ToList(),
                     IsSuspended = g.IsSuspended,
                     IsMaster = g.IsMaster,
                     Name = g.GroupName,
@@ -55,7 +54,6 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 {
                     Id = group.Id,
                     RootContentItemId = group.RootContentItemId,
-                    SelectedValues = group.SelectedValues,
                     IsSuspended = group.IsSuspended,
                     IsMaster = group.IsMaster,
                     Name = group.Name,
@@ -72,13 +70,34 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return groupsWith;
         }
 
-        internal async Task<List<BasicSelectionGroupWithAssignedUsers>> SelectSelectionGroupsWithAssignedUsers(
-            Guid clientId)
+        internal async Task<List<BasicSelectionGroup>> SelectSelectionGroupsWhereContentItem(Guid contentItemId)
         {
-            var selectionGroups = await _selectSelectionGroupsWhereContentItem(clientId);
+            var selectionGroups = await _selectSelectionGroupsWhereContentItem(contentItemId);
+
+            return selectionGroups;
+        }
+
+        internal async Task<List<BasicSelectionGroupWithAssignedUsers>> SelectSelectionGroupsWithAssignedUsers(
+            Guid contentItemId)
+        {
+            var selectionGroups = await _selectSelectionGroupsWhereContentItem(contentItemId);
             var selectionGroupsWithAssignedUsers = await _withAssignedUsers(selectionGroups);
 
             return selectionGroupsWithAssignedUsers;
+        }
+
+        internal async Task<SelectionGroupSelections> SelectSelectionGroupSelections(Guid selectionGroupId)
+        {
+            var selections = await _dbContext.SelectionGroup
+                .Where(g => g.Id == selectionGroupId)
+                .Select(g => new SelectionGroupSelections
+                {
+                    Id = g.Id,
+                    SelectedValues = g.SelectedHierarchyFieldValueList.ToList(),
+                })
+                .SingleOrDefaultAsync();
+
+            return selections;
         }
     }
 }

@@ -106,7 +106,7 @@ interface ContentAccessAdminActions {
   fetchItems: (id: Guid) => void;
   fetchGroups: (id: Guid) => void;
   fetchSelections: (id: Guid) => void;
-  fetchStatus: () => void;
+  fetchStatus: (clientId: Guid, itemId: Guid) => void;
 
   createGroup: (id: Guid, name: string) => void;
   updateGroup: (id: Guid, name: string, users: Guid[]) => void;

@@ -48,7 +48,7 @@ export interface RootContentItemWithPublication extends RootContentItemWithStats
 export interface SelectionGroup {
   id: Guid;
   rootContentItemId?: Guid;
-  selectedValues: Guid[];
+  selectedValues?: Guid[];
   isSuspended: boolean;
   isMaster: boolean;
   name: string;
@@ -64,7 +64,6 @@ export interface ReductionField {
   rootContentItemId?: Guid;
   fieldName: string;
   displayName: string;
-  valueDelimiter: string;
 }
 export interface ReductionFieldValue {
   id: Guid;

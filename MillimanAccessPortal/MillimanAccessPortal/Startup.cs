@@ -181,6 +181,7 @@ namespace MillimanAccessPortal
 
             services.AddScoped<ClientQueries>();
             services.AddScoped<ContentItemQueries>();
+            services.AddScoped<HierarchyQueries>();
             services.AddScoped<SelectionGroupQueries>();
             services.AddScoped<PublicationQueries>();
             services.AddScoped<UserQueries>();

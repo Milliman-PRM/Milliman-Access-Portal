@@ -198,19 +198,27 @@ const data = createReducer<AccessStateData>(_initialData, {
     reductionQueue: action.payload.reductionQueue,
   }),
   [AccessAction.FetchSelections + DataSuffixes.Succeeded]: (state, action) => {
+    const { id, selectedValues } = action.payload.selections;
     return {
       ...state,
-      groups: mapValues(state.groups, (value, key) => {
-        const grp = action.payload.groups[key];
-        return {
-          ...value,
-          selectedValues: grp ? grp.selectedValues : [],
-        };
-      }),
+      groups: {
+        ...state.groups,
+        [id]: {
+          ...state.groups[id],
+          selectedValues,
+        },
+      },
       fields: action.payload.fields,
       values: action.payload.values,
     };
   },
+  [AccessAction.FetchStatus + DataSuffixes.Succeeded]: (state, action) => ({
+    ...state,
+    publications: action.payload.publications,
+    publicationQueue: action.payload.publicationQueue,
+    reductions: action.payload.reductions,
+    reductionQueue: action.payload.reductionQueue,
+  }),
 });
 const selected = createReducer<AccessStateSelected>(
   {

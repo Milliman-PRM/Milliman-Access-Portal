@@ -97,6 +97,7 @@ namespace MapTests
         public StandardQueries QueriesObj { get; set; }
         public ClientQueries ClientQueriesObj { get; set; }
         public ContentItemQueries ContentItemQueriesObj { get; set; }
+        public HierarchyQueries HierarchyQueriesObj { get; set; }
         public SelectionGroupQueries SelectionGroupQueriesObj { get; set; }
         public PublicationQueries PublicationQueriesObj { get; set; }
         public UserQueries UserQueriesObj { get; set; }
@@ -177,13 +178,14 @@ namespace MapTests
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject, MockAuditLogger.Object);
             ClientQueriesObj = new ClientQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
             ContentItemQueriesObj = new ContentItemQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
+            HierarchyQueriesObj = new HierarchyQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
             SelectionGroupQueriesObj = new SelectionGroupQueries(
                 MockAuditLogger.Object, DbContextObject, UserManagerObject);
             PublicationQueriesObj = new PublicationQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
             UserQueriesObj = new UserQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
             ContentAccessAdminQueriesObj = new ContentAccessAdminQueries(
-                ClientQueriesObj, ContentItemQueriesObj, SelectionGroupQueriesObj, PublicationQueriesObj,
-                UserQueriesObj);
+                ClientQueriesObj, ContentItemQueriesObj, HierarchyQueriesObj,
+                SelectionGroupQueriesObj, PublicationQueriesObj, UserQueriesObj);
             ConfigurationObject = GenerateConfiguration();
             MockServiceProvider = GenerateServiceProvider();
             MockFileSystemTasks = new Mock<FileSystemTasks>();
