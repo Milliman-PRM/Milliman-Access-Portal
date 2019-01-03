@@ -1,4 +1,10 @@
-﻿using AuditLogLib.Event;
+﻿/*
+ * CODE OWNERS: Joseph Sweeney, Tom Puckett
+ * OBJECTIVE: Asynchronous publication go-live processing
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
