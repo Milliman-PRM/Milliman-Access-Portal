@@ -87,13 +87,16 @@ namespace MillimanAccessPortal.DataQueries
 
         public async Task<SelectionsViewModel> SelectSelections(Guid selectionGroupId)
         {
-            var selections = await _selectionGroupQueries.SelectSelectionGroupSelections(selectionGroupId);
+            var liveSelections = await _selectionGroupQueries.SelectSelectionGroupSelections(selectionGroupId);
+            var reductionSelections = await _publicationQueries.SelectReductionSelections(selectionGroupId);
             var fields = await _hierarchyQueries.SelectFieldsWhereSelectionGroup(selectionGroupId);
             var values = await _hierarchyQueries.SelectValuesWhereSelectionGroup(selectionGroupId);
 
             return new SelectionsViewModel
             {
-                Selections = selections,
+                Id = selectionGroupId,
+                LiveSelections = liveSelections,
+                ReductionSelections = reductionSelections,
                 Fields = fields.ToDictionary(f => f.Id),
                 Values = values.ToDictionary(v => v.Id),
             };

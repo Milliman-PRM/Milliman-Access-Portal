@@ -86,15 +86,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return selectionGroupsWithAssignedUsers;
         }
 
-        internal async Task<SelectionGroupSelections> SelectSelectionGroupSelections(Guid selectionGroupId)
+        internal async Task<List<Guid>> SelectSelectionGroupSelections(Guid selectionGroupId)
         {
             var selections = await _dbContext.SelectionGroup
                 .Where(g => g.Id == selectionGroupId)
-                .Select(g => new SelectionGroupSelections
-                {
-                    Id = g.Id,
-                    SelectedValues = g.SelectedHierarchyFieldValueList.ToList(),
-                })
+                .Select(g => g.SelectedHierarchyFieldValueList.ToList())
                 .SingleOrDefaultAsync();
 
             return selections;

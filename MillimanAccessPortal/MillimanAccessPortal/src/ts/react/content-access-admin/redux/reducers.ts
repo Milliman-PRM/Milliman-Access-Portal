@@ -1,4 +1,4 @@
-import { mapValues } from 'lodash';
+import * as _ from 'lodash';
 import { combineReducers } from 'redux';
 
 import { Guid } from '../../models';
@@ -141,7 +141,7 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   }),
 });
 const pendingIsMaster = createReducer<boolean>(false, {
-  [AccessAction.SetPendingIsMaster]: (_, action) => action.isMaster,
+  [AccessAction.SetPendingIsMaster]: (_state, action) => action.isMaster,
 });
 const pendingSelections = createReducer<Map<Guid, { selected: boolean }>>(new Map(), {
   [AccessAction.SetPendingSelectionOn]: (state, action) =>
@@ -151,7 +151,7 @@ const pendingSelections = createReducer<Map<Guid, { selected: boolean }>>(new Ma
   [AccessAction.SelectGroup]: () => new Map(),
 });
 const pendingNewGroupName = createReducer<string>('', {
-  [AccessAction.SetPendingNewGroupName]: (_, action) => action.name,
+  [AccessAction.SetPendingNewGroupName]: (_state, action) => action.name,
 });
 const pendingGroups = createReducer<PendingGroupState>(_initialPendingGroups, {
   [AccessAction.SetGroupEditingOn]: (state, action) => ({
@@ -198,18 +198,26 @@ const data = createReducer<AccessStateData>(_initialData, {
     reductionQueue: action.payload.reductionQueue,
   }),
   [AccessAction.FetchSelections + DataSuffixes.Succeeded]: (state, action) => {
-    const { id, selectedValues } = action.payload.selections;
+    const { id, liveSelections, reductionSelections, fields, values } = action.payload;
+    const reductionId = _.find(state.reductions, (r) => r.selectionGroupId === id).id;
     return {
       ...state,
       groups: {
         ...state.groups,
         [id]: {
           ...state.groups[id],
-          selectedValues,
+          selectedValues: liveSelections,
         },
       },
-      fields: action.payload.fields,
-      values: action.payload.values,
+      reductions: {
+        ...state.reductions,
+        [reductionId]: {
+          ...state.reductions[reductionId],
+          selectedValues: reductionSelections,
+        },
+      },
+      fields,
+      values,
     };
   },
   [AccessAction.FetchStatus + DataSuffixes.Succeeded]: (state, action) => ({

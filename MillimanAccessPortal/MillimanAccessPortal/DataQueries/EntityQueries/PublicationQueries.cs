@@ -3,7 +3,6 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using System;
 using System.Collections.Generic;
@@ -28,19 +27,36 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _userManager = userManager;
         }
 
+        private async Task<ContentPublicationRequest> _publicationWhereContentItem(Guid contentItemId)
+        {
+            var publicationRequest = await _dbContext.ContentPublicationRequest
+                .Where(r => r.RootContentItemId == contentItemId)
+                .OrderByDescending(r => r.CreateDateTimeUtc)
+                .FirstOrDefaultAsync();
+
+            return publicationRequest;
+        }
+
+        private async Task<ContentReductionTask> _reductionWhereSelectionGroup(Guid selectionGroupId)
+        {
+            var reductionTask = await _dbContext.ContentReductionTask
+                .Where(t => t.SelectionGroupId == selectionGroupId)
+                .OrderByDescending(r => r.CreateDateTimeUtc)
+                .FirstOrDefaultAsync();
+
+            return reductionTask;
+        }
+
         internal async Task<List<BasicPublication>> SelectPublicationsWhereContentItemIn(List<Guid> contentItemIds)
         {
             var publications = new List<BasicPublication> { };
             foreach (var contentItemId in contentItemIds)
             {
-                var publicationRequest = await _dbContext.ContentPublicationRequest
-                    .Where(r => r.RootContentItemId == contentItemId)
-                    .OrderByDescending(r => r.CreateDateTimeUtc)
-                    .FirstOrDefaultAsync();
+                var publicationRequest = await _publicationWhereContentItem(contentItemId);
 
-                var publication = (BasicPublication)publicationRequest;
-                if (publication != null)
+                if (publicationRequest != null)
                 {
+                    var publication = (BasicPublication)publicationRequest;
                     publications.Add(publication);
                 }
             }
@@ -76,16 +92,13 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         internal async Task<List<BasicReduction>> SelectReductionsWhereSelectionGroupIn(List<Guid> selectionGroupIds)
         {
             var reductions = new List<BasicReduction> { };
-            foreach (var contentItemId in selectionGroupIds)
+            foreach (var selectionGroupId in selectionGroupIds)
             {
-                var reductionTask = await _dbContext.ContentReductionTask
-                    .Where(t => t.SelectionGroupId == contentItemId)
-                    .OrderByDescending(r => r.CreateDateTimeUtc)
-                    .FirstOrDefaultAsync();
+                var reductionTask = await _reductionWhereSelectionGroup(selectionGroupId);
 
-                var reduction = (BasicReduction)reductionTask;
-                if (reduction != null)
+                if (reductionTask != null)
                 {
+                    var reduction = (BasicReduction)reductionTask;
                     reductions.Add(reduction);
                 }
             }
@@ -116,6 +129,22 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             }
 
             return queueDetails;
+        }
+
+        internal async Task<List<Guid>> SelectReductionSelections(Guid selectionGroupId)
+        {
+            var reductionTask = await _reductionWhereSelectionGroup(selectionGroupId);
+            if (reductionTask == null)
+            {
+                return new List<Guid> { };
+            }
+
+            var selections = await _dbContext.ContentReductionTask
+                .Where(t => t.Id == reductionTask.Id)
+                .Select(t => t.SelectionCriteriaObj.GetSelectedValueIds())
+                .SingleOrDefaultAsync();
+
+            return selections;
         }
     }
 }
