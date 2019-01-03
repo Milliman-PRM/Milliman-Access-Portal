@@ -24,6 +24,8 @@ namespace MapDbContextLib.Context
         Validating = 9,
         Queued = 10,
         Processing = 20,
+        PostProcessReady = 25,
+        PostProcessing = 27,
         Processed = 30,
         Confirming = 35,
         Confirmed = 40,
