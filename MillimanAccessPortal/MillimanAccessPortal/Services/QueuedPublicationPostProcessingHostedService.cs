@@ -51,25 +51,41 @@ namespace MillimanAccessPortal.Services
 
                 if (publicationRequestId != Guid.Empty)
                 {
-                    AllRunningTasks.Add
-                    (
-                        Task.Run(() => PostProcess(publicationRequestId, Services))
-                    );
+                    using (var scope = Services.CreateScope())
+                    {
+                        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+                        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                        //var auditLogger = serviceProvider.GetRequiredService<IAuditLogger>();
+
+                        try
+                        {
+                            PostProcess(publicationRequestId, dbContext, configuration);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error(e.Message);
+                            ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
+                            thisPubRequest.RequestStatus = PublicationStatus.Error;
+                            thisPubRequest.StatusMessage = e.Message;
+                            dbContext.SaveChanges();
+                        }
+                    }
                 }
             }
         }
 
-        protected void PostProcess(Guid publicationRequestId, IServiceProvider serviceProvider)
+        /// <summary>
+        /// Should throw if the request should be marked with error status.  The caller must log thrown exception messages
+        /// </summary>
+        /// <param name="publicationRequestId"></param>
+        /// <param name="scopedServiceProvider"></param>
+        protected void PostProcess(Guid publicationRequestId, ApplicationDbContext dbContext, IConfiguration configuration)
         {
-            //var auditLogger = serviceProvider.GetRequiredService<IAuditLogger>();
-            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-
             // Validate that a request record exists with the provided Id
-            ContentPublicationRequest thisPubRequest = GetCurrentPublicationRequestEntity(publicationRequestId, serviceProvider);
+            ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
             if (thisPubRequest == null)
             {
-                string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), no publication request record found for ID {publicationRequestId}";
-                Log.Error(Msg);
+                string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), no publication request record found with ID {publicationRequestId}";
                 throw new ApplicationException(Msg);
             }
 
@@ -77,7 +93,8 @@ namespace MillimanAccessPortal.Services
             while (thisPubRequest.RequestStatus == PublicationStatus.Processing)
             {
                 Thread.Sleep(2000);
-                thisPubRequest = GetCurrentPublicationRequestEntity(publicationRequestId, serviceProvider);
+                dbContext.Entry(thisPubRequest).State = EntityState.Detached;  // force update from db
+                thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
             }
             // Ensure that the request is ready for post-processing
             if (thisPubRequest.RequestStatus != PublicationStatus.PostProcessReady)
@@ -88,15 +105,11 @@ namespace MillimanAccessPortal.Services
             }
 
             // Prepare useful lists of reduction tasks for use below
-            List<ContentReductionTask> RelatedReductionTasks = null;
-            using (var dbContext = Services.GetRequiredService<ApplicationDbContext>())
-            {
-                RelatedReductionTasks = dbContext.ContentReductionTask
-                    .Where(t => t.ContentPublicationRequestId == thisPubRequest.Id)
-                    .Include(t => t.SelectionGroup)
-                    .ToList();
-            }
-            List<ContentReductionTask> SuccessfulReductionTasks = RelatedReductionTasks
+            List<ContentReductionTask> AllRelatedReductionTasks = dbContext.ContentReductionTask
+                .Where(t => t.ContentPublicationRequestId == thisPubRequest.Id)
+                .Include(t => t.SelectionGroup)
+                .ToList();
+            List<ContentReductionTask> SuccessfulReductionTasks = AllRelatedReductionTasks
                 .Where(t => t.SelectionGroupId.HasValue)
                 .Where(t => !t.SelectionGroup.IsMaster)
                 .Where(t => t.OutcomeMetadataObj.OutcomeReason == MapDbReductionTaskOutcomeReason.Success)
@@ -104,12 +117,13 @@ namespace MillimanAccessPortal.Services
 
             #region Validation
             // Validate the existence and checksum of each uploaded (non-reduced) file
-            foreach (ContentRelatedFile f in thisPubRequest.LiveReadyFilesObj)
+            foreach (ContentRelatedFile crf in thisPubRequest.LiveReadyFilesObj)
             {
-                if (!File.Exists(f.FullPath) || !f.ValidateChecksum())
+                if (!File.Exists(crf.FullPath) || !crf.ValidateChecksum())
                 {
-                    // Log validation failure
-                    return;
+                    string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), validation failed for file {crf.FullPath}";
+                    Log.Warning(Msg);
+                    return;  // maybe throw instead?
                 }
             }
             // Validate the existence and checksum of each successfully reduced file
@@ -118,19 +132,16 @@ namespace MillimanAccessPortal.Services
                 if (!File.Exists(relatedTask.ResultFilePath) || 
                     relatedTask.ReducedContentChecksum.ToLower() != GlobalFunctions.GetFileChecksum(relatedTask.ResultFilePath))
                 {
-                    // Log validation failure
-                    return;
+                    string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), validation failed for file {relatedTask.ResultFilePath}";
+                    Log.Warning(Msg);
+                    return;  // maybe throw instead?
                 }
             }
             #endregion
 
             // update pub status to PostProcessing
             thisPubRequest.RequestStatus = PublicationStatus.PostProcessing;
-            using (var dbContext = Services.GetRequiredService<ApplicationDbContext>())
-            {
-                dbContext.ContentPublicationRequest.Update(thisPubRequest);
-                dbContext.SaveChanges();
-            }
+            dbContext.SaveChanges();
 
             string tempContentDestinationFolder = Path.Combine(configuration.GetValue<string>("Storage:ContentItemRootPath"),
                                                                thisPubRequest.RootContentItemId.ToString(),
@@ -168,11 +179,7 @@ namespace MillimanAccessPortal.Services
             }
             // record the path change in thisPubRequest
             thisPubRequest.LiveReadyFilesObj = newLiveReadyFilesObj;
-            using (var dbContext = Services.GetRequiredService<ApplicationDbContext>())
-            {
-                dbContext.ContentPublicationRequest.Update(thisPubRequest);
-                dbContext.SaveChanges();
-            }
+            dbContext.SaveChanges();
 
             // PostProcess the output of successful reduction tasks
             foreach (ContentReductionTask relatedTask in SuccessfulReductionTasks)
@@ -187,17 +194,14 @@ namespace MillimanAccessPortal.Services
 
                 // Update reduction task record with revised path
                 relatedTask.ResultFilePath = TargetFilePath;
-                using (var dbContext = Services.GetRequiredService<ApplicationDbContext>())
-                {
-                    dbContext.ContentReductionTask.Update(relatedTask);
-                    dbContext.SaveChanges();
-                }
+                dbContext.ContentReductionTask.Update(relatedTask);
+                dbContext.SaveChanges();
             }
 
             // Delete source folder(s)
             const bool RetainFailedReductions = false;  // TODO Improve logic for what to delete
             IEnumerable<ContentReductionTask> tasksOfFoldersToDelete = RetainFailedReductions
-                ? RelatedReductionTasks.Except(SuccessfulReductionTasks)
+                ? AllRelatedReductionTasks.Except(SuccessfulReductionTasks)
                 : SuccessfulReductionTasks;
             HashSet<string> foldersToDelete = tasksOfFoldersToDelete.Select(t => Path.GetDirectoryName(t.ResultFilePath)).ToHashSet();
             foreach (string folderToDelete in foldersToDelete)
@@ -207,20 +211,8 @@ namespace MillimanAccessPortal.Services
 
             // update pub status to Processed
             thisPubRequest.RequestStatus = PublicationStatus.Processed;
-            using (var dbContext = Services.GetRequiredService<ApplicationDbContext>())
-            {
-                dbContext.ContentPublicationRequest.Update(thisPubRequest);
-                dbContext.SaveChanges();
-            }
-        }
-
-        protected ContentPublicationRequest GetCurrentPublicationRequestEntity(Guid publicationRequestId, IServiceProvider serviceProvider)
-        {
-            using (var dbContext = Services.GetRequiredService<ApplicationDbContext>())
-            {
-                ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
-                return thisPubRequest;
-            }
+            dbContext.ContentPublicationRequest.Update(thisPubRequest);
+            dbContext.SaveChanges();
         }
     }
 }
