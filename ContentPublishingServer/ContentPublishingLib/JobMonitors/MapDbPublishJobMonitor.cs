@@ -359,7 +359,7 @@ namespace ContentPublishingLib.JobMonitors
                             DbRequest.RequestStatus = PublicationStatus.Canceled;
                             break;
                         case PublishJobDetail.JobStatusEnum.Success:
-                            DbRequest.RequestStatus = PublicationStatus.Processed;
+                            DbRequest.RequestStatus = PublicationStatus.PostProcessReady;
                             DbRequest.ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
                             {
                                 new ReductionRelatedFiles
