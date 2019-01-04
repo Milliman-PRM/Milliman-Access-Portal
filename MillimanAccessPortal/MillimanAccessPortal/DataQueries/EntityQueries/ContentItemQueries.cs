@@ -27,6 +27,23 @@ namespace MillimanAccessPortal.DataQueries
             _userManager = userManager;
         }
 
+        private async Task<BasicContentItem> _findContentItem(Guid id)
+        {
+            var contentItem = await _dbContext.RootContentItem
+                .Where(i => i.Id == id)
+                .Select(i => new BasicContentItem
+                {
+                    Id = i.Id,
+                    ClientId = i.ClientId,
+                    ContentTypeId = i.ContentTypeId,
+                    IsSuspended = i.IsSuspended,
+                    DoesReduce = i.DoesReduce,
+                    Name = i.ContentName,
+                })
+                .SingleOrDefaultAsync();
+
+            return contentItem;
+        }
         private async Task<List<BasicContentItem>> _selectContentItemsWhereClient(Guid clientId)
         {
             var contentItems = await _dbContext.RootContentItem
@@ -77,6 +94,14 @@ namespace MillimanAccessPortal.DataQueries
             var contentItemsWithStats = await _withStats(contentItems);
 
             return contentItemsWithStats;
+        }
+        internal async Task<BasicContentItemWithStats> SelectContentItemWithStats(Guid id)
+        {
+            var contentItem = await _findContentItem(id);
+            var contentItemWithStats = (await _withStats(new List<BasicContentItem> { contentItem }))
+                .SingleOrDefault();
+
+            return contentItemWithStats;
         }
 
         internal async Task<List<BasicContentType>> SelectContentTypesContentItemIn(List<Guid> contentItemIds)

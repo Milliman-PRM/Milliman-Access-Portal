@@ -28,6 +28,22 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _userManager = userManager;
         }
 
+        private async Task<BasicSelectionGroup> _findSelectionGroup(Guid id)
+        {
+            var selectionGroup = await _dbContext.SelectionGroup
+                .Where(g => g.Id == id)
+                .Select(g => new BasicSelectionGroup
+                {
+                    Id = g.Id,
+                    RootContentItemId = g.RootContentItemId,
+                    IsSuspended = g.IsSuspended,
+                    IsMaster = g.IsMaster,
+                    Name = g.GroupName,
+                })
+                .SingleOrDefaultAsync();
+
+            return selectionGroup;
+        }
         private async Task<List<BasicSelectionGroup>> _selectSelectionGroupsWhereContentItem(Guid contentItemId)
         {
             var selectionGroups = await _dbContext.SelectionGroup
@@ -43,6 +59,26 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 .ToListAsync();
 
             return selectionGroups;
+        }
+
+        private async Task<BasicSelectionGroupWithAssignedUsers> _withAssignedUsers(BasicSelectionGroup group)
+        {
+            var groupWith = new BasicSelectionGroupWithAssignedUsers
+            {
+                Id = group.Id,
+                RootContentItemId = group.RootContentItemId,
+                IsSuspended = group.IsSuspended,
+                IsMaster = group.IsMaster,
+                Name = group.Name,
+            };
+
+            groupWith.AssignedUsers = await _dbContext.UserInSelectionGroup
+                .Where(u => u.SelectionGroupId == group.Id)
+                .Select(u => u.UserId)
+                .Distinct()
+                .ToListAsync();
+
+            return groupWith;
         }
         private async Task<List<BasicSelectionGroupWithAssignedUsers>> _withAssignedUsers(
             List<BasicSelectionGroup> groups)
@@ -84,6 +120,14 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             var selectionGroupsWithAssignedUsers = await _withAssignedUsers(selectionGroups);
 
             return selectionGroupsWithAssignedUsers;
+        }
+        internal async Task<BasicSelectionGroupWithAssignedUsers> SelectSelectionGroupWithAssignedUsers(
+            Guid id)
+        {
+            var selectionGroup = await _findSelectionGroup(id);
+            var selectionGroupsWithAssignedUser = await _withAssignedUsers(selectionGroup);
+
+            return selectionGroupsWithAssignedUser;
         }
 
         internal async Task<List<Guid>> SelectSelectionGroupSelections(Guid selectionGroupId)

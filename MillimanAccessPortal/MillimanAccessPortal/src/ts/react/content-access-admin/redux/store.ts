@@ -28,6 +28,7 @@ export interface PendingDataState {
   items: boolean;
   groups: boolean;
   selections: boolean;
+  createGroup: boolean;
 }
 export interface PendingGroupState {
   id: Guid;

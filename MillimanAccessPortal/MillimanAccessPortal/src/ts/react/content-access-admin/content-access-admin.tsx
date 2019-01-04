@@ -443,7 +443,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
           <form
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              this.props.createGroup(this.props.selectedItem.id, this.props.pending.newGroupName);
+              if (!this.props.pending.data.createGroup) {
+                this.props.createGroup(this.props.selectedItem.id, this.props.pending.newGroupName);
+              }
             }}
           >
             <input

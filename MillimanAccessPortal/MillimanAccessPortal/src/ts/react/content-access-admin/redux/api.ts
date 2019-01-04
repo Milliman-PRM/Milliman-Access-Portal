@@ -1,10 +1,6 @@
-import * as _ from 'lodash';
-
-import { getData } from '../../../shared';
-import { PublicationStatus, ReductionStatus } from '../../../view-models/content-publishing';
+import { getData, postData } from '../../../shared';
 import { Guid } from '../../models';
 
-/* tslint:disable:max-line-length */
 export async function fetchClients() {
   return await getData('/ContentAccessAdmin/Clients');
 }
@@ -27,19 +23,17 @@ export async function fetchSelections(groupId: Guid) {
   });
 }
 
-export async function fetchStatus(clientId, itemId) {
+export async function fetchStatus(clientId: Guid, itemId: Guid) {
   return await getData('/ContentAccessAdmin/Statuss', {
     clientId,
     itemId,
   });
 }
 
-export function createGroup(itemId: Guid, name: string) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      alert({ itemId, name });
-      resolve({});
-    }, 500);
+export async function createGroup(itemId: Guid, name: string) {
+  return await postData('/ContentAccessAdmin/CreateGroup', {
+    itemId,
+    name,
   });
 }
 
@@ -87,4 +81,3 @@ export function cancelReduction(groupId: Guid) {
     }, 500);
   });
 }
-/* tslint:enable:max-line-length */

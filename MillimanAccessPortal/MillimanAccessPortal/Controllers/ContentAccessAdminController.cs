@@ -1148,5 +1148,68 @@ namespace MillimanAccessPortal.Controllers
             return Json(status);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateGroup(Guid itemId, string name)
+        {
+            var contentItem = DbContext.RootContentItem
+                .Where(i => i.Id == itemId)
+                .Include(item => item.Client)
+                .Include(item => item.ContentType)
+                .SingleOrDefault();
+
+            #region Preliminary validation
+            if (contentItem == null)
+            {
+                Response.Headers.Add("Warning", "The requested content item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(
+                User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
+            if (!roleInRootContentItemResult.Succeeded)
+            {
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access to the specified content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            // reject this request if the RootContentItem has a pending publication request
+            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
+                .Where(r => r.RootContentItemId == contentItem.Id)
+                .Where(r => r.RequestStatus.IsActive())
+                .Any();
+            if (blockedByPendingPublication)
+            {
+                Response.Headers.Add("Warning",
+                    "A new selection group may not be created while this content item has a pending publication.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            string liveMasterFilePath = null;
+            if (!contentItem.DoesReduce)
+            {
+                ContentRelatedFile liveMasterFile = contentItem.ContentFilesList
+                    .SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
+                if (liveMasterFile == null || !System.IO.File.Exists(liveMasterFile.FullPath))
+                {
+                    Response.Headers.Add("Warning",
+                        "A master content file does not exist for the requested content item.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+                liveMasterFilePath = Path.GetFileName(liveMasterFile.FullPath);
+            }
+            #endregion
+
+            var selectionGroups = contentItem.DoesReduce
+                ? await _queries.CreateReducingGroup(itemId, name)
+                : await _queries.CreateMasterGroup(itemId, name, liveMasterFilePath);
+
+            return Json(selectionGroups);
+        }
     }
 }

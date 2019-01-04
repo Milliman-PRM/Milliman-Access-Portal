@@ -1,8 +1,10 @@
-﻿using MapDbContextLib.Identity;
+﻿using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,6 +12,7 @@ namespace MillimanAccessPortal.DataQueries
 {
     public class ContentAccessAdminQueries
     {
+        private readonly ApplicationDbContext _dbContext;
         private readonly ClientQueries _clientQueries;
         private readonly ContentItemQueries _contentItemQueries;
         private readonly HierarchyQueries _hierarchyQueries;
@@ -18,6 +21,7 @@ namespace MillimanAccessPortal.DataQueries
         private readonly UserQueries _userQueries;
 
         public ContentAccessAdminQueries(
+            ApplicationDbContext dbContext,
             ClientQueries clientQueries,
             ContentItemQueries contentItemQueries,
             HierarchyQueries hierarchyQueries,
@@ -25,6 +29,7 @@ namespace MillimanAccessPortal.DataQueries
             PublicationQueries publicationQueries,
             UserQueries userQueries)
         {
+            _dbContext = dbContext;
             _clientQueries = clientQueries;
             _contentItemQueries = contentItemQueries;
             _hierarchyQueries = hierarchyQueries;
@@ -58,12 +63,15 @@ namespace MillimanAccessPortal.DataQueries
 
             var queueDetails = await _publicationQueries.SelectQueueDetailsWherePublicationIn(publicationIds);
 
+            var clientStats = await _clientQueries.SelectClientWithStats(clientId);
+
             return new ContentItemsViewModel
             {
                 Items = items.ToDictionary(i => i.Id),
                 ContentTypes = contentTypes.ToDictionary(t => t.Id),
                 Publications = publications.ToDictionary(p => p.Id),
                 PublicationQueue = queueDetails.ToDictionary(q => q.PublicationId),
+                ClientStats = clientStats,
             };
         }
 
@@ -77,11 +85,16 @@ namespace MillimanAccessPortal.DataQueries
 
             var queueDetails = await _publicationQueries.SelectQueueDetailsWhereReductionIn(reductionIds);
 
+            var contentItemStats = await _contentItemQueries.SelectContentItemWithStats(rootContentItemId);
+            var clientStats = await _clientQueries.SelectClientWithStats(contentItemStats.ClientId);
+
             return new SelectionGroupsViewModel
             {
                 Groups = groups.ToDictionary(g => g.Id),
                 Reductions = reductions.ToDictionary(r => r.Id),
                 ReductionQueue = queueDetails.ToDictionary(q => q.ReductionId),
+                ContentItemStats = contentItemStats,
+                ClientStats = clientStats,
             };
         }
 
@@ -124,6 +137,61 @@ namespace MillimanAccessPortal.DataQueries
                 PublicationQueue = publicationQueue.ToDictionary((p) => p.PublicationId),
                 Reductions = reductions.ToDictionary((r) => r.Id),
                 ReductionQueue = reductionQueue.ToDictionary((r) => r.ReductionId),
+            };
+        }
+
+        public async Task<CreateGroupViewModel> CreateReducingGroup(Guid itemId, string name)
+        {
+            var group = new SelectionGroup
+            {
+                RootContentItemId = itemId,
+                GroupName = name,
+                ContentInstanceUrl = "",
+                SelectedHierarchyFieldValueList = new Guid[] { },
+                IsMaster = false,
+            };
+
+            _dbContext.SelectionGroup.Add(group);
+            _dbContext.SaveChanges();
+
+            var groupWithUsers = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
+            var contentItemStats = await _contentItemQueries.SelectContentItemWithStats(itemId);
+            var clientStats = await _clientQueries.SelectClientWithStats(contentItemStats.ClientId);
+
+            return new CreateGroupViewModel
+            {
+                Group = groupWithUsers,
+                ContentItemStats = contentItemStats,
+                ClientStats = clientStats,
+            };
+        }
+
+        public async Task<CreateGroupViewModel> CreateMasterGroup(Guid itemId, string name, string contentUrl)
+        {
+            var contentItem = await _dbContext.RootContentItem.FindAsync(itemId);
+
+            var group = new SelectionGroup
+            {
+                RootContentItem = contentItem,
+                GroupName = name,
+                ContentInstanceUrl = "",
+                SelectedHierarchyFieldValueList = new Guid[] { },
+                IsMaster = true,
+            };
+            group.SetContentUrl(contentUrl);
+
+            _dbContext.SelectionGroup.Add(group);
+            _dbContext.SaveChanges();
+
+            var groupWithUsers = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
+            var contentItemStats = await _contentItemQueries.SelectContentItemWithStats(itemId);
+            var clientStats = await _clientQueries.SelectClientWithStats(contentItemStats.ClientId);
+
+            return new CreateGroupViewModel
+            {
+                Group = groupWithUsers,
+                ContentItemStats = contentItemStats,
+                ClientStats = clientStats,
             };
         }
     }

@@ -4,6 +4,7 @@ using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.ClientModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,6 +27,18 @@ namespace MillimanAccessPortal.DataQueries
             _userManager = userManager;
         }
 
+        private async Task<BasicClient> _findClient(Guid id)
+        {
+            return await _dbContext.Client
+                .Where(c => c.Id == id)
+                .Select(c => new BasicClient
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Code = c.ClientCode,
+                })
+                .SingleOrDefaultAsync();
+        }
         private async Task<List<BasicClient>> _selectClientWhereRole(ApplicationUser user, RoleEnum role)
         {
             return await _dbContext.UserRoleInClient
@@ -103,6 +116,14 @@ namespace MillimanAccessPortal.DataQueries
             var clientsWithEligibleUsers = await _withEligibleUsers(clientsWithStats);
 
             return clientsWithEligibleUsers;
+        }
+        internal async Task<BasicClientWithStats> SelectClientWithStats(Guid id)
+        {
+            var client = await _findClient(id);
+            var clientWithStats = (await _withStats(new List<BasicClient> { client }))
+                .SingleOrDefault();
+
+            return clientWithStats;
         }
     }
 }
