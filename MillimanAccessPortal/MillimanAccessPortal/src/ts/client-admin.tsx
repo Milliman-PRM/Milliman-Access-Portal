@@ -92,8 +92,9 @@ function populateClientForm(response) {
   $clientForm.find('#ProfitCenterId option[temporary-profitcenter]').remove();
   for (const key in clientEntity) {
     if (clientEntity.hasOwnProperty(key)) {
+      const keyU = key[0].toUpperCase() + key.slice(1);
       const value = clientEntity[key];
-      const field = $clientForm.find(`#${key}`);
+      const field = $clientForm.find(`#${keyU}`);
       if (field.is('#ProfitCenterId')) {
         if (!field.find('option[value="' + value + '"]').length) {
           field.append($('<option temporary-profitcenter />')
@@ -108,7 +109,7 @@ function populateClientForm(response) {
           field[0].selectize.addOption({ value: item, text: item });
           field[0].selectize.addItem(item);
         });
-      } else if (key === 'NewUserWelcomeText') {
+      } else if (keyU === 'NewUserWelcomeText') {
         const cb = field.parent().parent().find('input');
         cb.prop('checked', value !== null);
         field.val(value);
