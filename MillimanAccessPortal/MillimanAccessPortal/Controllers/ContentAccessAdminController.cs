@@ -1211,5 +1211,90 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(selectionGroups);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteGroup(Guid groupId)
+        {
+            var selectionGroup = DbContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rci => rci.ContentType)
+                .SingleOrDefault(sg => sg.Id == groupId);
+
+            #region Preliminary validation
+            if (selectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(
+                User, null, new RoleInRootContentItemRequirement(
+                    RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
+            if (!roleInRootContentItemResult.Succeeded)
+            {
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access to the specified content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            // reject this request if the RootContentItem has a pending publication request
+            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
+                .Where(r => r.RootContentItemId == selectionGroup.RootContentItemId)
+                .Where(r => r.RequestStatus.IsActive())
+                .Any();
+            if (blockedByPendingPublication)
+            {
+                Response.Headers.Add("Warning",
+                    "A selection group may not be deleted while this content item has a pending publication.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var selectionGroups = await _queries.DeleteGroup(groupId);
+
+            #region
+            // ContentType specific handling after successful transaction
+            switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
+            {
+                case ContentTypeEnum.Qlikview:
+                    if (!selectionGroup.IsMaster && !string.IsNullOrWhiteSpace(selectionGroup.ContentInstanceUrl))
+                    {
+                        string ContentFileFullPath = Path.Combine(
+                            ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"),
+                            selectionGroup.ContentInstanceUrl);
+
+                        await new QlikviewLibApi().ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl, QvConfig);
+
+                        if (System.IO.File.Exists(ContentFileFullPath))
+                        {
+                            System.IO.File.Delete(ContentFileFullPath);
+                        }
+                        if (System.IO.File.Exists(ContentFileFullPath + ".Shared"))
+                        {
+                            System.IO.File.Delete(ContentFileFullPath + ".Shared");
+                        }
+                        if (System.IO.File.Exists(ContentFileFullPath + ".Meta"))
+                        {
+                            System.IO.File.Delete(ContentFileFullPath + ".Meta");
+                        }
+                    }
+                    break;
+
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.FileDownload:
+                default:
+                    // for all non-reducible content types, do nothing.
+                    break;
+            }
+            #endregion
+
+            return Json(selectionGroups);
+        }
     }
 }

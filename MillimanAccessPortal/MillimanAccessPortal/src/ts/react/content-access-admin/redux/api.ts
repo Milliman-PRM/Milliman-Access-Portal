@@ -46,12 +46,9 @@ export function updateGroup(groupId: Guid, name: string, users: Guid[]) {
   });
 }
 
-export function deleteGroup(groupId: Guid) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      alert(groupId);
-      resolve({});
-    }, 500);
+export async function deleteGroup(groupId: Guid) {
+  return await postData('/ContentAccessAdmin/DeleteGroup', {
+    groupId,
   });
 }
 

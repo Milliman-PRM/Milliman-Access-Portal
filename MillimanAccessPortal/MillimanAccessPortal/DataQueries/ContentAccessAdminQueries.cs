@@ -1,10 +1,8 @@
 ﻿using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
-using MapDbContextLib.Models;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -156,13 +154,11 @@ namespace MillimanAccessPortal.DataQueries
 
             var groupWithUsers = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
             var contentItemStats = await _contentItemQueries.SelectContentItemWithStats(itemId);
-            var clientStats = await _clientQueries.SelectClientWithStats(contentItemStats.ClientId);
 
             return new CreateGroupViewModel
             {
                 Group = groupWithUsers,
                 ContentItemStats = contentItemStats,
-                ClientStats = clientStats,
             };
         }
 
@@ -185,13 +181,27 @@ namespace MillimanAccessPortal.DataQueries
 
             var groupWithUsers = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
             var contentItemStats = await _contentItemQueries.SelectContentItemWithStats(itemId);
-            var clientStats = await _clientQueries.SelectClientWithStats(contentItemStats.ClientId);
 
             return new CreateGroupViewModel
             {
                 Group = groupWithUsers,
                 ContentItemStats = contentItemStats,
-                ClientStats = clientStats,
+            };
+        }
+
+        public async Task<DeleteGroupViewModel> DeleteGroup(Guid id)
+        {
+            var group = await _dbContext.SelectionGroup.FindAsync(id);
+
+            _dbContext.SelectionGroup.Remove(group);
+            await _dbContext.SaveChangesAsync();
+
+            var contentItemStats = await _contentItemQueries.SelectContentItemWithStats(group.RootContentItemId);
+
+            return new DeleteGroupViewModel
+            {
+                GroupId = id,
+                ContentItemStats = contentItemStats,
             };
         }
     }
