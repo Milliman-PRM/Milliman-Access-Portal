@@ -2,6 +2,7 @@
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
+using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -203,6 +204,16 @@ namespace MillimanAccessPortal.DataQueries
                 GroupId = id,
                 ContentItemStats = contentItemStats,
             };
+        }
+
+        public async Task<BasicSelectionGroup> SetGroupSuspended(Guid id, bool isSuspended)
+        {
+            var group = await _dbContext.SelectionGroup.FindAsync(id);
+
+            group.IsSuspended = isSuspended;
+            await _dbContext.SaveChangesAsync();
+
+            return (BasicSelectionGroup)group;
         }
     }
 }

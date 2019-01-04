@@ -30,6 +30,7 @@ export interface PendingDataState {
   selections: boolean;
   createGroup: boolean;
   deleteGroup: boolean;
+  suspendGroup: boolean;
 }
 export interface PendingGroupState {
   id: Guid;

@@ -1296,5 +1296,38 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(selectionGroups);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuspendGroup(Guid groupId, bool isSuspended)
+        {
+            var selectionGroup = DbContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                .SingleOrDefault(sg => sg.Id == groupId);
+
+            #region Preliminary Validation
+            if (selectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(
+                User, null, new RoleInRootContentItemRequirement(
+                    RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
+            if (!roleInRootContentItemResult.Succeeded)
+            {
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access to the specified content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var group = await _queries.SetGroupSuspended(groupId, isSuspended);
+
+            return Json(group);
+        }
     }
 }

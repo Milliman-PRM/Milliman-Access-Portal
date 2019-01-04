@@ -52,12 +52,10 @@ export async function deleteGroup(groupId: Guid) {
   });
 }
 
-export function suspendGroup(groupId: Guid, isSuspended: boolean) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      alert({ groupId, isSuspended });
-      resolve({});
-    }, 500);
+export async function suspendGroup(groupId: Guid, isSuspended: boolean) {
+  return await postData('/ContentAccessAdmin/SuspendGroup', {
+    groupId,
+    isSuspended,
   });
 }
 
