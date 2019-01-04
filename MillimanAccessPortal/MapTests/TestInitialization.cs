@@ -87,6 +87,9 @@ namespace MapTests
         public Mock<FileSystemTasks> MockFileSystemTasks { get; set; }
         public FileSystemTasks FileSystemTasksObject { get => MockFileSystemTasks.Object; }
 
+        public Mock<IPublicationPostProcessingTaskQueue> MockPublicationPostProcessingQueue { get; set; }
+        public IPublicationPostProcessingTaskQueue PublicationPostProcessingQueueObject { get => MockPublicationPostProcessingQueue.Object; }
+
         public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
@@ -171,6 +174,7 @@ namespace MapTests
             ConfigurationObject = GenerateConfiguration();
             MockServiceProvider = GenerateServiceProvider();
             MockFileSystemTasks = new Mock<FileSystemTasks>();
+            MockPublicationPostProcessingQueue = new Mock<IPublicationPostProcessingTaskQueue>();
         }
 
         /// <summary>

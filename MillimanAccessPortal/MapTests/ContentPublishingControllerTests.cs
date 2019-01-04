@@ -45,7 +45,8 @@ namespace MapTests
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
-                TestResources.QvConfig
+                TestResources.QvConfig,
+                TestResources.PublicationPostProcessingQueueObject
                 );
 
             try
