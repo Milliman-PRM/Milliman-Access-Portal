@@ -141,10 +141,10 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             var selections = await _dbContext.ContentReductionTask
                 .Where(t => t.Id == reductionTask.Id)
-                .Select(t => t.SelectionCriteriaObj.GetSelectedValueIds())
+                .Select(t => t.SelectionCriteriaObj)
                 .SingleOrDefaultAsync();
 
-            return selections;
+            return selections?.GetSelectedValueIds();
         }
     }
 }

@@ -90,10 +90,10 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         {
             var selections = await _dbContext.SelectionGroup
                 .Where(g => g.Id == selectionGroupId)
-                .Select(g => g.SelectedHierarchyFieldValueList.ToList())
+                .Select(g => g.SelectedHierarchyFieldValueList)
                 .SingleOrDefaultAsync();
 
-            return selections;
+            return selections?.ToList();
         }
     }
 }

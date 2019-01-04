@@ -199,7 +199,16 @@ const data = createReducer<AccessStateData>(_initialData, {
   }),
   [AccessAction.FetchSelections + DataSuffixes.Succeeded]: (state, action) => {
     const { id, liveSelections, reductionSelections, fields, values } = action.payload;
-    const reductionId = _.find(state.reductions, (r) => r.selectionGroupId === id).id;
+    const reduction = _.find(state.reductions, (r) => r.selectionGroupId === id);
+    const reductions = reduction
+      ? {
+        ...state.reductions,
+        [reduction.id]: {
+          ...state.reductions[reduction.id],
+          selectedValues: reductionSelections,
+        },
+      }
+      : { ...state.reductions };
     return {
       ...state,
       groups: {
@@ -209,13 +218,7 @@ const data = createReducer<AccessStateData>(_initialData, {
           selectedValues: liveSelections,
         },
       },
-      reductions: {
-        ...state.reductions,
-        [reductionId]: {
-          ...state.reductions[reductionId],
-          selectedValues: reductionSelections,
-        },
-      },
+      reductions,
       fields,
       values,
     };

@@ -27,7 +27,7 @@ namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
                 ContentPublicationRequestId = reduction.ContentPublicationRequestId,
                 ApplicationUserId = reduction.ApplicationUserId,
                 SelectionGroupId = reduction.SelectionGroupId,
-                SelectedValues = reduction.SelectionCriteriaObj.GetSelectedValueIds(),
+                SelectedValues = reduction.SelectionCriteriaObj?.GetSelectedValueIds(),
                 CreateDateTimeUtc = reduction.CreateDateTimeUtc,
                 TaskStatus = reduction.ReductionStatus,
             };
