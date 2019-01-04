@@ -44,11 +44,10 @@ namespace MillimanAccessPortal.Services
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                // This collection might get stale while waiting for another task, but that's ok. 
                 AllRunningTasks.RemoveAll(t => t.IsCompleted);
 
-                // Retrieve the id of the publication request to post-process
-                Guid publicationRequestId = await TaskQueue.DequeueAsync(cancellationToken);
+                // Retrieve the id of a publication request to post-process
+                Guid publicationRequestId = await TaskQueue.DequeueAsync(cancellationToken, 10_000);
 
                 if (publicationRequestId != Guid.Empty)
                 {
@@ -69,8 +68,9 @@ namespace MillimanAccessPortal.Services
             ContentPublicationRequest thisPubRequest = GetCurrentPublicationRequestEntity(publicationRequestId, serviceProvider);
             if (thisPubRequest == null)
             {
-                // TODO log something
-                throw new ApplicationException($"In QueuedPublicationPostProcessingHostedService.PostProcess, no publication request found for ID {publicationRequestId}");
+                string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), no publication request record found for ID {publicationRequestId}";
+                Log.Error(Msg);
+                throw new ApplicationException(Msg);
             }
 
             // While the request is processing, wait and requery
@@ -82,22 +82,25 @@ namespace MillimanAccessPortal.Services
             // Ensure that the request is ready for post-processing
             if (thisPubRequest.RequestStatus != PublicationStatus.PostProcessReady)
             {
-                // TODO log something
-                return;  // or throw
+                string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), unexpected request status {thisPubRequest.RequestStatus.ToString()} for publication request ID {publicationRequestId}";
+                Log.Warning(Msg);
+                return;  // TODO should this throw?
             }
 
-            // Prepare a useful list of reduction tasks for below use
-            List<ContentReductionTask> SuccessfulReductionTasks = null;
+            // Prepare useful lists of reduction tasks for use below
+            List<ContentReductionTask> RelatedReductionTasks = null;
             using (var dbContext = Services.GetRequiredService<ApplicationDbContext>())
             {
-                SuccessfulReductionTasks = dbContext.ContentReductionTask
+                RelatedReductionTasks = dbContext.ContentReductionTask
                     .Where(t => t.ContentPublicationRequestId == thisPubRequest.Id)
-                    .Where(t => t.SelectionGroupId.HasValue)
-                    .Where(t => !t.SelectionGroup.IsMaster)
-                    .Where(t => t.OutcomeMetadataObj.OutcomeReason == MapDbReductionTaskOutcomeReason.Success)
                     .Include(t => t.SelectionGroup)
                     .ToList();
             }
+            List<ContentReductionTask> SuccessfulReductionTasks = RelatedReductionTasks
+                .Where(t => t.SelectionGroupId.HasValue)
+                .Where(t => !t.SelectionGroup.IsMaster)
+                .Where(t => t.OutcomeMetadataObj.OutcomeReason == MapDbReductionTaskOutcomeReason.Success)
+                .ToList();
 
             #region Validation
             // Validate the existence and checksum of each uploaded (non-reduced) file
@@ -142,6 +145,7 @@ namespace MillimanAccessPortal.Services
             Directory.CreateDirectory(tempContentDestinationFolder);
 
             // Move uploaded (non-reduced) files for this publication
+            List<ContentRelatedFile> newLiveReadyFilesObj = new List<ContentRelatedFile>();
             foreach (ContentRelatedFile Crf in thisPubRequest.LiveReadyFilesObj)
             {
                 // This assignment defines the live file name
@@ -154,12 +158,60 @@ namespace MillimanAccessPortal.Services
                 // Can move because destination is on same volume as source
                 File.Move(Crf.FullPath, TargetFilePath);
 
-                // TODO record the change in thisPubRequest.LiveReadyFilesObj
+                newLiveReadyFilesObj.Add(new ContentRelatedFile
+                {
+                    Checksum = Crf.Checksum,
+                    FileOriginalName = Crf.FileOriginalName,
+                    FilePurpose = Crf.FilePurpose,
+                    FullPath = TargetFilePath,
+                });
+            }
+            // record the path change in thisPubRequest
+            thisPubRequest.LiveReadyFilesObj = newLiveReadyFilesObj;
+            using (var dbContext = Services.GetRequiredService<ApplicationDbContext>())
+            {
+                dbContext.ContentPublicationRequest.Update(thisPubRequest);
+                dbContext.SaveChanges();
             }
 
-            // TODO copy reduced files to tempContentDestinationFolder 
-            // TODO Delete source folders
-            // TODO Update reduction task records with revised path?
+            // PostProcess the output of successful reduction tasks
+            foreach (ContentReductionTask relatedTask in SuccessfulReductionTasks)
+            {
+                // This assignment defines the live file name
+                string TargetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(
+                                            relatedTask.SelectionGroupId.Value,   // .HasValue is true for tasks in SuccessfulReductionTasks
+                                            thisPubRequest.RootContentItemId,
+                                            Path.GetExtension(relatedTask.ResultFilePath));
+                string TargetFilePath = Path.Combine(tempContentDestinationFolder, TargetFileName);
+                File.Copy(relatedTask.ResultFilePath, TargetFilePath);
+
+                // Update reduction task record with revised path
+                relatedTask.ResultFilePath = TargetFilePath;
+                using (var dbContext = Services.GetRequiredService<ApplicationDbContext>())
+                {
+                    dbContext.ContentReductionTask.Update(relatedTask);
+                    dbContext.SaveChanges();
+                }
+            }
+
+            // Delete source folder(s)
+            const bool RetainFailedReductions = false;  // TODO Improve logic for what to delete
+            IEnumerable<ContentReductionTask> tasksOfFoldersToDelete = RetainFailedReductions
+                ? RelatedReductionTasks.Except(SuccessfulReductionTasks)
+                : SuccessfulReductionTasks;
+            HashSet<string> foldersToDelete = tasksOfFoldersToDelete.Select(t => Path.GetDirectoryName(t.ResultFilePath)).ToHashSet();
+            foreach (string folderToDelete in foldersToDelete)
+            {
+                Directory.Delete(folderToDelete, true);
+            }
+
+            // update pub status to Processed
+            thisPubRequest.RequestStatus = PublicationStatus.Processed;
+            using (var dbContext = Services.GetRequiredService<ApplicationDbContext>())
+            {
+                dbContext.ContentPublicationRequest.Update(thisPubRequest);
+                dbContext.SaveChanges();
+            }
         }
 
         protected ContentPublicationRequest GetCurrentPublicationRequestEntity(Guid publicationRequestId, IServiceProvider serviceProvider)
