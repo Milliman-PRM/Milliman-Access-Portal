@@ -53,6 +53,8 @@ namespace MapDbContextLib.Context
                 PublicationStatus.Validating,
                 PublicationStatus.Queued,
                 PublicationStatus.Processing,
+                PublicationStatus.PostProcessReady,
+                PublicationStatus.PostProcessing,
                 PublicationStatus.Processed,
                 PublicationStatus.Confirming,
             };
@@ -73,6 +75,8 @@ namespace MapDbContextLib.Context
             { PublicationStatus.Validating, "Virus Scanning"},
             { PublicationStatus.Queued, "Queued"},
             { PublicationStatus.Processing, "Processing"},
+            { PublicationStatus.PostProcessReady, "Ready For Post-processing"},
+            { PublicationStatus.PostProcessing, "Post-Processing" },
             { PublicationStatus.Processed, "Processed (awaiting approval)"},
             { PublicationStatus.Confirming, "Going Live"},
             { PublicationStatus.Confirmed, "Confirmed"},
