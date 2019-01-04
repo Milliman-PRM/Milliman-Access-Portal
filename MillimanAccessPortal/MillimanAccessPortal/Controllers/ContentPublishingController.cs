@@ -45,6 +45,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly QlikviewConfig QlikviewConfig;
+        private readonly IPublicationPostProcessingTaskQueue _PostProcessingTaskQueue;
 
 
         /// <summary>
@@ -64,7 +65,8 @@ namespace MillimanAccessPortal.Controllers
             StandardQueries QueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
-            IOptions<QlikviewConfig> QlikviewOptionsAccessorArg
+            IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
+            IPublicationPostProcessingTaskQueue postProcessingTaskQueue
             )
         {
             AuditLogger = AuditLoggerArg;
@@ -76,6 +78,7 @@ namespace MillimanAccessPortal.Controllers
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
+            _PostProcessingTaskQueue = postProcessingTaskQueue;
         }
 
         /// <summary>
@@ -568,7 +571,7 @@ namespace MillimanAccessPortal.Controllers
                 string exchangePath = ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
                 string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
                 ContentPublishSupport.AddPublicationMonitor(Task.Run(() =>
-                    ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath)));
+                    ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath, _PostProcessingTaskQueue)));
 
                 Log.Verbose($"In ContentPublishingController.Publish action: publication request queued successfully");
                 AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(NewContentPublicationRequest.RootContentItem, NewContentPublicationRequest));
