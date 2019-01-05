@@ -89,8 +89,9 @@ namespace MillimanAccessPortal.Services
                 throw new ApplicationException(Msg);
             }
 
+            List<PublicationStatus> WaitStatusList = new List<PublicationStatus> { PublicationStatus.Queued, PublicationStatus.Processing };
             // While the request is processing, wait and requery
-            while (thisPubRequest.RequestStatus == PublicationStatus.Processing)
+            while (WaitStatusList.Contains(thisPubRequest.RequestStatus))
             {
                 Thread.Sleep(2000);
                 dbContext.Entry(thisPubRequest).State = EntityState.Detached;  // force update from db
@@ -114,6 +115,11 @@ namespace MillimanAccessPortal.Services
                 .Where(t => !t.SelectionGroup.IsMaster)
                 .Where(t => t.OutcomeMetadataObj.OutcomeReason == MapDbReductionTaskOutcomeReason.Success)
                 .ToList();
+            List<ContentReductionTask> UnsuccessfulReductionTasks = AllRelatedReductionTasks
+                .Where(t => t.SelectionGroupId.HasValue)
+                .Where(t => !t.SelectionGroup.IsMaster)
+                .Where(t => t.OutcomeMetadataObj.OutcomeReason != MapDbReductionTaskOutcomeReason.Success)
+                .ToList();
 
             #region Validation
             // Validate the existence and checksum of each uploaded (non-reduced) file
@@ -130,7 +136,7 @@ namespace MillimanAccessPortal.Services
             foreach (ContentReductionTask relatedTask in SuccessfulReductionTasks)
             {
                 if (!File.Exists(relatedTask.ResultFilePath) || 
-                    relatedTask.ReducedContentChecksum.ToLower() != GlobalFunctions.GetFileChecksum(relatedTask.ResultFilePath))
+                    relatedTask.ReducedContentChecksum.ToLower() != GlobalFunctions.GetFileChecksum(relatedTask.ResultFilePath).ToLower())
                 {
                     string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), validation failed for file {relatedTask.ResultFilePath}";
                     Log.Warning(Msg);
@@ -195,15 +201,17 @@ namespace MillimanAccessPortal.Services
                 // Update reduction task record with revised path
                 relatedTask.ResultFilePath = TargetFilePath;
                 dbContext.ContentReductionTask.Update(relatedTask);
-                dbContext.SaveChanges();
             }
+            dbContext.SaveChanges();
 
             // Delete source folder(s)
-            const bool RetainFailedReductions = false;  // TODO Improve logic for what to delete
-            IEnumerable<ContentReductionTask> tasksOfFoldersToDelete = RetainFailedReductions
-                ? AllRelatedReductionTasks.Except(SuccessfulReductionTasks)
-                : SuccessfulReductionTasks;
-            HashSet<string> foldersToDelete = tasksOfFoldersToDelete.Select(t => Path.GetDirectoryName(t.ResultFilePath)).ToHashSet();
+            const bool RetainFailedReductionFolders = true;  // TODO Improve logic for what to delete
+            HashSet<string> foldersToDelete = RetainFailedReductionFolders
+                ? SuccessfulReductionTasks.Select(t => Path.GetDirectoryName(t.MasterFilePath))
+                                          .Except(UnsuccessfulReductionTasks.Select(t => Path.GetDirectoryName(t.MasterFilePath)))
+                                          .ToHashSet()
+                : AllRelatedReductionTasks.Select(t => Path.GetDirectoryName(t.MasterFilePath))
+                                          .ToHashSet();
             foreach (string folderToDelete in foldersToDelete)
             {
                 Directory.Delete(folderToDelete, true);
