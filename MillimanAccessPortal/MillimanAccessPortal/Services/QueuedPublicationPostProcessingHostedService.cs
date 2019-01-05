@@ -205,7 +205,7 @@ namespace MillimanAccessPortal.Services
             dbContext.SaveChanges();
 
             // Delete source folder(s)
-            const bool RetainFailedReductionFolders = true;  // TODO Improve logic for what to delete
+            const bool RetainFailedReductionFolders = false;  // TODO Improve logic for what to delete
             HashSet<string> foldersToDelete = RetainFailedReductionFolders
                 ? SuccessfulReductionTasks.Select(t => Path.GetDirectoryName(t.MasterFilePath))
                                           .Except(UnsuccessfulReductionTasks.Select(t => Path.GetDirectoryName(t.MasterFilePath)))
