@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.3.1
+
+- Fixed an issue where an error during publication go-live would leave the content in an unrecoverable, non-functional state. 
+
 ### v1.3.0
 
 - Publication requests involving reduction errors will no longer be aborted
@@ -38,7 +42,7 @@
 
 ### v1.1.2
 
-- Allow heirarchy comparison values to wrap in the Go Live preview to better support long values
+- Allow hierarchy comparison values to wrap in the Go Live preview to better support long values
 - Fixed an issue with Qlikview content where a special character (e.g. ~ ' ") in a selectable value of a reduction hierarchy field would become quoted
 - Fixed an issue with upload of large content files
 - Fixed an issue where long running Qlikview reductions would fail to complete
