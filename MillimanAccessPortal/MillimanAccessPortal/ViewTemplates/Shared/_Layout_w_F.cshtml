@@ -3,7 +3,9 @@
 }
 
 <div id="content-wrapper">
-    @RenderBody()
+    <div id="content-container">
+        @RenderBody()
+    </div>
     @Html.Partial("_Footer")
 </div>
 
