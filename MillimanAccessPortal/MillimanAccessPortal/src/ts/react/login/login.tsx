@@ -53,7 +53,7 @@ export class Login extends React.Component <{}, LoginState > {
                 <input type="text" value={this.state.Username} onChange={this.handleUsernameChange} placeholder="Username" autoFocus />
               </div>
               <div className="login-form-input-container">
-                <input type="password" value={this.state.Password} onChange={this.handlePasswordChange} placeholder="Password" autoFocus />
+                <input type="password" value={this.state.Password} onChange={this.handlePasswordChange} placeholder="Password" />
               </div>
               <div asp-validation-summary="All" className="text-danger"></div>
               <div className="login-form-button-container">
