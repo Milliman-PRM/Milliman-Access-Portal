@@ -440,7 +440,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
         auditLogger.Log(AuditEventType.ContentPublicationGoLive.ToEvent(
             publicationRequest.RootContentItem, publicationRequest, goLiveViewModel.ValidationSummaryId));
 
-        // 4 Clean up temporary pre-live folder (asynchronously)
+        // 4 Clean up temporary pre-live folder
         // 4.1 Delete all temporarily backed up production files
         foreach (string FileToDelete in backedUpProductionFilesToDelete)
         {
@@ -457,7 +457,14 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             {
                 case ".qvw":
                     string qvwFileRelativePath = Path.GetRelativePath(configuration.GetValue<string>("Storage:ContentItemRootPath"), PreliveFile.FullPath);
-                    await new QlikviewLibApi().ReclaimAllDocCalsForFile(qvwFileRelativePath, qlikviewConfig);
+                    try
+                    {
+                        await new QlikviewLibApi().ReclaimAllDocCalsForFile(qvwFileRelativePath, qlikviewConfig);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, $"Failed to reclaim Qlikview document CAL for file {PreliveFile.FullPath}, relative path {qvwFileRelativePath}");
+                    }
                     break;
                 default:
                     break;

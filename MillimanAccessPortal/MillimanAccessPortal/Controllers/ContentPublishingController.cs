@@ -912,7 +912,7 @@ namespace MillimanAccessPortal.Controllers
                 Txn.Commit();
             }
 
-            // Clean up temporary pre-live folder (asynchronously)
+            // Clean up temporary pre-live folder (asynchronously, browser doesn't have to wait for this)
             Task asyncDeleteTask = Task.Run(async () =>   // This Task variable assignment exists only to prevent a compiler warning
             {
                 // Prepare each pre-live file for delete
@@ -922,8 +922,16 @@ namespace MillimanAccessPortal.Controllers
                     {
                         case ".qvw":
                             string qvwFileRelativePath = Path.GetRelativePath(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), PreliveFile.FullPath);
-                            await new QlikviewLibApi().ReclaimAllDocCalsForFile(qvwFileRelativePath, QlikviewConfig);
+                            try
+                            {
+                                await new QlikviewLibApi().ReclaimAllDocCalsForFile(qvwFileRelativePath, QlikviewConfig);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Warning(ex, $"Failed to reclaim Qlikview document CAL for file {PreliveFile.FullPath}, relative path {qvwFileRelativePath}");
+                            }
                             break;
+
                         default:
                             break;
                     }
@@ -933,7 +941,6 @@ namespace MillimanAccessPortal.Controllers
                 string PreviewFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"],
                                                     rootContentItemId.ToString(),
                                                     publicationRequestId.ToString());
-
                 if (Directory.Exists(PreviewFolder))
                 {
                     Directory.Delete(PreviewFolder, true);
