@@ -14,7 +14,7 @@ module.exports = {
     'create-initial-user': './src/ts/create-initial-user.ts',
     'enable-account': './src/ts/enable-account.ts',
     'forgot-password': './src/ts/forgot-password.ts',
-    'login': './src/ts/login.ts',
+    'login': './src/ts/react/login/index.tsx',
     'message': './src/ts/message.ts',
     'reset-password': './src/ts/reset-password.ts',
     'system-admin': './src/ts/react/system-admin/index.tsx',
