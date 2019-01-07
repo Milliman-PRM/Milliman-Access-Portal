@@ -2,7 +2,7 @@ import '../../../../scss/react/shared-components/card-panel.scss';
 
 import * as React from 'react';
 
-import { LoadingSpinner } from '../loading-spinner';
+import { ColumnSpinner } from '../column-spinner';
 import { CardPanelSectionContent } from './card-panel-sections';
 import { PanelSectionContainer } from './panel-sections';
 
@@ -26,7 +26,7 @@ export class CardPanel<TEntity> extends React.Component<CardPanelProps<TEntity>>
   private renderContentSection() {
     const { loading, entities, renderEntity } = this.props;
     return loading
-      ? <LoadingSpinner />
+      ? <ColumnSpinner />
       : (
         <CardPanelSectionContent>
           <ul className="admin-panel-content">

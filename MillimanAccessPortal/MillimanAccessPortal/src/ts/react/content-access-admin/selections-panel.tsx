@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { isReductionActive, ReductionStatus } from '../../view-models/content-publishing';
 import { PanelSectionContainer } from '../shared-components/card-panel/panel-sections';
-import { LoadingSpinner } from '../shared-components/loading-spinner';
+import { ColumnSpinner } from '../shared-components/column-spinner';
 import { Toggle } from '../shared-components/toggle';
 import { Fieldset, FieldsetData } from './fieldset';
 
@@ -37,7 +37,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   private renderFormSection() {
     const { title, subtitle, isSuspended, loading } = this.props;
     return loading
-      ? <LoadingSpinner />
+      ? <ColumnSpinner />
       : (
         <div className="admin-panel-form">
           <div className="admin-panel-content-container">
