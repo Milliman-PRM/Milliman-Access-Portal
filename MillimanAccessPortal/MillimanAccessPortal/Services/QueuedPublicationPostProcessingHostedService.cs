@@ -66,6 +66,10 @@ namespace MillimanAccessPortal.Services
                             ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
                             thisPubRequest.RequestStatus = PublicationStatus.Error;
                             thisPubRequest.StatusMessage = e.Message;
+                            foreach (var reduction in dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == thisPubRequest.Id))
+                            {
+                                reduction.ReductionStatus = ReductionStatusEnum.Error;
+                            }
                             dbContext.SaveChanges();
                         }
                     }
@@ -127,8 +131,7 @@ namespace MillimanAccessPortal.Services
                 if (!File.Exists(crf.FullPath) || !crf.ValidateChecksum())
                 {
                     string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), validation failed for file {crf.FullPath}";
-                    Log.Warning(Msg);
-                    return;  // maybe throw instead?
+                    throw new ApplicationException(Msg);
                 }
             }
             // Validate the existence and checksum of each successfully reduced file
@@ -138,8 +141,7 @@ namespace MillimanAccessPortal.Services
                     relatedTask.ReducedContentChecksum.ToLower() != GlobalFunctions.GetFileChecksum(relatedTask.ResultFilePath).ToLower())
                 {
                     string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), validation failed for file {relatedTask.ResultFilePath}";
-                    Log.Warning(Msg);
-                    return;  // maybe throw instead?
+                    throw new ApplicationException(Msg);
                 }
             }
             #endregion
@@ -204,7 +206,7 @@ namespace MillimanAccessPortal.Services
             dbContext.SaveChanges();
 
             // Delete source folder(s)
-            const bool RetainFailedReductionFolders = false;  // this variable is for debugging use
+            bool RetainFailedReductionFolders = false;  // this variable is for debugging use
             HashSet<string> foldersToDelete = RetainFailedReductionFolders
                 ? SuccessfulReductionTasks.Select(t => Path.GetDirectoryName(t.MasterFilePath))
                                           .Except(UnsuccessfulReductionTasks.Select(t => Path.GetDirectoryName(t.MasterFilePath)))
