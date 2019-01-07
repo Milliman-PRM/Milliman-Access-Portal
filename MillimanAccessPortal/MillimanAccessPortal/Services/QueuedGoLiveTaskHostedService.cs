@@ -190,158 +190,115 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
         #endregion
 
         #region Go live
-        List<string> FilesToDelete = new List<string>();
+        List<string> backedUpProductionFilesToDelete = new List<string>();
 
         using (IDbContextTransaction Txn = dbContext.Database.BeginTransaction())
         {
-            //1 Update db:
-            //1.1  ContentPublicationRequest.Status
-            var previousLiveRequests = dbContext.ContentPublicationRequest
-                .Where(r => r.RootContentItemId == publicationRequest.RootContentItemId)
-                .Where(r => r.RequestStatus == PublicationStatus.Confirmed);
-            foreach (ContentPublicationRequest PreviousLiveRequest in previousLiveRequests)
+            try
             {
-                PreviousLiveRequest.RequestStatus = PublicationStatus.Replaced;
-                dbContext.ContentPublicationRequest.Update(PreviousLiveRequest);
-            }
-            publicationRequest.RequestStatus = PublicationStatus.Confirmed;
-
-            //1.2  ContentReductionTask.Status
-            var previousLiveTasks = dbContext.ContentReductionTask
-                .Where(r => r.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
-                .Where(r => r.ReductionStatus == ReductionStatusEnum.Live);
-            foreach (ContentReductionTask PreviousLiveTask in previousLiveTasks)
-            {
-                PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
-                dbContext.ContentReductionTask.Update(PreviousLiveTask);
-            }
-            relatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
-
-            //1.3  HierarchyFieldValue due to hierarchy changes
-            //1.3.1  If this is first publication for this root content item, add the fields to db
-            //       and to LiveHierarchy to help identify all values as new
-            if (LiveHierarchy.Fields.Count == 0)
-            {  // This must be first time publication, need to insert the fields.  Values are handled below
-                NewHierarchy.Fields.ForEach(f =>
+                //1 Update db:
+                //1.1  ContentPublicationRequest.Status
+                var previousLiveRequests = dbContext.ContentPublicationRequest
+                    .Where(r => r.RootContentItemId == publicationRequest.RootContentItemId)
+                    .Where(r => r.RequestStatus == PublicationStatus.Confirmed);
+                foreach (ContentPublicationRequest PreviousLiveRequest in previousLiveRequests)
                 {
-                    HierarchyField NewField = new HierarchyField
-                    {
-                        FieldName = f.FieldName,
-                        FieldDisplayName = f.DisplayName,
-                        RootContentItemId = publicationRequest.RootContentItemId,
-                        FieldDelimiter = f.ValueDelimiter,
-                        StructureType = f.StructureType,
-                    };
-                    dbContext.HierarchyField.Add(NewField);
-                    dbContext.SaveChanges();
+                    PreviousLiveRequest.RequestStatus = PublicationStatus.Replaced;
+                    dbContext.ContentPublicationRequest.Update(PreviousLiveRequest);
+                }
+                publicationRequest.RequestStatus = PublicationStatus.Confirmed;
 
-                    LiveHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
-                    {
-                        Id = NewField.Id,  // Id is assigned during dbContext.SaveChanges() above
-                        FieldName = NewField.FieldName,
-                        DisplayName = NewField.FieldDisplayName,
-                        StructureType = NewField.StructureType,
-                        ValueDelimiter = NewField.FieldDelimiter,
-                        Values = new List<ReductionFieldValue>(),
-                    });
-                });
-            }
-            //1.3.2  Add/Remove field values based on value list differences between new/old
-            foreach (var NewHierarchyField in NewHierarchy.Fields)
-            {
-                ReductionField<ReductionFieldValue> MatchingLiveField = LiveHierarchy.Fields
-                    .Single(f => f.FieldName == NewHierarchyField.FieldName);
-
-                List<string> NewHierarchyFieldValueList = NewHierarchyField.Values.Select(v => v.Value).ToList();
-                List<string> LiveHierarchyFieldValueList = MatchingLiveField.Values.Select(v => v.Value).ToList();
-
-                // Insert new values
-                foreach (string NewValue in NewHierarchyFieldValueList.Except(LiveHierarchyFieldValueList))
+                //1.2  ContentReductionTask.Status
+                var previousLiveTasks = dbContext.ContentReductionTask
+                    .Where(r => r.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
+                    .Where(r => r.ReductionStatus == ReductionStatusEnum.Live);
+                foreach (ContentReductionTask PreviousLiveTask in previousLiveTasks)
                 {
-                    dbContext.HierarchyFieldValue.Add(new HierarchyFieldValue
+                    PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
+                    dbContext.ContentReductionTask.Update(PreviousLiveTask);
+                }
+                relatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
+
+                //1.3  HierarchyFieldValue due to hierarchy changes
+                //1.3.1  If this is first publication for this root content item, add the fields to db
+                //       and to LiveHierarchy to help identify all values as new
+                if (LiveHierarchy.Fields.Count == 0)
+                {  // This must be first time publication, need to insert the fields.  Values are handled below
+                    NewHierarchy.Fields.ForEach(f =>
                     {
-                        HierarchyFieldId = MatchingLiveField.Id,
-                        Value = NewValue,
+                        HierarchyField NewField = new HierarchyField
+                        {
+                            FieldName = f.FieldName,
+                            FieldDisplayName = f.DisplayName,
+                            RootContentItemId = publicationRequest.RootContentItemId,
+                            FieldDelimiter = f.ValueDelimiter,
+                            StructureType = f.StructureType,
+                        };
+                        dbContext.HierarchyField.Add(NewField);
+                        dbContext.SaveChanges();
+
+                        LiveHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
+                        {
+                            Id = NewField.Id,  // Id is assigned during dbContext.SaveChanges() above
+                            FieldName = NewField.FieldName,
+                            DisplayName = NewField.FieldDisplayName,
+                            StructureType = NewField.StructureType,
+                            ValueDelimiter = NewField.FieldDelimiter,
+                            Values = new List<ReductionFieldValue>(),
+                        });
                     });
                 }
-
-                // Delete removed values
-                foreach (string RemovedValue in LiveHierarchyFieldValueList.Except(NewHierarchyFieldValueList))
+                //1.3.2  Add/Remove field values based on value list differences between new/old
+                foreach (var NewHierarchyField in NewHierarchy.Fields)
                 {
-                    HierarchyFieldValue ObsoleteRecord = dbContext.HierarchyFieldValue
-                        .Single(v =>
-                            v.HierarchyFieldId == MatchingLiveField.Id
-                            && v.Value == RemovedValue);
-                    dbContext.HierarchyFieldValue.Remove(ObsoleteRecord);
-                }
-            }
-            dbContext.SaveChanges();
+                    ReductionField<ReductionFieldValue> MatchingLiveField = LiveHierarchy.Fields
+                        .Single(f => f.FieldName == NewHierarchyField.FieldName);
 
-            //1.4  Update SelectionGroup SelectedHierarchyFieldValueList due to hierarchy changes
-            List<Guid> AllRemainingFieldValues = dbContext.HierarchyFieldValue
-                .Where(v => v.HierarchyField.RootContentItemId == publicationRequest.RootContentItemId)
-                .Select(v => v.Id)
-                .ToList();
-            var reducingSelectionGroups = dbContext.SelectionGroup
-                .Where(g => g.RootContentItemId == publicationRequest.RootContentItemId && !g.IsMaster);
-            foreach (SelectionGroup Group in reducingSelectionGroups)
-            {
-                Group.SelectedHierarchyFieldValueList = Group.SelectedHierarchyFieldValueList
-                    .Intersect(AllRemainingFieldValues).ToArray();
-            }
+                    List<string> NewHierarchyFieldValueList = NewHierarchyField.Values.Select(v => v.Value).ToList();
+                    List<string> LiveHierarchyFieldValueList = MatchingLiveField.Values.Select(v => v.Value).ToList();
 
-            // Perform any content type dependent follow up processing
-            switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
-            {
-                case ContentTypeEnum.Qlikview:
-                    await new QlikviewLibApi()
-                        .AuthorizeUserDocumentsInFolder(
-                            goLiveViewModel.RootContentItemId.ToString(), qlikviewConfig);
-                    break;
-
-                case ContentTypeEnum.Html:
-                case ContentTypeEnum.Pdf:
-                case ContentTypeEnum.FileDownload:
-                default:
-                    break;
-            }
-
-            // 2 Move new master content and related files (not reduced content) into live file names,
-            //   removing any existing copies of previous version
-            List<ContentRelatedFile> UpdatedContentFilesList = publicationRequest.RootContentItem.ContentFilesList;
-            foreach (ContentRelatedFile Crf in publicationRequest.LiveReadyFilesObj)
-            {
-                // This assignment defines the live file name
-                string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
-                    Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId);
-                string TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
-                                                     goLiveViewModel.RootContentItemId.ToString(),
-                                                     TargetFileName);
-
-                // Move any existing file to backed up name
-                if (File.Exists(TargetFilePath))
-                {
-                    string BackupFilePath = TargetFilePath + ".bak";
-                    if (File.Exists(BackupFilePath))
+                    // Insert new values
+                    foreach (string NewValue in NewHierarchyFieldValueList.Except(LiveHierarchyFieldValueList))
                     {
-                        File.Delete(BackupFilePath);
+                        dbContext.HierarchyFieldValue.Add(new HierarchyFieldValue
+                        {
+                            HierarchyFieldId = MatchingLiveField.Id,
+                            Value = NewValue,
+                        });
                     }
-                    File.Move(TargetFilePath, BackupFilePath);
-                    FilesToDelete.Add(BackupFilePath);
+
+                    // Delete removed values
+                    foreach (string RemovedValue in LiveHierarchyFieldValueList.Except(NewHierarchyFieldValueList))
+                    {
+                        HierarchyFieldValue ObsoleteRecord = dbContext.HierarchyFieldValue
+                            .Single(v =>
+                                v.HierarchyFieldId == MatchingLiveField.Id
+                                && v.Value == RemovedValue);
+                        dbContext.HierarchyFieldValue.Remove(ObsoleteRecord);
+                    }
+                }
+                dbContext.SaveChanges();
+
+                //1.4  Update SelectionGroup SelectedHierarchyFieldValueList due to hierarchy changes
+                List<Guid> AllRemainingFieldValues = dbContext.HierarchyFieldValue
+                    .Where(v => v.HierarchyField.RootContentItemId == publicationRequest.RootContentItemId)
+                    .Select(v => v.Id)
+                    .ToList();
+                var reducingSelectionGroups = dbContext.SelectionGroup
+                    .Where(g => g.RootContentItemId == publicationRequest.RootContentItemId && !g.IsMaster);
+                foreach (SelectionGroup Group in reducingSelectionGroups)
+                {
+                    Group.SelectedHierarchyFieldValueList = Group.SelectedHierarchyFieldValueList
+                        .Intersect(AllRemainingFieldValues).ToArray();
                 }
 
-                // Deallocate any temporary document licenses for preview file(s)
+                // Perform any content type dependent follow up processing
                 switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.Qlikview:
-                        var qvwFiles = publicationRequest.LiveReadyFilesObj
-                            .Where(f => string.Compare(Path.GetExtension(f.FullPath), ".qvw", true) == 0);
-                        foreach (ContentRelatedFile Qvw in qvwFiles)
-                        {
-                            string FileRelativePath = Path.GetRelativePath(configuration
-                                .GetValue<string>("Storage:ContentItemRootPath"), Qvw.FullPath);
-                            await new QlikviewLibApi().ReclaimAllDocCalsForFile(FileRelativePath, qlikviewConfig);
-                        }
+                        await new QlikviewLibApi()
+                            .AuthorizeUserDocumentsInFolder(
+                                goLiveViewModel.RootContentItemId.ToString(), qlikviewConfig);
                         break;
 
                     case ContentTypeEnum.Html:
@@ -351,96 +308,130 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         break;
                 }
 
-                // Can't move between different volumes
-                File.Copy(Crf.FullPath, TargetFilePath);
-                FilesToDelete.Add(Crf.FullPath);
-
-                UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
-                UpdatedContentFilesList.Add(new ContentRelatedFile
+                // 2 Move new master content and related files (not reduced content) into live file names,
+                //   removing any existing copies of previous version
+                List<ContentRelatedFile> UpdatedContentFilesList = publicationRequest.RootContentItem.ContentFilesList;
+                foreach (ContentRelatedFile Crf in publicationRequest.LiveReadyFilesObj)
                 {
-                    FilePurpose = Crf.FilePurpose,
-                    FullPath = TargetFilePath,
-                    Checksum = Crf.Checksum,
-                    FileOriginalName = Crf.FileOriginalName,
-                });
+                    // This assignment defines the live file name
+                    string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
+                        Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId);
+                    string TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
+                                                         goLiveViewModel.RootContentItemId.ToString(),
+                                                         TargetFileName);
 
-                // Set content URL in each master SelectionGroup
-                if (Crf.FilePurpose.ToLower() == "mastercontent")
-                {
-                    IEnumerable<SelectionGroup> MasterSelectionGroupQuery = null;
-                    if (publicationRequest.RootContentItem.DoesReduce)
+                    // Move any existing file to backed up name
+                    if (File.Exists(TargetFilePath))
                     {
-                        MasterSelectionGroupQuery = relatedReductionTasks
-                            .Select(t => t.SelectionGroup)
-                            .Where(g => g.IsMaster);
+                        string BackupFilePath = TargetFilePath + ".bak";
+                        if (File.Exists(BackupFilePath))
+                        {
+                            File.Delete(BackupFilePath);
+                        }
+                        File.Move(TargetFilePath, BackupFilePath);
+                        backedUpProductionFilesToDelete.Add(BackupFilePath);
+                    }
+
+                    // Can move since files are on the same volume
+                    File.Move(Crf.FullPath, TargetFilePath);
+
+                    UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
+                    UpdatedContentFilesList.Add(new ContentRelatedFile
+                    {
+                        FilePurpose = Crf.FilePurpose,
+                        FullPath = TargetFilePath,
+                        Checksum = Crf.Checksum,
+                        FileOriginalName = Crf.FileOriginalName,
+                    });
+
+                    // Set content URL in each master SelectionGroup
+                    if (Crf.FilePurpose.ToLower() == "mastercontent")
+                    {
+                        IEnumerable<SelectionGroup> MasterSelectionGroupQuery = null;
+                        if (publicationRequest.RootContentItem.DoesReduce)
+                        {
+                            MasterSelectionGroupQuery = relatedReductionTasks
+                                .Select(t => t.SelectionGroup)
+                                .Where(g => g.IsMaster);
+                        }
+                        else
+                        {
+                            MasterSelectionGroupQuery = dbContext.SelectionGroup
+                                .Where(g => g.RootContentItemId == publicationRequest.RootContentItemId)
+                                .Where(g => g.IsMaster);
+                        }
+                        foreach (SelectionGroup MasterContentGroup in MasterSelectionGroupQuery)
+                        {
+                            MasterContentGroup.SetContentUrl(TargetFileName);
+                            dbContext.SelectionGroup.Update(MasterContentGroup);
+                        }
+                    }
+                }
+                publicationRequest.RootContentItem.ContentFilesList = UpdatedContentFilesList;
+
+                // 3 Rename reduced content files to live names
+                foreach (var ThisTask in relatedReductionTasks.Where(t => t.SelectionGroupId.HasValue).Where(t => !t.SelectionGroup.IsMaster))
+                {
+                    // This assignment defines the live file name for any reduced content file
+                    string TargetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(
+                        ThisTask.SelectionGroupId.Value,
+                        publicationRequest.RootContentItemId,
+                        Path.GetExtension(ThisTask.ResultFilePath));
+                    string TargetFilePath = Path.Combine(
+                        configuration.GetSection("Storage")["ContentItemRootPath"],
+                        publicationRequest.RootContentItemId.ToString(),
+                        TargetFileName);
+
+                    bool isInactive = string.IsNullOrWhiteSpace(ThisTask.ResultFilePath);
+
+                    // Set url in SelectionGroup
+                    if (isInactive)
+                    {
+                        ThisTask.SelectionGroup.ContentInstanceUrl = null;
+                        ThisTask.SelectionGroup.ReducedContentChecksum = null;
                     }
                     else
                     {
-                        MasterSelectionGroupQuery = dbContext.SelectionGroup
-                            .Where(g => g.RootContentItemId == publicationRequest.RootContentItemId)
-                            .Where(g => g.IsMaster);
+                        ThisTask.SelectionGroup.SetContentUrl(TargetFileName);
+                        ThisTask.SelectionGroup.ReducedContentChecksum = ThisTask.ReducedContentChecksum;
                     }
-                    foreach (SelectionGroup MasterContentGroup in MasterSelectionGroupQuery)
+                    dbContext.SelectionGroup.Update(ThisTask.SelectionGroup);
+
+                    // Move the existing file to backed up name if exists
+                    if (File.Exists(TargetFilePath))
                     {
-                        MasterContentGroup.SetContentUrl(TargetFileName);
-                        dbContext.SelectionGroup.Update(MasterContentGroup);
+                        string BackupFilePath = TargetFilePath + ".bak";
+                        if (File.Exists(BackupFilePath))
+                        {
+                            File.Delete(BackupFilePath);
+                        }
+                        File.Move(TargetFilePath, BackupFilePath);
+                        backedUpProductionFilesToDelete.Add(BackupFilePath);
+                    }
+
+                    if (!isInactive)
+                    {
+                        File.Move(ThisTask.ResultFilePath, TargetFilePath);
                     }
                 }
-            }
-            publicationRequest.RootContentItem.ContentFilesList = UpdatedContentFilesList;
 
-            // 3 Rename reduced content files to live names
-            foreach (var ThisTask in relatedReductionTasks.Where(t => t.SelectionGroupId.HasValue).Where(t => !t.SelectionGroup.IsMaster))
+                // TODO put the entire sequence in try/catch and restore backed up files in the event of transaction failure
+                dbContext.SaveChanges();
+                Txn.Commit();
+            }
+            catch (Exception)
             {
-                // This assignment defines the live file name for any reduced content file
-                string TargetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(
-                    ThisTask.SelectionGroupId.Value,
-                    publicationRequest.RootContentItemId,
-                    Path.GetExtension(ThisTask.ResultFilePath));
-                string TargetFilePath = Path.Combine(
-                    configuration.GetSection("Storage")["ContentItemRootPath"],
-                    publicationRequest.RootContentItemId.ToString(),
-                    TargetFileName);
-
-                bool isInactive = string.IsNullOrWhiteSpace(ThisTask.ResultFilePath);
-
-                // Set url in SelectionGroup
-                if (isInactive)
+                foreach (var backedUpFile in backedUpProductionFilesToDelete)
                 {
-                    ThisTask.SelectionGroup.ContentInstanceUrl = null;
-                    ThisTask.SelectionGroup.ReducedContentChecksum = null;
-                }
-                else
-                {
-                    ThisTask.SelectionGroup.SetContentUrl(TargetFileName);
-                    ThisTask.SelectionGroup.ReducedContentChecksum = ThisTask.ReducedContentChecksum;
-                }
-                dbContext.SelectionGroup.Update(ThisTask.SelectionGroup);
-
-                // Move the existing file to backed up name if exists
-                if (File.Exists(TargetFilePath))
-                {
-                    string BackupFilePath = TargetFilePath + ".bak";
-                    if (File.Exists(BackupFilePath))
+                    string restoreTargetFilePath = Path.GetFileNameWithoutExtension(backedUpFile);
+                    if (File.Exists(restoreTargetFilePath))
                     {
-                        File.Delete(BackupFilePath);
+                        File.Delete(restoreTargetFilePath);
+                        File.Move(backedUpFile, restoreTargetFilePath);
                     }
-                    File.Move(TargetFilePath, BackupFilePath);
-                    FilesToDelete.Add(BackupFilePath);
                 }
-
-                if (!isInactive)
-                {
-                    File.Move(ThisTask.ResultFilePath, TargetFilePath);
-                }
-                else   // TODO path is null or empty?, remove this, it's throwing during File.Delete
-                {
-                    //FilesToDelete.Add(ThisTask.ResultFilePath);  
-                }
+                throw;
             }
-
-            dbContext.SaveChanges();
-            Txn.Commit();
         }
 
         Log.Verbose(
@@ -449,8 +440,9 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
         auditLogger.Log(AuditEventType.ContentPublicationGoLive.ToEvent(
             publicationRequest.RootContentItem, publicationRequest, goLiveViewModel.ValidationSummaryId));
 
-        // 4 Delete all temporary files
-        foreach (string FileToDelete in FilesToDelete)
+        // 4 Clean up temporary pre-live folder (asynchronously)
+        // 4.1 Delete all temporarily backed up production files
+        foreach (string FileToDelete in backedUpProductionFilesToDelete)
         {
             if (File.Exists(FileToDelete))
             {
@@ -458,16 +450,29 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             }
         }
 
-        if (ReductionIsInvolved)
+        // 4.2 Prepare each pre-live file for delete
+        foreach (ContentRelatedFile PreliveFile in publicationRequest.LiveReadyFilesObj)
         {
-            string tempPublicationFolder = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
-                                                        publicationRequest.RootContentItemId.ToString(),
-                                                        publicationRequest.Id.ToString());
-            if (Directory.Exists(tempPublicationFolder))
+            switch (Path.GetExtension(PreliveFile.FullPath).ToLower())
             {
-                Directory.Delete(tempPublicationFolder, true);
+                case ".qvw":
+                    string qvwFileRelativePath = Path.GetRelativePath(configuration.GetValue<string>("Storage:ContentItemRootPath"), PreliveFile.FullPath);
+                    await new QlikviewLibApi().ReclaimAllDocCalsForFile(qvwFileRelativePath, qlikviewConfig);
+                    break;
+                default:
+                    break;
             }
         }
+
+        // 4.3 Delete pre-live folder
+        string PreviewFolder = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
+                                                publicationRequest.RootContentItemId.ToString(),
+                                                publicationRequest.Id.ToString());
+        if (Directory.Exists(PreviewFolder))
+        {
+            Directory.Delete(PreviewFolder, true);
+        }
+
         #endregion
     }
 
