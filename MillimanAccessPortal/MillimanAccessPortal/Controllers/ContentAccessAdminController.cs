@@ -1395,5 +1395,23 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(group);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateSelectionss([FromBody] UpdateSelectionsRequestModel model)
+        {
+            await UpdateSelections(model.GroupId, model.IsMaster, model.Selections.ToArray());
+
+            return Ok();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelReductionn([FromBody] CancelReductionRequestModel model)
+        {
+            await CancelReduction(model.GroupId);
+
+            return Ok();
+        }
     }
 }

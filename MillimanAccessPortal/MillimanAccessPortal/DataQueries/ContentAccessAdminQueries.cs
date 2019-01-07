@@ -255,5 +255,38 @@ namespace MillimanAccessPortal.DataQueries
 
             return (BasicSelectionGroup)group;
         }
+
+        public async Task<SingleReductionModel> UpdateSelections(
+            Guid groupId, bool isMaster, List<Guid> selections)
+        {
+            // use code in the controller for now
+
+            var reduction = (await _publicationQueries
+                .SelectReductionsWhereSelectionGroupIn(new List<Guid> { groupId })).Single();
+            var reductionQueue = (await _publicationQueries
+                .SelectQueueDetailsWhereReductionIn(new List<Guid> { reduction.Id })).SingleOrDefault();
+
+            return new SingleReductionModel
+            {
+                Reduction = reduction,
+                ReductionQueue = reductionQueue,
+            };
+        }
+
+        public async Task<SingleReductionModel> CancelReduction(Guid groupId)
+        {
+            // use code in the controller for now
+
+            var reduction = (await _publicationQueries
+                .SelectReductionsWhereSelectionGroupIn(new List<Guid> { groupId })).Single();
+            var reductionQueue = (await _publicationQueries
+                .SelectQueueDetailsWhereReductionIn(new List<Guid> { reduction.Id })).SingleOrDefault();
+
+            return new SingleReductionModel
+            {
+                Reduction = reduction,
+                ReductionQueue = reductionQueue,
+            };
+        }
     }
 }

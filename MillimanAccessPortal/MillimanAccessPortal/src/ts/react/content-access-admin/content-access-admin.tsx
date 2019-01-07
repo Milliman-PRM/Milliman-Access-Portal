@@ -504,7 +504,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         title={group.name}
         subtitle={item.name}
         status={group.status.taskStatus || ReductionStatus.Unspecified}
-        onBeginReduction={() => this.props.updateSelections(group.id, selectedMaster, [])}
+        onBeginReduction={() => this.props.updateSelections(group.id, selectedMaster, selectedValues)}
         onCancelReduction={() => this.props.cancelReduction(group.id)}
         loading={pending.data.selections}
         fieldsets={fieldsets}

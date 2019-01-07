@@ -32,6 +32,8 @@ const _initialPendingData: PendingDataState = {
   updateGroup: false,
   deleteGroup: false,
   suspendGroup: false,
+  updateSelections: false,
+  cancelReduction: false,
 };
 const _initialPendingGroups: PendingGroupState = {
   id: null,
@@ -171,6 +173,22 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   [AccessAction.SuspendGroup + DataSuffixes.Succeeded]: (state) => ({
     ...state,
     suspendGroup: false,
+  }),
+  [AccessAction.UpdateSelections]: (state) => ({
+    ...state,
+    updateSelections: true,
+  }),
+  [AccessAction.UpdateSelections + DataSuffixes.Succeeded]: (state) => ({
+    ...state,
+    updateSelections: false,
+  }),
+  [AccessAction.CancelReduction]: (state) => ({
+    ...state,
+    cancelReduction: true,
+  }),
+  [AccessAction.CancelReduction + DataSuffixes.Succeeded]: (state) => ({
+    ...state,
+    cancelReduction: false,
   }),
 });
 const pendingIsMaster = createReducer<boolean>(null, {

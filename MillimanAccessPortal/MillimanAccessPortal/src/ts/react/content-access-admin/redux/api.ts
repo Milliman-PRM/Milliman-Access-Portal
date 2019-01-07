@@ -58,20 +58,16 @@ export async function suspendGroup(groupId: Guid, isSuspended: boolean) {
   });
 }
 
-export function updateSelections(groupId: Guid, isMaster: boolean, selections: Guid[]) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      alert({ groupId, isMaster, selections });
-      resolve({ groupId, isMaster, selections });
-    }, 500);
+export async function updateSelections(groupId: Guid, isMaster: boolean, selections: Guid[]) {
+  return await postJsonData('/ContentAccessAdmin/UpdateSelectionss', {
+    groupId,
+    isMaster,
+    selections,
   });
 }
 
-export function cancelReduction(groupId: Guid) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      alert({ groupId });
-      resolve({ groupId });
-    }, 500);
+export async function cancelReduction(groupId: Guid) {
+  return await postJsonData('/ContentAccessAdmin/CancelReductionn', {
+    groupId,
   });
 }
