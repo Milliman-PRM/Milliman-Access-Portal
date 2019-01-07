@@ -62,17 +62,26 @@ namespace MillimanAccessPortal.Services
                         }
                         catch (Exception e)
                         {
-                            Log.Error(e.Message);
-                            ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
-                            thisPubRequest.RequestStatus = PublicationStatus.Error;
-                            thisPubRequest.StatusMessage = e.Message;
-                            foreach (var reduction in dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == thisPubRequest.Id))
+                            try
                             {
-                                reduction.ReductionStatus = ReductionStatusEnum.Error;
+                                Log.Error(e.Message);
+                                ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
+                                thisPubRequest.RequestStatus = PublicationStatus.Error;
+                                thisPubRequest.StatusMessage = e.Message;
+                                foreach (var reduction in dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == thisPubRequest.Id))
+                                {
+                                    reduction.ReductionStatus = ReductionStatusEnum.Error;
+                                }
+                                dbContext.SaveChanges();
                             }
-                            dbContext.SaveChanges();
+                            catch (Exception) { /*gulp*/ }
                         }
                     }
+                }
+                else
+                {
+                    string Msg = "Invalid default publication request Id from post-processing queue";
+                    Log.Error(Msg);
                 }
             }
         }

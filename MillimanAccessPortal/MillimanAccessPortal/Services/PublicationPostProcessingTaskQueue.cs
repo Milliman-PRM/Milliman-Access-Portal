@@ -25,11 +25,6 @@ namespace MillimanAccessPortal.Services
 
         public void QueuePublicationPostProcess(Guid publicationRequestId)
         {
-            if (publicationRequestId == Guid.Empty)
-            {
-                throw new ArgumentException("QueuePostProcessing called with empty Guid", nameof(publicationRequestId));
-            }
-
             _publicationRequestIdQueue.Enqueue(publicationRequestId);
             _signal.Release();
         }

@@ -912,6 +912,7 @@ namespace MillimanAccessPortal.Controllers
                 Txn.Commit();
             }
 
+            string configuredContentRootFolder = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
             // Clean up temporary pre-live folder (asynchronously, browser doesn't have to wait for this)
             Task asyncDeleteTask = Task.Run(async () =>   // This Task variable assignment exists only to prevent a compiler warning
             {
@@ -921,7 +922,7 @@ namespace MillimanAccessPortal.Controllers
                     switch (Path.GetExtension(PreliveFile.FullPath).ToLower())
                     {
                         case ".qvw":
-                            string qvwFileRelativePath = Path.GetRelativePath(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), PreliveFile.FullPath);
+                            string qvwFileRelativePath = Path.GetRelativePath(configuredContentRootFolder, PreliveFile.FullPath);
                             try
                             {
                                 await new QlikviewLibApi().ReclaimAllDocCalsForFile(qvwFileRelativePath, QlikviewConfig);
