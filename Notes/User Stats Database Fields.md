@@ -18,7 +18,7 @@
 
 | Column             | Type | Notes                                                                                                                   |
 |--------------------|------|-------------------------------------------------------------------------------------------------------------------------|
-| Id                 | uuid |                                                                                                                         |
+| Id                 | uuid | Primary Key  |
 | ContentInstanceUrl | text | Will need to be prefixed with the path to the content share so that this can be aligned to QlikView Session log entries |
 | GroupName          | text |                                                                                                                         |
 | RootContentItemId  | uuid | Foreign key to Root Content Item Id                                                                                     |
@@ -26,6 +26,7 @@
 ## Root Content Item
 
 **Data source:** MAP application database
+
 | Column        | Type | Notes                          |
 |---------------|------|--------------------------------|
 | Id            | uuid | Primary Key |
