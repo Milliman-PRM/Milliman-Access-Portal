@@ -619,3 +619,24 @@ export function postData(url: string = '', data: object = {}, rawResponse: boole
       : response.json();
   });
 }
+
+export function postJsonData(url: string = '', data: object = {}) {
+  const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
+  return fetch(url, {
+    method: 'POST',
+    cache: 'no-cache',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'RequestVerificationToken': antiforgeryToken,
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(data),
+  })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(response.headers.get('Warning') || 'Unknown error');
+    }
+    return response.json();
+  });
+}

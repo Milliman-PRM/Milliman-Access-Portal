@@ -1150,10 +1150,10 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateGroup(Guid itemId, string name)
+        public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequestModel model)
         {
             var contentItem = DbContext.RootContentItem
-                .Where(i => i.Id == itemId)
+                .Where(i => i.Id == model.ItemId)
                 .Include(item => item.Client)
                 .Include(item => item.ContentType)
                 .SingleOrDefault();
@@ -1168,7 +1168,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             var roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(
-                User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
+                User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, model.ItemId));
             if (!roleInRootContentItemResult.Succeeded)
             {
                 Response.Headers.Add("Warning",
@@ -1206,20 +1206,86 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var selectionGroups = contentItem.DoesReduce
-                ? await _queries.CreateReducingGroup(itemId, name)
-                : await _queries.CreateMasterGroup(itemId, name, liveMasterFilePath);
+                ? await _queries.CreateReducingGroup(model.ItemId, model.Name)
+                : await _queries.CreateMasterGroup(model.ItemId, model.Name, liveMasterFilePath);
 
             return Json(selectionGroups);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteGroup(Guid groupId)
+        public async Task<IActionResult> UpdateGroup([FromBody] UpdateGroupRequestModel model)
+        {
+            var selectionGroup = DbContext.SelectionGroup
+                .Include(g => g.RootContentItem)
+                    .ThenInclude(i => i.Client)
+                .SingleOrDefault(g => g.Id == model.GroupId);
+
+            #region Preliminary Validation
+            if (selectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(
+                User, null, new RoleInRootContentItemRequirement(
+                    RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
+            if (!roleInRootContentItemResult.Succeeded)
+            {
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access to the specified content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var exists = DbContext.ApplicationUser
+                .Where(u => model.Users.Contains(u.Id));
+            if (exists.Count() < model.Users.Count())
+            {
+                Response.Headers.Add("Warning", "One or more requested users do not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var hasRole = DbContext.UserRoleInClient
+                .Where(r => model.Users.Contains(r.UserId))
+                .Where(r => r.ClientId == selectionGroup.RootContentItem.ClientId)
+                .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser);
+            if (hasRole.Count() < model.Users.Count())
+            {
+                Response.Headers.Add("Warning",
+                    "One or more requested users do not have permission to use this content.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var inOtherGroup = DbContext.UserInSelectionGroup
+                .Where(u => model.Users.Contains(u.UserId))
+                .Where(u => u.SelectionGroup.RootContentItemId == selectionGroup.RootContentItemId)
+                .Where(u => u.SelectionGroupId != selectionGroup.Id);
+            if (inOtherGroup.Any())
+            {
+                Response.Headers.Add("Warning",
+                    "One or more requested users are already in a different selection group.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var group = await _queries.UpdateGroup(model.GroupId, model.Name, model.Users.ToList());
+
+            return Json(group);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteGroup([FromBody] DeleteGroupRequestModel model)
         {
             var selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rci => rci.ContentType)
-                .SingleOrDefault(sg => sg.Id == groupId);
+                .SingleOrDefault(sg => sg.Id == model.GroupId);
 
             #region Preliminary validation
             if (selectionGroup == null)
@@ -1255,7 +1321,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selectionGroups = await _queries.DeleteGroup(groupId);
+            var selectionGroups = await _queries.DeleteGroup(model.GroupId);
 
             #region
             // ContentType specific handling after successful transaction
@@ -1299,11 +1365,11 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SuspendGroup(Guid groupId, bool isSuspended)
+        public async Task<IActionResult> SuspendGroup([FromBody] SuspendGroupRequestModel model)
         {
             var selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
-                .SingleOrDefault(sg => sg.Id == groupId);
+                .SingleOrDefault(sg => sg.Id == model.GroupId);
 
             #region Preliminary Validation
             if (selectionGroup == null)
@@ -1325,7 +1391,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var group = await _queries.SetGroupSuspended(groupId, isSuspended);
+            var group = await _queries.SetGroupSuspended(model.GroupId, model.IsSuspended);
 
             return Json(group);
         }

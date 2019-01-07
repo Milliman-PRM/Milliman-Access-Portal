@@ -29,6 +29,7 @@ export interface PendingDataState {
   groups: boolean;
   selections: boolean;
   createGroup: boolean;
+  updateGroup: boolean;
   deleteGroup: boolean;
   suspendGroup: boolean;
 }

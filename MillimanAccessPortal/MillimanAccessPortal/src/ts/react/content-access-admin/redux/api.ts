@@ -1,4 +1,4 @@
-import { getData, postData } from '../../../shared';
+import { getData, postJsonData } from '../../../shared';
 import { Guid } from '../../models';
 
 export async function fetchClients() {
@@ -31,29 +31,28 @@ export async function fetchStatus(clientId: Guid, itemId: Guid) {
 }
 
 export async function createGroup(itemId: Guid, name: string) {
-  return await postData('/ContentAccessAdmin/CreateGroup', {
+  return await postJsonData('/ContentAccessAdmin/CreateGroup', {
     itemId,
     name,
   });
 }
 
-export function updateGroup(groupId: Guid, name: string, users: Guid[]) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      alert({ groupId, name, users });
-      resolve({});
-    }, 500);
+export async function updateGroup(groupId: Guid, name: string, users: Guid[]) {
+  return await postJsonData('/ContentAccessAdmin/UpdateGroup', {
+    groupId,
+    name,
+    users,
   });
 }
 
 export async function deleteGroup(groupId: Guid) {
-  return await postData('/ContentAccessAdmin/DeleteGroup', {
+  return await postJsonData('/ContentAccessAdmin/DeleteGroup', {
     groupId,
   });
 }
 
 export async function suspendGroup(groupId: Guid, isSuspended: boolean) {
-  return await postData('/ContentAccessAdmin/SuspendGroup', {
+  return await postJsonData('/ContentAccessAdmin/SuspendGroup', {
     groupId,
     isSuspended,
   });

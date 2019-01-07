@@ -1,11 +1,11 @@
 ﻿using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
-using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
+using System;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
-    public class CreateGroupViewModel
+    public class DeleteGroupResponseModel
     {
-        public BasicSelectionGroupWithAssignedUsers Group { get; set; }
+        public Guid GroupId { get; set; }
         public BasicContentItemWithStats ContentItemStats { get; set; }
     }
 }

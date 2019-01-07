@@ -1,9 +1,11 @@
 ﻿using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -139,7 +141,7 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public async Task<CreateGroupViewModel> CreateReducingGroup(Guid itemId, string name)
+        public async Task<CreateGroupResponseModel> CreateReducingGroup(Guid itemId, string name)
         {
             var group = new SelectionGroup
             {
@@ -156,14 +158,14 @@ namespace MillimanAccessPortal.DataQueries
             var groupWithUsers = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
             var contentItemStats = await _contentItemQueries.SelectContentItemWithStats(itemId);
 
-            return new CreateGroupViewModel
+            return new CreateGroupResponseModel
             {
                 Group = groupWithUsers,
                 ContentItemStats = contentItemStats,
             };
         }
 
-        public async Task<CreateGroupViewModel> CreateMasterGroup(Guid itemId, string name, string contentUrl)
+        public async Task<CreateGroupResponseModel> CreateMasterGroup(Guid itemId, string name, string contentUrl)
         {
             var contentItem = await _dbContext.RootContentItem.FindAsync(itemId);
 
@@ -183,14 +185,52 @@ namespace MillimanAccessPortal.DataQueries
             var groupWithUsers = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
             var contentItemStats = await _contentItemQueries.SelectContentItemWithStats(itemId);
 
-            return new CreateGroupViewModel
+            return new CreateGroupResponseModel
             {
                 Group = groupWithUsers,
                 ContentItemStats = contentItemStats,
             };
         }
 
-        public async Task<DeleteGroupViewModel> DeleteGroup(Guid id)
+        public async Task<BasicSelectionGroupWithAssignedUsers> UpdateGroup(
+            Guid groupId, string name, List<Guid> users)
+        {
+            var selectionGroup = await _dbContext.SelectionGroup.FindAsync(groupId);
+
+            selectionGroup.GroupName = name;
+
+            var usersToRemove = await _dbContext.UserInSelectionGroup
+                .Where(u => u.SelectionGroupId == groupId)
+                .Where(u => !users.Contains(u.UserId))
+                .ToListAsync();
+            _dbContext.UserInSelectionGroup.RemoveRange(usersToRemove);
+
+            var usersToKeep = await _dbContext.UserInSelectionGroup
+                .Where(u => u.SelectionGroupId == groupId)
+                .Where(u => users.Contains(u.UserId))
+                .Select(u => u.UserId)
+                .ToListAsync();
+            var usersToAdd = users.Except(usersToKeep).Select(uid => new UserInSelectionGroup
+            {
+                UserId = uid,
+                SelectionGroupId = groupId,
+            });
+            _dbContext.UserInSelectionGroup.AddRange(usersToAdd);
+
+            await _dbContext.SaveChangesAsync();
+
+            return new BasicSelectionGroupWithAssignedUsers
+            {
+                Id = selectionGroup.Id,
+                RootContentItemId = selectionGroup.RootContentItemId,
+                IsSuspended = selectionGroup.IsSuspended,
+                IsMaster = selectionGroup.IsMaster,
+                Name = selectionGroup.GroupName,
+                AssignedUsers = users,
+            };
+        }
+
+        public async Task<DeleteGroupResponseModel> DeleteGroup(Guid id)
         {
             var group = await _dbContext.SelectionGroup.FindAsync(id);
 
@@ -199,7 +239,7 @@ namespace MillimanAccessPortal.DataQueries
 
             var contentItemStats = await _contentItemQueries.SelectContentItemWithStats(group.RootContentItemId);
 
-            return new DeleteGroupViewModel
+            return new DeleteGroupResponseModel
             {
                 GroupId = id,
                 ContentItemStats = contentItemStats,
