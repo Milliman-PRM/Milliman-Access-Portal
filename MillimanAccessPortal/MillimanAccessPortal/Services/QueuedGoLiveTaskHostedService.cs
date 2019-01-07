@@ -415,7 +415,6 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     }
                 }
 
-                // TODO put the entire sequence in try/catch and restore backed up files in the event of transaction failure
                 dbContext.SaveChanges();
                 Txn.Commit();
             }

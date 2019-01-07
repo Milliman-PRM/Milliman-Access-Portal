@@ -55,7 +55,6 @@ namespace MillimanAccessPortal.Services
                     {
                         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
                         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                        //var auditLogger = serviceProvider.GetRequiredService<IAuditLogger>();
 
                         try
                         {
@@ -102,7 +101,7 @@ namespace MillimanAccessPortal.Services
             {
                 string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), unexpected request status {thisPubRequest.RequestStatus.ToString()} for publication request ID {publicationRequestId}";
                 Log.Warning(Msg);
-                return;  // TODO should this throw?
+                return;
             }
 
             // Prepare useful lists of reduction tasks for use below
@@ -205,7 +204,7 @@ namespace MillimanAccessPortal.Services
             dbContext.SaveChanges();
 
             // Delete source folder(s)
-            const bool RetainFailedReductionFolders = false;  // TODO Improve logic for what to delete
+            const bool RetainFailedReductionFolders = false;  // this variable is for debugging use
             HashSet<string> foldersToDelete = RetainFailedReductionFolders
                 ? SuccessfulReductionTasks.Select(t => Path.GetDirectoryName(t.MasterFilePath))
                                           .Except(UnsuccessfulReductionTasks.Select(t => Path.GetDirectoryName(t.MasterFilePath)))
@@ -214,7 +213,10 @@ namespace MillimanAccessPortal.Services
                                           .ToHashSet();
             foreach (string folderToDelete in foldersToDelete)
             {
-                Directory.Delete(folderToDelete, true);
+                if (Directory.Exists(folderToDelete))
+                {
+                    Directory.Delete(folderToDelete, true);
+                }
             }
 
             // update pub status to Processed
