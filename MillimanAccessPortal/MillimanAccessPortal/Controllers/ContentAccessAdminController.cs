@@ -1402,7 +1402,7 @@ namespace MillimanAccessPortal.Controllers
         {
             await UpdateSelections(model.GroupId, model.IsMaster, model.Selections.ToArray());
 
-            return Ok();
+            return Json(null);
         }
 
         [HttpPost]
@@ -1411,7 +1411,7 @@ namespace MillimanAccessPortal.Controllers
         {
             await CancelReduction(model.GroupId);
 
-            return Ok();
+            return Json(null);
         }
     }
 }

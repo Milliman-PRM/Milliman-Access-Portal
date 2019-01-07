@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { isReductionActive, ReductionStatus } from '../../view-models/content-publishing';
+import { ButtonSpinner } from '../shared-components/button-spinner';
 import { PanelSectionContainer } from '../shared-components/card-panel/panel-sections';
 import { ColumnSpinner } from '../shared-components/column-spinner';
 import { Toggle } from '../shared-components/toggle';
@@ -19,6 +20,7 @@ export interface SelectionsPanelProps {
   onBeginReduction: () => void;
   onCancelReduction: () => void;
   loading?: boolean;
+  submitting: boolean;
   fieldsets: FieldsetData[];
 }
 
@@ -110,6 +112,10 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
               onClick={this.props.onBeginReduction}
             >
               Submit
+              {this.props.submitting
+                ? <ButtonSpinner />
+                : null
+              }
             </button>
           )
           : null;
@@ -121,6 +127,10 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
             onClick={this.props.onCancelReduction}
           >
             Cancel
+            {this.props.submitting
+              ? <ButtonSpinner />
+              : null
+            }
           </button>
         );
       default:

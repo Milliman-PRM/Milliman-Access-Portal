@@ -7,19 +7,20 @@ import Select from 'react-select';
 
 import { isPublicationActive, ReductionStatus } from '../../view-models/content-publishing';
 import {
-  Client, ClientWithEligibleUsers, ReductionFieldset, RootContentItem, RootContentItemWithPublication,
-  SelectionGroup, SelectionGroupWithStatus, User,
+    Client, ClientWithEligibleUsers, ReductionFieldset, RootContentItem,
+    RootContentItemWithPublication, SelectionGroup, SelectionGroupWithStatus, User,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { ButtonSpinner } from '../shared-components/button-spinner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import {
-  PanelSectionToolbar, PanelSectionToolbarButtons,
+    PanelSectionToolbar, PanelSectionToolbarButtons,
 } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
 import CardButton from '../shared-components/card/card-button';
 import { CardExpansion } from '../shared-components/card/card-expansion';
 import {
-  CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
+    CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
@@ -27,14 +28,14 @@ import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import * as actions from './redux/actions';
 import {
-  activeReductionFieldsets, activeSelectedClient, activeSelectedGroup, activeSelectedItem,
-  addableUsers, allGroupsCollapsed, allGroupsExpanded, clientEntities, groupEntities, itemEntities,
-  modifiedReductionValues, pendingMaster, pendingReductionValues, selectedGroupWithStatus,
-  selectedItem, selectionsFormModified,
+    activeReductionFieldsets, activeSelectedClient, activeSelectedGroup, activeSelectedItem,
+    addableUsers, allGroupsCollapsed, allGroupsExpanded, clientEntities, groupEntities,
+    itemEntities, modifiedReductionValues, pendingMaster, pendingReductionValues,
+    selectedGroupWithStatus, selectedItem, selectionsFormModified,
 } from './redux/selectors';
 import {
-  AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateModals, AccessStatePending,
-  AccessStateSelected,
+    AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateModals,
+    AccessStatePending, AccessStateSelected,
 } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
 
@@ -459,6 +460,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               </button>
               <button className="blue-button" type="submit">
                 Add
+                {this.props.pending.data.createGroup
+                  ? <ButtonSpinner />
+                  : null
+                }
               </button>
             </div>
           </form>
@@ -507,6 +512,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         onBeginReduction={() => this.props.updateSelections(group.id, selectedMaster, selectedValues)}
         onCancelReduction={() => this.props.cancelReduction(group.id)}
         loading={pending.data.selections}
+        submitting={pending.data.updateSelections || pending.data.cancelReduction}
         fieldsets={fieldsets}
       >
         <PanelSectionToolbar>
