@@ -2,12 +2,10 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.ClientModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -27,9 +25,9 @@ namespace MillimanAccessPortal.DataQueries
             _userManager = userManager;
         }
 
-        private async Task<BasicClient> _findClient(Guid id)
+        private BasicClient _findClient(Guid id)
         {
-            return await _dbContext.Client
+            return _dbContext.Client
                 .Where(c => c.Id == id)
                 .Select(c => new BasicClient
                 {
@@ -37,11 +35,11 @@ namespace MillimanAccessPortal.DataQueries
                     Name = c.Name,
                     Code = c.ClientCode,
                 })
-                .SingleOrDefaultAsync();
+                .SingleOrDefault();
         }
-        private async Task<List<BasicClient>> _selectClientWhereRole(ApplicationUser user, RoleEnum role)
+        private List<BasicClient> _selectClientWhereRole(ApplicationUser user, RoleEnum role)
         {
-            return await _dbContext.UserRoleInClient
+            return _dbContext.UserRoleInClient
                 .Where(r => r.User.Id == user.Id)
                 .Where(r => r.Role.RoleEnum == role)
                 .Select(r => r.Client)
@@ -51,9 +49,9 @@ namespace MillimanAccessPortal.DataQueries
                     Name = c.Name,
                     Code = c.ClientCode,
                 })
-                .ToListAsync();
+                .ToList();
         }
-        private async Task<List<BasicClientWithStats>> _withStats(List<BasicClient> clients)
+        private List<BasicClientWithStats> _withStats(List<BasicClient> clients)
         {
             var clientsWith = new List<BasicClientWithStats> { };
             foreach (var client in clients)
@@ -65,19 +63,19 @@ namespace MillimanAccessPortal.DataQueries
                     Code = client.Code,
                 };
 
-                clientWith.ContentItemCount = await _dbContext.RootContentItem
+                clientWith.ContentItemCount = _dbContext.RootContentItem
                     .Where(i => i.ClientId == client.Id)
-                    .CountAsync();
-                clientWith.UserCount = await _dbContext.UserClaims
+                    .Count();
+                clientWith.UserCount = _dbContext.UserClaims
                     .Where(m => m.ClaimType == ClaimNames.ClientMembership.ToString())
                     .Where(m => m.ClaimValue == client.Id.ToString())
-                    .CountAsync();
+                    .Count();
 
                 clientsWith.Add(clientWith);
             }
             return clientsWith;
         }
-        private async Task<List<BasicClientWithEligibleUsers>> _withEligibleUsers(
+        private List<BasicClientWithEligibleUsers> _withEligibleUsers(
             List<BasicClientWithStats> clients)
         {
             var clientsWith = new List<BasicClientWithEligibleUsers> { };
@@ -92,18 +90,18 @@ namespace MillimanAccessPortal.DataQueries
                     UserCount = client.UserCount,
                 };
 
-                clientWith.EligibleUsers = await _dbContext.UserRoleInClient
+                clientWith.EligibleUsers = _dbContext.UserRoleInClient
                     .Where(r => r.ClientId == client.Id)
                     .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
                     .Select(r => r.UserId)
-                    .ToListAsync();
+                    .ToList();
 
                 clientsWith.Add(clientWith);
             }
             return clientsWith;
         }
 
-        internal async Task<List<BasicClientWithEligibleUsers>> SelectClientsWithEligibleUsers(
+        internal List<BasicClientWithEligibleUsers> SelectClientsWithEligibleUsers(
             ApplicationUser user, RoleEnum role)
         {
             if (user == null)
@@ -111,16 +109,16 @@ namespace MillimanAccessPortal.DataQueries
                 return new List<BasicClientWithEligibleUsers> { };
             }
 
-            var clients = await _selectClientWhereRole(user, role);
-            var clientsWithStats = await _withStats(clients);
-            var clientsWithEligibleUsers = await _withEligibleUsers(clientsWithStats);
+            var clients = _selectClientWhereRole(user, role);
+            var clientsWithStats = _withStats(clients);
+            var clientsWithEligibleUsers = _withEligibleUsers(clientsWithStats);
 
             return clientsWithEligibleUsers;
         }
-        internal async Task<BasicClientWithStats> SelectClientWithStats(Guid id)
+        internal BasicClientWithStats SelectClientWithStats(Guid id)
         {
-            var client = await _findClient(id);
-            var clientWithStats = (await _withStats(new List<BasicClient> { client }))
+            var client = _findClient(id);
+            var clientWithStats = _withStats(new List<BasicClient> { client })
                 .SingleOrDefault();
 
             return clientWithStats;

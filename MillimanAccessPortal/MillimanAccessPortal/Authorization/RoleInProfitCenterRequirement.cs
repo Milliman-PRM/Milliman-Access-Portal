@@ -14,17 +14,21 @@ namespace MillimanAccessPortal.Authorization
 {
     public class RoleInProfitCenterRequirement : MapAuthorizationRequirementBase
     {
+        private bool EvaluateAny { get; set; }
         private RoleEnum RoleEnum { get; set; }
-        private Guid ProfitCenterId { get; set; }
+        private Guid ProfitCenterId { get; set; } = Guid.Empty;
 
-        /// <summary>
-        /// Constructor; the only way to instantiate this type
-        /// </summary>
-        /// <param name="ProfitCenterIdArg">Unset or &lt;= 0 to require test for authorization to any ProfitCenter.</param>
+        public RoleInProfitCenterRequirement(RoleEnum RoleEnumArg)
+        {
+            EvaluateAny = true;
+            RoleEnum = RoleEnumArg;
+        }
+
         public RoleInProfitCenterRequirement(RoleEnum RoleEnumArg, Guid? ProfitCenterIdArg)
         {
-            ProfitCenterId = ProfitCenterIdArg.HasValue ? ProfitCenterIdArg.Value : Guid.Empty;
+            EvaluateAny = false;
             RoleEnum = RoleEnumArg;
+            ProfitCenterId = ProfitCenterIdArg ?? Guid.Empty;
         }
 
         internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
@@ -40,7 +44,7 @@ namespace MillimanAccessPortal.Authorization
                            .Where(urp => urp.Role.RoleEnum == RoleEnum
                                       && urp.UserId == User.Id);
 
-            if (ProfitCenterId != Guid.Empty)
+            if (!EvaluateAny)
             {
                 Query = Query.Where(urp => urp.ProfitCenterId == ProfitCenterId);
             }

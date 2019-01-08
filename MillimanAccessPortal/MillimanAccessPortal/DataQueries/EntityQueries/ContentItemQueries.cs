@@ -27,9 +27,9 @@ namespace MillimanAccessPortal.DataQueries
             _userManager = userManager;
         }
 
-        private async Task<BasicContentItem> _findContentItem(Guid id)
+        private BasicContentItem _findContentItem(Guid id)
         {
-            var contentItem = await _dbContext.RootContentItem
+            var contentItem = _dbContext.RootContentItem
                 .Where(i => i.Id == id)
                 .Select(i => new BasicContentItem
                 {
@@ -40,14 +40,14 @@ namespace MillimanAccessPortal.DataQueries
                     DoesReduce = i.DoesReduce,
                     Name = i.ContentName,
                 })
-                .SingleOrDefaultAsync();
+                .SingleOrDefault();
 
             return contentItem;
         }
-        private async Task<List<BasicContentItem>> _selectContentItemsWhereClient(
+        private List<BasicContentItem> _selectContentItemsWhereClient(
             ApplicationUser user, RoleEnum role, Guid clientId)
         {
-            var contentItems = await _dbContext.UserRoleInRootContentItem
+            var contentItems = _dbContext.UserRoleInRootContentItem
                 .Where(r => r.UserId == user.Id)
                 .Where(r => r.Role.RoleEnum == role)
                 .Where(r => r.RootContentItem.ClientId == clientId)
@@ -62,11 +62,11 @@ namespace MillimanAccessPortal.DataQueries
                     DoesReduce = i.DoesReduce,
                     Name = i.ContentName,
                 })
-                .ToListAsync();
+                .ToList();
 
             return contentItems;
         }
-        private async Task<List<BasicContentItemWithStats>> _withStats(List<BasicContentItem> items)
+        private List<BasicContentItemWithStats> _withStats(List<BasicContentItem> items)
         {
             var itemsWith = new List<BasicContentItemWithStats> { };
             foreach (var item in items)
@@ -81,38 +81,38 @@ namespace MillimanAccessPortal.DataQueries
                     Name = item.Name,
                 };
 
-                itemWith.SelectionGroupCount = await _dbContext.SelectionGroup
+                itemWith.SelectionGroupCount = _dbContext.SelectionGroup
                     .Where(g => g.RootContentItemId == item.Id)
-                    .CountAsync();
-                itemWith.AssignedUserCount = await _dbContext.UserInSelectionGroup
+                    .Count();
+                itemWith.AssignedUserCount = _dbContext.UserInSelectionGroup
                     .Where(u => u.SelectionGroup.RootContentItemId == item.Id)
-                    .CountAsync();
+                    .Count();
 
                 itemsWith.Add(itemWith);
             }
             return itemsWith;
         }
 
-        internal async Task<List<BasicContentItemWithStats>> SelectContentItemsWhereClient(
+        internal List<BasicContentItemWithStats> SelectContentItemsWhereClient(
             ApplicationUser user, RoleEnum role, Guid clientId)
         {
-            var contentItems = await _selectContentItemsWhereClient(user, role, clientId);
-            var contentItemsWithStats = await _withStats(contentItems);
+            var contentItems = _selectContentItemsWhereClient(user, role, clientId);
+            var contentItemsWithStats = _withStats(contentItems);
 
             return contentItemsWithStats;
         }
-        internal async Task<BasicContentItemWithStats> SelectContentItemWithStats(Guid id)
+        internal BasicContentItemWithStats SelectContentItemWithStats(Guid id)
         {
-            var contentItem = await _findContentItem(id);
-            var contentItemWithStats = (await _withStats(new List<BasicContentItem> { contentItem }))
+            var contentItem = _findContentItem(id);
+            var contentItemWithStats = _withStats(new List<BasicContentItem> { contentItem })
                 .SingleOrDefault();
 
             return contentItemWithStats;
         }
 
-        internal async Task<List<BasicContentType>> SelectContentTypesContentItemIn(List<Guid> contentItemIds)
+        internal List<BasicContentType> SelectContentTypesContentItemIn(List<Guid> contentItemIds)
         {
-            var contentTypes = await _dbContext.RootContentItem
+            var contentTypes = _dbContext.RootContentItem
                 .Where(i => contentItemIds.Contains(i.Id))
                 .Select(i => i.ContentType)
                 .Distinct()
@@ -123,7 +123,7 @@ namespace MillimanAccessPortal.DataQueries
                     CanReduce = t.CanReduce,
                     FileExtensions = t.FileExtensions.ToList(),
                 })
-                .ToListAsync();
+                .ToList();
 
             return contentTypes;
         }

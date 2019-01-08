@@ -27,10 +27,10 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _userManager = userManager;
         }
 
-        internal async Task<List<BasicField>> SelectFieldsWhereSelectionGroup(Guid selectionGroupId)
+        internal List<BasicField> SelectFieldsWhereSelectionGroup(Guid selectionGroupId)
         {
-            var selectionGroup = await _dbContext.SelectionGroup.FindAsync(selectionGroupId);
-            var fields = await _dbContext.HierarchyField
+            var selectionGroup = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var fields = _dbContext.HierarchyField
                 .Where(f => f.RootContentItemId == selectionGroup.RootContentItemId)
                 .Select(f => new BasicField
                 {
@@ -39,15 +39,15 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     FieldName = f.FieldName,
                     DisplayName = f.FieldDisplayName,
                 })
-                .ToListAsync();
+                .ToList();
 
             return fields;
         }
 
-        internal async Task<List<BasicValue>> SelectValuesWhereSelectionGroup(Guid selectionGroupId)
+        internal List<BasicValue> SelectValuesWhereSelectionGroup(Guid selectionGroupId)
         {
-            var selectionGroup = await _dbContext.SelectionGroup.FindAsync(selectionGroupId);
-            var values = await _dbContext.HierarchyFieldValue
+            var selectionGroup = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var values = _dbContext.HierarchyFieldValue
                 .Where(f => f.HierarchyField.RootContentItemId == selectionGroup.RootContentItemId)
                 .Select(f => new BasicValue
                 {
@@ -55,7 +55,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     ReductionFieldId = f.HierarchyFieldId,
                     Value = f.Value,
                 })
-                .ToListAsync();
+                .ToList();
 
             return values;
         }

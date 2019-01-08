@@ -6,7 +6,6 @@
 
 using AuditLogLib.Event;
 using AuditLogLib.Services;
-using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -16,18 +15,16 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
-using MillimanAccessPortal.Models.ContentPublishing;
 using QlikviewLib;
 using Serilog;
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -71,7 +68,7 @@ namespace MillimanAccessPortal.Controllers
         {
             #region Authorization
             AuthorizationResult roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
@@ -88,7 +85,7 @@ namespace MillimanAccessPortal.Controllers
         {
             #region Authorization
             var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
@@ -98,7 +95,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var clients = await _queries.SelectClients(currentUser);
+            var clients = _queries.SelectClients(currentUser);
 
             return Json(clients);
         }
@@ -119,7 +116,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var contentItems = await _queries.SelectContentItems(currentUser, clientId);
+            var contentItems = _queries.SelectContentItems(currentUser, clientId);
 
             return Json(contentItems);
         }
@@ -139,7 +136,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selectionGroups = await _queries.SelectSelectionGroups(itemId);
+            var selectionGroups = _queries.SelectSelectionGroups(itemId);
 
             return Json(selectionGroups);
         }
@@ -147,15 +144,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> Selections(Guid groupId)
         {
-            Guid itemId = await DbContext.SelectionGroup
+            Guid itemId = DbContext.SelectionGroup
                 .Where(g => g.Id == groupId)
                 .Select(g => g.RootContentItemId)
-                .SingleOrDefaultAsync();
+                .SingleOrDefault();
 
             #region Authorization
-            var roleInRootContentItemResult = await AuthorizationService
+            var roleResult = await AuthorizationService
                 .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
-            if (!roleInRootContentItemResult.Succeeded)
+            if (!roleResult.Succeeded)
             {
                 Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning",
@@ -164,7 +161,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selections = await _queries.SelectSelections(groupId);
+            var selections = _queries.SelectSelections(groupId);
 
             return Json(selections);
         }
@@ -174,7 +171,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Status(Guid clientId, Guid itemId)
         {
             var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var status = await _queries.SelectStatus(currentUser, clientId, itemId);
+            var status = _queries.SelectStatus(currentUser, clientId, itemId);
 
             return Json(status);
         }
@@ -229,8 +226,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var selectionGroups = contentItem.DoesReduce
-                ? await _queries.CreateReducingGroup(model.ItemId, model.Name)
-                : await _queries.CreateMasterGroup(model.ItemId, model.Name);
+                ? _queries.CreateReducingGroup(model.ItemId, model.Name)
+                : _queries.CreateMasterGroup(model.ItemId, model.Name);
 
             return Json(selectionGroups);
         }
@@ -239,10 +236,10 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateGroup([FromBody] UpdateGroupRequestModel model)
         {
-            (Guid itemId, Guid clientId) = (await DbContext.SelectionGroup
+            (Guid itemId, Guid clientId) = DbContext.SelectionGroup
                 .Where(g => g.Id == model.GroupId)
                 .Select(g => g.RootContentItem)
-                .ToListAsync())
+                .ToList()
                 .ConvertAll(r => (r.Id, r.ClientId))
                 .SingleOrDefault();
 
@@ -293,7 +290,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var group = await _queries.UpdateGroup(model.GroupId, model.Name, model.Users.ToList());
+            var group = _queries.UpdateGroup(model.GroupId, model.Name, model.Users.ToList());
 
             return Json(group);
         }
@@ -302,10 +299,10 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SuspendGroup([FromBody] SuspendGroupRequestModel model)
         {
-            Guid itemId = await DbContext.SelectionGroup
+            Guid itemId = DbContext.SelectionGroup
                 .Where(g => g.Id == model.GroupId)
                 .Select(g => g.RootContentItemId)
-                .SingleOrDefaultAsync();
+                .SingleOrDefault();
 
             #region Authorization
             var roleResult = await AuthorizationService
@@ -319,7 +316,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var group = await _queries.SetGroupSuspended(model.GroupId, model.IsSuspended);
+            var group = _queries.SetGroupSuspended(model.GroupId, model.IsSuspended);
 
             return Json(group);
         }
@@ -334,10 +331,10 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault(sg => sg.Id == model.GroupId);
 
             #region Authorization
-            var roleInRootContentItemResult = await AuthorizationService
+            var roleResult = await AuthorizationService
                 .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(
-                    RoleEnum.ContentAccessAdmin, selectionGroup?.RootContentItemId ?? Guid.Empty));
-            if (!roleInRootContentItemResult.Succeeded)
+                    RoleEnum.ContentAccessAdmin, selectionGroup?.RootContentItemId));
+            if (!roleResult.Succeeded)
             {
                 Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning",
@@ -360,7 +357,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selectionGroups = await _queries.DeleteGroup(model.GroupId);
+            var selectionGroups = _queries.DeleteGroup(model.GroupId);
 
             #region file cleanup
             // ContentType specific handling after successful transaction

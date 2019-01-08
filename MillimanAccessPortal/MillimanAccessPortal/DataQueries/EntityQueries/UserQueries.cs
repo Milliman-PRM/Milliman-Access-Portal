@@ -28,9 +28,9 @@ namespace MillimanAccessPortal.DataQueries
             _userManager = userManager;
         }
 
-        private async Task<List<BasicUser>> _selectUsersWhereEligibleClientIn(List<Guid> clientIds)
+        private List<BasicUser> _selectUsersWhereEligibleClientIn(List<Guid> clientIds)
         {
-            return await _dbContext.UserRoleInClient
+            return _dbContext.UserRoleInClient
                 .Where(r => clientIds.Contains(r.ClientId))
                 .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
                 .Select(r => r.User)
@@ -45,17 +45,17 @@ namespace MillimanAccessPortal.DataQueries
                     UserName = u.UserName,
                     Email = u.Email,
                 })
-                .ToListAsync();
+                .ToList();
         }
 
-        internal async Task<List<BasicUser>> SelectUsersWhereEligibleClientIn(List<Guid> clientIds)
+        internal List<BasicUser> SelectUsersWhereEligibleClientIn(List<Guid> clientIds)
         {
             if (clientIds == null)
             {
                 return new List<BasicUser> { };
             }
 
-            var users = await _selectUsersWhereEligibleClientIn(clientIds);
+            var users = _selectUsersWhereEligibleClientIn(clientIds);
 
             return users;
         }

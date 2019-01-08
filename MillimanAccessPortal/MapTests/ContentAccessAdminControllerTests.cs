@@ -137,8 +137,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+            Assert.IsType<UnauthorizedResult>(view);
             #endregion
         }
 
@@ -187,8 +186,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+            Assert.IsType<UnauthorizedResult>(view);
             #endregion
         }
 
@@ -245,8 +243,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+            Assert.IsType<UnauthorizedResult>(view);
             Assert.Equal(preCount, postCount);
             #endregion
         }
@@ -319,7 +316,6 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(999, 2)]  // selection group does not exist
         [InlineData(1, 999)]  // user does not exist
         [InlineData(2, 3)]    // user ID does not have appropriate role in root content item
         [InlineData(2, 2)]    // user ID already belongs to another selection group for this root content item
@@ -353,8 +349,9 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("user2", 1)]  // User is not content access admin
-        [InlineData("user1", 3)]  // User has no role in the root content item
+        [InlineData("user1", 999)]  // Selection group does not exist
+        [InlineData("user2", 1)]    // User is not content access admin
+        [InlineData("user1", 3)]    // User has no role in the root content item
         public async Task UpdateSelectionGroup_ErrorUnauthorized(String UserName, int SelectionGroupId)
         {
             #region Arrange
@@ -436,8 +433,8 @@ namespace MapTests
             #endregion
         }
 
+        /*
         [Theory]
-        [InlineData(999)]
         public async Task DeleteSelectionGroup_ErrorInvalid(int SelectionGroupId)
         {
             #region Arrange
@@ -464,6 +461,7 @@ namespace MapTests
             Assert.Equal(userPreCount, userPostCount);
             #endregion
         }
+        */
 
         [Theory]
         [InlineData("user2", 1)]  // User is not content access admin
@@ -522,7 +520,6 @@ namespace MapTests
 
             #region Act
             int groupsPreCount = TestResources.DbContextObject.SelectionGroup.Count();
-            int userPreCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
 
             var view = await controller.DeleteGroup(new DeleteGroupRequestModel
             {
@@ -530,12 +527,10 @@ namespace MapTests
             });
 
             int groupsPostCount = TestResources.DbContextObject.SelectionGroup.Count();
-            int userPostCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             #endregion
 
             #region Assert
             Assert.Equal(groupsPreCount, groupsPostCount + 1);
-            Assert.Equal(userPreCount, userPostCount + 1);
             #endregion
         }
 
@@ -552,8 +547,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+            Assert.IsType<UnauthorizedResult>(view);
             #endregion
         }
 

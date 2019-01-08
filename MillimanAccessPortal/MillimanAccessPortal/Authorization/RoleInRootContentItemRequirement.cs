@@ -14,18 +14,21 @@ namespace MillimanAccessPortal.Authorization
 {
     public class RoleInRootContentItemRequirement : MapAuthorizationRequirementBase
     {
+        private bool EvaluateAny { get; set; }
         private RoleEnum RoleEnum { get; set; }
-        private Guid RootContentItemId { get; set; }
+        private Guid RootContentItemId { get; set; } = Guid.Empty;
 
-        /// <summary>
-        /// Constructor; the only way to instantiate this type
-        /// </summary>
-        /// <param name="RoleEnumArg"></param>
-        /// <param name="ClientIdArg">null or &lt;= 0 to evaluate for ANY Client</param>
+        public RoleInRootContentItemRequirement(RoleEnum RoleEnumArg)
+        {
+            EvaluateAny = true;
+            RoleEnum = RoleEnumArg;
+        }
+
         public RoleInRootContentItemRequirement(RoleEnum RoleEnumArg, Guid? RootContentItemIdArg)
         {
-            RootContentItemId = RootContentItemIdArg.HasValue ? RootContentItemIdArg.Value : Guid.Empty;
+            EvaluateAny = false;
             RoleEnum = RoleEnumArg;
+            RootContentItemId = RootContentItemIdArg ?? Guid.Empty;
         }
 
         internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
@@ -41,7 +44,7 @@ namespace MillimanAccessPortal.Authorization
                            .Where(urc => urc.Role.RoleEnum == RoleEnum &&
                                          urc.UserId == User.Id);
 
-            if (RootContentItemId != Guid.Empty)
+            if (!EvaluateAny)
             {
                 Query = Query.Where(urc => urc.RootContentItemId == RootContentItemId);
             }

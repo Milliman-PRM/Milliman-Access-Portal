@@ -15,18 +15,21 @@ namespace MillimanAccessPortal.Authorization
 {
     public class RoleInClientRequirement : MapAuthorizationRequirementBase
     {
+        private bool EvaluateAny { get; set; }
         private RoleEnum RoleEnum { get; set; }
-        private Guid ClientId { get; set; }
+        private Guid ClientId { get; set; } = Guid.Empty;
 
-        /// <summary>
-        /// Constructor; the only way to instantiate this type
-        /// </summary>
-        /// <param name="RoleEnumArg"></param>
-        /// <param name="ClientIdArg">null to evaluate for ANY Client</param>
+        public RoleInClientRequirement(RoleEnum RoleEnumArg)
+        {
+            EvaluateAny = true;
+            RoleEnum = RoleEnumArg;
+        }
+
         public RoleInClientRequirement(RoleEnum RoleEnumArg, Guid? ClientIdArg)
         {
-            ClientId = ClientIdArg.HasValue ? ClientIdArg.Value : Guid.Empty;
+            EvaluateAny = false;
             RoleEnum = RoleEnumArg;
+            ClientId = ClientIdArg ?? Guid.Empty;
         }
 
         internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
@@ -42,7 +45,7 @@ namespace MillimanAccessPortal.Authorization
                            .Where(urc => urc.Role.RoleEnum == RoleEnum &&
                                          urc.UserId == User.Id);
 
-            if (ClientId != Guid.Empty)
+            if (!EvaluateAny)
             {
                 Query = Query.Where (urc => urc.ClientId == ClientId);
             }

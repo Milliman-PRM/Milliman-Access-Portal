@@ -27,32 +27,32 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _userManager = userManager;
         }
 
-        private async Task<ContentPublicationRequest> _publicationWhereContentItem(Guid contentItemId)
+        private ContentPublicationRequest _publicationWhereContentItem(Guid contentItemId)
         {
-            var publicationRequest = await _dbContext.ContentPublicationRequest
+            var publicationRequest = _dbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == contentItemId)
                 .OrderByDescending(r => r.CreateDateTimeUtc)
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             return publicationRequest;
         }
 
-        private async Task<ContentReductionTask> _reductionWhereSelectionGroup(Guid selectionGroupId)
+        private ContentReductionTask _reductionWhereSelectionGroup(Guid selectionGroupId)
         {
-            var reductionTask = await _dbContext.ContentReductionTask
+            var reductionTask = _dbContext.ContentReductionTask
                 .Where(t => t.SelectionGroupId == selectionGroupId)
                 .OrderByDescending(r => r.CreateDateTimeUtc)
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             return reductionTask;
         }
 
-        internal async Task<List<BasicPublication>> SelectPublicationsWhereContentItemIn(List<Guid> contentItemIds)
+        internal List<BasicPublication> SelectPublicationsWhereContentItemIn(List<Guid> contentItemIds)
         {
             var publications = new List<BasicPublication> { };
             foreach (var contentItemId in contentItemIds)
             {
-                var publicationRequest = await _publicationWhereContentItem(contentItemId);
+                var publicationRequest = _publicationWhereContentItem(contentItemId);
 
                 if (publicationRequest != null)
                 {
@@ -64,20 +64,20 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return publications;
         }
 
-        internal async Task<List<PublicationQueueDetails>> SelectQueueDetailsWherePublicationIn(
+        internal List<PublicationQueueDetails> SelectQueueDetailsWherePublicationIn(
             List<Guid> publicationIds)
         {
             var queueDetails = new List<PublicationQueueDetails> { };
             foreach (var publicationId in publicationIds)
             {
-                var publication = await _dbContext.ContentPublicationRequest
-                    .SingleAsync(r => r.Id == publicationId);
+                var publication = _dbContext.ContentPublicationRequest
+                    .Single(r => r.Id == publicationId);
                 if (publication.RequestStatus.IsCancelable())
                 {
-                    var precedingPublicationRequestCount = await _dbContext.ContentPublicationRequest
+                    var precedingPublicationRequestCount = _dbContext.ContentPublicationRequest
                         .Where(r => r.CreateDateTimeUtc < publication.CreateDateTimeUtc)
                         .Where(r => r.RequestStatus.IsCancelable())
-                        .CountAsync();
+                        .Count();
                     queueDetails.Add(new PublicationQueueDetails
                     {
                         PublicationId = publicationId,
@@ -89,12 +89,12 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return queueDetails;
         }
 
-        internal async Task<List<BasicReduction>> SelectReductionsWhereSelectionGroupIn(List<Guid> selectionGroupIds)
+        internal List<BasicReduction> SelectReductionsWhereSelectionGroupIn(List<Guid> selectionGroupIds)
         {
             var reductions = new List<BasicReduction> { };
             foreach (var selectionGroupId in selectionGroupIds)
             {
-                var reductionTask = await _reductionWhereSelectionGroup(selectionGroupId);
+                var reductionTask = _reductionWhereSelectionGroup(selectionGroupId);
 
                 if (reductionTask != null)
                 {
@@ -106,14 +106,14 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return reductions;
         }
 
-        internal async Task<List<ReductionQueueDetails>> SelectQueueDetailsWhereReductionIn(
+        internal List<ReductionQueueDetails> SelectQueueDetailsWhereReductionIn(
             List<Guid> reductionIds)
         {
             var queueDetails = new List<ReductionQueueDetails> { };
             foreach (var reductionId in reductionIds)
             {
-                var reduction = await _dbContext.ContentReductionTask
-                    .SingleAsync(r => r.Id == reductionId);
+                var reduction = _dbContext.ContentReductionTask
+                    .Single(r => r.Id == reductionId);
                 if (reduction.ReductionStatus.IsCancelable())
                 {
                     var precedingReductionTaskCount = _dbContext.ContentReductionTask
@@ -131,18 +131,18 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return queueDetails;
         }
 
-        internal async Task<List<Guid>> SelectReductionSelections(Guid selectionGroupId)
+        internal List<Guid> SelectReductionSelections(Guid selectionGroupId)
         {
-            var reductionTask = await _reductionWhereSelectionGroup(selectionGroupId);
+            var reductionTask = _reductionWhereSelectionGroup(selectionGroupId);
             if (reductionTask == null)
             {
                 return new List<Guid> { };
             }
 
-            var selections = await _dbContext.ContentReductionTask
+            var selections = _dbContext.ContentReductionTask
                 .Where(t => t.Id == reductionTask.Id)
                 .Select(t => t.SelectionCriteriaObj)
-                .SingleOrDefaultAsync();
+                .SingleOrDefault();
 
             return selections?.GetSelectedValueIds();
         }
