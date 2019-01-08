@@ -13,7 +13,6 @@ namespace MillimanAccessPortal.DataQueries
 {
     public class ContentAccessAdminQueries
     {
-        private readonly ApplicationDbContext _dbContext;
         private readonly ClientQueries _clientQueries;
         private readonly ContentItemQueries _contentItemQueries;
         private readonly HierarchyQueries _hierarchyQueries;
@@ -22,7 +21,6 @@ namespace MillimanAccessPortal.DataQueries
         private readonly UserQueries _userQueries;
 
         public ContentAccessAdminQueries(
-            ApplicationDbContext dbContext,
             ClientQueries clientQueries,
             ContentItemQueries contentItemQueries,
             HierarchyQueries hierarchyQueries,
@@ -30,7 +28,6 @@ namespace MillimanAccessPortal.DataQueries
             PublicationQueries publicationQueries,
             UserQueries userQueries)
         {
-            _dbContext = dbContext;
             _clientQueries = clientQueries;
             _contentItemQueries = contentItemQueries;
             _hierarchyQueries = hierarchyQueries;
@@ -55,7 +52,8 @@ namespace MillimanAccessPortal.DataQueries
 
         public async Task<ContentItemsViewModel> SelectContentItems(ApplicationUser user, Guid clientId)
         {
-            var items = await _contentItemQueries.SelectContentItemsWhereClient(clientId);
+            var items = await _contentItemQueries
+                .SelectContentItemsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId);
             var itemIds = items.ConvertAll(i => i.Id);
 
             var contentTypes = await _contentItemQueries.SelectContentTypesContentItemIn(itemIds);
@@ -116,10 +114,10 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public async Task<StatusViewModel> SelectStatus(Guid clientId, Guid rootContentItemId)
+        public async Task<StatusViewModel> SelectStatus(ApplicationUser user, Guid clientId, Guid rootContentItemId)
         {
             var contentItemIds = (await _contentItemQueries
-                .SelectContentItemsWhereClient(clientId))
+                .SelectContentItemsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId))
                 .ConvertAll((i) => i.Id);
             var selectionGroupIds = (await _selectionGroupQueries
                 .SelectSelectionGroupsWhereContentItem(rootContentItemId))
@@ -143,17 +141,7 @@ namespace MillimanAccessPortal.DataQueries
 
         public async Task<CreateGroupResponseModel> CreateReducingGroup(Guid itemId, string name)
         {
-            var group = new SelectionGroup
-            {
-                RootContentItemId = itemId,
-                GroupName = name,
-                ContentInstanceUrl = "",
-                SelectedHierarchyFieldValueList = new Guid[] { },
-                IsMaster = false,
-            };
-
-            _dbContext.SelectionGroup.Add(group);
-            _dbContext.SaveChanges();
+            var group = await _selectionGroupQueries.CreateReducingSelectionGroup(itemId, name);
 
             var groupWithUsers = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
             var contentItemStats = await _contentItemQueries.SelectContentItemWithStats(itemId);
@@ -165,22 +153,9 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public async Task<CreateGroupResponseModel> CreateMasterGroup(Guid itemId, string name, string contentUrl)
+        public async Task<CreateGroupResponseModel> CreateMasterGroup(Guid itemId, string name)
         {
-            var contentItem = await _dbContext.RootContentItem.FindAsync(itemId);
-
-            var group = new SelectionGroup
-            {
-                RootContentItem = contentItem,
-                GroupName = name,
-                ContentInstanceUrl = "",
-                SelectedHierarchyFieldValueList = new Guid[] { },
-                IsMaster = true,
-            };
-            group.SetContentUrl(contentUrl);
-
-            _dbContext.SelectionGroup.Add(group);
-            _dbContext.SaveChanges();
+            var group = await _selectionGroupQueries.CreateMasterSelectionGroup(itemId, name);
 
             var groupWithUsers = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
             var contentItemStats = await _contentItemQueries.SelectContentItemWithStats(itemId);
@@ -195,48 +170,23 @@ namespace MillimanAccessPortal.DataQueries
         public async Task<BasicSelectionGroupWithAssignedUsers> UpdateGroup(
             Guid groupId, string name, List<Guid> users)
         {
-            var selectionGroup = await _dbContext.SelectionGroup.FindAsync(groupId);
-
-            selectionGroup.GroupName = name;
-
-            var usersToRemove = await _dbContext.UserInSelectionGroup
-                .Where(u => u.SelectionGroupId == groupId)
-                .Where(u => !users.Contains(u.UserId))
-                .ToListAsync();
-            _dbContext.UserInSelectionGroup.RemoveRange(usersToRemove);
-
-            var usersToKeep = await _dbContext.UserInSelectionGroup
-                .Where(u => u.SelectionGroupId == groupId)
-                .Where(u => users.Contains(u.UserId))
-                .Select(u => u.UserId)
-                .ToListAsync();
-            var usersToAdd = users.Except(usersToKeep).Select(uid => new UserInSelectionGroup
-            {
-                UserId = uid,
-                SelectionGroupId = groupId,
-            });
-            _dbContext.UserInSelectionGroup.AddRange(usersToAdd);
-
-            await _dbContext.SaveChangesAsync();
+            await _selectionGroupQueries.UpdateSelectionGroupName(groupId, name);
+            var group = await _selectionGroupQueries.UpdateSelectionGroupUsers(groupId, users);
 
             return new BasicSelectionGroupWithAssignedUsers
             {
-                Id = selectionGroup.Id,
-                RootContentItemId = selectionGroup.RootContentItemId,
-                IsSuspended = selectionGroup.IsSuspended,
-                IsMaster = selectionGroup.IsMaster,
-                Name = selectionGroup.GroupName,
+                Id = group.Id,
+                RootContentItemId = group.RootContentItemId,
+                IsSuspended = group.IsSuspended,
+                IsMaster = group.IsMaster,
+                Name = group.GroupName,
                 AssignedUsers = users,
             };
         }
 
         public async Task<DeleteGroupResponseModel> DeleteGroup(Guid id)
         {
-            var group = await _dbContext.SelectionGroup.FindAsync(id);
-
-            _dbContext.SelectionGroup.Remove(group);
-            await _dbContext.SaveChangesAsync();
-
+            var group = await _selectionGroupQueries.DeleteSelectionGroup(id);
             var contentItemStats = await _contentItemQueries.SelectContentItemWithStats(group.RootContentItemId);
 
             return new DeleteGroupResponseModel
@@ -248,10 +198,7 @@ namespace MillimanAccessPortal.DataQueries
 
         public async Task<BasicSelectionGroup> SetGroupSuspended(Guid id, bool isSuspended)
         {
-            var group = await _dbContext.SelectionGroup.FindAsync(id);
-
-            group.IsSuspended = isSuspended;
-            await _dbContext.SaveChangesAsync();
+            var group = await _selectionGroupQueries.UpdateSelectionGroupSuspended(id, isSuspended);
 
             return (BasicSelectionGroup)group;
         }

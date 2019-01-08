@@ -1,12 +1,14 @@
-﻿using AuditLogLib.Services;
+﻿using AuditLogLib.Event;
+using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -138,6 +140,118 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 .SingleOrDefaultAsync();
 
             return selections?.ToList();
+        }
+
+        internal async Task<SelectionGroup> CreateReducingSelectionGroup(Guid itemId, string name)
+        {
+            var group = new SelectionGroup
+            {
+                RootContentItemId = itemId,
+                GroupName = name,
+                ContentInstanceUrl = "",
+                SelectedHierarchyFieldValueList = new Guid[] { },
+                IsMaster = false,
+            };
+            _dbContext.SelectionGroup.Add(group);
+
+            await _dbContext.SaveChangesAsync();
+            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group));
+
+            return group;
+        }
+        internal async Task<SelectionGroup> CreateMasterSelectionGroup(Guid itemId, string name)
+        {
+            var contentItem = await _dbContext.RootContentItem.FindAsync(itemId);
+            ContentRelatedFile liveMasterFile = contentItem.ContentFilesList
+                .SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
+            if (liveMasterFile == null || !File.Exists(liveMasterFile.FullPath))
+            {
+                return null;
+            }
+            string contentUrl = Path.GetFileName(liveMasterFile.FullPath);
+
+            var group = new SelectionGroup
+            {
+                RootContentItem = contentItem,
+                GroupName = name,
+                ContentInstanceUrl = "",
+                SelectedHierarchyFieldValueList = new Guid[] { },
+                IsMaster = true,
+            };
+            group.SetContentUrl(contentUrl);
+            _dbContext.SelectionGroup.Add(group);
+
+            await _dbContext.SaveChangesAsync();
+            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group));
+
+            return group;
+        }
+        internal async Task<SelectionGroup> UpdateSelectionGroupName(Guid groupId, string name)
+        {
+            var group = await _dbContext.SelectionGroup.FindAsync(groupId);
+            group.GroupName = name;
+
+            await _dbContext.SaveChangesAsync();
+
+            return group;
+        }
+        internal async Task<SelectionGroup> UpdateSelectionGroupUsers(Guid groupId, List<Guid> users)
+        {
+            var group = await _dbContext.SelectionGroup.FindAsync(groupId);
+
+            #region update
+            var currentUsers = await _dbContext.UserInSelectionGroup
+                .Where(u => u.SelectionGroupId == groupId)
+                .ToListAsync();
+
+            var usersToKeep = currentUsers
+                .Where(u => users.Contains(u.UserId))
+                .Select(u => u.Id);
+            var usersToAdd = users.Except(usersToKeep).Select(uid => new UserInSelectionGroup
+            {
+                UserId = uid,
+                SelectionGroupId = groupId,
+            });
+            _dbContext.UserInSelectionGroup.AddRange(usersToAdd);
+
+            var usersToRemove = currentUsers
+                .Where(u => !users.Contains(u.UserId));
+            _dbContext.UserInSelectionGroup.RemoveRange(usersToRemove);
+            #endregion
+
+            #region commit and log
+            await _dbContext.SaveChangesAsync();
+            foreach (var user in usersToAdd)
+            {
+                _auditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(group, user.Id));
+            }
+            foreach (var user in usersToRemove)
+            {
+                _auditLogger.Log(AuditEventType.SelectionGroupUserRemoved.ToEvent(group, user.Id));
+            }
+            #endregion
+
+            return group;
+        }
+        internal async Task<SelectionGroup> UpdateSelectionGroupSuspended(Guid id, bool isSuspended)
+        {
+            var group = await _dbContext.SelectionGroup.FindAsync(id);
+            group.IsSuspended = isSuspended;
+
+            await _dbContext.SaveChangesAsync();
+            _auditLogger.Log(AuditEventType.SelectionGroupSuspensionUpdate.ToEvent(group, isSuspended, ""));
+
+            return group;
+        }
+        internal async Task<SelectionGroup> DeleteSelectionGroup(Guid id)
+        {
+            var group = await _dbContext.SelectionGroup.FindAsync(id);
+            _dbContext.SelectionGroup.Remove(group);
+
+            await _dbContext.SaveChangesAsync();
+            _auditLogger.Log(AuditEventType.SelectionGroupDeleted.ToEvent(group));
+
+            return group;
         }
     }
 }

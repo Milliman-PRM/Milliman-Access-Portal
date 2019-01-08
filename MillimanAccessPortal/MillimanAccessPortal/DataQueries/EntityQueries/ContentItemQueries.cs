@@ -44,10 +44,15 @@ namespace MillimanAccessPortal.DataQueries
 
             return contentItem;
         }
-        private async Task<List<BasicContentItem>> _selectContentItemsWhereClient(Guid clientId)
+        private async Task<List<BasicContentItem>> _selectContentItemsWhereClient(
+            ApplicationUser user, RoleEnum role, Guid clientId)
         {
-            var contentItems = await _dbContext.RootContentItem
-                .Where(i => i.ClientId == clientId)
+            var contentItems = await _dbContext.UserRoleInRootContentItem
+                .Where(r => r.UserId == user.Id)
+                .Where(r => r.Role.RoleEnum == role)
+                .Where(r => r.RootContentItem.ClientId == clientId)
+                .Select(r => r.RootContentItem)
+                .Distinct()
                 .Select(i => new BasicContentItem
                 {
                     Id = i.Id,
@@ -88,9 +93,10 @@ namespace MillimanAccessPortal.DataQueries
             return itemsWith;
         }
 
-        internal async Task<List<BasicContentItemWithStats>> SelectContentItemsWhereClient(Guid clientId)
+        internal async Task<List<BasicContentItemWithStats>> SelectContentItemsWhereClient(
+            ApplicationUser user, RoleEnum role, Guid clientId)
         {
-            var contentItems = await _selectContentItemsWhereClient(clientId);
+            var contentItems = await _selectContentItemsWhereClient(user, role, clientId);
             var contentItemsWithStats = await _withStats(contentItems);
 
             return contentItemsWithStats;

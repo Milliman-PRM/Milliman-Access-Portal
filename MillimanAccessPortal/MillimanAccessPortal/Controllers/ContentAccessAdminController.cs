@@ -33,6 +33,7 @@ using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
 {
+    [LogVerbose]
     public class ContentAccessAdminController : Controller
     {
         private readonly IAuditLogger AuditLogger;
@@ -65,19 +66,15 @@ namespace MillimanAccessPortal.Controllers
             QvConfig = QvConfigArg.Value;
         }
 
-        /// <summary>Action for content access administration index.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in at least one client.</remarks>
-        /// <returns>ViewResult</returns>
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            Log.Verbose($"Entered ContentAccessAdminController.Index");
-
             #region Authorization
-            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
-            if (!RoleInClientResult.Succeeded)
+            AuthorizationResult roleResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+            if (!roleResult.Succeeded)
             {
-                Log.Debug($"In ContentAccessAdminController.Index action: authorization failure for user {User.Identity.Name}, role {RoleEnum.ContentAccessAdmin.ToString()}");
+                Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to administer content access.");
                 return Unauthorized();
             }
@@ -86,132 +83,121 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
-        /// <summary>Returns the list of client families visible to the user.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in at least one client.</remarks>
-        /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> ClientFamilyList()
+        public async Task<IActionResult> Clients()
         {
-            Log.Verbose($"Entered ContentAccessAdminController.ClientFamilyList action");
-
             #region Authorization
-            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
-            if (!RoleInClientResult.Succeeded)
+            var roleResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+            if (!roleResult.Succeeded)
             {
-                Log.Debug($"In ContentAccessAdminController.ClientFamilyList action: authorization failure for user {User.Identity.Name}, role {RoleEnum.ContentAccessAdmin.ToString()}");
+                Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to administer content access.");
                 return Unauthorized();
             }
             #endregion
 
-            ClientTree model = ClientTree.Build(await _standardQueries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentAccessAdmin);
+            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
+            var clients = await _queries.SelectClients(currentUser);
 
-            return Json(model);
+            return Json(clients);
         }
 
-        /// <summary>Returns the root content items available to a client.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified client.</remarks>
-        /// <param name="ClientId">The client whose root content items are to be returned.</param>
-        /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> RootContentItems(Guid ClientId)
+        public async Task<IActionResult> ContentItems(Guid clientId)
         {
-            Log.Verbose($"Entered ContentAccessAdminController.RootContentItems action");
-
-            Client Client = DbContext.Client.Find(ClientId);
-
-            #region Preliminary validation
-            if (Client == null)
-            {
-                Log.Debug($"In ContentAccessAdminController.RootContentItems action: client with ID {ClientId} not found");
-                Response.Headers.Add("Warning", "The requested client does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
             #region Authorization
-            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, ClientId));
-            if (!RoleInClientResult.Succeeded)
+            var roleResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, clientId));
+            if (!roleResult.Succeeded)
             {
-                Log.Debug($"In ContentAccessAdminController.RootContentItems action: authorization failure, user {User.Identity.Name}, role {RoleEnum.ContentAccessAdmin.ToString()}, client ID {ClientId}");
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access for this client.");
                 return Unauthorized();
             }
             #endregion
 
-            var model = Models.ContentAccessAdmin.RootContentItemList.Build(DbContext, Client, await _standardQueries.GetCurrentApplicationUser(User), RoleEnum.ContentAccessAdmin);
+            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
+            var contentItems = await _queries.SelectContentItems(currentUser, clientId);
 
-            return Json(model);
+            return Json(contentItems);
         }
 
-        /// <summary>Returns the selection groups associated with a root content item.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified root content item.</remarks>
-        /// <param name="RootContentItemId">The root content item whose selection groups are to be returned.</param>
-        /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> SelectionGroups(Guid RootContentItemId)
+        public async Task<IActionResult> SelectionGroups(Guid itemId)
         {
-            Log.Verbose($"Entered ContentAccessAdminController.SelectionGroups action: with RootContentItem ID {RootContentItemId}");
-
-            RootContentItem RootContentItem = DbContext.RootContentItem.Find(RootContentItemId);
-
-            #region Preliminary validation
-            if (RootContentItem == null)
-            {
-                Log.Debug($"In ContentAccessAdminController.SelectionGroups action: RootContentItem with ID {RootContentItemId} not found");
-                Response.Headers.Add("Warning", "The requested content item does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
             #region Authorization
-            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, RootContentItemId));
-            if (!RoleInRootContentItemResult.Succeeded)
+            var roleResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
+            if (!roleResult.Succeeded)
             {
-                Log.Debug($"In ContentAccessAdminController.SelectionGroups action: authorization failure, user {User.Identity.Name}, RootContentItemId {RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}");
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
+                Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access for this content item.");
                 return Unauthorized();
             }
             #endregion
 
-            SelectionGroupList Model = SelectionGroupList.Build(DbContext, RootContentItem);
+            var selectionGroups = await _queries.SelectSelectionGroups(itemId);
 
-            return Json(Model);
+            return Json(selectionGroups);
         }
 
-        /// <summary>Creates a selection group.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified root content item.</remarks>
-        /// <param name="RootContentItemId">The root content item to be assigned to the new selection group.</param>
-        /// <param name="SelectionGroupName">The name of the new selection group.</param>
-        /// <returns>JsonResult</returns>
+        [HttpGet]
+        public async Task<IActionResult> Selections(Guid groupId)
+        {
+            Guid itemId = await DbContext.SelectionGroup
+                .Where(g => g.Id == groupId)
+                .Select(g => g.RootContentItemId)
+                .SingleOrDefaultAsync();
+
+            #region Authorization
+            var roleInRootContentItemResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
+            if (!roleInRootContentItemResult.Succeeded)
+            {
+                Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access to the specified content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var selections = await _queries.SelectSelections(groupId);
+
+            return Json(selections);
+        }
+
+        [HttpGet]
+        [PreventAuthRefresh]
+        public async Task<IActionResult> Status(Guid clientId, Guid itemId)
+        {
+            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
+            var status = await _queries.SelectStatus(currentUser, clientId, itemId);
+
+            return Json(status);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateSelectionGroup(Guid RootContentItemId, String SelectionGroupName)
+        public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequestModel model)
         {
-            Log.Verbose($"Entered ContentAccessAdminController.CreateSelectionGroup action: with RootContentItem ID {RootContentItemId}, SelectionGroupName {SelectionGroupName}");
-
-            RootContentItem rootContentItem = DbContext.RootContentItem
-                .Where(item => item.Id == RootContentItemId)
+            var contentItem = DbContext.RootContentItem
+                .Where(i => i.Id == model.ItemId)
                 .Include(item => item.Client)
                 .Include(item => item.ContentType)
                 .SingleOrDefault();
 
-            #region Preliminary validation
-            if (rootContentItem == null)
-            {
-                Log.Debug($"In ContentAccessAdminController.CreateSelectionGroup action: RootContentItem with ID {RootContentItemId} not found");
-                Response.Headers.Add("Warning", "The requested content item does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
             #region Authorization
-            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, RootContentItemId));
-            if (!RoleInRootContentItemResult.Succeeded)
+            var roleResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(
+                    RoleEnum.ContentAccessAdmin, model.ItemId));
+            if (!roleResult.Succeeded)
             {
-                Log.Debug($"In ContentAccessAdminController.CreateSelectionGroup action: authorization failure, user {User.Identity.Name}, RootContentItem ID {RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
+                Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -219,377 +205,143 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             // reject this request if the RootContentItem has a pending publication request
             bool blockedByPendingPublication = DbContext.ContentPublicationRequest
-                .Where(pr => pr.RootContentItemId == rootContentItem.Id)
-                .Any(pr => pr.RequestStatus.IsActive());
+                .Where(r => r.RootContentItemId == contentItem.Id)
+                .Where(r => r.RequestStatus.IsActive())
+                .Any();
             if (blockedByPendingPublication)
             {
-                Log.Debug($"In ContentAccessAdminController.CreateSelectionGroup action: managing of selection groups for content item {rootContentItem.Id} is blocked due to pending publication, aborting");
-                Response.Headers.Add("Warning", "A new selection group may not be created while this content item has a pending publication.");
+                Response.Headers.Add("Warning",
+                    "A new selection group may not be created while this content item has a pending publication.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            #endregion
 
-            SelectionGroup newSelectionGroup = new SelectionGroup
+            if (!contentItem.DoesReduce)
             {
-                RootContentItemId = rootContentItem.Id,
-                GroupName = SelectionGroupName,
-                SelectedHierarchyFieldValueList = new Guid[] { },
-                ContentInstanceUrl = "",
-                IsMaster = false,
-            };
-
-            if (!rootContentItem.DoesReduce)
-            {
-                ContentRelatedFile liveMasterFile = rootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
+                ContentRelatedFile liveMasterFile = contentItem.ContentFilesList
+                    .SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
                 if (liveMasterFile == null || !System.IO.File.Exists(liveMasterFile.FullPath))
                 {
-                    Log.Debug($"In ContentAccessAdminController.CreateSelectionGroup action; failed to locate master content file {liveMasterFile?.FullPath ?? ""}");
-                    Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
+                    Response.Headers.Add("Warning",
+                        "A master content file does not exist for the requested content item.");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
-
-                newSelectionGroup.IsMaster = true;
-                newSelectionGroup.RootContentItem = rootContentItem;
-                newSelectionGroup.SetContentUrl(Path.GetFileName(liveMasterFile.FullPath));
             }
+            #endregion
 
-            try
-            {
-                DbContext.SelectionGroup.Add(newSelectionGroup);
-                DbContext.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating selection group \"{newSelectionGroup.Id}\"");
-                Log.Error(ErrMsg);
-                Response.Headers.Add("Warning", $"Failed to complete transaction.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            var selectionGroups = contentItem.DoesReduce
+                ? await _queries.CreateReducingGroup(model.ItemId, model.Name)
+                : await _queries.CreateMasterGroup(model.ItemId, model.Name);
 
-            Log.Verbose($"In ContentAccessAdminController.CreateSelectionGroup action; success");
-            AuditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(newSelectionGroup));
-
-            Models.ContentAccessAdmin.SelectionGroupSummary Model = Models.ContentAccessAdmin.SelectionGroupSummary.Build(DbContext, newSelectionGroup);
-
-            return Json(Model);
+            return Json(selectionGroups);
         }
 
-        /// <summary>
-        /// Rename a selection group
-        /// </summary>
-        /// <param name="selectionGroupId">The selection group to be updated.</param>
-        /// <param name="name">The new name for the selection group.</param>
-        /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RenameSelectionGroup(Guid selectionGroupId, string name)
+        public async Task<IActionResult> UpdateGroup([FromBody] UpdateGroupRequestModel model)
         {
-            Log.Verbose($"Entered ContentAccessAdminController.RenameSelectionGroup action: with SelectionGroup ID {selectionGroupId}, new name {name}");
+            (Guid itemId, Guid clientId) = (await DbContext.SelectionGroup
+                .Where(g => g.Id == model.GroupId)
+                .Select(g => g.RootContentItem)
+                .ToListAsync())
+                .ConvertAll(r => (r.Id, r.ClientId))
+                .SingleOrDefault();
 
+            #region Authorization
+            var roleResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
+            if (!roleResult.Succeeded)
+            {
+                Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access to the specified content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var existsCount = DbContext.ApplicationUser
+                .Where(u => model.Users.Contains(u.Id))
+                .Count();
+            if (existsCount < model.Users.Count)
+            {
+                Response.Headers.Add("Warning", "One or more requested users do not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var hasRoleCount = DbContext.UserRoleInClient
+                .Where(r => model.Users.Contains(r.UserId))
+                .Where(r => r.ClientId == clientId)
+                .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
+                .Count();
+            if (hasRoleCount < model.Users.Count)
+            {
+                Response.Headers.Add("Warning",
+                    "One or more requested users do not have permission to use this content.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var anyInOtherGroup = DbContext.UserInSelectionGroup
+                .Where(u => model.Users.Contains(u.UserId))
+                .Where(u => u.SelectionGroup.RootContentItemId == itemId)
+                .Where(u => u.SelectionGroupId != model.GroupId)
+                .Any();
+            if (anyInOtherGroup)
+            {
+                Response.Headers.Add("Warning",
+                    "One or more requested users are already in a different selection group.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var group = await _queries.UpdateGroup(model.GroupId, model.Name, model.Users.ToList());
+
+            return Json(group);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuspendGroup([FromBody] SuspendGroupRequestModel model)
+        {
+            Guid itemId = await DbContext.SelectionGroup
+                .Where(g => g.Id == model.GroupId)
+                .Select(g => g.RootContentItemId)
+                .SingleOrDefaultAsync();
+
+            #region Authorization
+            var roleResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
+            if (!roleResult.Succeeded)
+            {
+                Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access to the specified content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var group = await _queries.SetGroupSuspended(model.GroupId, model.IsSuspended);
+
+            return Json(group);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteGroup([FromBody] DeleteGroupRequestModel model)
+        {
             var selectionGroup = DbContext.SelectionGroup
-                .Where(sg => sg.Id == selectionGroupId)
-                .SingleOrDefault();
-
-            #region Preliminary validation
-            if (selectionGroup == null)
-            {
-                Log.Debug($"In ContentAccessAdminController.RenameSelectionGroup action: selection roup with ID {selectionGroupId} not found");
-                Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
-            if (!roleInRootContentItemResult.Succeeded)
-            {
-                Log.Debug($"In ContentAccessAdminController.RenameSelectionGroup action: authorization failure, user {User.Identity.Name}, selection group ID {selectionGroupId}, role {RoleEnum.ContentAccessAdmin.ToString()}");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
-                return Unauthorized();
-            }
-            #endregion
-
-            selectionGroup.GroupName = name;
-            DbContext.SelectionGroup.Update(selectionGroup);
-            DbContext.SaveChanges();
-            Log.Verbose($"In ContentAccessAdminController.RenameSelectionGroup action: success");
-
-            var model = Models.ContentAccessAdmin.SelectionGroupSummary.Build(DbContext, selectionGroup);
-
-            return Json(model);
-        }
-
-        /// <summary>
-        /// Adds a single user by email to a selection group.
-        /// </summary>
-        /// <remarks>This is a temporary helper action to be used until content access admin is rewritten in React.</remarks>
-        /// <param name="SelectionGroupId">The selection group to be updated.</param>
-        /// <param name="username">The username of the user to add.</param>
-        /// <returns>Ok, or UnprocessableEntity if a user with the provided email does not exist.</returns>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddUserToSelectionGroup(Guid SelectionGroupId, string username)
-        {
-            Log.Verbose($"Entered ContentAccessAdminController.AddUserToSelectionGroup action: with SelectionGroup ID {SelectionGroupId}, user name {username}");
-
-            SelectionGroup selectionGroup = DbContext.SelectionGroup
-                .Include(sg => sg.RootContentItem)
-                    .ThenInclude(rci => rci.Client)
-                .SingleOrDefault(sg => sg.Id == SelectionGroupId);
-
-            #region Preliminary Validation
-            if (selectionGroup == null)
-            {
-                Log.Debug($"In ContentAccessAdminController.AddUserToSelectionGroup action: selection group {SelectionGroupId} not found");
-                Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
-            if (!roleInRootContentItemResult.Succeeded)
-            {
-                Log.Debug($"In ContentAccessAdminController.AddUserToSelectionGroup action: authorization failure, user {User.Identity.Name}, content item {selectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
-                return Unauthorized();
-            }
-            #endregion
-
-            var user = DbContext.ApplicationUser
-                .Where(u => u.UserName == username)
-                .SingleOrDefault();
-
-            #region Validation
-            if (user == null)
-            {
-                Log.Debug($"In ContentAccessAdminController.AddUserToSelectionGroup action: user {User.Identity.Name} not found, aborting");
-                Response.Headers.Add("Warning", "One or more requested users do not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            return await UpdateSelectionGroupUserAssignments(SelectionGroupId, new Dictionary<Guid, bool> { { user.Id, true } });
-        }
-
-        /// <summary>Updates the users assigned to a selection group.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified root content item.</remarks>
-        /// <param name="SelectionGroupId">The selection group to be updated.</param>
-        /// <param name="UserAssignments">A dictionary that maps client IDs to a boolean value indicating whether to add or remove the client.</param>
-        /// <returns>JsonResult</returns>
-        [HttpPut]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateSelectionGroupUserAssignments(Guid SelectionGroupId, Dictionary<Guid, Boolean> UserAssignments)
-        {
-            Log.Verbose($"Entered ContentAccessAdminController.UpdateSelectionGroupUserAssignments action: with SelectionGroup ID {SelectionGroupId}, {{@UserAssignments}}", UserAssignments);
-
-            SelectionGroup SelectionGroup = DbContext.SelectionGroup
-                .Include(sg => sg.RootContentItem)
-                    .ThenInclude(rci => rci.Client)
-                .SingleOrDefault(sg => sg.Id == SelectionGroupId);
-
-            #region Preliminary Validation
-            if (SelectionGroup == null)
-            {
-                Log.Debug($"In ContentAccessAdminController.UpdateSelectionGroupUserAssignments action: selection group {SelectionGroupId} not found");
-                Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
-            if (!RoleInRootContentItemResult.Succeeded)
-            {
-                Log.Debug($"In ContentAccessAdminController.UpdateSelectionGroupUserAssignments action: authorization failure, user {User.Identity.Name}, content item {SelectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
-                return Unauthorized();
-            }
-            #endregion
-
-            #region Argument processing
-            var CurrentAssignments = DbContext.UserInSelectionGroup
-                .Where(usg => usg.SelectionGroupId == SelectionGroup.Id)
-                .Select(usg => usg.UserId)
-                .ToList();
-            var UserAdditions = UserAssignments
-                .Where(kvp => kvp.Value)
-                .Select(kvp => kvp.Key)
-                .Except(CurrentAssignments);
-            var UserRemovals = UserAssignments
-                .Where(kvp => !kvp.Value)
-                .Select(kvp => kvp.Key)
-                .Intersect(CurrentAssignments);
-            #endregion
-
-            #region Validation
-            var Existent = DbContext.ApplicationUser
-                .Where(u => UserAssignments.Keys.Contains(u.Id));
-            if (Existent.Count() < UserAssignments.Count())
-            {
-                Log.Debug($"In ContentAccessAdminController.UpdateSelectionGroupUserAssignments action: one or more requested users do not exist, aborting");
-                Response.Headers.Add("Warning", "One or more requested users do not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-
-            var Permissioned = DbContext.UserRoleInClient
-                .Where(ur => UserAdditions.Contains(ur.UserId))
-                .Where(ur => ur.ClientId == SelectionGroup.RootContentItem.ClientId)
-                .Where(ur => ur.RoleId == (ApplicationRole.RoleIds[RoleEnum.ContentUser]));
-            if (Permissioned.Count() < UserAdditions.Count())
-            {
-                Log.Debug($"In ContentAccessAdminController.UpdateSelectionGroupUserAssignments action: one or more requested users are not authorized to the content item, aborting");
-                Response.Headers.Add("Warning", "One or more requested users do not have permission to use this content.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-
-            var AlreadyInAnotherGroup = DbContext.UserInSelectionGroup
-                .Where(usg => UserAdditions.Contains(usg.UserId))
-                .Where(usg => usg.SelectionGroupId != SelectionGroup.Id)
-                .Where(usg => usg.SelectionGroup.RootContentItemId == SelectionGroup.RootContentItemId);
-            if (AlreadyInAnotherGroup.Any())
-            {
-                Log.Debug($"In ContentAccessAdminController.UpdateSelectionGroupUserAssignments action: one or more requested users are already authorized to another selection group for the same content item, aborting");
-                Response.Headers.Add("Warning", "One or more requested users to add are already in a different selection group.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            try
-            {
-                using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
-                {
-                    DbContext.UserInSelectionGroup.RemoveRange(
-                        DbContext.UserInSelectionGroup
-                            .Where(usg => UserRemovals.Contains(usg.UserId))
-                            .Where(usg => usg.SelectionGroupId == SelectionGroup.Id)
-                        );
-                    DbContext.SaveChanges();
-
-                    DbContext.UserInSelectionGroup.AddRange(
-                        UserAdditions
-                            .Select(uid =>
-                                new UserInSelectionGroup
-                                {
-                                    SelectionGroupId = SelectionGroup.Id,
-                                    UserId = uid,
-                                }
-                            )
-                        );
-                    DbContext.SaveChanges();
-
-                    DbTransaction.Commit();
-                }
-            }
-            catch (Exception ex)
-            {
-                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while updating selection group \"{SelectionGroupId}\" user assignments");
-                Log.Error(ErrMsg);
-                Response.Headers.Add("Warning", $"Failed to complete transaction.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-
-            #region Log
-            Log.Verbose($"In ContentAccessAdminController.UpdateSelectionGroupUserAssignments action: success");
-            foreach (var UserAddition in UserAdditions)
-            {
-                AuditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(SelectionGroup, UserAddition));
-            }
-            foreach (var UserRemoval in UserRemovals)
-            {
-                AuditLogger.Log(AuditEventType.SelectionGroupUserRemoved.ToEvent(SelectionGroup, UserRemoval));
-            }
-            #endregion
-
-            var Model = Models.ContentAccessAdmin.SelectionGroupSummary.Build(DbContext, SelectionGroup);
-
-            return Json(Model);
-        }
-
-        /// <summary>
-        /// Set suspended status for a selection group
-        /// </summary>
-        /// <param name="selectionGroupId">The selection group to be updated.</param>
-        /// <param name="isSuspended">The suspended state to which the selection group is to be set.</param>
-        /// <returns>JsonResult</returns>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SetSuspendedSelectionGroup(Guid selectionGroupId, bool isSuspended)
-        {
-            Log.Verbose($"Entered ContentAccessAdminController.SetSuspendedSelectionGroup action: with SelectionGroup ID {selectionGroupId}, suspend {isSuspended}");
-
-            SelectionGroup selectionGroup = DbContext.SelectionGroup
-                .Include(sg => sg.RootContentItem)
-                .SingleOrDefault(sg => sg.Id == selectionGroupId);
-
-            #region Preliminary Validation
-            if (selectionGroup == null)
-            {
-                Log.Debug($"In ContentAccessAdminController.SetSuspendedSelectionGroup action: selection group {selectionGroupId} not found");
-                Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
-            if (!roleInRootContentItemResult.Succeeded)
-            {
-                Log.Debug($"In ContentAccessAdminController.SetSuspendedSelectionGroup action: authorization failure, user {User.Identity.Name}, content item {selectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
-                return Unauthorized();
-            }
-            #endregion
-
-            selectionGroup.IsSuspended = isSuspended;
-            DbContext.SelectionGroup.Update(selectionGroup);
-            DbContext.SaveChanges();
-
-            Log.Verbose($"In ContentAccessAdminController.SetSuspendedSelectionGroup action: success");
-            AuditLogger.Log(AuditEventType.SelectionGroupSuspensionUpdate.ToEvent(selectionGroup, isSuspended, ""));
-
-            var model = SelectionsDetail.Build(DbContext, _standardQueries, selectionGroup);
-
-            return Json(model);
-        }
-
-        /// <summary>Deletes a selection group.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified root content item.</remarks>
-        /// <param name="SelectionGroupId">The selection group to be deleted.</param>
-        /// <returns>JsonResult</returns>
-        [HttpDelete]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteSelectionGroup(Guid SelectionGroupId)
-        {
-            Log.Verbose($"Entered ContentAccessAdminController.DeleteSelectionGroup action with SelectionGroup ID {SelectionGroupId}");
-
-            SelectionGroup selectionGroup = DbContext.SelectionGroup
-                .Include(sg => sg.RootContentItem)
-                    .ThenInclude(rci => rci.Client)
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rci => rci.ContentType)
-                .SingleOrDefault(sg => sg.Id == SelectionGroupId);
-
-            #region Preliminary Validation
-            if (selectionGroup == null)
-            {
-                Log.Debug($"In ContentAccessAdminController.DeleteSelectionGroup action: selection group {SelectionGroupId} not found");
-                Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
+                .SingleOrDefault(sg => sg.Id == model.GroupId);
 
             #region Authorization
-            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
-            if (!RoleInRootContentItemResult.Succeeded)
+            var roleInRootContentItemResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(
+                    RoleEnum.ContentAccessAdmin, selectionGroup?.RootContentItemId ?? Guid.Empty));
+            if (!roleInRootContentItemResult.Succeeded)
             {
-                Log.Debug($"In ContentAccessAdminController.DeleteSelectionGroup action: authorization failure: user {User.Identity.Name}, content item {selectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
+                Log.Debug($"Authorizing action {ControllerContext.ActionDescriptor} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning",
+                    "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
@@ -597,139 +349,76 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             // reject this request if the RootContentItem has a pending publication request
             bool blockedByPendingPublication = DbContext.ContentPublicationRequest
-                .Where(pr => pr.RootContentItemId == selectionGroup.RootContentItem.Id)
-                .Any(pr => pr.RequestStatus.IsActive());
+                .Where(r => r.RootContentItemId == selectionGroup.RootContentItemId)
+                .Where(r => r.RequestStatus.IsActive())
+                .Any();
             if (blockedByPendingPublication)
             {
-                Log.Debug($"In ContentAccessAdminController.DeleteSelectionGroup action: action blocked by pending publication, aborting");
-                Response.Headers.Add("Warning", "A selection group may not be deleted while this content item has a pending publication.");
+                Response.Headers.Add("Warning",
+                    "A new selection group may not be created while this content item has a pending publication.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
-            List<Guid> RemovedUsers = new List<Guid>();
+            var selectionGroups = await _queries.DeleteGroup(model.GroupId);
 
-            try
+            #region file cleanup
+            // ContentType specific handling after successful transaction
+            switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
             {
-                using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
-                {
-                    List<UserInSelectionGroup> UsersToRemove = DbContext.UserInSelectionGroup
-                        .Where(usg => usg.SelectionGroupId == selectionGroup.Id)
-                        .ToList();
-                    DbContext.UserInSelectionGroup.RemoveRange(UsersToRemove);
-                    DbContext.SaveChanges();
+                case ContentTypeEnum.Qlikview:
+                    if (!selectionGroup.IsMaster && !string.IsNullOrWhiteSpace(selectionGroup.ContentInstanceUrl))
+                    {
+                        string ContentFileFullPath = Path.Combine(
+                            ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"),
+                            selectionGroup.ContentInstanceUrl);
 
-                    DbContext.SelectionGroup.Remove(
-                        DbContext.SelectionGroup
-                            .Where(sg => sg.Id == selectionGroup.Id)
-                            .Single()
-                        );
-                    DbContext.SaveChanges();
+                        await new QlikviewLibApi().ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl, QvConfig);
 
-                    DbTransaction.Commit();
-
-                    RemovedUsers = UsersToRemove
-                        .Select(uug => uug.UserId)
-                        .ToList();
-                }
-
-                // ContentType specific handling after successful transaction
-                switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
-                {
-                    case ContentTypeEnum.Qlikview:
-                        if (!selectionGroup.IsMaster && !string.IsNullOrWhiteSpace(selectionGroup.ContentInstanceUrl))
+                        if (System.IO.File.Exists(ContentFileFullPath))
                         {
-                            string ContentFileFullPath = Path.Combine(
-                                ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"),
-                                selectionGroup.ContentInstanceUrl);
-
-                            await new QlikviewLibApi().ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl, QvConfig);
-
-                            if (System.IO.File.Exists(ContentFileFullPath))
-                            {
-                                System.IO.File.Delete(ContentFileFullPath);
-                            }
-                            if (System.IO.File.Exists(ContentFileFullPath + ".Shared"))
-                            {
-                                System.IO.File.Delete(ContentFileFullPath + ".Shared");
-                            }
-                            if (System.IO.File.Exists(ContentFileFullPath + ".Meta"))
-                            {
-                                System.IO.File.Delete(ContentFileFullPath + ".Meta");
-                            }
+                            System.IO.File.Delete(ContentFileFullPath);
                         }
-                        break;
+                        if (System.IO.File.Exists(ContentFileFullPath + ".Shared"))
+                        {
+                            System.IO.File.Delete(ContentFileFullPath + ".Shared");
+                        }
+                        if (System.IO.File.Exists(ContentFileFullPath + ".Meta"))
+                        {
+                            System.IO.File.Delete(ContentFileFullPath + ".Meta");
+                        }
+                    }
+                    break;
 
-                    case ContentTypeEnum.Html:
-                    case ContentTypeEnum.Pdf:
-                    case ContentTypeEnum.FileDownload:
-                    default:
-                        // for all non-reducible content types, do nothing.
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while deleting selection group \"{SelectionGroupId}\" or removing members: [{string.Join(",", RemovedUsers)}]");
-                Log.Error(ErrMsg);
-                Response.Headers.Add("Warning", $"Failed to complete transaction.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-
-            Log.Verbose($"In ContentAccessAdminController.DeleteSelectionGroup action: success");
-            AuditLogger.Log(AuditEventType.SelectionGroupDeleted.ToEvent(selectionGroup));
-
-            SelectionGroupList Model = SelectionGroupList.Build(DbContext, selectionGroup.RootContentItem);
-
-            return Json(Model);
-        }
-
-        /// <summary>Returns the selections associated with a selection group.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the related root content item.</remarks>
-        /// <param name="SelectionGroupId">The selection group whose selections are to be returned.</param>
-        /// <returns>JsonResult</returns>
-        [HttpGet]
-        public async Task<IActionResult> Selections(Guid SelectionGroupId)
-        {
-            Log.Verbose($"Entered ContentAccessAdminController.Selections action with SelectionGroup ID {SelectionGroupId}");
-
-            SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
-
-            #region Preliminary validation
-            if (SelectionGroup == null)
-            {
-                Log.Debug($"In ContentAccessAdminController.Selections action: selection group {SelectionGroupId} not found");
-                Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.FileDownload:
+                default:
+                    // for all non-reducible content types, do nothing.
+                    break;
             }
             #endregion
 
-            #region Authorization
-            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
-            if (!RoleInRootContentItemResult.Succeeded)
-            {
-                Log.Debug($"In ContentAccessAdminController.Selections action: authorization failure: user {User.Identity.Name}, content item {SelectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}");
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
-                return Unauthorized();
-            }
-            #endregion
-
-            SelectionsDetail Model = SelectionsDetail.Build(DbContext, _standardQueries, SelectionGroup);
-
-            return Json(Model);
+            return Json(selectionGroups);
         }
 
-        /// <summary>Submits a new reduction task.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the related root content item.</remarks>
-        /// <param name="selectionGroupId">The selection group to reduce.</param>
-        /// <param name="selections">A list of selected selection IDs</param>
-        /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateSelections(Guid selectionGroupId, bool isMaster, Guid[] selections)
+        public async Task<IActionResult> UpdateSelections([FromBody] UpdateSelectionsRequestModel model)
         {
-            Log.Verbose($"Entered ContentAccessAdminController.UpdateSelections action with SelectionGroup ID {selectionGroupId}, is master {isMaster}, {{@selections}}", selections);
+            return await _updateSelections(model.GroupId, model.IsMaster, model.Selections.ToArray());
+        }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelReduction([FromBody] CancelReductionRequestModel model)
+        {
+            return await _cancelReduction(model.GroupId);
+        }
+
+        [NonAction]
+        private async Task<IActionResult> _updateSelections(Guid selectionGroupId, bool isMaster, Guid[] selections)
+        {
             var selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(c => c.ContentType)
@@ -939,22 +628,14 @@ namespace MillimanAccessPortal.Controllers
                     AuditLogger.Log(AuditEventType.SelectionChangeReductionQueued.ToEvent(selectionGroup, contentReductionTask));
                 }
             }
-            Log.Verbose("In ContentAccessAdminController.UpdateSelections action: success");
             SelectionsDetail model = SelectionsDetail.Build(DbContext, _standardQueries, selectionGroup);
 
             return Json(model);
         }
 
-        /// <summary>Cancel a pending or completed reduction task.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the related root content item.</remarks>
-        /// <param name="SelectionGroupId">The selection group associated with the reduction to be canceled.</param>
-        /// <returns>JsonResult</returns>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelReduction(Guid SelectionGroupId)
+        [NonAction]
+        public async Task<IActionResult> _cancelReduction(Guid SelectionGroupId)
         {
-            Log.Verbose($"Entered ContentAccessAdminController.CancelReduction action with SelectionGroup ID {SelectionGroupId}");
-
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                 .Where(sg => sg.Id == SelectionGroupId)
@@ -1013,405 +694,6 @@ namespace MillimanAccessPortal.Controllers
             SelectionsDetail Model = SelectionsDetail.Build(DbContext, _standardQueries, SelectionGroup);
 
             return Json(Model);
-        }
-
-        [HttpGet]
-        [PreventAuthRefresh]
-        public async Task<IActionResult> Status()
-        {
-            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await _standardQueries.GetCurrentApplicationUser(User));
-            var selectionGroupStatusList = SelectionGroupStatus.Build(DbContext, await _standardQueries.GetCurrentApplicationUser(User));
-
-            var model = new
-            {
-                RootContentItemStatusList = rootContentItemStatusList,
-                SelectionGroupStatusList = selectionGroupStatusList,
-            };
-
-            return new JsonResult(model);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Clients()
-        {
-            #region Authorization
-            var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
-            if (!roleResult.Succeeded)
-            {
-                Response.Headers.Add("Warning", "You are not authorized to administer content access.");
-                return Unauthorized();
-            }
-            #endregion
-
-            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var clients = await _queries.SelectClients(currentUser);
-
-            return Json(clients);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> ContentItems(Guid clientId)
-        {
-            var client = DbContext.Client.Find(clientId);
-
-            #region Preliminary validation
-            if (client == null)
-            {
-                Response.Headers.Add("Warning", "The requested client does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, clientId));
-            if (!roleResult.Succeeded)
-            {
-                Response.Headers.Add("Warning",
-                    "You are not authorized to administer content access for this client.");
-                return Unauthorized();
-            }
-            #endregion
-
-            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var contentItems = await _queries.SelectContentItems(currentUser, clientId);
-
-            return Json(contentItems);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> SelectionGroupss(Guid itemId)
-        {
-            var item = DbContext.RootContentItem.Find(itemId);
-
-            #region Preliminary validation
-            if (item == null)
-            {
-                Response.Headers.Add("Warning", "The requested content item does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
-            if (!roleResult.Succeeded)
-            {
-                Response.Headers.Add("Warning",
-                    "You are not authorized to administer content access for this content item.");
-                return Unauthorized();
-            }
-            #endregion
-
-            var selectionGroups = await _queries.SelectSelectionGroups(itemId);
-
-            return Json(selectionGroups);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Selectionss(Guid groupId)
-        {
-            var selectionGroup = DbContext.SelectionGroup.Find(groupId);
-
-            #region Preliminary validation
-            if (selectionGroup == null)
-            {
-                Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            var roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(
-                User, null, new RoleInRootContentItemRequirement(
-                    RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
-            if (!roleInRootContentItemResult.Succeeded)
-            {
-                Response.Headers.Add("Warning",
-                    "You are not authorized to administer content access to the specified content item.");
-                return Unauthorized();
-            }
-            #endregion
-
-            var selections = await _queries.SelectSelections(groupId);
-
-            return Json(selections);
-        }
-
-        [HttpGet]
-        [PreventAuthRefresh]
-        public async Task<IActionResult> Statuss(Guid clientId, Guid itemId)
-        {
-            var status = await _queries.SelectStatus(clientId, itemId);
-
-            return Json(status);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequestModel model)
-        {
-            var contentItem = DbContext.RootContentItem
-                .Where(i => i.Id == model.ItemId)
-                .Include(item => item.Client)
-                .Include(item => item.ContentType)
-                .SingleOrDefault();
-
-            #region Preliminary validation
-            if (contentItem == null)
-            {
-                Response.Headers.Add("Warning", "The requested content item does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            var roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(
-                User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, model.ItemId));
-            if (!roleInRootContentItemResult.Succeeded)
-            {
-                Response.Headers.Add("Warning",
-                    "You are not authorized to administer content access to the specified content item.");
-                return Unauthorized();
-            }
-            #endregion
-
-            #region Validation
-            // reject this request if the RootContentItem has a pending publication request
-            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
-                .Where(r => r.RootContentItemId == contentItem.Id)
-                .Where(r => r.RequestStatus.IsActive())
-                .Any();
-            if (blockedByPendingPublication)
-            {
-                Response.Headers.Add("Warning",
-                    "A new selection group may not be created while this content item has a pending publication.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-
-            string liveMasterFilePath = null;
-            if (!contentItem.DoesReduce)
-            {
-                ContentRelatedFile liveMasterFile = contentItem.ContentFilesList
-                    .SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
-                if (liveMasterFile == null || !System.IO.File.Exists(liveMasterFile.FullPath))
-                {
-                    Response.Headers.Add("Warning",
-                        "A master content file does not exist for the requested content item.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
-                liveMasterFilePath = Path.GetFileName(liveMasterFile.FullPath);
-            }
-            #endregion
-
-            var selectionGroups = contentItem.DoesReduce
-                ? await _queries.CreateReducingGroup(model.ItemId, model.Name)
-                : await _queries.CreateMasterGroup(model.ItemId, model.Name, liveMasterFilePath);
-
-            return Json(selectionGroups);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateGroup([FromBody] UpdateGroupRequestModel model)
-        {
-            var selectionGroup = DbContext.SelectionGroup
-                .Include(g => g.RootContentItem)
-                    .ThenInclude(i => i.Client)
-                .SingleOrDefault(g => g.Id == model.GroupId);
-
-            #region Preliminary Validation
-            if (selectionGroup == null)
-            {
-                Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            var roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(
-                User, null, new RoleInRootContentItemRequirement(
-                    RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
-            if (!roleInRootContentItemResult.Succeeded)
-            {
-                Response.Headers.Add("Warning",
-                    "You are not authorized to administer content access to the specified content item.");
-                return Unauthorized();
-            }
-            #endregion
-
-            #region Validation
-            var exists = DbContext.ApplicationUser
-                .Where(u => model.Users.Contains(u.Id));
-            if (exists.Count() < model.Users.Count())
-            {
-                Response.Headers.Add("Warning", "One or more requested users do not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-
-            var hasRole = DbContext.UserRoleInClient
-                .Where(r => model.Users.Contains(r.UserId))
-                .Where(r => r.ClientId == selectionGroup.RootContentItem.ClientId)
-                .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser);
-            if (hasRole.Count() < model.Users.Count())
-            {
-                Response.Headers.Add("Warning",
-                    "One or more requested users do not have permission to use this content.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-
-            var inOtherGroup = DbContext.UserInSelectionGroup
-                .Where(u => model.Users.Contains(u.UserId))
-                .Where(u => u.SelectionGroup.RootContentItemId == selectionGroup.RootContentItemId)
-                .Where(u => u.SelectionGroupId != selectionGroup.Id);
-            if (inOtherGroup.Any())
-            {
-                Response.Headers.Add("Warning",
-                    "One or more requested users are already in a different selection group.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            var group = await _queries.UpdateGroup(model.GroupId, model.Name, model.Users.ToList());
-
-            return Json(group);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteGroup([FromBody] DeleteGroupRequestModel model)
-        {
-            var selectionGroup = DbContext.SelectionGroup
-                .Include(sg => sg.RootContentItem)
-                    .ThenInclude(rci => rci.ContentType)
-                .SingleOrDefault(sg => sg.Id == model.GroupId);
-
-            #region Preliminary validation
-            if (selectionGroup == null)
-            {
-                Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            var roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(
-                User, null, new RoleInRootContentItemRequirement(
-                    RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
-            if (!roleInRootContentItemResult.Succeeded)
-            {
-                Response.Headers.Add("Warning",
-                    "You are not authorized to administer content access to the specified content item.");
-                return Unauthorized();
-            }
-            #endregion
-
-            #region Validation
-            // reject this request if the RootContentItem has a pending publication request
-            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
-                .Where(r => r.RootContentItemId == selectionGroup.RootContentItemId)
-                .Where(r => r.RequestStatus.IsActive())
-                .Any();
-            if (blockedByPendingPublication)
-            {
-                Response.Headers.Add("Warning",
-                    "A selection group may not be deleted while this content item has a pending publication.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            var selectionGroups = await _queries.DeleteGroup(model.GroupId);
-
-            #region
-            // ContentType specific handling after successful transaction
-            switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
-            {
-                case ContentTypeEnum.Qlikview:
-                    if (!selectionGroup.IsMaster && !string.IsNullOrWhiteSpace(selectionGroup.ContentInstanceUrl))
-                    {
-                        string ContentFileFullPath = Path.Combine(
-                            ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"),
-                            selectionGroup.ContentInstanceUrl);
-
-                        await new QlikviewLibApi().ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl, QvConfig);
-
-                        if (System.IO.File.Exists(ContentFileFullPath))
-                        {
-                            System.IO.File.Delete(ContentFileFullPath);
-                        }
-                        if (System.IO.File.Exists(ContentFileFullPath + ".Shared"))
-                        {
-                            System.IO.File.Delete(ContentFileFullPath + ".Shared");
-                        }
-                        if (System.IO.File.Exists(ContentFileFullPath + ".Meta"))
-                        {
-                            System.IO.File.Delete(ContentFileFullPath + ".Meta");
-                        }
-                    }
-                    break;
-
-                case ContentTypeEnum.Html:
-                case ContentTypeEnum.Pdf:
-                case ContentTypeEnum.FileDownload:
-                default:
-                    // for all non-reducible content types, do nothing.
-                    break;
-            }
-            #endregion
-
-            return Json(selectionGroups);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SuspendGroup([FromBody] SuspendGroupRequestModel model)
-        {
-            var selectionGroup = DbContext.SelectionGroup
-                .Include(sg => sg.RootContentItem)
-                .SingleOrDefault(sg => sg.Id == model.GroupId);
-
-            #region Preliminary Validation
-            if (selectionGroup == null)
-            {
-                Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            var roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(
-                User, null, new RoleInRootContentItemRequirement(
-                    RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
-            if (!roleInRootContentItemResult.Succeeded)
-            {
-                Response.Headers.Add("Warning",
-                    "You are not authorized to administer content access to the specified content item.");
-                return Unauthorized();
-            }
-            #endregion
-
-            var group = await _queries.SetGroupSuspended(model.GroupId, model.IsSuspended);
-
-            return Json(group);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateSelectionss([FromBody] UpdateSelectionsRequestModel model)
-        {
-            await UpdateSelections(model.GroupId, model.IsMaster, model.Selections.ToArray());
-
-            return Json(null);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelReductionn([FromBody] CancelReductionRequestModel model)
-        {
-            await CancelReduction(model.GroupId);
-
-            return Json(null);
         }
     }
 }

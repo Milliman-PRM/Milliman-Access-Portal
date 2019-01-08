@@ -1,6 +1,6 @@
 import { Action } from 'redux';
 
-import { Client, Guid, SelectionGroup } from '../../models';
+import { Guid } from '../../models';
 import * as api from './api';
 
 export enum AccessAction {

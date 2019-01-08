@@ -12,19 +12,19 @@ export async function fetchItems(clientId: Guid) {
 }
 
 export async function fetchGroups(itemId: Guid) {
-  return await getData('/ContentAccessAdmin/SelectionGroupss', {
+  return await getData('/ContentAccessAdmin/SelectionGroups', {
     itemId,
   });
 }
 
 export async function fetchSelections(groupId: Guid) {
-  return await getData('/ContentAccessAdmin/Selectionss', {
+  return await getData('/ContentAccessAdmin/Selections', {
     groupId,
   });
 }
 
 export async function fetchStatus(clientId: Guid, itemId: Guid) {
-  return await getData('/ContentAccessAdmin/Statuss', {
+  return await getData('/ContentAccessAdmin/Status', {
     clientId,
     itemId,
   });
@@ -59,7 +59,7 @@ export async function suspendGroup(groupId: Guid, isSuspended: boolean) {
 }
 
 export async function updateSelections(groupId: Guid, isMaster: boolean, selections: Guid[]) {
-  return await postJsonData('/ContentAccessAdmin/UpdateSelectionss', {
+  return await postJsonData('/ContentAccessAdmin/UpdateSelections', {
     groupId,
     isMaster,
     selections,
@@ -67,7 +67,7 @@ export async function updateSelections(groupId: Guid, isMaster: boolean, selecti
 }
 
 export async function cancelReduction(groupId: Guid) {
-  return await postJsonData('/ContentAccessAdmin/CancelReductionn', {
+  return await postJsonData('/ContentAccessAdmin/CancelReduction', {
     groupId,
   });
 }

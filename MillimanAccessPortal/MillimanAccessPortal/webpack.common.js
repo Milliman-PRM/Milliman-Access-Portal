@@ -9,7 +9,7 @@ module.exports = {
     'account-settings': './src/ts/account-settings.tsx',
     'authorized-content': './src/ts/react/authorized-content/index.tsx',
     'client-admin': './src/ts/client-admin.tsx',
-    'content-access-admin': './src/ts/content-access-admin/index.tsx',
+    'content-access-admin': './src/ts/react/content-access-admin/index.tsx',
     'content-publishing': './src/ts/content-publishing/index.tsx',
     'create-initial-user': './src/ts/create-initial-user.ts',
     'enable-account': './src/ts/enable-account.ts',
