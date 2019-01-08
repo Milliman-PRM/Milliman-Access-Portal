@@ -8,7 +8,7 @@ import { Login as Root } from './login';
 let Login: typeof Root = require('./login').Login;
 
 document.addEventListener('DOMContentLoaded', () => {
-  ReactDOM.render(<Login />, document.getElementById('content-container'));
+  ReactDOM.render(<Login />, document.getElementById('content-wrapper'));
 });
 
 if (module.hot) {
