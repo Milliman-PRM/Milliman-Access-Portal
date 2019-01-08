@@ -7,8 +7,14 @@
 
 @{
     ViewData["Title"] = "Log in";
-    Layout = "_Layout_w_F";
+    Layout = "_Layout";
 }
+
+@Html.AntiForgeryToken()
+
+<div id="content-wrapper">
+</div>
+@Html.Partial("_Footer")
 
 @section CSS {
   <% for (var css in htmlWebpackPlugin.files.css) { %>
