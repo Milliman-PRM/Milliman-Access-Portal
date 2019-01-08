@@ -1,4 +1,4 @@
-﻿import '../../../scss/react/authorized-content/authorized-content.scss';
+﻿import '../../../scss/react/login/login.scss';
 
 import * as React from 'react';
 
@@ -16,21 +16,31 @@ export class Login extends React.Component <{}, LoginState > {
     super(props);
 
     this.state = {
-      Username: null,
-      Password: null,
+      Username: '',
+      Password: '',
+      ShowPassword: false,
+      RequestValidationToken: ''
     };
 
-    this.handleUsernameChange = this.handleUsernameChange.bind(this);
-    this.handlePasswordChange = this.handlePasswordChange.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.handleBlur = this.handleBlur.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  private handleUsernameChange(event) {
-    this.setState({ Username: event.target.value });
+  componentDidMount() {
+    const RequestValidationToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
+    this.setState({ RequestValidationToken });
   }
 
-  private handlePasswordChange(event) {
-    this.setState({ Password: event.target.value });
+  private handleChange(event) {
+    const loginFieldValue = {};
+    loginFieldValue[event.target.name] = event.target.value
+    this.setState(loginFieldValue);
+    this.setState({ ShowPassword: true });
+  }
+
+  private handleBlur() {
+    this.setState({ ShowPassword: true });
   }
 
   private handleSubmit(event) {
@@ -40,30 +50,34 @@ export class Login extends React.Component <{}, LoginState > {
 
   public render() {
     return (
-      <div id="login-wrapper">
-        <section id="login-container">
-          <div id="login-form-container">
-            <div id="login-logo-container">
-              <svg id="login-logo">
-                <use xlinkHref={"#map-logo"} />
-              </svg>
+      <>
+        <div id="login-splash-panel">
+        </div>
+        <div id="login-wrapper">
+          <section id="login-container">
+            <div id="login-form-container">
+              <div id="login-logo-container">
+                <svg id="login-logo">
+                  <use xlinkHref={"#map-logo"} />
+                </svg>
+              </div>
+              <form id="login-form" autoComplete="off" action="/Account/Login?returnurl=%2F" method="post">
+                <div className="login-form-input-container">
+                  <input name="Username" type="text" value={this.state.Username} onChange={this.handleChange} onBlur={this.handleBlur} placeholder="Username" autoFocus />
+                </div>
+                <div className="login-form-input-container">
+                  <input name="Password" type="password" value={this.state.Password} onChange={this.handleChange} placeholder="Password" />
+                </div>
+                <input name="__RequestVerificationToken" type="hidden" value={this.state.RequestValidationToken} />
+                <div className="login-form-button-container">
+                  <a href="/Account/ForgotPassword" className="link-button">Forgot Password</a>
+                  <button type="submit" className="blue-button">Login</button>
+                </div>
+              </form>
             </div>
-            <form id="login-form" autoComplete="off" method="post">
-              <div className="login-form-input-container">
-                <input type="text" value={this.state.Username} onChange={this.handleUsernameChange} placeholder="Username" autoFocus />
-              </div>
-              <div className="login-form-input-container">
-                <input type="password" value={this.state.Password} onChange={this.handlePasswordChange} placeholder="Password" />
-              </div>
-              <div asp-validation-summary="All" className="text-danger"></div>
-              <div className="login-form-button-container">
-                <a asp-action="ForgotPassword" className="link-button">Forgot Password</a>
-                <button type="submit" className="blue-button">Login</button>
-              </div>
-            </form>
-          </div>
-        </section>
-      </div>
+          </section>
+        </div>
+      </>
     )
   }
 }
