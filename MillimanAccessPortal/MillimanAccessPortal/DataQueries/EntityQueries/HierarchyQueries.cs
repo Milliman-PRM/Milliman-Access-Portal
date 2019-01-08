@@ -2,12 +2,10 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.HierarchyModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries.EntityQueries
 {
@@ -32,6 +30,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             var selectionGroup = _dbContext.SelectionGroup.Find(selectionGroupId);
             var fields = _dbContext.HierarchyField
                 .Where(f => f.RootContentItemId == selectionGroup.RootContentItemId)
+                .OrderBy(f => f.FieldDisplayName)
                 .Select(f => new BasicField
                 {
                     Id = f.Id,
@@ -49,6 +48,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             var selectionGroup = _dbContext.SelectionGroup.Find(selectionGroupId);
             var values = _dbContext.HierarchyFieldValue
                 .Where(f => f.HierarchyField.RootContentItemId == selectionGroup.RootContentItemId)
+                .OrderBy(f => f.Value)
                 .Select(f => new BasicValue
                 {
                     Id = f.Id,

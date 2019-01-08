@@ -43,6 +43,7 @@ namespace MillimanAccessPortal.DataQueries
                 .Where(r => r.User.Id == user.Id)
                 .Where(r => r.Role.RoleEnum == role)
                 .Select(r => r.Client)
+                .OrderBy(c => c.Name)
                 .Select(c => new BasicClient
                 {
                     Id = c.Id,

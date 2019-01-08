@@ -2,13 +2,10 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using MillimanAccessPortal.Models.ClientModels;
 using MillimanAccessPortal.Models.UserModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -35,6 +32,9 @@ namespace MillimanAccessPortal.DataQueries
                 .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
                 .Select(r => r.User)
                 .Distinct()
+                .OrderBy(u => u.LastName)
+                    .ThenBy(u => u.FirstName)
+                        .ThenBy(u => u.UserName)
                 .Select(u => new BasicUser
                 {
                     Id = u.Id,

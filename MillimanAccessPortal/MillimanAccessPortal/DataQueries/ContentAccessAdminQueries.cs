@@ -1,13 +1,10 @@
-﻿using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
-using Microsoft.EntityFrameworkCore;
+﻿using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -208,6 +205,7 @@ namespace MillimanAccessPortal.DataQueries
         {
             // use code in the controller for now
 
+            var group = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(groupId);
             var reduction = _publicationQueries
                 .SelectReductionsWhereSelectionGroupIn(new List<Guid> { groupId }).Single();
             var reductionQueue = _publicationQueries
@@ -215,6 +213,7 @@ namespace MillimanAccessPortal.DataQueries
 
             return new SingleReductionModel
             {
+                Group = group,
                 Reduction = reduction,
                 ReductionQueue = reductionQueue,
             };
@@ -224,6 +223,7 @@ namespace MillimanAccessPortal.DataQueries
         {
             // use code in the controller for now
 
+            var group = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(groupId);
             var reduction = _publicationQueries
                 .SelectReductionsWhereSelectionGroupIn(new List<Guid> { groupId }).Single();
             var reductionQueue = _publicationQueries
@@ -231,6 +231,7 @@ namespace MillimanAccessPortal.DataQueries
 
             return new SingleReductionModel
             {
+                Group = group,
                 Reduction = reduction,
                 ReductionQueue = reductionQueue,
             };

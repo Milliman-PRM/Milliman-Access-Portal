@@ -4,13 +4,11 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries.EntityQueries
 {
@@ -50,6 +48,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         {
             var selectionGroups = _dbContext.SelectionGroup
                 .Where(g => g.RootContentItemId == contentItemId)
+                .OrderBy(g => g.GroupName)
                 .Select(g => new BasicSelectionGroup
                 {
                     Id = g.Id,

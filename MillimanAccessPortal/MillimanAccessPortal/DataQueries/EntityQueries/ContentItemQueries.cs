@@ -2,12 +2,10 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -53,6 +51,8 @@ namespace MillimanAccessPortal.DataQueries
                 .Where(r => r.RootContentItem.ClientId == clientId)
                 .Select(r => r.RootContentItem)
                 .Distinct()
+                .OrderBy(i => i.ContentName)
+                    .ThenBy(i => i.ContentType.Name)
                 .Select(i => new BasicContentItem
                 {
                     Id = i.Id,
@@ -116,6 +116,7 @@ namespace MillimanAccessPortal.DataQueries
                 .Where(i => contentItemIds.Contains(i.Id))
                 .Select(i => i.ContentType)
                 .Distinct()
+                .OrderBy(t => t.Name)
                 .Select(t => new BasicContentType
                 {
                     Id = t.Id,
