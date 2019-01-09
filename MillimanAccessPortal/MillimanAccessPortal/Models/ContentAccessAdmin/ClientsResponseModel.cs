@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
-    public class ClientsViewModel
+    public class ClientsResponseModel
     {
         public Dictionary<Guid, BasicClientWithEligibleUsers> Clients { get; set; }
         public Dictionary<Guid, BasicUser> Users { get; set; }

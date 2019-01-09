@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
-    public class StatusViewModel
+    public class StatusResponseModel
     {
         public Dictionary<Guid, BasicPublication> Publications { get; set; }
         public Dictionary<Guid, PublicationQueueDetails> PublicationQueue { get; set; }

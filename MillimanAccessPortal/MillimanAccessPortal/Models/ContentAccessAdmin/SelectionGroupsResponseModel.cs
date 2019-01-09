@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
-    public class SelectionGroupsViewModel
+    public class SelectionGroupsResponseModel
     {
         public Dictionary<Guid, BasicSelectionGroupWithAssignedUsers> Groups { get; set; }
         public Dictionary<Guid, BasicReduction> Reductions { get; set; }

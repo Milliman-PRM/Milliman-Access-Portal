@@ -33,21 +33,21 @@ namespace MillimanAccessPortal.DataQueries
             _userQueries = userQueries;
         }
 
-        public ClientsViewModel SelectClients(ApplicationUser user)
+        public ClientsResponseModel SelectClients(ApplicationUser user)
         {
             var clients = _clientQueries.SelectClientsWithEligibleUsers(user, RoleEnum.ContentAccessAdmin);
             var clientIds = clients.ConvertAll(c => c.Id);
 
             var users = _userQueries.SelectUsersWhereEligibleClientIn(clientIds);
 
-            return new ClientsViewModel
+            return new ClientsResponseModel
             {
                 Clients = clients.ToDictionary(c => c.Id),
                 Users = users.ToDictionary(u => u.Id),
             };
         }
 
-        public ContentItemsViewModel SelectContentItems(ApplicationUser user, Guid clientId)
+        public ContentItemsResponseModel SelectContentItems(ApplicationUser user, Guid clientId)
         {
             var items = _contentItemQueries
                 .SelectContentItemsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId);
@@ -61,7 +61,7 @@ namespace MillimanAccessPortal.DataQueries
 
             var clientStats = _clientQueries.SelectClientWithStats(clientId);
 
-            return new ContentItemsViewModel
+            return new ContentItemsResponseModel
             {
                 Items = items.ToDictionary(i => i.Id),
                 ContentTypes = contentTypes.ToDictionary(t => t.Id),
@@ -71,7 +71,7 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public SelectionGroupsViewModel SelectSelectionGroups(Guid rootContentItemId)
+        public SelectionGroupsResponseModel SelectSelectionGroups(Guid rootContentItemId)
         {
             var groups = _selectionGroupQueries.SelectSelectionGroupsWithAssignedUsers(rootContentItemId);
             var groupIds = groups.ConvertAll(g => g.Id);
@@ -84,7 +84,7 @@ namespace MillimanAccessPortal.DataQueries
             var contentItemStats = _contentItemQueries.SelectContentItemWithStats(rootContentItemId);
             var clientStats = _clientQueries.SelectClientWithStats(contentItemStats.ClientId);
 
-            return new SelectionGroupsViewModel
+            return new SelectionGroupsResponseModel
             {
                 Groups = groups.ToDictionary(g => g.Id),
                 Reductions = reductions.ToDictionary(r => r.Id),
@@ -94,14 +94,14 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public SelectionsViewModel SelectSelections(Guid selectionGroupId)
+        public SelectionsResponseModel SelectSelections(Guid selectionGroupId)
         {
             var liveSelections = _selectionGroupQueries.SelectSelectionGroupSelections(selectionGroupId);
             var reductionSelections = _publicationQueries.SelectReductionSelections(selectionGroupId);
             var fields = _hierarchyQueries.SelectFieldsWhereSelectionGroup(selectionGroupId);
             var values = _hierarchyQueries.SelectValuesWhereSelectionGroup(selectionGroupId);
 
-            return new SelectionsViewModel
+            return new SelectionsResponseModel
             {
                 Id = selectionGroupId,
                 LiveSelections = liveSelections,
@@ -111,7 +111,7 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public StatusViewModel SelectStatus(ApplicationUser user, Guid clientId, Guid rootContentItemId)
+        public StatusResponseModel SelectStatus(ApplicationUser user, Guid clientId, Guid rootContentItemId)
         {
             var contentItemIds = _contentItemQueries
                 .SelectContentItemsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
@@ -127,7 +127,7 @@ namespace MillimanAccessPortal.DataQueries
             var reductionQueue = _publicationQueries
                 .SelectQueueDetailsWhereReductionIn(reductions.ConvertAll((r) => r.Id));
 
-            return new StatusViewModel
+            return new StatusResponseModel
             {
                 Publications = publications.ToDictionary((p) => p.Id),
                 PublicationQueue = publicationQueue.ToDictionary((p) => p.PublicationId),

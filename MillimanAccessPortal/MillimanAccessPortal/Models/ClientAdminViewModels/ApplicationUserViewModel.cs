@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 
-namespace MillimanAccessPortal.Models.ContentAccessAdmin
+namespace MillimanAccessPortal.Models.ClientAdminViewModels
 {
     /// <summary>
     /// A POCO class representing a MAP user without the sensitive information from Identity

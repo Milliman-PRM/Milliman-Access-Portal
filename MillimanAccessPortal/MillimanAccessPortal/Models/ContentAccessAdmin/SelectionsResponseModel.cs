@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
-    public class SelectionsViewModel
+    public class SelectionsResponseModel
     {
         public Guid Id { get; set; }
         public List<Guid> LiveSelections { get; set; }

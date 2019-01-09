@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
-    public class ContentItemsViewModel
+    public class ContentItemsResponseModel
     {
         public Dictionary<Guid, BasicContentItemWithStats> Items { get; set; }
         public Dictionary<Guid, BasicContentType> ContentTypes { get; set; }

@@ -10,7 +10,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.AccountViewModels;
 
-namespace MillimanAccessPortal.Models.ContentAccessAdmin
+namespace MillimanAccessPortal.Models.ContentPublishing
 {
     public class PublicationSummary
     {
