@@ -207,9 +207,11 @@ namespace MillimanAccessPortal.DataQueries
 
             var group = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(groupId);
             var reduction = _publicationQueries
-                .SelectReductionsWhereSelectionGroupIn(new List<Guid> { groupId }).Single();
+                .SelectReductionsWhereSelectionGroupIn(new List<Guid> { groupId }).SingleOrDefault();
             var reductionQueue = _publicationQueries
-                .SelectQueueDetailsWhereReductionIn(new List<Guid> { reduction.Id }).SingleOrDefault();
+                .SelectQueueDetailsWhereReductionIn(reduction == null
+                    ? new List<Guid> { }
+                    : new List<Guid> { reduction.Id }).SingleOrDefault();
 
             return new SingleReductionModel
             {
@@ -225,9 +227,12 @@ namespace MillimanAccessPortal.DataQueries
 
             var group = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(groupId);
             var reduction = _publicationQueries
-                .SelectReductionsWhereSelectionGroupIn(new List<Guid> { groupId }).Single();
+                .SelectReductionsWhereSelectionGroupIn(new List<Guid> { groupId }).SingleOrDefault();
             var reductionQueue = _publicationQueries
-                .SelectQueueDetailsWhereReductionIn(new List<Guid> { reduction.Id }).SingleOrDefault();
+                .SelectQueueDetailsWhereReductionIn(reduction == null
+                    ? new List<Guid> { }
+                    : new List<Guid> { reduction.Id }
+                    ).SingleOrDefault();
 
             return new SingleReductionModel
             {

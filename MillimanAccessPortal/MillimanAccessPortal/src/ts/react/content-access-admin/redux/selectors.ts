@@ -1,10 +1,26 @@
 import * as _ from 'lodash';
+import * as moment from 'moment';
 
 import {
-  isReductionActive, publicationStatusNames, reductionStatusNames,
+    isReductionActive, publicationStatusNames, reductionStatusNames,
 } from '../../../view-models/content-publishing';
-import { Guid, ReductionFieldset } from '../../models';
+import {
+    ContentPublicationRequest, ContentReductionTask, Guid, ReductionFieldset,
+} from '../../models';
 import { AccessState } from './store';
+
+// Utility functions
+const sortReductions = (left: ContentReductionTask, right: ContentReductionTask) =>
+  sortMomentDescending(left.createDateTimeUtc, right.createDateTimeUtc);
+const sortPublications = (left: ContentPublicationRequest, right: ContentPublicationRequest) =>
+  sortMomentDescending(left.createDateTimeUtc, right.createDateTimeUtc);
+
+const sortMomentDescending = (left: string, right: string) =>
+  moment(left).isBefore(right)
+    ? -1
+    : moment(left).isAfter(right)
+      ? 1
+      : 0;
 
 /**
  * Select the set of values pending submission/go-live.
@@ -51,11 +67,14 @@ export function reductionValuesModified(state: AccessState) {
  */
 export function pendingMaster(state: AccessState) {
   const _selectedGroup = selectedGroup(state);
+  const _relatedReduction = _selectedGroup && relatedReduction(state, _selectedGroup.id);
   const { isMaster } = state.pending;
   return _selectedGroup
-    ? isMaster === null
-      ? _selectedGroup.isMaster
-      : isMaster
+    ? isMaster !== null
+      ? isMaster
+      : _relatedReduction && isReductionActive(_relatedReduction.taskStatus)
+        ? false
+        : _selectedGroup.isMaster
     : false;
 }
 
@@ -201,7 +220,8 @@ function queueDetailsForPublication(state: AccessState, publicationId: Guid) {
  * @param itemId The ID of the content item to check
  */
 function relatedPublication(state: AccessState, itemId: Guid) {
-  const publication = _.find(state.data.publications, (p) => p.rootContentItemId === itemId);
+  const publications = _.filter(state.data.publications, (p) => p.rootContentItemId === itemId);
+  const publication = publications.sort(sortPublications)[0];
   const queueDetails = publication && queueDetailsForPublication(state, publication.id);
   return publication
     ? { ...publication, queueDetails }
@@ -249,7 +269,8 @@ function queueDetailsForReduction(state: AccessState, reductionId: Guid) {
  * @param groupId The ID of the selection group to check
  */
 function relatedReduction(state: AccessState, groupId: Guid) {
-  const reduction = _.find(state.data.reductions, (r) => r.selectionGroupId === groupId);
+  const reductions = _.filter(state.data.reductions, (r) => r.selectionGroupId === groupId);
+  const reduction = reductions.sort(sortReductions)[0];
   const queueDetails = reduction && queueDetailsForReduction(state, reduction.id);
   return reduction
     ? { ...reduction, queueDetails }

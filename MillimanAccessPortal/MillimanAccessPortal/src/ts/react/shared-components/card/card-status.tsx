@@ -32,7 +32,7 @@ export class CardStatus extends React.Component<CardStatusProps> {
     const user = status.applicationUser;
     const userAbbreviation = `${user.firstName[0]}. ${user.lastName}`;
 
-    const when = moment(status.createDateTimeUtc + '+0000');
+    const when = moment(status.createDateTimeUtc);
 
     return (
       <>

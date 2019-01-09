@@ -634,7 +634,8 @@ namespace MillimanAccessPortal.Controllers
                     AuditLogger.Log(AuditEventType.SelectionChangeReductionQueued.ToEvent(selectionGroup, contentReductionTask));
                 }
             }
-            SelectionsDetail model = SelectionsDetail.Build(DbContext, _standardQueries, selectionGroup);
+            //SelectionsDetail model = SelectionsDetail.Build(DbContext, _standardQueries, selectionGroup);
+            var model = _queries.UpdateSelections(selectionGroupId, isMaster, selections.ToList());
 
             return Json(model);
         }
@@ -697,9 +698,10 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(SelectionGroup, Task));
             }
 
-            SelectionsDetail Model = SelectionsDetail.Build(DbContext, _standardQueries, SelectionGroup);
+            //SelectionsDetail Model = SelectionsDetail.Build(DbContext, _standardQueries, SelectionGroup);
+            var model = _queries.CancelReduction(SelectionGroupId);
 
-            return Json(Model);
+            return Json(model);
         }
     }
 }

@@ -194,6 +194,8 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
 const pendingIsMaster = createReducer<boolean>(null, {
   [AccessAction.SetPendingIsMaster]: (_state, action) => action.isMaster,
   [AccessAction.SelectGroup]: () => null,
+  [AccessAction.UpdateSelections + DataSuffixes.Succeeded]: () => null,
+  [AccessAction.CancelReduction + DataSuffixes.Succeeded]: () => null,
 });
 const pendingSelections = createReducer<Map<Guid, { selected: boolean }>>(new Map(), {
   [AccessAction.SetPendingSelectionOn]: (state, action) =>
@@ -201,6 +203,8 @@ const pendingSelections = createReducer<Map<Guid, { selected: boolean }>>(new Ma
   [AccessAction.SetPendingSelectionOff]: (state, action) =>
     updateMap(state, action.id, { selected: false }),
   [AccessAction.SelectGroup]: () => new Map(),
+  [AccessAction.UpdateSelections + DataSuffixes.Succeeded]: () => new Map(),
+  [AccessAction.CancelReduction + DataSuffixes.Succeeded]: () => new Map(),
 });
 const pendingNewGroupName = createReducer<string>('', {
   [AccessAction.SetPendingNewGroupName]: (_state, action) => action.name,
@@ -369,6 +373,72 @@ const data = createReducer<AccessStateData>(_initialData, {
           ...group,
         },
       },
+    };
+  },
+  [AccessAction.UpdateSelections + DataSuffixes.Succeeded]: (state, action) => {
+    const { group, reduction, reductionQueue: queue } = action.payload;
+    const reductions = reduction
+      ? {
+        ...state.reductions,
+        [reduction.id]: {
+          ...state.reductions[reduction.id],
+          ...reduction,
+        },
+      }
+      : { ...state.reductions };
+    const reductionQueue = queue
+      ? {
+        ...state.reductionQueue,
+        [queue.reductionId]: {
+          ...state.reductionQueue[queue.reductionId],
+          ...queue,
+        },
+      }
+      : { ...state.reductionQueue };
+    return {
+      ...state,
+      groups: {
+        ...state.groups,
+        [group.id]: {
+          ...state.groups[group.id],
+          ...group,
+        },
+      },
+      reductions,
+      reductionQueue,
+    };
+  },
+  [AccessAction.CancelReduction + DataSuffixes.Succeeded]: (state, action) => {
+    const { group, reduction, reductionQueue: queue } = action.payload;
+    const reductions = reduction
+      ? {
+        ...state.reductions,
+        [reduction.id]: {
+          ...state.reductions[reduction.id],
+          ...reduction,
+        },
+      }
+      : { ...state.reductions };
+    const reductionQueue = queue
+      ? {
+        ...state.reductionQueue,
+        [queue.reductionId]: {
+          ...state.reductionQueue[queue.reductionId],
+          ...queue,
+        },
+      }
+      : { ...state.reductionQueue };
+    return {
+      ...state,
+      groups: {
+        ...state.groups,
+        [group.id]: {
+          ...state.groups[group.id],
+          ...group,
+        },
+      },
+      reductions,
+      reductionQueue,
     };
   },
 });
