@@ -686,8 +686,6 @@ namespace MillimanAccessPortal.Controllers
             foreach (var Task in CancelableTasks)
             {
                 Task.ReductionStatus = ReductionStatusEnum.Canceled;
-                DbContext.Update(Task);
-
                 UpdatedTasks.Add(Task);
             }
             DbContext.SaveChanges();
