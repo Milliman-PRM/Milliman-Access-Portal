@@ -292,22 +292,6 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         .Intersect(AllRemainingFieldValues).ToArray();
                 }
 
-                // Perform any content type dependent follow up processing
-                switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
-                {
-                    case ContentTypeEnum.Qlikview:
-                        await new QlikviewLibApi()
-                            .AuthorizeUserDocumentsInFolder(
-                                goLiveViewModel.RootContentItemId.ToString(), qlikviewConfig);
-                        break;
-
-                    case ContentTypeEnum.Html:
-                    case ContentTypeEnum.Pdf:
-                    case ContentTypeEnum.FileDownload:
-                    default:
-                        break;
-                }
-
                 // 2 Move new master content and related files (not reduced content) into live file names,
                 //   removing any existing copies of previous version
                 List<ContentRelatedFile> UpdatedContentFilesList = publicationRequest.RootContentItem.ContentFilesList;
@@ -413,6 +397,22 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     {
                         File.Move(ThisTask.ResultFilePath, TargetFilePath);
                     }
+                }
+
+                // Perform any content type dependent follow up processing
+                switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
+                {
+                    case ContentTypeEnum.Qlikview:
+                        await new QlikviewLibApi()
+                            .AuthorizeUserDocumentsInFolder(
+                                goLiveViewModel.RootContentItemId.ToString(), qlikviewConfig);
+                        break;
+
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.FileDownload:
+                    default:
+                        break;
                 }
 
                 dbContext.SaveChanges();
