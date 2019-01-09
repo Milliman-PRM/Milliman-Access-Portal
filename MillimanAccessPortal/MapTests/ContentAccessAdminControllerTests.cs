@@ -778,10 +778,12 @@ namespace MapTests
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user1");
+            int i = 10;
             foreach (var Status in Tasks)
             {
                 TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
                 {
+                    Id = TestUtil.MakeTestGuid(i++),
                     ReductionStatus = Status,
                     ContentPublicationRequestId = null,
                     SelectionGroupId = TestUtil.MakeTestGuid(SelectionGroupId),
