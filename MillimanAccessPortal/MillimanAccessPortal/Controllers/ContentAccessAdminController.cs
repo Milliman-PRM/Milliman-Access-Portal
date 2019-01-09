@@ -543,7 +543,6 @@ namespace MillimanAccessPortal.Controllers
                 selectionGroup.IsMaster = true;
                 selectionGroup.SelectedHierarchyFieldValueList = new Guid[0];
                 selectionGroup.SetContentUrl(Path.GetFileName(LiveMasterFile.FullPath));
-                DbContext.SelectionGroup.Update(selectionGroup);
                 DbContext.SaveChanges();
 
                 AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup));

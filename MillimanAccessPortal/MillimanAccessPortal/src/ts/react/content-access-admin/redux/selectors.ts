@@ -17,9 +17,9 @@ const sortPublications = (left: ContentPublicationRequest, right: ContentPublica
 
 const sortMomentDescending = (left: string, right: string) =>
   moment(left).isBefore(right)
-    ? -1
+    ? 1
     : moment(left).isAfter(right)
-      ? 1
+      ? -1
       : 0;
 
 /**

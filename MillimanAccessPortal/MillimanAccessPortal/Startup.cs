@@ -160,7 +160,11 @@ namespace MillimanAccessPortal
                              .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
             })
-            .AddControllersAsServices();
+            .AddControllersAsServices()
+            .AddJsonOptions(opt =>
+            {
+                opt.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
+            });
 
             string fileUploadPath = Path.GetTempPath();
             // The environment variable check enables migrations to be deployed to Staging or Production via the MAP deployment server
