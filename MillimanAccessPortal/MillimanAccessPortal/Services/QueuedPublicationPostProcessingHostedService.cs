@@ -15,6 +15,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using QlikviewLib;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -55,10 +57,11 @@ namespace MillimanAccessPortal.Services
                     {
                         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
                         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                        var qlikConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
 
                         try
                         {
-                            PostProcess(publicationRequestId, dbContext, configuration);
+                            await PostProcess(publicationRequestId, dbContext, configuration, qlikConfig);
                         }
                         catch (Exception e)
                         {
@@ -91,7 +94,7 @@ namespace MillimanAccessPortal.Services
         /// </summary>
         /// <param name="publicationRequestId"></param>
         /// <param name="scopedServiceProvider"></param>
-        protected void PostProcess(Guid publicationRequestId, ApplicationDbContext dbContext, IConfiguration configuration)
+        protected async Task PostProcess(Guid publicationRequestId, ApplicationDbContext dbContext, IConfiguration configuration, QlikviewConfig qvConfig)
         {
             // Validate that a request record exists with the provided Id
             ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
@@ -213,6 +216,9 @@ namespace MillimanAccessPortal.Services
                 dbContext.ContentReductionTask.Update(relatedTask);
             }
             dbContext.SaveChanges();
+
+            await new QlikviewLibApi()
+                .AuthorizeUserDocumentsInFolder(thisPubRequest.RootContentItemId.ToString(), qvConfig);
 
             // Delete source folder(s)
             bool RetainFailedReductionFolders = false;  // this variable is for debugging use
