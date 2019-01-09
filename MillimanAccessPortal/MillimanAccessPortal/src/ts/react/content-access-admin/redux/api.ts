@@ -1,33 +1,37 @@
-import { getData, postJsonData } from '../../../shared';
+import { getData, getJsonData, postJsonData } from '../../../shared';
 import { Guid } from '../../models';
 
 export async function fetchClients() {
-  return await getData('/ContentAccessAdmin/Clients');
+  return await getJsonData('/ContentAccessAdmin/Clients');
 }
 
 export async function fetchItems(clientId: Guid) {
-  return await getData('/ContentAccessAdmin/ContentItems', {
+  return await getJsonData('/ContentAccessAdmin/ContentItems', {
     clientId,
   });
 }
 
 export async function fetchGroups(itemId: Guid) {
-  return await getData('/ContentAccessAdmin/SelectionGroups', {
+  return await getJsonData('/ContentAccessAdmin/SelectionGroups', {
     itemId,
   });
 }
 
 export async function fetchSelections(groupId: Guid) {
-  return await getData('/ContentAccessAdmin/Selections', {
+  return await getJsonData('/ContentAccessAdmin/Selections', {
     groupId,
   });
 }
 
-export async function fetchStatus(clientId: Guid, itemId: Guid) {
-  return await getData('/ContentAccessAdmin/Status', {
+export async function fetchStatusRefresh(clientId: Guid, itemId: Guid) {
+  return await getJsonData('/ContentAccessAdmin/Status', {
     clientId,
     itemId,
   });
+}
+
+export async function fetchSessionCheck() {
+  return await getData('/Account/SessionStatus');
 }
 
 export async function createGroup(itemId: Guid, name: string) {

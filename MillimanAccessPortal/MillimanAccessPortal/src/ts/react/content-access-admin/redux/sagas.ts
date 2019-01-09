@@ -1,6 +1,16 @@
-import { all, apply, put, takeLatest } from 'redux-saga/effects';
+import { all, apply, call, put, select, takeLatest } from 'redux-saga/effects';
 
-import { AccessAction, DataAction, DataArgs, DataSuffixes } from './actions';
+import {
+    AccessAction, DataAction, DataArgs, DataSuffixes, fetchSessionCheck, fetchStatusRefresh,
+    ScheduleAction,
+} from './actions';
+import { selectedClient, selectedItem } from './selectors';
+
+function sleep(duration: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, duration);
+  });
+}
 
 function* dataSaga<T extends DataArgs, R>(action: DataAction<T, R>) {
   try {
@@ -11,13 +21,30 @@ function* dataSaga<T extends DataArgs, R>(action: DataAction<T, R>) {
   }
 }
 
+function* scheduleStatusRefresh(action: ScheduleAction) {
+  yield call(sleep, action.delay);
+  const client = yield select(selectedClient);
+  const item = yield select(selectedItem);
+  if (client) {
+    yield put(fetchStatusRefresh(client.id, item && item.id));
+  } else {
+    yield put({ type: AccessAction.ScheduleStatusRefresh, delay: 5000 });
+  }
+}
+
+function* scheduleSessionCheck(action: ScheduleAction) {
+  yield call(sleep, action.delay);
+  yield put(fetchSessionCheck());
+}
+
 export default function* rootSaga() {
   yield all([
     takeLatest(AccessAction.FetchClients, dataSaga),
     takeLatest(AccessAction.FetchItems, dataSaga),
     takeLatest(AccessAction.FetchGroups, dataSaga),
     takeLatest(AccessAction.FetchSelections, dataSaga),
-    takeLatest(AccessAction.FetchStatus, dataSaga),
+    takeLatest(AccessAction.FetchStatusRefresh, dataSaga),
+    takeLatest(AccessAction.FetchSessionCheck, dataSaga),
     takeLatest(AccessAction.CreateGroup, dataSaga),
     takeLatest(AccessAction.UpdateGroup, dataSaga),
     takeLatest(AccessAction.DeleteGroup, dataSaga),
@@ -25,4 +52,12 @@ export default function* rootSaga() {
     takeLatest(AccessAction.UpdateSelections, dataSaga),
     takeLatest(AccessAction.CancelReduction, dataSaga),
   ]);
+  yield takeLatest(AccessAction.ScheduleStatusRefresh, scheduleStatusRefresh);
+  yield takeLatest(AccessAction.FetchStatusRefresh + DataSuffixes.Succeeded, function*() {
+    yield put({ type: AccessAction.ScheduleStatusRefresh, delay: 5000 });
+  });
+  yield takeLatest(AccessAction.ScheduleSessionCheck, scheduleSessionCheck);
+  yield takeLatest(AccessAction.FetchSessionCheck + DataSuffixes.Succeeded, function*() {
+    yield put({ type: AccessAction.ScheduleSessionCheck, delay: 60000 });
+  });
 }

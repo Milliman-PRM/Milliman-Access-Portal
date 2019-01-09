@@ -103,11 +103,15 @@ interface ContentAccessAdminActions {
   setPendingGroupUserAssigned: (id: Guid) => void;
   setPendingGroupUserRemoved: (id: Guid) => void;
 
+  scheduleStatusRefresh: (delay: number) => void;
+  scheduleSessionCheck: (delay: number) => void;
+
   fetchClients: () => void;
   fetchItems: (id: Guid) => void;
   fetchGroups: (id: Guid) => void;
   fetchSelections: (id: Guid) => void;
-  fetchStatus: (clientId: Guid, itemId: Guid) => void;
+  fetchStatusRefresh: (clientId: Guid, itemId: Guid) => void;
+  fetchSessionCheck: () => void;
 
   createGroup: (id: Guid, name: string) => void;
   updateGroup: (id: Guid, name: string, users: Guid[]) => void;
@@ -123,6 +127,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
 
   public componentDidMount() {
     this.props.fetchClients();
+    this.props.scheduleStatusRefresh(0);
+    this.props.scheduleSessionCheck(0);
   }
 
   public render() {

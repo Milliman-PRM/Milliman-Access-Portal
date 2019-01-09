@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-import { getData } from '../../shared';
+import { getJsonData } from '../../shared';
 import { ContentTypeEnum } from '../../view-models/content-publishing';
 import { ContentContainer } from '../shared-components/content-container';
 import { Filter } from '../shared-components/filter';
@@ -29,7 +29,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   }
 
   public componentDidMount() {
-    getData('AuthorizedContent/Content/')
+    getJsonData('AuthorizedContent/Content/')
     .then((json: ContentItemGroupList) => this.setState(json));
     window.onpopstate = () => {
       if (window.history && window.history.pushState) {

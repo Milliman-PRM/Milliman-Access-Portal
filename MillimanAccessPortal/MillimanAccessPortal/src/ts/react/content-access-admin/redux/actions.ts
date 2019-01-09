@@ -31,13 +31,16 @@ export enum AccessAction {
   FetchItems = 'FETCH_ITEMS',
   FetchGroups = 'FETCH_GROUPS',
   FetchSelections = 'FETCH_SELECTIONS',
-  FetchStatus = 'FETCH_STATUS',
+  FetchStatusRefresh = 'FETCH_STATUS_REFRESH',
+  FetchSessionCheck = 'FETCH_SESSION_CHECK',
   CreateGroup = 'CREATE_GROUP',
   UpdateGroup = 'UPDATE_GROUP',
   DeleteGroup = 'DELETE_GROUP',
   SuspendGroup = 'SUSPEND_GROUP',
   UpdateSelections = 'UPDATE_SELECTIONS',
   CancelReduction = 'CANCEL_REDUCTION',
+  ScheduleStatusRefresh = 'SCHEDULE_STATUS_REFRESH',
+  ScheduleSessionCheck = 'SCHEDULE_SESSION_CHECK',
 }
 
 export enum DataSuffixes {
@@ -83,6 +86,15 @@ export const setPendingGroupUserQuery = (query: string) => ({ type: AccessAction
 export const setPendingGroupUserAssigned = (id: Guid) => ({ type: AccessAction.SetPendingGroupUserAssigned, id });
 export const setPendingGroupUserRemoved = (id: Guid) => ({ type: AccessAction.SetPendingGroupUserRemoved, id });
 
+// Schedule other actions
+export interface ScheduleAction extends Action {
+  delay: number;
+}
+
+export const scheduleStatusRefresh = (delay: number) => ({ type: AccessAction.ScheduleStatusRefresh, delay });
+export const scheduleSessionCheck = (delay: number) =>
+  ({ type: AccessAction.ScheduleSessionCheck, delay });
+
 // ~~ Server actions
 
 export type DataArgs = Array<number | string | boolean | object>;
@@ -106,7 +118,8 @@ export const fetchClients = createDataActionCreator(AccessAction.FetchClients, a
 export const fetchItems = createDataActionCreator(AccessAction.FetchItems, api.fetchItems);
 export const fetchGroups = createDataActionCreator(AccessAction.FetchGroups, api.fetchGroups);
 export const fetchSelections = createDataActionCreator(AccessAction.FetchSelections, api.fetchSelections);
-export const fetchStatus = createDataActionCreator(AccessAction.FetchStatus, api.fetchStatus);
+export const fetchStatusRefresh = createDataActionCreator(AccessAction.FetchStatusRefresh, api.fetchStatusRefresh);
+export const fetchSessionCheck = createDataActionCreator(AccessAction.FetchSessionCheck, api.fetchSessionCheck);
 
 // Updates
 export const createGroup = createDataActionCreator(AccessAction.CreateGroup, api.createGroup);

@@ -11,7 +11,7 @@ import '../../../scss/react/shared-components/navbar.scss';
 
 import * as React from 'react';
 
-import { getData, postData } from '../../shared';
+import { getJsonData, postData } from '../../shared';
 import { ContactFormModal } from '../contact-form-modal';
 import { UserGuideModal } from '../user-guide-modal';
 import { NavBarElement } from './interfaces';
@@ -43,7 +43,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
   }
 
   public componentDidMount() {
-    getData('/Account/NavBarElements')
+    getJsonData('/Account/NavBarElements')
     .then((response) => {
       this.setState({
         navBarElements: response,

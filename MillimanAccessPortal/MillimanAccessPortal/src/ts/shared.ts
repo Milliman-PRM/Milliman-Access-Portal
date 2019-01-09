@@ -588,6 +588,27 @@ export function getData(url = '', data = {}) {
     if (!response.ok) {
       throw new Error(response.headers.get('Warning') || 'Unknown error');
     }
+    return response;
+  });
+}
+
+export function getJsonData(url = '', data = {}) {
+  const queryParams: string[] = [];
+  Object.keys(data).forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      queryParams.push(`${key}=${data[key]}`);
+    }
+  });
+  url = `${url}?${queryParams.join('&')}`;
+  return fetch(url, {
+    method: 'GET',
+    cache: 'no-cache',
+    credentials: 'same-origin',
+  })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(response.headers.get('Warning') || 'Unknown error');
+    }
     return response.json();
   });
 }

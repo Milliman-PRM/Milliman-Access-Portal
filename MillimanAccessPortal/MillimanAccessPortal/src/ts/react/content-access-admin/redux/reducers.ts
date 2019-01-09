@@ -307,7 +307,7 @@ const data = createReducer<AccessStateData>(_initialData, {
       values,
     };
   },
-  [AccessAction.FetchStatus + DataSuffixes.Succeeded]: (state, action) => ({
+  [AccessAction.FetchStatusRefresh + DataSuffixes.Succeeded]: (state, action) => ({
     ...state,
     publications: action.payload.publications,
     publicationQueue: action.payload.publicationQueue,

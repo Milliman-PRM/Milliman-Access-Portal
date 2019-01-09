@@ -3,7 +3,7 @@ import '../../../../scss/react/shared-components/modal.scss';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
-import { getData, postData } from '../../../shared';
+import { getJsonData, postData } from '../../../shared';
 import { ProfitCenterDetail } from '../interfaces';
 
 interface CardModalProps extends Modal.Props {
@@ -38,7 +38,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
 
   public componentDidMount() {
     if (this.props.profitCenterId) {
-      getData('SystemAdmin/ProfitCenterDetail', {
+      getJsonData('SystemAdmin/ProfitCenterDetail', {
         profitCenterId: this.props.profitCenterId,
       })
       .then((response: ProfitCenterDetail) => {

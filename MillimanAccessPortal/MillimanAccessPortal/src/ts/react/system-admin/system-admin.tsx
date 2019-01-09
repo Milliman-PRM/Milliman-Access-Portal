@@ -9,7 +9,7 @@ import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
-import { getData, postData } from '../../shared';
+import { getJsonData, postData } from '../../shared';
 import { BasicNode, BasicTree, Nestable } from '../../view-models/content-publishing';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { Card, CardAttributes } from '../shared-components/card/card';
@@ -578,7 +578,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   private fetchPrimaryEntities = () => {
     const { column } = this.state.primaryPanel.selected;
-    getData(`/SystemAdmin/${this.getDataAction(column)}`, {})
+    getJsonData(`/SystemAdmin/${this.getDataAction(column)}`, {})
     .then((response: EntityInfoCollection) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -596,7 +596,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   private fetchSecondaryEntities() {
     const { column } = this.state.secondaryPanel.selected;
-    getData(`/SystemAdmin/${this.getDataAction(column)}`, this.getSecondaryQueryFilter())
+    getJsonData(`/SystemAdmin/${this.getDataAction(column)}`, this.getSecondaryQueryFilter())
     .then((response) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -618,7 +618,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       return;
     }
 
-    getData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getSecondaryQueryFilter())
+    getJsonData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getSecondaryQueryFilter())
     .then((response: PrimaryDetail) => {
       let responseWithDefaults: PrimaryDetailData;
       if (isUserDetail(response)) {
@@ -645,7 +645,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     if (!card) {
       return;
     }
-    getData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getFinalQueryFilter())
+    getJsonData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getFinalQueryFilter())
     .then((response: SecondaryDetail) => {
       let responseWithDefaults: SecondaryDetailData;
       if (isUserClientRoles(response)) {
@@ -709,7 +709,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSystemAdmin = () => {
-    getData('/SystemAdmin/SystemRole', {
+    getJsonData('/SystemAdmin/SystemRole', {
       ...this.getSecondaryQueryFilter(),
       role: RoleEnum.Admin,
     }).then((response: boolean) => {
@@ -751,7 +751,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSuspendUser = () => {
-    getData('/SystemAdmin/UserSuspendedStatus', {
+    getJsonData('/SystemAdmin/UserSuspendedStatus', {
       ...this.getSecondaryQueryFilter(),
     }).then((response: boolean) => {
       this.setState((prevState) => ({
@@ -791,7 +791,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchUserClient = (role: RoleEnum) => {
-    getData('/SystemAdmin/UserClientRoleAssignment', {
+    getJsonData('/SystemAdmin/UserClientRoleAssignment', {
       ...this.getFinalQueryFilter(),
       role,
     }).then((response: boolean) => {
@@ -863,7 +863,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSuspendContent = () => {
-    getData('/SystemAdmin/ContentSuspendedStatus', {
+    getJsonData('/SystemAdmin/ContentSuspendedStatus', {
       ...this.getFinalQueryFilter(),
     }).then((response: boolean) => {
       this.setState((prevState) => ({
