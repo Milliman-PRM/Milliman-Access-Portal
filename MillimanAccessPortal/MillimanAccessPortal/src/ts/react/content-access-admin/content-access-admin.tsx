@@ -393,11 +393,12 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                 this.props.selectGroup(entity.id);
               }}
               suspended={entity.isSuspended}
+              inactive={entity.isInactive}
               status={entity.status}
             >
               <CardSectionMain>
                 <CardText
-                  text={entity.name}
+                  text={entity.name + (entity.isSuspended ? ' [Suspended]' : entity.isInactive ? ' [Inactive]' : '')}
                   subtext={item.name}
                   editing={entity.editing}
                   setText={(text) => this.props.setPendingGroupName(text)}

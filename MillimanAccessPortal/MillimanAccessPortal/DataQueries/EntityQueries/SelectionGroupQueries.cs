@@ -37,6 +37,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     Id = g.Id,
                     RootContentItemId = g.RootContentItemId,
                     IsSuspended = g.IsSuspended,
+                    IsInactive = g.IsInactive,
                     IsMaster = g.IsMaster,
                     Name = g.GroupName,
                 })
@@ -54,6 +55,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     Id = g.Id,
                     RootContentItemId = g.RootContentItemId,
                     IsSuspended = g.IsSuspended,
+                    IsInactive = g.IsInactive,
                     IsMaster = g.IsMaster,
                     Name = g.GroupName,
                 })
@@ -69,6 +71,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 Id = group.Id,
                 RootContentItemId = group.RootContentItemId,
                 IsSuspended = group.IsSuspended,
+                IsInactive = group.IsInactive,
                 IsMaster = group.IsMaster,
                 Name = group.Name,
             };
@@ -92,6 +95,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     Id = group.Id,
                     RootContentItemId = group.RootContentItemId,
                     IsSuspended = group.IsSuspended,
+                    IsInactive = group.IsInactive,
                     IsMaster = group.IsMaster,
                     Name = group.Name,
                 };

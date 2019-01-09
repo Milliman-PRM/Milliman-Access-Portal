@@ -8,6 +8,7 @@ namespace MillimanAccessPortal.Models.EntityModels.SelectionGroupModels
         public Guid Id { get; set; }
         public Guid RootContentItemId { get; set; }
         public bool IsSuspended { get; set; }
+        public bool IsInactive { get; set; }
         public bool IsMaster { get; set; }
         public string Name { get; set; }
 
@@ -23,6 +24,7 @@ namespace MillimanAccessPortal.Models.EntityModels.SelectionGroupModels
                 Id = selectionGroup.Id,
                 RootContentItemId = selectionGroup.RootContentItemId,
                 IsSuspended = selectionGroup.IsSuspended,
+                IsInactive = selectionGroup.IsInactive,
                 IsMaster = selectionGroup.IsMaster,
                 Name = selectionGroup.GroupName,
             };

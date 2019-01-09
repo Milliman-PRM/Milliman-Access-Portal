@@ -50,6 +50,7 @@ export interface SelectionGroup {
   rootContentItemId?: Guid;
   selectedValues?: Guid[];
   isSuspended: boolean;
+  isInactive: boolean;
   isMaster: boolean;
   name: string;
 }
