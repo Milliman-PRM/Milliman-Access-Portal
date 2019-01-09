@@ -148,7 +148,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             key={key}
             selected={selected.client === entity.id}
             onSelect={() => {
-              this.props.fetchItems(entity.id);
+              if (selected.client !== entity.id) {
+                this.props.fetchItems(entity.id);
+              }
               this.props.selectClient(entity.id);
             }}
           >
@@ -197,7 +199,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             disabled={isPublicationActive(entity.status && entity.status.requestStatus)}
             selected={selected.item === entity.id}
             onSelect={() => {
-              this.props.fetchGroups(entity.id);
+              if (selected.item !== entity.id) {
+                this.props.fetchGroups(entity.id);
+              }
               this.props.selectItem(entity.id);
             }}
             suspended={entity.isSuspended}
@@ -383,7 +387,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               key={key}
               selected={selected.group === entity.id}
               onSelect={() => {
-                this.props.fetchSelections(entity.id);
+                if (selected.group !== entity.id) {
+                  this.props.fetchSelections(entity.id);
+                }
                 this.props.selectGroup(entity.id);
               }}
               suspended={entity.isSuspended}
