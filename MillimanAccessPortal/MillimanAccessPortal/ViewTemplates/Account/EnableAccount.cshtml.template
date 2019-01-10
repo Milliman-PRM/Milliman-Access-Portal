@@ -97,6 +97,12 @@
                                     <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
                                 </div>
                             </div>
+                            <div class="form-input form-input-text flex-item-12-12">
+                                <div>
+                                    <input style="display: none;" asp-for="PasswordsAreValid" data-original-value="" />
+                                    <span asp-validation-for="PasswordsAreValid" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-submission-section">
                             <div class="button-container button-container-update">
