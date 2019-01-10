@@ -176,12 +176,11 @@ namespace MapTests
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject, MockAuditLogger.Object);
-            ClientQueriesObj = new ClientQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
-            ContentItemQueriesObj = new ContentItemQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
-            HierarchyQueriesObj = new HierarchyQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
-            SelectionGroupQueriesObj = new SelectionGroupQueries(
-                MockAuditLogger.Object, DbContextObject, UserManagerObject);
-            PublicationQueriesObj = new PublicationQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
+            ClientQueriesObj = new ClientQueries(MockAuditLogger.Object, DbContextObject);
+            ContentItemQueriesObj = new ContentItemQueries(MockAuditLogger.Object, DbContextObject);
+            HierarchyQueriesObj = new HierarchyQueries(DbContextObject);
+            SelectionGroupQueriesObj = new SelectionGroupQueries(MockAuditLogger.Object, DbContextObject);
+            PublicationQueriesObj = new PublicationQueries(DbContextObject);
             UserQueriesObj = new UserQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
             ContentAccessAdminQueriesObj = new ContentAccessAdminQueries(
                 ClientQueriesObj, ContentItemQueriesObj, HierarchyQueriesObj,
