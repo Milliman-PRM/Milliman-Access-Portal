@@ -45,6 +45,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly QlikviewConfig QlikviewConfig;
+        private readonly IPublicationPostProcessingTaskQueue _PostProcessingTaskQueue;
 
 
         /// <summary>
@@ -64,7 +65,8 @@ namespace MillimanAccessPortal.Controllers
             StandardQueries QueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
-            IOptions<QlikviewConfig> QlikviewOptionsAccessorArg
+            IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
+            IPublicationPostProcessingTaskQueue postProcessingTaskQueue
             )
         {
             AuditLogger = AuditLoggerArg;
@@ -76,6 +78,7 @@ namespace MillimanAccessPortal.Controllers
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
+            _PostProcessingTaskQueue = postProcessingTaskQueue;
         }
 
         /// <summary>
@@ -568,7 +571,7 @@ namespace MillimanAccessPortal.Controllers
                 string exchangePath = ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
                 string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
                 ContentPublishSupport.AddPublicationMonitor(Task.Run(() =>
-                    ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath)));
+                    ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath, _PostProcessingTaskQueue)));
 
                 Log.Verbose($"In ContentPublishingController.Publish action: publication request queued successfully");
                 AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(NewContentPublicationRequest.RootContentItem, NewContentPublicationRequest));
@@ -872,11 +875,12 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            // the content item exists if the authorization check passes
-            RootContentItem rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
+            RootContentItem rootContentItem = DbContext.RootContentItem.Include(c => c.ContentType).Single(c => c.Id == rootContentItemId);
+            ContentPublicationRequest pubRequest = DbContext.ContentPublicationRequest.Find(publicationRequestId);
 
             #region Validation
-            ContentPublicationRequest pubRequest = DbContext.ContentPublicationRequest.Find(publicationRequestId);
+            // the rootContentItem already exists because the authorization check passed above
+
             if (pubRequest == null || pubRequest.RootContentItemId != rootContentItemId)
             {
                 Log.Debug($"In ContentPublishingController.Reject action, publication request {publicationRequestId} not found, or associated content item, aborting");
@@ -892,6 +896,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            // Update status of request and all associated reduction tasks
             using (var Txn = DbContext.Database.BeginTransaction())
             {
                 pubRequest.RequestStatus = PublicationStatus.Rejected;
@@ -904,27 +909,44 @@ namespace MillimanAccessPortal.Controllers
                     DbContext.ContentReductionTask.Update(relatedTask);
                 }
                 DbContext.SaveChanges();
-
-                // Delete each staged prelive file
-                foreach (ContentRelatedFile PreliveFile in pubRequest.LiveReadyFilesObj)
-                {
-                    if (System.IO.File.Exists(PreliveFile.FullPath))
-                    {
-                        System.IO.File.Delete(PreliveFile.FullPath);
-                    }
-                }
-                // Delete any FileExchange folder
-                if (RelatedTasks.Any())
-                {
-                    string ExchangeFolder = Path.GetDirectoryName(RelatedTasks[0].MasterFilePath);
-                    if (Directory.Exists(ExchangeFolder))
-                    {
-                        Directory.Delete(ExchangeFolder, true);
-                    }
-                }
-
                 Txn.Commit();
             }
+
+            string configuredContentRootFolder = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
+            // Clean up temporary pre-live folder (asynchronously, browser doesn't have to wait for this)
+            Task asyncDeleteTask = Task.Run(async () =>   // This Task variable assignment exists only to prevent a compiler warning
+            {
+                // Prepare each pre-live file for delete
+                foreach (ContentRelatedFile PreliveFile in pubRequest.LiveReadyFilesObj)
+                {
+                    switch (Path.GetExtension(PreliveFile.FullPath).ToLower())
+                    {
+                        case ".qvw":
+                            string qvwFileRelativePath = Path.GetRelativePath(configuredContentRootFolder, PreliveFile.FullPath);
+                            try
+                            {
+                                await new QlikviewLibApi().ReclaimAllDocCalsForFile(qvwFileRelativePath, QlikviewConfig);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Warning(ex, $"Failed to reclaim Qlikview document CAL for file {PreliveFile.FullPath}, relative path {qvwFileRelativePath}");
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                // Delete pre-live folder
+                string PreviewFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"],
+                                                    rootContentItemId.ToString(),
+                                                    publicationRequestId.ToString());
+                if (Directory.Exists(PreviewFolder))
+                {
+                    Directory.Delete(PreviewFolder, true);
+                }
+            });
 
             Log.Verbose($"In ContentPublishingController.Reject action, success");
             AuditLogger.Log(AuditEventType.ContentPublicationRejected.ToEvent(rootContentItem, pubRequest));
