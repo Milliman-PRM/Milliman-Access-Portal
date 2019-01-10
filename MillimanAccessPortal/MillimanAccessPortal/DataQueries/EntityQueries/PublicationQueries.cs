@@ -79,7 +79,23 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     queueDetails.Add(new PublicationQueueDetails
                     {
                         PublicationId = publicationId,
-                        QueuePosition = precedingPublicationRequestCount,
+                        QueuePosition = precedingPublicationRequestCount + 1,
+                    });
+                }
+                else if (publication.RequestStatus.IsActive())
+                {
+                    var reductionTasks = _dbContext.ContentReductionTask
+                        .Where(t => t.ContentPublicationRequestId == publicationId)
+                        .Where(t => t.SelectionGroupId != null)  // exclude hierarchy extract task
+                        .Select(t => t.ReductionStatus)
+                        .ToList();
+                    var reductionsCompleted = reductionTasks.Where(t => t == ReductionStatusEnum.Reduced).Count();
+                    var reductionsTotal = reductionTasks.Count;
+                    queueDetails.Add(new PublicationQueueDetails
+                    {
+                        PublicationId = publicationId,
+                        ReductionsCompleted = reductionsCompleted,
+                        ReductionsTotal = reductionsTotal,
                     });
                 }
             }
@@ -121,7 +137,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     queueDetails.Add(new ReductionQueueDetails
                     {
                         ReductionId = reductionId,
-                        QueuePosition = precedingReductionTaskCount,
+                        QueuePosition = precedingReductionTaskCount + 1,
                     });
                 }
             }

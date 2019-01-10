@@ -1,9 +1,11 @@
 import * as moment from 'moment';
 import * as React from 'react';
 
-import { isPublicationActive, isReductionActive } from '../../../view-models/content-publishing';
 import {
-  isPublicationRequest, PublicationWithQueueDetails, ReductionWithQueueDetails, User,
+    isPublicationActive, isReductionActive, PublicationStatus, ReductionStatus,
+} from '../../../view-models/content-publishing';
+import {
+    isPublicationRequest, PublicationWithQueueDetails, ReductionWithQueueDetails, User,
 } from '../../models';
 
 export interface CardStatusProps {
@@ -12,22 +14,67 @@ export interface CardStatusProps {
 export class CardStatus extends React.Component<CardStatusProps> {
   public render() {
     const { status } = this.props;
-    const [statusValue, statusName, isActive] = isPublicationRequest(status)
-      ? [status.requestStatus, status.requestStatusName, isPublicationActive(status.requestStatus)]
-      : [status.taskStatus, status.taskStatusName, isReductionActive(status.taskStatus)];
+    const [statusValue, isActive] = isPublicationRequest(status)
+      ? [status.requestStatus, isPublicationActive(status.requestStatus)]
+      : [status.taskStatus, isReductionActive(status.taskStatus)];
     return isActive
       ? (
         <div className={`card-status-container status-${statusValue}`}>
-          <div className="status-top">{statusName}</div>
-          <div className="status-bot">
-            {this.renderStatusMessage()}
-          </div>
+          <div className="status-top">{this.renderStatusTitle()}</div>
+          <div className="status-bot">{this.renderStatusMessage()}</div>
         </div>
       )
       : null;
   }
 
-  private renderStatusMessage() {
+  private renderStatusTitle = () => {
+    const { status } = this.props;
+    const statusName = isPublicationRequest(status)
+      ? status.requestStatusName
+      : status.taskStatusName;
+
+    return (
+      <>
+        {statusName}&nbsp;
+        <span>{this.renderQueueString()}</span>
+      </>
+    );
+  }
+
+  private renderQueueString = () => {
+    const { status } = this.props;
+
+    const s = (count: number) => count === 1 ? '' : 's';
+
+    let queueString = '';
+    if (!status.queueDetails) {
+      return queueString;
+    }
+    if (isPublicationRequest(status)) {
+      const { requestStatus, queueDetails } = status;
+      if (requestStatus === PublicationStatus.Queued) {
+        const { queuePosition: position } = queueDetails;
+        queueString = `(behind ${position} other publication${s(position)})`;
+      } else if (requestStatus === PublicationStatus.Processing) {
+        const { reductionsCompleted: completed, reductionsTotal: total } = queueDetails;
+        if (total > 0) {
+          queueString = `(${completed}/${total} reductions completed)`;
+        }
+      } else if (requestStatus === PublicationStatus.Processed) {
+        queueString = '(awaiting approval)';
+      }
+    } else {
+      const { taskStatus, queueDetails } = status;
+      if (taskStatus === ReductionStatus.Queued) {
+        const { queuePosition: position } = queueDetails;
+        queueString = `(behind ${position} other reduction${s(position)})`;
+      }
+    }
+
+    return queueString;
+  }
+
+  private renderStatusMessage = () => {
     const { status } = this.props;
     const user = status.applicationUser;
     const userAbbreviation = `${user.firstName[0]}. ${user.lastName}`;

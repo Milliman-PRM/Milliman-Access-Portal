@@ -101,12 +101,13 @@ export interface ReductionFieldset {
 
 export interface PublicationQueueDetails {
   publicationId: Guid;
-  queuePosition: number;
+  queuePosition?: number;
+  reductionsCompleted?: number;
+  reductionsTotal?: number;
 }
 export interface ReductionQueueDetails {
   reductionId: Guid;
   queuePosition: number;
-  queueTotal?: number;
 }
 export interface PublicationWithQueueDetails extends ContentPublicationRequest {
   queueDetails: PublicationQueueDetails;
@@ -120,9 +121,9 @@ export interface ReductionWithQueueDetails extends ContentReductionTask {
 }
 export function isPublicationRequest(request: ContentPublicationRequest | ContentReductionTask)
     : request is ContentPublicationRequest {
-  return (request as ContentPublicationRequest).rootContentItemId !== undefined;
+  return request && (request as ContentPublicationRequest).rootContentItemId !== undefined;
 }
 export function isReductionTask(request: ContentPublicationRequest | ContentReductionTask)
     : request is ContentReductionTask {
-  return (request as ContentReductionTask).selectionGroupId !== undefined;
+  return request && (request as ContentReductionTask).selectionGroupId !== undefined;
 }

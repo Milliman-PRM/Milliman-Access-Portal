@@ -6,6 +6,5 @@ namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
     {
         public Guid ReductionId { get; set; }
         public int QueuePosition { get; set; }
-        public int QueueTotal { get; set; }
     }
 }
