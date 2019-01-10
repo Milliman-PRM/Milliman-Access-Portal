@@ -26,14 +26,14 @@
 
     #login-wrapper {
         position: absolute;
-        right: 7vw;
+        right: 0;
         top: 0;
         bottom: 0;
         display: flex;
         flex-flow: column nowrap;
         height: 100vh;
-        width: 25vw;
-        padding: 1em;
+        width: 40vw;
+        padding: 1em 8vw;
 
         #login-container {
             display: flex;
