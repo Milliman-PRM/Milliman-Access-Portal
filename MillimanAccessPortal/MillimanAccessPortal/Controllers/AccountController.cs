@@ -159,13 +159,6 @@ namespace MillimanAccessPortal.Controllers
                     {
                         return RedirectToAction(nameof(SendCode), new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
                     }
-                    else if (result.IsNotAllowed)
-                    {
-                        ModelState.AddModelError(string.Empty, "User login is not allowed.");
-                        Log.Information($"User {model.Username} login not allowed");
-                        _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
-                        return View("Message", lockoutMessage);
-                    }
                     else if (result.IsLockedOut)
                     {
                         ModelState.AddModelError(string.Empty, "User account is locked out.");
@@ -175,9 +168,18 @@ namespace MillimanAccessPortal.Controllers
                     }
                     else
                     {
+                        // Log differently, but return the same model
+                        if (result.IsNotAllowed)
+                        {
+                            Log.Information($"User {model.Username} login not allowed");
+                            _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
+                        }
+                        else
+                        {
+                            Log.Information($"User {model.Username} PasswordSignInAsync did not succeed");
+                            _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
+                        }
                         ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                        Log.Information($"User {model.Username} PasswordSignInAsync did not succeed");
-                        _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
                         return View(model);
                     }
                 }
