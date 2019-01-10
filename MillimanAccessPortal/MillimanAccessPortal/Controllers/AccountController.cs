@@ -387,6 +387,13 @@ namespace MillimanAccessPortal.Controllers
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
             var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
 
+            UriBuilder baseSiteUrl = new UriBuilder
+            {
+                Host = HttpContext.Request.Host.Host,
+                Scheme = HttpContext.Request.Scheme,
+                Port = HttpContext.Request.Host.Port ?? -1
+            };
+
             // Configurable portion of email body
             string emailBody = string.IsNullOrWhiteSpace(SettableEmailText)
                 ? string.Empty
@@ -395,7 +402,7 @@ namespace MillimanAccessPortal.Controllers
             string accountActivationDays = _configuration["AccountActivationTokenTimespanDays"] ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays.ToString();
 
             // Non-configurable portion of email body
-            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}{callbackUrl}{Environment.NewLine}{Environment.NewLine}This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}Once you have activated your account, MAP can be accessed at https://map.milliman.com{Environment.NewLine}{Environment.NewLine}If you have any questions regarding this email, please contact map.support@milliman.com";
+            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}{callbackUrl}{Environment.NewLine}{Environment.NewLine}This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}Once you have activated your account, MAP can be accessed at {baseSiteUrl.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}If you have any questions regarding this email, please contact map.support@milliman.com";
             string emailSubject = "Welcome to Milliman Access Portal!";
             // Send welcome email
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
