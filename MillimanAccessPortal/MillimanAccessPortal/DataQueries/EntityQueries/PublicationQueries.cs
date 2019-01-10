@@ -1,7 +1,4 @@
-﻿using AuditLogLib.Services;
-using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
-using Microsoft.AspNetCore.Identity;
+﻿using MapDbContextLib.Context;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using System;
 using System.Collections.Generic;
@@ -9,22 +6,25 @@ using System.Linq;
 
 namespace MillimanAccessPortal.DataQueries.EntityQueries
 {
+    /// <summary>
+    /// Provides queries related to publications and reductions.
+    /// </summary>
     public class PublicationQueries
     {
-        private readonly IAuditLogger _auditLogger;
         private readonly ApplicationDbContext _dbContext;
-        private readonly UserManager<ApplicationUser> _userManager;
 
         public PublicationQueries(
-            IAuditLogger auditLogger,
-            ApplicationDbContext dbContext,
-            UserManager<ApplicationUser> userManager)
+            ApplicationDbContext dbContext)
         {
-            _auditLogger = auditLogger;
             _dbContext = dbContext;
-            _userManager = userManager;
         }
 
+        #region private queries
+        /// <summary>
+        /// Select the most recent publication for a content item.
+        /// </summary>
+        /// <param name="contentItemId">Content item ID</param>
+        /// <returns>Most recent publication request for the content item</returns>
         private ContentPublicationRequest _publicationWhereContentItem(Guid contentItemId)
         {
             var publicationRequest = _dbContext.ContentPublicationRequest
@@ -35,6 +35,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return publicationRequest;
         }
 
+        /// <summary>
+        /// Select the most recent reduction for a selection group.
+        /// </summary>
+        /// <param name="selectionGroupId">Selection group ID</param>
+        /// <returns>Most recent reduction request for the selection group</returns>
         private ContentReductionTask _reductionWhereSelectionGroup(Guid selectionGroupId)
         {
             var reductionTask = _dbContext.ContentReductionTask
@@ -44,7 +49,13 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             return reductionTask;
         }
+        #endregion
 
+        /// <summary>
+        /// Select the most recent publication for each content item in a list.
+        /// </summary>
+        /// <param name="contentItemIds">List of content item IDs</param>
+        /// <returns>List of most recent publications</returns>
         internal List<BasicPublication> SelectPublicationsWhereContentItemIn(List<Guid> contentItemIds)
         {
             var publications = new List<BasicPublication> { };
@@ -62,14 +73,20 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return publications;
         }
 
-        internal List<PublicationQueueDetails> SelectQueueDetailsWherePublicationIn(
-            List<Guid> publicationIds)
+        /// <summary>
+        /// Build queue detail objects for each publication in a list.
+        /// </summary>
+        /// <param name="publicationIds">List of publication IDs</param>
+        /// <returns>List of queue detail objects</returns>
+        internal List<PublicationQueueDetails> SelectQueueDetailsWherePublicationIn(List<Guid> publicationIds)
         {
             var queueDetails = new List<PublicationQueueDetails> { };
             foreach (var publicationId in publicationIds)
             {
                 var publication = _dbContext.ContentPublicationRequest
                     .Single(r => r.Id == publicationId);
+
+                // Provide queue position for publications that have not yet begun
                 if (publication.RequestStatus.IsCancelable())
                 {
                     var precedingPublicationRequestCount = _dbContext.ContentPublicationRequest
@@ -82,6 +99,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                         QueuePosition = precedingPublicationRequestCount + 1,
                     });
                 }
+                // Provide progress details for publications that have begun
                 else if (publication.RequestStatus.IsActive())
                 {
                     var reductionTasks = _dbContext.ContentReductionTask
@@ -103,6 +121,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return queueDetails;
         }
 
+        /// <summary>
+        /// Select the most recent reduction for each selection group in a list.
+        /// </summary>
+        /// <param name="selectionGroupIds">List of selection group IDs</param>
+        /// <returns>List of most recent reductions</returns>
         internal List<BasicReduction> SelectReductionsWhereSelectionGroupIn(List<Guid> selectionGroupIds)
         {
             var reductions = new List<BasicReduction> { };
@@ -120,14 +143,20 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return reductions;
         }
 
-        internal List<ReductionQueueDetails> SelectQueueDetailsWhereReductionIn(
-            List<Guid> reductionIds)
+        /// <summary>
+        /// Build queue detail objects for each reduction in a list.
+        /// </summary>
+        /// <param name="reductionIds">List of reduction IDs</param>
+        /// <returns>List of queue detail objects</returns>
+        internal List<ReductionQueueDetails> SelectQueueDetailsWhereReductionIn(List<Guid> reductionIds)
         {
             var queueDetails = new List<ReductionQueueDetails> { };
             foreach (var reductionId in reductionIds)
             {
                 var reduction = _dbContext.ContentReductionTask
                     .Single(r => r.Id == reductionId);
+
+                // Provide queue position for reductions that have not yet begun
                 if (reduction.ReductionStatus.IsCancelable())
                 {
                     var precedingReductionTaskCount = _dbContext.ContentReductionTask
@@ -145,6 +174,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return queueDetails;
         }
 
+        /// <summary>
+        /// Select the list of selections for a reduction task
+        /// </summary>
+        /// <param name="selectionGroupId">Selection group ID</param>
+        /// <returns>List of value IDs</returns>
         internal List<Guid> SelectReductionSelections(Guid selectionGroupId)
         {
             var reductionTask = _reductionWhereSelectionGroup(selectionGroupId);

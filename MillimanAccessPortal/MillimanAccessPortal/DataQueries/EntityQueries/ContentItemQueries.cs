@@ -1,7 +1,6 @@
 ﻿using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
-using Microsoft.AspNetCore.Identity;
 using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using System;
 using System.Collections.Generic;
@@ -9,22 +8,28 @@ using System.Linq;
 
 namespace MillimanAccessPortal.DataQueries
 {
+    /// <summary>
+    /// Provides queries related to root content items.
+    /// </summary>
     public class ContentItemQueries
     {
         private readonly IAuditLogger _auditLogger;
         private readonly ApplicationDbContext _dbContext;
-        private readonly UserManager<ApplicationUser> _userManager;
 
         public ContentItemQueries(
             IAuditLogger auditLogger,
-            ApplicationDbContext dbContext,
-            UserManager<ApplicationUser> userManager)
+            ApplicationDbContext dbContext)
         {
             _auditLogger = auditLogger;
             _dbContext = dbContext;
-            _userManager = userManager;
         }
 
+        #region private queries
+        /// <summary>
+        /// Find a content item by ID
+        /// </summary>
+        /// <param name="id">Content item ID</param>
+        /// <returns>Content item</returns>
         private BasicContentItem _findContentItem(Guid id)
         {
             var contentItem = _dbContext.RootContentItem
@@ -42,6 +47,14 @@ namespace MillimanAccessPortal.DataQueries
 
             return contentItem;
         }
+
+        /// <summary>
+        /// Select all content items for a client where user has a specific role
+        /// </summary>
+        /// <param name="user">User</param>
+        /// <param name="role">Role</param>
+        /// <param name="clientId">Client ID</param>
+        /// <returns>List of content items</returns>
         private List<BasicContentItem> _selectContentItemsWhereClient(
             ApplicationUser user, RoleEnum role, Guid clientId)
         {
@@ -66,6 +79,12 @@ namespace MillimanAccessPortal.DataQueries
 
             return contentItems;
         }
+
+        /// <summary>
+        /// Add stats for each content item in a list
+        /// </summary>
+        /// <param name="items">List of content items</param>
+        /// <returns>List of content items with stats</returns>
         private List<BasicContentItemWithStats> _withStats(List<BasicContentItem> items)
         {
             var itemsWith = new List<BasicContentItemWithStats> { };
@@ -92,7 +111,15 @@ namespace MillimanAccessPortal.DataQueries
             }
             return itemsWith;
         }
+        #endregion
 
+        /// <summary>
+        /// Select all content items with stats for a client where user has a specific role
+        /// </summary>
+        /// <param name="user">User</param>
+        /// <param name="role">Role</param>
+        /// <param name="clientId">Client ID</param>
+        /// <returns>List of content items with stats</returns>
         internal List<BasicContentItemWithStats> SelectContentItemsWhereClient(
             ApplicationUser user, RoleEnum role, Guid clientId)
         {
@@ -101,15 +128,26 @@ namespace MillimanAccessPortal.DataQueries
 
             return contentItemsWithStats;
         }
-        internal BasicContentItemWithStats SelectContentItemWithStats(Guid id)
+
+        /// <summary>
+        /// Select a single content item by ID with stats
+        /// </summary>
+        /// <param name="contentItemId">Content item ID</param>
+        /// <returns>Content item with stats</returns>
+        internal BasicContentItemWithStats SelectContentItemWithStats(Guid contentItemId)
         {
-            var contentItem = _findContentItem(id);
+            var contentItem = _findContentItem(contentItemId);
             var contentItemWithStats = _withStats(new List<BasicContentItem> { contentItem })
                 .SingleOrDefault();
 
             return contentItemWithStats;
         }
 
+        /// <summary>
+        /// Select a list of unique content types for content items in a list
+        /// </summary>
+        /// <param name="contentItemIds">List of content item IDs</param>
+        /// <returns>List of content types</returns>
         internal List<BasicContentType> SelectContentTypesContentItemIn(List<Guid> contentItemIds)
         {
             var contentTypes = _dbContext.RootContentItem

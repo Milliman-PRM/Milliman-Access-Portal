@@ -9,6 +9,9 @@ using System.Linq;
 
 namespace MillimanAccessPortal.DataQueries
 {
+    /// <summary>
+    /// Provides queries related to users.
+    /// </summary>
     public class UserQueries
     {
         private readonly IAuditLogger _auditLogger;
@@ -25,6 +28,12 @@ namespace MillimanAccessPortal.DataQueries
             _userManager = userManager;
         }
 
+        #region private queries
+        /// <summary>
+        /// Select unique users that are content eligible in at least one client in a list
+        /// </summary>
+        /// <param name="clientIds">List of client IDs</param>
+        /// <returns>List of users</returns>
         private List<BasicUser> _selectUsersWhereEligibleClientIn(List<Guid> clientIds)
         {
             return _dbContext.UserRoleInClient
@@ -47,14 +56,15 @@ namespace MillimanAccessPortal.DataQueries
                 })
                 .ToList();
         }
+        #endregion
 
+        /// <summary>
+        /// Select unique users that are content eligible in at least one client in a list
+        /// </summary>
+        /// <param name="clientIds">List of client IDs</param>
+        /// <returns>List of users</returns>
         internal List<BasicUser> SelectUsersWhereEligibleClientIn(List<Guid> clientIds)
         {
-            if (clientIds == null)
-            {
-                return new List<BasicUser> { };
-            }
-
             var users = _selectUsersWhereEligibleClientIn(clientIds);
 
             return users;

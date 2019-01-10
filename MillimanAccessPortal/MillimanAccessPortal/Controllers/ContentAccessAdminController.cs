@@ -1,9 +1,3 @@
-/*
- * CODE OWNERS: Joseph Sweeney,
- * OBJECTIVE:
- * DEVELOPER NOTES:
- */
-
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib.ActionFilters;
@@ -30,7 +24,7 @@ using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
 {
-    [LogVerbose]
+    [LogActionBeforeAfter]
     public class ContentAccessAdminController : Controller
     {
         private readonly IAuditLogger AuditLogger;

@@ -1,7 +1,4 @@
-﻿using AuditLogLib.Services;
-using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
-using Microsoft.AspNetCore.Identity;
+﻿using MapDbContextLib.Context;
 using MillimanAccessPortal.Models.EntityModels.HierarchyModels;
 using System;
 using System.Collections.Generic;
@@ -9,22 +6,24 @@ using System.Linq;
 
 namespace MillimanAccessPortal.DataQueries.EntityQueries
 {
+    /// <summary>
+    /// Provides queries related to QlikView hierarchies.
+    /// </summary>
     public class HierarchyQueries
     {
-        private readonly IAuditLogger _auditLogger;
         private readonly ApplicationDbContext _dbContext;
-        private readonly UserManager<ApplicationUser> _userManager;
 
         public HierarchyQueries(
-            IAuditLogger auditLogger,
-            ApplicationDbContext dbContext,
-            UserManager<ApplicationUser> userManager)
+            ApplicationDbContext dbContext)
         {
-            _auditLogger = auditLogger;
             _dbContext = dbContext;
-            _userManager = userManager;
         }
 
+        /// <summary>
+        /// Select all fields for a selection group's content item
+        /// </summary>
+        /// <param name="selectionGroupId">Selection group ID</param>
+        /// <returns>List of fields</returns>
         internal List<BasicField> SelectFieldsWhereSelectionGroup(Guid selectionGroupId)
         {
             var selectionGroup = _dbContext.SelectionGroup.Find(selectionGroupId);
@@ -43,6 +42,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return fields;
         }
 
+        /// <summary>
+        /// Select all values for a selection group's content item
+        /// </summary>
+        /// <param name="selectionGroupId">Selection group ID</param>
+        /// <returns>List of fields</returns>
         internal List<BasicValue> SelectValuesWhereSelectionGroup(Guid selectionGroupId)
         {
             var selectionGroup = _dbContext.SelectionGroup.Find(selectionGroupId);

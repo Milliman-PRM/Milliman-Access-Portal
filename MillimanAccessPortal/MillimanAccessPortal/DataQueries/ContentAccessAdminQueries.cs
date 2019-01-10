@@ -8,6 +8,9 @@ using System.Linq;
 
 namespace MillimanAccessPortal.DataQueries
 {
+    /// <summary>
+    /// Queries used by content access admin actions
+    /// </summary>
     public class ContentAccessAdminQueries
     {
         private readonly ClientQueries _clientQueries;
@@ -33,6 +36,11 @@ namespace MillimanAccessPortal.DataQueries
             _userQueries = userQueries;
         }
 
+        /// <summary>
+        /// Select all clients for which the current user can administer access.
+        /// </summary>
+        /// <param name="user">Current user</param>
+        /// <returns>Response model</returns>
         public ClientsResponseModel SelectClients(ApplicationUser user)
         {
             var clients = _clientQueries.SelectClientsWithEligibleUsers(user, RoleEnum.ContentAccessAdmin);
@@ -47,6 +55,12 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
+        /// <summary>
+        /// Select all content items for a client for which the current user can administer access.
+        /// </summary>
+        /// <param name="user">Current user</param>
+        /// <param name="clientId">Selected client</param>
+        /// <returns>Response model</returns>
         public ContentItemsResponseModel SelectContentItems(ApplicationUser user, Guid clientId)
         {
             var items = _contentItemQueries
@@ -71,9 +85,14 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public SelectionGroupsResponseModel SelectSelectionGroups(Guid rootContentItemId)
+        /// <summary>
+        /// Select all selection groups for a content item
+        /// </summary>
+        /// <param name="contentItemId">Selected content item</param>
+        /// <returns>Response model</returns>
+        public SelectionGroupsResponseModel SelectSelectionGroups(Guid contentItemId)
         {
-            var groups = _selectionGroupQueries.SelectSelectionGroupsWithAssignedUsers(rootContentItemId);
+            var groups = _selectionGroupQueries.SelectSelectionGroupsWithAssignedUsers(contentItemId);
             var groupIds = groups.ConvertAll(g => g.Id);
 
             var reductions = _publicationQueries.SelectReductionsWhereSelectionGroupIn(groupIds);
@@ -81,7 +100,7 @@ namespace MillimanAccessPortal.DataQueries
 
             var queueDetails = _publicationQueries.SelectQueueDetailsWhereReductionIn(reductionIds);
 
-            var contentItemStats = _contentItemQueries.SelectContentItemWithStats(rootContentItemId);
+            var contentItemStats = _contentItemQueries.SelectContentItemWithStats(contentItemId);
             var clientStats = _clientQueries.SelectClientWithStats(contentItemStats.ClientId);
 
             return new SelectionGroupsResponseModel
@@ -94,6 +113,11 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
+        /// <summary>
+        /// Select all selections for a selection group
+        /// </summary>
+        /// <param name="selectionGroupId">Selected selection group</param>
+        /// <returns>Response model</returns>
         public SelectionsResponseModel SelectSelections(Guid selectionGroupId)
         {
             var liveSelections = _selectionGroupQueries.SelectSelectionGroupSelections(selectionGroupId);
@@ -111,13 +135,20 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public StatusResponseModel SelectStatus(ApplicationUser user, Guid clientId, Guid rootContentItemId)
+        /// <summary>
+        /// Select publication and reduction status for active content items and selection groups
+        /// </summary>
+        /// <param name="user">Current user</param>
+        /// <param name="clientId">Selected client</param>
+        /// <param name="contentItemId">Selected content item</param>
+        /// <returns>Response model</returns>
+        public StatusResponseModel SelectStatus(ApplicationUser user, Guid clientId, Guid contentItemId)
         {
             var contentItemIds = _contentItemQueries
                 .SelectContentItemsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
                 .ConvertAll((i) => i.Id);
             var selectionGroupIds = _selectionGroupQueries
-                .SelectSelectionGroupsWhereContentItem(rootContentItemId)
+                .SelectSelectionGroupsWhereContentItem(contentItemId)
                 .ConvertAll((g) => g.Id);
 
             var publications = _publicationQueries.SelectPublicationsWhereContentItemIn(contentItemIds);
@@ -136,12 +167,18 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public CreateGroupResponseModel CreateReducingGroup(Guid itemId, string name)
+        /// <summary>
+        /// Create a reducing selection group
+        /// </summary>
+        /// <param name="contentItemId">Selected content item</param>
+        /// <param name="name">Name of the new selection group</param>
+        /// <returns>Response model</returns>
+        public CreateGroupResponseModel CreateReducingGroup(Guid contentItemId, string name)
         {
-            var group = _selectionGroupQueries.CreateReducingSelectionGroup(itemId, name);
+            var group = _selectionGroupQueries.CreateReducingSelectionGroup(contentItemId, name);
 
             var groupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
-            var contentItemStats = _contentItemQueries.SelectContentItemWithStats(itemId);
+            var contentItemStats = _contentItemQueries.SelectContentItemWithStats(contentItemId);
 
             return new CreateGroupResponseModel
             {
@@ -150,12 +187,18 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public CreateGroupResponseModel CreateMasterGroup(Guid itemId, string name)
+        /// <summary>
+        /// Create a master selection group
+        /// </summary>
+        /// <param name="contentItemId">Selected content item</param>
+        /// <param name="name">Name of the new selection group</param>
+        /// <returns>Response model</returns>
+        public CreateGroupResponseModel CreateMasterGroup(Guid contentItemId, string name)
         {
-            var group = _selectionGroupQueries.CreateMasterSelectionGroup(itemId, name);
+            var group = _selectionGroupQueries.CreateMasterSelectionGroup(contentItemId, name);
 
             var groupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
-            var contentItemStats = _contentItemQueries.SelectContentItemWithStats(itemId);
+            var contentItemStats = _contentItemQueries.SelectContentItemWithStats(contentItemId);
 
             return new CreateGroupResponseModel
             {
@@ -164,11 +207,17 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public BasicSelectionGroupWithAssignedUsers UpdateGroup(
-            Guid groupId, string name, List<Guid> users)
+        /// <summary>
+        /// Update a selection group's name and list of assigned users
+        /// </summary>
+        /// <param name="selectionGroupId">Selected selection group</param>
+        /// <param name="name">New name for the selection group</param>
+        /// <param name="users">New list of users for the selection group</param>
+        /// <returns>Response model</returns>
+        public BasicSelectionGroupWithAssignedUsers UpdateGroup(Guid selectionGroupId, string name, List<Guid> users)
         {
-            _selectionGroupQueries.UpdateSelectionGroupName(groupId, name);
-            var group = _selectionGroupQueries.UpdateSelectionGroupUsers(groupId, users);
+            _selectionGroupQueries.UpdateSelectionGroupName(selectionGroupId, name);
+            var group = _selectionGroupQueries.UpdateSelectionGroupUsers(selectionGroupId, users);
 
             return new BasicSelectionGroupWithAssignedUsers
             {
@@ -181,33 +230,50 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public DeleteGroupResponseModel DeleteGroup(Guid id)
+        /// <summary>
+        /// Delete a selection group
+        /// </summary>
+        /// <param name="selectionGroupId">Selection group to delete</param>
+        /// <returns>Response model</returns>
+        public DeleteGroupResponseModel DeleteGroup(Guid selectionGroupId)
         {
-            var group = _selectionGroupQueries.DeleteSelectionGroup(id);
+            var group = _selectionGroupQueries.DeleteSelectionGroup(selectionGroupId);
             var contentItemStats = _contentItemQueries.SelectContentItemWithStats(group.RootContentItemId);
 
             return new DeleteGroupResponseModel
             {
-                GroupId = id,
+                GroupId = selectionGroupId,
                 ContentItemStats = contentItemStats,
             };
         }
 
-        public BasicSelectionGroup SetGroupSuspended(Guid id, bool isSuspended)
+        /// <summary>
+        /// Set suspended status for a selection group
+        /// </summary>
+        /// <param name="selectionGroupId">Selected selection group</param>
+        /// <param name="isSuspended">Suspended status</param>
+        /// <returns>Response model</returns>
+        public BasicSelectionGroup SetGroupSuspended(Guid selectionGroupId, bool isSuspended)
         {
-            var group = _selectionGroupQueries.UpdateSelectionGroupSuspended(id, isSuspended);
+            var group = _selectionGroupQueries.UpdateSelectionGroupSuspended(selectionGroupId, isSuspended);
 
             return (BasicSelectionGroup)group;
         }
 
-        public SingleReductionModel UpdateSelections(
-            Guid groupId, bool isMaster, List<Guid> selections)
+        /// <summary>
+        /// Return a model to reflect a submitted selection update
+        /// </summary>
+        /// <param name="selectionGroupId">Selected selection group</param>
+        /// <param name="isMaster">Master status</param>
+        /// <param name="selections">List of selections</param>
+        /// <returns>Response model</returns>
+        public SingleReductionModel UpdateSelections(Guid selectionGroupId, bool isMaster, List<Guid> selections)
         {
             // use code in the controller for now
 
-            var group = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(groupId);
+            var group = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(selectionGroupId);
             var reduction = _publicationQueries
-                .SelectReductionsWhereSelectionGroupIn(new List<Guid> { groupId }).SingleOrDefault();
+                .SelectReductionsWhereSelectionGroupIn(new List<Guid> { selectionGroupId }).SingleOrDefault();
             var reductionQueue = _publicationQueries
                 .SelectQueueDetailsWhereReductionIn(reduction == null
                     ? new List<Guid> { }
@@ -221,6 +287,11 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
+        /// <summary>
+        /// Return a model to reflect a canceled selection update
+        /// </summary>
+        /// <param name="groupId">Selected selection group</param>
+        /// <returns>Response model</returns>
         public SingleReductionModel CancelReduction(Guid groupId)
         {
             // use code in the controller for now

@@ -1,7 +1,6 @@
 ﻿using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
-using Microsoft.AspNetCore.Identity;
 using MillimanAccessPortal.Models.ClientModels;
 using System;
 using System.Collections.Generic;
@@ -9,22 +8,28 @@ using System.Linq;
 
 namespace MillimanAccessPortal.DataQueries
 {
+    /// <summary>
+    /// Provides queries related to clients.
+    /// </summary>
     public class ClientQueries
     {
         private readonly IAuditLogger _auditLogger;
         private readonly ApplicationDbContext _dbContext;
-        private readonly UserManager<ApplicationUser> _userManager;
 
         public ClientQueries(
             IAuditLogger auditLogger,
-            ApplicationDbContext dbContext,
-            UserManager<ApplicationUser> userManager)
+            ApplicationDbContext dbContext)
         {
             _auditLogger = auditLogger;
             _dbContext = dbContext;
-            _userManager = userManager;
         }
 
+        #region private queries
+        /// <summary>
+        /// Find a client by ID
+        /// </summary>
+        /// <param name="id">Client ID</param>
+        /// <returns>Client</returns>
         private BasicClient _findClient(Guid id)
         {
             return _dbContext.Client
@@ -37,6 +42,13 @@ namespace MillimanAccessPortal.DataQueries
                 })
                 .SingleOrDefault();
         }
+
+        /// <summary>
+        /// Select all clients where user has a specific role
+        /// </summary>
+        /// <param name="user">User</param>
+        /// <param name="role">Role</param>
+        /// <returns>Clients where User has Role</returns>
         private List<BasicClient> _selectClientWhereRole(ApplicationUser user, RoleEnum role)
         {
             return _dbContext.UserRoleInClient
@@ -52,6 +64,12 @@ namespace MillimanAccessPortal.DataQueries
                 })
                 .ToList();
         }
+
+        /// <summary>
+        /// Add stats for each client in a list
+        /// </summary>
+        /// <param name="clients">List of clients</param>
+        /// <returns>List of clients with stats</returns>
         private List<BasicClientWithStats> _withStats(List<BasicClient> clients)
         {
             var clientsWith = new List<BasicClientWithStats> { };
@@ -76,8 +94,13 @@ namespace MillimanAccessPortal.DataQueries
             }
             return clientsWith;
         }
-        private List<BasicClientWithEligibleUsers> _withEligibleUsers(
-            List<BasicClientWithStats> clients)
+
+        /// <summary>
+        /// Add a list of eligible users to a client with stats model
+        /// </summary>
+        /// <param name="clients">List of clients</param>
+        /// <returns>List of clients with stats and eligble users</returns>
+        private List<BasicClientWithEligibleUsers> _withEligibleUsers(List<BasicClientWithStats> clients)
         {
             var clientsWith = new List<BasicClientWithEligibleUsers> { };
             foreach (var client in clients)
@@ -101,9 +124,15 @@ namespace MillimanAccessPortal.DataQueries
             }
             return clientsWith;
         }
+        #endregion
 
-        internal List<BasicClientWithEligibleUsers> SelectClientsWithEligibleUsers(
-            ApplicationUser user, RoleEnum role)
+        /// <summary>
+        /// Select clients for a specific user and role with stats and list of eligible users
+        /// </summary>
+        /// <param name="user">User</param>
+        /// <param name="role">Role</param>
+        /// <returns>List of clients</returns>
+        internal List<BasicClientWithEligibleUsers> SelectClientsWithEligibleUsers(ApplicationUser user, RoleEnum role)
         {
             if (user == null)
             {
@@ -116,9 +145,15 @@ namespace MillimanAccessPortal.DataQueries
 
             return clientsWithEligibleUsers;
         }
-        internal BasicClientWithStats SelectClientWithStats(Guid id)
+
+        /// <summary>
+        /// Select a single client by ID with stats
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <returns>Client with stats</returns>
+        internal BasicClientWithStats SelectClientWithStats(Guid clientId)
         {
-            var client = _findClient(id);
+            var client = _findClient(clientId);
             var clientWithStats = _withStats(new List<BasicClient> { client })
                 .SingleOrDefault();
 

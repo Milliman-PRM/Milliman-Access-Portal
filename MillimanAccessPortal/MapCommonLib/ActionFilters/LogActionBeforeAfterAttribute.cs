@@ -3,7 +3,7 @@ using Serilog;
 
 namespace MapCommonLib.ActionFilters
 {
-    public class LogVerboseAttribute : ActionFilterAttribute
+    public class LogActionBeforeAfterAttribute : ActionFilterAttribute
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {

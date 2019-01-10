@@ -1,9 +1,7 @@
 ﻿using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
-using Microsoft.AspNetCore.Identity;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
 using System;
 using System.Collections.Generic;
@@ -12,22 +10,28 @@ using System.Linq;
 
 namespace MillimanAccessPortal.DataQueries.EntityQueries
 {
+    /// <summary>
+    /// Provides queries related to selection groups.
+    /// </summary>
     public class SelectionGroupQueries
     {
         private readonly IAuditLogger _auditLogger;
         private readonly ApplicationDbContext _dbContext;
-        private readonly UserManager<ApplicationUser> _userManager;
 
         public SelectionGroupQueries(
             IAuditLogger auditLogger,
-            ApplicationDbContext dbContext,
-            UserManager<ApplicationUser> userManager)
+            ApplicationDbContext dbContext)
         {
             _auditLogger = auditLogger;
             _dbContext = dbContext;
-            _userManager = userManager;
         }
 
+        #region private queries
+        /// <summary>
+        /// Find a selection group by ID 
+        /// </summary>
+        /// <param name="id">Selection group ID</param>
+        /// <returns>Selection group</returns>
         private BasicSelectionGroup _findSelectionGroup(Guid id)
         {
             var selectionGroup = _dbContext.SelectionGroup
@@ -45,6 +49,12 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             return selectionGroup;
         }
+
+        /// <summary>
+        /// Select all selection groups for a content item
+        /// </summary>
+        /// <param name="contentItemId">Content item ID</param>
+        /// <returns>List of selection groups</returns>
         private List<BasicSelectionGroup> _selectSelectionGroupsWhereContentItem(Guid contentItemId)
         {
             var selectionGroups = _dbContext.SelectionGroup
@@ -64,6 +74,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return selectionGroups;
         }
 
+        /// <summary>
+        /// Add a list of assigned users for a single selection group
+        /// </summary>
+        /// <param name="group">Selection group</param>
+        /// <returns>Selection group with assigned users</returns>
         private BasicSelectionGroupWithAssignedUsers _withAssignedUsers(BasicSelectionGroup group)
         {
             var groupWith = new BasicSelectionGroupWithAssignedUsers
@@ -84,8 +99,13 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             return groupWith;
         }
-        private List<BasicSelectionGroupWithAssignedUsers> _withAssignedUsers(
-            List<BasicSelectionGroup> groups)
+
+        /// <summary>
+        /// Add a list of assigned users for each selection group in a list
+        /// </summary>
+        /// <param name="group">List of selection groups</param>
+        /// <returns>List of selection groups with assigned users</returns>
+        private List<BasicSelectionGroupWithAssignedUsers> _withAssignedUsers(List<BasicSelectionGroup> groups)
         {
             var groupsWith = new List<BasicSelectionGroupWithAssignedUsers> { };
             foreach (var group in groups)
@@ -110,31 +130,50 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             }
             return groupsWith;
         }
+        #endregion
 
-        internal List<BasicSelectionGroup> SelectSelectionGroupsWhereContentItem(Guid contentItemId)
-        {
+        /// <summary>
+        /// Select all selection groups for a content item
+        /// </summary>
+        /// <param name="contentItemId">Content item ID</param>
+        /// <returns>List of selection groups</returns>
+        internal List<BasicSelectionGroup> SelectSelectionGroupsWhereContentItem(Guid contentItemId) {
             var selectionGroups = _selectSelectionGroupsWhereContentItem(contentItemId);
 
             return selectionGroups;
         }
 
-        internal List<BasicSelectionGroupWithAssignedUsers> SelectSelectionGroupsWithAssignedUsers(
-            Guid contentItemId)
+        /// <summary>
+        /// Select all selection groups with assigned users for a content item
+        /// </summary>
+        /// <param name="contentItemId">Content item ID</param>
+        /// <returns>List of selection groups with assigned users</returns>
+        internal List<BasicSelectionGroupWithAssignedUsers> SelectSelectionGroupsWithAssignedUsers(Guid contentItemId)
         {
             var selectionGroups = _selectSelectionGroupsWhereContentItem(contentItemId);
             var selectionGroupsWithAssignedUsers = _withAssignedUsers(selectionGroups);
 
             return selectionGroupsWithAssignedUsers;
         }
-        internal BasicSelectionGroupWithAssignedUsers SelectSelectionGroupWithAssignedUsers(
-            Guid id)
+
+        /// <summary>
+        /// Select a selection group by ID with assigned users
+        /// </summary>
+        /// <param name="selectionGroupId">Selection group ID</param>
+        /// <returns>List of selection groups with assigned users</returns>
+        internal BasicSelectionGroupWithAssignedUsers SelectSelectionGroupWithAssignedUsers(Guid selectionGroupId)
         {
-            var selectionGroup = _findSelectionGroup(id);
+            var selectionGroup = _findSelectionGroup(selectionGroupId);
             var selectionGroupsWithAssignedUser = _withAssignedUsers(selectionGroup);
 
             return selectionGroupsWithAssignedUser;
         }
 
+        /// <summary>
+        /// Select a list of selections for a selection group
+        /// </summary>
+        /// <param name="selectionGroupId">Selection group ID</param>
+        /// <returns>List of selections</returns>
         internal List<Guid> SelectSelectionGroupSelections(Guid selectionGroupId)
         {
             var selections = _dbContext.SelectionGroup
@@ -145,13 +184,19 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             return selections?.ToList();
         }
 
-        internal SelectionGroup CreateReducingSelectionGroup(Guid itemId, string name)
+        /// <summary>
+        /// Create a reducing selection group
+        /// </summary>
+        /// <param name="contentItemId">Content item ID under which the new selection group will be created</param>
+        /// <param name="name">Name of the new selection group</param>
+        /// <returns>New selection group</returns>
+        internal SelectionGroup CreateReducingSelectionGroup(Guid contentItemId, string name)
         {
             var group = new SelectionGroup
             {
-                RootContentItemId = itemId,
+                RootContentItemId = contentItemId,
                 GroupName = name,
-                ContentInstanceUrl = "",
+                ContentInstanceUrl = null,
                 SelectedHierarchyFieldValueList = new Guid[] { },
                 IsMaster = false,
             };
@@ -162,9 +207,16 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             return group;
         }
-        internal SelectionGroup CreateMasterSelectionGroup(Guid itemId, string name)
+
+        /// <summary>
+        /// Create a master selection group
+        /// </summary>
+        /// <param name="contentItemId">Content item ID under which the new selection group will be created</param>
+        /// <param name="name">Name of the new selection group</param>
+        /// <returns>New selection group</returns>
+        internal SelectionGroup CreateMasterSelectionGroup(Guid contentItemId, string name)
         {
-            var contentItem = _dbContext.RootContentItem.Find(itemId);
+            var contentItem = _dbContext.RootContentItem.Find(contentItemId);
             ContentRelatedFile liveMasterFile = contentItem.ContentFilesList
                 .SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
             if (liveMasterFile == null || !File.Exists(liveMasterFile.FullPath))
@@ -177,7 +229,6 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             {
                 RootContentItem = contentItem,
                 GroupName = name,
-                ContentInstanceUrl = "",
                 SelectedHierarchyFieldValueList = new Guid[] { },
                 IsMaster = true,
             };
@@ -189,22 +240,36 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             return group;
         }
-        internal SelectionGroup UpdateSelectionGroupName(Guid groupId, string name)
+
+        /// <summary>
+        /// Update the name of a selection group
+        /// </summary>
+        /// <param name="selectionGroupId">Selection group ID</param>
+        /// <param name="name">Selection group name</param>
+        /// <returns>Selection group</returns>
+        internal SelectionGroup UpdateSelectionGroupName(Guid selectionGroupId, string name)
         {
-            var group = _dbContext.SelectionGroup.Find(groupId);
+            var group = _dbContext.SelectionGroup.Find(selectionGroupId);
             group.GroupName = name;
 
             _dbContext.SaveChanges();
 
             return group;
         }
-        internal SelectionGroup UpdateSelectionGroupUsers(Guid groupId, List<Guid> users)
+
+        /// <summary>
+        /// Update the assigned users of a selection group
+        /// </summary>
+        /// <param name="selectionGroupId">Selection group ID</param>
+        /// <param name="users">Selection group users</param>
+        /// <returns>Selection group</returns>
+        internal SelectionGroup UpdateSelectionGroupUsers(Guid selectionGroupId, List<Guid> users)
         {
-            var group = _dbContext.SelectionGroup.Find(groupId);
+            var group = _dbContext.SelectionGroup.Find(selectionGroupId);
 
             #region update
             var currentUsers = _dbContext.UserInSelectionGroup
-                .Where(u => u.SelectionGroupId == groupId)
+                .Where(u => u.SelectionGroupId == selectionGroupId)
                 .ToList();
 
             var usersToKeep = currentUsers
@@ -213,7 +278,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             var usersToAdd = users.Except(usersToKeep).Select(uid => new UserInSelectionGroup
             {
                 UserId = uid,
-                SelectionGroupId = groupId,
+                SelectionGroupId = selectionGroupId,
             });
             _dbContext.UserInSelectionGroup.AddRange(usersToAdd);
 
@@ -236,9 +301,16 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             return group;
         }
-        internal SelectionGroup UpdateSelectionGroupSuspended(Guid id, bool isSuspended)
+
+        /// <summary>
+        /// Update the suspended status of a selection group
+        /// </summary>
+        /// <param name="selectionGroupId">Selection group ID</param>
+        /// <param name="isSuspended">Suspended status</param>
+        /// <returns>Selection group</returns>
+        internal SelectionGroup UpdateSelectionGroupSuspended(Guid selectionGroupId, bool isSuspended)
         {
-            var group = _dbContext.SelectionGroup.Find(id);
+            var group = _dbContext.SelectionGroup.Find(selectionGroupId);
             group.IsSuspended = isSuspended;
 
             _dbContext.SaveChanges();
@@ -246,9 +318,15 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             return group;
         }
-        internal SelectionGroup DeleteSelectionGroup(Guid id)
+
+        /// <summary>
+        /// Delete a selection group
+        /// </summary>
+        /// <param name="selectionGroupId">Selection group ID</param>
+        /// <returns>Deleted selection group</returns>
+        internal SelectionGroup DeleteSelectionGroup(Guid selectionGroupId)
         {
-            var group = _dbContext.SelectionGroup.Find(id);
+            var group = _dbContext.SelectionGroup.Find(selectionGroupId);
             _dbContext.SelectionGroup.Remove(group);
 
             _dbContext.SaveChanges();
