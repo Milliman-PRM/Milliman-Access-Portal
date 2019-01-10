@@ -40,16 +40,12 @@ namespace MillimanAccessPortal.Services
         public IServiceProvider Services { get; }
         public IPublicationPostProcessingTaskQueue TaskQueue { get; }
 
-        protected List<Task> AllRunningTasks = new List<Task>();
-
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                AllRunningTasks.RemoveAll(t => t.IsCompleted);
-
                 // Retrieve the id of a publication request to post-process
-                Guid publicationRequestId = await TaskQueue.DequeueAsync(cancellationToken, 10_000);
+                Guid publicationRequestId = await TaskQueue.DequeueAsync(cancellationToken);
 
                 if (publicationRequestId != Guid.Empty)
                 {
@@ -140,9 +136,14 @@ namespace MillimanAccessPortal.Services
             // Validate the existence and checksum of each uploaded (non-reduced) file
             foreach (ContentRelatedFile crf in thisPubRequest.LiveReadyFilesObj)
             {
-                if (!File.Exists(crf.FullPath) || !crf.ValidateChecksum())
+                if (!File.Exists(crf.FullPath))
                 {
-                    string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), validation failed for file {crf.FullPath}";
+                    string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), file not found: {crf.FullPath}";
+                    throw new ApplicationException(Msg);
+                }
+                else if (!crf.ValidateChecksum())
+                {
+                    string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), checksum validation failed for file {crf.FullPath}";
                     throw new ApplicationException(Msg);
                 }
             }

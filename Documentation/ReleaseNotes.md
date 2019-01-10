@@ -4,7 +4,7 @@
 
 ### v1.3.1
 
-- Fixed an issue where an error during publication go-live would leave the content in an unrecoverable, non-functional state. 
+- Fixed an issue where an error during publication go-live left the publication stuck in going-live state and the related content inaccessible. 
 
 ### v1.3.0
 
