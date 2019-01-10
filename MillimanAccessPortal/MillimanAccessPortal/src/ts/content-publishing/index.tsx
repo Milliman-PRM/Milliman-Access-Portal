@@ -1,11 +1,11 @@
 declare function require(moduleName: string): any;
 
-import '../../images/add.svg';
-import '../../images/cancel.svg';
-import '../../images/checkmark.svg';
-import '../../images/edit.svg';
+import '../../images/icons/add.svg';
+import '../../images/icons/cancel.svg';
+import '../../images/icons/checkmark.svg';
+import '../../images/icons/edit.svg';
+import '../../images/icons/upload.svg';
 import '../../images/map-logo.svg';
-import '../../images/upload.svg';
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';

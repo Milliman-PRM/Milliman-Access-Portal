@@ -1,10 +1,10 @@
-﻿import '../../../images/add.svg';
-import '../../../images/client-admin.svg';
-import '../../../images/email.svg';
-import '../../../images/expand-card.svg';
-import '../../../images/group.svg';
-import '../../../images/reports.svg';
-import '../../../images/user.svg';
+﻿import '../../../images/icons/add.svg';
+import '../../../images/icons/client-admin.svg';
+import '../../../images/icons/email.svg';
+import '../../../images/icons/expand-card.svg';
+import '../../../images/icons/group.svg';
+import '../../../images/icons/reports.svg';
+import '../../../images/icons/user.svg';
 import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';

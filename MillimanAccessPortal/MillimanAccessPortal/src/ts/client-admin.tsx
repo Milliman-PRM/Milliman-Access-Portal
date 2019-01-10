@@ -1,8 +1,8 @@
-import '../images/add.svg';
-import '../images/cancel.svg';
-import '../images/collapse-cards.svg';
-import '../images/edit.svg';
-import '../images/expand-cards.svg';
+import '../images/icons/add.svg';
+import '../images/icons/cancel.svg';
+import '../images/icons/collapse-cards.svg';
+import '../images/icons/edit.svg';
+import '../images/icons/expand-cards.svg';
 import '../images/map-logo.svg';
 
 import * as React from 'react';

@@ -28,7 +28,7 @@ import {
 } from '../view-models/content-publishing';
 import { PublicationStatusMonitor } from './publication-status-monitor';
 
-import '../../images/expand-frame.svg';
+import '../../images/icons/expand-frame.svg';
 
 require('tooltipster');
 

@@ -1,4 +1,4 @@
-﻿import '../../../images/filter.svg';
+﻿import '../../../images/icons/filter.svg';
 
 import '../../../scss/react/shared-components/filter.scss';
 

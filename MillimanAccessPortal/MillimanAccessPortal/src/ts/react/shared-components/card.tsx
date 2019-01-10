@@ -1,8 +1,8 @@
-import '../../../images/delete.svg';
-import '../../../images/edit.svg';
-import '../../../images/email.svg';
-import '../../../images/expand-card.svg';
-import '../../../images/remove-circle.svg';
+import '../../../images/icons/delete.svg';
+import '../../../images/icons/edit.svg';
+import '../../../images/icons/email.svg';
+import '../../../images/icons/expand-card.svg';
+import '../../../images/icons/remove-circle.svg';
 
 import * as React from 'react';
 
