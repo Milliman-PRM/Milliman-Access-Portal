@@ -11,6 +11,7 @@ using MapCommonLib;
 using QlikviewLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
+using MillimanAccessPortal.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using MillimanAccessPortal.Models.ContentPublishing;
@@ -61,7 +62,11 @@ namespace MillimanAccessPortal
             }
         }
 
-        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, string connectionString, string contentItemRootPath, string exchangePath)
+        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, 
+                                                                  string connectionString, 
+                                                                  string contentItemRootPath, 
+                                                                  string exchangePath, 
+                                                                  IPublicationPostProcessingTaskQueue postProcessingTaskQueue)
         {
             bool validationWindowComplete = false;
 
@@ -145,6 +150,7 @@ namespace MillimanAccessPortal
                 try
                 {
                     Db.SaveChanges();
+                    postProcessingTaskQueue.QueuePublicationPostProcess(publicationRequest.Id);
                 }
                 catch (DbUpdateConcurrencyException)
                 {

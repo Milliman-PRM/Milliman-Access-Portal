@@ -735,19 +735,20 @@ namespace ContentPublishingLib.JobRunners
             QlikviewLib.Qms.TaskStatus Status;
 
             // Save the task to Qlikview server
+            DateTime SaveStartTime = DateTime.Now;
             IQMS QmsClient = QmsClientCreator.New(QmsUrl);
             await QmsClient.SaveDocumentTaskAsync(DocTask);
             TaskInfo TInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName);
             Guid TaskIdGuid = TInfo.ID;
-            GlobalFunctions.TraceWriteLine($"QDS task with ID '{TaskIdGuid.ToString("D")}' successfully saved");
+            GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} successfully saved after {DateTime.Now - SaveStartTime}");
 
             try
             {
+                DateTime RunStartTime = DateTime.Now;
                 // Get the task started, this generally requires more than one call to RunTaskAsync
-                DateTime StartTime = DateTime.Now;
                 do
                 {
-                    if (DateTime.Now - StartTime > MaxStartDelay)
+                    if (DateTime.Now - RunStartTime > MaxStartDelay)
                     {
                         JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.ReductionProcessingTimeout;
                         throw new System.Exception($"Qlikview publisher failed to start task {TaskIdGuid.ToString("D")} before timeout");
@@ -759,8 +760,7 @@ namespace ContentPublishingLib.JobRunners
 
                     Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
                 } while (Status == null || Status.Extended == null || !(DateTime.TryParse(Status.Extended.StartTime, out _) || DateTime.TryParse(Status.Extended.FinishedTime, out _)));
-
-                GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} started running after {DateTime.Now - StartTime}");
+                GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} started running after {DateTime.Now - RunStartTime}");
 
                 // Wait for started task to finish
                 DateTime RunningStartTime = DateTime.Now;
