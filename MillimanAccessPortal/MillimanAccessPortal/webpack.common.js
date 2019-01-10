@@ -67,6 +67,10 @@ module.exports = {
         flatten: true,
       },
       {
+        from: 'src/images/login-hero.jpg',
+        to: 'images/login-hero.jpg',
+      },
+      {
         from: 'src/html/Error/502.html',
         to: 'Error/502.html',
       },
