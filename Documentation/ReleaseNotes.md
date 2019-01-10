@@ -4,7 +4,11 @@
 
 ### v1.3.1
 
-- Fixed an issue where an error during publication go-live left the publication stuck in going-live state and the related content inaccessible. 
+- Fixed an issue where an error during publication go-live left the publication stuck in going-live state and the related content inaccessible
+- Fixed an issue where new users appeared to be able to submit a password during account activation that did not meet the password requirements
+- Fixed an issue where a user attempting to log in to an account that had not been activated erroneously displayed an account lockout message
+- Added the MAP site URL to the welcome email text to help users find the site after their account has been activated
+- Removed the expand icon from the Go Live preview for File Upload content types
 
 ### v1.3.0
 
