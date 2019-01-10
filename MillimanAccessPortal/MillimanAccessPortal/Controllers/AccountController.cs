@@ -389,9 +389,9 @@ namespace MillimanAccessPortal.Controllers
 
             UriBuilder baseSiteUrl = new UriBuilder
             {
-                Host = HttpContext.Request.Host.Host,
-                Scheme = HttpContext.Request.Scheme,
-                Port = HttpContext.Request.Host.Port ?? -1
+                Host = Url.ActionContext.HttpContext.Request.Host.Host,
+                Scheme = Url.ActionContext.HttpContext.Request.Scheme,
+                Port = Url.ActionContext.HttpContext.Request.Host.Port ?? -1
             };
 
             // Configurable portion of email body
