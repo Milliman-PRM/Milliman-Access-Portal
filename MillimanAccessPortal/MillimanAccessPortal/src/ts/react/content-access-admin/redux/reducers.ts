@@ -234,6 +234,11 @@ const pendingGroups = createReducer<PendingGroupState>(_initialPendingGroups, {
     users: updateMap(state.users, action.id, { assigned: false }),
   }),
 });
+const pendingDeleteGroup = createReducer<Guid>(null, {
+  [AccessAction.OpenDeleteGroupModal]: (_state, action) => action.id,
+  [AccessAction.CloseDeleteGroupModal]: () => null,
+  [AccessAction.DeleteGroup + DataSuffixes.Succeeded]: () => null,
+});
 
 const data = createReducer<AccessStateData>(_initialData, {
   [AccessAction.FetchClients + DataSuffixes.Succeeded]: (state, action) => ({
@@ -474,6 +479,7 @@ const pending = combineReducers({
   selections: pendingSelections,
   newGroupName: pendingNewGroupName,
   group: pendingGroups,
+  deleteGroup: pendingDeleteGroup,
 });
 const filters = combineReducers({
   client: createFilterReducer(AccessAction.SetFilterTextClient),
@@ -485,6 +491,10 @@ const modals = combineReducers({
   addGroup: createModalReducer([ AccessAction.OpenAddGroupModal ], [
     AccessAction.CloseAddGroupModal,
     AccessAction.CreateGroup + DataSuffixes.Succeeded,
+  ]),
+  deleteGroup: createModalReducer([ AccessAction.OpenDeleteGroupModal ], [
+    AccessAction.CloseDeleteGroupModal,
+    AccessAction.DeleteGroup + DataSuffixes.Succeeded,
   ]),
 });
 

@@ -136,6 +136,15 @@ export function pendingGroupUserAssignments(state: AccessState, groupId: Guid) {
 }
 
 /**
+ * Select the group that is pending deletion
+ * @param state Redux store
+ */
+export function groupToDelete(state: AccessState) {
+  const groupId = state.pending.deleteGroup;
+  return groupId && state.data.groups[groupId];
+}
+
+/**
  * Select all clients that match the client filter.
  * @param state Redux store
  */

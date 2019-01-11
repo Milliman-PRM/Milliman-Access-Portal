@@ -69,6 +69,7 @@ export interface AccessStatePending {
   selections: Map<Guid, { selected: boolean }>;
   newGroupName: string;
   group: PendingGroupState;
+  deleteGroup: Guid;
 }
 export interface AccessStateFilters {
   client: FilterState;
@@ -78,6 +79,7 @@ export interface AccessStateFilters {
 }
 export interface AccessStateModals {
   addGroup: ModalState;
+  deleteGroup: ModalState;
 }
 
 export interface AccessState {

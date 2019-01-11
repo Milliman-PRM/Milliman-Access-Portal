@@ -20,6 +20,8 @@ export enum AccessAction {
   SetPendingSelectionOff = 'SET_PENDING_SELECTION_OFF',
   OpenAddGroupModal = 'OPEN_ADD_GROUP_MODAL',
   CloseAddGroupModal = 'CLOSE_ADD_GROUP_MODAL',
+  OpenDeleteGroupModal = 'OPEN_DELETE_GROUP_MODAL',
+  CloseDeleteGroupModal = 'CLOSE_DELETE_GROUP_MODAL',
   SetPendingNewGroupName = 'SET_PENDING_NEW_GROUP_NAME',
   SetGroupEditingOn = 'SET_GROUP_EDITING_ON',
   SetGroupEditingOff = 'SET_GROUP_EDITING_OFF',
@@ -76,6 +78,8 @@ export const setPendingSelectionOff = (id: Guid) => ({ type: AccessAction.SetPen
 // Add selection group modal
 export const openAddGroupModal = () => ({ type: AccessAction.OpenAddGroupModal });
 export const closeAddGroupModal = () => ({ type: AccessAction.CloseAddGroupModal });
+export const openDeleteGroupModal = (id: Guid) => ({ type: AccessAction.OpenDeleteGroupModal, id });
+export const closeDeleteGroupModal = () => ({ type: AccessAction.CloseDeleteGroupModal });
 export const setPendingNewGroupName = (name: string) => ({ type: AccessAction.SetPendingNewGroupName, name });
 
 // Selection group card editing

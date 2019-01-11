@@ -30,7 +30,7 @@ import * as actions from './redux/actions';
 import {
     activeReductionFieldsets, activeSelectedClient, activeSelectedGroup, activeSelectedItem,
     addableUsers, allGroupsCollapsed, allGroupsExpanded, clientEntities, groupEntities,
-    itemEntities, modifiedReductionValues, pendingMaster, pendingReductionValues,
+    groupToDelete, itemEntities, modifiedReductionValues, pendingMaster, pendingReductionValues,
     selectedGroupWithStatus, selectedItem, selectionsFormModified,
 } from './redux/selectors';
 import {
@@ -72,6 +72,7 @@ interface ContentAccessAdminProps {
 
   allGroupsExpanded: boolean;
   allGroupsCollapsed: boolean;
+  groupToDelete: SelectionGroup;
 }
 interface ContentAccessAdminActions {
   selectClient: (id: Guid) => void;
@@ -94,6 +95,8 @@ interface ContentAccessAdminActions {
 
   openAddGroupModal: () => void;
   closeAddGroupModal: () => void;
+  openDeleteGroupModal: (id: Guid) => void;
+  closeDeleteGroupModal: () => void;
   setPendingNewGroupName: (name: string) => void;
 
   setGroupEditingOn: (id: Guid) => void;
@@ -260,6 +263,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       addableUsers: users,
       allGroupsExpanded: allExpanded,
       allGroupsCollapsed: allCollapsed,
+      groupToDelete: groupDelete,
     } = this.props;
 
     const expandAllIcon = allExpanded
@@ -309,7 +313,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                 <CardButton
                   color={'red'}
                   tooltip={'Delete selection group'}
-                  onClick={() => this.props.deleteGroup(entity.id)}
+                  onClick={() => this.props.openDeleteGroupModal(entity.id)}
                   icon={'delete'}
                 />
                 {pending.group.id === null
@@ -481,6 +485,35 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             </div>
           </form>
         </Modal>
+        <Modal
+          isOpen={modals.deleteGroup.isOpen}
+          onRequestClose={this.props.closeDeleteGroupModal}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+        >
+          <h3 className="title red">Delete Selection Group</h3>
+          <span className="modal-text">Delete <strong>{groupDelete ? groupDelete.name : ''}</strong>?</span>
+          <div className="button-container">
+            <button className="link-button" type="button" onClick={this.props.closeDeleteGroupModal}>
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (!this.props.pending.data.deleteGroup) {
+                  this.props.deleteGroup(this.props.groupToDelete.id);
+                }
+              }}
+            >
+              Delete
+              {this.props.pending.data.deleteGroup
+                ? <ButtonSpinner />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
       </CardPanel>
     );
   }
@@ -568,6 +601,7 @@ function mapStateToProps(state: AccessState): ContentAccessAdminProps {
     addableUsers: addableUsers(state),
     allGroupsExpanded: allGroupsExpanded(state),
     allGroupsCollapsed: allGroupsCollapsed(state),
+    groupToDelete: groupToDelete(state),
   };
 }
 
