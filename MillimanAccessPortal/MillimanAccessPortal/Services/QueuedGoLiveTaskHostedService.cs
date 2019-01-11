@@ -330,7 +330,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     // Can move since files are on the same volume
                     File.Move(Crf.FullPath, TargetFilePath);
 
-                    failureRecoveryActionList.Prepend(new Action(() => {  // This one must run before the one in the if block above
+                    failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
                         if (File.Exists(Crf.FullPath))
                         {
                             File.Delete(Crf.FullPath);
@@ -426,7 +426,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     {
                         File.Move(ThisTask.ResultFilePath, TargetFilePath);
 
-                        failureRecoveryActionList.Prepend(new Action(() => {  // This one must run before the one in the if block above
+                        failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
                             if (File.Exists(ThisTask.ResultFilePath))
                             {
                                 File.Delete(ThisTask.ResultFilePath);
