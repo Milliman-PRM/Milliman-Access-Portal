@@ -43,5 +43,10 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         [Display(Name = "Confirm password *")]
         [Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmNewPassword { get; set; }
+
+        // a hack to get jQuery validation to work with complex password requirements
+        // relies on front end code to set this properly
+        [Required(ErrorMessage = "The password does not satisfy complexity requirements.")]
+        public string PasswordsAreValid { get; set; }
     }
 }

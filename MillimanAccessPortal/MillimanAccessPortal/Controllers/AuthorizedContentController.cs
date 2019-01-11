@@ -223,6 +223,11 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
+        /// <summary>
+        /// Preview the master content QVW file
+        /// </summary>
+        /// <param name="publicationRequestId"></param>
+        /// <returns></returns>
         public async Task<IActionResult> QvwPreview(Guid publicationRequestId)
         {
             Log.Verbose($"Entered AuthorizedContentController.QvwPreview action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}");

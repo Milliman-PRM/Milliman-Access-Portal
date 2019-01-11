@@ -256,7 +256,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     $(`#confirmation-section-${pair.sectionName} .new-tab-icon`)
       .show()
       .attr('href', pair.link)
-      .filter(() => pair.link === null)
+      .filter(() => pair.link === null || response.ContentTypeName === 'FileDownload')
       .hide();
   });
 

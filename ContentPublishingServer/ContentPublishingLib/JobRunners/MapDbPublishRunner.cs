@@ -172,6 +172,20 @@ namespace ContentPublishingLib.JobRunners
                 {
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
 
+                    foreach (var ReducingTask in AllRelatedReductionTasks.Where(t => (t.TaskAction == TaskActionEnum.ReductionOnly || t.TaskAction == TaskActionEnum.HierarchyAndReduction)
+                                                                                   && t.OutcomeMetadataObj.OutcomeReason == MapDbReductionTaskOutcomeReason.Success))
+                    {
+                        JobDetail.Result.ResultingRelatedFiles.Add(
+                            new ContentRelatedFile
+                            {
+                                Checksum = ReducingTask.ReducedContentChecksum,
+                                FilePurpose = "ReducedContent",
+                                FullPath = ReducingTask.ResultFilePath,
+                                FileOriginalName = Path.GetFileName(ReducingTask.ResultFilePath),
+                            }
+                         );
+                    }
+
                     #region Log audit event
                     var DetailObj = new
                     {

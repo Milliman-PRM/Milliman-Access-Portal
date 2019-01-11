@@ -149,11 +149,11 @@ namespace ContentPublishingLib.JobMonitors
                                     }
 
                                     NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
-                                    GlobalFunctions.TraceWriteLine($"ReductionJobMonitor executing TaskAction {DbTask.TaskAction.ToString()} for task {DbTask.Id}, ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentRunners})");
+                                    GlobalFunctions.TraceWriteLine($"In ReductionJobMonitor.JobMonitorThreadMain executing TaskAction {DbTask.TaskAction.ToString()} for task {DbTask.Id}, ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentRunners})");
                                     break;
 
                                 default:
-                                    GlobalFunctions.TraceWriteLine($"Task record discovered for unsupported content type");
+                                    GlobalFunctions.TraceWriteLine($"In ReductionJobMonitor.JobMonitorThreadMain, task record discovered for unsupported content type {type.ToString()}");
                                     break;
                             }
 
@@ -184,7 +184,7 @@ namespace ContentPublishingLib.JobMonitors
                 DateTime WaitStart = DateTime.Now;
                 while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
                 {
-                    GlobalFunctions.TraceWriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
+                    GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
 
                     int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks / 100));
                     if (CompletedTaskIndex > -1)
@@ -194,7 +194,7 @@ namespace ContentPublishingLib.JobMonitors
 
                     if (ActiveReductionRunnerItems.Count == 0)
                     {
-                        GlobalFunctions.TraceWriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} all reduction runners terminated successfully");
+                        GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} all reduction runners terminated successfully");
                         break;
                     }
                 }
