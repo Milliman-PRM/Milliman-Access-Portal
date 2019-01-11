@@ -420,12 +420,12 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             }
             catch (Exception)
             {
+                // reset publication status to Processed so the user can retry the preview and go-live
+                publicationRequest.RequestStatus = PublicationStatus.Processed;
+                dbContext.SaveChanges();
+
                 foreach (var backedUpFile in backedUpProductionFilesToDelete)
                 {
-                    // reset publication status to Processed so the user can retry the preview and go-live
-                    publicationRequest.RequestStatus = PublicationStatus.Processed;
-                    dbContext.SaveChanges();
-
                     string restoreTargetFilePath = Path.GetFileNameWithoutExtension(backedUpFile);
                     if (File.Exists(restoreTargetFilePath))
                     {
