@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.3.2
+
+- Enable the user to retry after an error occurs during content publication go-live
+
 ### v1.3.1
 
 - Fixed an issue where an error during publication go-live left the publication stuck in going-live state and the related content inaccessible
