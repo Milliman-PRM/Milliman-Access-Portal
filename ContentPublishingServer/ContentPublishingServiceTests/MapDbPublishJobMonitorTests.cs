@@ -139,7 +139,7 @@ namespace ContentPublishingServiceTests
             try
             {
                 Assert.Equal(TaskStatus.Running, MonitorTask.Status);
-                Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
+                Assert.Equal(PublicationStatus.PostProcessReady, DbRequest.RequestStatus);
                 Assert.Equal(string.Empty, DbRequest.StatusMessage);
                 Assert.Equal(0, MockContext.Object.ContentReductionTask.Where(t => t.ContentPublicationRequestId == TestUtil.MakeTestGuid(1)).Count());
             }
@@ -255,7 +255,7 @@ namespace ContentPublishingServiceTests
             try
             {
                 Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
-                Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
+                Assert.Equal(PublicationStatus.PostProcessReady, DbRequest.RequestStatus);
                 Assert.Equal(string.Empty, DbRequest.StatusMessage);
                 Assert.Equal(3, Tasks.Count);
                 List<ContentReductionTask> NonNullTasks = Tasks.Where(t => t.SelectionGroupId != null).ToList();
@@ -364,7 +364,7 @@ namespace ContentPublishingServiceTests
 
             #region Assert
             // The request should be taken off the queue because no reduction task is timestamped earlier
-            Assert.Contains(DbRequest.RequestStatus, new PublicationStatus[] { PublicationStatus.Processing, PublicationStatus.Processed });
+            Assert.Contains(DbRequest.RequestStatus, new PublicationStatus[] { PublicationStatus.Processing, PublicationStatus.PostProcessReady });
             #endregion
         }
 
