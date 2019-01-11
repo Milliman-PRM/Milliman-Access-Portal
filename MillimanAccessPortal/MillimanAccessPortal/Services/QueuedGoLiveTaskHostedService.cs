@@ -190,11 +190,12 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
         #endregion
 
         #region Go live
-        List<string> backedUpProductionFilesToDelete = new List<string>();
+        List<Action> successActionList = new List<Action>();
+        List<Action> failureRecoveryActionList = new List<Action>();
 
-        using (IDbContextTransaction Txn = dbContext.Database.BeginTransaction())
+        try
         {
-            try
+            using (IDbContextTransaction Txn = dbContext.Database.BeginTransaction())
             {
                 //1 Update db:
                 //1.1  ContentPublicationRequest.Status
@@ -304,7 +305,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                                          goLiveViewModel.RootContentItemId.ToString(),
                                                          TargetFileName);
 
-                    // Move any existing file to backed up name
+                    // Move any existing live file of this name to backed up name
                     if (File.Exists(TargetFilePath))
                     {
                         string BackupFilePath = TargetFilePath + ".bak";
@@ -313,11 +314,29 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             File.Delete(BackupFilePath);
                         }
                         File.Move(TargetFilePath, BackupFilePath);
-                        backedUpProductionFilesToDelete.Add(BackupFilePath);
+
+                        successActionList.Add(new Action(() => {
+                            File.Delete(BackupFilePath);
+                        }));
+                        failureRecoveryActionList.Add(new Action(() => {
+                            if (File.Exists(TargetFilePath))
+                            {
+                                File.Delete(TargetFilePath);
+                            }
+                            File.Move(BackupFilePath, TargetFilePath);
+                        }));
                     }
 
                     // Can move since files are on the same volume
                     File.Move(Crf.FullPath, TargetFilePath);
+
+                    failureRecoveryActionList.Prepend(new Action(() => {  // This one must run before the one in the if block above
+                        if (File.Exists(Crf.FullPath))
+                        {
+                            File.Delete(Crf.FullPath);
+                        }
+                        File.Move(TargetFilePath, Crf.FullPath);
+                    }));
 
                     UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
                     UpdatedContentFilesList.Add(new ContentRelatedFile
@@ -390,12 +409,30 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             File.Delete(BackupFilePath);
                         }
                         File.Move(TargetFilePath, BackupFilePath);
-                        backedUpProductionFilesToDelete.Add(BackupFilePath);
+
+                        successActionList.Add(new Action(() => {
+                            File.Delete(BackupFilePath);
+                        }));
+                        failureRecoveryActionList.Add(new Action(() => {
+                            if (File.Exists(TargetFilePath))
+                            {
+                                File.Delete(TargetFilePath);
+                            }
+                            File.Move(BackupFilePath, TargetFilePath);
+                        }));
                     }
 
                     if (!isInactive)
                     {
                         File.Move(ThisTask.ResultFilePath, TargetFilePath);
+
+                        failureRecoveryActionList.Prepend(new Action(() => {  // This one must run before the one in the if block above
+                            if (File.Exists(ThisTask.ResultFilePath))
+                            {
+                                File.Delete(ThisTask.ResultFilePath);
+                            }
+                            File.Move(TargetFilePath, ThisTask.ResultFilePath);
+                        }));
                     }
                 }
 
@@ -418,23 +455,23 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 dbContext.SaveChanges();
                 Txn.Commit();
             }
-            catch (Exception)
-            {
-                // reset publication status to Processed so the user can retry the preview and go-live
-                publicationRequest.RequestStatus = PublicationStatus.Processed;
-                dbContext.SaveChanges();
+        }
+        catch (Exception)
+        {
+            // reset publication status to Processed so the user can retry the preview and go-live
+            dbContext.Entry(publicationRequest).State = EntityState.Detached;  // force update from db on next query
+            publicationRequest = dbContext.ContentPublicationRequest
+                    .Where(r => r.Id == goLiveViewModel.PublicationRequestId)
+                    .Where(r => r.RootContentItemId == goLiveViewModel.RootContentItemId)
+                    .Single();
+            publicationRequest.RequestStatus = PublicationStatus.Processed;
+            dbContext.SaveChanges();
 
-                foreach (var backedUpFile in backedUpProductionFilesToDelete)
-                {
-                    string restoreTargetFilePath = Path.GetFileNameWithoutExtension(backedUpFile);
-                    if (File.Exists(restoreTargetFilePath))
-                    {
-                        File.Delete(restoreTargetFilePath);
-                        File.Move(backedUpFile, restoreTargetFilePath);
-                    }
-                }
-                throw;
+            foreach (var recoverAction in failureRecoveryActionList)
+            {
+                recoverAction.Invoke();
             }
+            throw;
         }
 
         Log.Verbose(
@@ -443,38 +480,14 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
         auditLogger.Log(AuditEventType.ContentPublicationGoLive.ToEvent(
             publicationRequest.RootContentItem, publicationRequest, goLiveViewModel.ValidationSummaryId));
 
-        // 4 Clean up temporary pre-live folder
+        // 4 Clean up
         // 4.1 Delete all temporarily backed up production files
-        foreach (string FileToDelete in backedUpProductionFilesToDelete)
+        foreach (var successAction in successActionList)
         {
-            if (File.Exists(FileToDelete))
-            {
-                File.Delete(FileToDelete);
-            }
+            successAction.Invoke();
         }
 
-        // 4.2 Prepare each pre-live file for delete
-        foreach (ContentRelatedFile PreliveFile in publicationRequest.LiveReadyFilesObj)
-        {
-            switch (Path.GetExtension(PreliveFile.FullPath).ToLower())
-            {
-                case ".qvw":
-                    string qvwFileRelativePath = Path.GetRelativePath(configuration.GetValue<string>("Storage:ContentItemRootPath"), PreliveFile.FullPath);
-                    try
-                    {
-                        await new QlikviewLibApi().ReclaimAllDocCalsForFile(qvwFileRelativePath, qlikviewConfig);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning(ex, $"Failed to reclaim Qlikview document CAL for file {PreliveFile.FullPath}, relative path {qvwFileRelativePath}");
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        // 4.3 Delete pre-live folder
+        // 4.2 Delete pre-live folder
         string PreviewFolder = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
                                                 publicationRequest.RootContentItemId.ToString(),
                                                 publicationRequest.Id.ToString());
