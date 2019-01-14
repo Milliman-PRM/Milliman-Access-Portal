@@ -496,6 +496,10 @@ const modals = combineReducers({
     AccessAction.CloseDeleteGroupModal,
     AccessAction.DeleteGroup + DataSuffixes.Succeeded,
   ]),
+  invalidate: createModalReducer([ AccessAction.OpenInvalidateModal ], [
+    AccessAction.CloseInvalidateModal,
+    AccessAction.UpdateSelections + DataSuffixes.Succeeded,
+  ]),
 });
 
 export const contentAccessAdmin = combineReducers({

@@ -95,9 +95,11 @@ interface ContentAccessAdminActions {
 
   openAddGroupModal: () => void;
   closeAddGroupModal: () => void;
+  setPendingNewGroupName: (name: string) => void;
   openDeleteGroupModal: (id: Guid) => void;
   closeDeleteGroupModal: () => void;
-  setPendingNewGroupName: (name: string) => void;
+  openInvalidateModal: () => void;
+  closeInvalidateModal: () => void;
 
   setGroupEditingOn: (id: Guid) => void;
   setGroupEditingOff: (id: Guid) => void;
@@ -528,6 +530,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       activeSelectedGroup: activeGroup,
       filters,
       pending,
+      modals,
       selectedValues,
       modifiedValues,
       selectedMaster,
@@ -555,7 +558,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         title={group.name}
         subtitle={item.name}
         status={group.status.taskStatus || ReductionStatus.Unspecified}
-        onBeginReduction={() => this.props.updateSelections(group.id, selectedMaster, selectedValues)}
+        onBeginReduction={() => selectedValues.length
+          ? this.props.updateSelections(group.id, selectedMaster, selectedValues)
+          : this.props.openInvalidateModal()
+        }
         onCancelReduction={() => this.props.cancelReduction(group.id)}
         loading={pending.data.selections}
         submitting={pending.data.updateSelections || pending.data.cancelReduction}
@@ -568,6 +574,39 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             filterText={filters.selections.text}
           />
         </PanelSectionToolbar>
+        <Modal
+          isOpen={modals.invalidate.isOpen}
+          onRequestClose={this.props.closeInvalidateModal}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+        >
+          <h3 className="title orange">Warning</h3>
+          <span className="modal-text">
+            You have not selected any values for this selection group.
+            Submitting no selections will cause the group to become inactive
+            and all of its users will be unable to view its content until values are selected.
+          </span>
+          <div className="button-container">
+            <button className="link-button" type="button" onClick={this.props.closeInvalidateModal}>
+              Cancel
+            </button>
+            <button
+              className="orange-button"
+              onClick={() => {
+                if (!this.props.pending.data.updateSelections) {
+                  this.props.updateSelections(group.id, selectedMaster, selectedValues);
+                }
+              }}
+            >
+              Proceed
+              {this.props.pending.data.updateSelections
+                ? <ButtonSpinner />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
       </SelectionsPanel>
     );
   }

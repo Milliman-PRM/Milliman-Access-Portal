@@ -80,6 +80,7 @@ export interface AccessStateFilters {
 export interface AccessStateModals {
   addGroup: ModalState;
   deleteGroup: ModalState;
+  invalidate: ModalState;
 }
 
 export interface AccessState {
