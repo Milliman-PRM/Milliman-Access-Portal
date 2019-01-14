@@ -174,7 +174,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="selectionGroupId">Selection group ID</param>
         /// <returns>List of selections</returns>
-        internal List<Guid> SelectSelectionGroupSelections(Guid selectionGroupId)
+        internal List<Guid> SelectSelectionsWhereSelectionGroup(Guid selectionGroupId)
         {
             var selections = _dbContext.SelectionGroup
                 .Where(g => g.Id == selectionGroupId)
@@ -182,6 +182,20 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 .SingleOrDefault();
 
             return selections?.ToList();
+        }
+
+        /// <summary>
+        /// Select a list of selections for multiple selection groups
+        /// </summary>
+        /// <param name="selectionGroupIds">List of selection group IDs</param>
+        /// <returns>Dictionary of selection lists</returns>
+        internal Dictionary<Guid, List<Guid>> SelectSelectionsWhereSelectionGroupIn(List<Guid> selectionGroupIds)
+        {
+            var selectionsDict = _dbContext.SelectionGroup
+                .Where(g => selectionGroupIds.Contains(g.Id))
+                .ToDictionary(g => g.Id, g => g.SelectedHierarchyFieldValueList?.ToList());
+
+            return selectionsDict;
         }
 
         /// <summary>

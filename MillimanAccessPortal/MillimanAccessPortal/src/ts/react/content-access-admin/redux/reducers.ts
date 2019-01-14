@@ -312,13 +312,40 @@ const data = createReducer<AccessStateData>(_initialData, {
       values,
     };
   },
-  [AccessAction.FetchStatusRefresh + DataSuffixes.Succeeded]: (state, action) => ({
-    ...state,
-    publications: action.payload.publications,
-    publicationQueue: action.payload.publicationQueue,
-    reductions: action.payload.reductions,
-    reductionQueue: action.payload.reductionQueue,
-  }),
+  [AccessAction.FetchStatusRefresh + DataSuffixes.Succeeded]: (state, action) => {
+    const { liveSelectionsSet } = action.payload;
+    const groups = { ...state.groups };
+    const items = { ...state.items };
+    _.forEach(liveSelectionsSet, (liveSelections, groupId) => {
+      groups[groupId].selectedValues = liveSelections;
+    });
+    _.forEach(groups, (group, groupId) => {
+      if (action.payload.groups[groupId]) {
+        groups[groupId] = {
+            ...group,
+            ...action.payload.groups[groupId],
+        };
+      }
+    });
+    _.forEach(items, (item, itemId) => {
+      if (action.payload.groups[itemId]) {
+        groups[itemId] = {
+            ...item,
+            ...action.payload.groups[itemId],
+        };
+      }
+    });
+
+    return {
+      ...state,
+      groups,
+      items,
+      publications: action.payload.publications,
+      publicationQueue: action.payload.publicationQueue,
+      reductions: action.payload.reductions,
+      reductionQueue: action.payload.reductionQueue,
+    };
+  },
   [AccessAction.CreateGroup + DataSuffixes.Succeeded]: (state, action) => {
     const { group, contentItemStats } = action.payload;
     return {
@@ -381,7 +408,7 @@ const data = createReducer<AccessStateData>(_initialData, {
     };
   },
   [AccessAction.UpdateSelections + DataSuffixes.Succeeded]: (state, action) => {
-    const { group, reduction, reductionQueue: queue } = action.payload;
+    const { group, reduction, reductionQueue: queue, liveSelections } = action.payload;
     const reductions = reduction
       ? {
         ...state.reductions,
@@ -407,6 +434,7 @@ const data = createReducer<AccessStateData>(_initialData, {
         [group.id]: {
           ...state.groups[group.id],
           ...group,
+          selectedValues: liveSelections,
         },
       },
       reductions,

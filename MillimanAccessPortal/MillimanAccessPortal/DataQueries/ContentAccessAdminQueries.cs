@@ -1,6 +1,7 @@
 ﻿using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
+using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
 using System;
 using System.Collections.Generic;
@@ -120,7 +121,7 @@ namespace MillimanAccessPortal.DataQueries
         /// <returns>Response model</returns>
         public SelectionsResponseModel SelectSelections(Guid selectionGroupId)
         {
-            var liveSelections = _selectionGroupQueries.SelectSelectionGroupSelections(selectionGroupId);
+            var liveSelections = _selectionGroupQueries.SelectSelectionsWhereSelectionGroup(selectionGroupId);
             var reductionSelections = _publicationQueries.SelectReductionSelections(selectionGroupId);
             var fields = _hierarchyQueries.SelectFieldsWhereSelectionGroup(selectionGroupId);
             var values = _hierarchyQueries.SelectValuesWhereSelectionGroup(selectionGroupId);
@@ -157,6 +158,18 @@ namespace MillimanAccessPortal.DataQueries
                 .SelectQueueDetailsWherePublicationIn(publications.ConvertAll((p) => p.Id));
             var reductionQueue = _publicationQueries
                 .SelectQueueDetailsWhereReductionIn(reductions.ConvertAll((r) => r.Id));
+            var liveSelectionsSet = _selectionGroupQueries.SelectSelectionsWhereSelectionGroupIn(selectionGroupIds);
+            var items = _contentItemQueries.SelectContentItemsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
+                .ConvertAll(i => new BasicContentItem
+                {
+                    Id = i.Id,
+                    ClientId = i.ClientId,
+                    ContentTypeId = i.ContentTypeId,
+                    IsSuspended = i.IsSuspended,
+                    DoesReduce = i.DoesReduce,
+                    Name = i.Name,
+                });
+            var groups = _selectionGroupQueries.SelectSelectionGroupsWhereContentItem(contentItemId);
 
             return new StatusResponseModel
             {
@@ -164,6 +177,9 @@ namespace MillimanAccessPortal.DataQueries
                 PublicationQueue = publicationQueue.ToDictionary((p) => p.PublicationId),
                 Reductions = reductions.ToDictionary((r) => r.Id),
                 ReductionQueue = reductionQueue.ToDictionary((r) => r.ReductionId),
+                LiveSelectionsSet = liveSelectionsSet,
+                Items = items.ToDictionary((i) => i.Id),
+                Groups = groups.ToDictionary((g) => g.Id),
             };
         }
 
@@ -278,12 +294,14 @@ namespace MillimanAccessPortal.DataQueries
                 .SelectQueueDetailsWhereReductionIn(reduction == null
                     ? new List<Guid> { }
                     : new List<Guid> { reduction.Id }).SingleOrDefault();
+            var liveSelections = _selectionGroupQueries.SelectSelectionsWhereSelectionGroup(selectionGroupId);
 
             return new SingleReductionModel
             {
                 Group = group,
                 Reduction = reduction,
                 ReductionQueue = reductionQueue,
+                LiveSelections = liveSelections,
             };
         }
 
