@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.3.3
+
+- Add audit logging for content access
+
 ### v1.3.2
 
 - Enable the user to retry after an error occurs during content publication go-live
