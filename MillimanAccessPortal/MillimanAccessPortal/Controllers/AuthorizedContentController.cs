@@ -179,6 +179,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            // Log content access
+            AuditLogger.Log(AuditEventType.UserContentAccess.ToEvent(
+                selectionGroup.RootContentItemId.ToString(), selectionGroup.Id.ToString()));
+
             try
             {
                 // Instantiate the right content handler class
@@ -476,6 +480,10 @@ namespace MillimanAccessPortal.Controllers
                 return View("ContentMessage", ErrMsg);
             }
             #endregion
+
+            // Log access to related file
+            AuditLogger.Log(AuditEventType.UserContentRelatedFileAccess.ToEvent(
+                selectionGroup.RootContentItemId.ToString(), selectionGroup.Id.ToString(), purpose));
 
             try
             {
