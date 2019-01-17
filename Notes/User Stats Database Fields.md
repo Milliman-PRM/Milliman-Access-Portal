@@ -64,7 +64,7 @@
 | ClientId       | uuid    | Foreign key to Client Id                                       |
 | ProfitCenterId | uuid    | Foreign key to Profit Center Id                                |
 | StartDate      | date    |                                                                |
-| EndDate        | date    | Nullable; null value indicates a currently active relationship |
+| EndDate        | date    | Default value of 12-31-9999 indicates currently active record  |
 
 ## Profit Center
 
