@@ -5,9 +5,13 @@ import * as React from 'react';
 import { getData } from '../../shared';
 
 import { LoginState } from './interfaces';
+import LoginForm from './login-form';
+import Input from '../shared-components/input';
 
 
 import '../../../images/map-logo.svg';
+import '../../../images/icons/user.svg';
+import '../../../images/icons/password.svg';
 import '../../../scss/map.scss';
 
 
@@ -15,37 +19,7 @@ export class Login extends React.Component <{}, LoginState > {
   public constructor(props) {
     super(props);
 
-    this.state = {
-      Username: '',
-      Password: '',
-      ShowPassword: false,
-      RequestValidationToken: ''
-    };
-
-    this.handleChange = this.handleChange.bind(this);
-    this.handleBlur = this.handleBlur.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  componentDidMount() {
-    const RequestValidationToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
-    this.setState({ RequestValidationToken });
-  }
-
-  private handleChange(event) {
-    const loginFieldValue = {};
-    loginFieldValue[event.target.name] = event.target.value
-    this.setState(loginFieldValue);
-    this.setState({ ShowPassword: true });
-  }
-
-  private handleBlur() {
-    this.setState({ ShowPassword: true });
-  }
-
-  private handleSubmit(event) {
-    console.log('Form Submitted');
-    event.preventDefault
+    this.state = {};
   }
 
   public render() {
@@ -61,19 +35,7 @@ export class Login extends React.Component <{}, LoginState > {
                   <use xlinkHref={"#map-logo"} />
                 </svg>
               </div>
-              <form id="login-form" autoComplete="off" action="/Account/Login?returnurl=%2F" method="post">
-                <div className="login-form-input-container">
-                  <input name="Username" type="text" value={this.state.Username} onChange={this.handleChange} onBlur={this.handleBlur} placeholder="Username" autoFocus />
-                </div>
-                <div className="login-form-input-container">
-                  <input name="Password" type="password" value={this.state.Password} onChange={this.handleChange} placeholder="Password" />
-                </div>
-                <input name="__RequestVerificationToken" type="hidden" value={this.state.RequestValidationToken} />
-                <div className="login-form-button-container">
-                  <a href="/Account/ForgotPassword" className="link-button">Forgot Password</a>
-                  <button type="submit" className="blue-button">Login</button>
-                </div>
-              </form>
+              <LoginForm />
             </div>
           </section>
         </div>
@@ -81,3 +43,38 @@ export class Login extends React.Component <{}, LoginState > {
     )
   }
 }
+
+
+//<div className = "login-form-input-container" >
+//  <input name="Username" type="text" value={this.state.Username} onChange={this.handleChange} onBlur={this.handleBlur} placeholder="Username" autoFocus />
+//</div>
+//<div className="login-form-input-container">
+//  <input name="Password" type="password" value={this.state.Password} onChange={this.handleChange} placeholder="Password" />
+//</div>
+
+
+
+//<form id="login-form" autoComplete="off" action="/Account/Login?returnurl=%2F" method="post">
+//  <Input
+//    name="Username"
+//    label="Username"
+//    placeholderText="Username"
+//    inputIcon="user"
+//    value={this.state.Username}
+//    handleChange={this.handleChange}
+//    type="text"
+//  />
+//  <Input
+//    name="Password"
+//    label="Password"
+//    inputIcon="password"
+//    value={this.state.Password}
+//    handleChange={this.handleChange}
+//    type="password"
+//  />
+//  <input name="__RequestVerificationToken" type="hidden" value={this.state.RequestValidationToken} />
+//  <div className="login-form-button-container">
+//    <a href="/Account/ForgotPassword" className="link-button">Forgot Password</a>
+//    <button type="submit" className="blue-button">Login</button>
+//  </div>
+//</form>
