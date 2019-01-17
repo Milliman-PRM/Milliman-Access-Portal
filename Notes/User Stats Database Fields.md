@@ -91,7 +91,7 @@
 | RequestStatus     | integer   |   |
 
 
-## Audit Log
+## Audit Event
 
 **Data source:** MAP audit log database
 
@@ -118,6 +118,7 @@
 | SessionStartTime | timestamp |                                                                                  |
 | SessionDuration  | timestamp |                                                                                  |
 | SessionEndTime   | timestamp | Not provided in the text file; has to be calculated at the time of the data load |
+| UserName         | text      |                                                                                  |
 | CalType          | text      | The type of QlikView CAL used by the session (Document or Named User)            |
 | Browser          | text      |                                                                                  |
 | Session          | integer   | Session ID (new in QlikView 12)                                                  |
