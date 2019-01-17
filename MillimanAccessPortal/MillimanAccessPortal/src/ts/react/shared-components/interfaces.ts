@@ -29,3 +29,21 @@ export interface ContentContainerProps {
 }
 
 export type Guid = string;
+
+export interface OptionalInputProps {
+  placeholderText?: string;
+  inputIcon?: string;
+  actionIcon?: string;
+  actionIconEvent?: (event: any) => void;
+  autoFocus?: boolean;
+}
+
+export interface InputProps extends OptionalInputProps {
+  name: string;
+  label: string;
+  type: string;
+  error: string;
+  value: string;
+  onChange: (currentTarget: any) => void;
+  onBlur: (currentTarget: any) => void;
+}
