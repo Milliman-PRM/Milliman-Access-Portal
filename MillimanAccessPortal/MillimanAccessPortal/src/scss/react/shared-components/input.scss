@@ -1,0 +1,115 @@
+﻿@import "../../map_modules/variables";
+
+.form-element-container {
+    margin-bottom: 1.5em;
+
+    .form-element {
+        position: relative;
+        display: flex;
+        flex-flow: row nowrap;
+        height: 4rem;
+        width: 100%;
+        align-self: flex-start;
+        margin-bottom: .5rem;
+
+        &.error {
+            border: 2px solid $red;
+        }
+
+        .input-icon-label {
+            flex: 0 0 auto;
+            height: 100%;
+            width: 4rem;
+            background-color: $blue;
+            border: 1px solid $charcoal;
+            border-right: none;
+            padding: .5rem;
+
+            .input-icon {
+                height: 100%;
+                width: 100%;
+                color: $white;
+            }
+        }
+
+        .form-input-container {
+            flex: 1 0 auto;
+            position: relative;
+
+            .form-input {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                border: 1px solid $charcoal;
+                font-size: 1.25rem;
+                color: $charcoal;
+                background-color: $white;
+
+                &:focus {
+
+                    & + .form-input-label {
+                        color: $blue;
+                        font-weight: bold;
+                    }
+                }
+
+                &:not([value='']),
+                &:focus {
+                    padding: 1.25rem .5rem .25rem;
+                }
+
+                &:not([value='']) + .form-input-label,
+                &:focus + .form-input-label {
+                    top: 0;
+                    opacity: 1;
+                    transition: all .25s;
+                }
+
+                &:focus::placeholder {
+                    color: transparent;
+                }
+            }
+
+            .form-input-label {
+                position: absolute;
+                top: .5rem;
+                left: 0;
+                padding: .5rem;
+                font-size: .75rem;
+                font-weight: 300;
+                color: $dark-grey;
+                opacity: 0;
+            }
+
+            .action-icon {
+                position: absolute;
+                top: 0;
+                right: 0;
+                height: 100%;
+                width: 4rem;
+                color: $green;
+                z-index: 2;
+            }
+        }
+
+        .error-icon {
+            flex: 0 0 auto;
+            height: 3rem;
+            width: 3rem;
+            z-index: 2;
+            color: $red;
+        }
+    }
+
+    .error-message {
+        display: block;
+        font-style: italic;
+        font-size: .75rem;
+        color: $red;
+        padding: .25rem;
+        margin: .25rem;
+    }
+}
+
