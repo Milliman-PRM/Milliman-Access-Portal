@@ -1,26 +1,28 @@
-﻿import '../../../scss/react/shared-components/input.scss';
+﻿import '../../../images/icons/error.svg';
+import '../../../images/icons/show-password.svg';
+import '../../../images/icons/hide-password.svg';
+
+import '../../../scss/react/shared-components/input.scss';
 
 import * as React from 'react';
+import { InputProps } from './interfaces';
 
-interface InputProps {
-  name: string;
-  label?: string;
-  error?: string;
-  inputIcon?: string;
-}
-
-const Input = ({ name, label, error, inputIcon, ...rest }: InputProps) => {
+const Input = ({ name, label, placeholderText = null, error = null, inputIcon = null, actionIcon = null, actionIconEvent = null, type = "text", ...rest }: InputProps) => {
   return (
-    <div className="form-input-container">
-      {label && <label className="form-input-label" htmlFor={name}>{label}</label>}
-      <div className="form-element-container">
-        {inputIcon && <svg className="filter-icon"><use xlinkHref="#{inputIcon}" /></svg>}
-        <input name={name} id={name} className="form-input" {...rest} />
-        {error && <svg className="form-element-error-icon"><use xlinkHref="#warning" /></svg>}
+    <div className="form-element-container">
+      <div className={"form-element" + (error ? " error" : "")}>
+        {inputIcon && <div className="input-icon-label"><svg className="input-icon"><use xlinkHref={`#${inputIcon}`} /></svg></div>}
+        <div className="form-input-container">
+          <input name={name} id={name} type={type} className="form-input" placeholder={ placeholderText || label } {...rest} />
+          <label className="form-input-label" htmlFor={name}>{label}</label>
+          {actionIcon && <svg className="action-icon" onClick={actionIconEvent}><use xlinkHref={`#${actionIcon}`} /></svg>}
+        </div>
       </div>
-      {error && <div className="form-element-error-message">{error}</div>}
+      {error && <div className="error-message">{error}</div>}
     </div>
   );
 };
 
 export default Input;
+
+//        {error && <svg className="error-icon"><use xlinkHref="#error" /></svg>}
