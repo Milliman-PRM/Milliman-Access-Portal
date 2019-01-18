@@ -2,7 +2,7 @@
 const Joi = require('joi-browser');
 import Form from "../shared-components/form";
 
-import '../../../images/icons/checkmark.svg';
+import '../../../images/icons/login.svg';
 
 class LoginForm extends Form {
   state = {
@@ -46,7 +46,7 @@ class LoginForm extends Form {
     return (
       <form onSubmit={this.state.userConfirmed ? this.handleSubmit : this.checkUser}>
         {!this.state.userConfirmed ?
-          this.renderInput("username", "Username", "text", { inputIcon: 'user', actionIcon: 'checkmark', actionIconEvent: this.checkUser, autoFocus: true }) :
+          this.renderInput("username", "Username", "text", { inputIcon: 'user', actionIcon: 'login', actionIconEvent: this.checkUser, autoFocus: true }) :
           this.renderInput("username", "Username", "text", { inputIcon: 'user' })
         }
         {this.state.userConfirmed && this.renderInput("password", "Password", "password", { inputIcon: 'password', autoFocus: true })}
