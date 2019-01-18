@@ -15,8 +15,8 @@ const Input = ({ name, label, placeholderText = null, error = null, inputIcon = 
         <div className="form-input-container">
           <input name={name} id={name} type={type} className="form-input" placeholder={ placeholderText || label } {...rest} />
           <label className="form-input-label" htmlFor={name}>{label}</label>
-          {actionIcon && <svg className="action-icon" onClick={actionIconEvent}><use xlinkHref={`#${actionIcon}`} /></svg>}
         </div>
+        {actionIcon && <div className="action-icon-label" onClick={actionIconEvent}><svg className="action-icon"><use xlinkHref={`#${actionIcon}`} /></svg></div>}
       </div>
       {error && <div className="error-message">{error}</div>}
     </div>
