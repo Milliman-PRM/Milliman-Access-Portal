@@ -21,7 +21,7 @@ class Form extends React.Component {
     this.setState({ data })
   }
 
-  doSubmit = () => { };
+  doSubmit = () => { }
 
   validate = () => {
     const options = { abortEarly: false };

@@ -4,7 +4,6 @@ import * as React from 'react';
 
 import { getData } from '../../shared';
 
-import { LoginState } from './interfaces';
 import LoginForm from './login-form';
 import Input from '../shared-components/input';
 
@@ -15,7 +14,7 @@ import '../../../images/icons/password.svg';
 import '../../../scss/map.scss';
 
 
-export class Login extends React.Component <{}, LoginState > {
+export class Login extends React.Component<{}, {} > {
   public constructor(props) {
     super(props);
 

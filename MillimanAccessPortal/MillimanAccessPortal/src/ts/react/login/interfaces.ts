@@ -1,2 +1,1 @@
-﻿export interface LoginState {
-}
+﻿export interface LoginFormState {}
