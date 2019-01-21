@@ -3,6 +3,7 @@ import '../../../images/user.svg';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
+import ReduxToastr from 'react-redux-toastr';
 import Select from 'react-select';
 
 import { isPublicationActive, ReductionStatus } from '../../view-models/content-publishing';
@@ -139,6 +140,13 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
   public render() {
     return (
       <>
+        <ReduxToastr
+          timeOut={5000}
+          newestOnTop={false}
+          position="bottom-center"
+          transitionIn="fadeIn"
+          transitionOut="fadeOut"
+        />
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
         {this.renderItemPanel()}
@@ -558,7 +566,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         title={group.name}
         subtitle={item.name}
         status={group.status.taskStatus || ReductionStatus.Unspecified}
-        onBeginReduction={() => selectedValues.length
+        onBeginReduction={() => selectedValues.length || selectedMaster
           ? this.props.updateSelections(group.id, selectedMaster, selectedValues)
           : this.props.openInvalidateModal()
         }

@@ -1,4 +1,5 @@
-import { all, apply, call, put, select, takeLatest } from 'redux-saga/effects';
+import { toastr } from 'react-redux-toastr';
+import { all, apply, call, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
 
 import {
     AccessAction, DataAction, DataArgs, DataSuffixes, fetchSessionCheck, fetchStatusRefresh,
@@ -38,6 +39,7 @@ function* scheduleSessionCheck(action: ScheduleAction) {
 }
 
 export default function* rootSaga() {
+  // API requests
   yield all([
     takeLatest(AccessAction.FetchClients, dataSaga),
     takeLatest(AccessAction.FetchItems, dataSaga),
@@ -52,6 +54,8 @@ export default function* rootSaga() {
     takeLatest(AccessAction.UpdateSelections, dataSaga),
     takeLatest(AccessAction.CancelReduction, dataSaga),
   ]);
+
+  // polling
   yield takeLatest(AccessAction.ScheduleStatusRefresh, scheduleStatusRefresh);
   yield takeLatest(AccessAction.FetchStatusRefresh + DataSuffixes.Succeeded, function*() {
     yield put({ type: AccessAction.ScheduleStatusRefresh, delay: 5000 });
@@ -59,5 +63,37 @@ export default function* rootSaga() {
   yield takeLatest(AccessAction.ScheduleSessionCheck, scheduleSessionCheck);
   yield takeLatest(AccessAction.FetchSessionCheck + DataSuffixes.Succeeded, function*() {
     yield put({ type: AccessAction.ScheduleSessionCheck, delay: 60000 });
+  });
+
+  // toastr
+  yield takeEvery(AccessAction.CreateGroup + DataSuffixes.Succeeded, function*() {
+    toastr.success('', 'Selection group created');
+  });
+  yield takeEvery(AccessAction.DeleteGroup + DataSuffixes.Succeeded, function*() {
+    toastr.success('', 'Selection group deleted');
+  });
+  yield takeEvery(AccessAction.UpdateGroup + DataSuffixes.Succeeded, function*() {
+    toastr.success('', 'Selection group updated');
+  });
+  yield takeEvery(AccessAction.SuspendGroup + DataSuffixes.Succeeded, function*(action: any) {
+    const { isSuspended } = action.payload;
+    toastr.success('', `Selection group ${isSuspended ? '' : 'un'}suspended`);
+  });
+  yield takeEvery(AccessAction.UpdateSelections + DataSuffixes.Succeeded, function*(action: any) {
+    const { group, reduction } = action.payload;
+    toastr.success('', reduction && reduction.taskStatus === 10
+      ? 'Reduction queued'
+      : group && group.isMaster
+        ? 'Unrestricted access granted'
+        : 'Group inactivated');
+  });
+  yield takeEvery(AccessAction.CancelReduction + DataSuffixes.Succeeded, function*() {
+    toastr.success('', 'Reduction canceled');
+  });
+  yield takeEvery(AccessAction.CancelReduction + DataSuffixes.Failed, function*() {
+    toastr.info('', 'The reduction has already begun processing');
+  });
+  yield takeEvery((action) => action.type.match(`${DataSuffixes.Failed}$`), function*() {
+    toastr.warning('', 'An unexpected error has occured');
   });
 }

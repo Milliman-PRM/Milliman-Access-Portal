@@ -1,12 +1,13 @@
 import * as _ from 'lodash';
+import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
 import { Guid } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { AccessAction, DataSuffixes } from './actions';
 import {
-  AccessStateData, AccessStateSelected, FilterState, ModalState, PendingDataState,
-  PendingGroupState, PendingGroupUserState,
+    AccessStateData, AccessStateSelected, FilterState, ModalState, PendingDataState,
+    PendingGroupState, PendingGroupUserState,
 } from './store';
 
 const _initialData: AccessStateData = {
@@ -126,11 +127,19 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     clients: false,
   }),
+  [AccessAction.FetchClients + DataSuffixes.Failed]: (state) => ({
+    ...state,
+    clients: false,
+  }),
   [AccessAction.FetchItems]: (state) => ({
     ...state,
     items: true,
   }),
   [AccessAction.FetchItems + DataSuffixes.Succeeded]: (state) => ({
+    ...state,
+    items: false,
+  }),
+  [AccessAction.FetchItems + DataSuffixes.Failed]: (state) => ({
     ...state,
     items: false,
   }),
@@ -142,11 +151,19 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     groups: false,
   }),
+  [AccessAction.FetchGroups + DataSuffixes.Failed]: (state) => ({
+    ...state,
+    groups: false,
+  }),
   [AccessAction.FetchSelections]: (state) => ({
     ...state,
     selections: true,
   }),
   [AccessAction.FetchSelections + DataSuffixes.Succeeded]: (state) => ({
+    ...state,
+    selections: false,
+  }),
+  [AccessAction.FetchSelections + DataSuffixes.Failed]: (state) => ({
     ...state,
     selections: false,
   }),
@@ -158,11 +175,19 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     createGroup: false,
   }),
+  [AccessAction.CreateGroup + DataSuffixes.Failed]: (state) => ({
+    ...state,
+    createGroup: false,
+  }),
   [AccessAction.DeleteGroup]: (state) => ({
     ...state,
     deleteGroup: true,
   }),
   [AccessAction.DeleteGroup + DataSuffixes.Succeeded]: (state) => ({
+    ...state,
+    deleteGroup: false,
+  }),
+  [AccessAction.DeleteGroup + DataSuffixes.Failed]: (state) => ({
     ...state,
     deleteGroup: false,
   }),
@@ -174,6 +199,10 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     suspendGroup: false,
   }),
+  [AccessAction.SuspendGroup + DataSuffixes.Failed]: (state) => ({
+    ...state,
+    suspendGroup: false,
+  }),
   [AccessAction.UpdateSelections]: (state) => ({
     ...state,
     updateSelections: true,
@@ -182,11 +211,19 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     updateSelections: false,
   }),
+  [AccessAction.UpdateSelections + DataSuffixes.Failed]: (state) => ({
+    ...state,
+    updateSelections: false,
+  }),
   [AccessAction.CancelReduction]: (state) => ({
     ...state,
     cancelReduction: true,
   }),
   [AccessAction.CancelReduction + DataSuffixes.Succeeded]: (state) => ({
+    ...state,
+    cancelReduction: false,
+  }),
+  [AccessAction.CancelReduction + DataSuffixes.Failed]: (state) => ({
     ...state,
     cancelReduction: false,
   }),
@@ -519,14 +556,17 @@ const modals = combineReducers({
   addGroup: createModalReducer([ AccessAction.OpenAddGroupModal ], [
     AccessAction.CloseAddGroupModal,
     AccessAction.CreateGroup + DataSuffixes.Succeeded,
+    AccessAction.CreateGroup + DataSuffixes.Failed,
   ]),
   deleteGroup: createModalReducer([ AccessAction.OpenDeleteGroupModal ], [
     AccessAction.CloseDeleteGroupModal,
     AccessAction.DeleteGroup + DataSuffixes.Succeeded,
+    AccessAction.DeleteGroup + DataSuffixes.Failed,
   ]),
   invalidate: createModalReducer([ AccessAction.OpenInvalidateModal ], [
     AccessAction.CloseInvalidateModal,
     AccessAction.UpdateSelections + DataSuffixes.Succeeded,
+    AccessAction.UpdateSelections + DataSuffixes.Failed,
   ]),
 });
 
@@ -537,4 +577,5 @@ export const contentAccessAdmin = combineReducers({
   pending,
   filters,
   modals,
+  toastr: toastrReducer,
 });

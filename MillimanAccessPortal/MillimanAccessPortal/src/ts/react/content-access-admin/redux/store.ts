@@ -1,10 +1,11 @@
+import * as toastr from 'react-redux-toastr';
 import { applyMiddleware, createStore } from 'redux';
 import createSagaMiddleware from 'redux-saga';
 
 import {
-  ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, ContentType, Guid,
-  PublicationQueueDetails, ReductionField, ReductionFieldValue, ReductionQueueDetails,
-  RootContentItemWithStats, SelectionGroupWithAssignedUsers, User,
+    ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, ContentType, Guid,
+    PublicationQueueDetails, ReductionField, ReductionFieldValue, ReductionQueueDetails,
+    RootContentItemWithStats, SelectionGroupWithAssignedUsers, User,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { contentAccessAdmin } from './reducers';
@@ -90,6 +91,7 @@ export interface AccessState {
   pending: AccessStatePending;
   filters: AccessStateFilters;
   modals: AccessStateModals;
+  toastr: toastr.ToastrState;
 }
 
 const sagaMiddleware = createSagaMiddleware();
