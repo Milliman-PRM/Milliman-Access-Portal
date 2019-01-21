@@ -101,10 +101,10 @@ namespace MillimanAccessPortal.Controllers
 
                 if (user == null || user.IsSuspended)
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     Log.Debug($"User {model.Username} suspended or not found, login rejected");
                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
-                    return View(model);
+                    Response.Headers.Add("Warning", "Invalid login attempt.");
+                    return Ok();
                 }
                 
                 // Only notify of password expiration if the correct password was provided
@@ -175,17 +175,18 @@ namespace MillimanAccessPortal.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                         Log.Information($"User {model.Username} PasswordSignInAsync did not succeed");
                         _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
-                        return View(model);
+                        Response.Headers.Add("Warning", "Invalid login attempt.");
+                        return Ok();
                     }
                 }
 
             }
 
             // If we got this far, something failed, redisplay form
-            return View(model);
+            Response.Headers.Add("Warning", "Login failed.");
+            return Ok();
         }
 
         //
