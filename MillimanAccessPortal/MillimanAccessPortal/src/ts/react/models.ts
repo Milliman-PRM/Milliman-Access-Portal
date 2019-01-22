@@ -19,6 +19,7 @@ export interface ProfitCenter {
 }
 export interface Client {
   id: Guid;
+  parentId: Guid;
   profitCenterId?: Guid;
   name: string;
   code: string;

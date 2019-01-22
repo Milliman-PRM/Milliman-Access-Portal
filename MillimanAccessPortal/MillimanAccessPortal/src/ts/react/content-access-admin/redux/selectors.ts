@@ -5,7 +5,7 @@ import {
     isReductionActive, publicationStatusNames, reductionStatusNames,
 } from '../../../view-models/content-publishing';
 import {
-    ContentPublicationRequest, ContentReductionTask, Guid, ReductionFieldset, User,
+    ContentPublicationRequest, ContentReductionTask, Guid, ReductionFieldset, User, ClientWithEligibleUsers,
 } from '../../models';
 import { AccessState } from './store';
 
@@ -212,8 +212,22 @@ export function filteredValues(state: AccessState) {
  * @param state Redux store
  */
 export function activeClients(state: AccessState) {
-  const filtered = filteredClients(state);
-  return _.sortBy(filtered, ['name', 'code']);
+  return filteredClients(state);
+}
+
+export function activeClientsTree(state: AccessState) {
+  const clients = activeClients(state);
+  const parentGroups: { [id: string]: ClientWithEligibleUsers[] } = clients.reduce((groups, cur) =>
+    groups[cur.parentId]
+      ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
+      : { ...groups, [cur.parentId]: [ cur ] },
+    {});
+  const iteratees = ['name', 'code'];
+  const clientTree = _.sortBy(parentGroups.null, iteratees).map((c) => ({
+    parent: c,
+    children: _.sortBy(parentGroups[c.id] || [], iteratees),
+  }));
+  return clientTree;
 }
 
 /**
@@ -389,9 +403,22 @@ export function activeReductionFieldsets(state: AccessState): ReductionFieldset[
  * @param state Redux store
  */
 export function clientEntities(state: AccessState) {
-  return activeClients(state).map((c) => ({
-    ...c,
-  }));
+  const entities = [];
+  activeClientsTree(state).forEach(({ parent, children }) => {
+    entities.push({
+      ...parent,
+      indent: 1,
+    });
+    children.forEach((child) => {
+      entities.push({
+        ...child,
+        indent: 2,
+      });
+    });
+    entities.push(null);  // null represents a divider
+  });
+  entities.pop();  // remove last divider
+  return entities;
 }
 
 /**

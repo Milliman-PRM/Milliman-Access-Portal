@@ -6,6 +6,7 @@ namespace MillimanAccessPortal.Models.ClientModels
     public class BasicClient
     {
         public Guid Id { get; set; }
+        public Guid? ParentId { get; set; } = null;
         public string Name { get; set; }
         public string Code { get; set; }
 
@@ -19,6 +20,7 @@ namespace MillimanAccessPortal.Models.ClientModels
             return new BasicClient
             {
                 Id = client.Id,
+                ParentId = client.ParentClientId,
                 Name = client.Name,
                 Code = client.ClientCode,
             };

@@ -40,6 +40,9 @@ import {
 } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
 
+interface ClientEntity extends ClientWithEligibleUsers {
+  indent: 1 | 2;
+}
 interface RootContentItemEntity extends RootContentItemWithPublication {
   contentTypeName: string;
 }
@@ -50,7 +53,7 @@ interface SelectionGroupEntity extends SelectionGroupWithStatus {
 }
 
 interface ContentAccessAdminProps {
-  clients: ClientWithEligibleUsers[];
+  clients: ClientEntity[];
   items: RootContentItemEntity[];
   groups: SelectionGroupEntity[];
   reductionFieldsets: ReductionFieldset[];
@@ -162,34 +165,39 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
       <CardPanel
         entities={clients}
         loading={pending.data.clients}
-        renderEntity={(entity, key) => (
-          <Card
-            key={key}
-            selected={selected.client === entity.id}
-            onSelect={() => {
-              if (selected.client !== entity.id) {
-                this.props.fetchItems(entity.id);
-              }
-              this.props.selectClient(entity.id);
-            }}
-          >
-            <CardSectionMain>
-              <CardText text={entity.name} subtext={entity.code} />
-              <CardSectionStats>
-                <CardStat
-                  name={'Reports'}
-                  value={entity.contentItemCount}
-                  icon={'reports'}
-                />
-                <CardStat
-                  name={'Users'}
-                  value={entity.userCount}
-                  icon={'user'}
-                />
-              </CardSectionStats>
-            </CardSectionMain>
-          </Card>
-        )}
+        renderEntity={(entity, key) => entity
+          ? (
+            <Card
+              key={key}
+              selected={selected.client === entity.id}
+              onSelect={() => {
+                if (selected.client !== entity.id) {
+                  this.props.fetchItems(entity.id);
+                }
+                this.props.selectClient(entity.id);
+              }}
+              indentation={entity.indent}
+            >
+              <CardSectionMain>
+                <CardText text={entity.name} subtext={entity.code} />
+                <CardSectionStats>
+                  <CardStat
+                    name={'Reports'}
+                    value={entity.contentItemCount}
+                    icon={'reports'}
+                  />
+                  <CardStat
+                    name={'Users'}
+                    value={entity.userCount}
+                    icon={'user'}
+                  />
+                </CardSectionStats>
+              </CardSectionMain>
+            </Card>
+          )
+          : (
+            <div className="hr" key={key} />
+          )}
       >
         <h3 className="admin-panel-header">Clients</h3>
         <PanelSectionToolbar>

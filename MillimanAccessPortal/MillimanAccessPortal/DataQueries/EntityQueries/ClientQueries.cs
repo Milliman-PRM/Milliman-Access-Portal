@@ -37,6 +37,7 @@ namespace MillimanAccessPortal.DataQueries
                 .Select(c => new BasicClient
                 {
                     Id = c.Id,
+                    ParentId = c.ParentClientId,
                     Name = c.Name,
                     Code = c.ClientCode,
                 })
@@ -59,6 +60,7 @@ namespace MillimanAccessPortal.DataQueries
                 .Select(c => new BasicClient
                 {
                     Id = c.Id,
+                    ParentId = c.ParentClientId,
                     Name = c.Name,
                     Code = c.ClientCode,
                 })
@@ -78,6 +80,7 @@ namespace MillimanAccessPortal.DataQueries
                 var clientWith = new BasicClientWithStats
                 {
                     Id = client.Id,
+                    ParentId = client.ParentId,
                     Name = client.Name,
                     Code = client.Code,
                 };
@@ -108,6 +111,7 @@ namespace MillimanAccessPortal.DataQueries
                 var clientWith = new BasicClientWithEligibleUsers
                 {
                     Id = client.Id,
+                    ParentId = client.ParentId,
                     Name = client.Name,
                     Code = client.Code,
                     ContentItemCount = client.ContentItemCount,
