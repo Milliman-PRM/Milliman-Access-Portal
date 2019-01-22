@@ -5,7 +5,7 @@ import {
     isReductionActive, publicationStatusNames, reductionStatusNames,
 } from '../../../view-models/content-publishing';
 import {
-    ContentPublicationRequest, ContentReductionTask, Guid, ReductionFieldset,
+    ContentPublicationRequest, ContentReductionTask, Guid, ReductionFieldset, User,
 } from '../../models';
 import { AccessState } from './store';
 
@@ -212,7 +212,8 @@ export function filteredValues(state: AccessState) {
  * @param state Redux store
  */
 export function activeClients(state: AccessState) {
-  return filteredClients(state);
+  const filtered = filteredClients(state);
+  return _.sortBy(filtered, ['name', 'code']);
 }
 
 /**
@@ -242,7 +243,8 @@ function relatedPublication(state: AccessState, itemId: Guid) {
  * @param state Redux store
  */
 function activeItems(state: AccessState) {
-  return filteredItems(state).filter((i) => i.clientId === state.selected.client);
+  const filtered = filteredItems(state).filter((i) => i.clientId === state.selected.client);
+  return _.sortBy(filtered, ['name']);
 }
 
 /**
@@ -291,7 +293,8 @@ function relatedReduction(state: AccessState, groupId: Guid) {
  * @param state Redux store
  */
 export function activeGroups(state: AccessState) {
-  return filteredGroups(state).filter((i) => i.rootContentItemId === state.selected.item);
+  const filtered = filteredGroups(state).filter((i) => i.rootContentItemId === state.selected.item);
+  return _.sortBy(filtered, ['name']);
 }
 
 /**
@@ -371,10 +374,14 @@ export function activeReductionValues(state: AccessState) {
  * @param state Redux store
  */
 export function activeReductionFieldsets(state: AccessState): ReductionFieldset[] {
-  return activeReductionFields(state).map((f) => ({
+  const activeFields = activeReductionFields(state).map((f) => ({
     field: f,
-    values: activeReductionValues(state).filter((v) => v.reductionFieldId === f.id),
+    values: _.sortBy(
+      activeReductionValues(state).filter((v) => v.reductionFieldId === f.id),
+      ['value'],
+    ),
   }));
+  return _.sortBy(activeFields, ['displayName']);
 }
 
 /**
@@ -408,7 +415,10 @@ export function itemEntities(state: AccessState) {
 export function groupEntities(state: AccessState) {
   return activeGroupsWithStatus(state).map((g) => ({
     ...g,
-    assignedUsers: pendingGroupUserAssignments(state, g.id).map((id) => state.data.users[id]),
+    assignedUsers: _.sortBy(
+      pendingGroupUserAssignments(state, g.id).map((id) => state.data.users[id]),
+      [(u) => u.firstName + u.lastName, 'username'],
+    ) as User[],
     name: pendingGroupName(state, g.id),
     editing: state.pending.group.id === g.id,
     userQuery: state.pending.group

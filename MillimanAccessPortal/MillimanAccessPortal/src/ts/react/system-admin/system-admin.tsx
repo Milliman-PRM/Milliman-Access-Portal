@@ -226,7 +226,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                         />
                       </CardSectionButtons>
                     </CardSectionMain>
-                    {entity.rootContentItems.length
+                    {entity.rootContentItems && entity.rootContentItems.length
                       ? (
                         <CardExpansion
                           label={'Content Items'}
@@ -273,7 +273,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                         />
                       </CardSectionStats>
                     </CardSectionMain>
-                    {entity.users.length
+                    {entity.users && entity.users.length
                       ? (
                         <CardExpansion
                           label={'Members'}
