@@ -29,6 +29,8 @@ import {
 } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
+import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
+import { Filter } from '../shared-components/filter';
 
 export interface ContentPanelAttributes {
   selected: {
@@ -262,6 +264,16 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             onColumnSelect={this.handleSecondaryColumnSelected}
             selectedColumn={this.getColumns(primaryColumn).filter((c) => c.id === secondaryColumn)[0]}
           />
+          <PanelSectionToolbar>
+            <Filter
+              placeholderText={'Filter...'}
+              setFilterText={this.handleSecondaryFilterKeyup}
+              filterText={this.state.secondaryPanel.filter.text}
+            />
+            <PanelSectionToolbarButtons>
+              <div id="icons" />
+            </PanelSectionToolbarButtons>
+          </PanelSectionToolbar>
         </CardPanel>
       )
       : null;
@@ -354,6 +366,16 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             onColumnSelect={this.handlePrimaryColumnSelected}
             selectedColumn={this.getColumns().filter((c) => c.id === primaryColumn)[0]}
           />
+          <PanelSectionToolbar>
+            <Filter
+              placeholderText={'Filter...'}
+              setFilterText={this.handlePrimaryFilterKeyup}
+              filterText={this.state.primaryPanel.filter.text}
+            />
+            <PanelSectionToolbarButtons>
+              <div id="icons" />
+            </PanelSectionToolbarButtons>
+          </PanelSectionToolbar>
         </CardPanel>
         {secondaryColumnComponent}
         <div
