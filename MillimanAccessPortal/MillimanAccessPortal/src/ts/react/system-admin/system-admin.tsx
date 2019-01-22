@@ -10,19 +10,22 @@ import '../../../scss/react/system-admin/system-admin.scss';
 import * as React from 'react';
 
 import { getJsonData, postData } from '../../shared';
-import { BasicNode, BasicTree, Nestable } from '../../view-models/content-publishing';
+import { BasicNode } from '../../view-models/content-publishing';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { Card, CardAttributes } from '../shared-components/card/card';
-import { CardSectionMain, CardText } from '../shared-components/card/card-sections';
+import {
+    CardSectionMain, CardSectionStats, CardText,
+} from '../shared-components/card/card-sections';
+import { CardStat } from '../shared-components/card/card-stat';
 import { ColumnIndicator, ColumnSelector } from '../shared-components/column-selector';
 import { EntityHelper } from '../shared-components/entity';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
-  ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo, isClientInfoTree,
-  isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo, isUserClientRoles,
-  isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail, SecondaryDetailData,
-  UserClientRoles,
+    ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo,
+    isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
+    isUserClientRoles, isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail,
+    SecondaryDetailData, UserClientRoles,
 } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
@@ -158,17 +161,87 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         <CardPanel
           entities={sEntities}
           renderEntity={(entity, key) => {
-            let text;
-            let subtext;
-            if (isUserInfo(entity)) {
-              text = entity.firstName + ' ' + entity.lastName;
-              subtext = entity.userName;
-            } else {
-              text = entity.name;
-              if (isRootContentItemInfo(entity)) {
-                subtext = entity.clientName;
-              } else {
-                subtext = entity.code;
+            let cardContents: JSX.Element = null;
+            if (primaryColumn === SystemAdminColumn.USER) {
+              if (isClientInfo(entity)) {
+                cardContents = (
+                  <>
+                    <CardText text={entity.name} subtext={entity.code} />
+                    <CardSectionStats>
+                      <CardStat
+                        name={'Reports'}
+                        value={entity.rootContentItemCount}
+                        icon={'reports'}
+                      />
+                    </CardSectionStats>
+                  </>
+                );
+              } else if (isRootContentItemInfo(entity)) {
+                cardContents = (
+                  <>
+                    <CardText text={entity.name} subtext={entity.clientName} />
+                  </>
+                );
+              }
+            } else if (primaryColumn === SystemAdminColumn.CLIENT) {
+              if (isUserInfo(entity)) {
+                cardContents = (
+                  <>
+                    <CardText
+                      text={entity.firstName + ' ' + entity.lastName}
+                      subtext={entity.userName}
+                    />
+                    <CardSectionStats>
+                      <CardStat
+                        name={'Reports'}
+                        value={entity.rootContentItemCount}
+                        icon={'reports'}
+                      />
+                    </CardSectionStats>
+                  </>
+                );
+              } else if (isRootContentItemInfo(entity)) {
+                cardContents = (
+                  <>
+                    <CardText text={entity.name} subtext={entity.clientName} />
+                    <CardSectionStats>
+                      <CardStat
+                        name={'Users'}
+                        value={entity.userCount}
+                        icon={'user'}
+                      />
+                      <CardStat
+                        name={'Selection groups'}
+                        value={entity.selectionGroupCount}
+                        icon={'group'}
+                      />
+                    </CardSectionStats>
+                  </>
+                );
+              }
+            } else if (primaryColumn === SystemAdminColumn.PROFIT_CENTER) {
+              if (isUserInfo(entity)) {
+                cardContents = (
+                  <>
+                    <CardText
+                      text={entity.firstName + ' ' + entity.lastName}
+                      subtext={entity.userName}
+                    />
+                    <CardSectionStats>
+                      <CardStat
+                        name={'Clients'}
+                        value={entity.clientCount}
+                        icon={'client'}
+                      />
+                    </CardSectionStats>
+                  </>
+                );
+              } else if (isClientInfo(entity)) {
+                cardContents = (
+                  <>
+                    <CardText text={entity.name} subtext={entity.code} />
+                  </>
+                );
               }
             }
             return (
@@ -178,7 +251,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                 onSelect={() => this.handleSecondaryCardSelected(entity.id)}
               >
                 <CardSectionMain>
-                  <CardText text={text} subtext={subtext} />
+                  {cardContents}
                 </CardSectionMain>
               </Card>
             );
@@ -200,18 +273,64 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         <CardPanel
           entities={pEntities}
           renderEntity={(entity, key) => {
-            let text;
-            let subtext;
+            let cardContents: JSX.Element = null;
             if (isUserInfo(entity)) {
-              text = entity.firstName + ' ' + entity.lastName;
-              subtext = entity.userName;
-            } else {
-              text = entity.name;
-              if (isRootContentItemInfo(entity)) {
-                subtext = entity.clientName;
-              } else {
-                subtext = entity.code;
-              }
+              cardContents = (
+                <>
+                  <CardText
+                    text={entity.firstName + ' ' + entity.lastName}
+                    subtext={entity.userName}
+                  />
+                  <CardSectionStats>
+                    <CardStat
+                      name={'Clients'}
+                      value={entity.clientCount}
+                      icon={'client'}
+                    />
+                    <CardStat
+                      name={'Reports'}
+                      value={entity.rootContentItemCount}
+                      icon={'reports'}
+                    />
+                  </CardSectionStats>
+                </>
+              );
+            } else if (isClientInfo(entity)) {
+              cardContents = (
+                <>
+                  <CardText text={entity.name} subtext={entity.code} />
+                  <CardSectionStats>
+                    <CardStat
+                      name={'Users'}
+                      value={entity.userCount}
+                      icon={'user'}
+                    />
+                    <CardStat
+                      name={'Reports'}
+                      value={entity.rootContentItemCount}
+                      icon={'reports'}
+                    />
+                  </CardSectionStats>
+                </>
+              );
+            } else if (isProfitCenterInfo(entity)) {
+              cardContents = (
+                <>
+                  <CardText text={entity.name} subtext={entity.code} />
+                  <CardSectionStats>
+                    <CardStat
+                      name={'Authorized users'}
+                      value={entity.userCount}
+                      icon={'user'}
+                    />
+                    <CardStat
+                      name={'Clients'}
+                      value={entity.clientCount}
+                      icon={'client'}
+                    />
+                  </CardSectionStats>
+                </>
+              );
             }
             const indentation = isClientInfo(entity)
               ? (entity as ClientInfoWithDepth).depth
@@ -224,7 +343,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                 indentation={indentation}
               >
                 <CardSectionMain>
-                  <CardText text={text} subtext={subtext} />
+                  {cardContents}
                 </CardSectionMain>
               </Card>
             );
