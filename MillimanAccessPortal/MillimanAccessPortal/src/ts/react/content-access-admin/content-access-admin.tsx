@@ -392,6 +392,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                               onInputChange={(newValue) => this.props.setPendingGroupUserQuery(newValue)}
                               inputValue={entity.userQuery}
                               controlShouldRenderValue={false}
+                              autoFocus={true}
                             />
                           </div>
                         </span>
@@ -480,6 +481,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               type="text"
               placeholder="Selection group name"
               onChange={(event) => this.props.setPendingNewGroupName(event.target.value)}
+              autoFocus={true}
             />
             <div className="button-container">
               <button className="link-button" type="button" onClick={this.props.closeAddGroupModal}>
