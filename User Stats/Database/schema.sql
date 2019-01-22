@@ -182,7 +182,7 @@ CREATE TABLE public."QlikViewSession"
    "LogFileName" text,
    "LogFileLineNumber" integer,
    CONSTRAINT "PK_QlikViewSession" PRIMARY KEY ("Id"),
-   CONSTRAINT "UNIQUE_QVSession_LogFileName_LogFIleLine" UNIQUE ("LogFileName", "LogFileLine")
+   CONSTRAINT "UNIQUE_QVSession_LogFileName_LogFileLine" UNIQUE ("LogFileName", "LogFileLineNumber")
 );
 
 CREATE TABLE public."QlikViewAudit"
@@ -196,7 +196,7 @@ CREATE TABLE public."QlikViewAudit"
    "LogFileName" text,
    "LogFileLineNumber" integer,
    CONSTRAINT "PK_QlikViewAudit" PRIMARY KEY ("Id"),
-   CONSTRAINT "UNIQUE_QVAudit_LogFileName_LogFIleLine" UNIQUE ("LogFileName", "LogFileLineNumber")/*,
+   CONSTRAINT "UNIQUE_QVAudit_LogFileName_LogFileLine" UNIQUE ("LogFileName", "LogFileLineNumber")/*,
    CONSTRAINT "FK_QlikViewAudit_QlikViewSession_Session" FOREIGN KEY ("Session")
 	REFERENCES public."QlikViewSession" ("Session") MATCH SIMPLE
 	ON UPDATE NO ACTION ON DELETE CASCADE*/ -- This key can't be implemented as-is. We need to determine whether Session will always be unique, which seems unlikely at the moment
