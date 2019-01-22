@@ -122,6 +122,10 @@
 | CalType          | text      | The type of QlikView CAL used by the session (Document or Named User)            |
 | Browser          | text      |                                                                                  |
 | Session          | integer   | Session ID (new in QlikView 12)                                                  |
+| LogFileName      | text      | The name of the log file the record was extracted from                           |
+| LogFileLineNumber | integer  | The line number where the record appeared in the log file                        |
+
+> The combination of LogFileName and LogFileLineNumber must be unique. This is implemented to protect against accidental duplication of log records in the database.
 
 ## QlikView Audit
 
@@ -134,6 +138,10 @@
 | Timestamp | timestamp | The time the logged event occurred                                                      |
 | EventType | text      | Category of action taken                                                                |
 | Message   | text      | Detailed information; may contain ePHI and must be sanitized before presenting to users |
+| LogFileName      | text      | The name of the log file the record was extracted from                           |
+| LogFileLineNumber | integer  | The line number where the record appeared in the log file                        |
+
+> The combination of LogFileName and LogFileLineNumber must be unique. This is implemented to protect against accidental duplication of log records in the database.
 
 ## Selected Fields
 
