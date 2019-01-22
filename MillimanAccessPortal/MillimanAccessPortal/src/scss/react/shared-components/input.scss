@@ -51,6 +51,9 @@
         .form-input-container {
             flex: 1 0 auto;
             position: relative;
+            border: 1px solid $charcoal;
+            background-color: $white;
+
 
             .form-input {
                 position: absolute;
@@ -58,10 +61,11 @@
                 left: 0;
                 height: 100%;
                 width: 100%;
-                border: 1px solid $charcoal;
                 font-size: 1.25rem;
+                border: none;
+                background-color: transparent;
                 color: $charcoal;
-                background-color: $white;
+                z-index: 1;
 
                 &:focus {
 
@@ -76,13 +80,15 @@
                     padding: 1.25rem .5rem .1rem;
                 }
 
+                &[disabled] + .form-input-label,
                 &:not([value='']) + .form-input-label,
                 &:focus + .form-input-label {
                     top: 0;
                     opacity: 1;
-                    transition: all .5s;
+                    transition: opacity .5s, top .5s;
                 }
 
+                &[disabled]::placeholder,
                 &:focus::placeholder {
                     color: transparent;
                 }
@@ -97,6 +103,7 @@
                 font-weight: 300;
                 color: $dark-grey;
                 opacity: 0;
+                z-index: 0;
             }
         }
     }
