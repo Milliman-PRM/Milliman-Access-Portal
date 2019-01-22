@@ -11,14 +11,20 @@ import * as React from 'react';
 
 import { getJsonData, postData } from '../../shared';
 import { BasicNode } from '../../view-models/content-publishing';
+import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
-import { Card, CardAttributes } from '../shared-components/card/card';
 import {
-    CardSectionMain, CardSectionStats, CardText,
+    PanelSectionToolbar, PanelSectionToolbarButtons,
+} from '../shared-components/card-panel/panel-sections';
+import { Card, CardAttributes } from '../shared-components/card/card';
+import CardButton from '../shared-components/card/card-button';
+import {
+    CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
 import { ColumnIndicator, ColumnSelector } from '../shared-components/column-selector';
 import { EntityHelper } from '../shared-components/entity';
+import { Filter } from '../shared-components/filter';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
@@ -27,10 +33,13 @@ import {
     isUserClientRoles, isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail,
     SecondaryDetailData, UserClientRoles,
 } from './interfaces';
+import { AddUserToClientModal } from './modals/add-user-to-client';
+import { CardModal } from './modals/card-modal';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
-import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
-import { Filter } from '../shared-components/filter';
+import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
+import { CreateUserModal } from './modals/create-user';
+import { CreateProfitCenterModal } from './modals/create-profit-center';
 
 export interface ContentPanelAttributes {
   selected: {
@@ -200,6 +209,20 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                         icon={'reports'}
                       />
                     </CardSectionStats>
+                    <CardSectionButtons>
+                      <CardButton
+                        color={'blue'}
+                        tooltip={entity.activated ? 'Send password reset email' : 'Resend account activation email'}
+                        onClick={() => this.handleSendReset(entity.email)}
+                        icon={'email'}
+                      />
+                      <CardButton
+                        color={'red'}
+                        tooltip="Remove from client"
+                        onClick={() => this.handleClientUserRemove(entity.id, entity.clientId)}
+                        icon={'remove-circle'}
+                      />
+                    </CardSectionButtons>
                   </>
                 );
               } else if (isRootContentItemInfo(entity)) {
@@ -236,6 +259,20 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                         icon={'client'}
                       />
                     </CardSectionStats>
+                    <CardSectionButtons>
+                      <CardButton
+                        color={'blue'}
+                        tooltip={entity.activated ? 'Send password reset email' : 'Resend account activation email'}
+                        onClick={() => this.handleSendReset(entity.email)}
+                        icon={'email'}
+                      />
+                      <CardButton
+                        color={'red'}
+                        tooltip="Remove from profit center"
+                        onClick={() => this.handleProfitCenterUserRemove(entity.id, entity.profitCenterId)}
+                        icon={'remove-circle'}
+                      />
+                    </CardSectionButtons>
                   </>
                 );
               } else if (isClientInfo(entity)) {
@@ -271,9 +308,46 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
               filterText={this.state.secondaryPanel.filter.text}
             />
             <PanelSectionToolbarButtons>
-              <div id="icons" />
+              {this.state.secondaryPanel.selected.column === SystemAdminColumn.USER
+              ? (
+                this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
+                ? (
+                  <ActionIcon
+                    label="Add or create client user"
+                    icon="add"
+                    action={this.handleSecondaryModalOpen}
+                  />
+                )
+                : (
+                  <ActionIcon
+                    label="Add or create authorized profit center user"
+                    icon="add"
+                    action={this.handleSecondaryModalOpen}
+                  />
+                )
+              )
+              : null
+              }
             </PanelSectionToolbarButtons>
           </PanelSectionToolbar>
+          <AddUserToClientModal
+            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
+              && this.state.secondaryPanel.createModal.open}
+            onRequestClose={this.handleSecondaryModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+            clientId={this.state.primaryPanel.selected.card}
+          />
+          <AddUserToProfitCenterModal
+            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.PROFIT_CENTER
+              && this.state.secondaryPanel.createModal.open}
+            onRequestClose={this.handleSecondaryModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+            profitCenterId={this.state.primaryPanel.selected.card}
+          />
         </CardPanel>
       )
       : null;
@@ -305,6 +379,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       icon={'reports'}
                     />
                   </CardSectionStats>
+                  <CardSectionButtons>
+                    <CardButton
+                      color={'blue'}
+                      tooltip={entity.activated ? 'Send password reset email' : 'Resend account activation email'}
+                      onClick={() => this.handleSendReset(entity.email)}
+                      icon={'email'}
+                    />
+                  </CardSectionButtons>
                 </>
               );
             } else if (isClientInfo(entity)) {
@@ -341,6 +423,30 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       icon={'client'}
                     />
                   </CardSectionStats>
+                  <CardSectionButtons>
+                    <CardButton
+                      color={'red'}
+                      tooltip="Delete profit center"
+                      onClick={() => this.handleProfitCenterDelete(entity.id)}
+                      icon={'delete'}
+                    />
+                    <CardButton
+                      color={'blue'}
+                      tooltip="Edit profit center"
+                      onClick={() => this.handleProfitCenterModalOpen(entity.id)}
+                      icon={'edit'}
+                    />
+                  </CardSectionButtons>
+                  <div onClick={(event) => event.stopPropagation()}>
+                    <CardModal
+                      isOpen={this.state.primaryPanel.cards[entity.id].profitCenterModalOpen}
+                      onRequestClose={() => this.handleProfitCenterModalClose(entity.id)}
+                      ariaHideApp={false}
+                      className="modal"
+                      overlayClassName="modal-overlay"
+                      profitCenterId={entity.id}
+                    />
+                  </div>
                 </>
               );
             }
@@ -373,9 +479,42 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
               filterText={this.state.primaryPanel.filter.text}
             />
             <PanelSectionToolbarButtons>
-              <div id="icons" />
+              {this.state.primaryPanel.selected.column === SystemAdminColumn.USER
+              ? (
+                <ActionIcon
+                  label="Create user"
+                  icon="add"
+                  action={this.handlePrimaryModalOpen}
+                />
+              )
+              : this.state.primaryPanel.selected.column === SystemAdminColumn.PROFIT_CENTER
+              ? (
+                <ActionIcon
+                  label="Create profit center"
+                  icon="add"
+                  action={this.handlePrimaryModalOpen}
+                />
+              )
+              : null
+              }
             </PanelSectionToolbarButtons>
           </PanelSectionToolbar>
+          <CreateUserModal
+            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.USER
+              && this.state.primaryPanel.createModal.open}
+            onRequestClose={this.handlePrimaryModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+          />
+          <CreateProfitCenterModal
+            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.PROFIT_CENTER
+              && this.state.primaryPanel.createModal.open}
+            onRequestClose={this.handlePrimaryModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+          />
         </CardPanel>
         {secondaryColumnComponent}
         <div

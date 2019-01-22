@@ -7,7 +7,7 @@ import { getJsonData, postData } from '../../../shared';
 import { ProfitCenterDetail } from '../interfaces';
 
 interface CardModalProps extends Modal.Props {
-  render: (props: CardModalProps) => JSX.Element;
+  // render: (props: CardModalProps) => JSX.Element;
   profitCenterId?: string;
 }
 interface CardModalState {
@@ -57,7 +57,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
   public render() {
     return (
       <>
-        {this.props.render(this.props)}
+        {/* {this.props.render(this.props)} */}
         <Modal
           ariaHideApp={false}
           {...this.props}
@@ -143,6 +143,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
   }
 
   private handleChangeName = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.stopPropagation()
     this.setState({
       name: event.target.value,
     });
