@@ -1,7 +1,7 @@
 ﻿import * as React from 'react';
-const Joi = require('joi-browser');
-import { Form } from "../shared-components/form";
-import { getData, postData } from "../../shared";
+import * as Joi from 'joi-browser';
+import { Form } from '../shared-components/form';
+import { getData, postData } from '../../shared';
 
 import { BaseFormState } from '../shared-components/form';
 import { Input } from '../shared-components/input';
@@ -16,15 +16,18 @@ interface LoginFormState extends BaseFormState {
 }
 
 export class LoginForm extends Form<{}, LoginFormState> {
+  public constructor(props) {
+    super(props);
 
-  state = {
-    userConfirmed: false,
-    loginWarning: null,
-    data: { username: "", password: "" },
-    errors: {}
-  };
+    this.state = {
+      userConfirmed: false,
+      loginWarning: null,
+      data: { username: "", password: "" },
+      errors: {}
+    };
+  }
 
-  schema = {
+  protected schema = {
     username: Joi.string()
       .email()
       .required()
@@ -34,7 +37,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
       .label("Password")
   };
 
-  checkUser = (e) => {
+  private checkUser = (e) => {
     e.preventDefault();
 
     const errors = { ...this.state.errors };
@@ -50,7 +53,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
     this.setState({ userConfirmed: true });
   }
 
-  handleSubmit = (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
+  protected handleSubmit = (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const errors = this.validate();
@@ -84,10 +87,10 @@ export class LoginForm extends Form<{}, LoginFormState> {
               name="username"
               label="Username"
               type="text"
-              value={this.state.data["username"]}
+              value={this.state.data.username}
               onChange={this.handleChange}
               onBlur={this.handleBlur}
-              error={this.state.errors["username"]}
+              error={this.state.errors.username}
               autoFocus={true}
               inputIcon="user"
             >
@@ -100,10 +103,10 @@ export class LoginForm extends Form<{}, LoginFormState> {
               name="username"
               label="Username"
               type="text"
-              value={this.state.data["username"]}
+              value={this.state.data.username}
               onChange={this.handleChange}
               onBlur={this.handleBlur}
-              error={this.state.errors["username"]}
+              error={this.state.errors.username}
               inputIcon="user" />
           )
         }
@@ -113,10 +116,10 @@ export class LoginForm extends Form<{}, LoginFormState> {
               name="password"
               label="Password"
               type="password"
-              value={this.state.data["password"]}
+              value={this.state.data.password}
               onChange={this.handleChange}
               onBlur={this.handleBlur}
-              error={this.state.errors["password"]}
+              error={this.state.errors.password}
               autoFocus={true}
               inputIcon="password"
             />

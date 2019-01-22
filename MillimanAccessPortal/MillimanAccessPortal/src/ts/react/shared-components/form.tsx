@@ -1,10 +1,10 @@
 ﻿import * as React from 'react';
-const Joi = require('joi-browser');
+import * as Joi from 'joi-browser';
 import 'promise-polyfill/dist/polyfill';
 
 export interface BaseFormState {
   data: {
-    [id: string]: string | boolean;
+    [id: string]: string | number | string[];
   };
   errors: {
     [id: string]: string;
@@ -13,9 +13,9 @@ export interface BaseFormState {
 
 export class Form<TProps, TState extends BaseFormState> extends React.Component<TProps, TState> {
 
-  schema = {};
+  protected schema = {};
 
-  componentDidMount() {
+  public componentDidMount() {
     const requestVerificationToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
     const data = { ...(this.state.data as object) };
     data["__RequestVerificationToken"] = requestVerificationToken;
@@ -23,9 +23,9 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
     this.setState({ data })
   }
 
-  doSubmit = () => { }
+  protected doSubmit = () => { }
 
-  validate = () => {
+  protected validate = () => {
     const options = { abortEarly: false };
     const { error } = Joi.validate(this.state.data, this.schema, options);
     if (!error) {
@@ -37,14 +37,14 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
     return errors;
   };
 
-  validateProperty = ({ name, value }) => {
+  protected validateProperty = ({ name, value }) => {
     const obj = { [name]: value };
     const schema = { [name]: this.schema[name] };
     const { error } = Joi.validate(obj, schema);
     return error ? error.details[0].message : null;
   };
 
-  handleSubmit = e => {
+  protected handleSubmit = e => {
     e.preventDefault();
 
     const errors = this.validate();
@@ -54,7 +54,7 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
     this.doSubmit();
   };
 
-  handleChange = ({ currentTarget: input }) => {
+  protected handleChange = ({ currentTarget: input }) => {
     const errors = { ...(this.state.errors as object) };
     const errorMessage = this.validateProperty(input);
     if (!errorMessage) delete errors[input.name];
@@ -65,7 +65,7 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
     this.setState({ data, errors });
   }
 
-  handleBlur = ({ currentTarget: input }) => {
+  protected handleBlur = ({ currentTarget: input }) => {
     const errors = { ...(this.state.errors as object) };
     const errorMessage = this.validateProperty(input);
     if (errorMessage && input.value !== "") errors[input.name] = errorMessage;
@@ -73,13 +73,4 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
 
     this.setState({ errors });
   };
-
-  renderButton(label: string, primary: boolean = true, action: () => void = null) {
-    const buttonDisabled = (primary && this.validate()) ? true : false;
-    return (
-      <button type={primary ? 'submit' : 'button'} disabled={buttonDisabled} className={(primary) ? 'blue-button' : 'link-button'} onClick={action}>
-        {label}
-      </button>
-    );
-  }
 }
