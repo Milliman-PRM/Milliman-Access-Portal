@@ -18,6 +18,7 @@ import {
 } from '../shared-components/card-panel/panel-sections';
 import { Card, CardAttributes } from '../shared-components/card/card';
 import CardButton from '../shared-components/card/card-button';
+import { CardExpansion } from '../shared-components/card/card-expansion';
 import {
     CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
@@ -34,12 +35,12 @@ import {
     SecondaryDetailData, UserClientRoles,
 } from './interfaces';
 import { AddUserToClientModal } from './modals/add-user-to-client';
+import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
 import { CardModal } from './modals/card-modal';
+import { CreateProfitCenterModal } from './modals/create-profit-center';
+import { CreateUserModal } from './modals/create-user';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
-import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
-import { CreateUserModal } from './modals/create-user';
-import { CreateProfitCenterModal } from './modals/create-profit-center';
 
 export interface ContentPanelAttributes {
   selected: {
@@ -176,7 +177,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             if (primaryColumn === SystemAdminColumn.USER) {
               if (isClientInfo(entity)) {
                 cardContents = (
-                  <>
+                  <CardSectionMain>
                     <CardText text={entity.name} subtext={entity.code} />
                     <CardSectionStats>
                       <CardStat
@@ -185,69 +186,128 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                         icon={'reports'}
                       />
                     </CardSectionStats>
-                  </>
+                  </CardSectionMain>
                 );
               } else if (isRootContentItemInfo(entity)) {
                 cardContents = (
-                  <>
+                  <CardSectionMain>
                     <CardText text={entity.name} subtext={entity.clientName} />
-                  </>
+                  </CardSectionMain>
                 );
               }
             } else if (primaryColumn === SystemAdminColumn.CLIENT) {
               if (isUserInfo(entity)) {
                 cardContents = (
                   <>
-                    <CardText
-                      text={entity.firstName + ' ' + entity.lastName}
-                      subtext={entity.userName}
-                    />
-                    <CardSectionStats>
-                      <CardStat
-                        name={'Reports'}
-                        value={entity.rootContentItemCount}
-                        icon={'reports'}
+                    <CardSectionMain>
+                      <CardText
+                        text={entity.firstName + ' ' + entity.lastName}
+                        subtext={entity.userName}
                       />
-                    </CardSectionStats>
-                    <CardSectionButtons>
-                      <CardButton
-                        color={'blue'}
-                        tooltip={entity.activated ? 'Send password reset email' : 'Resend account activation email'}
-                        onClick={() => this.handleSendReset(entity.email)}
-                        icon={'email'}
-                      />
-                      <CardButton
-                        color={'red'}
-                        tooltip="Remove from client"
-                        onClick={() => this.handleClientUserRemove(entity.id, entity.clientId)}
-                        icon={'remove-circle'}
-                      />
-                    </CardSectionButtons>
+                      <CardSectionStats>
+                        <CardStat
+                          name={'Reports'}
+                          value={entity.rootContentItemCount}
+                          icon={'reports'}
+                        />
+                      </CardSectionStats>
+                      <CardSectionButtons>
+                        <CardButton
+                          color={'blue'}
+                          tooltip={entity.activated ? 'Send password reset email' : 'Resend account activation email'}
+                          onClick={() => this.handleSendReset(entity.email)}
+                          icon={'email'}
+                        />
+                        <CardButton
+                          color={'red'}
+                          tooltip="Remove from client"
+                          onClick={() => this.handleClientUserRemove(entity.id, entity.clientId)}
+                          icon={'remove-circle'}
+                        />
+                      </CardSectionButtons>
+                    </CardSectionMain>
+                    {entity.rootContentItems.length
+                      ? (
+                        <CardExpansion
+                          label={'Content Items'}
+                          expanded={this.state.secondaryPanel.cards[entity.id].expanded}
+                          setExpanded={() => this.handleSecondaryExpandedToggled(entity.id)}
+                        >
+                          <ul className="detail-item-user-list">
+                            {entity.rootContentItems.map((i) => (
+                              <li key={i.id}>
+                                <span className="detail-item-user">
+                                  <div className="detail-item-user-icon">
+                                    <svg className="card-user-icon">
+                                      <use xlinkHref="#reports" />
+                                    </svg>
+                                  </div>
+                                  <div className="detail-item-user-name">
+                                    <h4>{i.name}</h4>
+                                  </div>
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardExpansion>
+                      )
+                      : null
+                    }
                   </>
                 );
               } else if (isRootContentItemInfo(entity)) {
                 cardContents = (
                   <>
-                    <CardText text={entity.name} subtext={entity.clientName} />
-                    <CardSectionStats>
-                      <CardStat
-                        name={'Users'}
-                        value={entity.userCount}
-                        icon={'user'}
-                      />
-                      <CardStat
-                        name={'Selection groups'}
-                        value={entity.selectionGroupCount}
-                        icon={'group'}
-                      />
-                    </CardSectionStats>
+                    <CardSectionMain>
+                      <CardText text={entity.name} subtext={entity.clientName} />
+                      <CardSectionStats>
+                        <CardStat
+                          name={'Users'}
+                          value={entity.userCount}
+                          icon={'user'}
+                        />
+                        <CardStat
+                          name={'Selection groups'}
+                          value={entity.selectionGroupCount}
+                          icon={'group'}
+                        />
+                      </CardSectionStats>
+                    </CardSectionMain>
+                    {entity.users.length
+                      ? (
+                        <CardExpansion
+                          label={'Members'}
+                          expanded={this.state.secondaryPanel.cards[entity.id].expanded}
+                          setExpanded={() => this.handleSecondaryExpandedToggled(entity.id)}
+                        >
+                          <ul className="detail-item-user-list">
+                            {entity.users.map((u) => (
+                              <li key={u.id}>
+                                <span className="detail-item-user">
+                                  <div className="detail-item-user-icon">
+                                    <svg className="card-user-icon">
+                                      <use xlinkHref="#user" />
+                                    </svg>
+                                  </div>
+                                  <div className="detail-item-user-name">
+                                    <h4>{u.firstName + ' ' + u.lastName}</h4>
+                                    <span>{u.userName}</span>
+                                  </div>
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardExpansion>
+                      )
+                      : null
+                    }
                   </>
                 );
               }
             } else if (primaryColumn === SystemAdminColumn.PROFIT_CENTER) {
               if (isUserInfo(entity)) {
                 cardContents = (
-                  <>
+                  <CardSectionMain>
                     <CardText
                       text={entity.firstName + ' ' + entity.lastName}
                       subtext={entity.userName}
@@ -273,13 +333,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                         icon={'remove-circle'}
                       />
                     </CardSectionButtons>
-                  </>
+                  </CardSectionMain>
                 );
               } else if (isClientInfo(entity)) {
                 cardContents = (
-                  <>
+                  <CardSectionMain>
                     <CardText text={entity.name} subtext={entity.code} />
-                  </>
+                  </CardSectionMain>
                 );
               }
             }
@@ -289,9 +349,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                 selected={secondaryCard === entity.id}
                 onSelect={() => this.handleSecondaryCardSelected(entity.id)}
               >
-                <CardSectionMain>
-                  {cardContents}
-                </CardSectionMain>
+                {cardContents}
               </Card>
             );
           }}
