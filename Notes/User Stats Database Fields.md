@@ -136,6 +136,7 @@
 | Id        | integer   | Auto-incremented primary key                                                            |
 | Session   | integer   | Foreign key to QlikView Session table's Session                                         |
 | Timestamp | timestamp | The time the logged event occurred                                                      |
+| Document  | text      | File path of the QVW being accessed in the session                                      |
 | EventType | text      | Category of action taken                                                                |
 | Message   | text      | Detailed information; may contain ePHI and must be sanitized before presenting to users |
 | LogFileName      | text      | The name of the log file the record was extracted from                           |

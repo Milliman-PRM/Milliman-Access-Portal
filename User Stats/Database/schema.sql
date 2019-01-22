@@ -190,6 +190,7 @@ CREATE TABLE public."QlikViewAudit"
    "Id" serial,
    "Session" integer,
    "Timestamp" timestamp,
+   "Document" text,
    "EventType" text,
    "Message" text,
    "LogFileName" text,
