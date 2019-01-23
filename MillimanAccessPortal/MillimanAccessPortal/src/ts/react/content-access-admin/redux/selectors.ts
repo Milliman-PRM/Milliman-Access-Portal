@@ -145,7 +145,13 @@ export function groupToDelete(state: AccessState) {
   return groupId && state.data.groups[groupId];
 }
 
-
+/**
+ * Select all clients as a tree
+ *
+ * This selector supports client tree structures with at most 2 layers.
+ *
+ * @param state Redux store
+ */
 export function clientsTree(state: AccessState) {
   const clients = _.toArray(state.data.clients);
   const parentGroups: { [id: string]: ClientWithEligibleUsers[] } = clients.reduce((groups, cur) =>
@@ -237,7 +243,6 @@ export function filteredValues(state: AccessState) {
 export function activeClients(state: AccessState) {
   return filteredClients(state);
 }
-
 
 /**
  * Select all clients that are visible to the user.

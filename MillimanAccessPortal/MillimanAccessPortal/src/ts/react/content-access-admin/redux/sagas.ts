@@ -61,6 +61,9 @@ export default function* rootSaga() {
     yield put({ type: AccessAction.ScheduleStatusRefresh, delay: 5000 });
   });
   yield takeLatest(AccessAction.ScheduleSessionCheck, scheduleSessionCheck);
+  yield takeLatest(AccessAction.FetchSessionCheck + DataSuffixes.Failed, function*() {
+    window.location.reload();
+  });
   yield takeLatest(AccessAction.FetchSessionCheck + DataSuffixes.Succeeded, function*() {
     yield put({ type: AccessAction.ScheduleSessionCheck, delay: 60000 });
   });
