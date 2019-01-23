@@ -11,30 +11,30 @@ namespace QlikviewLib.Qms
 {
     using System.Runtime.Serialization;
     using System;
-    
-    
+
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentNode", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class DocumentNode : object
     {
-        
+
         private System.Guid FolderIDField;
-        
+
         private System.Guid IDField;
-        
+
         private bool IsOrphanField;
-        
+
         private bool IsSubFolderField;
-        
+
         private string NameField;
-        
+
         private string RelativePathField;
-        
+
         private int TaskCountField;
-        
+
         private QlikviewLib.Qms.DocumentType TypeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid FolderID
         {
@@ -47,7 +47,7 @@ namespace QlikviewLib.Qms
                 this.FolderIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -60,7 +60,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool IsOrphan
         {
@@ -73,7 +73,7 @@ namespace QlikviewLib.Qms
                 this.IsOrphanField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool IsSubFolder
         {
@@ -86,7 +86,7 @@ namespace QlikviewLib.Qms
                 this.IsSubFolderField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -99,7 +99,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string RelativePath
         {
@@ -112,7 +112,7 @@ namespace QlikviewLib.Qms
                 this.RelativePathField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int TaskCount
         {
@@ -125,7 +125,7 @@ namespace QlikviewLib.Qms
                 this.TaskCountField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentType Type
         {
@@ -139,69 +139,69 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum DocumentType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         User = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Source = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentMetaDataScope", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum DocumentMetaDataScope : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Authorization = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         DocumentInfo = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Collaboration = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Server = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Licensing = 16,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 65535,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentMetaData", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class DocumentMetaData : object
     {
-        
+
         private QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataAuthorization AuthorizationField;
-        
+
         private QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataCollaboration CollaborationField;
-        
+
         private QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataDocumentInfo DocumentInfoField;
-        
+
         private QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataLicensing LicensingField;
-        
+
         private System.Guid QVSIDField;
-        
+
         private QlikviewLib.Qms.DocumentMetaDataScope ScopeField;
-        
+
         private QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataServer ServerField;
-        
+
         private QlikviewLib.Qms.DocumentNode UserDocumentField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataAuthorization Authorization
         {
@@ -214,7 +214,7 @@ namespace QlikviewLib.Qms
                 this.AuthorizationField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataCollaboration Collaboration
         {
@@ -227,7 +227,7 @@ namespace QlikviewLib.Qms
                 this.CollaborationField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataDocumentInfo DocumentInfo
         {
@@ -240,7 +240,7 @@ namespace QlikviewLib.Qms
                 this.DocumentInfoField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataLicensing Licensing
         {
@@ -253,7 +253,7 @@ namespace QlikviewLib.Qms
                 this.LicensingField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid QVSID
         {
@@ -266,7 +266,7 @@ namespace QlikviewLib.Qms
                 this.QVSIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentMetaDataScope Scope
         {
@@ -279,7 +279,7 @@ namespace QlikviewLib.Qms
                 this.ScopeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataServer Server
         {
@@ -292,7 +292,7 @@ namespace QlikviewLib.Qms
                 this.ServerField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentNode UserDocument
         {
@@ -305,15 +305,15 @@ namespace QlikviewLib.Qms
                 this.UserDocumentField = value;
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentMetaData.DocumentMetaDataAuthorization", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class DocumentMetaDataAuthorization : object
         {
-            
+
             private QlikviewLib.Qms.DocumentAccessEntry[] AccessField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentAccessEntry[] Access
             {
@@ -327,17 +327,17 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentMetaData.DocumentMetaDataCollaboration", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class DocumentMetaDataCollaboration : object
         {
-            
+
             private QlikviewLib.Qms.DocumentCollaborationCreationMode CreationModeField;
-            
+
             private string[] CreatorUserNamesField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentCollaborationCreationMode CreationMode
             {
@@ -350,7 +350,7 @@ namespace QlikviewLib.Qms
                     this.CreationModeField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string[] CreatorUserNames
             {
@@ -364,21 +364,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentMetaData.DocumentMetaDataDocumentInfo", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class DocumentMetaDataDocumentInfo : object
         {
-            
+
             private QlikviewLib.Qms.DocumentAttribute[] AttributesField;
-            
+
             private string CategoryField;
-            
+
             private string DescriptionField;
-            
+
             private string SourceNameField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentAttribute[] Attributes
             {
@@ -391,7 +391,7 @@ namespace QlikviewLib.Qms
                     this.AttributesField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Category
             {
@@ -404,7 +404,7 @@ namespace QlikviewLib.Qms
                     this.CategoryField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Description
             {
@@ -417,7 +417,7 @@ namespace QlikviewLib.Qms
                     this.DescriptionField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string SourceName
             {
@@ -431,23 +431,23 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentMetaData.DocumentMetaDataLicensing", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class DocumentMetaDataLicensing : object
         {
-            
+
             private bool AllowDynamicCALAssignmentField;
-            
+
             private QlikviewLib.Qms.AssignedNamedCAL[] AssignedCALsField;
-            
+
             private int CALsAllocatedField;
-            
+
             private int CALsEmbeddedField;
-            
+
             private QlikviewLib.Qms.AssignedNamedCAL[] RemovedAssignedCALsField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool AllowDynamicCALAssignment
             {
@@ -460,7 +460,7 @@ namespace QlikviewLib.Qms
                     this.AllowDynamicCALAssignmentField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.AssignedNamedCAL[] AssignedCALs
             {
@@ -473,7 +473,7 @@ namespace QlikviewLib.Qms
                     this.AssignedCALsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int CALsAllocated
             {
@@ -486,7 +486,7 @@ namespace QlikviewLib.Qms
                     this.CALsAllocatedField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int CALsEmbedded
             {
@@ -499,7 +499,7 @@ namespace QlikviewLib.Qms
                     this.CALsEmbeddedField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.AssignedNamedCAL[] RemovedAssignedCALs
             {
@@ -513,21 +513,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentMetaData.DocumentMetaDataServer", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class DocumentMetaDataServer : object
         {
-            
+
             private QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataServer.DocumentMetaDataServerAccess AccessField;
-            
+
             private QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataServer.DocumentMetaDataServerDocumentLoad[] DocumentLoadField;
-            
+
             private bool EnableAuditLoggingField;
-            
+
             private QlikviewLib.Qms.ServerDocumentLoadMode ServerDocumentLoadModeField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataServer.DocumentMetaDataServerAccess Access
             {
@@ -540,7 +540,7 @@ namespace QlikviewLib.Qms
                     this.AccessField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentMetaData.DocumentMetaDataServer.DocumentMetaDataServerDocumentLoad[] DocumentLoad
             {
@@ -553,7 +553,7 @@ namespace QlikviewLib.Qms
                     this.DocumentLoadField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool EnableAuditLogging
             {
@@ -566,7 +566,7 @@ namespace QlikviewLib.Qms
                     this.EnableAuditLoggingField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.ServerDocumentLoadMode ServerDocumentLoadMode
             {
@@ -579,33 +579,33 @@ namespace QlikviewLib.Qms
                     this.ServerDocumentLoadModeField = value;
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="DocumentMetaData.DocumentMetaDataServer.DocumentMetaDataServerAccess", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class DocumentMetaDataServerAccess : object
             {
-                
+
                 private int DocumentTimeoutField;
-                
+
                 private QlikviewLib.Qms.DocumentDownloadAccess DownloadField;
-                
+
                 private string[] DownloadUsersField;
-                
+
                 private bool EnableSessionCollaborationField;
-                
+
                 private QlikviewLib.Qms.DocumentDownloadAccess ExportField;
-                
+
                 private string[] ExportUsersField;
-                
+
                 private uint MaxConcurrentSessionsField;
-                
+
                 private QlikviewLib.Qms.DocumentAccessMethods MethodsField;
-                
+
                 private int SessionTimeoutField;
-                
+
                 private string ZeroFootprintClientURLField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int DocumentTimeout
                 {
@@ -618,7 +618,7 @@ namespace QlikviewLib.Qms
                         this.DocumentTimeoutField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.DocumentDownloadAccess Download
                 {
@@ -631,7 +631,7 @@ namespace QlikviewLib.Qms
                         this.DownloadField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string[] DownloadUsers
                 {
@@ -644,7 +644,7 @@ namespace QlikviewLib.Qms
                         this.DownloadUsersField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool EnableSessionCollaboration
                 {
@@ -657,7 +657,7 @@ namespace QlikviewLib.Qms
                         this.EnableSessionCollaborationField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.DocumentDownloadAccess Export
                 {
@@ -670,7 +670,7 @@ namespace QlikviewLib.Qms
                         this.ExportField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string[] ExportUsers
                 {
@@ -683,7 +683,7 @@ namespace QlikviewLib.Qms
                         this.ExportUsersField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public uint MaxConcurrentSessions
                 {
@@ -696,7 +696,7 @@ namespace QlikviewLib.Qms
                         this.MaxConcurrentSessionsField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.DocumentAccessMethods Methods
                 {
@@ -709,7 +709,7 @@ namespace QlikviewLib.Qms
                         this.MethodsField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int SessionTimeout
                 {
@@ -722,7 +722,7 @@ namespace QlikviewLib.Qms
                         this.SessionTimeoutField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string ZeroFootprintClientURL
                 {
@@ -736,17 +736,17 @@ namespace QlikviewLib.Qms
                     }
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="DocumentMetaData.DocumentMetaDataServer.DocumentMetaDataServerDocumentLoad", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class DocumentMetaDataServerDocumentLoad : object
             {
-                
+
                 private QlikviewLib.Qms.DocumentLoadMode ModeField;
-                
+
                 private System.Guid QlikViewServerClusterNodeIdField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.DocumentLoadMode Mode
                 {
@@ -759,7 +759,7 @@ namespace QlikviewLib.Qms
                         this.ModeField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public System.Guid QlikViewServerClusterNodeId
                 {
@@ -775,25 +775,25 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentAccessEntry", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class DocumentAccessEntry : object
     {
-        
+
         private QlikviewLib.Qms.DocumentAccessEntryMode AccessModeField;
-        
+
         private System.DayOfWeek[] DayOfWeekConstraintsField;
-        
+
         private bool IsAnonymousField;
-        
+
         private System.DateTime TimeConstraintFromField;
-        
+
         private System.DateTime TimeConstraintToField;
-        
+
         private string UserNameField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentAccessEntryMode AccessMode
         {
@@ -806,7 +806,7 @@ namespace QlikviewLib.Qms
                 this.AccessModeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.DayOfWeek[] DayOfWeekConstraints
         {
@@ -819,7 +819,7 @@ namespace QlikviewLib.Qms
                 this.DayOfWeekConstraintsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool IsAnonymous
         {
@@ -832,7 +832,7 @@ namespace QlikviewLib.Qms
                 this.IsAnonymousField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.DateTime TimeConstraintFrom
         {
@@ -845,7 +845,7 @@ namespace QlikviewLib.Qms
                 this.TimeConstraintFromField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.DateTime TimeConstraintTo
         {
@@ -858,7 +858,7 @@ namespace QlikviewLib.Qms
                 this.TimeConstraintToField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string UserName
         {
@@ -872,44 +872,44 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentAccessEntryMode", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum DocumentAccessEntryMode : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Always = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Restricted = 1,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentCollaborationCreationMode", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum DocumentCollaborationCreationMode : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Restricted = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 2,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentAttribute", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class DocumentAttribute : object
     {
-        
+
         private string NameField;
-        
+
         private string ValueField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -922,7 +922,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Value
         {
@@ -936,14 +936,14 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="AssignedNamedCAL", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs")]
     public partial class AssignedNamedCAL : QlikviewLib.Qms.CAL
     {
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="CAL", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs")]
@@ -953,15 +953,15 @@ namespace QlikviewLib.Qms
     [System.Runtime.Serialization.KnownTypeAttribute(typeof(QlikviewLib.Qms.AssignedNamedCAL))]
     public partial class CAL : object
     {
-        
+
         private System.DateTime LastUsedField;
-        
+
         private string MachineIDField;
-        
+
         private System.DateTime QuarantinedUntilField;
-        
+
         private string UserNameField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.DateTime LastUsed
         {
@@ -974,7 +974,7 @@ namespace QlikviewLib.Qms
                 this.LastUsedField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string MachineID
         {
@@ -987,7 +987,7 @@ namespace QlikviewLib.Qms
                 this.MachineIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.DateTime QuarantinedUntil
         {
@@ -1000,7 +1000,7 @@ namespace QlikviewLib.Qms
                 this.QuarantinedUntilField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string UserName
         {
@@ -1014,15 +1014,15 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="LeasedNamedCAL", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs")]
     public partial class LeasedNamedCAL : QlikviewLib.Qms.CAL
     {
-        
+
         private System.DateTime LeasedAtField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.DateTime LeasedAt
         {
@@ -1036,22 +1036,22 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="AssignedUsageCAL", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs")]
     public partial class AssignedUsageCAL : QlikviewLib.Qms.CAL
     {
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentCAL", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs")]
     public partial class DocumentCAL : QlikviewLib.Qms.CAL
     {
-        
+
         private string DocumentNameField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string DocumentName
         {
@@ -1065,122 +1065,122 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ServerDocumentLoadMode", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum ServerDocumentLoadMode : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Allow = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Preload = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Granular = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentDownloadAccess", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum DocumentDownloadAccess : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Restricted = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentAccessMethods", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum DocumentAccessMethods : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Download = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         PluginClient = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ZeroFootprintClient = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         MobileClient = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 65535,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentLoadMode", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum DocumentLoadMode : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Allow = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Never = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Preload = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="CALConfigurationScope", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum CALConfigurationScope : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         DocumentCALs = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         NamedCALs = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         SessionCALs = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         UsageCALs = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 65535,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="CALConfiguration", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs")]
     public partial class CALConfiguration : object
     {
-        
+
         private QlikviewLib.Qms.CALConfiguration.CALConfigurationDocumentCALs DocumentCALsField;
-        
+
         private QlikviewLib.Qms.CALConfiguration.CALConfigurationNamedCALs NamedCALsField;
-        
+
         private System.Guid QVSIDField;
-        
+
         private QlikviewLib.Qms.CALConfigurationScope ScopeField;
-        
+
         private QlikviewLib.Qms.CALConfiguration.CALConfigurationSessionCALs SessionCALsField;
-        
+
         private bool UncappedField;
-        
+
         private QlikviewLib.Qms.CALConfiguration.CALConfigurationUsageCALs UsageCALsField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.CALConfiguration.CALConfigurationDocumentCALs DocumentCALs
         {
@@ -1193,7 +1193,7 @@ namespace QlikviewLib.Qms
                 this.DocumentCALsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.CALConfiguration.CALConfigurationNamedCALs NamedCALs
         {
@@ -1206,7 +1206,7 @@ namespace QlikviewLib.Qms
                 this.NamedCALsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid QVSID
         {
@@ -1219,7 +1219,7 @@ namespace QlikviewLib.Qms
                 this.QVSIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.CALConfigurationScope Scope
         {
@@ -1232,7 +1232,7 @@ namespace QlikviewLib.Qms
                 this.ScopeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.CALConfiguration.CALConfigurationSessionCALs SessionCALs
         {
@@ -1245,7 +1245,7 @@ namespace QlikviewLib.Qms
                 this.SessionCALsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool Uncapped
         {
@@ -1258,7 +1258,7 @@ namespace QlikviewLib.Qms
                 this.UncappedField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.CALConfiguration.CALConfigurationUsageCALs UsageCALs
         {
@@ -1271,19 +1271,19 @@ namespace QlikviewLib.Qms
                 this.UsageCALsField = value;
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="CALConfiguration.CALConfigurationDocumentCALs", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs")]
         public partial class CALConfigurationDocumentCALs : object
         {
-            
+
             private int AssignedField;
-            
+
             private int InLicenseField;
-            
+
             private int LimitField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int Assigned
             {
@@ -1296,7 +1296,7 @@ namespace QlikviewLib.Qms
                     this.AssignedField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int InLicense
             {
@@ -1309,7 +1309,7 @@ namespace QlikviewLib.Qms
                     this.InLicenseField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int Limit
             {
@@ -1323,31 +1323,31 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="CALConfiguration.CALConfigurationNamedCALs", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs")]
         public partial class CALConfigurationNamedCALs : object
         {
-            
+
             private bool AllowDynamicAssignmentField;
-            
+
             private bool AllowLicenseLeaseField;
-            
+
             private int AssignedField;
-            
+
             private QlikviewLib.Qms.AssignedNamedCAL[] AssignedCALsField;
-            
+
             private QlikviewLib.Qms.NamedCALIdentificationMode IdentificationModeField;
-            
+
             private int InLicenseField;
-            
+
             private QlikviewLib.Qms.LeasedNamedCAL[] LeasedCALsField;
-            
+
             private int LimitField;
-            
+
             private QlikviewLib.Qms.AssignedNamedCAL[] RemovedAssignedCALsField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool AllowDynamicAssignment
             {
@@ -1360,7 +1360,7 @@ namespace QlikviewLib.Qms
                     this.AllowDynamicAssignmentField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool AllowLicenseLease
             {
@@ -1373,7 +1373,7 @@ namespace QlikviewLib.Qms
                     this.AllowLicenseLeaseField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int Assigned
             {
@@ -1386,7 +1386,7 @@ namespace QlikviewLib.Qms
                     this.AssignedField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.AssignedNamedCAL[] AssignedCALs
             {
@@ -1399,7 +1399,7 @@ namespace QlikviewLib.Qms
                     this.AssignedCALsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.NamedCALIdentificationMode IdentificationMode
             {
@@ -1412,7 +1412,7 @@ namespace QlikviewLib.Qms
                     this.IdentificationModeField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int InLicense
             {
@@ -1425,7 +1425,7 @@ namespace QlikviewLib.Qms
                     this.InLicenseField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.LeasedNamedCAL[] LeasedCALs
             {
@@ -1438,7 +1438,7 @@ namespace QlikviewLib.Qms
                     this.LeasedCALsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int Limit
             {
@@ -1451,7 +1451,7 @@ namespace QlikviewLib.Qms
                     this.LimitField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.AssignedNamedCAL[] RemovedAssignedCALs
             {
@@ -1465,21 +1465,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="CALConfiguration.CALConfigurationSessionCALs", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs")]
         public partial class CALConfigurationSessionCALs : object
         {
-            
+
             private QlikviewLib.Qms.AssignedSessionCAL[] AssignedCALsField;
-            
+
             private int AvailableField;
-            
+
             private int InLicenseField;
-            
+
             private int LimitField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.AssignedSessionCAL[] AssignedCALs
             {
@@ -1492,7 +1492,7 @@ namespace QlikviewLib.Qms
                     this.AssignedCALsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int Available
             {
@@ -1505,7 +1505,7 @@ namespace QlikviewLib.Qms
                     this.AvailableField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int InLicense
             {
@@ -1518,7 +1518,7 @@ namespace QlikviewLib.Qms
                     this.InLicenseField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int Limit
             {
@@ -1532,21 +1532,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="CALConfiguration.CALConfigurationUsageCALs", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs")]
         public partial class CALConfigurationUsageCALs : object
         {
-            
+
             private QlikviewLib.Qms.AssignedUsageCAL[] AssignedCALsField;
-            
+
             private int AvailableField;
-            
+
             private int InLicenseField;
-            
+
             private int LimitField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.AssignedUsageCAL[] AssignedCALs
             {
@@ -1559,7 +1559,7 @@ namespace QlikviewLib.Qms
                     this.AssignedCALsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int Available
             {
@@ -1572,7 +1572,7 @@ namespace QlikviewLib.Qms
                     this.AvailableField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int InLicense
             {
@@ -1585,7 +1585,7 @@ namespace QlikviewLib.Qms
                     this.InLicenseField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int Limit
             {
@@ -1600,31 +1600,31 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="NamedCALIdentificationMode", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum NamedCALIdentificationMode : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         UserName = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         MachineName = 1,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="AssignedSessionCAL", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs")]
     public partial class AssignedSessionCAL : object
     {
-        
+
         private System.DateTime LastUsedField;
-        
+
         private string MachineIDField;
-        
+
         private string UserNameField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.DateTime LastUsed
         {
@@ -1637,7 +1637,7 @@ namespace QlikviewLib.Qms
                 this.LastUsedField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string MachineID
         {
@@ -1650,7 +1650,7 @@ namespace QlikviewLib.Qms
                 this.MachineIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string UserName
         {
@@ -1664,23 +1664,23 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="UserCALs", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs")]
     public partial class UserCALs : object
     {
-        
+
         private QlikviewLib.Qms.AssignedSessionCAL[] AssignedSessionCALsField;
-        
+
         private QlikviewLib.Qms.AssignedUsageCAL[] AssignedUsageCALsField;
-        
+
         private QlikviewLib.Qms.DocumentCAL[] DocumentCALsField;
-        
+
         private QlikviewLib.Qms.LeasedNamedCAL[] LeasedNamedCALsField;
-        
+
         private QlikviewLib.Qms.AssignedNamedCAL NamedCALField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.AssignedSessionCAL[] AssignedSessionCALs
         {
@@ -1693,7 +1693,7 @@ namespace QlikviewLib.Qms
                 this.AssignedSessionCALsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.AssignedUsageCAL[] AssignedUsageCALs
         {
@@ -1706,7 +1706,7 @@ namespace QlikviewLib.Qms
                 this.AssignedUsageCALsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentCAL[] DocumentCALs
         {
@@ -1719,7 +1719,7 @@ namespace QlikviewLib.Qms
                 this.DocumentCALsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.LeasedNamedCAL[] LeasedNamedCALs
         {
@@ -1732,7 +1732,7 @@ namespace QlikviewLib.Qms
                 this.LeasedNamedCALsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.AssignedNamedCAL NamedCAL
         {
@@ -1746,42 +1746,42 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="QueryTarget", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum QueryTarget : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Resource = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ClusterMember = 1,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ServerObjectMetaData", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class ServerObjectMetaData : object
     {
-        
+
         private string DocumentNameField;
-        
+
         private string IdField;
-        
+
         private string OwnerIdField;
-        
+
         private bool RestrictedField;
-        
+
         private bool SharedField;
-        
+
         private string SubTypeField;
-        
+
         private string TypeField;
-        
+
         private string UtcModifyTimeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string DocumentName
         {
@@ -1794,7 +1794,7 @@ namespace QlikviewLib.Qms
                 this.DocumentNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Id
         {
@@ -1807,7 +1807,7 @@ namespace QlikviewLib.Qms
                 this.IdField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string OwnerId
         {
@@ -1820,7 +1820,7 @@ namespace QlikviewLib.Qms
                 this.OwnerIdField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool Restricted
         {
@@ -1833,7 +1833,7 @@ namespace QlikviewLib.Qms
                 this.RestrictedField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool Shared
         {
@@ -1846,7 +1846,7 @@ namespace QlikviewLib.Qms
                 this.SharedField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string SubType
         {
@@ -1859,7 +1859,7 @@ namespace QlikviewLib.Qms
                 this.SubTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Type
         {
@@ -1872,7 +1872,7 @@ namespace QlikviewLib.Qms
                 this.TypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string UtcModifyTime
         {
@@ -1886,29 +1886,29 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ServerObject", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class ServerObject : object
     {
-        
+
         private string IdField;
-        
+
         private string OwnerIdField;
-        
+
         private string OwnerNameField;
-        
+
         private bool SharedField;
-        
+
         private string SubTypeField;
-        
+
         private bool TemporaryField;
-        
+
         private string TypeField;
-        
+
         private string UtcModifyTimeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Id
         {
@@ -1921,7 +1921,7 @@ namespace QlikviewLib.Qms
                 this.IdField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string OwnerId
         {
@@ -1934,7 +1934,7 @@ namespace QlikviewLib.Qms
                 this.OwnerIdField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string OwnerName
         {
@@ -1947,7 +1947,7 @@ namespace QlikviewLib.Qms
                 this.OwnerNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool Shared
         {
@@ -1960,7 +1960,7 @@ namespace QlikviewLib.Qms
                 this.SharedField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string SubType
         {
@@ -1973,7 +1973,7 @@ namespace QlikviewLib.Qms
                 this.SubTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool Temporary
         {
@@ -1986,7 +1986,7 @@ namespace QlikviewLib.Qms
                 this.TemporaryField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Type
         {
@@ -1999,7 +1999,7 @@ namespace QlikviewLib.Qms
                 this.TypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string UtcModifyTime
         {
@@ -2013,19 +2013,19 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DirectoryServiceObject", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class DirectoryServiceObject : object
     {
-        
+
         private string NameField;
-        
+
         private string OtherPropertyField;
-        
+
         private QlikviewLib.Qms.DirectoryServiceObjectType TypeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -2038,7 +2038,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string OtherProperty
         {
@@ -2051,7 +2051,7 @@ namespace QlikviewLib.Qms
                 this.OtherPropertyField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DirectoryServiceObjectType Type
         {
@@ -2065,49 +2065,49 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DirectoryServiceObjectType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum DirectoryServiceObjectType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Undefined = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Named = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Authenticated = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Anonymous = 3,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DSResource", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class DSResource : object
     {
-        
+
         private QlikviewLib.Qms.DSResourceType DSResourceTypeField;
-        
+
         private string ErrStatusField;
-        
+
         private System.Guid IdField;
-        
+
         private string NameField;
-        
+
         private string PasswordField;
-        
+
         private string PathField;
-        
+
         private System.Collections.Generic.Dictionary<string, string> SettingsField;
-        
+
         private string TypeField;
-        
+
         private string UsernameField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DSResourceType DSResourceType
         {
@@ -2120,7 +2120,7 @@ namespace QlikviewLib.Qms
                 this.DSResourceTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string ErrStatus
         {
@@ -2133,7 +2133,7 @@ namespace QlikviewLib.Qms
                 this.ErrStatusField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid Id
         {
@@ -2146,7 +2146,7 @@ namespace QlikviewLib.Qms
                 this.IdField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -2159,7 +2159,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Password
         {
@@ -2172,7 +2172,7 @@ namespace QlikviewLib.Qms
                 this.PasswordField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Path
         {
@@ -2185,7 +2185,7 @@ namespace QlikviewLib.Qms
                 this.PathField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Collections.Generic.Dictionary<string, string> Settings
         {
@@ -2198,7 +2198,7 @@ namespace QlikviewLib.Qms
                 this.SettingsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Type
         {
@@ -2211,7 +2211,7 @@ namespace QlikviewLib.Qms
                 this.TypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Username
         {
@@ -2225,41 +2225,41 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DSResourceType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum DSResourceType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         AD = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Custom = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Odbc = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Ldap = 3,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Local = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         NT = 5,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DSProvider", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class DSProvider : object
     {
-        
+
         private string NameField;
-        
+
         private string TypeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -2272,7 +2272,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Type
         {
@@ -2286,19 +2286,19 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVWSAuthentication", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QVWSAuthentication : object
     {
-        
+
         private QlikviewLib.Qms.QVWSAuthenticationType AuthenticationTypeField;
-        
+
         private string HeaderField;
-        
+
         private string PrefixField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVWSAuthenticationType AuthenticationType
         {
@@ -2311,7 +2311,7 @@ namespace QlikviewLib.Qms
                 this.AuthenticationTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Header
         {
@@ -2324,7 +2324,7 @@ namespace QlikviewLib.Qms
                 this.HeaderField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Prefix
         {
@@ -2338,69 +2338,69 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVWSAuthenticationType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum QVWSAuthenticationType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Ntlm = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Header = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         CustomUser = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="ServiceTypes", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum ServiceTypes : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         QlikViewManagementService = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         QlikViewDistributionService = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         QlikViewServer = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         QlikViewDirectoryServiceConnector = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         QlikViewWebServer = 16,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         RemoteQlikViewManagementService = 32,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 65535,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ServiceInfo", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class ServiceInfo : object
     {
-        
+
         private System.Uri AddressField;
-        
+
         private int ClusterNodeCountField;
-        
+
         private System.Guid IDField;
-        
+
         private string NameField;
-        
+
         private QlikviewLib.Qms.ServiceTypes TypeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Uri Address
         {
@@ -2413,7 +2413,7 @@ namespace QlikviewLib.Qms
                 this.AddressField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int ClusterNodeCount
         {
@@ -2426,7 +2426,7 @@ namespace QlikviewLib.Qms
                 this.ClusterNodeCountField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -2439,7 +2439,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -2452,7 +2452,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.ServiceTypes Type
         {
@@ -2466,45 +2466,45 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentFolderScope", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum DocumentFolderScope : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         General = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Services = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Administrators = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 65535,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentFolder", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class DocumentFolder : object
     {
-        
+
         private QlikviewLib.Qms.DocumentFolder.DocumentFolderAdministrators AdministratorsField;
-        
+
         private QlikviewLib.Qms.DocumentFolder.DocumentFolderGeneral GeneralField;
-        
+
         private System.Guid IDField;
-        
+
         private QlikviewLib.Qms.DocumentFolderScope ScopeField;
-        
+
         private QlikviewLib.Qms.DocumentFolder.DocumentFolderServices ServicesField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentFolder.DocumentFolderAdministrators Administrators
         {
@@ -2517,7 +2517,7 @@ namespace QlikviewLib.Qms
                 this.AdministratorsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentFolder.DocumentFolderGeneral General
         {
@@ -2530,7 +2530,7 @@ namespace QlikviewLib.Qms
                 this.GeneralField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -2543,7 +2543,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentFolderScope Scope
         {
@@ -2556,7 +2556,7 @@ namespace QlikviewLib.Qms
                 this.ScopeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentFolder.DocumentFolderServices Services
         {
@@ -2569,15 +2569,15 @@ namespace QlikviewLib.Qms
                 this.ServicesField = value;
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentFolder.DocumentFolderAdministrators", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class DocumentFolderAdministrators : object
         {
-            
+
             private string[] UserNamesField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string[] UserNames
             {
@@ -2591,19 +2591,19 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentFolder.DocumentFolderGeneral", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class DocumentFolderGeneral : object
         {
-            
+
             private string PathField;
-            
+
             private bool SendAlertEmailForDocumentAdministratorsField;
-            
+
             private QlikviewLib.Qms.DocumentFolderType TypeField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Path
             {
@@ -2616,7 +2616,7 @@ namespace QlikviewLib.Qms
                     this.PathField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool SendAlertEmailForDocumentAdministrators
             {
@@ -2629,7 +2629,7 @@ namespace QlikviewLib.Qms
                     this.SendAlertEmailForDocumentAdministratorsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentFolderType Type
             {
@@ -2643,17 +2643,17 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentFolder.DocumentFolderServices", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class DocumentFolderServices : object
         {
-            
+
             private System.Guid QDSIDField;
-            
+
             private System.Guid QVSIDField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.Guid QDSID
             {
@@ -2666,7 +2666,7 @@ namespace QlikviewLib.Qms
                     this.QDSIDField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.Guid QVSID
             {
@@ -2681,37 +2681,37 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentFolderType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum DocumentFolderType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         User = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Source = 2,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskInfo", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class TaskInfo : object
     {
-        
+
         private string DistributionGroupField;
-        
+
         private bool EnabledField;
-        
+
         private System.Guid IDField;
-        
+
         private string NameField;
-        
+
         private System.Guid QDSIDField;
-        
+
         private QlikviewLib.Qms.TaskType TypeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string DistributionGroup
         {
@@ -2724,7 +2724,7 @@ namespace QlikviewLib.Qms
                 this.DistributionGroupField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool Enabled
         {
@@ -2737,7 +2737,7 @@ namespace QlikviewLib.Qms
                 this.EnabledField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -2750,7 +2750,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -2763,7 +2763,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid QDSID
         {
@@ -2776,7 +2776,7 @@ namespace QlikviewLib.Qms
                 this.QDSIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskType Type
         {
@@ -2790,96 +2790,96 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum TaskType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Undefined = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         DocumentTask = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ExternalProgramTask = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         DBCommandTask = 3,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         PauseTask = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         QvdCreationTask = 5,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         TemplateTask = 6,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTaskScope", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum DocumentTaskScope : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         General = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Reload = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Reduce = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Distribute = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         DocumentInfo = 16,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Triggering = 32,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Server = 64,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 65535,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class DocumentTask : object
     {
-        
+
         private QlikviewLib.Qms.DocumentTask.TaskDistribute DistributeField;
-        
+
         private QlikviewLib.Qms.DocumentNode DocumentField;
-        
+
         private QlikviewLib.Qms.DocumentTask.TaskDocumentInfo DocumentInfoField;
-        
+
         private QlikviewLib.Qms.DocumentTask.TaskGeneral GeneralField;
-        
+
         private System.Guid IDField;
-        
+
         private System.Guid QDSIDField;
-        
+
         private QlikviewLib.Qms.DocumentTask.TaskReduce ReduceField;
-        
+
         private QlikviewLib.Qms.DocumentTask.TaskReload ReloadField;
-        
+
         private QlikviewLib.Qms.DocumentTaskScope ScopeField;
-        
+
         private QlikviewLib.Qms.DocumentTask.TaskServer ServerField;
-        
+
         private QlikviewLib.Qms.DocumentTask.TaskTriggering TriggeringField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentTask.TaskDistribute Distribute
         {
@@ -2892,7 +2892,7 @@ namespace QlikviewLib.Qms
                 this.DistributeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentNode Document
         {
@@ -2905,7 +2905,7 @@ namespace QlikviewLib.Qms
                 this.DocumentField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentTask.TaskDocumentInfo DocumentInfo
         {
@@ -2918,7 +2918,7 @@ namespace QlikviewLib.Qms
                 this.DocumentInfoField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentTask.TaskGeneral General
         {
@@ -2931,7 +2931,7 @@ namespace QlikviewLib.Qms
                 this.GeneralField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -2944,7 +2944,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid QDSID
         {
@@ -2957,7 +2957,7 @@ namespace QlikviewLib.Qms
                 this.QDSIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentTask.TaskReduce Reduce
         {
@@ -2970,7 +2970,7 @@ namespace QlikviewLib.Qms
                 this.ReduceField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentTask.TaskReload Reload
         {
@@ -2983,7 +2983,7 @@ namespace QlikviewLib.Qms
                 this.ReloadField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentTaskScope Scope
         {
@@ -2996,7 +2996,7 @@ namespace QlikviewLib.Qms
                 this.ScopeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentTask.TaskServer Server
         {
@@ -3009,7 +3009,7 @@ namespace QlikviewLib.Qms
                 this.ServerField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentTask.TaskTriggering Triggering
         {
@@ -3022,21 +3022,21 @@ namespace QlikviewLib.Qms
                 this.TriggeringField = value;
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskDistribute", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskDistribute : object
         {
-            
+
             private QlikviewLib.Qms.DocumentTask.TaskDistribute.TaskDistributeDynamic DynamicField;
-            
+
             private QlikviewLib.Qms.DocumentTask.TaskDistribute.TaskDistributeNotification NotificationField;
-            
+
             private QlikviewLib.Qms.DocumentTask.TaskDistribute.TaskDistributeOutput OutputField;
-            
+
             private QlikviewLib.Qms.DocumentTask.TaskDistribute.TaskDistributeStatic StaticField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentTask.TaskDistribute.TaskDistributeDynamic Dynamic
             {
@@ -3049,7 +3049,7 @@ namespace QlikviewLib.Qms
                     this.DynamicField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentTask.TaskDistribute.TaskDistributeNotification Notification
             {
@@ -3062,7 +3062,7 @@ namespace QlikviewLib.Qms
                     this.NotificationField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentTask.TaskDistribute.TaskDistributeOutput Output
             {
@@ -3075,7 +3075,7 @@ namespace QlikviewLib.Qms
                     this.OutputField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentTask.TaskDistribute.TaskDistributeStatic Static
             {
@@ -3088,21 +3088,21 @@ namespace QlikviewLib.Qms
                     this.StaticField = value;
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskDistribute.TaskDistributeDynamic", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class TaskDistributeDynamic : object
             {
-                
+
                 private QlikviewLib.Qms.TaskDistributionDestination[] DestinationsField;
-                
+
                 private string FieldNameField;
-                
+
                 private QlikviewLib.Qms.UserIdentityValueType IdentityTypeField;
-                
+
                 private bool ValidateEmailsField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.TaskDistributionDestination[] Destinations
                 {
@@ -3115,7 +3115,7 @@ namespace QlikviewLib.Qms
                         this.DestinationsField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string FieldName
                 {
@@ -3128,7 +3128,7 @@ namespace QlikviewLib.Qms
                         this.FieldNameField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.UserIdentityValueType IdentityType
                 {
@@ -3141,7 +3141,7 @@ namespace QlikviewLib.Qms
                         this.IdentityTypeField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool ValidateEmails
                 {
@@ -3155,15 +3155,15 @@ namespace QlikviewLib.Qms
                     }
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskDistribute.TaskDistributeNotification", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class TaskDistributeNotification : object
             {
-                
+
                 private bool SendNotificationEmailField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool SendNotificationEmail
                 {
@@ -3177,17 +3177,17 @@ namespace QlikviewLib.Qms
                     }
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskDistribute.TaskDistributeOutput", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class TaskDistributeOutput : object
             {
-                
+
                 private QlikviewLib.Qms.DocumentTask.TaskDistribute.TaskDistributeOutput.TaskDistributeOutputPDF PDFField;
-                
+
                 private QlikviewLib.Qms.TaskDistributionOutputType TypeField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.DocumentTask.TaskDistribute.TaskDistributeOutput.TaskDistributeOutputPDF PDF
                 {
@@ -3200,7 +3200,7 @@ namespace QlikviewLib.Qms
                         this.PDFField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.TaskDistributionOutputType Type
                 {
@@ -3213,17 +3213,17 @@ namespace QlikviewLib.Qms
                         this.TypeField = value;
                     }
                 }
-                
+
                 [System.Diagnostics.DebuggerStepThroughAttribute()]
                 [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
                 [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskDistribute.TaskDistributeOutput.TaskDistributeOutputPDF", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
                 public partial class TaskDistributeOutputPDF : object
                 {
-                    
+
                     private string ReportIDField;
-                    
+
                     private string ReportNameField;
-                    
+
                     [System.Runtime.Serialization.DataMemberAttribute()]
                     public string ReportID
                     {
@@ -3236,7 +3236,7 @@ namespace QlikviewLib.Qms
                             this.ReportIDField = value;
                         }
                     }
-                    
+
                     [System.Runtime.Serialization.DataMemberAttribute()]
                     public string ReportName
                     {
@@ -3251,15 +3251,15 @@ namespace QlikviewLib.Qms
                     }
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskDistribute.TaskDistributeStatic", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class TaskDistributeStatic : object
             {
-                
+
                 private QlikviewLib.Qms.TaskDistributionEntry[] DistributionEntriesField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.TaskDistributionEntry[] DistributionEntries
                 {
@@ -3274,19 +3274,19 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskDocumentInfo", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskDocumentInfo : object
         {
-            
+
             private QlikviewLib.Qms.DocumentAttribute[] AttributesField;
-            
+
             private string CategoryField;
-            
+
             private string DescriptionField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentAttribute[] Attributes
             {
@@ -3299,7 +3299,7 @@ namespace QlikviewLib.Qms
                     this.AttributesField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Category
             {
@@ -3312,7 +3312,7 @@ namespace QlikviewLib.Qms
                     this.CategoryField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Description
             {
@@ -3326,23 +3326,23 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskGeneral", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskGeneral : object
         {
-            
+
             private string DistributionGroupField;
-            
+
             private bool EnabledField;
-            
+
             private string TaskDescriptionField;
-            
+
             private string TaskNameField;
-            
+
             private QlikviewLib.Qms.TaskWizardTrack TaskWizardTrackField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string DistributionGroup
             {
@@ -3355,7 +3355,7 @@ namespace QlikviewLib.Qms
                     this.DistributionGroupField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool Enabled
             {
@@ -3368,7 +3368,7 @@ namespace QlikviewLib.Qms
                     this.EnabledField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string TaskDescription
             {
@@ -3381,7 +3381,7 @@ namespace QlikviewLib.Qms
                     this.TaskDescriptionField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string TaskName
             {
@@ -3394,7 +3394,7 @@ namespace QlikviewLib.Qms
                     this.TaskNameField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.TaskWizardTrack TaskWizardTrack
             {
@@ -3408,19 +3408,19 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskReduce", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskReduce : object
         {
-            
+
             private string DocumentNameTemplateField;
-            
+
             private QlikviewLib.Qms.DocumentTask.TaskReduce.TaskReduceDynamic DynamicField;
-            
+
             private QlikviewLib.Qms.DocumentTask.TaskReduce.TaskReduceStatic StaticField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string DocumentNameTemplate
             {
@@ -3433,7 +3433,7 @@ namespace QlikviewLib.Qms
                     this.DocumentNameTemplateField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentTask.TaskReduce.TaskReduceDynamic Dynamic
             {
@@ -3446,7 +3446,7 @@ namespace QlikviewLib.Qms
                     this.DynamicField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentTask.TaskReduce.TaskReduceStatic Static
             {
@@ -3459,17 +3459,17 @@ namespace QlikviewLib.Qms
                     this.StaticField = value;
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskReduce.TaskReduceDynamic", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class TaskReduceDynamic : object
             {
-                
+
                 private string FieldNameField;
-                
+
                 private QlikviewLib.Qms.TaskReductionType TypeField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string FieldName
                 {
@@ -3482,7 +3482,7 @@ namespace QlikviewLib.Qms
                         this.FieldNameField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.TaskReductionType Type
                 {
@@ -3496,15 +3496,15 @@ namespace QlikviewLib.Qms
                     }
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskReduce.TaskReduceStatic", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class TaskReduceStatic : object
             {
-                
+
                 private QlikviewLib.Qms.TaskReduction[] ReductionsField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.TaskReduction[] Reductions
                 {
@@ -3519,27 +3519,27 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskReload", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskReload : object
         {
-            
+
             private QlikviewLib.Qms.TaskReloadMode ModeField;
-            
+
             private string ScriptParameterNameField;
-            
+
             private string ScriptParameterValueField;
-            
+
             private string ScriptParameterValueField1Field;
-            
+
             private QlikviewLib.Qms.QDSSectionAccessMode SectionAccessModeField;
-            
+
             private string SectionAccessPasswordField;
-            
+
             private string SectionAccessUserNameField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.TaskReloadMode Mode
             {
@@ -3552,7 +3552,7 @@ namespace QlikviewLib.Qms
                     this.ModeField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string ScriptParameterName
             {
@@ -3565,7 +3565,7 @@ namespace QlikviewLib.Qms
                     this.ScriptParameterNameField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string ScriptParameterValue
             {
@@ -3578,7 +3578,7 @@ namespace QlikviewLib.Qms
                     this.ScriptParameterValueField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute(Name="ScriptParameterValueField")]
             public string ScriptParameterValueField1
             {
@@ -3591,7 +3591,7 @@ namespace QlikviewLib.Qms
                     this.ScriptParameterValueField1Field = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QDSSectionAccessMode SectionAccessMode
             {
@@ -3604,7 +3604,7 @@ namespace QlikviewLib.Qms
                     this.SectionAccessModeField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string SectionAccessPassword
             {
@@ -3617,7 +3617,7 @@ namespace QlikviewLib.Qms
                     this.SectionAccessPasswordField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string SectionAccessUserName
             {
@@ -3631,21 +3631,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskServer", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskServer : object
         {
-            
+
             private QlikviewLib.Qms.DocumentTask.TaskServer.TaskServerAccess AccessField;
-            
+
             private QlikviewLib.Qms.DocumentTask.TaskServer.TaskServerCollaboration CollaborationField;
-            
+
             private QlikviewLib.Qms.DocumentTask.TaskServer.TaskServerDocumentLoading DocumentLoadingField;
-            
+
             private bool EnableAuditLoggingField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentTask.TaskServer.TaskServerAccess Access
             {
@@ -3658,7 +3658,7 @@ namespace QlikviewLib.Qms
                     this.AccessField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentTask.TaskServer.TaskServerCollaboration Collaboration
             {
@@ -3671,7 +3671,7 @@ namespace QlikviewLib.Qms
                     this.CollaborationField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentTask.TaskServer.TaskServerDocumentLoading DocumentLoading
             {
@@ -3684,7 +3684,7 @@ namespace QlikviewLib.Qms
                     this.DocumentLoadingField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool EnableAuditLogging
             {
@@ -3697,33 +3697,33 @@ namespace QlikviewLib.Qms
                     this.EnableAuditLoggingField = value;
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskServer.TaskServerAccess", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class TaskServerAccess : object
             {
-                
+
                 private int DocumentTimeoutField;
-                
+
                 private QlikviewLib.Qms.DocumentDownloadAccess DownloadField;
-                
+
                 private string[] DownloadUsersField;
-                
+
                 private bool EnableSessionCollaborationField;
-                
+
                 private QlikviewLib.Qms.DocumentDownloadAccess ExportField;
-                
+
                 private string[] ExportUsersField;
-                
+
                 private uint MaxConcurrentSessionsField;
-                
+
                 private QlikviewLib.Qms.DocumentAccessMethods MethodsField;
-                
+
                 private int SessionTimeoutField;
-                
+
                 private string ZeroFootprintClientURLField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int DocumentTimeout
                 {
@@ -3736,7 +3736,7 @@ namespace QlikviewLib.Qms
                         this.DocumentTimeoutField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.DocumentDownloadAccess Download
                 {
@@ -3749,7 +3749,7 @@ namespace QlikviewLib.Qms
                         this.DownloadField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string[] DownloadUsers
                 {
@@ -3762,7 +3762,7 @@ namespace QlikviewLib.Qms
                         this.DownloadUsersField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool EnableSessionCollaboration
                 {
@@ -3775,7 +3775,7 @@ namespace QlikviewLib.Qms
                         this.EnableSessionCollaborationField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.DocumentDownloadAccess Export
                 {
@@ -3788,7 +3788,7 @@ namespace QlikviewLib.Qms
                         this.ExportField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string[] ExportUsers
                 {
@@ -3801,7 +3801,7 @@ namespace QlikviewLib.Qms
                         this.ExportUsersField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public uint MaxConcurrentSessions
                 {
@@ -3814,7 +3814,7 @@ namespace QlikviewLib.Qms
                         this.MaxConcurrentSessionsField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.DocumentAccessMethods Methods
                 {
@@ -3827,7 +3827,7 @@ namespace QlikviewLib.Qms
                         this.MethodsField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int SessionTimeout
                 {
@@ -3840,7 +3840,7 @@ namespace QlikviewLib.Qms
                         this.SessionTimeoutField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string ZeroFootprintClientURL
                 {
@@ -3854,17 +3854,17 @@ namespace QlikviewLib.Qms
                     }
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskServer.TaskServerCollaboration", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class TaskServerCollaboration : object
             {
-                
+
                 private QlikviewLib.Qms.DocumentCollaborationCreationMode CreationModeField;
-                
+
                 private string[] CreatorUserNamesField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.DocumentCollaborationCreationMode CreationMode
                 {
@@ -3877,7 +3877,7 @@ namespace QlikviewLib.Qms
                         this.CreationModeField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string[] CreatorUserNames
                 {
@@ -3891,15 +3891,15 @@ namespace QlikviewLib.Qms
                     }
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskServer.TaskServerDocumentLoading", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class TaskServerDocumentLoading : object
             {
-                
+
                 private QlikviewLib.Qms.DocumentTask.TaskServer.TaskServerDocumentLoading.TaskServerDocumentLoadServerSetting[] ServerSettingsField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.DocumentTask.TaskServer.TaskServerDocumentLoading.TaskServerDocumentLoadServerSetting[] ServerSettings
                 {
@@ -3912,20 +3912,20 @@ namespace QlikviewLib.Qms
                         this.ServerSettingsField = value;
                     }
                 }
-                
+
                 [System.Diagnostics.DebuggerStepThroughAttribute()]
                 [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
                 [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskServer.TaskServerDocumentLoading.TaskServerDocumentLoadServerSet" +
                     "ting", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
                 public partial class TaskServerDocumentLoadServerSetting : object
                 {
-                    
+
                     private QlikviewLib.Qms.DocumentTask.TaskServer.TaskServerDocumentLoading.TaskServerDocumentLoadServerSetting.TaskDocumentLoadClusterSetting[] ClusterSettingsField;
-                    
+
                     private QlikviewLib.Qms.ServerDocumentLoadMode ModeField;
-                    
+
                     private System.Guid QlikViewServerIdField;
-                    
+
                     [System.Runtime.Serialization.DataMemberAttribute()]
                     public QlikviewLib.Qms.DocumentTask.TaskServer.TaskServerDocumentLoading.TaskServerDocumentLoadServerSetting.TaskDocumentLoadClusterSetting[] ClusterSettings
                     {
@@ -3938,7 +3938,7 @@ namespace QlikviewLib.Qms
                             this.ClusterSettingsField = value;
                         }
                     }
-                    
+
                     [System.Runtime.Serialization.DataMemberAttribute()]
                     public QlikviewLib.Qms.ServerDocumentLoadMode Mode
                     {
@@ -3951,7 +3951,7 @@ namespace QlikviewLib.Qms
                             this.ModeField = value;
                         }
                     }
-                    
+
                     [System.Runtime.Serialization.DataMemberAttribute()]
                     public System.Guid QlikViewServerId
                     {
@@ -3964,18 +3964,18 @@ namespace QlikviewLib.Qms
                             this.QlikViewServerIdField = value;
                         }
                     }
-                    
+
                     [System.Diagnostics.DebuggerStepThroughAttribute()]
                     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
                     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskServer.TaskServerDocumentLoading.TaskServerDocumentLoadServerSet" +
                         "ting.TaskDocumentLoadClusterSetting", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
                     public partial class TaskDocumentLoadClusterSetting : object
                     {
-                        
+
                         private QlikviewLib.Qms.DocumentLoadMode ModeField;
-                        
+
                         private System.Guid QlikViewServerClusterNodeIdField;
-                        
+
                         [System.Runtime.Serialization.DataMemberAttribute()]
                         public QlikviewLib.Qms.DocumentLoadMode Mode
                         {
@@ -3988,7 +3988,7 @@ namespace QlikviewLib.Qms
                                 this.ModeField = value;
                             }
                         }
-                        
+
                         [System.Runtime.Serialization.DataMemberAttribute()]
                         public System.Guid QlikViewServerClusterNodeId
                         {
@@ -4005,21 +4005,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="DocumentTask.TaskTriggering", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskTriggering : object
         {
-            
+
             private uint ExecutionAttemptsField;
-            
+
             private uint ExecutionTimeoutField;
-            
+
             private QlikviewLib.Qms.TaskInfo[] TaskDependenciesField;
-            
+
             private QlikviewLib.Qms.Trigger[] TriggersField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public uint ExecutionAttempts
             {
@@ -4032,7 +4032,7 @@ namespace QlikviewLib.Qms
                     this.ExecutionAttemptsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public uint ExecutionTimeout
             {
@@ -4045,7 +4045,7 @@ namespace QlikviewLib.Qms
                     this.ExecutionTimeoutField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.TaskInfo[] TaskDependencies
             {
@@ -4058,7 +4058,7 @@ namespace QlikviewLib.Qms
                     this.TaskDependenciesField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.Trigger[] Triggers
             {
@@ -4073,19 +4073,19 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskDistributionDestination", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class TaskDistributionDestination : object
     {
-        
+
         private QlikviewLib.Qms.TaskDistributionDestination.TaskDistributionDestinationFolder FolderField;
-        
+
         private QlikviewLib.Qms.TaskDistributionDestination.TaskDistributionDestinationQlikViewServer QlikViewServerField;
-        
+
         private QlikviewLib.Qms.TaskDistributionDestinationType TypeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskDistributionDestination.TaskDistributionDestinationFolder Folder
         {
@@ -4098,7 +4098,7 @@ namespace QlikviewLib.Qms
                 this.FolderField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskDistributionDestination.TaskDistributionDestinationQlikViewServer QlikViewServer
         {
@@ -4111,7 +4111,7 @@ namespace QlikviewLib.Qms
                 this.QlikViewServerField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskDistributionDestinationType Type
         {
@@ -4124,15 +4124,15 @@ namespace QlikviewLib.Qms
                 this.TypeField = value;
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="TaskDistributionDestination.TaskDistributionDestinationFolder", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskDistributionDestinationFolder : object
         {
-            
+
             private string NameField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Name
             {
@@ -4146,19 +4146,19 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="TaskDistributionDestination.TaskDistributionDestinationQlikViewServer", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskDistributionDestinationQlikViewServer : object
         {
-            
+
             private System.Guid IDField;
-            
+
             private string MountField;
-            
+
             private string NameField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.Guid ID
             {
@@ -4171,7 +4171,7 @@ namespace QlikviewLib.Qms
                     this.IDField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Mount
             {
@@ -4184,7 +4184,7 @@ namespace QlikviewLib.Qms
                     this.MountField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Name
             {
@@ -4199,71 +4199,71 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="UserIdentityValueType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum UserIdentityValueType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         SecurityIdentifier = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         DisplayName = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         SAMAccountName = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         EmailAddress = 16,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         UserPrincipalName = 128,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         EmailAddressNoValidate = 2048,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskDistributionDestinationType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum TaskDistributionDestinationType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         QlikViewServer = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Folder = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Mail = 3,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskDistributionOutputType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum TaskDistributionOutputType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         QlikViewDocument = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         PDFReport = 1,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskDistributionEntry", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class TaskDistributionEntry : object
     {
-        
+
         private QlikviewLib.Qms.TaskDistributionDestination DestinationField;
-        
+
         private QlikviewLib.Qms.DirectoryServiceObject[] RecipientsField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskDistributionDestination Destination
         {
@@ -4276,7 +4276,7 @@ namespace QlikviewLib.Qms
                 this.DestinationField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DirectoryServiceObject[] Recipients
         {
@@ -4290,61 +4290,61 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskWizardTrack", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum TaskWizardTrack : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ReloadOnly = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         StaticDistribution = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ReduceWithStaticDistribution = 3,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ReduceWithDynamicDistribution = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         DynamicDistribution = 5,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         PersonalDocuments = 6,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskReductionType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum TaskReductionType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ByField = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ByBookmark = 2,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskReduction", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class TaskReduction : object
     {
-        
+
         private QlikviewLib.Qms.TaskReduction.TaskReductionBookmark BookmarkField;
-        
+
         private QlikviewLib.Qms.TaskReduction.TaskReductionField FieldField;
-        
+
         private QlikviewLib.Qms.TaskReductionType TypeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskReduction.TaskReductionBookmark Bookmark
         {
@@ -4357,7 +4357,7 @@ namespace QlikviewLib.Qms
                 this.BookmarkField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskReduction.TaskReductionField Field
         {
@@ -4370,7 +4370,7 @@ namespace QlikviewLib.Qms
                 this.FieldField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskReductionType Type
         {
@@ -4383,15 +4383,15 @@ namespace QlikviewLib.Qms
                 this.TypeField = value;
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="TaskReduction.TaskReductionBookmark", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskReductionBookmark : object
         {
-            
+
             private string NameField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Name
             {
@@ -4405,21 +4405,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="TaskReduction.TaskReductionField", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskReductionField : object
         {
-            
+
             private bool IsNumericField;
-            
+
             private string NameField;
-            
+
             private double NumberField;
-            
+
             private string ValueField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool IsNumeric
             {
@@ -4432,7 +4432,7 @@ namespace QlikviewLib.Qms
                     this.IsNumericField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Name
             {
@@ -4445,7 +4445,7 @@ namespace QlikviewLib.Qms
                     this.NameField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public double Number
             {
@@ -4458,7 +4458,7 @@ namespace QlikviewLib.Qms
                     this.NumberField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Value
             {
@@ -4473,34 +4473,34 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskReloadMode", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum TaskReloadMode : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Full = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Partial = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QDSSectionAccessMode", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QDSSectionAccessMode : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         UseQDSAccount = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         SpecifyCredentials = 1,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="Trigger", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Triggers")]
@@ -4511,13 +4511,13 @@ namespace QlikviewLib.Qms
     [System.Runtime.Serialization.KnownTypeAttribute(typeof(QlikviewLib.Qms.MultipleEventTrigger))]
     public partial class Trigger : object
     {
-        
+
         private bool EnabledField;
-        
+
         private System.Guid IDField;
-        
+
         private QlikviewLib.Qms.TaskTriggerType TypeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool Enabled
         {
@@ -4530,7 +4530,7 @@ namespace QlikviewLib.Qms
                 this.EnabledField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -4543,7 +4543,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskTriggerType Type
         {
@@ -4557,16 +4557,16 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ScheduleTrigger", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Triggers")]
     [System.Runtime.Serialization.KnownTypeAttribute(typeof(QlikviewLib.Qms.RecurrenceTrigger))]
     public partial class ScheduleTrigger : QlikviewLib.Qms.Trigger
     {
-        
+
         private System.DateTime StartAtField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.DateTime StartAt
         {
@@ -4580,27 +4580,27 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="RecurrenceTrigger", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Triggers")]
     public partial class RecurrenceTrigger : QlikviewLib.Qms.ScheduleTrigger
     {
-        
+
         private QlikviewLib.Qms.RecurrenceTrigger.RecurrenceTriggerContinuous ContinuousField;
-        
+
         private QlikviewLib.Qms.RecurrenceTrigger.RecurrenceTriggerDaily DailyField;
-        
+
         private System.DateTime ExpireAtField;
-        
+
         private QlikviewLib.Qms.RecurrenceTrigger.RecurrenceTriggerHourly HourlyField;
-        
+
         private int MaxOccurrencesField;
-        
+
         private QlikviewLib.Qms.RecurrenceTrigger.RecurrenceTriggerMonthly MonthlyField;
-        
+
         private QlikviewLib.Qms.RecurrenceTrigger.RecurrenceTriggerWeekly WeeklyField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.RecurrenceTrigger.RecurrenceTriggerContinuous Continuous
         {
@@ -4613,7 +4613,7 @@ namespace QlikviewLib.Qms
                 this.ContinuousField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.RecurrenceTrigger.RecurrenceTriggerDaily Daily
         {
@@ -4626,7 +4626,7 @@ namespace QlikviewLib.Qms
                 this.DailyField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.DateTime ExpireAt
         {
@@ -4639,7 +4639,7 @@ namespace QlikviewLib.Qms
                 this.ExpireAtField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.RecurrenceTrigger.RecurrenceTriggerHourly Hourly
         {
@@ -4652,7 +4652,7 @@ namespace QlikviewLib.Qms
                 this.HourlyField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int MaxOccurrences
         {
@@ -4665,7 +4665,7 @@ namespace QlikviewLib.Qms
                 this.MaxOccurrencesField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.RecurrenceTrigger.RecurrenceTriggerMonthly Monthly
         {
@@ -4678,7 +4678,7 @@ namespace QlikviewLib.Qms
                 this.MonthlyField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.RecurrenceTrigger.RecurrenceTriggerWeekly Weekly
         {
@@ -4691,21 +4691,21 @@ namespace QlikviewLib.Qms
                 this.WeeklyField = value;
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="RecurrenceTrigger.RecurrenceTriggerContinuous", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Triggers")]
         public partial class RecurrenceTriggerContinuous : object
         {
-            
+
             private System.DayOfWeek[] DayOfWeekConstraintsField;
-            
+
             private int RecurEveryField;
-            
+
             private System.DateTime TimeConstraintFromField;
-            
+
             private System.DateTime TimeConstraintToField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.DayOfWeek[] DayOfWeekConstraints
             {
@@ -4718,7 +4718,7 @@ namespace QlikviewLib.Qms
                     this.DayOfWeekConstraintsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int RecurEvery
             {
@@ -4731,7 +4731,7 @@ namespace QlikviewLib.Qms
                     this.RecurEveryField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.DateTime TimeConstraintFrom
             {
@@ -4744,7 +4744,7 @@ namespace QlikviewLib.Qms
                     this.TimeConstraintFromField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.DateTime TimeConstraintTo
             {
@@ -4758,15 +4758,15 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="RecurrenceTrigger.RecurrenceTriggerDaily", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Triggers")]
         public partial class RecurrenceTriggerDaily : object
         {
-            
+
             private int RecurEveryField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int RecurEvery
             {
@@ -4780,21 +4780,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="RecurrenceTrigger.RecurrenceTriggerHourly", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Triggers")]
         public partial class RecurrenceTriggerHourly : object
         {
-            
+
             private System.DayOfWeek[] DayOfWeekConstraintsField;
-            
+
             private int RecurEveryField;
-            
+
             private System.DateTime TimeConstraintFromField;
-            
+
             private System.DateTime TimeConstraintToField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.DayOfWeek[] DayOfWeekConstraints
             {
@@ -4807,7 +4807,7 @@ namespace QlikviewLib.Qms
                     this.DayOfWeekConstraintsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int RecurEvery
             {
@@ -4820,7 +4820,7 @@ namespace QlikviewLib.Qms
                     this.RecurEveryField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.DateTime TimeConstraintFrom
             {
@@ -4833,7 +4833,7 @@ namespace QlikviewLib.Qms
                     this.TimeConstraintFromField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.DateTime TimeConstraintTo
             {
@@ -4847,21 +4847,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="RecurrenceTrigger.RecurrenceTriggerMonthly", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Triggers")]
         public partial class RecurrenceTriggerMonthly : object
         {
-            
+
             private int[] DayConstraintsField;
-            
+
             private System.DayOfWeek[] DayOfWeekConstraintsField;
-            
+
             private int[] MonthsField;
-            
+
             private int[] OccurrencesField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int[] DayConstraints
             {
@@ -4874,7 +4874,7 @@ namespace QlikviewLib.Qms
                     this.DayConstraintsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.DayOfWeek[] DayOfWeekConstraints
             {
@@ -4887,7 +4887,7 @@ namespace QlikviewLib.Qms
                     this.DayOfWeekConstraintsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int[] Months
             {
@@ -4900,7 +4900,7 @@ namespace QlikviewLib.Qms
                     this.MonthsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int[] Occurrences
             {
@@ -4914,17 +4914,17 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="RecurrenceTrigger.RecurrenceTriggerWeekly", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Triggers")]
         public partial class RecurrenceTriggerWeekly : object
         {
-            
+
             private System.DayOfWeek[] DayOfWeekConstraintsField;
-            
+
             private int RecurEveryField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.DayOfWeek[] DayOfWeekConstraints
             {
@@ -4937,7 +4937,7 @@ namespace QlikviewLib.Qms
                     this.DayOfWeekConstraintsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int RecurEvery
             {
@@ -4952,15 +4952,15 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskEventTrigger", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Triggers")]
     public partial class TaskEventTrigger : QlikviewLib.Qms.Trigger
     {
-        
+
         private System.Guid TaskIDField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid TaskID
         {
@@ -4974,15 +4974,15 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ExternalEventTrigger", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Triggers")]
     public partial class ExternalEventTrigger : QlikviewLib.Qms.Trigger
     {
-        
+
         private string PasswordField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Password
         {
@@ -4996,17 +4996,17 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="MultipleEventTrigger", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Triggers")]
     public partial class MultipleEventTrigger : QlikviewLib.Qms.Trigger
     {
-        
+
         private QlikviewLib.Qms.Trigger[] SubTriggersField;
-        
+
         private int TimeConstraintField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.Trigger[] SubTriggers
         {
@@ -5019,7 +5019,7 @@ namespace QlikviewLib.Qms
                 this.SubTriggersField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int TimeConstraint
         {
@@ -5033,57 +5033,57 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskTriggerType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum TaskTriggerType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         OnceTrigger = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         HourlyTrigger = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         DailyTrigger = 3,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         WeeklyTrigger = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         MonthlyTrigger = 5,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ContinuousTrigger = 6,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ExternalEventTrigger = 7,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         TaskFinishedTrigger = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         TaskFailedTrigger = 9,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         AndTrigger = 10,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ExtensionUploadHandle", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class ExtensionUploadHandle : object
     {
-        
+
         private long PositionField;
-        
+
         private System.Guid QVSClusterIDField;
-        
+
         private System.Guid QVSClusterMemberIDField;
-        
+
         private int QVSHandleField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public long Position
         {
@@ -5096,7 +5096,7 @@ namespace QlikviewLib.Qms
                 this.PositionField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid QVSClusterID
         {
@@ -5109,7 +5109,7 @@ namespace QlikviewLib.Qms
                 this.QVSClusterIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid QVSClusterMemberID
         {
@@ -5122,7 +5122,7 @@ namespace QlikviewLib.Qms
                 this.QVSClusterMemberIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int QVSHandle
         {
@@ -5136,17 +5136,17 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSMessage", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QVSMessage : object
     {
-        
+
         private string[] SubTextsField;
-        
+
         private string TextField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string[] SubTexts
         {
@@ -5159,7 +5159,7 @@ namespace QlikviewLib.Qms
                 this.SubTextsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Text
         {
@@ -5173,29 +5173,29 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="License", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class License : object
     {
-        
+
         private string ControlField;
-        
+
         private string CorporationField;
-        
+
         private QlikviewLib.Qms.LicenseFeature[] FeaturesField;
-        
+
         private string LEFFileField;
-        
+
         private bool LEFOkField;
-        
+
         private QlikviewLib.Qms.LicenseType LicenseTypeField;
-        
+
         private string NameField;
-        
+
         private string SerialField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Control
         {
@@ -5208,7 +5208,7 @@ namespace QlikviewLib.Qms
                 this.ControlField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Corporation
         {
@@ -5221,7 +5221,7 @@ namespace QlikviewLib.Qms
                 this.CorporationField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.LicenseFeature[] Features
         {
@@ -5234,7 +5234,7 @@ namespace QlikviewLib.Qms
                 this.FeaturesField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string LEFFile
         {
@@ -5247,7 +5247,7 @@ namespace QlikviewLib.Qms
                 this.LEFFileField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool LEFOk
         {
@@ -5260,7 +5260,7 @@ namespace QlikviewLib.Qms
                 this.LEFOkField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.LicenseType LicenseType
         {
@@ -5273,7 +5273,7 @@ namespace QlikviewLib.Qms
                 this.LicenseTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -5286,7 +5286,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Serial
         {
@@ -5300,17 +5300,17 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="LicenseFeature", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class LicenseFeature : object
     {
-        
+
         private string NameField;
-        
+
         private string ValueField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -5323,7 +5323,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Value
         {
@@ -5337,82 +5337,82 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="LicenseType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum LicenseType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Publisher = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         QlikViewServer = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettingsScope", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QVSSettingsScope : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         General = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Folders = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Documents = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Performance = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Logging = 16,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Security = 32,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Cluster = 64,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Distribution = 128,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 65535,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QVSSettings : object
     {
-        
+
         private QlikviewLib.Qms.QVSSettings.QVSCluster ClusterField;
-        
+
         private QlikviewLib.Qms.QVSSettings.QVSDistribution DistributionField;
-        
+
         private QlikviewLib.Qms.QVSSettings.QVSDocuments DocumentsField;
-        
+
         private QlikviewLib.Qms.QVSSettings.QVSFolders FoldersField;
-        
+
         private QlikviewLib.Qms.QVSSettings.QVSGeneral GeneralField;
-        
+
         private QlikviewLib.Qms.QVSSettings.QVSLogging LoggingField;
-        
+
         private QlikviewLib.Qms.QVSSettings.QVSPerformance PerformanceField;
-        
+
         private System.Guid QVSIDField;
-        
+
         private QlikviewLib.Qms.QVSSettingsScope ScopeField;
-        
+
         private QlikviewLib.Qms.QVSSettings.QVSSecurity SecurityField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVSSettings.QVSCluster Cluster
         {
@@ -5425,7 +5425,7 @@ namespace QlikviewLib.Qms
                 this.ClusterField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVSSettings.QVSDistribution Distribution
         {
@@ -5438,7 +5438,7 @@ namespace QlikviewLib.Qms
                 this.DistributionField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVSSettings.QVSDocuments Documents
         {
@@ -5451,7 +5451,7 @@ namespace QlikviewLib.Qms
                 this.DocumentsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVSSettings.QVSFolders Folders
         {
@@ -5464,7 +5464,7 @@ namespace QlikviewLib.Qms
                 this.FoldersField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVSSettings.QVSGeneral General
         {
@@ -5477,7 +5477,7 @@ namespace QlikviewLib.Qms
                 this.GeneralField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVSSettings.QVSLogging Logging
         {
@@ -5490,7 +5490,7 @@ namespace QlikviewLib.Qms
                 this.LoggingField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVSSettings.QVSPerformance Performance
         {
@@ -5503,7 +5503,7 @@ namespace QlikviewLib.Qms
                 this.PerformanceField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid QVSID
         {
@@ -5516,7 +5516,7 @@ namespace QlikviewLib.Qms
                 this.QVSIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVSSettingsScope Scope
         {
@@ -5529,7 +5529,7 @@ namespace QlikviewLib.Qms
                 this.ScopeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVSSettings.QVSSecurity Security
         {
@@ -5542,21 +5542,21 @@ namespace QlikviewLib.Qms
                 this.SecurityField = value;
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSCluster", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QVSCluster : object
         {
-            
+
             private int AlternateBuildNumberField;
-            
+
             private string AlternateDocumentRootFolderField;
-            
+
             private QlikviewLib.Qms.QVSSettings.QVSCluster.QVSClusterLicense LicenseField;
-            
+
             private QlikviewLib.Qms.QVSClusterMember[] MembersField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int AlternateBuildNumber
             {
@@ -5569,7 +5569,7 @@ namespace QlikviewLib.Qms
                     this.AlternateBuildNumberField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string AlternateDocumentRootFolder
             {
@@ -5582,7 +5582,7 @@ namespace QlikviewLib.Qms
                     this.AlternateDocumentRootFolderField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSSettings.QVSCluster.QVSClusterLicense License
             {
@@ -5595,7 +5595,7 @@ namespace QlikviewLib.Qms
                     this.LicenseField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSClusterMember[] Members
             {
@@ -5608,19 +5608,19 @@ namespace QlikviewLib.Qms
                     this.MembersField = value;
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSCluster.QVSClusterLicense", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class QVSClusterLicense : object
             {
-                
+
                 private bool AllowsClusteringField;
-                
+
                 private string ControlNumberField;
-                
+
                 private string SerialNumberField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool AllowsClustering
                 {
@@ -5633,7 +5633,7 @@ namespace QlikviewLib.Qms
                         this.AllowsClusteringField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string ControlNumber
                 {
@@ -5646,7 +5646,7 @@ namespace QlikviewLib.Qms
                         this.ControlNumberField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string SerialNumber
                 {
@@ -5661,19 +5661,19 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSDistribution", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QVSDistribution : object
         {
-            
+
             private QlikviewLib.Qms.QVSSupervisionAccount[] AccountsField;
-            
+
             private bool IsPublisherQDSField;
-            
+
             private System.Guid QDSIDField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSSupervisionAccount[] Accounts
             {
@@ -5686,7 +5686,7 @@ namespace QlikviewLib.Qms
                     this.AccountsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool IsPublisherQDS
             {
@@ -5699,7 +5699,7 @@ namespace QlikviewLib.Qms
                     this.IsPublisherQDSField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.Guid QDSID
             {
@@ -5713,17 +5713,17 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSDocuments", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QVSDocuments : object
         {
-            
+
             private QlikviewLib.Qms.QVSSettings.QVSDocuments.QVSDocumentsObjects ObjectsField;
-            
+
             private QlikviewLib.Qms.QVSSettings.QVSDocuments.QVSDocumentsServer ServerField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSSettings.QVSDocuments.QVSDocumentsObjects Objects
             {
@@ -5736,7 +5736,7 @@ namespace QlikviewLib.Qms
                     this.ObjectsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSSettings.QVSDocuments.QVSDocumentsServer Server
             {
@@ -5749,19 +5749,19 @@ namespace QlikviewLib.Qms
                     this.ServerField = value;
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSDocuments.QVSDocumentsObjects", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class QVSDocumentsObjects : object
             {
-                
+
                 private bool AllowMoveObjectsField;
-                
+
                 private string DefaultLabelOthersField;
-                
+
                 private string DefaultLabelTotalField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool AllowMoveObjects
                 {
@@ -5774,7 +5774,7 @@ namespace QlikviewLib.Qms
                         this.AllowMoveObjectsField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string DefaultLabelOthers
                 {
@@ -5787,7 +5787,7 @@ namespace QlikviewLib.Qms
                         this.DefaultLabelOthersField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string DefaultLabelTotal
                 {
@@ -5801,33 +5801,33 @@ namespace QlikviewLib.Qms
                     }
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSDocuments.QVSDocumentsServer", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class QVSDocumentsServer : object
             {
-                
+
                 private bool AllowAnonymousServerBookmarkCollaborationField;
-                
+
                 private bool AllowDocumentDownloadField;
-                
+
                 private bool AllowDocumentUploadField;
-                
+
                 private bool AllowPrintAndExportField;
-                
+
                 private bool AllowServerAnnotationsField;
-                
+
                 private bool AllowServerCollaborationField;
-                
+
                 private bool AllowSessionCollaborationField;
-                
+
                 private bool OverlayDocumentsField;
-                
+
                 private bool ProhibitQVPXSessionRecoveryField;
-                
+
                 private int TimeoutField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool AllowAnonymousServerBookmarkCollaboration
                 {
@@ -5840,7 +5840,7 @@ namespace QlikviewLib.Qms
                         this.AllowAnonymousServerBookmarkCollaborationField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool AllowDocumentDownload
                 {
@@ -5853,7 +5853,7 @@ namespace QlikviewLib.Qms
                         this.AllowDocumentDownloadField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool AllowDocumentUpload
                 {
@@ -5866,7 +5866,7 @@ namespace QlikviewLib.Qms
                         this.AllowDocumentUploadField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool AllowPrintAndExport
                 {
@@ -5879,7 +5879,7 @@ namespace QlikviewLib.Qms
                         this.AllowPrintAndExportField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool AllowServerAnnotations
                 {
@@ -5892,7 +5892,7 @@ namespace QlikviewLib.Qms
                         this.AllowServerAnnotationsField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool AllowServerCollaboration
                 {
@@ -5905,7 +5905,7 @@ namespace QlikviewLib.Qms
                         this.AllowServerCollaborationField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool AllowSessionCollaboration
                 {
@@ -5918,7 +5918,7 @@ namespace QlikviewLib.Qms
                         this.AllowSessionCollaborationField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool OverlayDocuments
                 {
@@ -5931,7 +5931,7 @@ namespace QlikviewLib.Qms
                         this.OverlayDocumentsField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool ProhibitQVPXSessionRecovery
                 {
@@ -5944,7 +5944,7 @@ namespace QlikviewLib.Qms
                         this.ProhibitQVPXSessionRecoveryField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int Timeout
                 {
@@ -5959,21 +5959,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSFolders", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QVSFolders : object
         {
-            
+
             private QlikviewLib.Qms.QVSSettings.QVSFolders.QVSFoldersSystem SystemField;
-            
+
             private QlikviewLib.Qms.QVSFolderAdministrator[] UserDocumentAdministratorsField;
-            
+
             private QlikviewLib.Qms.QVSMount[] UserDocumentMountsField;
-            
+
             private string UserDocumentRootFolderField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSSettings.QVSFolders.QVSFoldersSystem System
             {
@@ -5986,7 +5986,7 @@ namespace QlikviewLib.Qms
                     this.SystemField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSFolderAdministrator[] UserDocumentAdministrators
             {
@@ -5999,7 +5999,7 @@ namespace QlikviewLib.Qms
                     this.UserDocumentAdministratorsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSMount[] UserDocumentMounts
             {
@@ -6012,7 +6012,7 @@ namespace QlikviewLib.Qms
                     this.UserDocumentMountsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string UserDocumentRootFolder
             {
@@ -6025,15 +6025,15 @@ namespace QlikviewLib.Qms
                     this.UserDocumentRootFolderField = value;
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSFolders.QVSFoldersSystem", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class QVSFoldersSystem : object
             {
-                
+
                 private string ExportTemporaryFolderField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public string ExportTemporaryFolder
                 {
@@ -6048,21 +6048,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSGeneral", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QVSGeneral : object
         {
-            
+
             private string NameField;
-            
+
             private string PasswordField;
-            
+
             private bool ShowAlertsField;
-            
+
             private string UserNameField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Name
             {
@@ -6075,7 +6075,7 @@ namespace QlikviewLib.Qms
                     this.NameField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Password
             {
@@ -6088,7 +6088,7 @@ namespace QlikviewLib.Qms
                     this.PasswordField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool ShowAlerts
             {
@@ -6101,7 +6101,7 @@ namespace QlikviewLib.Qms
                     this.ShowAlertsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string UserName
             {
@@ -6115,21 +6115,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSLogging", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QVSLogging : object
         {
-            
+
             private QlikviewLib.Qms.QVSLogFileSplitMode FileSplitModeField;
-            
+
             private string FolderField;
-            
+
             private QlikviewLib.Qms.QVSSettings.QVSLogging.QVSLoggingLevel LevelField;
-            
+
             private QlikviewLib.Qms.QVSLogVerbosity VerbosityField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSLogFileSplitMode FileSplitMode
             {
@@ -6142,7 +6142,7 @@ namespace QlikviewLib.Qms
                     this.FileSplitModeField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Folder
             {
@@ -6155,7 +6155,7 @@ namespace QlikviewLib.Qms
                     this.FolderField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSSettings.QVSLogging.QVSLoggingLevel Level
             {
@@ -6168,7 +6168,7 @@ namespace QlikviewLib.Qms
                     this.LevelField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSLogVerbosity Verbosity
             {
@@ -6181,21 +6181,21 @@ namespace QlikviewLib.Qms
                     this.VerbosityField = value;
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSLogging.QVSLoggingLevel", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class QVSLoggingLevel : object
             {
-                
+
                 private bool EnableEventLoggingField;
-                
+
                 private bool EnablePerformanceLoggingField;
-                
+
                 private bool EnableSessionLoggingField;
-                
+
                 private int PerformanceLoggingIntervalField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool EnableEventLogging
                 {
@@ -6208,7 +6208,7 @@ namespace QlikviewLib.Qms
                         this.EnableEventLoggingField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool EnablePerformanceLogging
                 {
@@ -6221,7 +6221,7 @@ namespace QlikviewLib.Qms
                         this.EnablePerformanceLoggingField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool EnableSessionLogging
                 {
@@ -6234,7 +6234,7 @@ namespace QlikviewLib.Qms
                         this.EnableSessionLoggingField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int PerformanceLoggingInterval
                 {
@@ -6249,21 +6249,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSPerformance", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QVSPerformance : object
         {
-            
+
             private QlikviewLib.Qms.QVSSettings.QVSPerformance.QVSPerformanceCPU CPUField;
-            
+
             private QlikviewLib.Qms.QVSSettings.QVSPerformance.QVSPerformanceDocument DocumentField;
-            
+
             private QlikviewLib.Qms.QVSSettings.QVSPerformance.QVSPerformanceSessions SessionsField;
-            
+
             private QlikviewLib.Qms.QVSSettings.QVSPerformance.QVSPerformanceWorkingSetMemory WorkingSetMemoryField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSSettings.QVSPerformance.QVSPerformanceCPU CPU
             {
@@ -6276,7 +6276,7 @@ namespace QlikviewLib.Qms
                     this.CPUField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSSettings.QVSPerformance.QVSPerformanceDocument Document
             {
@@ -6289,7 +6289,7 @@ namespace QlikviewLib.Qms
                     this.DocumentField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSSettings.QVSPerformance.QVSPerformanceSessions Sessions
             {
@@ -6302,7 +6302,7 @@ namespace QlikviewLib.Qms
                     this.SessionsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSSettings.QVSPerformance.QVSPerformanceWorkingSetMemory WorkingSetMemory
             {
@@ -6315,17 +6315,17 @@ namespace QlikviewLib.Qms
                     this.WorkingSetMemoryField = value;
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSPerformance.QVSPerformanceCPU", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class QVSPerformanceCPU : object
             {
-                
+
                 private bool[] AffinityField;
-                
+
                 private double ThrottleField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool[] Affinity
                 {
@@ -6338,7 +6338,7 @@ namespace QlikviewLib.Qms
                         this.AffinityField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public double Throttle
                 {
@@ -6352,19 +6352,19 @@ namespace QlikviewLib.Qms
                     }
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSPerformance.QVSPerformanceDocument", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class QVSPerformanceDocument : object
             {
-                
+
                 private bool AllowDocumentAutoLoadField;
-                
+
                 private int MaxChartSymbolsField;
-                
+
                 private int ObjectCalculationTimeLimitField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool AllowDocumentAutoLoad
                 {
@@ -6377,7 +6377,7 @@ namespace QlikviewLib.Qms
                         this.AllowDocumentAutoLoadField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int MaxChartSymbols
                 {
@@ -6390,7 +6390,7 @@ namespace QlikviewLib.Qms
                         this.MaxChartSymbolsField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int ObjectCalculationTimeLimit
                 {
@@ -6404,21 +6404,21 @@ namespace QlikviewLib.Qms
                     }
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSPerformance.QVSPerformanceSessions", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class QVSPerformanceSessions : object
             {
-                
+
                 private int ConcurrentSessionsTimeoutField;
-                
+
                 private int MaxConcurrentSessionsField;
-                
+
                 private int MaxInactiveSessionTimeField;
-                
+
                 private int MaxTotalSessionTimeField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int ConcurrentSessionsTimeout
                 {
@@ -6431,7 +6431,7 @@ namespace QlikviewLib.Qms
                         this.ConcurrentSessionsTimeoutField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int MaxConcurrentSessions
                 {
@@ -6444,7 +6444,7 @@ namespace QlikviewLib.Qms
                         this.MaxConcurrentSessionsField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int MaxInactiveSessionTime
                 {
@@ -6457,7 +6457,7 @@ namespace QlikviewLib.Qms
                         this.MaxInactiveSessionTimeField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int MaxTotalSessionTime
                 {
@@ -6471,17 +6471,17 @@ namespace QlikviewLib.Qms
                     }
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSPerformance.QVSPerformanceWorkingSetMemory", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class QVSPerformanceWorkingSetMemory : object
             {
-                
+
                 private int HighLimitField;
-                
+
                 private int LowLimitField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int HighLimit
                 {
@@ -6494,7 +6494,7 @@ namespace QlikviewLib.Qms
                         this.HighLimitField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public int LowLimit
                 {
@@ -6509,35 +6509,35 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSSecurity", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QVSSecurity : object
         {
-            
+
             private bool AllowAlternateAdminField;
-            
+
             private bool AllowDynamicUpdateField;
-            
+
             private bool AllowExtensionsField;
-            
+
             private bool AllowServerMacroExecutionField;
-            
+
             private bool AllowServerSystemAccessMacroExecutionField;
-            
+
             private QlikviewLib.Qms.QVSSettings.QVSSecurity.QVSSecurityAuthentication AuthenticationField;
-            
+
             private QlikviewLib.Qms.QVSSettings.QVSSecurity.QVSSecurityAuthorization AuthorizationField;
-            
+
             private bool CompressNetworkTrafficField;
-            
+
             private QlikviewLib.Qms.QVSAuditLogLevel EnableAuditLoggingField;
-            
+
             private bool EnableHTTPPushField;
-            
+
             private string ExtensionsFolderField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool AllowAlternateAdmin
             {
@@ -6550,7 +6550,7 @@ namespace QlikviewLib.Qms
                     this.AllowAlternateAdminField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool AllowDynamicUpdate
             {
@@ -6563,7 +6563,7 @@ namespace QlikviewLib.Qms
                     this.AllowDynamicUpdateField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool AllowExtensions
             {
@@ -6576,7 +6576,7 @@ namespace QlikviewLib.Qms
                     this.AllowExtensionsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool AllowServerMacroExecution
             {
@@ -6589,7 +6589,7 @@ namespace QlikviewLib.Qms
                     this.AllowServerMacroExecutionField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool AllowServerSystemAccessMacroExecution
             {
@@ -6602,7 +6602,7 @@ namespace QlikviewLib.Qms
                     this.AllowServerSystemAccessMacroExecutionField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSSettings.QVSSecurity.QVSSecurityAuthentication Authentication
             {
@@ -6615,7 +6615,7 @@ namespace QlikviewLib.Qms
                     this.AuthenticationField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSSettings.QVSSecurity.QVSSecurityAuthorization Authorization
             {
@@ -6628,7 +6628,7 @@ namespace QlikviewLib.Qms
                     this.AuthorizationField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool CompressNetworkTraffic
             {
@@ -6641,7 +6641,7 @@ namespace QlikviewLib.Qms
                     this.CompressNetworkTrafficField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QVSAuditLogLevel EnableAuditLogging
             {
@@ -6654,7 +6654,7 @@ namespace QlikviewLib.Qms
                     this.EnableAuditLoggingField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool EnableHTTPPush
             {
@@ -6667,7 +6667,7 @@ namespace QlikviewLib.Qms
                     this.EnableHTTPPushField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string ExtensionsFolder
             {
@@ -6680,17 +6680,17 @@ namespace QlikviewLib.Qms
                     this.ExtensionsFolderField = value;
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSSecurity.QVSSecurityAuthentication", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class QVSSecurityAuthentication : object
             {
-                
+
                 private QlikviewLib.Qms.QVSAuthenticationLevel LevelField;
-                
+
                 private bool UseDomainAccountForAnonymousField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public QlikviewLib.Qms.QVSAuthenticationLevel Level
                 {
@@ -6703,7 +6703,7 @@ namespace QlikviewLib.Qms
                         this.LevelField = value;
                     }
                 }
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool UseDomainAccountForAnonymous
                 {
@@ -6717,15 +6717,15 @@ namespace QlikviewLib.Qms
                     }
                 }
             }
-            
+
             [System.Diagnostics.DebuggerStepThroughAttribute()]
             [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
             [System.Runtime.Serialization.DataContractAttribute(Name="QVSSettings.QVSSecurity.QVSSecurityAuthorization", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
             public partial class QVSSecurityAuthorization : object
             {
-                
+
                 private bool UseDMSAuthorizationField;
-                
+
                 [System.Runtime.Serialization.DataMemberAttribute()]
                 public bool UseDMSAuthorization
                 {
@@ -6741,19 +6741,19 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSClusterMember", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QVSClusterMember : object
     {
-        
+
         private string AddressField;
-        
+
         private string ExternalMachineNameField;
-        
+
         private System.Guid IDField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Address
         {
@@ -6766,7 +6766,7 @@ namespace QlikviewLib.Qms
                 this.AddressField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string ExternalMachineName
         {
@@ -6779,7 +6779,7 @@ namespace QlikviewLib.Qms
                 this.ExternalMachineNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -6793,21 +6793,21 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSSupervisionAccount", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QVSSupervisionAccount : object
     {
-        
+
         private string AccountNameField;
-        
+
         private System.Guid IDField;
-        
+
         private string MountNameField;
-        
+
         private QlikviewLib.Qms.QVSSupervisionAccountType TypeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string AccountName
         {
@@ -6820,7 +6820,7 @@ namespace QlikviewLib.Qms
                 this.AccountNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -6833,7 +6833,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string MountName
         {
@@ -6846,7 +6846,7 @@ namespace QlikviewLib.Qms
                 this.MountNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVSSupervisionAccountType Type
         {
@@ -6860,31 +6860,31 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSSupervisionAccountType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QVSSupervisionAccountType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         QlikViewServer = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Mount = 1,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSFolderAdministrator", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QVSFolderAdministrator : object
     {
-        
+
         private System.Guid FolderIDField;
-        
+
         private QlikviewLib.Qms.QVSUserDocumentFolderType FolderTypeField;
-        
+
         private string UserNameField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid FolderID
         {
@@ -6897,7 +6897,7 @@ namespace QlikviewLib.Qms
                 this.FolderIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVSUserDocumentFolderType FolderType
         {
@@ -6910,7 +6910,7 @@ namespace QlikviewLib.Qms
                 this.FolderTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string UserName
         {
@@ -6924,21 +6924,21 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSMount", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QVSMount : object
     {
-        
+
         private bool BrowsableField;
-        
+
         private System.Guid FolderIDField;
-        
+
         private string NameField;
-        
+
         private string PathField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool Browsable
         {
@@ -6951,7 +6951,7 @@ namespace QlikviewLib.Qms
                 this.BrowsableField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid FolderID
         {
@@ -6964,7 +6964,7 @@ namespace QlikviewLib.Qms
                 this.FolderIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -6977,7 +6977,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Path
         {
@@ -6991,159 +6991,159 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSUserDocumentFolderType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QVSUserDocumentFolderType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Server = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Root = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Mount = 3,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSLogFileSplitMode", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QVSLogFileSplitMode : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Never = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Daily = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Weekly = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Monthly = 3,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Yearly = 4,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSLogVerbosity", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QVSLogVerbosity : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         High = 700,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Medium = 500,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Low = 300,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSAuditLogLevel", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QVSAuditLogLevel : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Basic = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Detail = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSAuthenticationLevel", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QVSAuthenticationLevel : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         AlwaysAnonymous = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         AllowAnonymous = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ProhibitAnonymous = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVSCacheObjects", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QVSCacheObjects : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         License = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Settings = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         UserDocumentList = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         UserDocumentMetaData = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         CALConfiguration = 16,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 65535,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="QDSSettingsScope", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum QDSSettingsScope : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         General = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Email = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Login = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Advanced = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 65535,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QDSSettings", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QDSSettings : object
     {
-        
+
         private QlikviewLib.Qms.QDSSettings.QDSAdvanced AdvancedField;
-        
+
         private QlikviewLib.Qms.QDSSettings.QDSEmail EmailField;
-        
+
         private QlikviewLib.Qms.QDSSettings.QDSGeneral GeneralField;
-        
+
         private System.Guid IDField;
-        
+
         private QlikviewLib.Qms.QDSSettings.QDSLogin LoginField;
-        
+
         private QlikviewLib.Qms.QDSSettingsScope ScopeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QDSSettings.QDSAdvanced Advanced
         {
@@ -7156,7 +7156,7 @@ namespace QlikviewLib.Qms
                 this.AdvancedField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QDSSettings.QDSEmail Email
         {
@@ -7169,7 +7169,7 @@ namespace QlikviewLib.Qms
                 this.EmailField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QDSSettings.QDSGeneral General
         {
@@ -7182,7 +7182,7 @@ namespace QlikviewLib.Qms
                 this.GeneralField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -7195,7 +7195,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QDSSettings.QDSLogin Login
         {
@@ -7208,7 +7208,7 @@ namespace QlikviewLib.Qms
                 this.LoginField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QDSSettingsScope Scope
         {
@@ -7221,25 +7221,25 @@ namespace QlikviewLib.Qms
                 this.ScopeField = value;
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QDSSettings.QDSAdvanced", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QDSAdvanced : object
         {
-            
+
             private bool[] CPUAffinityField;
-            
+
             private QlikviewLib.Qms.CPUPriority CPUPriorityField;
-            
+
             private int MaxQvbAdminField;
-            
+
             private int MaxQvbDistField;
-            
+
             private string SectionAccessPasswordField;
-            
+
             private string SectionAccessUsernameField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool[] CPUAffinity
             {
@@ -7252,7 +7252,7 @@ namespace QlikviewLib.Qms
                     this.CPUAffinityField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.CPUPriority CPUPriority
             {
@@ -7265,7 +7265,7 @@ namespace QlikviewLib.Qms
                     this.CPUPriorityField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int MaxQvbAdmin
             {
@@ -7278,7 +7278,7 @@ namespace QlikviewLib.Qms
                     this.MaxQvbAdminField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int MaxQvbDist
             {
@@ -7291,7 +7291,7 @@ namespace QlikviewLib.Qms
                     this.MaxQvbDistField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string SectionAccessPassword
             {
@@ -7304,7 +7304,7 @@ namespace QlikviewLib.Qms
                     this.SectionAccessPasswordField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string SectionAccessUsername
             {
@@ -7318,39 +7318,39 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QDSSettings.QDSEmail", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QDSEmail : object
         {
-            
+
             private string AlertHtmlBodyField;
-            
+
             private string AlertHtmlSubjectField;
-            
+
             private string[] AlertMailAddressesField;
-            
+
             private string AlertPlainBodyField;
-            
+
             private string AlertPlainSubjectField;
-            
+
             private string AttachmentHtmlBodyField;
-            
+
             private string AttachmentHtmlSubjectField;
-            
+
             private string AttachmentPlainBodyField;
-            
+
             private string AttachmentPlainSubjectField;
-            
+
             private string NotifyHtmlBodyField;
-            
+
             private string NotifyHtmlSubjectField;
-            
+
             private string NotifyPlainBodyField;
-            
+
             private string NotifyPlainSubjectField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string AlertHtmlBody
             {
@@ -7363,7 +7363,7 @@ namespace QlikviewLib.Qms
                     this.AlertHtmlBodyField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string AlertHtmlSubject
             {
@@ -7376,7 +7376,7 @@ namespace QlikviewLib.Qms
                     this.AlertHtmlSubjectField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string[] AlertMailAddresses
             {
@@ -7389,7 +7389,7 @@ namespace QlikviewLib.Qms
                     this.AlertMailAddressesField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string AlertPlainBody
             {
@@ -7402,7 +7402,7 @@ namespace QlikviewLib.Qms
                     this.AlertPlainBodyField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string AlertPlainSubject
             {
@@ -7415,7 +7415,7 @@ namespace QlikviewLib.Qms
                     this.AlertPlainSubjectField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string AttachmentHtmlBody
             {
@@ -7428,7 +7428,7 @@ namespace QlikviewLib.Qms
                     this.AttachmentHtmlBodyField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string AttachmentHtmlSubject
             {
@@ -7441,7 +7441,7 @@ namespace QlikviewLib.Qms
                     this.AttachmentHtmlSubjectField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string AttachmentPlainBody
             {
@@ -7454,7 +7454,7 @@ namespace QlikviewLib.Qms
                     this.AttachmentPlainBodyField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string AttachmentPlainSubject
             {
@@ -7467,7 +7467,7 @@ namespace QlikviewLib.Qms
                     this.AttachmentPlainSubjectField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string NotifyHtmlBody
             {
@@ -7480,7 +7480,7 @@ namespace QlikviewLib.Qms
                     this.NotifyHtmlBodyField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string NotifyHtmlSubject
             {
@@ -7493,7 +7493,7 @@ namespace QlikviewLib.Qms
                     this.NotifyHtmlSubjectField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string NotifyPlainBody
             {
@@ -7506,7 +7506,7 @@ namespace QlikviewLib.Qms
                     this.NotifyPlainBodyField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string NotifyPlainSubject
             {
@@ -7520,29 +7520,29 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QDSSettings.QDSGeneral", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QDSGeneral : object
         {
-            
+
             private string ApplicationDataFolderField;
-            
+
             private QlikviewLib.Qms.QDSSettings.QDSClusterInfo[] ClusterInfoField;
-            
+
             private string ClusterNameField;
-            
+
             private bool DisableTaskTriggersForDocAdminsField;
-            
+
             private QlikviewLib.Qms.LogLevel LogLevelField;
-            
+
             private System.Guid SelectedDscIDField;
-            
+
             private bool ShowAlertsField;
-            
+
             private QlikviewLib.Qms.DocumentFolder[] SourceFoldersField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string ApplicationDataFolder
             {
@@ -7555,7 +7555,7 @@ namespace QlikviewLib.Qms
                     this.ApplicationDataFolderField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.QDSSettings.QDSClusterInfo[] ClusterInfo
             {
@@ -7568,7 +7568,7 @@ namespace QlikviewLib.Qms
                     this.ClusterInfoField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string ClusterName
             {
@@ -7581,7 +7581,7 @@ namespace QlikviewLib.Qms
                     this.ClusterNameField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool DisableTaskTriggersForDocAdmins
             {
@@ -7594,7 +7594,7 @@ namespace QlikviewLib.Qms
                     this.DisableTaskTriggersForDocAdminsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.LogLevel LogLevel
             {
@@ -7607,7 +7607,7 @@ namespace QlikviewLib.Qms
                     this.LogLevelField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.Guid SelectedDscID
             {
@@ -7620,7 +7620,7 @@ namespace QlikviewLib.Qms
                     this.SelectedDscIDField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool ShowAlerts
             {
@@ -7633,7 +7633,7 @@ namespace QlikviewLib.Qms
                     this.ShowAlertsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.DocumentFolder[] SourceFolders
             {
@@ -7647,17 +7647,17 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QDSSettings.QDSLogin", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QDSLogin : object
         {
-            
+
             private string PasswordField;
-            
+
             private string UsernameField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Password
             {
@@ -7670,7 +7670,7 @@ namespace QlikviewLib.Qms
                     this.PasswordField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Username
             {
@@ -7684,27 +7684,27 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="QDSSettings.QDSClusterInfo", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class QDSClusterInfo : object
         {
-            
+
             private int DedicatedQvbDistField;
-            
+
             private int DedicatedTaskGraceTimeMinutesField;
-            
+
             private bool DedicatedTaskRunAloneField;
-            
+
             private string[] DistributionGroupsField;
-            
+
             private int MaxQvbAdminField;
-            
+
             private int MaxQvbDistField;
-            
+
             private System.Uri UrlField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int DedicatedQvbDist
             {
@@ -7717,7 +7717,7 @@ namespace QlikviewLib.Qms
                     this.DedicatedQvbDistField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int DedicatedTaskGraceTimeMinutes
             {
@@ -7730,7 +7730,7 @@ namespace QlikviewLib.Qms
                     this.DedicatedTaskGraceTimeMinutesField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool DedicatedTaskRunAlone
             {
@@ -7743,7 +7743,7 @@ namespace QlikviewLib.Qms
                     this.DedicatedTaskRunAloneField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string[] DistributionGroups
             {
@@ -7756,7 +7756,7 @@ namespace QlikviewLib.Qms
                     this.DistributionGroupsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int MaxQvbAdmin
             {
@@ -7769,7 +7769,7 @@ namespace QlikviewLib.Qms
                     this.MaxQvbAdminField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int MaxQvbDist
             {
@@ -7782,7 +7782,7 @@ namespace QlikviewLib.Qms
                     this.MaxQvbDistField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.Uri Url
             {
@@ -7797,59 +7797,59 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="CPUPriority", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum CPUPriority : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         High = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Normal = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Low = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="LogLevel", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum LogLevel : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Normal = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Debug = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="CategoriesScope", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum CategoriesScope : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Used = 1,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="Category", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class Category : object
     {
-        
+
         private System.Guid IDField;
-        
+
         private string NameField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -7862,7 +7862,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -7876,25 +7876,25 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ServiceStatus", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class ServiceStatus : object
     {
-        
+
         private System.Guid IDField;
-        
+
         private QlikviewLib.Qms.ServiceStatusDetail[] MemberStatusDetailsField;
-        
+
         private string NameField;
-        
+
         private QlikviewLib.Qms.ServiceComposition ServiceCompositionField;
-        
+
         private QlikviewLib.Qms.ServiceTypes ServiceTypeField;
-        
+
         private System.Uri UrlField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -7907,7 +7907,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.ServiceStatusDetail[] MemberStatusDetails
         {
@@ -7920,7 +7920,7 @@ namespace QlikviewLib.Qms
                 this.MemberStatusDetailsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -7933,7 +7933,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.ServiceComposition ServiceComposition
         {
@@ -7946,7 +7946,7 @@ namespace QlikviewLib.Qms
                 this.ServiceCompositionField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.ServiceTypes ServiceType
         {
@@ -7959,7 +7959,7 @@ namespace QlikviewLib.Qms
                 this.ServiceTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Uri Url
         {
@@ -7973,23 +7973,23 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ServiceStatusDetail", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class ServiceStatusDetail : object
     {
-        
+
         private string[] GroupsField;
-        
+
         private string HostField;
-        
+
         private System.Guid IDField;
-        
+
         private string[] MessageField;
-        
+
         private QlikviewLib.Qms.ServiceStatusFlag StatusField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string[] Groups
         {
@@ -8002,7 +8002,7 @@ namespace QlikviewLib.Qms
                 this.GroupsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Host
         {
@@ -8015,7 +8015,7 @@ namespace QlikviewLib.Qms
                 this.HostField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -8028,7 +8028,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string[] Message
         {
@@ -8041,7 +8041,7 @@ namespace QlikviewLib.Qms
                 this.MessageField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.ServiceStatusFlag Status
         {
@@ -8055,80 +8055,80 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ServiceComposition", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum ServiceComposition : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Single = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Cluster = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="ServiceStatusFlag", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum ServiceStatusFlag : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         OK = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         OffDuty = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         CouldNotContact = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         RestartNeeded = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Unlicensed = 16,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         QVPRUnavailable = 32,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         StartupFailed = 64,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         LEFInvalid = 128,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Initializing = 256,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ManyQMS = 512,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         GracefulStop = 1024,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskStatusNodeRequest", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class TaskStatusNodeRequest : object
     {
-        
+
         private string CategoryNameField;
-        
+
         private System.Guid IDField;
-        
+
         private System.Guid QDSIDField;
-        
+
         private QlikviewLib.Qms.TaskStatusNodeType RootTypeField;
-        
+
         private System.Guid TaskIDField;
-        
+
         private bool UseFlatTaskListField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string CategoryName
         {
@@ -8141,7 +8141,7 @@ namespace QlikviewLib.Qms
                 this.CategoryNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -8154,7 +8154,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid QDSID
         {
@@ -8167,7 +8167,7 @@ namespace QlikviewLib.Qms
                 this.QDSIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatusNodeType RootType
         {
@@ -8180,7 +8180,7 @@ namespace QlikviewLib.Qms
                 this.RootTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid TaskID
         {
@@ -8193,7 +8193,7 @@ namespace QlikviewLib.Qms
                 this.TaskIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool UseFlatTaskList
         {
@@ -8207,51 +8207,51 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskStatusNodeType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum TaskStatusNodeType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         QDS = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Category = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Task = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         DependentTask = 3,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskStatusFilter", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class TaskStatusFilter : object
     {
-        
+
         private string[] CategoriesField;
-        
+
         private string[] DistributionGroupsField;
-        
+
         private QlikviewLib.Qms.EnabledState EnabledStateField;
-        
+
         private QlikviewLib.Qms.TaskStatusFilter.LastExecutionInterval LastExecutionField;
-        
+
         private System.Guid[] QDSIdsField;
-        
+
         private QlikviewLib.Qms.TaskStatusFilter.ScheduleInterval ScheduleField;
-        
+
         private System.Guid[] TaskIdsField;
-        
+
         private string TaskNameField;
-        
+
         private QlikviewLib.Qms.TaskStatusValue[] TaskStatusesField;
-        
+
         private QlikviewLib.Qms.TaskType[] TaskTypesField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string[] Categories
         {
@@ -8264,7 +8264,7 @@ namespace QlikviewLib.Qms
                 this.CategoriesField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string[] DistributionGroups
         {
@@ -8277,7 +8277,7 @@ namespace QlikviewLib.Qms
                 this.DistributionGroupsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.EnabledState EnabledState
         {
@@ -8290,7 +8290,7 @@ namespace QlikviewLib.Qms
                 this.EnabledStateField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatusFilter.LastExecutionInterval LastExecution
         {
@@ -8303,7 +8303,7 @@ namespace QlikviewLib.Qms
                 this.LastExecutionField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid[] QDSIds
         {
@@ -8316,7 +8316,7 @@ namespace QlikviewLib.Qms
                 this.QDSIdsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatusFilter.ScheduleInterval Schedule
         {
@@ -8329,7 +8329,7 @@ namespace QlikviewLib.Qms
                 this.ScheduleField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid[] TaskIds
         {
@@ -8342,7 +8342,7 @@ namespace QlikviewLib.Qms
                 this.TaskIdsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string TaskName
         {
@@ -8355,7 +8355,7 @@ namespace QlikviewLib.Qms
                 this.TaskNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatusValue[] TaskStatuses
         {
@@ -8368,7 +8368,7 @@ namespace QlikviewLib.Qms
                 this.TaskStatusesField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskType[] TaskTypes
         {
@@ -8381,15 +8381,15 @@ namespace QlikviewLib.Qms
                 this.TaskTypesField = value;
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="TaskStatusFilter.LastExecutionInterval", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class LastExecutionInterval : QlikviewLib.Qms.TaskStatusFilter.Interval
         {
-            
+
             private bool IncludeNeverField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool IncludeNever
             {
@@ -8403,21 +8403,21 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="TaskStatusFilter.ScheduleInterval", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class ScheduleInterval : QlikviewLib.Qms.TaskStatusFilter.Interval
         {
-            
+
             private bool IncludeNotScheduledField;
-            
+
             private bool IncludeOnEventField;
-            
+
             private bool IncludeOnExternalEventField;
-            
+
             private bool IncludeOnMultipleEventsField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool IncludeNotScheduled
             {
@@ -8430,7 +8430,7 @@ namespace QlikviewLib.Qms
                     this.IncludeNotScheduledField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool IncludeOnEvent
             {
@@ -8443,7 +8443,7 @@ namespace QlikviewLib.Qms
                     this.IncludeOnEventField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool IncludeOnExternalEvent
             {
@@ -8456,7 +8456,7 @@ namespace QlikviewLib.Qms
                     this.IncludeOnExternalEventField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public bool IncludeOnMultipleEvents
             {
@@ -8470,7 +8470,7 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="TaskStatusFilter.Interval", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
@@ -8478,11 +8478,11 @@ namespace QlikviewLib.Qms
         [System.Runtime.Serialization.KnownTypeAttribute(typeof(QlikviewLib.Qms.TaskStatusFilter.LastExecutionInterval))]
         public partial class Interval : object
         {
-            
+
             private System.DateTime FromField;
-            
+
             private System.DateTime ToField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.DateTime From
             {
@@ -8495,7 +8495,7 @@ namespace QlikviewLib.Qms
                     this.FromField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.DateTime To
             {
@@ -8510,104 +8510,104 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="EnabledState", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum EnabledState : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Any = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Enabled = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Disabled = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskStatusValue", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum TaskStatusValue : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Waiting = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Running = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Aborting = 3,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Failed = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Warning = 5,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Completed = 6,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Queued = 7,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Disabled = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Unrunnable = 9,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskStatusScope", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum TaskStatusScope : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         General = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Extended = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 65535,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskStatusNode", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class TaskStatusNode : object
     {
-        
+
         private int FailCountField;
-        
+
         private bool HasChildrenField;
-        
+
         private System.Guid IDField;
-        
+
         private string NameField;
-        
+
         private System.Guid ParentIDField;
-        
+
         private System.Guid RequestIDField;
-        
+
         private QlikviewLib.Qms.TaskStatusNodeType RootTypeField;
-        
+
         private int RunCountField;
-        
+
         private QlikviewLib.Qms.TaskStatusValue StatusField;
-        
+
         private QlikviewLib.Qms.TaskStatus TaskStatusField;
-        
+
         private QlikviewLib.Qms.TaskStatusNodeType TypeField;
-        
+
         private int WarningCountField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int FailCount
         {
@@ -8620,7 +8620,7 @@ namespace QlikviewLib.Qms
                 this.FailCountField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool HasChildren
         {
@@ -8633,7 +8633,7 @@ namespace QlikviewLib.Qms
                 this.HasChildrenField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -8646,7 +8646,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -8659,7 +8659,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ParentID
         {
@@ -8672,7 +8672,7 @@ namespace QlikviewLib.Qms
                 this.ParentIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid RequestID
         {
@@ -8685,7 +8685,7 @@ namespace QlikviewLib.Qms
                 this.RequestIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatusNodeType RootType
         {
@@ -8698,7 +8698,7 @@ namespace QlikviewLib.Qms
                 this.RootTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int RunCount
         {
@@ -8711,7 +8711,7 @@ namespace QlikviewLib.Qms
                 this.RunCountField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatusValue Status
         {
@@ -8724,7 +8724,7 @@ namespace QlikviewLib.Qms
                 this.StatusField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatus TaskStatus
         {
@@ -8737,7 +8737,7 @@ namespace QlikviewLib.Qms
                 this.TaskStatusField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatusNodeType Type
         {
@@ -8750,7 +8750,7 @@ namespace QlikviewLib.Qms
                 this.TypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int WarningCount
         {
@@ -8764,21 +8764,21 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskStatus", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class TaskStatus : object
     {
-        
+
         private QlikviewLib.Qms.TaskStatus.TaskStatusExtended ExtendedField;
-        
+
         private QlikviewLib.Qms.TaskStatus.TaskStatusGeneral GeneralField;
-        
+
         private QlikviewLib.Qms.TaskStatusScope ScopeField;
-        
+
         private System.Guid TaskIDField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatus.TaskStatusExtended Extended
         {
@@ -8791,7 +8791,7 @@ namespace QlikviewLib.Qms
                 this.ExtendedField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatus.TaskStatusGeneral General
         {
@@ -8804,7 +8804,7 @@ namespace QlikviewLib.Qms
                 this.GeneralField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatusScope Scope
         {
@@ -8817,7 +8817,7 @@ namespace QlikviewLib.Qms
                 this.ScopeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid TaskID
         {
@@ -8830,33 +8830,33 @@ namespace QlikviewLib.Qms
                 this.TaskIDField = value;
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="TaskStatus.TaskStatusExtended", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskStatusExtended : object
         {
-            
+
             private string CategoryField;
-            
+
             private string DistributionGroupField;
-            
+
             private string DocumentPathField;
-            
+
             private string FinishedTimeField;
-            
+
             private string LastExecutedOnField;
-            
+
             private string LastLogMessagesField;
-            
+
             private System.Guid QDSIDField;
-            
+
             private string RunningOnField;
-            
+
             private string StartTimeField;
-            
+
             private string TaskSummaryField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Category
             {
@@ -8869,7 +8869,7 @@ namespace QlikviewLib.Qms
                     this.CategoryField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string DistributionGroup
             {
@@ -8882,7 +8882,7 @@ namespace QlikviewLib.Qms
                     this.DistributionGroupField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string DocumentPath
             {
@@ -8895,7 +8895,7 @@ namespace QlikviewLib.Qms
                     this.DocumentPathField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string FinishedTime
             {
@@ -8908,7 +8908,7 @@ namespace QlikviewLib.Qms
                     this.FinishedTimeField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string LastExecutedOn
             {
@@ -8921,7 +8921,7 @@ namespace QlikviewLib.Qms
                     this.LastExecutedOnField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string LastLogMessages
             {
@@ -8934,7 +8934,7 @@ namespace QlikviewLib.Qms
                     this.LastLogMessagesField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public System.Guid QDSID
             {
@@ -8947,7 +8947,7 @@ namespace QlikviewLib.Qms
                     this.QDSIDField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string RunningOn
             {
@@ -8960,7 +8960,7 @@ namespace QlikviewLib.Qms
                     this.RunningOnField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string StartTime
             {
@@ -8973,7 +8973,7 @@ namespace QlikviewLib.Qms
                     this.StartTimeField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string TaskSummary
             {
@@ -8987,19 +8987,19 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="TaskStatus.TaskStatusGeneral", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class TaskStatusGeneral : object
         {
-            
+
             private QlikviewLib.Qms.TaskStatusValue StatusField;
-            
+
             private string TaskNameField;
-            
+
             private QlikviewLib.Qms.TaskType TaskTypeField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.TaskStatusValue Status
             {
@@ -9012,7 +9012,7 @@ namespace QlikviewLib.Qms
                     this.StatusField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string TaskName
             {
@@ -9025,7 +9025,7 @@ namespace QlikviewLib.Qms
                     this.TaskNameField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.TaskType TaskType
             {
@@ -9040,40 +9040,40 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="SectionAccessScope", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum SectionAccessScope : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         None = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         IncludeColumns = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         IncludeData = 2,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="SectionAccessTable", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class SectionAccessTable : object
     {
-        
+
         private QlikviewLib.Qms.SectionAccessTable.SectionAccessColumn[] ColumnsField;
-        
+
         private System.Guid IDField;
-        
+
         private string NameField;
-        
+
         private string[] RolesField;
-        
+
         private QlikviewLib.Qms.SectionAccessTable.SectionAccessRow[] RowsField;
-        
+
         private QlikviewLib.Qms.SectionAccessScope ScopeField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.SectionAccessTable.SectionAccessColumn[] Columns
         {
@@ -9086,7 +9086,7 @@ namespace QlikviewLib.Qms
                 this.ColumnsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ID
         {
@@ -9099,7 +9099,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -9112,7 +9112,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string[] Roles
         {
@@ -9125,7 +9125,7 @@ namespace QlikviewLib.Qms
                 this.RolesField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.SectionAccessTable.SectionAccessRow[] Rows
         {
@@ -9138,7 +9138,7 @@ namespace QlikviewLib.Qms
                 this.RowsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.SectionAccessScope Scope
         {
@@ -9151,15 +9151,15 @@ namespace QlikviewLib.Qms
                 this.ScopeField = value;
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="SectionAccessTable.SectionAccessColumn", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class SectionAccessColumn : object
         {
-            
+
             private string NameField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Name
             {
@@ -9173,17 +9173,17 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="SectionAccessTable.SectionAccessRow", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class SectionAccessRow : object
         {
-            
+
             private QlikviewLib.Qms.SectionAccessTable.SectionAccessCell[] CellsField;
-            
+
             private int RowNumberField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public QlikviewLib.Qms.SectionAccessTable.SectionAccessCell[] Cells
             {
@@ -9196,7 +9196,7 @@ namespace QlikviewLib.Qms
                     this.CellsField = value;
                 }
             }
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public int RowNumber
             {
@@ -9210,15 +9210,15 @@ namespace QlikviewLib.Qms
                 }
             }
         }
-        
+
         [System.Diagnostics.DebuggerStepThroughAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
         [System.Runtime.Serialization.DataContractAttribute(Name="SectionAccessTable.SectionAccessCell", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
         public partial class SectionAccessCell : object
         {
-            
+
             private string ValueField;
-            
+
             [System.Runtime.Serialization.DataMemberAttribute()]
             public string Value
             {
@@ -9233,23 +9233,23 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TriggerEDXTaskResult", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class TriggerEDXTaskResult : object
     {
-        
+
         private QlikviewLib.Qms.EDXTaskStartResult EDXTaskStartResultField;
-        
+
         private int EDXTaskStartResultCodeField;
-        
+
         private System.Guid ExecIdField;
-        
+
         private QlikviewLib.Qms.TaskStatusValue StatusField;
-        
+
         private QlikviewLib.Qms.TaskExecutionItem[] TriggeredTasksIdField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.EDXTaskStartResult EDXTaskStartResult
         {
@@ -9262,7 +9262,7 @@ namespace QlikviewLib.Qms
                 this.EDXTaskStartResultField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int EDXTaskStartResultCode
         {
@@ -9275,7 +9275,7 @@ namespace QlikviewLib.Qms
                 this.EDXTaskStartResultCodeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ExecId
         {
@@ -9288,7 +9288,7 @@ namespace QlikviewLib.Qms
                 this.ExecIdField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatusValue Status
         {
@@ -9301,7 +9301,7 @@ namespace QlikviewLib.Qms
                 this.StatusField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskExecutionItem[] TriggeredTasksId
         {
@@ -9315,44 +9315,44 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="EDXTaskStartResult", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum EDXTaskStartResult : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Success = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         TaskNotFound = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         TaskIsAlreadyRunning = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         NoEDXTriggerFound = 3,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         CouldNotDetermineTaskByName = 7,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         FailedToContactDistributionService = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         OtherError = 9,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="TaskExecutionItem", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class TaskExecutionItem : object
     {
-        
+
         private System.Guid ExecIdField;
-        
+
         private System.Guid TaskIdField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ExecId
         {
@@ -9365,7 +9365,7 @@ namespace QlikviewLib.Qms
                 this.ExecIdField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid TaskId
         {
@@ -9379,43 +9379,43 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="EDXStatus", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class EDXStatus : object
     {
-        
+
         private string CategoryField;
-        
+
         private string DocumentPathField;
-        
+
         private System.Guid ExecIdField;
-        
+
         private string FinishTimeField;
-        
+
         private string LogFileFullPathField;
-        
+
         private System.Guid QdsIdField;
-        
+
         private string StartTimeField;
-        
+
         private string SummaryField;
-        
+
         private System.Guid TaskIdField;
-        
+
         private string TaskNameField;
-        
+
         private QlikviewLib.Qms.EDXTaskStartResult TaskStartResultField;
-        
+
         private int TaskStartResultCodeField;
-        
+
         private QlikviewLib.Qms.TaskStatusValue TaskStatusField;
-        
+
         private QlikviewLib.Qms.TaskType TaskTypeField;
-        
+
         private QlikviewLib.Qms.TaskExecutionItem[] TriggeredTasksIdField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Category
         {
@@ -9428,7 +9428,7 @@ namespace QlikviewLib.Qms
                 this.CategoryField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string DocumentPath
         {
@@ -9441,7 +9441,7 @@ namespace QlikviewLib.Qms
                 this.DocumentPathField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid ExecId
         {
@@ -9454,7 +9454,7 @@ namespace QlikviewLib.Qms
                 this.ExecIdField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string FinishTime
         {
@@ -9467,7 +9467,7 @@ namespace QlikviewLib.Qms
                 this.FinishTimeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string LogFileFullPath
         {
@@ -9480,7 +9480,7 @@ namespace QlikviewLib.Qms
                 this.LogFileFullPathField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid QdsId
         {
@@ -9493,7 +9493,7 @@ namespace QlikviewLib.Qms
                 this.QdsIdField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string StartTime
         {
@@ -9506,7 +9506,7 @@ namespace QlikviewLib.Qms
                 this.StartTimeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Summary
         {
@@ -9519,7 +9519,7 @@ namespace QlikviewLib.Qms
                 this.SummaryField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid TaskId
         {
@@ -9532,7 +9532,7 @@ namespace QlikviewLib.Qms
                 this.TaskIdField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string TaskName
         {
@@ -9545,7 +9545,7 @@ namespace QlikviewLib.Qms
                 this.TaskNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.EDXTaskStartResult TaskStartResult
         {
@@ -9558,7 +9558,7 @@ namespace QlikviewLib.Qms
                 this.TaskStartResultField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int TaskStartResultCode
         {
@@ -9571,7 +9571,7 @@ namespace QlikviewLib.Qms
                 this.TaskStartResultCodeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskStatusValue TaskStatus
         {
@@ -9584,7 +9584,7 @@ namespace QlikviewLib.Qms
                 this.TaskStatusField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskType TaskType
         {
@@ -9597,7 +9597,7 @@ namespace QlikviewLib.Qms
                 this.TaskTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.TaskExecutionItem[] TriggeredTasksId
         {
@@ -9611,29 +9611,29 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QDSDocumentSessionConfiguration", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QDSDocumentSessionConfiguration : object
     {
-        
+
         private bool ClearLocksField;
-        
+
         private bool ClearOneAndOnlyOneField;
-        
+
         private bool ClearSelectionsField;
-        
+
         private string EncryptedSectionAccessUserNameField;
-        
+
         private string FilePathField;
-        
+
         private string GroupNameField;
-        
+
         private System.Guid QDSIDField;
-        
+
         private bool ReduceField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool ClearLocks
         {
@@ -9646,7 +9646,7 @@ namespace QlikviewLib.Qms
                 this.ClearLocksField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool ClearOneAndOnlyOne
         {
@@ -9659,7 +9659,7 @@ namespace QlikviewLib.Qms
                 this.ClearOneAndOnlyOneField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool ClearSelections
         {
@@ -9672,7 +9672,7 @@ namespace QlikviewLib.Qms
                 this.ClearSelectionsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string EncryptedSectionAccessUserName
         {
@@ -9685,7 +9685,7 @@ namespace QlikviewLib.Qms
                 this.EncryptedSectionAccessUserNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string FilePath
         {
@@ -9698,7 +9698,7 @@ namespace QlikviewLib.Qms
                 this.FilePathField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string GroupName
         {
@@ -9711,7 +9711,7 @@ namespace QlikviewLib.Qms
                 this.GroupNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid QDSID
         {
@@ -9724,7 +9724,7 @@ namespace QlikviewLib.Qms
                 this.QDSIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool Reduce
         {
@@ -9738,19 +9738,19 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QDSDocumentSession", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QDSDocumentSession : object
     {
-        
+
         private QlikviewLib.Qms.DocumentState OpenDocumentResultField;
-        
+
         private System.Guid QDSIDField;
-        
+
         private System.Guid SessionIDField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DocumentState OpenDocumentResult
         {
@@ -9763,7 +9763,7 @@ namespace QlikviewLib.Qms
                 this.OpenDocumentResultField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid QDSID
         {
@@ -9776,7 +9776,7 @@ namespace QlikviewLib.Qms
                 this.QDSIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid SessionID
         {
@@ -9790,41 +9790,41 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentState", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum DocumentState : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         NoAttemptToOpenHasBeenMade = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         OpenedSuccessfully = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         CouldNotOpenDocument = 3,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         CouldNotGetSlot = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Closed = 5,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         OtherError = 6,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="FieldContent", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Document")]
     public partial class FieldContent : object
     {
-        
+
         private string NameField;
-        
+
         private QlikviewLib.Qms.FieldValue[] ValuesField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -9837,7 +9837,7 @@ namespace QlikviewLib.Qms
                 this.NameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.FieldValue[] Values
         {
@@ -9851,23 +9851,23 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="FieldValue", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Document")]
     public partial class FieldValue : object
     {
-        
+
         private bool IsNumericField;
-        
+
         private double NumberField;
-        
+
         private int SortOrderField;
-        
+
         private QlikviewLib.Qms.FieldValueState StateField;
-        
+
         private string TextField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool IsNumeric
         {
@@ -9880,7 +9880,7 @@ namespace QlikviewLib.Qms
                 this.IsNumericField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public double Number
         {
@@ -9893,7 +9893,7 @@ namespace QlikviewLib.Qms
                 this.NumberField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int SortOrder
         {
@@ -9906,7 +9906,7 @@ namespace QlikviewLib.Qms
                 this.SortOrderField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.FieldValueState State
         {
@@ -9919,7 +9919,7 @@ namespace QlikviewLib.Qms
                 this.StateField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Text
         {
@@ -9933,61 +9933,61 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="FieldValueState", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum FieldValueState : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         InternalUnknown = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Selected = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Optional = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Excluded = 8,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Locked = 16,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Alternative = 32,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Deselected = 64,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         InternalSelectedExcluded = 10,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 127,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="FieldContentType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum FieldContentType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         All = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         CurrentSelections = 1,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="Field", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Document")]
     public partial class Field : object
     {
-        
+
         private string NameField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -10001,36 +10001,36 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.FlagsAttribute()]
     [System.Runtime.Serialization.DataContractAttribute(Name="DocumentClearOptions", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums")]
     public enum DocumentClearOptions : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         UnlockAll = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ClearSelectionsWithUnlockBefore = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ClearSelections = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         ClearAllOneAndAlwaysOne = 8,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="Report", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Document")]
     public partial class Report : object
     {
-        
+
         private string IDField;
-        
+
         private string NameField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string ID
         {
@@ -10043,7 +10043,7 @@ namespace QlikviewLib.Qms
                 this.IDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -10057,19 +10057,19 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QMSVersion", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QMSVersion : object
     {
-        
+
         private int MajorField;
-        
+
         private int MinorField;
-        
+
         private int PatchField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int Major
         {
@@ -10082,7 +10082,7 @@ namespace QlikviewLib.Qms
                 this.MajorField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int Minor
         {
@@ -10095,7 +10095,7 @@ namespace QlikviewLib.Qms
                 this.MinorField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int Patch
         {
@@ -10109,46 +10109,46 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DistributionConfigValues", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class DistributionConfigValues : object
     {
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVPRAPISettings", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QVPRAPISettings : object
     {
-        
+
         private bool ConnectUsingWindowsAuthenticationField;
-        
+
         private QlikviewLib.Qms.SQLConnectionModel ConnectionModelField;
-        
+
         private string DatabaseField;
-        
+
         private string PasswordField;
-        
+
         private int PortField;
-        
+
         private QlikviewLib.Qms.QVPRDbProvider ProviderField;
-        
+
         private string ServerField;
-        
+
         private string UserNameField;
-        
+
         private int XmlBackupIntervalField;
-        
+
         private string XmlBackupPathField;
-        
+
         private QlikviewLib.Qms.QVPRBackupSchedule XmlBackupScheduleField;
-        
+
         private System.DateTime XmlBackupTimeField;
-        
+
         private string XmlBasePathField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool ConnectUsingWindowsAuthentication
         {
@@ -10161,7 +10161,7 @@ namespace QlikviewLib.Qms
                 this.ConnectUsingWindowsAuthenticationField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.SQLConnectionModel ConnectionModel
         {
@@ -10174,7 +10174,7 @@ namespace QlikviewLib.Qms
                 this.ConnectionModelField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Database
         {
@@ -10187,7 +10187,7 @@ namespace QlikviewLib.Qms
                 this.DatabaseField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Password
         {
@@ -10200,7 +10200,7 @@ namespace QlikviewLib.Qms
                 this.PasswordField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int Port
         {
@@ -10213,7 +10213,7 @@ namespace QlikviewLib.Qms
                 this.PortField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVPRDbProvider Provider
         {
@@ -10226,7 +10226,7 @@ namespace QlikviewLib.Qms
                 this.ProviderField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Server
         {
@@ -10239,7 +10239,7 @@ namespace QlikviewLib.Qms
                 this.ServerField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string UserName
         {
@@ -10252,7 +10252,7 @@ namespace QlikviewLib.Qms
                 this.UserNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int XmlBackupInterval
         {
@@ -10265,7 +10265,7 @@ namespace QlikviewLib.Qms
                 this.XmlBackupIntervalField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string XmlBackupPath
         {
@@ -10278,7 +10278,7 @@ namespace QlikviewLib.Qms
                 this.XmlBackupPathField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QVPRBackupSchedule XmlBackupSchedule
         {
@@ -10291,7 +10291,7 @@ namespace QlikviewLib.Qms
                 this.XmlBackupScheduleField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.DateTime XmlBackupTime
         {
@@ -10304,7 +10304,7 @@ namespace QlikviewLib.Qms
                 this.XmlBackupTimeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string XmlBasePath
         {
@@ -10318,70 +10318,70 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="SQLConnectionModel", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum SQLConnectionModel : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         DefaultMethod = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         dbnmpntw = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         dbmssocn = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         dbmsspxn = 3,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         dbmsvinn = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         dbmsrpcn = 5,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVPRDbProvider", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QVPRDbProvider : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Xml = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         MsSql = 1,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVPRBackupSchedule", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QVPRBackupSchedule : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Never = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Daily = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         EveryXMinute = 2,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DirectoryServiceConnectorAPISettings", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class DirectoryServiceConnectorAPISettings : object
     {
-        
+
         private System.Uri[] AllUrlsField;
-        
+
         private System.Guid IdField;
-        
+
         private string NameField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Uri[] AllUrls
         {
@@ -10394,7 +10394,7 @@ namespace QlikviewLib.Qms
                 this.AllUrlsField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid Id
         {
@@ -10407,7 +10407,7 @@ namespace QlikviewLib.Qms
                 this.IdField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name
         {
@@ -10421,45 +10421,45 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DSPType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum DSPType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         AD = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Custom = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Odbc = 2,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Ldap = 3,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Local = 4,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         NT = 5,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DSPSettings", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class DSPSettings : object
     {
-        
+
         private int CustomDirectoryPortField;
-        
+
         private System.Guid DSCIDField;
-        
+
         private string DSPTypeField;
-        
+
         private QlikviewLib.Qms.DSResource[] ResourcesField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int CustomDirectoryPort
         {
@@ -10472,7 +10472,7 @@ namespace QlikviewLib.Qms
                 this.CustomDirectoryPortField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public System.Guid DSCID
         {
@@ -10485,7 +10485,7 @@ namespace QlikviewLib.Qms
                 this.DSCIDField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string DSPType
         {
@@ -10498,7 +10498,7 @@ namespace QlikviewLib.Qms
                 this.DSPTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.DSResource[] Resources
         {
@@ -10512,42 +10512,42 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ServiceUpdateStatus", Namespace="http://schemas.datacontract.org/2004/07/PIX")]
     public partial class ServiceUpdateStatus : object
     {
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QVWSSettings", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public partial class QVWSSettings : object
     {
-        
+
         private QlikviewLib.Qms.ServiceInfo[] AccessPointQvsConnectionField;
-        
+
         private QlikviewLib.Qms.ServiceInfo[] DSCField;
-        
+
         private string HeaderNameField;
-        
+
         private string LoginAddressField;
-        
+
         private int PortField;
-        
+
         private string PrefixField;
-        
+
         private QlikviewLib.Qms.QvWsAuthenticationType1 QvWsAuthenticationTypeField;
-        
+
         private QlikviewLib.Qms.QvWsLogginLevel QvWsLogginLevelField;
-        
+
         private QlikviewLib.Qms.QvWsLoginType QvWsLoginTypeField;
-        
+
         private string ServerNameField;
-        
+
         private bool UseHttpsField;
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.ServiceInfo[] AccessPointQvsConnection
         {
@@ -10560,7 +10560,7 @@ namespace QlikviewLib.Qms
                 this.AccessPointQvsConnectionField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.ServiceInfo[] DSC
         {
@@ -10573,7 +10573,7 @@ namespace QlikviewLib.Qms
                 this.DSCField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string HeaderName
         {
@@ -10586,7 +10586,7 @@ namespace QlikviewLib.Qms
                 this.HeaderNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string LoginAddress
         {
@@ -10599,7 +10599,7 @@ namespace QlikviewLib.Qms
                 this.LoginAddressField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public int Port
         {
@@ -10612,7 +10612,7 @@ namespace QlikviewLib.Qms
                 this.PortField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string Prefix
         {
@@ -10625,7 +10625,7 @@ namespace QlikviewLib.Qms
                 this.PrefixField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QvWsAuthenticationType1 QvWsAuthenticationType
         {
@@ -10638,7 +10638,7 @@ namespace QlikviewLib.Qms
                 this.QvWsAuthenticationTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QvWsLogginLevel QvWsLogginLevel
         {
@@ -10651,7 +10651,7 @@ namespace QlikviewLib.Qms
                 this.QvWsLogginLevelField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public QlikviewLib.Qms.QvWsLoginType QvWsLoginType
         {
@@ -10664,7 +10664,7 @@ namespace QlikviewLib.Qms
                 this.QvWsLoginTypeField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public string ServerName
         {
@@ -10677,7 +10677,7 @@ namespace QlikviewLib.Qms
                 this.ServerNameField = value;
             }
         }
-        
+
         [System.Runtime.Serialization.DataMemberAttribute()]
         public bool UseHttps
         {
@@ -10691,63 +10691,63 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QvWsAuthenticationType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QvWsAuthenticationType1 : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Ntlm = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Header = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         CustomUser = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QvWsLogginLevel", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QvWsLogginLevel : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Information = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Warning = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Error = 2,
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="QvWsLoginType", Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum QvWsLoginType : int
     {
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Default = 0,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Alternate = 1,
-        
+
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Custom = 2,
     }
-    
+
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://schemas.datacontract.org/2004/07/System")]
     public partial class Exception
     {
-        
+
         private System.Xml.Linq.XElement[] anyField;
-        
+
         private System.Xml.XmlQualifiedName factoryTypeField;
-        
+
         /// <remarks/>
         [System.Xml.Serialization.XmlAnyElementAttribute(Namespace="", Order=0)]
         public System.Xml.Linq.XElement[] Any
@@ -10761,7 +10761,7 @@ namespace QlikviewLib.Qms
                 this.anyField = value;
             }
         }
-        
+
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute(Form=System.Xml.Schema.XmlSchemaForm.Qualified, Namespace="http://schemas.microsoft.com/2003/10/Serialization/")]
         public System.Xml.XmlQualifiedName FactoryType
@@ -10776,275 +10776,275 @@ namespace QlikviewLib.Qms
             }
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.ServiceContractAttribute(Namespace="http://ws.qliktech.com/ANY/12/2/", ConfigurationName="QlikviewLib.Qms.IQTService2")]
     public interface IQTService2
     {
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/12/2/IQTService2/Ping", ReplyAction="http://ws.qliktech.com/ANY/12/2/IQTService2/PingResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/12/2/IQTService2/PingExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.eStatusFlag> PingAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetKey", ReplyAction="http://ws.qliktech.com/ANY/12/2/IQTService2/GetKeyResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetKeyExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetKeyResponse> GetKeyAsync(QlikviewLib.Qms.GetKeyRequest request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetTimeLimitedRequestKey", ReplyAction="http://ws.qliktech.com/ANY/12/2/IQTService2/GetTimeLimitedRequestKeyResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetTimeLimitedRequestKeyExceptionFaul" +
             "t", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetTimeLimitedRequestKeyResponse> GetTimeLimitedRequestKeyAsync(QlikviewLib.Qms.GetTimeLimitedRequestKeyRequest request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetSystemInformation", ReplyAction="http://ws.qliktech.com/ANY/12/2/IQTService2/GetSystemInformationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetSystemInformationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetSystemInformationResponse> GetSystemInformationAsync(QlikviewLib.Qms.GetSystemInformationRequest request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/12/2/IQTService2/QMSPing", ReplyAction="http://ws.qliktech.com/ANY/12/2/IQTService2/QMSPingResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/12/2/IQTService2/QMSPingExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.eStatusFlag> QMSPingAsync();
     }
-    
+
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects")]
     public enum eStatusFlag
     {
-        
+
         /// <remarks/>
         CouldNotContact,
-        
+
         /// <remarks/>
         OK,
-        
+
         /// <remarks/>
         RestartNeeded,
-        
+
         /// <remarks/>
         OffDuty,
-        
+
         /// <remarks/>
         Multiple,
-        
+
         /// <remarks/>
         Unlicensed,
-        
+
         /// <remarks/>
         ManyQMS,
-        
+
         /// <remarks/>
         GracefulStop,
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetKey", WrapperNamespace="http://ws.qliktech.com/ANY/12/2/", IsWrapped=true)]
     public partial class GetKeyRequest
     {
-        
+
         public GetKeyRequest()
         {
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetKeyResponse", WrapperNamespace="http://ws.qliktech.com/ANY/12/2/", IsWrapped=true)]
     public partial class GetKeyResponse
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/ANY/12/2/", Order=0)]
         [System.Xml.Serialization.XmlElementAttribute(IsNullable=true)]
         public string GetKeyResult;
-        
+
         public GetKeyResponse()
         {
         }
-        
+
         public GetKeyResponse(string GetKeyResult)
         {
             this.GetKeyResult = GetKeyResult;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetTimeLimitedRequestKey", WrapperNamespace="http://ws.qliktech.com/ANY/12/2/", IsWrapped=true)]
     public partial class GetTimeLimitedRequestKeyRequest
     {
-        
+
         public GetTimeLimitedRequestKeyRequest()
         {
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetTimeLimitedRequestKeyResponse", WrapperNamespace="http://ws.qliktech.com/ANY/12/2/", IsWrapped=true)]
     public partial class GetTimeLimitedRequestKeyResponse
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/ANY/12/2/", Order=0)]
         [System.Xml.Serialization.XmlElementAttribute(IsNullable=true)]
         public string GetTimeLimitedRequestKeyResult;
-        
+
         public GetTimeLimitedRequestKeyResponse()
         {
         }
-        
+
         public GetTimeLimitedRequestKeyResponse(string GetTimeLimitedRequestKeyResult)
         {
             this.GetTimeLimitedRequestKeyResult = GetTimeLimitedRequestKeyResult;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetSystemInformation", WrapperNamespace="http://ws.qliktech.com/ANY/12/2/", IsWrapped=true)]
     public partial class GetSystemInformationRequest
     {
-        
+
         public GetSystemInformationRequest()
         {
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetSystemInformationResponse", WrapperNamespace="http://ws.qliktech.com/ANY/12/2/", IsWrapped=true)]
     public partial class GetSystemInformationResponse
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/ANY/12/2/", Order=0)]
         [System.Xml.Serialization.XmlElementAttribute(IsNullable=true)]
         public QlikviewLib.Qms.ArrayOfXElement GetSystemInformationResult;
-        
+
         public GetSystemInformationResponse()
         {
         }
-        
+
         public GetSystemInformationResponse(QlikviewLib.Qms.ArrayOfXElement GetSystemInformationResult)
         {
             this.GetSystemInformationResult = GetSystemInformationResult;
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public interface IQTService2Channel : QlikviewLib.Qms.IQTService2, System.ServiceModel.IClientChannel
     {
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public partial class QTService2Client : System.ServiceModel.ClientBase<QlikviewLib.Qms.IQTService2>, QlikviewLib.Qms.IQTService2
     {
-        
+
     /// <summary>
     /// Implement this partial method to configure the service endpoint.
     /// </summary>
     /// <param name="serviceEndpoint">The endpoint to configure</param>
     /// <param name="clientCredentials">The client credentials</param>
     static partial void ConfigureEndpoint(System.ServiceModel.Description.ServiceEndpoint serviceEndpoint, System.ServiceModel.Description.ClientCredentials clientCredentials);
-        
-        public QTService2Client() : 
+
+        public QTService2Client() :
                 base(QTService2Client.GetDefaultBinding(), QTService2Client.GetDefaultEndpointAddress())
         {
             this.Endpoint.Name = EndpointConfiguration.BasicHttpBinding_IQTService2.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QTService2Client(EndpointConfiguration endpointConfiguration) : 
+
+        public QTService2Client(EndpointConfiguration endpointConfiguration) :
                 base(QTService2Client.GetBindingForEndpoint(endpointConfiguration), QTService2Client.GetEndpointAddress(endpointConfiguration))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QTService2Client(EndpointConfiguration endpointConfiguration, string remoteAddress) : 
+
+        public QTService2Client(EndpointConfiguration endpointConfiguration, string remoteAddress) :
                 base(QTService2Client.GetBindingForEndpoint(endpointConfiguration), new System.ServiceModel.EndpointAddress(remoteAddress))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QTService2Client(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) : 
+
+        public QTService2Client(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) :
                 base(QTService2Client.GetBindingForEndpoint(endpointConfiguration), remoteAddress)
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QTService2Client(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
+
+        public QTService2Client(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) :
                 base(binding, remoteAddress)
         {
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.eStatusFlag> PingAsync()
         {
             return base.Channel.PingAsync();
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetKeyResponse> QlikviewLib.Qms.IQTService2.GetKeyAsync(QlikviewLib.Qms.GetKeyRequest request)
         {
             return base.Channel.GetKeyAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.GetKeyResponse> GetKeyAsync()
         {
             QlikviewLib.Qms.GetKeyRequest inValue = new QlikviewLib.Qms.GetKeyRequest();
             return ((QlikviewLib.Qms.IQTService2)(this)).GetKeyAsync(inValue);
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetTimeLimitedRequestKeyResponse> QlikviewLib.Qms.IQTService2.GetTimeLimitedRequestKeyAsync(QlikviewLib.Qms.GetTimeLimitedRequestKeyRequest request)
         {
             return base.Channel.GetTimeLimitedRequestKeyAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.GetTimeLimitedRequestKeyResponse> GetTimeLimitedRequestKeyAsync()
         {
             QlikviewLib.Qms.GetTimeLimitedRequestKeyRequest inValue = new QlikviewLib.Qms.GetTimeLimitedRequestKeyRequest();
             return ((QlikviewLib.Qms.IQTService2)(this)).GetTimeLimitedRequestKeyAsync(inValue);
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetSystemInformationResponse> QlikviewLib.Qms.IQTService2.GetSystemInformationAsync(QlikviewLib.Qms.GetSystemInformationRequest request)
         {
             return base.Channel.GetSystemInformationAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.GetSystemInformationResponse> GetSystemInformationAsync()
         {
             QlikviewLib.Qms.GetSystemInformationRequest inValue = new QlikviewLib.Qms.GetSystemInformationRequest();
             return ((QlikviewLib.Qms.IQTService2)(this)).GetSystemInformationAsync(inValue);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.eStatusFlag> QMSPingAsync()
         {
             return base.Channel.QMSPingAsync();
         }
-        
+
         public virtual System.Threading.Tasks.Task OpenAsync()
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginOpen(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndOpen));
         }
-        
+
         public virtual System.Threading.Tasks.Task CloseAsync()
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginClose(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndClose));
         }
-        
+
         private static System.ServiceModel.Channels.Binding GetBindingForEndpoint(EndpointConfiguration endpointConfiguration)
         {
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQTService2))
@@ -11060,252 +11060,252 @@ namespace QlikviewLib.Qms
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
-        
+
         private static System.ServiceModel.EndpointAddress GetEndpointAddress(EndpointConfiguration endpointConfiguration)
         {
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQTService2))
             {
-                return new System.ServiceModel.EndpointAddress("http://indy-qvtest01:4799/ANY/Service");
+                return new System.ServiceModel.EndpointAddress("http://indy-qvprod01:4799/ANY/Service");
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
-        
+
         private static System.ServiceModel.Channels.Binding GetDefaultBinding()
         {
             return QTService2Client.GetBindingForEndpoint(EndpointConfiguration.BasicHttpBinding_IQTService2);
         }
-        
+
         private static System.ServiceModel.EndpointAddress GetDefaultEndpointAddress()
         {
             return QTService2Client.GetEndpointAddress(EndpointConfiguration.BasicHttpBinding_IQTService2);
         }
-        
+
         public enum EndpointConfiguration
         {
-            
+
             BasicHttpBinding_IQTService2,
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.ServiceContractAttribute(Namespace="http://ws.qliktech.com/ANY/12/", ConfigurationName="QlikviewLib.Qms.IQTService")]
     public interface IQTService
     {
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/12/IQTService/Ping", ReplyAction="http://ws.qliktech.com/ANY/12/IQTService/PingResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/12/IQTService/PingExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.eStatusFlag> PingAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/12/IQTService/GetKey", ReplyAction="http://ws.qliktech.com/ANY/12/IQTService/GetKeyResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/12/IQTService/GetKeyExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetKeyResponse1> GetKeyAsync(QlikviewLib.Qms.GetKeyRequest1 request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/12/IQTService/GetTimeLimitedRequestKey", ReplyAction="http://ws.qliktech.com/ANY/12/IQTService/GetTimeLimitedRequestKeyResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/12/IQTService/GetTimeLimitedRequestKeyExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetTimeLimitedRequestKeyResponse1> GetTimeLimitedRequestKeyAsync(QlikviewLib.Qms.GetTimeLimitedRequestKeyRequest1 request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/12/IQTService/GetSystemInformation", ReplyAction="http://ws.qliktech.com/ANY/12/IQTService/GetSystemInformationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/12/IQTService/GetSystemInformationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetSystemInformationResponse1> GetSystemInformationAsync(QlikviewLib.Qms.GetSystemInformationRequest1 request);
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetKey", WrapperNamespace="http://ws.qliktech.com/ANY/12/", IsWrapped=true)]
     public partial class GetKeyRequest1
     {
-        
+
         public GetKeyRequest1()
         {
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetKeyResponse", WrapperNamespace="http://ws.qliktech.com/ANY/12/", IsWrapped=true)]
     public partial class GetKeyResponse1
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/ANY/12/", Order=0)]
         [System.Xml.Serialization.XmlElementAttribute(IsNullable=true)]
         public string GetKeyResult;
-        
+
         public GetKeyResponse1()
         {
         }
-        
+
         public GetKeyResponse1(string GetKeyResult)
         {
             this.GetKeyResult = GetKeyResult;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetTimeLimitedRequestKey", WrapperNamespace="http://ws.qliktech.com/ANY/12/", IsWrapped=true)]
     public partial class GetTimeLimitedRequestKeyRequest1
     {
-        
+
         public GetTimeLimitedRequestKeyRequest1()
         {
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetTimeLimitedRequestKeyResponse", WrapperNamespace="http://ws.qliktech.com/ANY/12/", IsWrapped=true)]
     public partial class GetTimeLimitedRequestKeyResponse1
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/ANY/12/", Order=0)]
         [System.Xml.Serialization.XmlElementAttribute(IsNullable=true)]
         public string GetTimeLimitedRequestKeyResult;
-        
+
         public GetTimeLimitedRequestKeyResponse1()
         {
         }
-        
+
         public GetTimeLimitedRequestKeyResponse1(string GetTimeLimitedRequestKeyResult)
         {
             this.GetTimeLimitedRequestKeyResult = GetTimeLimitedRequestKeyResult;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetSystemInformation", WrapperNamespace="http://ws.qliktech.com/ANY/12/", IsWrapped=true)]
     public partial class GetSystemInformationRequest1
     {
-        
+
         public GetSystemInformationRequest1()
         {
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetSystemInformationResponse", WrapperNamespace="http://ws.qliktech.com/ANY/12/", IsWrapped=true)]
     public partial class GetSystemInformationResponse1
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/ANY/12/", Order=0)]
         [System.Xml.Serialization.XmlElementAttribute(IsNullable=true)]
         public QlikviewLib.Qms.ArrayOfXElement GetSystemInformationResult;
-        
+
         public GetSystemInformationResponse1()
         {
         }
-        
+
         public GetSystemInformationResponse1(QlikviewLib.Qms.ArrayOfXElement GetSystemInformationResult)
         {
             this.GetSystemInformationResult = GetSystemInformationResult;
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public interface IQTServiceChannel : QlikviewLib.Qms.IQTService, System.ServiceModel.IClientChannel
     {
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public partial class QTServiceClient : System.ServiceModel.ClientBase<QlikviewLib.Qms.IQTService>, QlikviewLib.Qms.IQTService
     {
-        
+
     /// <summary>
     /// Implement this partial method to configure the service endpoint.
     /// </summary>
     /// <param name="serviceEndpoint">The endpoint to configure</param>
     /// <param name="clientCredentials">The client credentials</param>
     static partial void ConfigureEndpoint(System.ServiceModel.Description.ServiceEndpoint serviceEndpoint, System.ServiceModel.Description.ClientCredentials clientCredentials);
-        
-        public QTServiceClient(EndpointConfiguration endpointConfiguration) : 
+
+        public QTServiceClient(EndpointConfiguration endpointConfiguration) :
                 base(QTServiceClient.GetBindingForEndpoint(endpointConfiguration), QTServiceClient.GetEndpointAddress(endpointConfiguration))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QTServiceClient(EndpointConfiguration endpointConfiguration, string remoteAddress) : 
+
+        public QTServiceClient(EndpointConfiguration endpointConfiguration, string remoteAddress) :
                 base(QTServiceClient.GetBindingForEndpoint(endpointConfiguration), new System.ServiceModel.EndpointAddress(remoteAddress))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QTServiceClient(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) : 
+
+        public QTServiceClient(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) :
                 base(QTServiceClient.GetBindingForEndpoint(endpointConfiguration), remoteAddress)
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QTServiceClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
+
+        public QTServiceClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) :
                 base(binding, remoteAddress)
         {
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.eStatusFlag> PingAsync()
         {
             return base.Channel.PingAsync();
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetKeyResponse1> QlikviewLib.Qms.IQTService.GetKeyAsync(QlikviewLib.Qms.GetKeyRequest1 request)
         {
             return base.Channel.GetKeyAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.GetKeyResponse1> GetKeyAsync()
         {
             QlikviewLib.Qms.GetKeyRequest1 inValue = new QlikviewLib.Qms.GetKeyRequest1();
             return ((QlikviewLib.Qms.IQTService)(this)).GetKeyAsync(inValue);
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetTimeLimitedRequestKeyResponse1> QlikviewLib.Qms.IQTService.GetTimeLimitedRequestKeyAsync(QlikviewLib.Qms.GetTimeLimitedRequestKeyRequest1 request)
         {
             return base.Channel.GetTimeLimitedRequestKeyAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.GetTimeLimitedRequestKeyResponse1> GetTimeLimitedRequestKeyAsync()
         {
             QlikviewLib.Qms.GetTimeLimitedRequestKeyRequest1 inValue = new QlikviewLib.Qms.GetTimeLimitedRequestKeyRequest1();
             return ((QlikviewLib.Qms.IQTService)(this)).GetTimeLimitedRequestKeyAsync(inValue);
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetSystemInformationResponse1> QlikviewLib.Qms.IQTService.GetSystemInformationAsync(QlikviewLib.Qms.GetSystemInformationRequest1 request)
         {
             return base.Channel.GetSystemInformationAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.GetSystemInformationResponse1> GetSystemInformationAsync()
         {
             QlikviewLib.Qms.GetSystemInformationRequest1 inValue = new QlikviewLib.Qms.GetSystemInformationRequest1();
             return ((QlikviewLib.Qms.IQTService)(this)).GetSystemInformationAsync(inValue);
         }
-        
+
         public virtual System.Threading.Tasks.Task OpenAsync()
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginOpen(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndOpen));
         }
-        
+
         public virtual System.Threading.Tasks.Task CloseAsync()
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginClose(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndClose));
         }
-        
+
         private static System.ServiceModel.Channels.Binding GetBindingForEndpoint(EndpointConfiguration endpointConfiguration)
         {
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQTService))
@@ -11332,7 +11332,7 @@ namespace QlikviewLib.Qms
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
-        
+
         private static System.ServiceModel.EndpointAddress GetEndpointAddress(EndpointConfiguration endpointConfiguration)
         {
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQTService))
@@ -11345,1349 +11345,1349 @@ namespace QlikviewLib.Qms
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
-        
+
         public enum EndpointConfiguration
         {
-            
+
             BasicHttpBinding_IQTService,
-            
+
             BasicHttpBinding_IQTService1,
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.ServiceContractAttribute(Name="IQTService", Namespace="http://ws.qliktech.com/ANY/11/", ConfigurationName="QlikviewLib.Qms.IQTService1")]
     public interface IQTService1
     {
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/11/IQTService/Ping", ReplyAction="http://ws.qliktech.com/ANY/11/IQTService/PingResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/11/IQTService/PingExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.eStatusFlag> PingAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/11/IQTService/GetKey", ReplyAction="http://ws.qliktech.com/ANY/11/IQTService/GetKeyResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/11/IQTService/GetKeyExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetKeyResponse2> GetKeyAsync(QlikviewLib.Qms.GetKeyRequest2 request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/11/IQTService/GetTimeLimitedRequestKey", ReplyAction="http://ws.qliktech.com/ANY/11/IQTService/GetTimeLimitedRequestKeyResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/11/IQTService/GetTimeLimitedRequestKeyExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetTimeLimitedRequestKeyResponse2> GetTimeLimitedRequestKeyAsync(QlikviewLib.Qms.GetTimeLimitedRequestKeyRequest2 request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/ANY/11/IQTService/GetSystemInformation", ReplyAction="http://ws.qliktech.com/ANY/11/IQTService/GetSystemInformationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(QlikviewLib.Qms.Exception), Action="http://ws.qliktech.com/ANY/11/IQTService/GetSystemInformationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetSystemInformationResponse2> GetSystemInformationAsync(QlikviewLib.Qms.GetSystemInformationRequest2 request);
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetKey", WrapperNamespace="http://ws.qliktech.com/ANY/11/", IsWrapped=true)]
     public partial class GetKeyRequest2
     {
-        
+
         public GetKeyRequest2()
         {
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetKeyResponse", WrapperNamespace="http://ws.qliktech.com/ANY/11/", IsWrapped=true)]
     public partial class GetKeyResponse2
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/ANY/11/", Order=0)]
         [System.Xml.Serialization.XmlElementAttribute(IsNullable=true)]
         public string GetKeyResult;
-        
+
         public GetKeyResponse2()
         {
         }
-        
+
         public GetKeyResponse2(string GetKeyResult)
         {
             this.GetKeyResult = GetKeyResult;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetTimeLimitedRequestKey", WrapperNamespace="http://ws.qliktech.com/ANY/11/", IsWrapped=true)]
     public partial class GetTimeLimitedRequestKeyRequest2
     {
-        
+
         public GetTimeLimitedRequestKeyRequest2()
         {
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetTimeLimitedRequestKeyResponse", WrapperNamespace="http://ws.qliktech.com/ANY/11/", IsWrapped=true)]
     public partial class GetTimeLimitedRequestKeyResponse2
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/ANY/11/", Order=0)]
         [System.Xml.Serialization.XmlElementAttribute(IsNullable=true)]
         public string GetTimeLimitedRequestKeyResult;
-        
+
         public GetTimeLimitedRequestKeyResponse2()
         {
         }
-        
+
         public GetTimeLimitedRequestKeyResponse2(string GetTimeLimitedRequestKeyResult)
         {
             this.GetTimeLimitedRequestKeyResult = GetTimeLimitedRequestKeyResult;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetSystemInformation", WrapperNamespace="http://ws.qliktech.com/ANY/11/", IsWrapped=true)]
     public partial class GetSystemInformationRequest2
     {
-        
+
         public GetSystemInformationRequest2()
         {
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="GetSystemInformationResponse", WrapperNamespace="http://ws.qliktech.com/ANY/11/", IsWrapped=true)]
     public partial class GetSystemInformationResponse2
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/ANY/11/", Order=0)]
         [System.Xml.Serialization.XmlElementAttribute(IsNullable=true)]
         public QlikviewLib.Qms.ArrayOfXElement GetSystemInformationResult;
-        
+
         public GetSystemInformationResponse2()
         {
         }
-        
+
         public GetSystemInformationResponse2(QlikviewLib.Qms.ArrayOfXElement GetSystemInformationResult)
         {
             this.GetSystemInformationResult = GetSystemInformationResult;
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public interface IQTService1Channel : QlikviewLib.Qms.IQTService1, System.ServiceModel.IClientChannel
     {
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public partial class QTService1Client : System.ServiceModel.ClientBase<QlikviewLib.Qms.IQTService1>, QlikviewLib.Qms.IQTService1
     {
-        
-        public QTService1Client(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
+
+        public QTService1Client(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) :
                 base(binding, remoteAddress)
         {
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.eStatusFlag> PingAsync()
         {
             return base.Channel.PingAsync();
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetKeyResponse2> QlikviewLib.Qms.IQTService1.GetKeyAsync(QlikviewLib.Qms.GetKeyRequest2 request)
         {
             return base.Channel.GetKeyAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.GetKeyResponse2> GetKeyAsync()
         {
             QlikviewLib.Qms.GetKeyRequest2 inValue = new QlikviewLib.Qms.GetKeyRequest2();
             return ((QlikviewLib.Qms.IQTService1)(this)).GetKeyAsync(inValue);
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetTimeLimitedRequestKeyResponse2> QlikviewLib.Qms.IQTService1.GetTimeLimitedRequestKeyAsync(QlikviewLib.Qms.GetTimeLimitedRequestKeyRequest2 request)
         {
             return base.Channel.GetTimeLimitedRequestKeyAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.GetTimeLimitedRequestKeyResponse2> GetTimeLimitedRequestKeyAsync()
         {
             QlikviewLib.Qms.GetTimeLimitedRequestKeyRequest2 inValue = new QlikviewLib.Qms.GetTimeLimitedRequestKeyRequest2();
             return ((QlikviewLib.Qms.IQTService1)(this)).GetTimeLimitedRequestKeyAsync(inValue);
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         System.Threading.Tasks.Task<QlikviewLib.Qms.GetSystemInformationResponse2> QlikviewLib.Qms.IQTService1.GetSystemInformationAsync(QlikviewLib.Qms.GetSystemInformationRequest2 request)
         {
             return base.Channel.GetSystemInformationAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.GetSystemInformationResponse2> GetSystemInformationAsync()
         {
             QlikviewLib.Qms.GetSystemInformationRequest2 inValue = new QlikviewLib.Qms.GetSystemInformationRequest2();
             return ((QlikviewLib.Qms.IQTService1)(this)).GetSystemInformationAsync(inValue);
         }
-        
+
         public virtual System.Threading.Tasks.Task OpenAsync()
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginOpen(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndOpen));
         }
-        
+
         public virtual System.Threading.Tasks.Task CloseAsync()
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginClose(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndClose));
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.ServiceContractAttribute(Namespace="http://ws.qliktech.com/QMS/12/2/", ConfigurationName="QlikviewLib.Qms.IQMS2")]
     public interface IQMS2
     {
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RestartQVS", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/RestartQVSResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RestartQVSExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task RestartQVSAsync(System.Guid qvsID);
-        
+
         // CODEGEN: Generating message contract since the operation has multiple return values.
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/QVSNeedRestart", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/QVSNeedRestartResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/QVSNeedRestartExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVSNeedRestartResponse> QVSNeedRestartAsync(QlikviewLib.Qms.QVSNeedRestartRequest request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDocumentMetaData", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDocumentMetaDataResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDocumentMetaDataExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentMetaData> GetDocumentMetaDataAsync(QlikviewLib.Qms.DocumentNode userDocument, QlikviewLib.Qms.DocumentMetaDataScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveDocumentMetaData", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveDocumentMetaDataResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveDocumentMetaDataExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveDocumentMetaDataAsync(QlikviewLib.Qms.DocumentMetaData documentMetaData);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetCALConfiguration", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetCALConfigurationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetCALConfigurationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.CALConfiguration> GetCALConfigurationAsync(System.Guid qvsID, QlikviewLib.Qms.CALConfigurationScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveCALConfiguration", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveCALConfigurationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveCALConfigurationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveCALConfigurationAsync(QlikviewLib.Qms.CALConfiguration calConfiguration);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetCALInfoForUser", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetCALInfoForUserResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetCALInfoForUserExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.UserCALs> GetCALInfoForUserAsync(System.Guid qvsID, string user);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSPerformanceData", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSPerformanceDataResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSPerformanceDataExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetQVSPerformanceDataAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSUtilizationData", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSUtilizationDataResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSUtilizationDataExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetQVSUtilizationDataAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSDocumentsPerUser", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSDocumentsPerUserResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSDocumentsPerUserExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, int>> GetQVSDocumentsPerUserAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSDocumentsAndUsers", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSDocumentsAndUsersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSDocumentsAndUsersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string[]>> GetQVSDocumentsAndUsersAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetServerObjectMetaDataForUser", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetServerObjectMetaDataForUserResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetServerObjectMetaDataForUserExceptionFaul" +
             "t", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServerObjectMetaData[]> GetServerObjectMetaDataForUserAsync(System.Guid qvsID, string user);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetServerObjects", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetServerObjectsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetServerObjectsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServerObject[]> GetServerObjectsAsync(System.Guid qvsID, string documentName);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/DeleteServerObject", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/DeleteServerObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/DeleteServerObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task DeleteServerObjectAsync(System.Guid qvsID, string documentName, string id);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/TakeServerObject", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/TakeServerObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/TakeServerObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task TakeServerObjectAsync(System.Guid qvsID, string documentName, string id, string owner);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/LookupNames", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/LookupNamesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/LookupNamesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DirectoryServiceObject[]> LookupNamesAsync(System.Guid dscID, string[] names);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDSResources", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDSResourcesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDSResourcesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DSResource[]> GetDSResourcesAsync(System.Guid dscID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ResolveUserGroups", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/ResolveUserGroupsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ResolveUserGroupsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string[]> ResolveUserGroupsAsync(System.Guid dscID, string user);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAvailableDSProviders", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAvailableDSProvidersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAvailableDSProvidersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DSProvider[]> GetAvailableDSProvidersAsync(System.Guid dscID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAvailableDirectories", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAvailableDirectoriesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAvailableDirectoriesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string[]> GetAvailableDirectoriesAsync(System.Guid dscID, string type);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SetQVWSAuthentication", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SetQVWSAuthenticationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SetQVWSAuthenticationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SetQVWSAuthenticationAsync(System.Guid qvwsID, QlikviewLib.Qms.QVWSAuthentication authenticationType);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVWSAuthentication", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVWSAuthenticationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVWSAuthenticationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVWSAuthentication> GetQVWSAuthenticationAsync(System.Guid qvwsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SelectServer", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SelectServerResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SelectServerExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Uri> SelectServerAsync(System.Guid qvwsID, string document);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetServices", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetServicesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetServicesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> RemoteGetServicesAsync(System.Guid remoteQmsId, QlikviewLib.Qms.ServiceTypes serviceTypes);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetSourceDocumentFolders", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetSourceDocumentFoldersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetSourceDocumentFoldersExceptionFaul" +
             "t", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> RemoteGetSourceDocumentFoldersAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, QlikviewLib.Qms.DocumentFolderScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetSourceDocumentNodes", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetSourceDocumentNodesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetSourceDocumentNodesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> RemoteGetSourceDocumentNodesAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, System.Guid folderId, string relativePath);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetTaskListForDocID", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetTaskListForDocIDResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetTaskListForDocIDExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> RemoteGetTaskListForDocIDAsync(System.Guid remoteQmsId, System.Guid documentId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetTasks", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetTasksResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetTasksExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> RemoteGetTasksAsync(System.Guid remoteQmsId, System.Guid remoteQdsId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetDocumentTask", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetDocumentTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RemoteGetDocumentTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentTask> RemoteGetDocumentTaskAsync(System.Guid remoteQmsId, System.Guid taskId, QlikviewLib.Qms.DocumentTaskScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ImportDocumentTask", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/ImportDocumentTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ImportDocumentTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ImportDocumentTaskAsync(System.Guid remoteQmsId, System.Guid remoteDocumentTaskId, System.Guid destinationQdsId, QlikviewLib.Qms.DocumentNode destinationDocument);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ImportAllDocumentTasksForQds", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/ImportAllDocumentTasksForQdsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ImportAllDocumentTasksForQdsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ImportAllDocumentTasksForQdsAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, System.Guid destinationQdsId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/InitiateUploadExtensionObject", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/InitiateUploadExtensionObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/InitiateUploadExtensionObjectExceptionFault" +
             "", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ExtensionUploadHandle> InitiateUploadExtensionObjectAsync(System.Guid qvsId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/WriteExtensionObject", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/WriteExtensionObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/WriteExtensionObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ExtensionUploadHandle> WriteExtensionObjectAsync(QlikviewLib.Qms.ExtensionUploadHandle handle, byte[] chunk);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/CloseAndInstallExtensionObject", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/CloseAndInstallExtensionObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/CloseAndInstallExtensionObjectExceptionFaul" +
             "t", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVSMessage[]> CloseAndInstallExtensionObjectAsync(QlikviewLib.Qms.ExtensionUploadHandle handle);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQMSVersion", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQMSVersionResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQMSVersionExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QMSVersion> GetQMSVersionAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/IsQdsLoadbalancerConfigured", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/IsQdsLoadbalancerConfiguredResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/IsQdsLoadbalancerConfiguredExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<bool> IsQdsLoadbalancerConfiguredAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/HasAnyDistributionGroups", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/HasAnyDistributionGroupsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/HasAnyDistributionGroupsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<bool> HasAnyDistributionGroupsAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/QdsLoadBalancerConfigHasErrors", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/QdsLoadBalancerConfigHasErrorsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/QdsLoadBalancerConfigHasErrorsExceptionFaul" +
             "t", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<bool> QdsLoadBalancerConfigHasErrorsAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAllDistributionGroups", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAllDistributionGroupsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAllDistributionGroupsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string[]> GetAllDistributionGroupsAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDistributionGroups", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDistributionGroupsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDistributionGroupsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string[]> GetDistributionGroupsAsync(System.Guid qdsId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDistributionGroupsDefinition", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDistributionGroupsDefinitionResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDistributionGroupsDefinitionExceptionFau" +
             "lt", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DistributionConfigValues[]> GetDistributionGroupsDefinitionAsync(System.Guid qdsId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTemplateFolderId", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTemplateFolderIdResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTemplateFolderIdExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Guid[]> GetTemplateFolderIdAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAllMissingDistributionGroups", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAllMissingDistributionGroupsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAllMissingDistributionGroupsExceptionFau" +
             "lt", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string[]> GetAllMissingDistributionGroupsAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVPRAPISettings", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVPRAPISettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVPRAPISettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVPRAPISettings> GetQVPRAPISettingsAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SetQVPRAPISettings", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SetQVPRAPISettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SetQVPRAPISettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> SetQVPRAPISettingsAsync(QlikviewLib.Qms.QVPRAPISettings qvprSettings, bool doMigrate);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDSCAPISettings", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDSCAPISettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDSCAPISettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DirectoryServiceConnectorAPISettings> GetDSCAPISettingsAsync(System.Guid dscID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SetDSCAPISettings", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SetDSCAPISettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SetDSCAPISettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SetDSCAPISettingsAsync(QlikviewLib.Qms.DirectoryServiceConnectorAPISettings dscSettings);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDSPAPISettings", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDSPAPISettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDSPAPISettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DSPSettings> GetDSPAPISettingsAsync(System.Guid dscID, QlikviewLib.Qms.DSPType dspType);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SetDSPAPISettings", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SetDSPAPISettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SetDSPAPISettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SetDSPAPISettingsAsync(QlikviewLib.Qms.DSPSettings dspSettings);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/UpdateServices", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/UpdateServicesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/UpdateServicesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceUpdateStatus> UpdateServicesAsync(System.Collections.Generic.Dictionary<System.Guid, System.Uri> serviceURLs, QlikviewLib.Qms.ServiceTypes serviceType);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVWSSetting", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVWSSettingResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVWSSettingExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVWSSettings> GetQVWSSettingAsync(System.Guid qvwsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SetQVWSSetting", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SetQVWSSettingResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SetQVWSSettingExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SetQVWSSettingAsync(System.Guid qvwsID, QlikviewLib.Qms.QVWSSettings qvwsSetting);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveLicense", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> SaveLicenseAsync(QlikviewLib.Qms.License license, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetLicense", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.License> GetLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ClearLicense", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/ClearLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ClearLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ClearLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/UpdateLicense", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/UpdateLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/UpdateLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task UpdateLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ValidateLicense", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/ValidateLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ValidateLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ValidateLicenseAsync(QlikviewLib.Qms.License license);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ServiceHasValidLicense", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/ServiceHasValidLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ServiceHasValidLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<bool> ServiceHasValidLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSSettings", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSSettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQVSSettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVSSettings> GetQVSSettingsAsync(System.Guid qvsID, QlikviewLib.Qms.QVSSettingsScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveQVSSettings", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveQVSSettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveQVSSettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveQVSSettingsAsync(QlikviewLib.Qms.QVSSettings qvsSettings);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetServices", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetServicesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetServicesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> GetServicesAsync(QlikviewLib.Qms.ServiceTypes serviceTypes);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetReloadEngineServices", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetReloadEngineServicesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetReloadEngineServicesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> GetReloadEngineServicesAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ClearQVSCache", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/ClearQVSCacheResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ClearQVSCacheExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ClearQVSCacheAsync(QlikviewLib.Qms.QVSCacheObjects objects);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQDSSettings", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQDSSettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetQDSSettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QDSSettings> GetQDSSettingsAsync(System.Guid qdsID, QlikviewLib.Qms.QDSSettingsScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveQDSSettings", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveQDSSettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveQDSSettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> SaveQDSSettingsAsync(QlikviewLib.Qms.QDSSettings qdsSettings);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SendDistributionServiceWorkorder", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SendDistributionServiceWorkorderResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SendDistributionServiceWorkorderExceptionFa" +
             "ult", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SendDistributionServiceWorkorderAsync(System.Guid qdsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/IsPublisherQDS", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/IsPublisherQDSResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/IsPublisherQDSExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<bool> IsPublisherQDSAsync(System.Guid qdsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDocumentFolder", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDocumentFolderResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDocumentFolderExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder> GetDocumentFolderAsync(System.Guid id, QlikviewLib.Qms.DocumentFolderScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetUserDocumentFolders", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetUserDocumentFoldersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetUserDocumentFoldersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> GetUserDocumentFoldersAsync(System.Guid qvsID, QlikviewLib.Qms.DocumentFolderScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSourceDocumentFolders", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSourceDocumentFoldersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSourceDocumentFoldersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> GetSourceDocumentFoldersAsync(System.Guid qdsID, QlikviewLib.Qms.DocumentFolderScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSourceDocuments", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSourceDocumentsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSourceDocumentsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetSourceDocumentsAsync(System.Guid qdsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSourceDocumentNodes", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSourceDocumentNodesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSourceDocumentNodesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetSourceDocumentNodesAsync(System.Guid qdsID, System.Guid folderID, string relativePath);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetUserDocuments", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetUserDocumentsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetUserDocumentsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetUserDocumentsAsync(System.Guid qvsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetUserDocumentNodes", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetUserDocumentNodesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetUserDocumentNodesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetUserDocumentNodesAsync(System.Guid qvsID, System.Guid folderID, string relativePath);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveDocumentTask", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveDocumentTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveDocumentTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveDocumentTaskAsync(QlikviewLib.Qms.DocumentTask documentTask);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTasks", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTasksResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTasksExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> GetTasksAsync(System.Guid qdsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTask", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo> GetTaskAsync(System.Guid taskID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/FindTask", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/FindTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/FindTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo> FindTaskAsync(System.Guid qdsId, QlikviewLib.Qms.TaskType taskType, string name);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/FindEDX", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/FindEDXResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/FindEDXExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> FindEDXAsync(string name);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTasksForDocument", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTasksForDocumentResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTasksForDocumentExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> GetTasksForDocumentAsync(System.Guid documentID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDocumentTask", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDocumentTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDocumentTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentTask> GetDocumentTaskAsync(System.Guid documentTaskID, QlikviewLib.Qms.DocumentTaskScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/DeleteTask", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/DeleteTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/DeleteTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<bool> DeleteTaskAsync(System.Guid taskID, QlikviewLib.Qms.TaskType taskType);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RunTask", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/RunTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RunTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task RunTaskAsync(System.Guid taskID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/AbortTask", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/AbortTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/AbortTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task AbortTaskAsync(System.Guid taskID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetCategories", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetCategoriesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetCategoriesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.Category[]> GetCategoriesAsync(QlikviewLib.Qms.CategoriesScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAlertText", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAlertTextResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetAlertTextExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> GetAlertTextAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetServiceStatuses", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetServiceStatusesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetServiceStatusesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceStatus[]> GetServiceStatusesAsync(System.Guid[] serviceIDs);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/Ping", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/PingResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/PingExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task PingAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTaskStatusNodes", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTaskStatusNodesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTaskStatusNodesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatusNode[]> GetTaskStatusNodesAsync(QlikviewLib.Qms.TaskStatusNodeRequest[] taskStatusNodeRequests, QlikviewLib.Qms.TaskStatusFilter filter, QlikviewLib.Qms.TaskStatusScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTaskStatuses", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTaskStatusesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTaskStatusesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatus[]> GetTaskStatusesAsync(QlikviewLib.Qms.TaskStatusFilter filter, QlikviewLib.Qms.TaskStatusScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTaskStatus", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTaskStatusResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTaskStatusExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatus> GetTaskStatusAsync(System.Guid taskID, QlikviewLib.Qms.TaskStatusScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTimeLimitedServiceKey", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTimeLimitedServiceKeyResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetTimeLimitedServiceKeyExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> GetTimeLimitedServiceKeyAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSectionAccessTables", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSectionAccessTablesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSectionAccessTablesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable[]> GetSectionAccessTablesAsync(QlikviewLib.Qms.SectionAccessScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSectionAccessTable", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSectionAccessTableResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSectionAccessTableExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable> GetSectionAccessTableAsync(System.Guid tableId, QlikviewLib.Qms.SectionAccessScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSectionAccessTableByName", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSectionAccessTableByNameResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetSectionAccessTableByNameExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable> GetSectionAccessTableByNameAsync(string tableName, QlikviewLib.Qms.SectionAccessScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveSectionAccessTable", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveSectionAccessTableResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/SaveSectionAccessTableExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveSectionAccessTableAsync(QlikviewLib.Qms.SectionAccessTable table);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/DeleteSectionAccessTable", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/DeleteSectionAccessTableResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/DeleteSectionAccessTableExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task DeleteSectionAccessTableAsync(System.Guid tableId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/TriggerEDXTask", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/TriggerEDXTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/TriggerEDXTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TriggerEDXTaskResult> TriggerEDXTaskAsync(System.Guid qdsID, string taskNameOrID, string password, string variableName, string[] variableValues);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetEDXTaskStatus", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetEDXTaskStatusResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetEDXTaskStatusExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.EDXStatus> GetEDXTaskStatusAsync(System.Guid qdsID, System.Guid executionID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RestartQDS", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/RestartQDSResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/RestartQDSExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task RestartQDSAsync(System.Guid qdsID);
-        
+
         // CODEGEN: Generating message contract since the operation has multiple return values.
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/QDSNeedRestart", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/QDSNeedRestartResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/QDSNeedRestartExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QDSNeedRestartResponse> QDSNeedRestartAsync(QlikviewLib.Qms.QDSNeedRestartRequest request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/CreateSession", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/CreateSessionResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/CreateSessionExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QDSDocumentSession> CreateSessionAsync(QlikviewLib.Qms.QDSDocumentSessionConfiguration configuration);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/CloseSession", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/CloseSessionResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/CloseSessionExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task CloseSessionAsync(QlikviewLib.Qms.QDSDocumentSession session);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/AddSelections", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/AddSelectionsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/AddSelectionsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.FieldContent[]> AddSelectionsAsync(QlikviewLib.Qms.QDSDocumentSession session, QlikviewLib.Qms.FieldContent[] fieldContents, bool lockSelection, bool toggleSelect, bool returnSelectedList);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetFieldContentList", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetFieldContentListResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetFieldContentListExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.FieldContent[]> GetFieldContentListAsync(QlikviewLib.Qms.QDSDocumentSession session, string forFieldName, QlikviewLib.Qms.FieldContentType fieldContentType, int index, int length);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetFieldList", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetFieldListResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetFieldListExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.Field[]> GetFieldListAsync(QlikviewLib.Qms.QDSDocumentSession session);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDocumentBookmarkNames", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDocumentBookmarkNamesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetDocumentBookmarkNamesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string[]> GetDocumentBookmarkNamesAsync(QlikviewLib.Qms.QDSDocumentSession session);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ClearSelections", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/ClearSelectionsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/ClearSelectionsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ClearSelectionsAsync(QlikviewLib.Qms.QDSDocumentSession session, string fieldName, QlikviewLib.Qms.DocumentClearOptions clearOptions);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetReports", ReplyAction="http://ws.qliktech.com/QMS/12/2/IQMS2/GetReportsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/2/IQMS2/GetReportsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.Report[]> GetReportsAsync(QlikviewLib.Qms.QDSDocumentSession session);
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="QVSNeedRestart", WrapperNamespace="http://ws.qliktech.com/QMS/12/2/", IsWrapped=true)]
     public partial class QVSNeedRestartRequest
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/12/2/", Order=0)]
         public System.Guid qvsID;
-        
+
         public QVSNeedRestartRequest()
         {
         }
-        
+
         public QVSNeedRestartRequest(System.Guid qvsID)
         {
             this.qvsID = qvsID;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="QVSNeedRestartResponse", WrapperNamespace="http://ws.qliktech.com/QMS/12/2/", IsWrapped=true)]
     public partial class QVSNeedRestartResponse
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/12/2/", Order=0)]
         public bool QVSNeedRestartResult;
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/12/2/", Order=1)]
         public string reason;
-        
+
         public QVSNeedRestartResponse()
         {
         }
-        
+
         public QVSNeedRestartResponse(bool QVSNeedRestartResult, string reason)
         {
             this.QVSNeedRestartResult = QVSNeedRestartResult;
             this.reason = reason;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="QDSNeedRestart", WrapperNamespace="http://ws.qliktech.com/QMS/12/2/", IsWrapped=true)]
     public partial class QDSNeedRestartRequest
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/12/2/", Order=0)]
         public System.Guid qdsID;
-        
+
         public QDSNeedRestartRequest()
         {
         }
-        
+
         public QDSNeedRestartRequest(System.Guid qdsID)
         {
             this.qdsID = qdsID;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="QDSNeedRestartResponse", WrapperNamespace="http://ws.qliktech.com/QMS/12/2/", IsWrapped=true)]
     public partial class QDSNeedRestartResponse
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/12/2/", Order=0)]
         public bool QDSNeedRestartResult;
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/12/2/", Order=1)]
         public string reason;
-        
+
         public QDSNeedRestartResponse()
         {
         }
-        
+
         public QDSNeedRestartResponse(bool QDSNeedRestartResult, string reason)
         {
             this.QDSNeedRestartResult = QDSNeedRestartResult;
             this.reason = reason;
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public interface IQMS2Channel : QlikviewLib.Qms.IQMS2, System.ServiceModel.IClientChannel
     {
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public partial class QMS2Client : System.ServiceModel.ClientBase<QlikviewLib.Qms.IQMS2>, QlikviewLib.Qms.IQMS2
     {
-        
+
     /// <summary>
     /// Implement this partial method to configure the service endpoint.
     /// </summary>
     /// <param name="serviceEndpoint">The endpoint to configure</param>
     /// <param name="clientCredentials">The client credentials</param>
     static partial void ConfigureEndpoint(System.ServiceModel.Description.ServiceEndpoint serviceEndpoint, System.ServiceModel.Description.ClientCredentials clientCredentials);
-        
-        public QMS2Client() : 
+
+        public QMS2Client() :
                 base(QMS2Client.GetDefaultBinding(), QMS2Client.GetDefaultEndpointAddress())
         {
             this.Endpoint.Name = EndpointConfiguration.BasicHttpBinding_IQMS2.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QMS2Client(EndpointConfiguration endpointConfiguration) : 
+
+        public QMS2Client(EndpointConfiguration endpointConfiguration) :
                 base(QMS2Client.GetBindingForEndpoint(endpointConfiguration), QMS2Client.GetEndpointAddress(endpointConfiguration))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QMS2Client(EndpointConfiguration endpointConfiguration, string remoteAddress) : 
+
+        public QMS2Client(EndpointConfiguration endpointConfiguration, string remoteAddress) :
                 base(QMS2Client.GetBindingForEndpoint(endpointConfiguration), new System.ServiceModel.EndpointAddress(remoteAddress))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QMS2Client(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) : 
+
+        public QMS2Client(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) :
                 base(QMS2Client.GetBindingForEndpoint(endpointConfiguration), remoteAddress)
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QMS2Client(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
+
+        public QMS2Client(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) :
                 base(binding, remoteAddress)
         {
         }
-        
+
         public System.Threading.Tasks.Task RestartQVSAsync(System.Guid qvsID)
         {
             return base.Channel.RestartQVSAsync(qvsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVSNeedRestartResponse> QVSNeedRestartAsync(QlikviewLib.Qms.QVSNeedRestartRequest request)
         {
             return base.Channel.QVSNeedRestartAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentMetaData> GetDocumentMetaDataAsync(QlikviewLib.Qms.DocumentNode userDocument, QlikviewLib.Qms.DocumentMetaDataScope scope)
         {
             return base.Channel.GetDocumentMetaDataAsync(userDocument, scope);
         }
-        
+
         public System.Threading.Tasks.Task SaveDocumentMetaDataAsync(QlikviewLib.Qms.DocumentMetaData documentMetaData)
         {
             return base.Channel.SaveDocumentMetaDataAsync(documentMetaData);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.CALConfiguration> GetCALConfigurationAsync(System.Guid qvsID, QlikviewLib.Qms.CALConfigurationScope scope)
         {
             return base.Channel.GetCALConfigurationAsync(qvsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task SaveCALConfigurationAsync(QlikviewLib.Qms.CALConfiguration calConfiguration)
         {
             return base.Channel.SaveCALConfigurationAsync(calConfiguration);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.UserCALs> GetCALInfoForUserAsync(System.Guid qvsID, string user)
         {
             return base.Channel.GetCALInfoForUserAsync(qvsID, user);
         }
-        
+
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetQVSPerformanceDataAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target)
         {
             return base.Channel.GetQVSPerformanceDataAsync(qvsID, target);
         }
-        
+
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetQVSUtilizationDataAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target)
         {
             return base.Channel.GetQVSUtilizationDataAsync(qvsID, target);
         }
-        
+
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, int>> GetQVSDocumentsPerUserAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target)
         {
             return base.Channel.GetQVSDocumentsPerUserAsync(qvsID, target);
         }
-        
+
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string[]>> GetQVSDocumentsAndUsersAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target)
         {
             return base.Channel.GetQVSDocumentsAndUsersAsync(qvsID, target);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServerObjectMetaData[]> GetServerObjectMetaDataForUserAsync(System.Guid qvsID, string user)
         {
             return base.Channel.GetServerObjectMetaDataForUserAsync(qvsID, user);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServerObject[]> GetServerObjectsAsync(System.Guid qvsID, string documentName)
         {
             return base.Channel.GetServerObjectsAsync(qvsID, documentName);
         }
-        
+
         public System.Threading.Tasks.Task DeleteServerObjectAsync(System.Guid qvsID, string documentName, string id)
         {
             return base.Channel.DeleteServerObjectAsync(qvsID, documentName, id);
         }
-        
+
         public System.Threading.Tasks.Task TakeServerObjectAsync(System.Guid qvsID, string documentName, string id, string owner)
         {
             return base.Channel.TakeServerObjectAsync(qvsID, documentName, id, owner);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DirectoryServiceObject[]> LookupNamesAsync(System.Guid dscID, string[] names)
         {
             return base.Channel.LookupNamesAsync(dscID, names);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DSResource[]> GetDSResourcesAsync(System.Guid dscID)
         {
             return base.Channel.GetDSResourcesAsync(dscID);
         }
-        
+
         public System.Threading.Tasks.Task<string[]> ResolveUserGroupsAsync(System.Guid dscID, string user)
         {
             return base.Channel.ResolveUserGroupsAsync(dscID, user);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DSProvider[]> GetAvailableDSProvidersAsync(System.Guid dscID)
         {
             return base.Channel.GetAvailableDSProvidersAsync(dscID);
         }
-        
+
         public System.Threading.Tasks.Task<string[]> GetAvailableDirectoriesAsync(System.Guid dscID, string type)
         {
             return base.Channel.GetAvailableDirectoriesAsync(dscID, type);
         }
-        
+
         public System.Threading.Tasks.Task SetQVWSAuthenticationAsync(System.Guid qvwsID, QlikviewLib.Qms.QVWSAuthentication authenticationType)
         {
             return base.Channel.SetQVWSAuthenticationAsync(qvwsID, authenticationType);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVWSAuthentication> GetQVWSAuthenticationAsync(System.Guid qvwsID)
         {
             return base.Channel.GetQVWSAuthenticationAsync(qvwsID);
         }
-        
+
         public System.Threading.Tasks.Task<System.Uri> SelectServerAsync(System.Guid qvwsID, string document)
         {
             return base.Channel.SelectServerAsync(qvwsID, document);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> RemoteGetServicesAsync(System.Guid remoteQmsId, QlikviewLib.Qms.ServiceTypes serviceTypes)
         {
             return base.Channel.RemoteGetServicesAsync(remoteQmsId, serviceTypes);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> RemoteGetSourceDocumentFoldersAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, QlikviewLib.Qms.DocumentFolderScope scope)
         {
             return base.Channel.RemoteGetSourceDocumentFoldersAsync(remoteQmsId, remoteQdsId, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> RemoteGetSourceDocumentNodesAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, System.Guid folderId, string relativePath)
         {
             return base.Channel.RemoteGetSourceDocumentNodesAsync(remoteQmsId, remoteQdsId, folderId, relativePath);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> RemoteGetTaskListForDocIDAsync(System.Guid remoteQmsId, System.Guid documentId)
         {
             return base.Channel.RemoteGetTaskListForDocIDAsync(remoteQmsId, documentId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> RemoteGetTasksAsync(System.Guid remoteQmsId, System.Guid remoteQdsId)
         {
             return base.Channel.RemoteGetTasksAsync(remoteQmsId, remoteQdsId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentTask> RemoteGetDocumentTaskAsync(System.Guid remoteQmsId, System.Guid taskId, QlikviewLib.Qms.DocumentTaskScope scope)
         {
             return base.Channel.RemoteGetDocumentTaskAsync(remoteQmsId, taskId, scope);
         }
-        
+
         public System.Threading.Tasks.Task ImportDocumentTaskAsync(System.Guid remoteQmsId, System.Guid remoteDocumentTaskId, System.Guid destinationQdsId, QlikviewLib.Qms.DocumentNode destinationDocument)
         {
             return base.Channel.ImportDocumentTaskAsync(remoteQmsId, remoteDocumentTaskId, destinationQdsId, destinationDocument);
         }
-        
+
         public System.Threading.Tasks.Task ImportAllDocumentTasksForQdsAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, System.Guid destinationQdsId)
         {
             return base.Channel.ImportAllDocumentTasksForQdsAsync(remoteQmsId, remoteQdsId, destinationQdsId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ExtensionUploadHandle> InitiateUploadExtensionObjectAsync(System.Guid qvsId)
         {
             return base.Channel.InitiateUploadExtensionObjectAsync(qvsId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ExtensionUploadHandle> WriteExtensionObjectAsync(QlikviewLib.Qms.ExtensionUploadHandle handle, byte[] chunk)
         {
             return base.Channel.WriteExtensionObjectAsync(handle, chunk);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVSMessage[]> CloseAndInstallExtensionObjectAsync(QlikviewLib.Qms.ExtensionUploadHandle handle)
         {
             return base.Channel.CloseAndInstallExtensionObjectAsync(handle);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QMSVersion> GetQMSVersionAsync()
         {
             return base.Channel.GetQMSVersionAsync();
         }
-        
+
         public System.Threading.Tasks.Task<bool> IsQdsLoadbalancerConfiguredAsync()
         {
             return base.Channel.IsQdsLoadbalancerConfiguredAsync();
         }
-        
+
         public System.Threading.Tasks.Task<bool> HasAnyDistributionGroupsAsync()
         {
             return base.Channel.HasAnyDistributionGroupsAsync();
         }
-        
+
         public System.Threading.Tasks.Task<bool> QdsLoadBalancerConfigHasErrorsAsync()
         {
             return base.Channel.QdsLoadBalancerConfigHasErrorsAsync();
         }
-        
+
         public System.Threading.Tasks.Task<string[]> GetAllDistributionGroupsAsync()
         {
             return base.Channel.GetAllDistributionGroupsAsync();
         }
-        
+
         public System.Threading.Tasks.Task<string[]> GetDistributionGroupsAsync(System.Guid qdsId)
         {
             return base.Channel.GetDistributionGroupsAsync(qdsId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DistributionConfigValues[]> GetDistributionGroupsDefinitionAsync(System.Guid qdsId)
         {
             return base.Channel.GetDistributionGroupsDefinitionAsync(qdsId);
         }
-        
+
         public System.Threading.Tasks.Task<System.Guid[]> GetTemplateFolderIdAsync()
         {
             return base.Channel.GetTemplateFolderIdAsync();
         }
-        
+
         public System.Threading.Tasks.Task<string[]> GetAllMissingDistributionGroupsAsync()
         {
             return base.Channel.GetAllMissingDistributionGroupsAsync();
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVPRAPISettings> GetQVPRAPISettingsAsync()
         {
             return base.Channel.GetQVPRAPISettingsAsync();
         }
-        
+
         public System.Threading.Tasks.Task<string> SetQVPRAPISettingsAsync(QlikviewLib.Qms.QVPRAPISettings qvprSettings, bool doMigrate)
         {
             return base.Channel.SetQVPRAPISettingsAsync(qvprSettings, doMigrate);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DirectoryServiceConnectorAPISettings> GetDSCAPISettingsAsync(System.Guid dscID)
         {
             return base.Channel.GetDSCAPISettingsAsync(dscID);
         }
-        
+
         public System.Threading.Tasks.Task SetDSCAPISettingsAsync(QlikviewLib.Qms.DirectoryServiceConnectorAPISettings dscSettings)
         {
             return base.Channel.SetDSCAPISettingsAsync(dscSettings);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DSPSettings> GetDSPAPISettingsAsync(System.Guid dscID, QlikviewLib.Qms.DSPType dspType)
         {
             return base.Channel.GetDSPAPISettingsAsync(dscID, dspType);
         }
-        
+
         public System.Threading.Tasks.Task SetDSPAPISettingsAsync(QlikviewLib.Qms.DSPSettings dspSettings)
         {
             return base.Channel.SetDSPAPISettingsAsync(dspSettings);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceUpdateStatus> UpdateServicesAsync(System.Collections.Generic.Dictionary<System.Guid, System.Uri> serviceURLs, QlikviewLib.Qms.ServiceTypes serviceType)
         {
             return base.Channel.UpdateServicesAsync(serviceURLs, serviceType);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVWSSettings> GetQVWSSettingAsync(System.Guid qvwsID)
         {
             return base.Channel.GetQVWSSettingAsync(qvwsID);
         }
-        
+
         public System.Threading.Tasks.Task SetQVWSSettingAsync(System.Guid qvwsID, QlikviewLib.Qms.QVWSSettings qvwsSetting)
         {
             return base.Channel.SetQVWSSettingAsync(qvwsID, qvwsSetting);
         }
-        
+
         public System.Threading.Tasks.Task<string> SaveLicenseAsync(QlikviewLib.Qms.License license, System.Guid serviceID)
         {
             return base.Channel.SaveLicenseAsync(license, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.License> GetLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID)
         {
             return base.Channel.GetLicenseAsync(licenseType, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task ClearLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID)
         {
             return base.Channel.ClearLicenseAsync(licenseType, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task UpdateLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID)
         {
             return base.Channel.UpdateLicenseAsync(licenseType, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task ValidateLicenseAsync(QlikviewLib.Qms.License license)
         {
             return base.Channel.ValidateLicenseAsync(license);
         }
-        
+
         public System.Threading.Tasks.Task<bool> ServiceHasValidLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID)
         {
             return base.Channel.ServiceHasValidLicenseAsync(licenseType, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVSSettings> GetQVSSettingsAsync(System.Guid qvsID, QlikviewLib.Qms.QVSSettingsScope scope)
         {
             return base.Channel.GetQVSSettingsAsync(qvsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task SaveQVSSettingsAsync(QlikviewLib.Qms.QVSSettings qvsSettings)
         {
             return base.Channel.SaveQVSSettingsAsync(qvsSettings);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> GetServicesAsync(QlikviewLib.Qms.ServiceTypes serviceTypes)
         {
             return base.Channel.GetServicesAsync(serviceTypes);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> GetReloadEngineServicesAsync()
         {
             return base.Channel.GetReloadEngineServicesAsync();
         }
-        
+
         public System.Threading.Tasks.Task ClearQVSCacheAsync(QlikviewLib.Qms.QVSCacheObjects objects)
         {
             return base.Channel.ClearQVSCacheAsync(objects);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QDSSettings> GetQDSSettingsAsync(System.Guid qdsID, QlikviewLib.Qms.QDSSettingsScope scope)
         {
             return base.Channel.GetQDSSettingsAsync(qdsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<string> SaveQDSSettingsAsync(QlikviewLib.Qms.QDSSettings qdsSettings)
         {
             return base.Channel.SaveQDSSettingsAsync(qdsSettings);
         }
-        
+
         public System.Threading.Tasks.Task SendDistributionServiceWorkorderAsync(System.Guid qdsID)
         {
             return base.Channel.SendDistributionServiceWorkorderAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<bool> IsPublisherQDSAsync(System.Guid qdsID)
         {
             return base.Channel.IsPublisherQDSAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder> GetDocumentFolderAsync(System.Guid id, QlikviewLib.Qms.DocumentFolderScope scope)
         {
             return base.Channel.GetDocumentFolderAsync(id, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> GetUserDocumentFoldersAsync(System.Guid qvsID, QlikviewLib.Qms.DocumentFolderScope scope)
         {
             return base.Channel.GetUserDocumentFoldersAsync(qvsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> GetSourceDocumentFoldersAsync(System.Guid qdsID, QlikviewLib.Qms.DocumentFolderScope scope)
         {
             return base.Channel.GetSourceDocumentFoldersAsync(qdsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetSourceDocumentsAsync(System.Guid qdsID)
         {
             return base.Channel.GetSourceDocumentsAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetSourceDocumentNodesAsync(System.Guid qdsID, System.Guid folderID, string relativePath)
         {
             return base.Channel.GetSourceDocumentNodesAsync(qdsID, folderID, relativePath);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetUserDocumentsAsync(System.Guid qvsID)
         {
             return base.Channel.GetUserDocumentsAsync(qvsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetUserDocumentNodesAsync(System.Guid qvsID, System.Guid folderID, string relativePath)
         {
             return base.Channel.GetUserDocumentNodesAsync(qvsID, folderID, relativePath);
         }
-        
+
         public System.Threading.Tasks.Task SaveDocumentTaskAsync(QlikviewLib.Qms.DocumentTask documentTask)
         {
             return base.Channel.SaveDocumentTaskAsync(documentTask);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> GetTasksAsync(System.Guid qdsID)
         {
             return base.Channel.GetTasksAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo> GetTaskAsync(System.Guid taskID)
         {
             return base.Channel.GetTaskAsync(taskID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo> FindTaskAsync(System.Guid qdsId, QlikviewLib.Qms.TaskType taskType, string name)
         {
             return base.Channel.FindTaskAsync(qdsId, taskType, name);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> FindEDXAsync(string name)
         {
             return base.Channel.FindEDXAsync(name);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> GetTasksForDocumentAsync(System.Guid documentID)
         {
             return base.Channel.GetTasksForDocumentAsync(documentID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentTask> GetDocumentTaskAsync(System.Guid documentTaskID, QlikviewLib.Qms.DocumentTaskScope scope)
         {
             return base.Channel.GetDocumentTaskAsync(documentTaskID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<bool> DeleteTaskAsync(System.Guid taskID, QlikviewLib.Qms.TaskType taskType)
         {
             return base.Channel.DeleteTaskAsync(taskID, taskType);
         }
-        
+
         public System.Threading.Tasks.Task RunTaskAsync(System.Guid taskID)
         {
             return base.Channel.RunTaskAsync(taskID);
         }
-        
+
         public System.Threading.Tasks.Task AbortTaskAsync(System.Guid taskID)
         {
             return base.Channel.AbortTaskAsync(taskID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.Category[]> GetCategoriesAsync(QlikviewLib.Qms.CategoriesScope scope)
         {
             return base.Channel.GetCategoriesAsync(scope);
         }
-        
+
         public System.Threading.Tasks.Task<string> GetAlertTextAsync()
         {
             return base.Channel.GetAlertTextAsync();
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceStatus[]> GetServiceStatusesAsync(System.Guid[] serviceIDs)
         {
             return base.Channel.GetServiceStatusesAsync(serviceIDs);
         }
-        
+
         public System.Threading.Tasks.Task PingAsync()
         {
             return base.Channel.PingAsync();
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatusNode[]> GetTaskStatusNodesAsync(QlikviewLib.Qms.TaskStatusNodeRequest[] taskStatusNodeRequests, QlikviewLib.Qms.TaskStatusFilter filter, QlikviewLib.Qms.TaskStatusScope scope)
         {
             return base.Channel.GetTaskStatusNodesAsync(taskStatusNodeRequests, filter, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatus[]> GetTaskStatusesAsync(QlikviewLib.Qms.TaskStatusFilter filter, QlikviewLib.Qms.TaskStatusScope scope)
         {
             return base.Channel.GetTaskStatusesAsync(filter, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatus> GetTaskStatusAsync(System.Guid taskID, QlikviewLib.Qms.TaskStatusScope scope)
         {
             return base.Channel.GetTaskStatusAsync(taskID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<string> GetTimeLimitedServiceKeyAsync()
         {
             return base.Channel.GetTimeLimitedServiceKeyAsync();
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable[]> GetSectionAccessTablesAsync(QlikviewLib.Qms.SectionAccessScope scope)
         {
             return base.Channel.GetSectionAccessTablesAsync(scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable> GetSectionAccessTableAsync(System.Guid tableId, QlikviewLib.Qms.SectionAccessScope scope)
         {
             return base.Channel.GetSectionAccessTableAsync(tableId, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable> GetSectionAccessTableByNameAsync(string tableName, QlikviewLib.Qms.SectionAccessScope scope)
         {
             return base.Channel.GetSectionAccessTableByNameAsync(tableName, scope);
         }
-        
+
         public System.Threading.Tasks.Task SaveSectionAccessTableAsync(QlikviewLib.Qms.SectionAccessTable table)
         {
             return base.Channel.SaveSectionAccessTableAsync(table);
         }
-        
+
         public System.Threading.Tasks.Task DeleteSectionAccessTableAsync(System.Guid tableId)
         {
             return base.Channel.DeleteSectionAccessTableAsync(tableId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TriggerEDXTaskResult> TriggerEDXTaskAsync(System.Guid qdsID, string taskNameOrID, string password, string variableName, string[] variableValues)
         {
             return base.Channel.TriggerEDXTaskAsync(qdsID, taskNameOrID, password, variableName, variableValues);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.EDXStatus> GetEDXTaskStatusAsync(System.Guid qdsID, System.Guid executionID)
         {
             return base.Channel.GetEDXTaskStatusAsync(qdsID, executionID);
         }
-        
+
         public System.Threading.Tasks.Task RestartQDSAsync(System.Guid qdsID)
         {
             return base.Channel.RestartQDSAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QDSNeedRestartResponse> QDSNeedRestartAsync(QlikviewLib.Qms.QDSNeedRestartRequest request)
         {
             return base.Channel.QDSNeedRestartAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QDSDocumentSession> CreateSessionAsync(QlikviewLib.Qms.QDSDocumentSessionConfiguration configuration)
         {
             return base.Channel.CreateSessionAsync(configuration);
         }
-        
+
         public System.Threading.Tasks.Task CloseSessionAsync(QlikviewLib.Qms.QDSDocumentSession session)
         {
             return base.Channel.CloseSessionAsync(session);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.FieldContent[]> AddSelectionsAsync(QlikviewLib.Qms.QDSDocumentSession session, QlikviewLib.Qms.FieldContent[] fieldContents, bool lockSelection, bool toggleSelect, bool returnSelectedList)
         {
             return base.Channel.AddSelectionsAsync(session, fieldContents, lockSelection, toggleSelect, returnSelectedList);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.FieldContent[]> GetFieldContentListAsync(QlikviewLib.Qms.QDSDocumentSession session, string forFieldName, QlikviewLib.Qms.FieldContentType fieldContentType, int index, int length)
         {
             return base.Channel.GetFieldContentListAsync(session, forFieldName, fieldContentType, index, length);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.Field[]> GetFieldListAsync(QlikviewLib.Qms.QDSDocumentSession session)
         {
             return base.Channel.GetFieldListAsync(session);
         }
-        
+
         public System.Threading.Tasks.Task<string[]> GetDocumentBookmarkNamesAsync(QlikviewLib.Qms.QDSDocumentSession session)
         {
             return base.Channel.GetDocumentBookmarkNamesAsync(session);
         }
-        
+
         public System.Threading.Tasks.Task ClearSelectionsAsync(QlikviewLib.Qms.QDSDocumentSession session, string fieldName, QlikviewLib.Qms.DocumentClearOptions clearOptions)
         {
             return base.Channel.ClearSelectionsAsync(session, fieldName, clearOptions);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.Report[]> GetReportsAsync(QlikviewLib.Qms.QDSDocumentSession session)
         {
             return base.Channel.GetReportsAsync(session);
         }
-        
+
         public virtual System.Threading.Tasks.Task OpenAsync()
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginOpen(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndOpen));
         }
-        
+
         public virtual System.Threading.Tasks.Task CloseAsync()
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginClose(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndClose));
         }
-        
+
         private static System.ServiceModel.Channels.Binding GetBindingForEndpoint(EndpointConfiguration endpointConfiguration)
         {
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQMS2))
@@ -12703,7 +12703,7 @@ namespace QlikviewLib.Qms
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
-        
+
         private static System.ServiceModel.EndpointAddress GetEndpointAddress(EndpointConfiguration endpointConfiguration)
         {
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQMS2))
@@ -12712,989 +12712,989 @@ namespace QlikviewLib.Qms
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
-        
+
         private static System.ServiceModel.Channels.Binding GetDefaultBinding()
         {
             return QMS2Client.GetBindingForEndpoint(EndpointConfiguration.BasicHttpBinding_IQMS2);
         }
-        
+
         private static System.ServiceModel.EndpointAddress GetDefaultEndpointAddress()
         {
             return QMS2Client.GetEndpointAddress(EndpointConfiguration.BasicHttpBinding_IQMS2);
         }
-        
+
         public enum EndpointConfiguration
         {
-            
+
             BasicHttpBinding_IQMS2,
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.ServiceContractAttribute(Namespace="http://ws.qliktech.com/QMS/12/", ConfigurationName="QlikviewLib.Qms.IQMS")]
     public interface IQMS
     {
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/RestartQVS", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/RestartQVSResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/RestartQVSExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task RestartQVSAsync(System.Guid qvsID);
-        
+
         // CODEGEN: Generating message contract since the operation has multiple return values.
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/QVSNeedRestart", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/QVSNeedRestartResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/QVSNeedRestartExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVSNeedRestartResponse1> QVSNeedRestartAsync(QlikviewLib.Qms.QVSNeedRestartRequest1 request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetDocumentMetaData", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetDocumentMetaDataResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetDocumentMetaDataExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentMetaData> GetDocumentMetaDataAsync(QlikviewLib.Qms.DocumentNode userDocument, QlikviewLib.Qms.DocumentMetaDataScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/SaveDocumentMetaData", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/SaveDocumentMetaDataResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/SaveDocumentMetaDataExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveDocumentMetaDataAsync(QlikviewLib.Qms.DocumentMetaData documentMetaData);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetCALConfiguration", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetCALConfigurationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetCALConfigurationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.CALConfiguration> GetCALConfigurationAsync(System.Guid qvsID, QlikviewLib.Qms.CALConfigurationScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/SaveCALConfiguration", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/SaveCALConfigurationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/SaveCALConfigurationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveCALConfigurationAsync(QlikviewLib.Qms.CALConfiguration calConfiguration);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetCALInfoForUser", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetCALInfoForUserResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetCALInfoForUserExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.UserCALs> GetCALInfoForUserAsync(System.Guid qvsID, string user);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetQVSPerformanceData", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetQVSPerformanceDataResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetQVSPerformanceDataExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetQVSPerformanceDataAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetQVSUtilizationData", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetQVSUtilizationDataResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetQVSUtilizationDataExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetQVSUtilizationDataAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetQVSDocumentsPerUser", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetQVSDocumentsPerUserResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetQVSDocumentsPerUserExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, int>> GetQVSDocumentsPerUserAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetQVSDocumentsAndUsers", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetQVSDocumentsAndUsersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetQVSDocumentsAndUsersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string[]>> GetQVSDocumentsAndUsersAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetServerObjectMetaDataForUser", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetServerObjectMetaDataForUserResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetServerObjectMetaDataForUserExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServerObjectMetaData[]> GetServerObjectMetaDataForUserAsync(System.Guid qvsID, string user);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetServerObjects", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetServerObjectsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetServerObjectsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServerObject[]> GetServerObjectsAsync(System.Guid qvsID, string documentName);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/DeleteServerObject", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/DeleteServerObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/DeleteServerObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task DeleteServerObjectAsync(System.Guid qvsID, string documentName, string id);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/TakeServerObject", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/TakeServerObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/TakeServerObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task TakeServerObjectAsync(System.Guid qvsID, string documentName, string id, string owner);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/LookupNames", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/LookupNamesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/LookupNamesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DirectoryServiceObject[]> LookupNamesAsync(System.Guid dscID, string[] names);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetDSResources", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetDSResourcesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetDSResourcesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DSResource[]> GetDSResourcesAsync(System.Guid dscID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/ResolveUserGroups", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/ResolveUserGroupsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/ResolveUserGroupsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string[]> ResolveUserGroupsAsync(System.Guid dscID, string user);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetAvailableDSProviders", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetAvailableDSProvidersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetAvailableDSProvidersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DSProvider[]> GetAvailableDSProvidersAsync(System.Guid dscID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetAvailableDirectories", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetAvailableDirectoriesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetAvailableDirectoriesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string[]> GetAvailableDirectoriesAsync(System.Guid dscID, string type);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/SetQVWSAuthentication", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/SetQVWSAuthenticationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/SetQVWSAuthenticationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SetQVWSAuthenticationAsync(System.Guid qvwsID, QlikviewLib.Qms.QVWSAuthentication authenticationType);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetQVWSAuthentication", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetQVWSAuthenticationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetQVWSAuthenticationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVWSAuthentication> GetQVWSAuthenticationAsync(System.Guid qvwsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/SelectServer", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/SelectServerResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/SelectServerExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Uri> SelectServerAsync(System.Guid qvwsID, string document);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetServices", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetServicesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetServicesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> RemoteGetServicesAsync(System.Guid remoteQmsId, QlikviewLib.Qms.ServiceTypes serviceTypes);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetSourceDocumentFolders", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetSourceDocumentFoldersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetSourceDocumentFoldersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> RemoteGetSourceDocumentFoldersAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, QlikviewLib.Qms.DocumentFolderScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetSourceDocumentNodes", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetSourceDocumentNodesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetSourceDocumentNodesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> RemoteGetSourceDocumentNodesAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, System.Guid folderId, string relativePath);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetTaskListForDocID", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetTaskListForDocIDResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetTaskListForDocIDExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> RemoteGetTaskListForDocIDAsync(System.Guid remoteQmsId, System.Guid documentId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetTasks", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetTasksResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetTasksExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> RemoteGetTasksAsync(System.Guid remoteQmsId, System.Guid remoteQdsId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetDocumentTask", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetDocumentTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/RemoteGetDocumentTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentTask> RemoteGetDocumentTaskAsync(System.Guid remoteQmsId, System.Guid taskId, QlikviewLib.Qms.DocumentTaskScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/ImportDocumentTask", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/ImportDocumentTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/ImportDocumentTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ImportDocumentTaskAsync(System.Guid remoteQmsId, System.Guid remoteDocumentTaskId, System.Guid destinationQdsId, QlikviewLib.Qms.DocumentNode destinationDocument);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/ImportAllDocumentTasksForQds", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/ImportAllDocumentTasksForQdsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/ImportAllDocumentTasksForQdsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ImportAllDocumentTasksForQdsAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, System.Guid destinationQdsId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/InitiateUploadExtensionObject", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/InitiateUploadExtensionObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/InitiateUploadExtensionObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ExtensionUploadHandle> InitiateUploadExtensionObjectAsync(System.Guid qvsId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/WriteExtensionObject", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/WriteExtensionObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/WriteExtensionObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ExtensionUploadHandle> WriteExtensionObjectAsync(QlikviewLib.Qms.ExtensionUploadHandle handle, byte[] chunk);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/CloseAndInstallExtensionObject", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/CloseAndInstallExtensionObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/CloseAndInstallExtensionObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVSMessage[]> CloseAndInstallExtensionObjectAsync(QlikviewLib.Qms.ExtensionUploadHandle handle);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/SaveLicense", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/SaveLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/SaveLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> SaveLicenseAsync(QlikviewLib.Qms.License license, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetLicense", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.License> GetLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/ClearLicense", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/ClearLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/ClearLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ClearLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/UpdateLicense", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/UpdateLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/UpdateLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task UpdateLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/ValidateLicense", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/ValidateLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/ValidateLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ValidateLicenseAsync(QlikviewLib.Qms.License license);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/ServiceHasValidLicense", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/ServiceHasValidLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/ServiceHasValidLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<bool> ServiceHasValidLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetQVSSettings", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetQVSSettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetQVSSettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVSSettings> GetQVSSettingsAsync(System.Guid qvsID, QlikviewLib.Qms.QVSSettingsScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/SaveQVSSettings", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/SaveQVSSettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/SaveQVSSettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveQVSSettingsAsync(QlikviewLib.Qms.QVSSettings qvsSettings);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetServices", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetServicesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetServicesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> GetServicesAsync(QlikviewLib.Qms.ServiceTypes serviceTypes);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetReloadEngineServices", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetReloadEngineServicesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetReloadEngineServicesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> GetReloadEngineServicesAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/ClearQVSCache", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/ClearQVSCacheResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/ClearQVSCacheExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ClearQVSCacheAsync(QlikviewLib.Qms.QVSCacheObjects objects);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetQDSSettings", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetQDSSettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetQDSSettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QDSSettings> GetQDSSettingsAsync(System.Guid qdsID, QlikviewLib.Qms.QDSSettingsScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/SaveQDSSettings", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/SaveQDSSettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/SaveQDSSettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> SaveQDSSettingsAsync(QlikviewLib.Qms.QDSSettings qdsSettings);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/SendDistributionServiceWorkorder", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/SendDistributionServiceWorkorderResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/SendDistributionServiceWorkorderExceptionFault" +
             "", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SendDistributionServiceWorkorderAsync(System.Guid qdsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/IsPublisherQDS", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/IsPublisherQDSResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/IsPublisherQDSExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<bool> IsPublisherQDSAsync(System.Guid qdsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetDocumentFolder", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetDocumentFolderResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetDocumentFolderExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder> GetDocumentFolderAsync(System.Guid id, QlikviewLib.Qms.DocumentFolderScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetUserDocumentFolders", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetUserDocumentFoldersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetUserDocumentFoldersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> GetUserDocumentFoldersAsync(System.Guid qvsID, QlikviewLib.Qms.DocumentFolderScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetSourceDocumentFolders", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetSourceDocumentFoldersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetSourceDocumentFoldersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> GetSourceDocumentFoldersAsync(System.Guid qdsID, QlikviewLib.Qms.DocumentFolderScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetSourceDocuments", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetSourceDocumentsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetSourceDocumentsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetSourceDocumentsAsync(System.Guid qdsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetSourceDocumentNodes", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetSourceDocumentNodesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetSourceDocumentNodesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetSourceDocumentNodesAsync(System.Guid qdsID, System.Guid folderID, string relativePath);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetUserDocuments", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetUserDocumentsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetUserDocumentsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetUserDocumentsAsync(System.Guid qvsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetUserDocumentNodes", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetUserDocumentNodesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetUserDocumentNodesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetUserDocumentNodesAsync(System.Guid qvsID, System.Guid folderID, string relativePath);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/SaveDocumentTask", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/SaveDocumentTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/SaveDocumentTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveDocumentTaskAsync(QlikviewLib.Qms.DocumentTask documentTask);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetTasks", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetTasksResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetTasksExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> GetTasksAsync(System.Guid qdsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetTask", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo> GetTaskAsync(System.Guid taskID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/FindTask", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/FindTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/FindTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo> FindTaskAsync(System.Guid qdsId, QlikviewLib.Qms.TaskType taskType, string name);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/FindEDX", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/FindEDXResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/FindEDXExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> FindEDXAsync(string name);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetTasksForDocument", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetTasksForDocumentResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetTasksForDocumentExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> GetTasksForDocumentAsync(System.Guid documentID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetDocumentTask", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetDocumentTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetDocumentTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentTask> GetDocumentTaskAsync(System.Guid documentTaskID, QlikviewLib.Qms.DocumentTaskScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/DeleteTask", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/DeleteTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/DeleteTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<bool> DeleteTaskAsync(System.Guid taskID, QlikviewLib.Qms.TaskType taskType);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/RunTask", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/RunTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/RunTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task RunTaskAsync(System.Guid taskID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/AbortTask", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/AbortTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/AbortTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task AbortTaskAsync(System.Guid taskID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetCategories", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetCategoriesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetCategoriesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.Category[]> GetCategoriesAsync(QlikviewLib.Qms.CategoriesScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetAlertText", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetAlertTextResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetAlertTextExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> GetAlertTextAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetServiceStatuses", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetServiceStatusesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetServiceStatusesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceStatus[]> GetServiceStatusesAsync(System.Guid[] serviceIDs);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/Ping", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/PingResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/PingExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task PingAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetTaskStatusNodes", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetTaskStatusNodesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetTaskStatusNodesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatusNode[]> GetTaskStatusNodesAsync(QlikviewLib.Qms.TaskStatusNodeRequest[] taskStatusNodeRequests, QlikviewLib.Qms.TaskStatusFilter filter, QlikviewLib.Qms.TaskStatusScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetTaskStatuses", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetTaskStatusesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetTaskStatusesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatus[]> GetTaskStatusesAsync(QlikviewLib.Qms.TaskStatusFilter filter, QlikviewLib.Qms.TaskStatusScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetTaskStatus", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetTaskStatusResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetTaskStatusExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatus> GetTaskStatusAsync(System.Guid taskID, QlikviewLib.Qms.TaskStatusScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetTimeLimitedServiceKey", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetTimeLimitedServiceKeyResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetTimeLimitedServiceKeyExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> GetTimeLimitedServiceKeyAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetSectionAccessTables", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetSectionAccessTablesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetSectionAccessTablesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable[]> GetSectionAccessTablesAsync(QlikviewLib.Qms.SectionAccessScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetSectionAccessTable", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetSectionAccessTableResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetSectionAccessTableExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable> GetSectionAccessTableAsync(System.Guid tableId, QlikviewLib.Qms.SectionAccessScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetSectionAccessTableByName", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetSectionAccessTableByNameResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetSectionAccessTableByNameExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable> GetSectionAccessTableByNameAsync(string tableName, QlikviewLib.Qms.SectionAccessScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/SaveSectionAccessTable", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/SaveSectionAccessTableResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/SaveSectionAccessTableExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveSectionAccessTableAsync(QlikviewLib.Qms.SectionAccessTable table);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/DeleteSectionAccessTable", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/DeleteSectionAccessTableResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/DeleteSectionAccessTableExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task DeleteSectionAccessTableAsync(System.Guid tableId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/TriggerEDXTask", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/TriggerEDXTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/TriggerEDXTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TriggerEDXTaskResult> TriggerEDXTaskAsync(System.Guid qdsID, string taskNameOrID, string password, string variableName, string[] variableValues);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetEDXTaskStatus", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetEDXTaskStatusResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetEDXTaskStatusExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.EDXStatus> GetEDXTaskStatusAsync(System.Guid qdsID, System.Guid executionID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/RestartQDS", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/RestartQDSResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/RestartQDSExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task RestartQDSAsync(System.Guid qdsID);
-        
+
         // CODEGEN: Generating message contract since the operation has multiple return values.
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/QDSNeedRestart", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/QDSNeedRestartResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/QDSNeedRestartExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QDSNeedRestartResponse1> QDSNeedRestartAsync(QlikviewLib.Qms.QDSNeedRestartRequest1 request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/CreateSession", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/CreateSessionResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/CreateSessionExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QDSDocumentSession> CreateSessionAsync(QlikviewLib.Qms.QDSDocumentSessionConfiguration configuration);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/CloseSession", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/CloseSessionResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/CloseSessionExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task CloseSessionAsync(QlikviewLib.Qms.QDSDocumentSession session);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/AddSelections", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/AddSelectionsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/AddSelectionsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.FieldContent[]> AddSelectionsAsync(QlikviewLib.Qms.QDSDocumentSession session, QlikviewLib.Qms.FieldContent[] fieldContents, bool lockSelection, bool toggleSelect, bool returnSelectedList);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetFieldContentList", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetFieldContentListResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetFieldContentListExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.FieldContent[]> GetFieldContentListAsync(QlikviewLib.Qms.QDSDocumentSession session, string forFieldName, QlikviewLib.Qms.FieldContentType fieldContentType, int index, int length);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetFieldList", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetFieldListResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetFieldListExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.Field[]> GetFieldListAsync(QlikviewLib.Qms.QDSDocumentSession session);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetDocumentBookmarkNames", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetDocumentBookmarkNamesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetDocumentBookmarkNamesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string[]> GetDocumentBookmarkNamesAsync(QlikviewLib.Qms.QDSDocumentSession session);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/ClearSelections", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/ClearSelectionsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/ClearSelectionsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ClearSelectionsAsync(QlikviewLib.Qms.QDSDocumentSession session, string fieldName, QlikviewLib.Qms.DocumentClearOptions clearOptions);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/12/IQMS/GetReports", ReplyAction="http://ws.qliktech.com/QMS/12/IQMS/GetReportsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/12/IQMS/GetReportsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.Report[]> GetReportsAsync(QlikviewLib.Qms.QDSDocumentSession session);
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="QVSNeedRestart", WrapperNamespace="http://ws.qliktech.com/QMS/12/", IsWrapped=true)]
     public partial class QVSNeedRestartRequest1
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/12/", Order=0)]
         public System.Guid qvsID;
-        
+
         public QVSNeedRestartRequest1()
         {
         }
-        
+
         public QVSNeedRestartRequest1(System.Guid qvsID)
         {
             this.qvsID = qvsID;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="QVSNeedRestartResponse", WrapperNamespace="http://ws.qliktech.com/QMS/12/", IsWrapped=true)]
     public partial class QVSNeedRestartResponse1
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/12/", Order=0)]
         public bool QVSNeedRestartResult;
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/12/", Order=1)]
         public string reason;
-        
+
         public QVSNeedRestartResponse1()
         {
         }
-        
+
         public QVSNeedRestartResponse1(bool QVSNeedRestartResult, string reason)
         {
             this.QVSNeedRestartResult = QVSNeedRestartResult;
             this.reason = reason;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="QDSNeedRestart", WrapperNamespace="http://ws.qliktech.com/QMS/12/", IsWrapped=true)]
     public partial class QDSNeedRestartRequest1
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/12/", Order=0)]
         public System.Guid qdsID;
-        
+
         public QDSNeedRestartRequest1()
         {
         }
-        
+
         public QDSNeedRestartRequest1(System.Guid qdsID)
         {
             this.qdsID = qdsID;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="QDSNeedRestartResponse", WrapperNamespace="http://ws.qliktech.com/QMS/12/", IsWrapped=true)]
     public partial class QDSNeedRestartResponse1
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/12/", Order=0)]
         public bool QDSNeedRestartResult;
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/12/", Order=1)]
         public string reason;
-        
+
         public QDSNeedRestartResponse1()
         {
         }
-        
+
         public QDSNeedRestartResponse1(bool QDSNeedRestartResult, string reason)
         {
             this.QDSNeedRestartResult = QDSNeedRestartResult;
             this.reason = reason;
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public interface IQMSChannel : QlikviewLib.Qms.IQMS, System.ServiceModel.IClientChannel
     {
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public partial class QMSClient : System.ServiceModel.ClientBase<QlikviewLib.Qms.IQMS>, QlikviewLib.Qms.IQMS
     {
-        
+
     /// <summary>
     /// Implement this partial method to configure the service endpoint.
     /// </summary>
     /// <param name="serviceEndpoint">The endpoint to configure</param>
     /// <param name="clientCredentials">The client credentials</param>
     static partial void ConfigureEndpoint(System.ServiceModel.Description.ServiceEndpoint serviceEndpoint, System.ServiceModel.Description.ClientCredentials clientCredentials);
-        
-        public QMSClient(EndpointConfiguration endpointConfiguration) : 
+
+        public QMSClient(EndpointConfiguration endpointConfiguration) :
                 base(QMSClient.GetBindingForEndpoint(endpointConfiguration), QMSClient.GetEndpointAddress(endpointConfiguration))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QMSClient(EndpointConfiguration endpointConfiguration, string remoteAddress) : 
+
+        public QMSClient(EndpointConfiguration endpointConfiguration, string remoteAddress) :
                 base(QMSClient.GetBindingForEndpoint(endpointConfiguration), new System.ServiceModel.EndpointAddress(remoteAddress))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QMSClient(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) : 
+
+        public QMSClient(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) :
                 base(QMSClient.GetBindingForEndpoint(endpointConfiguration), remoteAddress)
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
-        
-        public QMSClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
+
+        public QMSClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) :
                 base(binding, remoteAddress)
         {
         }
-        
+
         public System.Threading.Tasks.Task RestartQVSAsync(System.Guid qvsID)
         {
             return base.Channel.RestartQVSAsync(qvsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVSNeedRestartResponse1> QVSNeedRestartAsync(QlikviewLib.Qms.QVSNeedRestartRequest1 request)
         {
             return base.Channel.QVSNeedRestartAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentMetaData> GetDocumentMetaDataAsync(QlikviewLib.Qms.DocumentNode userDocument, QlikviewLib.Qms.DocumentMetaDataScope scope)
         {
             return base.Channel.GetDocumentMetaDataAsync(userDocument, scope);
         }
-        
+
         public System.Threading.Tasks.Task SaveDocumentMetaDataAsync(QlikviewLib.Qms.DocumentMetaData documentMetaData)
         {
             return base.Channel.SaveDocumentMetaDataAsync(documentMetaData);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.CALConfiguration> GetCALConfigurationAsync(System.Guid qvsID, QlikviewLib.Qms.CALConfigurationScope scope)
         {
             return base.Channel.GetCALConfigurationAsync(qvsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task SaveCALConfigurationAsync(QlikviewLib.Qms.CALConfiguration calConfiguration)
         {
             return base.Channel.SaveCALConfigurationAsync(calConfiguration);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.UserCALs> GetCALInfoForUserAsync(System.Guid qvsID, string user)
         {
             return base.Channel.GetCALInfoForUserAsync(qvsID, user);
         }
-        
+
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetQVSPerformanceDataAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target)
         {
             return base.Channel.GetQVSPerformanceDataAsync(qvsID, target);
         }
-        
+
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetQVSUtilizationDataAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target)
         {
             return base.Channel.GetQVSUtilizationDataAsync(qvsID, target);
         }
-        
+
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, int>> GetQVSDocumentsPerUserAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target)
         {
             return base.Channel.GetQVSDocumentsPerUserAsync(qvsID, target);
         }
-        
+
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string[]>> GetQVSDocumentsAndUsersAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target)
         {
             return base.Channel.GetQVSDocumentsAndUsersAsync(qvsID, target);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServerObjectMetaData[]> GetServerObjectMetaDataForUserAsync(System.Guid qvsID, string user)
         {
             return base.Channel.GetServerObjectMetaDataForUserAsync(qvsID, user);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServerObject[]> GetServerObjectsAsync(System.Guid qvsID, string documentName)
         {
             return base.Channel.GetServerObjectsAsync(qvsID, documentName);
         }
-        
+
         public System.Threading.Tasks.Task DeleteServerObjectAsync(System.Guid qvsID, string documentName, string id)
         {
             return base.Channel.DeleteServerObjectAsync(qvsID, documentName, id);
         }
-        
+
         public System.Threading.Tasks.Task TakeServerObjectAsync(System.Guid qvsID, string documentName, string id, string owner)
         {
             return base.Channel.TakeServerObjectAsync(qvsID, documentName, id, owner);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DirectoryServiceObject[]> LookupNamesAsync(System.Guid dscID, string[] names)
         {
             return base.Channel.LookupNamesAsync(dscID, names);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DSResource[]> GetDSResourcesAsync(System.Guid dscID)
         {
             return base.Channel.GetDSResourcesAsync(dscID);
         }
-        
+
         public System.Threading.Tasks.Task<string[]> ResolveUserGroupsAsync(System.Guid dscID, string user)
         {
             return base.Channel.ResolveUserGroupsAsync(dscID, user);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DSProvider[]> GetAvailableDSProvidersAsync(System.Guid dscID)
         {
             return base.Channel.GetAvailableDSProvidersAsync(dscID);
         }
-        
+
         public System.Threading.Tasks.Task<string[]> GetAvailableDirectoriesAsync(System.Guid dscID, string type)
         {
             return base.Channel.GetAvailableDirectoriesAsync(dscID, type);
         }
-        
+
         public System.Threading.Tasks.Task SetQVWSAuthenticationAsync(System.Guid qvwsID, QlikviewLib.Qms.QVWSAuthentication authenticationType)
         {
             return base.Channel.SetQVWSAuthenticationAsync(qvwsID, authenticationType);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVWSAuthentication> GetQVWSAuthenticationAsync(System.Guid qvwsID)
         {
             return base.Channel.GetQVWSAuthenticationAsync(qvwsID);
         }
-        
+
         public System.Threading.Tasks.Task<System.Uri> SelectServerAsync(System.Guid qvwsID, string document)
         {
             return base.Channel.SelectServerAsync(qvwsID, document);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> RemoteGetServicesAsync(System.Guid remoteQmsId, QlikviewLib.Qms.ServiceTypes serviceTypes)
         {
             return base.Channel.RemoteGetServicesAsync(remoteQmsId, serviceTypes);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> RemoteGetSourceDocumentFoldersAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, QlikviewLib.Qms.DocumentFolderScope scope)
         {
             return base.Channel.RemoteGetSourceDocumentFoldersAsync(remoteQmsId, remoteQdsId, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> RemoteGetSourceDocumentNodesAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, System.Guid folderId, string relativePath)
         {
             return base.Channel.RemoteGetSourceDocumentNodesAsync(remoteQmsId, remoteQdsId, folderId, relativePath);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> RemoteGetTaskListForDocIDAsync(System.Guid remoteQmsId, System.Guid documentId)
         {
             return base.Channel.RemoteGetTaskListForDocIDAsync(remoteQmsId, documentId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> RemoteGetTasksAsync(System.Guid remoteQmsId, System.Guid remoteQdsId)
         {
             return base.Channel.RemoteGetTasksAsync(remoteQmsId, remoteQdsId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentTask> RemoteGetDocumentTaskAsync(System.Guid remoteQmsId, System.Guid taskId, QlikviewLib.Qms.DocumentTaskScope scope)
         {
             return base.Channel.RemoteGetDocumentTaskAsync(remoteQmsId, taskId, scope);
         }
-        
+
         public System.Threading.Tasks.Task ImportDocumentTaskAsync(System.Guid remoteQmsId, System.Guid remoteDocumentTaskId, System.Guid destinationQdsId, QlikviewLib.Qms.DocumentNode destinationDocument)
         {
             return base.Channel.ImportDocumentTaskAsync(remoteQmsId, remoteDocumentTaskId, destinationQdsId, destinationDocument);
         }
-        
+
         public System.Threading.Tasks.Task ImportAllDocumentTasksForQdsAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, System.Guid destinationQdsId)
         {
             return base.Channel.ImportAllDocumentTasksForQdsAsync(remoteQmsId, remoteQdsId, destinationQdsId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ExtensionUploadHandle> InitiateUploadExtensionObjectAsync(System.Guid qvsId)
         {
             return base.Channel.InitiateUploadExtensionObjectAsync(qvsId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ExtensionUploadHandle> WriteExtensionObjectAsync(QlikviewLib.Qms.ExtensionUploadHandle handle, byte[] chunk)
         {
             return base.Channel.WriteExtensionObjectAsync(handle, chunk);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVSMessage[]> CloseAndInstallExtensionObjectAsync(QlikviewLib.Qms.ExtensionUploadHandle handle)
         {
             return base.Channel.CloseAndInstallExtensionObjectAsync(handle);
         }
-        
+
         public System.Threading.Tasks.Task<string> SaveLicenseAsync(QlikviewLib.Qms.License license, System.Guid serviceID)
         {
             return base.Channel.SaveLicenseAsync(license, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.License> GetLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID)
         {
             return base.Channel.GetLicenseAsync(licenseType, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task ClearLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID)
         {
             return base.Channel.ClearLicenseAsync(licenseType, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task UpdateLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID)
         {
             return base.Channel.UpdateLicenseAsync(licenseType, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task ValidateLicenseAsync(QlikviewLib.Qms.License license)
         {
             return base.Channel.ValidateLicenseAsync(license);
         }
-        
+
         public System.Threading.Tasks.Task<bool> ServiceHasValidLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID)
         {
             return base.Channel.ServiceHasValidLicenseAsync(licenseType, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVSSettings> GetQVSSettingsAsync(System.Guid qvsID, QlikviewLib.Qms.QVSSettingsScope scope)
         {
             return base.Channel.GetQVSSettingsAsync(qvsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task SaveQVSSettingsAsync(QlikviewLib.Qms.QVSSettings qvsSettings)
         {
             return base.Channel.SaveQVSSettingsAsync(qvsSettings);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> GetServicesAsync(QlikviewLib.Qms.ServiceTypes serviceTypes)
         {
             return base.Channel.GetServicesAsync(serviceTypes);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> GetReloadEngineServicesAsync()
         {
             return base.Channel.GetReloadEngineServicesAsync();
         }
-        
+
         public System.Threading.Tasks.Task ClearQVSCacheAsync(QlikviewLib.Qms.QVSCacheObjects objects)
         {
             return base.Channel.ClearQVSCacheAsync(objects);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QDSSettings> GetQDSSettingsAsync(System.Guid qdsID, QlikviewLib.Qms.QDSSettingsScope scope)
         {
             return base.Channel.GetQDSSettingsAsync(qdsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<string> SaveQDSSettingsAsync(QlikviewLib.Qms.QDSSettings qdsSettings)
         {
             return base.Channel.SaveQDSSettingsAsync(qdsSettings);
         }
-        
+
         public System.Threading.Tasks.Task SendDistributionServiceWorkorderAsync(System.Guid qdsID)
         {
             return base.Channel.SendDistributionServiceWorkorderAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<bool> IsPublisherQDSAsync(System.Guid qdsID)
         {
             return base.Channel.IsPublisherQDSAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder> GetDocumentFolderAsync(System.Guid id, QlikviewLib.Qms.DocumentFolderScope scope)
         {
             return base.Channel.GetDocumentFolderAsync(id, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> GetUserDocumentFoldersAsync(System.Guid qvsID, QlikviewLib.Qms.DocumentFolderScope scope)
         {
             return base.Channel.GetUserDocumentFoldersAsync(qvsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> GetSourceDocumentFoldersAsync(System.Guid qdsID, QlikviewLib.Qms.DocumentFolderScope scope)
         {
             return base.Channel.GetSourceDocumentFoldersAsync(qdsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetSourceDocumentsAsync(System.Guid qdsID)
         {
             return base.Channel.GetSourceDocumentsAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetSourceDocumentNodesAsync(System.Guid qdsID, System.Guid folderID, string relativePath)
         {
             return base.Channel.GetSourceDocumentNodesAsync(qdsID, folderID, relativePath);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetUserDocumentsAsync(System.Guid qvsID)
         {
             return base.Channel.GetUserDocumentsAsync(qvsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetUserDocumentNodesAsync(System.Guid qvsID, System.Guid folderID, string relativePath)
         {
             return base.Channel.GetUserDocumentNodesAsync(qvsID, folderID, relativePath);
         }
-        
+
         public System.Threading.Tasks.Task SaveDocumentTaskAsync(QlikviewLib.Qms.DocumentTask documentTask)
         {
             return base.Channel.SaveDocumentTaskAsync(documentTask);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> GetTasksAsync(System.Guid qdsID)
         {
             return base.Channel.GetTasksAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo> GetTaskAsync(System.Guid taskID)
         {
             return base.Channel.GetTaskAsync(taskID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo> FindTaskAsync(System.Guid qdsId, QlikviewLib.Qms.TaskType taskType, string name)
         {
             return base.Channel.FindTaskAsync(qdsId, taskType, name);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> FindEDXAsync(string name)
         {
             return base.Channel.FindEDXAsync(name);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> GetTasksForDocumentAsync(System.Guid documentID)
         {
             return base.Channel.GetTasksForDocumentAsync(documentID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentTask> GetDocumentTaskAsync(System.Guid documentTaskID, QlikviewLib.Qms.DocumentTaskScope scope)
         {
             return base.Channel.GetDocumentTaskAsync(documentTaskID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<bool> DeleteTaskAsync(System.Guid taskID, QlikviewLib.Qms.TaskType taskType)
         {
             return base.Channel.DeleteTaskAsync(taskID, taskType);
         }
-        
+
         public System.Threading.Tasks.Task RunTaskAsync(System.Guid taskID)
         {
             return base.Channel.RunTaskAsync(taskID);
         }
-        
+
         public System.Threading.Tasks.Task AbortTaskAsync(System.Guid taskID)
         {
             return base.Channel.AbortTaskAsync(taskID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.Category[]> GetCategoriesAsync(QlikviewLib.Qms.CategoriesScope scope)
         {
             return base.Channel.GetCategoriesAsync(scope);
         }
-        
+
         public System.Threading.Tasks.Task<string> GetAlertTextAsync()
         {
             return base.Channel.GetAlertTextAsync();
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceStatus[]> GetServiceStatusesAsync(System.Guid[] serviceIDs)
         {
             return base.Channel.GetServiceStatusesAsync(serviceIDs);
         }
-        
+
         public System.Threading.Tasks.Task PingAsync()
         {
             return base.Channel.PingAsync();
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatusNode[]> GetTaskStatusNodesAsync(QlikviewLib.Qms.TaskStatusNodeRequest[] taskStatusNodeRequests, QlikviewLib.Qms.TaskStatusFilter filter, QlikviewLib.Qms.TaskStatusScope scope)
         {
             return base.Channel.GetTaskStatusNodesAsync(taskStatusNodeRequests, filter, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatus[]> GetTaskStatusesAsync(QlikviewLib.Qms.TaskStatusFilter filter, QlikviewLib.Qms.TaskStatusScope scope)
         {
             return base.Channel.GetTaskStatusesAsync(filter, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatus> GetTaskStatusAsync(System.Guid taskID, QlikviewLib.Qms.TaskStatusScope scope)
         {
             return base.Channel.GetTaskStatusAsync(taskID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<string> GetTimeLimitedServiceKeyAsync()
         {
             return base.Channel.GetTimeLimitedServiceKeyAsync();
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable[]> GetSectionAccessTablesAsync(QlikviewLib.Qms.SectionAccessScope scope)
         {
             return base.Channel.GetSectionAccessTablesAsync(scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable> GetSectionAccessTableAsync(System.Guid tableId, QlikviewLib.Qms.SectionAccessScope scope)
         {
             return base.Channel.GetSectionAccessTableAsync(tableId, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable> GetSectionAccessTableByNameAsync(string tableName, QlikviewLib.Qms.SectionAccessScope scope)
         {
             return base.Channel.GetSectionAccessTableByNameAsync(tableName, scope);
         }
-        
+
         public System.Threading.Tasks.Task SaveSectionAccessTableAsync(QlikviewLib.Qms.SectionAccessTable table)
         {
             return base.Channel.SaveSectionAccessTableAsync(table);
         }
-        
+
         public System.Threading.Tasks.Task DeleteSectionAccessTableAsync(System.Guid tableId)
         {
             return base.Channel.DeleteSectionAccessTableAsync(tableId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TriggerEDXTaskResult> TriggerEDXTaskAsync(System.Guid qdsID, string taskNameOrID, string password, string variableName, string[] variableValues)
         {
             return base.Channel.TriggerEDXTaskAsync(qdsID, taskNameOrID, password, variableName, variableValues);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.EDXStatus> GetEDXTaskStatusAsync(System.Guid qdsID, System.Guid executionID)
         {
             return base.Channel.GetEDXTaskStatusAsync(qdsID, executionID);
         }
-        
+
         public System.Threading.Tasks.Task RestartQDSAsync(System.Guid qdsID)
         {
             return base.Channel.RestartQDSAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QDSNeedRestartResponse1> QDSNeedRestartAsync(QlikviewLib.Qms.QDSNeedRestartRequest1 request)
         {
             return base.Channel.QDSNeedRestartAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QDSDocumentSession> CreateSessionAsync(QlikviewLib.Qms.QDSDocumentSessionConfiguration configuration)
         {
             return base.Channel.CreateSessionAsync(configuration);
         }
-        
+
         public System.Threading.Tasks.Task CloseSessionAsync(QlikviewLib.Qms.QDSDocumentSession session)
         {
             return base.Channel.CloseSessionAsync(session);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.FieldContent[]> AddSelectionsAsync(QlikviewLib.Qms.QDSDocumentSession session, QlikviewLib.Qms.FieldContent[] fieldContents, bool lockSelection, bool toggleSelect, bool returnSelectedList)
         {
             return base.Channel.AddSelectionsAsync(session, fieldContents, lockSelection, toggleSelect, returnSelectedList);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.FieldContent[]> GetFieldContentListAsync(QlikviewLib.Qms.QDSDocumentSession session, string forFieldName, QlikviewLib.Qms.FieldContentType fieldContentType, int index, int length)
         {
             return base.Channel.GetFieldContentListAsync(session, forFieldName, fieldContentType, index, length);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.Field[]> GetFieldListAsync(QlikviewLib.Qms.QDSDocumentSession session)
         {
             return base.Channel.GetFieldListAsync(session);
         }
-        
+
         public System.Threading.Tasks.Task<string[]> GetDocumentBookmarkNamesAsync(QlikviewLib.Qms.QDSDocumentSession session)
         {
             return base.Channel.GetDocumentBookmarkNamesAsync(session);
         }
-        
+
         public System.Threading.Tasks.Task ClearSelectionsAsync(QlikviewLib.Qms.QDSDocumentSession session, string fieldName, QlikviewLib.Qms.DocumentClearOptions clearOptions)
         {
             return base.Channel.ClearSelectionsAsync(session, fieldName, clearOptions);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.Report[]> GetReportsAsync(QlikviewLib.Qms.QDSDocumentSession session)
         {
             return base.Channel.GetReportsAsync(session);
         }
-        
+
         public virtual System.Threading.Tasks.Task OpenAsync()
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginOpen(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndOpen));
         }
-        
+
         public virtual System.Threading.Tasks.Task CloseAsync()
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginClose(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndClose));
         }
-        
+
         private static System.ServiceModel.Channels.Binding GetBindingForEndpoint(EndpointConfiguration endpointConfiguration)
         {
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQMS))
@@ -13721,7 +13721,7 @@ namespace QlikviewLib.Qms
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
-        
+
         private static System.ServiceModel.EndpointAddress GetEndpointAddress(EndpointConfiguration endpointConfiguration)
         {
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQMS))
@@ -13734,965 +13734,965 @@ namespace QlikviewLib.Qms
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
-        
+
         public enum EndpointConfiguration
         {
-            
+
             BasicHttpBinding_IQMS,
-            
+
             BasicHttpBinding_IQMS1,
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.ServiceContractAttribute(Name="IQMS", Namespace="http://ws.qliktech.com/QMS/11/", ConfigurationName="QlikviewLib.Qms.IQMS1")]
     public interface IQMS1
     {
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/RestartQVS", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/RestartQVSResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/RestartQVSExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task RestartQVSAsync(System.Guid qvsID);
-        
+
         // CODEGEN: Generating message contract since the operation has multiple return values.
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/QVSNeedRestart", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/QVSNeedRestartResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/QVSNeedRestartExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVSNeedRestartResponse2> QVSNeedRestartAsync(QlikviewLib.Qms.QVSNeedRestartRequest2 request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetDocumentMetaData", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetDocumentMetaDataResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetDocumentMetaDataExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentMetaData> GetDocumentMetaDataAsync(QlikviewLib.Qms.DocumentNode userDocument, QlikviewLib.Qms.DocumentMetaDataScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/SaveDocumentMetaData", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/SaveDocumentMetaDataResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/SaveDocumentMetaDataExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveDocumentMetaDataAsync(QlikviewLib.Qms.DocumentMetaData documentMetaData);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetCALConfiguration", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetCALConfigurationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetCALConfigurationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.CALConfiguration> GetCALConfigurationAsync(System.Guid qvsID, QlikviewLib.Qms.CALConfigurationScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/SaveCALConfiguration", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/SaveCALConfigurationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/SaveCALConfigurationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveCALConfigurationAsync(QlikviewLib.Qms.CALConfiguration calConfiguration);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetCALInfoForUser", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetCALInfoForUserResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetCALInfoForUserExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.UserCALs> GetCALInfoForUserAsync(System.Guid qvsID, string user);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetQVSPerformanceData", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetQVSPerformanceDataResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetQVSPerformanceDataExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetQVSPerformanceDataAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetQVSUtilizationData", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetQVSUtilizationDataResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetQVSUtilizationDataExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetQVSUtilizationDataAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetQVSDocumentsPerUser", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetQVSDocumentsPerUserResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetQVSDocumentsPerUserExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, int>> GetQVSDocumentsPerUserAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetQVSDocumentsAndUsers", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetQVSDocumentsAndUsersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetQVSDocumentsAndUsersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string[]>> GetQVSDocumentsAndUsersAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetServerObjectMetaDataForUser", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetServerObjectMetaDataForUserResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetServerObjectMetaDataForUserExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServerObjectMetaData[]> GetServerObjectMetaDataForUserAsync(System.Guid qvsID, string user);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetServerObjects", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetServerObjectsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetServerObjectsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServerObject[]> GetServerObjectsAsync(System.Guid qvsID, string documentName);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/DeleteServerObject", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/DeleteServerObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/DeleteServerObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task DeleteServerObjectAsync(System.Guid qvsID, string documentName, string id);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/TakeServerObject", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/TakeServerObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/TakeServerObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task TakeServerObjectAsync(System.Guid qvsID, string documentName, string id, string owner);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/LookupNames", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/LookupNamesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/LookupNamesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DirectoryServiceObject[]> LookupNamesAsync(System.Guid dscID, string[] names);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetDSResources", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetDSResourcesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetDSResourcesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DSResource[]> GetDSResourcesAsync(System.Guid dscID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/ResolveUserGroups", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/ResolveUserGroupsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/ResolveUserGroupsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string[]> ResolveUserGroupsAsync(System.Guid dscID, string user);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetAvailableDSProviders", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetAvailableDSProvidersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetAvailableDSProvidersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DSProvider[]> GetAvailableDSProvidersAsync(System.Guid dscID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetAvailableDirectories", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetAvailableDirectoriesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetAvailableDirectoriesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string[]> GetAvailableDirectoriesAsync(System.Guid dscID, string type);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/SetQVWSAuthentication", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/SetQVWSAuthenticationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/SetQVWSAuthenticationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SetQVWSAuthenticationAsync(System.Guid qvwsID, QlikviewLib.Qms.QVWSAuthentication authenticationType);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetQVWSAuthentication", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetQVWSAuthenticationResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetQVWSAuthenticationExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVWSAuthentication> GetQVWSAuthenticationAsync(System.Guid qvwsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/SelectServer", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/SelectServerResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/SelectServerExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<System.Uri> SelectServerAsync(System.Guid qvwsID, string document);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetServices", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetServicesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetServicesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> RemoteGetServicesAsync(System.Guid remoteQmsId, QlikviewLib.Qms.ServiceTypes serviceTypes);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetSourceDocumentFolders", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetSourceDocumentFoldersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetSourceDocumentFoldersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> RemoteGetSourceDocumentFoldersAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, QlikviewLib.Qms.DocumentFolderScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetSourceDocumentNodes", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetSourceDocumentNodesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetSourceDocumentNodesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> RemoteGetSourceDocumentNodesAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, System.Guid folderId, string relativePath);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetTaskListForDocID", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetTaskListForDocIDResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetTaskListForDocIDExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> RemoteGetTaskListForDocIDAsync(System.Guid remoteQmsId, System.Guid documentId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetTasks", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetTasksResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetTasksExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> RemoteGetTasksAsync(System.Guid remoteQmsId, System.Guid remoteQdsId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetDocumentTask", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetDocumentTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/RemoteGetDocumentTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentTask> RemoteGetDocumentTaskAsync(System.Guid remoteQmsId, System.Guid taskId, QlikviewLib.Qms.DocumentTaskScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/ImportDocumentTask", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/ImportDocumentTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/ImportDocumentTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ImportDocumentTaskAsync(System.Guid remoteQmsId, System.Guid remoteDocumentTaskId, System.Guid destinationQdsId, QlikviewLib.Qms.DocumentNode destinationDocument);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/ImportAllDocumentTasksForQds", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/ImportAllDocumentTasksForQdsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/ImportAllDocumentTasksForQdsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ImportAllDocumentTasksForQdsAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, System.Guid destinationQdsId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/InitiateUploadExtensionObject", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/InitiateUploadExtensionObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/InitiateUploadExtensionObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ExtensionUploadHandle> InitiateUploadExtensionObjectAsync(System.Guid qvsId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/WriteExtensionObject", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/WriteExtensionObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/WriteExtensionObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ExtensionUploadHandle> WriteExtensionObjectAsync(QlikviewLib.Qms.ExtensionUploadHandle handle, byte[] chunk);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/CloseAndInstallExtensionObject", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/CloseAndInstallExtensionObjectResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/CloseAndInstallExtensionObjectExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVSMessage[]> CloseAndInstallExtensionObjectAsync(QlikviewLib.Qms.ExtensionUploadHandle handle);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/SaveLicense", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/SaveLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/SaveLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> SaveLicenseAsync(QlikviewLib.Qms.License license, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetLicense", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.License> GetLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/ClearLicense", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/ClearLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/ClearLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ClearLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/UpdateLicense", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/UpdateLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/UpdateLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task UpdateLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/ValidateLicense", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/ValidateLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/ValidateLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ValidateLicenseAsync(QlikviewLib.Qms.License license);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/ServiceHasValidLicense", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/ServiceHasValidLicenseResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/ServiceHasValidLicenseExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<bool> ServiceHasValidLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetQVSSettings", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetQVSSettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetQVSSettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QVSSettings> GetQVSSettingsAsync(System.Guid qvsID, QlikviewLib.Qms.QVSSettingsScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/SaveQVSSettings", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/SaveQVSSettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/SaveQVSSettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveQVSSettingsAsync(QlikviewLib.Qms.QVSSettings qvsSettings);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetServices", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetServicesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetServicesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> GetServicesAsync(QlikviewLib.Qms.ServiceTypes serviceTypes);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetReloadEngineServices", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetReloadEngineServicesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetReloadEngineServicesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> GetReloadEngineServicesAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/ClearQVSCache", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/ClearQVSCacheResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/ClearQVSCacheExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ClearQVSCacheAsync(QlikviewLib.Qms.QVSCacheObjects objects);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetQDSSettings", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetQDSSettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetQDSSettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QDSSettings> GetQDSSettingsAsync(System.Guid qdsID, QlikviewLib.Qms.QDSSettingsScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/SaveQDSSettings", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/SaveQDSSettingsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/SaveQDSSettingsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> SaveQDSSettingsAsync(QlikviewLib.Qms.QDSSettings qdsSettings);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/SendDistributionServiceWorkorder", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/SendDistributionServiceWorkorderResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/SendDistributionServiceWorkorderExceptionFault" +
             "", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SendDistributionServiceWorkorderAsync(System.Guid qdsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/IsPublisherQDS", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/IsPublisherQDSResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/IsPublisherQDSExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<bool> IsPublisherQDSAsync(System.Guid qdsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetDocumentFolder", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetDocumentFolderResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetDocumentFolderExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder> GetDocumentFolderAsync(System.Guid id, QlikviewLib.Qms.DocumentFolderScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetUserDocumentFolders", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetUserDocumentFoldersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetUserDocumentFoldersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> GetUserDocumentFoldersAsync(System.Guid qvsID, QlikviewLib.Qms.DocumentFolderScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetSourceDocumentFolders", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetSourceDocumentFoldersResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetSourceDocumentFoldersExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> GetSourceDocumentFoldersAsync(System.Guid qdsID, QlikviewLib.Qms.DocumentFolderScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetSourceDocuments", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetSourceDocumentsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetSourceDocumentsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetSourceDocumentsAsync(System.Guid qdsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetSourceDocumentNodes", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetSourceDocumentNodesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetSourceDocumentNodesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetSourceDocumentNodesAsync(System.Guid qdsID, System.Guid folderID, string relativePath);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetUserDocuments", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetUserDocumentsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetUserDocumentsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetUserDocumentsAsync(System.Guid qvsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetUserDocumentNodes", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetUserDocumentNodesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetUserDocumentNodesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetUserDocumentNodesAsync(System.Guid qvsID, System.Guid folderID, string relativePath);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/SaveDocumentTask", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/SaveDocumentTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/SaveDocumentTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveDocumentTaskAsync(QlikviewLib.Qms.DocumentTask documentTask);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetTasks", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetTasksResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetTasksExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> GetTasksAsync(System.Guid qdsID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetTask", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo> GetTaskAsync(System.Guid taskID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/FindTask", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/FindTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/FindTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo> FindTaskAsync(System.Guid qdsId, QlikviewLib.Qms.TaskType taskType, string name);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/FindEDX", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/FindEDXResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/FindEDXExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> FindEDXAsync(string name);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetTasksForDocument", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetTasksForDocumentResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetTasksForDocumentExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> GetTasksForDocumentAsync(System.Guid documentID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetDocumentTask", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetDocumentTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetDocumentTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentTask> GetDocumentTaskAsync(System.Guid documentTaskID, QlikviewLib.Qms.DocumentTaskScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/DeleteTask", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/DeleteTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/DeleteTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<bool> DeleteTaskAsync(System.Guid taskID, QlikviewLib.Qms.TaskType taskType);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/RunTask", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/RunTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/RunTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task RunTaskAsync(System.Guid taskID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/AbortTask", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/AbortTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/AbortTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task AbortTaskAsync(System.Guid taskID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetCategories", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetCategoriesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetCategoriesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.Category[]> GetCategoriesAsync(QlikviewLib.Qms.CategoriesScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetAlertText", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetAlertTextResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetAlertTextExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> GetAlertTextAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetServiceStatuses", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetServiceStatusesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetServiceStatusesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceStatus[]> GetServiceStatusesAsync(System.Guid[] serviceIDs);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/Ping", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/PingResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/PingExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task PingAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetTaskStatusNodes", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetTaskStatusNodesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetTaskStatusNodesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatusNode[]> GetTaskStatusNodesAsync(QlikviewLib.Qms.TaskStatusNodeRequest[] taskStatusNodeRequests, QlikviewLib.Qms.TaskStatusFilter filter, QlikviewLib.Qms.TaskStatusScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetTaskStatuses", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetTaskStatusesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetTaskStatusesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatus[]> GetTaskStatusesAsync(QlikviewLib.Qms.TaskStatusFilter filter, QlikviewLib.Qms.TaskStatusScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetTaskStatus", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetTaskStatusResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetTaskStatusExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatus> GetTaskStatusAsync(System.Guid taskID, QlikviewLib.Qms.TaskStatusScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetTimeLimitedServiceKey", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetTimeLimitedServiceKeyResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetTimeLimitedServiceKeyExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string> GetTimeLimitedServiceKeyAsync();
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetSectionAccessTables", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetSectionAccessTablesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetSectionAccessTablesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable[]> GetSectionAccessTablesAsync(QlikviewLib.Qms.SectionAccessScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetSectionAccessTable", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetSectionAccessTableResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetSectionAccessTableExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable> GetSectionAccessTableAsync(System.Guid tableId, QlikviewLib.Qms.SectionAccessScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetSectionAccessTableByName", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetSectionAccessTableByNameResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetSectionAccessTableByNameExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable> GetSectionAccessTableByNameAsync(string tableName, QlikviewLib.Qms.SectionAccessScope scope);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/SaveSectionAccessTable", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/SaveSectionAccessTableResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/SaveSectionAccessTableExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task SaveSectionAccessTableAsync(QlikviewLib.Qms.SectionAccessTable table);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/DeleteSectionAccessTable", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/DeleteSectionAccessTableResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/DeleteSectionAccessTableExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task DeleteSectionAccessTableAsync(System.Guid tableId);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/TriggerEDXTask", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/TriggerEDXTaskResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/TriggerEDXTaskExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.TriggerEDXTaskResult> TriggerEDXTaskAsync(System.Guid qdsID, string taskNameOrID, string password, string variableName, string[] variableValues);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetEDXTaskStatus", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetEDXTaskStatusResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetEDXTaskStatusExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.EDXStatus> GetEDXTaskStatusAsync(System.Guid qdsID, System.Guid executionID);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/RestartQDS", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/RestartQDSResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/RestartQDSExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task RestartQDSAsync(System.Guid qdsID);
-        
+
         // CODEGEN: Generating message contract since the operation has multiple return values.
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/QDSNeedRestart", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/QDSNeedRestartResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/QDSNeedRestartExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QDSNeedRestartResponse2> QDSNeedRestartAsync(QlikviewLib.Qms.QDSNeedRestartRequest2 request);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/CreateSession", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/CreateSessionResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/CreateSessionExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.QDSDocumentSession> CreateSessionAsync(QlikviewLib.Qms.QDSDocumentSessionConfiguration configuration);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/CloseSession", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/CloseSessionResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/CloseSessionExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task CloseSessionAsync(QlikviewLib.Qms.QDSDocumentSession session);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/AddSelections", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/AddSelectionsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/AddSelectionsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.FieldContent[]> AddSelectionsAsync(QlikviewLib.Qms.QDSDocumentSession session, QlikviewLib.Qms.FieldContent[] fieldContents, bool lockSelection, bool toggleSelect, bool returnSelectedList);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetFieldContentList", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetFieldContentListResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetFieldContentListExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.FieldContent[]> GetFieldContentListAsync(QlikviewLib.Qms.QDSDocumentSession session, string forFieldName, QlikviewLib.Qms.FieldContentType fieldContentType, int index, int length);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetFieldList", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetFieldListResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetFieldListExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.Field[]> GetFieldListAsync(QlikviewLib.Qms.QDSDocumentSession session);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetDocumentBookmarkNames", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetDocumentBookmarkNamesResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetDocumentBookmarkNamesExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<string[]> GetDocumentBookmarkNamesAsync(QlikviewLib.Qms.QDSDocumentSession session);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/ClearSelections", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/ClearSelectionsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/ClearSelectionsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task ClearSelectionsAsync(QlikviewLib.Qms.QDSDocumentSession session, string fieldName, QlikviewLib.Qms.DocumentClearOptions clearOptions);
-        
+
         [System.ServiceModel.OperationContractAttribute(Action="http://ws.qliktech.com/QMS/11/IQMS/GetReports", ReplyAction="http://ws.qliktech.com/QMS/11/IQMS/GetReportsResponse")]
         [System.ServiceModel.FaultContractAttribute(typeof(System.Exception), Action="http://ws.qliktech.com/QMS/11/IQMS/GetReportsExceptionFault", Name="Exception", Namespace="http://schemas.datacontract.org/2004/07/System")]
         System.Threading.Tasks.Task<QlikviewLib.Qms.Report[]> GetReportsAsync(QlikviewLib.Qms.QDSDocumentSession session);
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="QVSNeedRestart", WrapperNamespace="http://ws.qliktech.com/QMS/11/", IsWrapped=true)]
     public partial class QVSNeedRestartRequest2
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/11/", Order=0)]
         public System.Guid qvsID;
-        
+
         public QVSNeedRestartRequest2()
         {
         }
-        
+
         public QVSNeedRestartRequest2(System.Guid qvsID)
         {
             this.qvsID = qvsID;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="QVSNeedRestartResponse", WrapperNamespace="http://ws.qliktech.com/QMS/11/", IsWrapped=true)]
     public partial class QVSNeedRestartResponse2
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/11/", Order=0)]
         public bool QVSNeedRestartResult;
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/11/", Order=1)]
         public string reason;
-        
+
         public QVSNeedRestartResponse2()
         {
         }
-        
+
         public QVSNeedRestartResponse2(bool QVSNeedRestartResult, string reason)
         {
             this.QVSNeedRestartResult = QVSNeedRestartResult;
             this.reason = reason;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="QDSNeedRestart", WrapperNamespace="http://ws.qliktech.com/QMS/11/", IsWrapped=true)]
     public partial class QDSNeedRestartRequest2
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/11/", Order=0)]
         public System.Guid qdsID;
-        
+
         public QDSNeedRestartRequest2()
         {
         }
-        
+
         public QDSNeedRestartRequest2(System.Guid qdsID)
         {
             this.qdsID = qdsID;
         }
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="QDSNeedRestartResponse", WrapperNamespace="http://ws.qliktech.com/QMS/11/", IsWrapped=true)]
     public partial class QDSNeedRestartResponse2
     {
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/11/", Order=0)]
         public bool QDSNeedRestartResult;
-        
+
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://ws.qliktech.com/QMS/11/", Order=1)]
         public string reason;
-        
+
         public QDSNeedRestartResponse2()
         {
         }
-        
+
         public QDSNeedRestartResponse2(bool QDSNeedRestartResult, string reason)
         {
             this.QDSNeedRestartResult = QDSNeedRestartResult;
             this.reason = reason;
         }
     }
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public interface IQMS1Channel : QlikviewLib.Qms.IQMS1, System.ServiceModel.IClientChannel
     {
     }
-    
+
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public partial class QMS1Client : System.ServiceModel.ClientBase<QlikviewLib.Qms.IQMS1>, QlikviewLib.Qms.IQMS1
     {
-        
-        public QMS1Client(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
+
+        public QMS1Client(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) :
                 base(binding, remoteAddress)
         {
         }
-        
+
         public System.Threading.Tasks.Task RestartQVSAsync(System.Guid qvsID)
         {
             return base.Channel.RestartQVSAsync(qvsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVSNeedRestartResponse2> QVSNeedRestartAsync(QlikviewLib.Qms.QVSNeedRestartRequest2 request)
         {
             return base.Channel.QVSNeedRestartAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentMetaData> GetDocumentMetaDataAsync(QlikviewLib.Qms.DocumentNode userDocument, QlikviewLib.Qms.DocumentMetaDataScope scope)
         {
             return base.Channel.GetDocumentMetaDataAsync(userDocument, scope);
         }
-        
+
         public System.Threading.Tasks.Task SaveDocumentMetaDataAsync(QlikviewLib.Qms.DocumentMetaData documentMetaData)
         {
             return base.Channel.SaveDocumentMetaDataAsync(documentMetaData);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.CALConfiguration> GetCALConfigurationAsync(System.Guid qvsID, QlikviewLib.Qms.CALConfigurationScope scope)
         {
             return base.Channel.GetCALConfigurationAsync(qvsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task SaveCALConfigurationAsync(QlikviewLib.Qms.CALConfiguration calConfiguration)
         {
             return base.Channel.SaveCALConfigurationAsync(calConfiguration);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.UserCALs> GetCALInfoForUserAsync(System.Guid qvsID, string user)
         {
             return base.Channel.GetCALInfoForUserAsync(qvsID, user);
         }
-        
+
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetQVSPerformanceDataAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target)
         {
             return base.Channel.GetQVSPerformanceDataAsync(qvsID, target);
         }
-        
+
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetQVSUtilizationDataAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target)
         {
             return base.Channel.GetQVSUtilizationDataAsync(qvsID, target);
         }
-        
+
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, int>> GetQVSDocumentsPerUserAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target)
         {
             return base.Channel.GetQVSDocumentsPerUserAsync(qvsID, target);
         }
-        
+
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string[]>> GetQVSDocumentsAndUsersAsync(System.Guid qvsID, QlikviewLib.Qms.QueryTarget target)
         {
             return base.Channel.GetQVSDocumentsAndUsersAsync(qvsID, target);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServerObjectMetaData[]> GetServerObjectMetaDataForUserAsync(System.Guid qvsID, string user)
         {
             return base.Channel.GetServerObjectMetaDataForUserAsync(qvsID, user);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServerObject[]> GetServerObjectsAsync(System.Guid qvsID, string documentName)
         {
             return base.Channel.GetServerObjectsAsync(qvsID, documentName);
         }
-        
+
         public System.Threading.Tasks.Task DeleteServerObjectAsync(System.Guid qvsID, string documentName, string id)
         {
             return base.Channel.DeleteServerObjectAsync(qvsID, documentName, id);
         }
-        
+
         public System.Threading.Tasks.Task TakeServerObjectAsync(System.Guid qvsID, string documentName, string id, string owner)
         {
             return base.Channel.TakeServerObjectAsync(qvsID, documentName, id, owner);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DirectoryServiceObject[]> LookupNamesAsync(System.Guid dscID, string[] names)
         {
             return base.Channel.LookupNamesAsync(dscID, names);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DSResource[]> GetDSResourcesAsync(System.Guid dscID)
         {
             return base.Channel.GetDSResourcesAsync(dscID);
         }
-        
+
         public System.Threading.Tasks.Task<string[]> ResolveUserGroupsAsync(System.Guid dscID, string user)
         {
             return base.Channel.ResolveUserGroupsAsync(dscID, user);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DSProvider[]> GetAvailableDSProvidersAsync(System.Guid dscID)
         {
             return base.Channel.GetAvailableDSProvidersAsync(dscID);
         }
-        
+
         public System.Threading.Tasks.Task<string[]> GetAvailableDirectoriesAsync(System.Guid dscID, string type)
         {
             return base.Channel.GetAvailableDirectoriesAsync(dscID, type);
         }
-        
+
         public System.Threading.Tasks.Task SetQVWSAuthenticationAsync(System.Guid qvwsID, QlikviewLib.Qms.QVWSAuthentication authenticationType)
         {
             return base.Channel.SetQVWSAuthenticationAsync(qvwsID, authenticationType);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVWSAuthentication> GetQVWSAuthenticationAsync(System.Guid qvwsID)
         {
             return base.Channel.GetQVWSAuthenticationAsync(qvwsID);
         }
-        
+
         public System.Threading.Tasks.Task<System.Uri> SelectServerAsync(System.Guid qvwsID, string document)
         {
             return base.Channel.SelectServerAsync(qvwsID, document);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> RemoteGetServicesAsync(System.Guid remoteQmsId, QlikviewLib.Qms.ServiceTypes serviceTypes)
         {
             return base.Channel.RemoteGetServicesAsync(remoteQmsId, serviceTypes);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> RemoteGetSourceDocumentFoldersAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, QlikviewLib.Qms.DocumentFolderScope scope)
         {
             return base.Channel.RemoteGetSourceDocumentFoldersAsync(remoteQmsId, remoteQdsId, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> RemoteGetSourceDocumentNodesAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, System.Guid folderId, string relativePath)
         {
             return base.Channel.RemoteGetSourceDocumentNodesAsync(remoteQmsId, remoteQdsId, folderId, relativePath);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> RemoteGetTaskListForDocIDAsync(System.Guid remoteQmsId, System.Guid documentId)
         {
             return base.Channel.RemoteGetTaskListForDocIDAsync(remoteQmsId, documentId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> RemoteGetTasksAsync(System.Guid remoteQmsId, System.Guid remoteQdsId)
         {
             return base.Channel.RemoteGetTasksAsync(remoteQmsId, remoteQdsId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentTask> RemoteGetDocumentTaskAsync(System.Guid remoteQmsId, System.Guid taskId, QlikviewLib.Qms.DocumentTaskScope scope)
         {
             return base.Channel.RemoteGetDocumentTaskAsync(remoteQmsId, taskId, scope);
         }
-        
+
         public System.Threading.Tasks.Task ImportDocumentTaskAsync(System.Guid remoteQmsId, System.Guid remoteDocumentTaskId, System.Guid destinationQdsId, QlikviewLib.Qms.DocumentNode destinationDocument)
         {
             return base.Channel.ImportDocumentTaskAsync(remoteQmsId, remoteDocumentTaskId, destinationQdsId, destinationDocument);
         }
-        
+
         public System.Threading.Tasks.Task ImportAllDocumentTasksForQdsAsync(System.Guid remoteQmsId, System.Guid remoteQdsId, System.Guid destinationQdsId)
         {
             return base.Channel.ImportAllDocumentTasksForQdsAsync(remoteQmsId, remoteQdsId, destinationQdsId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ExtensionUploadHandle> InitiateUploadExtensionObjectAsync(System.Guid qvsId)
         {
             return base.Channel.InitiateUploadExtensionObjectAsync(qvsId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ExtensionUploadHandle> WriteExtensionObjectAsync(QlikviewLib.Qms.ExtensionUploadHandle handle, byte[] chunk)
         {
             return base.Channel.WriteExtensionObjectAsync(handle, chunk);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVSMessage[]> CloseAndInstallExtensionObjectAsync(QlikviewLib.Qms.ExtensionUploadHandle handle)
         {
             return base.Channel.CloseAndInstallExtensionObjectAsync(handle);
         }
-        
+
         public System.Threading.Tasks.Task<string> SaveLicenseAsync(QlikviewLib.Qms.License license, System.Guid serviceID)
         {
             return base.Channel.SaveLicenseAsync(license, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.License> GetLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID)
         {
             return base.Channel.GetLicenseAsync(licenseType, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task ClearLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID)
         {
             return base.Channel.ClearLicenseAsync(licenseType, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task UpdateLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID)
         {
             return base.Channel.UpdateLicenseAsync(licenseType, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task ValidateLicenseAsync(QlikviewLib.Qms.License license)
         {
             return base.Channel.ValidateLicenseAsync(license);
         }
-        
+
         public System.Threading.Tasks.Task<bool> ServiceHasValidLicenseAsync(QlikviewLib.Qms.LicenseType licenseType, System.Guid serviceID)
         {
             return base.Channel.ServiceHasValidLicenseAsync(licenseType, serviceID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QVSSettings> GetQVSSettingsAsync(System.Guid qvsID, QlikviewLib.Qms.QVSSettingsScope scope)
         {
             return base.Channel.GetQVSSettingsAsync(qvsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task SaveQVSSettingsAsync(QlikviewLib.Qms.QVSSettings qvsSettings)
         {
             return base.Channel.SaveQVSSettingsAsync(qvsSettings);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> GetServicesAsync(QlikviewLib.Qms.ServiceTypes serviceTypes)
         {
             return base.Channel.GetServicesAsync(serviceTypes);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceInfo[]> GetReloadEngineServicesAsync()
         {
             return base.Channel.GetReloadEngineServicesAsync();
         }
-        
+
         public System.Threading.Tasks.Task ClearQVSCacheAsync(QlikviewLib.Qms.QVSCacheObjects objects)
         {
             return base.Channel.ClearQVSCacheAsync(objects);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QDSSettings> GetQDSSettingsAsync(System.Guid qdsID, QlikviewLib.Qms.QDSSettingsScope scope)
         {
             return base.Channel.GetQDSSettingsAsync(qdsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<string> SaveQDSSettingsAsync(QlikviewLib.Qms.QDSSettings qdsSettings)
         {
             return base.Channel.SaveQDSSettingsAsync(qdsSettings);
         }
-        
+
         public System.Threading.Tasks.Task SendDistributionServiceWorkorderAsync(System.Guid qdsID)
         {
             return base.Channel.SendDistributionServiceWorkorderAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<bool> IsPublisherQDSAsync(System.Guid qdsID)
         {
             return base.Channel.IsPublisherQDSAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder> GetDocumentFolderAsync(System.Guid id, QlikviewLib.Qms.DocumentFolderScope scope)
         {
             return base.Channel.GetDocumentFolderAsync(id, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> GetUserDocumentFoldersAsync(System.Guid qvsID, QlikviewLib.Qms.DocumentFolderScope scope)
         {
             return base.Channel.GetUserDocumentFoldersAsync(qvsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentFolder[]> GetSourceDocumentFoldersAsync(System.Guid qdsID, QlikviewLib.Qms.DocumentFolderScope scope)
         {
             return base.Channel.GetSourceDocumentFoldersAsync(qdsID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetSourceDocumentsAsync(System.Guid qdsID)
         {
             return base.Channel.GetSourceDocumentsAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetSourceDocumentNodesAsync(System.Guid qdsID, System.Guid folderID, string relativePath)
         {
             return base.Channel.GetSourceDocumentNodesAsync(qdsID, folderID, relativePath);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetUserDocumentsAsync(System.Guid qvsID)
         {
             return base.Channel.GetUserDocumentsAsync(qvsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentNode[]> GetUserDocumentNodesAsync(System.Guid qvsID, System.Guid folderID, string relativePath)
         {
             return base.Channel.GetUserDocumentNodesAsync(qvsID, folderID, relativePath);
         }
-        
+
         public System.Threading.Tasks.Task SaveDocumentTaskAsync(QlikviewLib.Qms.DocumentTask documentTask)
         {
             return base.Channel.SaveDocumentTaskAsync(documentTask);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> GetTasksAsync(System.Guid qdsID)
         {
             return base.Channel.GetTasksAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo> GetTaskAsync(System.Guid taskID)
         {
             return base.Channel.GetTaskAsync(taskID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo> FindTaskAsync(System.Guid qdsId, QlikviewLib.Qms.TaskType taskType, string name)
         {
             return base.Channel.FindTaskAsync(qdsId, taskType, name);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> FindEDXAsync(string name)
         {
             return base.Channel.FindEDXAsync(name);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskInfo[]> GetTasksForDocumentAsync(System.Guid documentID)
         {
             return base.Channel.GetTasksForDocumentAsync(documentID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.DocumentTask> GetDocumentTaskAsync(System.Guid documentTaskID, QlikviewLib.Qms.DocumentTaskScope scope)
         {
             return base.Channel.GetDocumentTaskAsync(documentTaskID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<bool> DeleteTaskAsync(System.Guid taskID, QlikviewLib.Qms.TaskType taskType)
         {
             return base.Channel.DeleteTaskAsync(taskID, taskType);
         }
-        
+
         public System.Threading.Tasks.Task RunTaskAsync(System.Guid taskID)
         {
             return base.Channel.RunTaskAsync(taskID);
         }
-        
+
         public System.Threading.Tasks.Task AbortTaskAsync(System.Guid taskID)
         {
             return base.Channel.AbortTaskAsync(taskID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.Category[]> GetCategoriesAsync(QlikviewLib.Qms.CategoriesScope scope)
         {
             return base.Channel.GetCategoriesAsync(scope);
         }
-        
+
         public System.Threading.Tasks.Task<string> GetAlertTextAsync()
         {
             return base.Channel.GetAlertTextAsync();
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.ServiceStatus[]> GetServiceStatusesAsync(System.Guid[] serviceIDs)
         {
             return base.Channel.GetServiceStatusesAsync(serviceIDs);
         }
-        
+
         public System.Threading.Tasks.Task PingAsync()
         {
             return base.Channel.PingAsync();
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatusNode[]> GetTaskStatusNodesAsync(QlikviewLib.Qms.TaskStatusNodeRequest[] taskStatusNodeRequests, QlikviewLib.Qms.TaskStatusFilter filter, QlikviewLib.Qms.TaskStatusScope scope)
         {
             return base.Channel.GetTaskStatusNodesAsync(taskStatusNodeRequests, filter, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatus[]> GetTaskStatusesAsync(QlikviewLib.Qms.TaskStatusFilter filter, QlikviewLib.Qms.TaskStatusScope scope)
         {
             return base.Channel.GetTaskStatusesAsync(filter, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TaskStatus> GetTaskStatusAsync(System.Guid taskID, QlikviewLib.Qms.TaskStatusScope scope)
         {
             return base.Channel.GetTaskStatusAsync(taskID, scope);
         }
-        
+
         public System.Threading.Tasks.Task<string> GetTimeLimitedServiceKeyAsync()
         {
             return base.Channel.GetTimeLimitedServiceKeyAsync();
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable[]> GetSectionAccessTablesAsync(QlikviewLib.Qms.SectionAccessScope scope)
         {
             return base.Channel.GetSectionAccessTablesAsync(scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable> GetSectionAccessTableAsync(System.Guid tableId, QlikviewLib.Qms.SectionAccessScope scope)
         {
             return base.Channel.GetSectionAccessTableAsync(tableId, scope);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.SectionAccessTable> GetSectionAccessTableByNameAsync(string tableName, QlikviewLib.Qms.SectionAccessScope scope)
         {
             return base.Channel.GetSectionAccessTableByNameAsync(tableName, scope);
         }
-        
+
         public System.Threading.Tasks.Task SaveSectionAccessTableAsync(QlikviewLib.Qms.SectionAccessTable table)
         {
             return base.Channel.SaveSectionAccessTableAsync(table);
         }
-        
+
         public System.Threading.Tasks.Task DeleteSectionAccessTableAsync(System.Guid tableId)
         {
             return base.Channel.DeleteSectionAccessTableAsync(tableId);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.TriggerEDXTaskResult> TriggerEDXTaskAsync(System.Guid qdsID, string taskNameOrID, string password, string variableName, string[] variableValues)
         {
             return base.Channel.TriggerEDXTaskAsync(qdsID, taskNameOrID, password, variableName, variableValues);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.EDXStatus> GetEDXTaskStatusAsync(System.Guid qdsID, System.Guid executionID)
         {
             return base.Channel.GetEDXTaskStatusAsync(qdsID, executionID);
         }
-        
+
         public System.Threading.Tasks.Task RestartQDSAsync(System.Guid qdsID)
         {
             return base.Channel.RestartQDSAsync(qdsID);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QDSNeedRestartResponse2> QDSNeedRestartAsync(QlikviewLib.Qms.QDSNeedRestartRequest2 request)
         {
             return base.Channel.QDSNeedRestartAsync(request);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.QDSDocumentSession> CreateSessionAsync(QlikviewLib.Qms.QDSDocumentSessionConfiguration configuration)
         {
             return base.Channel.CreateSessionAsync(configuration);
         }
-        
+
         public System.Threading.Tasks.Task CloseSessionAsync(QlikviewLib.Qms.QDSDocumentSession session)
         {
             return base.Channel.CloseSessionAsync(session);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.FieldContent[]> AddSelectionsAsync(QlikviewLib.Qms.QDSDocumentSession session, QlikviewLib.Qms.FieldContent[] fieldContents, bool lockSelection, bool toggleSelect, bool returnSelectedList)
         {
             return base.Channel.AddSelectionsAsync(session, fieldContents, lockSelection, toggleSelect, returnSelectedList);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.FieldContent[]> GetFieldContentListAsync(QlikviewLib.Qms.QDSDocumentSession session, string forFieldName, QlikviewLib.Qms.FieldContentType fieldContentType, int index, int length)
         {
             return base.Channel.GetFieldContentListAsync(session, forFieldName, fieldContentType, index, length);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.Field[]> GetFieldListAsync(QlikviewLib.Qms.QDSDocumentSession session)
         {
             return base.Channel.GetFieldListAsync(session);
         }
-        
+
         public System.Threading.Tasks.Task<string[]> GetDocumentBookmarkNamesAsync(QlikviewLib.Qms.QDSDocumentSession session)
         {
             return base.Channel.GetDocumentBookmarkNamesAsync(session);
         }
-        
+
         public System.Threading.Tasks.Task ClearSelectionsAsync(QlikviewLib.Qms.QDSDocumentSession session, string fieldName, QlikviewLib.Qms.DocumentClearOptions clearOptions)
         {
             return base.Channel.ClearSelectionsAsync(session, fieldName, clearOptions);
         }
-        
+
         public System.Threading.Tasks.Task<QlikviewLib.Qms.Report[]> GetReportsAsync(QlikviewLib.Qms.QDSDocumentSession session)
         {
             return base.Channel.GetReportsAsync(session);
         }
-        
+
         public virtual System.Threading.Tasks.Task OpenAsync()
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginOpen(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndOpen));
         }
-        
+
         public virtual System.Threading.Tasks.Task CloseAsync()
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginClose(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndClose));
         }
     }
-    
+
     [System.Xml.Serialization.XmlSchemaProviderAttribute(null, IsAny=true)]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("dotnet-svcutil", "1.0.0.0")]
     public partial class ArrayOfXElement : object, System.Xml.Serialization.IXmlSerializable
     {
-        
+
         private System.Collections.Generic.List<System.Xml.Linq.XElement> nodesList = new System.Collections.Generic.List<System.Xml.Linq.XElement>();
-        
+
         public ArrayOfXElement()
         {
         }
-        
+
         public virtual System.Collections.Generic.List<System.Xml.Linq.XElement> Nodes
         {
             get
@@ -14700,27 +14700,27 @@ namespace QlikviewLib.Qms
                 return this.nodesList;
             }
         }
-        
+
         public virtual System.Xml.Schema.XmlSchema GetSchema()
         {
             throw new System.NotImplementedException();
         }
-        
+
         public virtual void WriteXml(System.Xml.XmlWriter writer)
         {
             System.Collections.Generic.IEnumerator<System.Xml.Linq.XElement> e = nodesList.GetEnumerator();
             for (
-            ; e.MoveNext(); 
+            ; e.MoveNext();
             )
             {
                 ((System.Xml.Serialization.IXmlSerializable)(e.Current)).WriteXml(writer);
             }
         }
-        
+
         public virtual void ReadXml(System.Xml.XmlReader reader)
         {
             for (
-            ; (reader.NodeType != System.Xml.XmlNodeType.EndElement); 
+            ; (reader.NodeType != System.Xml.XmlNodeType.EndElement);
             )
             {
                 if ((reader.NodeType == System.Xml.XmlNodeType.Element))
