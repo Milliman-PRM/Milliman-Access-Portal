@@ -1,4 +1,5 @@
 ﻿import '../../../scss/react/shared-components/content-container.scss';
+
 import 'tooltipster';
 import 'tooltipster/src/css/tooltipster.css';
 import '../../../images/cancel.svg';

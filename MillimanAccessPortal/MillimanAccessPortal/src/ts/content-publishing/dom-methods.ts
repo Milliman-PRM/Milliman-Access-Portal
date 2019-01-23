@@ -1,5 +1,6 @@
 import 'jquery-validation';
 import 'jquery-validation-unobtrusive';
+import '../../images/expand-frame.svg';
 
 import * as $ from 'jquery';
 import { unionWith } from 'lodash';
@@ -14,21 +15,18 @@ import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import { Guid } from '../react/shared-components/interfaces';
 import {
-  collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
-  updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
+    collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
+    hideButtonSpinner, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
+    updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
 import { setUnloadAlert } from '../unload-alerts';
 import { UploadComponent } from '../upload/upload';
 import {
-  BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, isSelection,
-  PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue,
-  ReductionFieldValueSelection, RootContentItemDetail, RootContentItemList, RootContentItemSummary,
-  RootContentItemSummaryAndDetail,
+    BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, isSelection,
+    PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue, RootContentItemDetail,
+    RootContentItemList, RootContentItemSummary, RootContentItemSummaryAndDetail,
 } from '../view-models/content-publishing';
 import { PublicationStatusMonitor } from './publication-status-monitor';
-
-import '../../images/expand-frame.svg';
 
 require('tooltipster');
 

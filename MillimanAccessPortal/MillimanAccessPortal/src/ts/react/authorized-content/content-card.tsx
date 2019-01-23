@@ -1,6 +1,6 @@
-﻿import '../../../images/release-notes.svg';
+﻿import '../../../images/download.svg';
+import '../../../images/release-notes.svg';
 import '../../../images/userguide.svg';
-import '../../../images/download.svg';
 import '../../../scss/react/authorized-content/content-card.scss';
 
 import * as React from 'react';
@@ -67,7 +67,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
       ? (
         <a
           href={this.props.ContentURL}
-          download
+          download={true}
           className="content-card-link content-card-download"
         >
           <div className="content-card-download-indicator">
@@ -83,7 +83,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
           className="content-card-link"
           onClick={this.selectContent}
         />
-        )
+        );
     return (
       <div className="content-card-container">
         <div className="content-card">

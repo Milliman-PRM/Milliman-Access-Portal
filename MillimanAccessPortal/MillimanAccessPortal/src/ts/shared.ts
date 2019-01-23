@@ -6,8 +6,8 @@ import * as toastr from 'toastr';
 
 import { DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
 import { FormBase } from './form/form-base';
-import { ReductionStatus, SelectionGroupSummary, ReductionSummary } from './view-models/content-access-admin';
-import { PublicationStatus, UserInfo, PublicationSummary } from './view-models/content-publishing';
+import { ReductionSummary, SelectionGroupSummary } from './view-models/content-access-admin';
+import { PublicationStatus, PublicationSummary, UserInfo } from './view-models/content-publishing';
 
 const SHOW_DURATION = 50;
 const ajaxStatus = [];

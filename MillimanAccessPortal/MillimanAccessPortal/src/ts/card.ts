@@ -15,7 +15,7 @@ import * as toastr from 'toastr';
 
 import * as shared from './shared';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
-import { UserInfo, RootContentItemSummary } from './view-models/content-publishing';
+import { RootContentItemSummary, UserInfo } from './view-models/content-publishing';
 
 const cardLayout = {
   card: {
