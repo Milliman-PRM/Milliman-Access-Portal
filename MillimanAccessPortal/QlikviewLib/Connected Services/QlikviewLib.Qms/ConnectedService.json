@@ -2,7 +2,7 @@
   "ProviderId": "Microsoft.VisualStudio.ConnectedService.Wcf",
   "Version": "15.0.20119.1312",
   "ExtendedData": {
-    "Uri": "http://indy-qvtest01:4799/QMS/Service",
+    "Uri": "http://indy-qprod01:4799/QMS/Service",
     "Namespace": "QlikviewLib.Qms",
     "SelectedAccessLevelForGeneratedClass": "Public",
     "GenerateMessageContract": false,
