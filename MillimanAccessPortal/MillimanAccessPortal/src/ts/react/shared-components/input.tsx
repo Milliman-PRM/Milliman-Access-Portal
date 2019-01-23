@@ -16,18 +16,19 @@ interface InputProps {
   placeholderText?: string;
   autoFocus?: boolean;
   inputIcon?: string;
+  readOnly?: boolean;
 }
 
 export class Input extends React.Component<InputProps, {}> {
 
   public render() {
-    const { name, label, error, inputIcon, placeholderText, children, ...rest } = this.props;
+    const { name, label, error, inputIcon, placeholderText, children, readOnly, ...rest } = this.props;
     return (
-      <div className="form-element-container">
+      <div className={"form-element-container" + (readOnly ? " disabled" : "")}>
         <div className={"form-element" + (error ? " error" : "")}>
           {inputIcon && <div className="input-icon-label"><svg className="input-icon"><use xlinkHref={`#${inputIcon}`} /></svg></div>}
           <div className="form-input-container">
-            <input name={name} id={name} className="form-input" placeholder={placeholderText || label} {...rest} />
+            <input name={name} id={name} className="form-input" placeholder={placeholderText || label} readOnly={readOnly} {...rest} />
             <label className="form-input-label" htmlFor={name}>{label}</label>
           </div>
           {children}

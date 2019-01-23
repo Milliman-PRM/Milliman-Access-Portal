@@ -3,6 +3,21 @@
 .form-element-container {
     margin-bottom: 1.5em;
 
+    &.disabled {
+
+        .input-icon-label,
+        .action-icon-label,
+        .form-input-container {
+            border-color: $grey !important;
+        }
+
+        .form-input-label,
+        .form-input {
+            color: darken($grey, 10%) !important;
+        }
+    }
+
+
     .form-element {
         position: relative;
         display: flex;
@@ -67,7 +82,7 @@
                 color: $charcoal;
                 z-index: 1;
 
-                &:focus {
+                &:focus:not([readonly]) {
 
                     & + .form-input-label {
                         color: $blue;
