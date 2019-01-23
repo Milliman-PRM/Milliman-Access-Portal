@@ -58,7 +58,9 @@ export class LoginForm extends Form<{}, LoginFormState> {
 
     const errors = this.validate();
     this.setState({ errors: errors || {} });
-    if (errors) return;
+    if (errors) {
+      return;
+    }
 
     postData(window.location.href, this.state.data, true)
       .then(response => {
@@ -69,61 +71,54 @@ export class LoginForm extends Form<{}, LoginFormState> {
           data["password"] = "";
           this.setState({ data, loginWarning });
           return;
-        } else if (response.redirected == true || response.status == 302) {
+        } else if (response.redirected === true || response.status === 302) {
           window.location.replace(response.url);
-        } else if (response.status == 200) {
+        } else if (response.status === 200) {
           window.location.reload();
         }
       })
   };
 
   render() {
-    const { userConfirmed, loginWarning } = this.state;
+    const { data, errors, userConfirmed, loginWarning } = this.state;
     return (
-      <form onSubmit={!this.state.userConfirmed ? this.checkUser : this.handleSubmit}>
-        {!this.state.userConfirmed ?
-          (
-            <Input
-              name="username"
-              label="Username"
-              type="text"
-              value={this.state.data.username}
-              onChange={this.handleChange}
-              onBlur={this.handleBlur}
-              error={this.state.errors.username}
-              autoFocus={true}
-              inputIcon="user"
-            >
+      <form onSubmit={!userConfirmed ? this.checkUser : this.handleSubmit}>
+        <Input
+          name="username"
+          label="Username"
+          type="text"
+          value={data.username}
+          onChange={this.handleChange}
+          onBlur={this.handleBlur}
+          error={errors.username}
+          autoFocus={(userConfirmed) ? false : true}
+          inputIcon="user"
+          readOnly={(userConfirmed) ? true : false}
+        >
+          {
+            (!userConfirmed) ? (
               <div className="action-icon-label" onClick={this.checkUser}>
                 <svg className="action-icon"><use xlinkHref="#login" /></svg>
               </div>
-            </Input>
-          ) : (
-            <Input
-              name="username"
-              label="Username"
-              type="text"
-              value={this.state.data.username}
-              onChange={this.handleChange}
-              onBlur={this.handleBlur}
-              error={this.state.errors.username}
-              inputIcon="user" />
-          )
-        }
+            ) : (
+              null
+            )
+          }
+        </Input>
         {userConfirmed &&
           <>
             <Input
               name="password"
               label="Password"
               type="password"
-              value={this.state.data.password}
+              value={data.password}
               onChange={this.handleChange}
               onBlur={this.handleBlur}
-              error={this.state.errors.password}
+              error={errors.password}
               autoFocus={true}
               inputIcon="password"
             />
-            {loginWarning && <div className="login-warning">{this.state.loginWarning}</div>}
+            {loginWarning && <div className="login-warning">{loginWarning}</div>}
             <a href="/Account/ForgotPassword" className="link-button">Forgot Password</a>
             <button
               type="submit"
