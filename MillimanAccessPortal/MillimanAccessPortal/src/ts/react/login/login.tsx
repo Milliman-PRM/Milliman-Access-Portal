@@ -12,7 +12,7 @@ import '../../../images/map-logo.svg';
 import '../../../scss/map.scss';
 
 
-export class Login extends React.Component<{}, {} > {
+export class Login extends React.Component {
   public render() {
     return (
       <>
