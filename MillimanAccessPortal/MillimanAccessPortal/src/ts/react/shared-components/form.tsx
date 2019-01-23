@@ -15,14 +15,6 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
 
   protected schema = {};
 
-  public componentDidMount() {
-    const requestVerificationToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
-    const data = { ...(this.state.data as object) };
-    data["__RequestVerificationToken"] = requestVerificationToken;
-    this.schema["__RequestVerificationToken"] = Joi.string().required();
-    this.setState({ data })
-  }
-
   protected doSubmit = () => { }
 
   protected validate = () => {
@@ -35,14 +27,14 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
     const errors = {};
     for (let item of error.details) errors[item.path[0]] = item.message;
     return errors;
-  };
+  }
 
   protected validateProperty = ({ name, value }) => {
     const obj = { [name]: value };
     const schema = { [name]: this.schema[name] };
     const { error } = Joi.validate(obj, schema);
     return error ? error.details[0].message : null;
-  };
+  }
 
   protected handleSubmit = e => {
     e.preventDefault();
@@ -52,7 +44,7 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
     if (errors) return;
 
     this.doSubmit();
-  };
+  }
 
   protected handleChange = ({ currentTarget: input }) => {
     const errors = { ...(this.state.errors as object) };
@@ -72,5 +64,5 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
     else delete errors[input.name];
 
     this.setState({ errors });
-  };
+  }
 }
