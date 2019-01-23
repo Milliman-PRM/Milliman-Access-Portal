@@ -50,7 +50,6 @@ if (Test-Path $auditInsertFilePath)
  New-Item $auditInsertFilePath
 
 
-
 # Identify files to be loaded
 
 $fileList = $logFolderPath | Get-ChildItem | where {$_.LastWriteTime -gt $sinceDate}
@@ -65,7 +64,7 @@ if ($sessionFileList.Count -gt 0)
 
     # Initialize file with INSERT statement
     write-output "Preparing session log insert statement"
-    $BeginQuery = "INSERT INTO public.`"QlikViewSession`"(`"Timestamp`", `"Document`", `"ExitReason`", `"SessionStartTime`", `"SessionDuration`", `"SessionEndTime`", `"Username`", `"CalType`", `"Browser`", `"Session`", `"LogFileName`", `"LogFileLineNumber`") "
+    $BeginQuery = "INSERT INTO public.`"QlikViewSession`"(`"Timestamp`", `"Document`", `"ExitReason`", `"SessionStartTime`", `"SessionDuration`", `"SessionEndTime`", `"Username`", `"CalType`", `"Browser`", `"Session`", `"LogFileName`", `"LogFileLineNumber`") VALUES"
     $BeginQuery | set-content $sessionInsertFilePath -Force
 
     $sessionValues = ""
@@ -86,9 +85,23 @@ if ($sessionFileList.Count -gt 0)
             {
                 $sessionValues += "`r`n`r`n ," # Subsequent values should be preceded by a comma
             }
+            
+           $duration = New-TimeSpan -seconds ([float]$session.'Session Duration' * 86400) # This is a temporary workaround for a QlikView 12 bug: https://qliksupport.force.com/articles/000055500
+           
+           if ($session.'Exit Reason' -eq "Session expired after idle time")
+           {
+                $duration = $duration - (New-TimeSpan -minutes 30) # subtract 30 minutes when the session closed due to timeout
+           }
 
-           $duration = New-TimeSpan -seconds ($session.'Session Duration' * 86400) # This is a temporary workaround for a QlikView 12 bug: https://qliksupport.force.com/articles/000055500
-           $sessionValues += "('$($session.Timestamp)', '$($session.Document)', '$($session.ExitReason)', '$($session.'Session Start')', '$duration', '', '$($session.'Authenticated user')', '$($session.'Cal Type')', '', '$($session.Session)', '$($file.Name)', $($sessions.IndexOf($session)))"
+           $sessionStartTime = get-date
+          
+
+           # Convert session start time to a DateTime object - Custom format is required because .NET doesn't understand the QlikView timestamp format by default.
+           $dateparse = [DateTime]::TryParseExact( $session.'Session Start', "yyyyMMddTHHmmss.fff-0500", [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref]$sessionStartTime)
+           
+           $sessionEndTime = $sessionStartTime.AddSeconds($duration.TotalSeconds)
+
+           $sessionValues += "('$($session.Timestamp)', '$($session.Document)', '$($session.'Exit Reason')', '$($session.'Session Start')', '$duration', '$($sessionEndTime.ToString())', '$($session.'Authenticated user')', '$($session.'Cal Type')', '', '$($session.Session)', '$($file.Name)', $($sessions.IndexOf($session)))"
         }
     }
 
@@ -97,7 +110,7 @@ if ($sessionFileList.Count -gt 0)
 
     # Finalize file with ON CONFLICT [...] DO NOTHING statement
     write-output "finaliznig query"
-    $EndQuery = "`r`n ON CONFLICT ON CONSTRAINT `"UNIQUE_QVsession_LogFileName_LogFileLine`" DO NOTHING"
+    $EndQuery = "`r`n ON CONFLICT ON CONSTRAINT `"UNIQUE_QVSession_LogFileName_LogFileLine`" DO NOTHING"
     $EndQuery | Add-Content $sessionInsertFilePath -Force
 }
 
