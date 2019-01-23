@@ -11065,7 +11065,7 @@ namespace QlikviewLib.Qms
         {
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQTService2))
             {
-                return new System.ServiceModel.EndpointAddress("http://indy-qvtest01:4799/ANY/Service");
+                return new System.ServiceModel.EndpointAddress("http://indy-qvprod01:4799/ANY/Service");
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
