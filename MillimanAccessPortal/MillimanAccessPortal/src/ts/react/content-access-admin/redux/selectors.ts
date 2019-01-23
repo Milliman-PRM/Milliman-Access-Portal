@@ -5,7 +5,8 @@ import {
     isReductionActive, publicationStatusNames, reductionStatusNames,
 } from '../../../view-models/content-publishing';
 import {
-    ContentPublicationRequest, ContentReductionTask, Guid, ReductionFieldset, User, ClientWithEligibleUsers,
+    ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, Guid,
+    ReductionFieldset, User,
 } from '../../models';
 import { AccessState } from './store';
 
@@ -144,17 +145,39 @@ export function groupToDelete(state: AccessState) {
   return groupId && state.data.groups[groupId];
 }
 
+
+export function clientsTree(state: AccessState) {
+  const clients = _.toArray(state.data.clients);
+  const parentGroups: { [id: string]: ClientWithEligibleUsers[] } = clients.reduce((groups, cur) =>
+    groups[cur.parentId]
+      ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
+      : { ...groups, [cur.parentId]: [ cur ] },
+    {});
+  const iteratees = ['name', 'code'];
+  const clientTree = _.sortBy(parentGroups.null, iteratees).map((c) => ({
+    parent: c,
+    children: _.sortBy(parentGroups[c.id] || [], iteratees),
+  }));
+  return clientTree;
+}
+
 /**
  * Select all clients that match the client filter.
  * @param state Redux store
  */
 export function filteredClients(state: AccessState) {
   const filterTextLower = state.filters.client.text.toLowerCase();
-  return _.filter(state.data.clients, (client) => (
+  const filterFunc = (client: ClientWithEligibleUsers) => (
     filterTextLower === ''
-    || client.name.toLowerCase().indexOf(filterTextLower) !== -1
-    || client.code.toLowerCase().indexOf(filterTextLower) !== -1
-  ));
+    || (client.name && client.name.toLowerCase().indexOf(filterTextLower) !== -1)
+    || (client.code && client.code.toLowerCase().indexOf(filterTextLower) !== -1)
+  );
+  return clientsTree(state).map(({ parent, children }) => ({
+    parent,
+    children: filterFunc(parent)
+      ? children
+      : children.filter((child) => filterFunc(child)),
+  })).filter(({ parent, children }) => filterFunc(parent) || children.length);
 }
 
 /**
@@ -215,20 +238,6 @@ export function activeClients(state: AccessState) {
   return filteredClients(state);
 }
 
-export function activeClientsTree(state: AccessState) {
-  const clients = activeClients(state);
-  const parentGroups: { [id: string]: ClientWithEligibleUsers[] } = clients.reduce((groups, cur) =>
-    groups[cur.parentId]
-      ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
-      : { ...groups, [cur.parentId]: [ cur ] },
-    {});
-  const iteratees = ['name', 'code'];
-  const clientTree = _.sortBy(parentGroups.null, iteratees).map((c) => ({
-    parent: c,
-    children: _.sortBy(parentGroups[c.id] || [], iteratees),
-  }));
-  return clientTree;
-}
 
 /**
  * Select all clients that are visible to the user.
@@ -404,7 +413,7 @@ export function activeReductionFieldsets(state: AccessState): ReductionFieldset[
  */
 export function clientEntities(state: AccessState) {
   const entities = [];
-  activeClientsTree(state).forEach(({ parent, children }) => {
+  activeClients(state).forEach(({ parent, children }) => {
     entities.push({
       ...parent,
       indent: 1,
@@ -469,7 +478,7 @@ export function selectedClient(state: AccessState) {
  * @param state Redux store
  */
 export function activeSelectedClient(state: AccessState) {
-  return activeClients(state).filter((c) => c.id === state.selected.client)[0];
+  return clientEntities(state).filter((c) => c && (c.id === state.selected.client))[0];
 }
 
 /**

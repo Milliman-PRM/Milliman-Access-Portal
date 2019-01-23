@@ -29,9 +29,14 @@ export class CardPanel<TEntity> extends React.Component<CardPanelProps<TEntity>>
       ? <ColumnSpinner />
       : (
         <CardPanelSectionContent>
-          <ul className="admin-panel-content">
-            {entities.map((entity, i) => renderEntity(entity, i))}
-          </ul>
+          {entities.length
+            ? (
+              <ul className="admin-panel-content">
+                {entities.map((entity, i) => renderEntity(entity, i))}
+              </ul>
+            )
+            : <div>No results.</div>
+          }
         </CardPanelSectionContent>
       );
   }
