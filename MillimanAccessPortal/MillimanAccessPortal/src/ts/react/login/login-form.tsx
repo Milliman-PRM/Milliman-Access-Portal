@@ -6,6 +6,8 @@ import { getData, postData } from '../../shared';
 import { BaseFormState } from '../shared-components/form';
 import { Input } from '../shared-components/input';
 
+import '../../../scss/react/shared-components/form-elements.scss';
+
 import '../../../images/icons/user.svg';
 import '../../../images/icons/password.svg';
 import '../../../images/icons/login.svg';

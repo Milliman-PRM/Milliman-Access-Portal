@@ -1,7 +1,7 @@
 ﻿import '../../../images/icons/show-password.svg';
 import '../../../images/icons/hide-password.svg';
 
-import '../../../scss/react/shared-components/input.scss';
+import '../../../scss/react/shared-components/form-elements.scss';
 
 import * as React from 'react';
 

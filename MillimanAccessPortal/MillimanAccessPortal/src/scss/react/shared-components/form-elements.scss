@@ -95,6 +95,7 @@
                     padding: 1.25rem .5rem .1rem;
                 }
 
+                &[readonly] + .form-input-label,
                 &[disabled] + .form-input-label,
                 &:not([value='']) + .form-input-label,
                 &:focus + .form-input-label {
@@ -103,9 +104,10 @@
                     transition: opacity .5s, top .5s;
                 }
 
-                &[disabled]::placeholder,
+                &[readonly]::placeholder,
+                &[disabled]::placholder,
                 &:focus::placeholder {
-                    color: transparent;
+                    color: transparent !important;
                 }
             }
 
@@ -133,3 +135,6 @@
     }
 }
 
+.button-container {
+    text-align: right;
+}
