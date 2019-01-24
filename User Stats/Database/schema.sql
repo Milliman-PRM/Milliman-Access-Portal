@@ -1,4 +1,4 @@
-/*
+﻿/*
    CODE OWNERS: Ben Wyatt
    OBJECTIVE: Define the database objects required for user stats
    DEVELOPER NOTES: 
@@ -97,7 +97,7 @@ CREATE TABLE public."RootContentItem"
   CONSTRAINT "FK_RootContentItem_ContentType_ContentTypeId" FOREIGN KEY ("ContentTypeId")
       REFERENCES public."ContentType" ("Id") MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE CASCADE
-)
+);
 
 CREATE TABLE public."SelectionGroup"
 (
