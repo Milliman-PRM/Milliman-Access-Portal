@@ -122,7 +122,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
           value={data.username}
           onChange={this.handleChange}
           onBlur={this.handleBlur}
-          onClick={userConfirmed && this.handleUsernameClick}
+          onClick={userConfirmed ? this.handleUsernameClick : undefined}
           error={errors.username}
           autoFocus={!userConfirmed}
           inputIcon="user"
@@ -149,7 +149,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
             type={userConfirmed ? "submit" : "button"}
             disabled={userConfirmed && (this.validate()) ? true : false}
             className="blue-button"
-            onClick={userConfirmed && this.handleSubmit}>
+            onClick={userConfirmed ? this.handleSubmit : undefined}>
             Login
           </button>
         </div>
