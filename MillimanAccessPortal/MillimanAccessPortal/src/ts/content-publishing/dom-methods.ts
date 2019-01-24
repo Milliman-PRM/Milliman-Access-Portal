@@ -73,15 +73,15 @@ function deleteRootContentItem(
     statusMonitor.checkStatus();
   });
 }
-export function rootContentItemDeleteClickHandler(event) {
+export function rootContentItemDeleteClickHandler(event: Event) {
   const $clickedCard = $(this).closest('.card-container');
   const rootContentItemId = $clickedCard.data().rootContentItemId;
   const rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
-  new DeleteRootContentItemDialog(
+  new (DeleteRootContentItemDialog as any)(
     rootContentItemName,
     rootContentItemId,
-    (data, callback) => {
+    (data: { password: string }, callback: () => void) => {
       if (data.password) {
         showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
@@ -96,7 +96,7 @@ export function rootContentItemDeleteClickHandler(event) {
     },
   ).open();
 }
-function cancelContentPublication(data, callback) {
+function cancelContentPublication(data: { RootContentItemId: string }, callback: () => void) {
   $.ajax({
     data: {
       RootContentItemId: data.RootContentItemId,
@@ -118,12 +118,13 @@ function cancelContentPublication(data, callback) {
   });
 }
 
-export function rootContentItemCancelClickHandler(event) {
+export function rootContentItemCancelClickHandler(event: Event) {
   const $clickedCard = $(this).closest('.card-container');
   const rootContentItemId = $clickedCard.data().rootContentItemId;
   const rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
-  new CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, cancelContentPublication).open();
+  new (CancelContentPublicationRequestDialog as any)(
+    rootContentItemId, rootContentItemName, cancelContentPublication).open();
 }
 export function openNewRootContentItemForm() {
   if (formObject && formObject.submissionMode === 'new') {
@@ -707,7 +708,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
 }
 
 function renderRootContentItem(item: RootContentItemSummary) {
-  const $rootContentItemCard = new RootContentItemCard(
+  const $rootContentItemCard = new (RootContentItemCard as any)(
     item,
     wrapCardCallback(get(
       'ContentPublishing/RootContentItemDetail',
@@ -765,7 +766,7 @@ function renderRootContentItemList(response: RootContentItemList, rootContentIte
 }
 
 function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
-  const $card = new ClientCard(
+  const $card = new (ClientCard as any)(
     client.Value,
     client.Value.EligibleUserCount,
     client.Value.RootContentItemCount,
@@ -853,7 +854,7 @@ export function setup() {
     $('#content-publishing-form').show();
   });
   $('#root-content-items ul.admin-panel-content-action')
-    .append(new AddRootContentItemActionCard(
+    .append(new (AddRootContentItemActionCard as any)(
       wrapCardCallback(openNewRootContentItemForm, () => formObject),
     ).build());
 

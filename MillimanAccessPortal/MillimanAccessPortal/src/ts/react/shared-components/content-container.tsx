@@ -11,7 +11,7 @@ import { ContentContainerProps } from './interfaces';
 
 export class ContentContainer extends React.Component<ContentContainerProps, {}> {
 
-  public constructor(props) {
+  public constructor(props: ContentContainerProps) {
     super(props);
   }
 
