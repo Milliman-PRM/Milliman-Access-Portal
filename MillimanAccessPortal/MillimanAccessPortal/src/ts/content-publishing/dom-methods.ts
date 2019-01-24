@@ -1,6 +1,7 @@
+import '../../images/icons/expand-frame.svg';
+
 import 'jquery-validation';
 import 'jquery-validation-unobtrusive';
-import '../../images/expand-frame.svg';
 
 import * as $ from 'jquery';
 import { unionWith } from 'lodash';
@@ -27,8 +28,6 @@ import {
     RootContentItemList, RootContentItemSummary, RootContentItemSummaryAndDetail,
 } from '../view-models/content-publishing';
 import { PublicationStatusMonitor } from './publication-status-monitor';
-
-import '../../images/icons/expand-frame.svg';
 
 require('tooltipster');
 

@@ -2,15 +2,10 @@
 
 import * as React from 'react';
 
-import { getData } from '../../shared';
-
 import { LoginForm } from './login-form';
-import { Input } from '../shared-components/input';
-
 
 import '../../../images/map-logo.svg';
 import '../../../scss/map.scss';
-
 
 export class Login extends React.Component {
   public render() {
@@ -22,7 +17,7 @@ export class Login extends React.Component {
             <div id="login-form-container">
               <div id="login-logo-container">
                 <svg id="login-logo">
-                  <use xlinkHref={"#map-logo"} />
+                  <use xlinkHref={'#map-logo'} />
                 </svg>
               </div>
               <LoginForm />
@@ -30,6 +25,6 @@ export class Login extends React.Component {
           </section>
         </div>
       </>
-    )
+    );
   }
 }

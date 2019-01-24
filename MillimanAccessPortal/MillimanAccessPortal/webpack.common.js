@@ -187,4 +187,7 @@ module.exports = {
     ],
     symlinks: false,
   },
+  node: {
+    net: 'mock',
+  },
 };
