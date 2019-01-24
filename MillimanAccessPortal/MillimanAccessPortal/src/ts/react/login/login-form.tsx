@@ -14,6 +14,7 @@ import '../../../images/icons/login.svg';
 
 interface LoginFormState extends BaseFormState {
   userConfirmed: boolean;
+  awaitingConfirmation: boolean;
   loginWarning: string;
 }
 
@@ -23,6 +24,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
 
     this.state = {
       userConfirmed: false,
+      awaitingConfirmation: false,
       loginWarning: null,
       data: { username: "", password: "" },
       errors: {}
@@ -52,7 +54,15 @@ export class LoginForm extends Form<{}, LoginFormState> {
       delete errors["username"];
     }
 
-    this.setState({ userConfirmed: true });
+    // hold for
+    this.setState({ awaitingConfirmation: true }, () => {
+      setTimeout(() => {
+        this.setState({
+          userConfirmed: true,
+          awaitingConfirmation: false
+        })
+      }, 2000);
+    });
   }
 
   protected handleSubmit = (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
@@ -86,7 +96,23 @@ export class LoginForm extends Form<{}, LoginFormState> {
   }
 
   render() {
-    const { data, errors, userConfirmed, loginWarning } = this.state;
+    const { data, errors, userConfirmed, awaitingConfirmation, loginWarning } = this.state;
+    let actionButton;
+    if (!userConfirmed && !awaitingConfirmation) {
+      actionButton = (
+        <button type="submit" className="action-icon-label" onClick={this.checkUser}>
+          <svg className="action-icon"><use xlinkHref="#login" /></svg>
+        </button>
+      );
+    } else if (awaitingConfirmation) {
+      actionButton = (
+        <div className="action-icon-label waiting">
+          <svg className="action-icon"><use xlinkHref="#login" /></svg>
+        </div>
+      );
+    } else {
+      actionButton = null;
+    };
     return (
       <form onSubmit={!userConfirmed ? this.checkUser : this.handleSubmit}>
         <Input
@@ -102,15 +128,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
           inputIcon="user"
           readOnly={userConfirmed}
         >
-          {
-            (!userConfirmed) ? (
-              <button type="submit" className="action-icon-label" onClick={this.checkUser}>
-                <svg className="action-icon"><use xlinkHref="#login" /></svg>
-              </button>
-            ) : (
-              null
-            )
-          }
+          {actionButton}
         </Input>
         <Input
           name="password"
