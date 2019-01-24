@@ -32,7 +32,7 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType Logout = new AuditEventType(1004, "Logout success");
         public static readonly AuditEventType AccountLockByUser = new AuditEventType(1005, "Account lock by user");
         public static readonly AuditEventType UserPasswordChanged = new AuditEventType(1006, "User password changed");
-        public static readonly AuditEventType<string, string, string, string, int> ManualDatabaseCommand = 
+        public static readonly AuditEventType<string, string, string, string, int> ManualDatabaseCommand =
             new AuditEventType<string, string, string, string, int>(1007, "Manual database command",
             (userName, githubUrl, approverName, queryText, rows) => new
             {
@@ -42,6 +42,21 @@ namespace AuditLogLib.Event
                 QueryText = queryText,
                 RowsAffected = rows,
             });
+        public static readonly AuditEventType<string, string> UserContentAccess = 
+            new AuditEventType<string, string>(1008, "Content access", 
+                (contentItemId, selectionGroupId) => new
+                {
+                    ContentItem = contentItemId,
+                    SelectionGroup = selectionGroupId,
+                });
+        public static readonly AuditEventType<string, string, string> UserContentRelatedFileAccess =
+            new AuditEventType<string, string, string>(1009, "Content related file access",
+                (contentItemId, selectionGroupId, relatedFilePurpose) => new
+                {
+                    ContentItem = contentItemId,
+                    SelectionGroup = selectionGroupId,
+                    RelatedFilePurpose = relatedFilePurpose,
+                });
         #endregion
 
         #region Client Admin [2000 - 2999]

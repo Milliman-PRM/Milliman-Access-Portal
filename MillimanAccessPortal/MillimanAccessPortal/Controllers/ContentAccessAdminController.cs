@@ -356,7 +356,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var user = DbContext.ApplicationUser
-                .Where(u => u.UserName == username)
+                .Where(u => u.UserName.ToLower() == username.ToLower())
                 .SingleOrDefault();
 
             #region Validation

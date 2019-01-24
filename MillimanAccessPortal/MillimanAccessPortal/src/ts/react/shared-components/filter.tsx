@@ -11,13 +11,13 @@ export interface FilterProps {
 }
 
 export class Filter extends React.Component<FilterProps, {}> {
-  public constructor(props) {
+  public constructor(props: FilterProps) {
     super(props);
 
     this.handleChange = this.handleChange.bind(this);
   }
 
-  public handleChange(event) {
+  public handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     this.props.setFilterText(event.target.value);
   }
 

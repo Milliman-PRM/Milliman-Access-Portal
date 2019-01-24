@@ -1,4 +1,5 @@
 ﻿import '../../../scss/react/shared-components/content-container.scss';
+
 import 'tooltipster';
 import 'tooltipster/src/css/tooltipster.css';
 import '../../../images/icons/cancel.svg';
@@ -10,7 +11,7 @@ import { ContentContainerProps } from './interfaces';
 
 export class ContentContainer extends React.Component<ContentContainerProps, {}> {
 
-  public constructor(props) {
+  public constructor(props: ContentContainerProps) {
     super(props);
   }
 

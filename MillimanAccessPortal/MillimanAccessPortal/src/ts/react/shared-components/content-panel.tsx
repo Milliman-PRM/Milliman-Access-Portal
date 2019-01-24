@@ -164,7 +164,7 @@ export class ContentPanel extends React.Component<ContentPanelProps> {
         ? <div>No {this.props.selectedColumn.name.toLowerCase()} found.</div>
         : null;
     } else if (isClientInfo(filteredCards[0])) {
-      const rootIndices = [];
+      const rootIndices: number[] = [];
       filteredCards.forEach((entity: ClientInfoWithDepth, i) => {
         if (!entity.ParentId) {
           rootIndices.push(i);

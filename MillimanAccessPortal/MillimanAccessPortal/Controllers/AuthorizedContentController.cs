@@ -179,6 +179,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            // Log content access
+            AuditLogger.Log(AuditEventType.UserContentAccess.ToEvent(
+                selectionGroup.RootContentItemId.ToString(), selectionGroup.Id.ToString()));
+
             try
             {
                 // Instantiate the right content handler class
@@ -223,6 +227,11 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
+        /// <summary>
+        /// Preview the master content QVW file
+        /// </summary>
+        /// <param name="publicationRequestId"></param>
+        /// <returns></returns>
         public async Task<IActionResult> QvwPreview(Guid publicationRequestId)
         {
             Log.Verbose($"Entered AuthorizedContentController.QvwPreview action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}");
@@ -471,6 +480,10 @@ namespace MillimanAccessPortal.Controllers
                 return View("ContentMessage", ErrMsg);
             }
             #endregion
+
+            // Log access to related file
+            AuditLogger.Log(AuditEventType.UserContentRelatedFileAccess.ToEvent(
+                selectionGroup.RootContentItemId.ToString(), selectionGroup.Id.ToString(), purpose));
 
             try
             {

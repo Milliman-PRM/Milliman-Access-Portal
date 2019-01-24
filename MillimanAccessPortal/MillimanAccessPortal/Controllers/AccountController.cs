@@ -159,13 +159,6 @@ namespace MillimanAccessPortal.Controllers
                     {
                         return RedirectToAction(nameof(SendCode), new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
                     }
-                    else if (result.IsNotAllowed)
-                    {
-                        ModelState.AddModelError(string.Empty, "User login is not allowed.");
-                        Log.Information($"User {model.Username} login not allowed");
-                        _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
-                        return View("Message", lockoutMessage);
-                    }
                     else if (result.IsLockedOut)
                     {
                         ModelState.AddModelError(string.Empty, "User account is locked out.");
@@ -175,8 +168,17 @@ namespace MillimanAccessPortal.Controllers
                     }
                     else
                     {
-                        Log.Information($"User {model.Username} PasswordSignInAsync did not succeed");
-                        _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
+                        // Log differently, but return the same model
+                        if (result.IsNotAllowed)
+                        {
+                            Log.Information($"User {model.Username} login not allowed");
+                            _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
+                        }
+                        else
+                        {
+                            Log.Information($"User {model.Username} PasswordSignInAsync did not succeed");
+                            _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
+                        }
                         Response.Headers.Add("Warning", "Invalid login attempt.");
                         return Ok();
                     }
@@ -386,6 +388,13 @@ namespace MillimanAccessPortal.Controllers
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
             var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
 
+            UriBuilder baseSiteUrl = new UriBuilder
+            {
+                Host = Url.ActionContext.HttpContext.Request.Host.Host,
+                Scheme = Url.ActionContext.HttpContext.Request.Scheme,
+                Port = Url.ActionContext.HttpContext.Request.Host.Port ?? -1
+            };
+
             // Configurable portion of email body
             string emailBody = string.IsNullOrWhiteSpace(SettableEmailText)
                 ? string.Empty
@@ -394,7 +403,7 @@ namespace MillimanAccessPortal.Controllers
             string accountActivationDays = _configuration["AccountActivationTokenTimespanDays"] ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays.ToString();
 
             // Non-configurable portion of email body
-            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}{callbackUrl}{Environment.NewLine}{Environment.NewLine}This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}If you have any questions regarding this email, please contact map.support@milliman.com";
+            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}{callbackUrl}{Environment.NewLine}{Environment.NewLine}This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}Once you have activated your account, MAP can be accessed at {baseSiteUrl.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}If you have any questions regarding this email, please contact map.support@milliman.com";
             string emailSubject = "Welcome to Milliman Access Portal!";
             // Send welcome email
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
@@ -457,7 +466,7 @@ namespace MillimanAccessPortal.Controllers
                 Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
 
                 string WhatHappenedMessage = "Your previous account activation link is invalid or may have expired. A new welcome email has been sent, which contains a new account activation link.";
-                Log.Debug($"In AccountController.EnableAccount GET action: confirmation token is invalid for user name {user.UserName}, may be expired, new welcome email sent, aborting");
+                Log.Information($"In AccountController.EnableAccount GET action: confirmation token is invalid for user name {user.UserName}, may be expired, new welcome email sent, aborting");
                 return View("Message", WhatHappenedMessage);
             }
 
@@ -508,7 +517,7 @@ namespace MillimanAccessPortal.Controllers
                         string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
                         Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
 
-                        Log.Information($"EnableAccount failed for user {model.Username} with code 'InvalidToken', it is likely that the token the is expired, new welcome email sent");
+                        Log.Information($"EnableAccount failed for user {model.Username} with code 'InvalidToken', it is likely that the token is expired, new welcome email sent");
                         string WhatHappenedMessage = "Your previous Milliman Access Portal account activation link is invalid and may have expired.  A new link has been emailed to you.";
                         return View("Message", WhatHappenedMessage);
                     }

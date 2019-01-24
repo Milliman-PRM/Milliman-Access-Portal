@@ -7,6 +7,10 @@ namespace MapDbContextLib.Models
         private string _Checksum = null;
 
         public string FullPath { get; set; }
+
+        /// <summary>
+        /// Standard values: MasterContent, ReducedContent, UserGuide, Thumbnail, ReleaseNotes
+        /// </summary>
         public string FilePurpose { get; set; }
         public string FileOriginalName { get; set; }
         public string Checksum

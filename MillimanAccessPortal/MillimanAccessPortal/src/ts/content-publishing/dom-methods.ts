@@ -1,5 +1,6 @@
 import 'jquery-validation';
 import 'jquery-validation-unobtrusive';
+import '../../images/expand-frame.svg';
 
 import * as $ from 'jquery';
 import { unionWith } from 'lodash';
@@ -14,17 +15,16 @@ import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import { Guid } from '../react/shared-components/interfaces';
 import {
-  collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
-  updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
+    collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
+    hideButtonSpinner, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
+    updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
 import { setUnloadAlert } from '../unload-alerts';
 import { UploadComponent } from '../upload/upload';
 import {
-  BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, isSelection,
-  PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue,
-  ReductionFieldValueSelection, RootContentItemDetail, RootContentItemList, RootContentItemSummary,
-  RootContentItemSummaryAndDetail,
+    BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, isSelection,
+    PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue, RootContentItemDetail,
+    RootContentItemList, RootContentItemSummary, RootContentItemSummaryAndDetail,
 } from '../view-models/content-publishing';
 import { PublicationStatusMonitor } from './publication-status-monitor';
 
@@ -75,15 +75,15 @@ function deleteRootContentItem(
     statusMonitor.checkStatus();
   });
 }
-export function rootContentItemDeleteClickHandler(event) {
+export function rootContentItemDeleteClickHandler(event: Event) {
   const $clickedCard = $(this).closest('.card-container');
   const rootContentItemId = $clickedCard.data().rootContentItemId;
   const rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
-  new DeleteRootContentItemDialog(
+  new (DeleteRootContentItemDialog as any)(
     rootContentItemName,
     rootContentItemId,
-    (data, callback) => {
+    (data: { password: string }, callback: () => void) => {
       if (data.password) {
         showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
@@ -98,7 +98,7 @@ export function rootContentItemDeleteClickHandler(event) {
     },
   ).open();
 }
-function cancelContentPublication(data, callback) {
+function cancelContentPublication(data: { RootContentItemId: string }, callback: () => void) {
   $.ajax({
     data: {
       RootContentItemId: data.RootContentItemId,
@@ -120,12 +120,13 @@ function cancelContentPublication(data, callback) {
   });
 }
 
-export function rootContentItemCancelClickHandler(event) {
+export function rootContentItemCancelClickHandler(event: Event) {
   const $clickedCard = $(this).closest('.card-container');
   const rootContentItemId = $clickedCard.data().rootContentItemId;
   const rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
-  new CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, cancelContentPublication).open();
+  new (CancelContentPublicationRequestDialog as any)(
+    rootContentItemId, rootContentItemName, cancelContentPublication).open();
 }
 export function openNewRootContentItemForm() {
   if (formObject && formObject.submissionMode === 'new') {
@@ -256,7 +257,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     $(`#confirmation-section-${pair.sectionName} .new-tab-icon`)
       .show()
       .attr('href', pair.link)
-      .filter(() => pair.link === null)
+      .filter(() => pair.link === null || response.ContentTypeName === 'FileDownload')
       .hide();
   });
 
@@ -709,7 +710,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
 }
 
 function renderRootContentItem(item: RootContentItemSummary) {
-  const $rootContentItemCard = new RootContentItemCard(
+  const $rootContentItemCard = new (RootContentItemCard as any)(
     item,
     wrapCardCallback(get(
       'ContentPublishing/RootContentItemDetail',
@@ -767,7 +768,7 @@ function renderRootContentItemList(response: RootContentItemList, rootContentIte
 }
 
 function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
-  const $card = new ClientCard(
+  const $card = new (ClientCard as any)(
     client.Value,
     client.Value.EligibleUserCount,
     client.Value.RootContentItemCount,
@@ -855,7 +856,7 @@ export function setup() {
     $('#content-publishing-form').show();
   });
   $('#root-content-items ul.admin-panel-content-action')
-    .append(new AddRootContentItemActionCard(
+    .append(new (AddRootContentItemActionCard as any)(
       wrapCardCallback(openNewRootContentItemForm, () => formObject),
     ).build());
 

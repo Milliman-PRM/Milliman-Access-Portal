@@ -15,7 +15,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
-  public constructor(props) {
+  public constructor(props: {}) {
     super(props);
 
     this.state = {
@@ -40,10 +40,9 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
               selectedContentURL: null,
               selectedContentType: null,
             }, () => {
-              const display = null;
-              document.getElementById('page-header').style.display = display;
-              document.getElementById('page-footer').style.display = display;
-              document.getElementById('authorized-content-container').style.display = display;
+              document.getElementById('page-header').style.display = null;
+              document.getElementById('page-footer').style.display = null;
+              document.getElementById('authorized-content-container').style.display = null;
             });
           }
         }

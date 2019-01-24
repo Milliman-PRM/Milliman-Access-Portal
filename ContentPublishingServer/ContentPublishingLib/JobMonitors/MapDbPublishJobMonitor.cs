@@ -130,6 +130,7 @@ namespace ContentPublishingLib.JobMonitors
                 // .ToList() is needed because the body changes the original List. 
                 foreach (PublishJobTrackingItem CompletedPublishRunnerItem in ActivePublicationRunnerItems.Where(t => t.task.IsCompleted).ToList())
                 {
+                    GlobalFunctions.TraceWriteLine($"PublishJobMonitor({JobMonitorType.ToString()}) completed processing for PublicationRequestId {CompletedPublishRunnerItem.requestId.ToString()}");
                     UpdateRequest(CompletedPublishRunnerItem.task.Result);
                     ActivePublicationRunnerItems.Remove(CompletedPublishRunnerItem);
                 }
@@ -280,7 +281,7 @@ namespace ContentPublishingLib.JobMonitors
                         TopItems.ForEach(r =>
                         {
                             r.RequestStatus = PublicationStatus.Processing;
-                            GlobalFunctions.TraceWriteLine($"PublishJobMonitor({JobMonitorType.ToString()}) initiating processing for request {r.Id.ToString()}");
+                            GlobalFunctions.TraceWriteLine($"PublishJobMonitor({JobMonitorType.ToString()}) initiating processing for PublicationRequestId {r.Id.ToString()}");
                         });
                         Db.ContentPublicationRequest.UpdateRange(TopItems);
                         Db.SaveChanges();
@@ -359,7 +360,7 @@ namespace ContentPublishingLib.JobMonitors
                             DbRequest.RequestStatus = PublicationStatus.Canceled;
                             break;
                         case PublishJobDetail.JobStatusEnum.Success:
-                            DbRequest.RequestStatus = PublicationStatus.Processed;
+                            DbRequest.RequestStatus = PublicationStatus.PostProcessReady;
                             DbRequest.ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
                             {
                                 new ReductionRelatedFiles

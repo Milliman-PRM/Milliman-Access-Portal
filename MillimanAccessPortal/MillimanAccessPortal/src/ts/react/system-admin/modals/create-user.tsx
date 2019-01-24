@@ -13,7 +13,7 @@ export class CreateUserModal extends React.Component<Modal.Props, CreateUserModa
 
   private url: string = 'SystemAdmin/CreateUser';
 
-  public constructor(props) {
+  public constructor(props: Modal.Props) {
     super(props);
 
     this.state = {
