@@ -2,6 +2,7 @@
 
 .form-element-container {
     margin-bottom: 1.5em;
+    opacity: 1;
 
     &.disabled {
 
@@ -57,6 +58,9 @@
             cursor: pointer;
             background-color: $green;
             border-left: none;
+            margin: 0;
+            border-radius: 0 !important;
+            padding: .5rem !important;
 
             &:hover {
                 background-color: darken($green, 5%);
@@ -70,7 +74,7 @@
             background-color: $white;
 
 
-            .form-input {
+            input.form-input {
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -81,6 +85,7 @@
                 background-color: transparent;
                 color: $charcoal;
                 z-index: 1;
+                transition: all .25s;
 
                 &:focus:not([readonly]) {
 
@@ -104,10 +109,12 @@
                     transition: opacity .5s, top .5s;
                 }
 
-                &[readonly]::placeholder,
-                &[disabled]::placholder,
-                &:focus::placeholder {
-                    color: transparent !important;
+                &[readonly],
+                &[disabled],
+                &:focus {
+                    &::placeholder {
+                        color: transparent;
+                    }
                 }
             }
 
@@ -137,4 +144,17 @@
 
 .button-container {
     text-align: right;
+}
+
+.form-element-container,
+.button-container {
+    position: relative;
+    top: 0;
+    opacity: 1;
+    transition: all .5s;
+
+    &.hidden {
+        top: -1rem;
+        opacity: 0;
+    }
 }
