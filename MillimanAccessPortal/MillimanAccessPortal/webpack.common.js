@@ -50,6 +50,21 @@ module.exports = {
       },
       {
         test: /\.tsx?$/,
+        enforce: 'pre',
+        use: [
+          {
+            loader: 'tslint-loader',
+            options: {
+              configFile: 'tslint.json',
+              tsConfigFile: 'tsconfig.json',
+              failOnHint: true,
+            },
+          },
+        ],
+        include: path.resolve(__dirname, 'src', 'ts'),
+      },
+      {
+        test: /\.tsx?$/,
         use: 'ts-loader',
         include: path.resolve(__dirname, 'src', 'ts'),
       },
