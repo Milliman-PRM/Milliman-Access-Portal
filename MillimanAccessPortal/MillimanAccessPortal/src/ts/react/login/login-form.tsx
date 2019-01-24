@@ -81,6 +81,10 @@ export class LoginForm extends Form<{}, LoginFormState> {
       })
   };
 
+  protected handleUsernameClick = () => {
+    this.setState({ userConfirmed: false });
+  }
+
   render() {
     const { data, errors, userConfirmed, loginWarning } = this.state;
     return (
@@ -92,45 +96,45 @@ export class LoginForm extends Form<{}, LoginFormState> {
           value={data.username}
           onChange={this.handleChange}
           onBlur={this.handleBlur}
+          onClick={userConfirmed && this.handleUsernameClick}
           error={errors.username}
-          autoFocus={(userConfirmed) ? false : true}
+          autoFocus={!userConfirmed}
           inputIcon="user"
-          readOnly={(userConfirmed) ? true : false}
+          readOnly={userConfirmed}
         >
           {
             (!userConfirmed) ? (
-              <div className="action-icon-label" onClick={this.checkUser}>
+              <button type="submit" className="action-icon-label" onClick={this.checkUser}>
                 <svg className="action-icon"><use xlinkHref="#login" /></svg>
-              </div>
+              </button>
             ) : (
               null
             )
           }
         </Input>
-        {userConfirmed &&
-          <>
-            <Input
-              name="password"
-              label="Password"
-              type="password"
-              value={data.password}
-              onChange={this.handleChange}
-              onBlur={this.handleBlur}
-              error={errors.password}
-              autoFocus={true}
-              inputIcon="password"
-            />
-            {loginWarning && <div className="login-warning">{loginWarning}</div>}
-            <a href="/Account/ForgotPassword" className="link-button">Forgot Password</a>
-            <button
-              type="submit"
-              disabled={(this.validate()) ? true : false}
-              className="blue-button"
-              onClick={this.handleSubmit}>
-              Login
-            </button>
-          </>
-        }
+        <Input
+          name="password"
+          label="Password"
+          type="password"
+          value={data.password}
+          onChange={this.handleChange}
+          onBlur={this.handleBlur}
+          error={errors.password}
+          autoFocus={userConfirmed}
+          inputIcon="password"
+          hidden={!userConfirmed}
+        />
+        {loginWarning && <div className="login-warning">{loginWarning}</div>}
+        <div className={"button-container" + (userConfirmed ? " visible" : " hidden")}>
+          <a href="/Account/ForgotPassword" className="link-button">Forgot Password</a>
+          <button
+            type={userConfirmed ? "submit" : "button"}
+            disabled={userConfirmed && (this.validate()) ? true : false}
+            className="blue-button"
+            onClick={userConfirmed && this.handleSubmit}>
+            Login
+          </button>
+        </div>
       </form>
     );
   }

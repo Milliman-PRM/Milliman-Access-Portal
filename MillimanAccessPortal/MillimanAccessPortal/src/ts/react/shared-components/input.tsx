@@ -12,19 +12,21 @@ interface InputProps {
   value: string | number | string[];
   onChange: (currentTarget: React.FormEvent<HTMLInputElement>) => void;
   onBlur: (currentTarget: React.FormEvent<HTMLInputElement>) => void;
+  onClick?: (currentTarget: React.FormEvent<HTMLInputElement> | null) => void;
   error: string;
   placeholderText?: string;
   autoFocus?: boolean;
   inputIcon?: string;
   readOnly?: boolean;
+  hidden?: boolean;
 }
 
 export class Input extends React.Component<InputProps, {}> {
 
   public render() {
-    const { name, label, error, inputIcon, placeholderText, children, readOnly, ...rest } = this.props;
+    const { name, label, error, inputIcon, placeholderText, children, readOnly, hidden, ...rest } = this.props;
     return (
-      <div className={"form-element-container" + (readOnly ? " disabled" : "")}>
+      <div className={"form-element-container" + (readOnly ? " disabled" : "") + (hidden ? " hidden": "")}>
         <div className={"form-element" + (error ? " error" : "")}>
           {inputIcon && <div className="input-icon-label"><svg className="input-icon"><use xlinkHref={`#${inputIcon}`} /></svg></div>}
           <div className="form-input-container">
