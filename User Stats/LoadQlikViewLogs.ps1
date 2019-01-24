@@ -22,6 +22,9 @@
 .PARAMETER pgsqlPassword
     The password for $pgsqlUser
 
+.PARAMETER pgsqlExePath
+    The full path to psql.exe, which the script uses to execute database queries
+
 .NOTES
   Author:         Ben Wyatt
   
@@ -32,22 +35,28 @@
 # Define parameters
 param (
     [Parameter(Mandatory=$true)][string]$logFolderPath,
-    [Parameter(Mandatory=$true)][DateTime]$sinceDate<#,
+    [Parameter(Mandatory=$true)][DateTime]$sinceDate,
     [Parameter(Mandatory=$true)][string]$pgsqlServer,
     [Parameter(Mandatory=$true)][string]$pgsqlDatabase,
     [Parameter(Mandatory=$true)][string]$pgsqlUser,
-    [Parameter(Mandatory=$true)][string]$pgsqlPassword#>
+    [Parameter(Mandatory=$true)][string]$pgsqlPassword,
+    [Parameter(Mandatory=$true)][string]$psqlExePath
 )
 
 # Set up environment
 $sessionInsertFilePath = "$env:temp\sessionInsert.sql"
 $auditInsertFilePath = "$env:temp\auditInsert.sql"
 
+# Reset temp files if they exist
 if (Test-Path $auditInsertFilePath)
 {
     Remove-Item $auditInsertFilePath
 }
- New-Item $auditInsertFilePath
+
+ if (Test-Path $sessionInsertFilePath)
+ {
+    Remove-Item $sessionInsertFilePath
+ }
 
 
 # Identify files to be loaded
@@ -158,10 +167,22 @@ if ($auditFileList.Count -gt 0)
 
 # Load into database
 
+$env:PGPASSWORD = $pgsqlPassword
+
+# Load session records
+write-output "Loading Qlikview session records into datbase"
+$command = "$psqlExePath --dbname=$pgsqlDatabase --username=$pgsqlUser --host=$pgsqlServer --file=`"$sessionInsertFilePath`" --echo-errors"
+Invoke-Expression $command
+
+# Load audit records
+write-output "Loading Qlikview audit records into database"
+$command = "$psqlExePath --dbname=$pgsqlDatabase --username=$pgsqlUser --host=$pgsqlServer --file=`"$auditInsertFilePath`" --echo-errors"
+Invoke-Expression $command
+
+$env:PGPASSWORD = ""
+
 
 # Delete temp files
 
-#remove-item $sessionInsertFilePath
-#remove-item $auditInsertFilePath
-
-notepad $sessionInsertFilePath
+remove-item $sessionInsertFilePath
+remove-item $auditInsertFilePath
