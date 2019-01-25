@@ -11337,11 +11337,11 @@ namespace QlikviewLib.Qms
         {
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQTService))
             {
-                return new System.ServiceModel.EndpointAddress("http://indy-qvtest01:4799/ANY/Service");
+                return new System.ServiceModel.EndpointAddress("http://indy-qvprod01:4799/ANY/Service");
             }
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQTService1))
             {
-                return new System.ServiceModel.EndpointAddress("http://indy-qvtest01:4799/ANY/Service");
+                return new System.ServiceModel.EndpointAddress("http://indy-qvprod01:4799/ANY/Service");
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
@@ -12708,7 +12708,7 @@ namespace QlikviewLib.Qms
         {
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQMS2))
             {
-                return new System.ServiceModel.EndpointAddress("http://indy-qvtest01:4799/QMS/Service");
+                return new System.ServiceModel.EndpointAddress("http://indy-qvprod01:4799/QMS/Service");
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
@@ -13726,11 +13726,11 @@ namespace QlikviewLib.Qms
         {
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQMS))
             {
-                return new System.ServiceModel.EndpointAddress("http://indy-qvtest01:4799/QMS/Service");
+                return new System.ServiceModel.EndpointAddress("http://indy-qvprod01:4799/QMS/Service");
             }
             if ((endpointConfiguration == EndpointConfiguration.BasicHttpBinding_IQMS1))
             {
-                return new System.ServiceModel.EndpointAddress("http://indy-qvtest01:4799/QMS/Service");
+                return new System.ServiceModel.EndpointAddress("http://indy-qvprod01:4799/QMS/Service");
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
