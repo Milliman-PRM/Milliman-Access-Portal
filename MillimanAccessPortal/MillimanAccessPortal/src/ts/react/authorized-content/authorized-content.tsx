@@ -49,6 +49,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
               document.getElementById('page-header').style.display = display;
               document.getElementById('page-footer').style.display = display;
               document.getElementById('authorized-content-container').style.display = display;
+              this.statusMonitor.start();
             });
           }
         }
