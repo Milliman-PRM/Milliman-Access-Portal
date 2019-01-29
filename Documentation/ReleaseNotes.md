@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.3.4
+
+- Prevent forced signout while a content item is open in the Content view
+
 ### v1.3.3
 
 - Add audit logging for content access

@@ -27,9 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(<AuthorizedContent />, document.getElementById('content-container'));
 });
 
-const statusMonitor = new StatusMonitor('/Account/SessionStatus', () => null, 60000);
-statusMonitor.start();
-
 if (module.hot) {
   module.hot.accept(['./authorized-content'], () => {
     AuthorizedContent = require('./authorized-content').AuthorizedContent;
