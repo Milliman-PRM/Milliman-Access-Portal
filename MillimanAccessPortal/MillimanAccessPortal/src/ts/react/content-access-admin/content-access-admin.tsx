@@ -15,6 +15,9 @@ import { ActionIcon } from '../shared-components/action-icon';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import {
+    CardPanelSectionAction, CardPanelSectionContent,
+} from '../shared-components/card-panel/card-panel-sections';
+import {
     PanelSectionToolbar, PanelSectionToolbarButtons,
 } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
@@ -460,14 +463,20 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             {collapseAllIcon}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
-        <div className="card-container" onClick={this.props.openAddGroupModal}>
-          <div className="card-body-container card-100 action-card">
-            <h2 className="card-body-primary-text">
-              <ActionIcon icon={'add'} />
-              <span>ADD SELECTION GROUP</span>
-            </h2>
+        <CardPanelSectionAction>
+          <div className="card-container action-card-container" onClick={this.props.openAddGroupModal}>
+            <div className="admin-panel-content">
+              <div className="card-body-container card-100 action-card">
+                <h2 className="card-body-primary-text">
+                  <svg className="action-card-icon">
+                    <use href="#add" />
+                  </svg>
+                  <span>NEW GROUP</span>
+                </h2>
+              </div>
+            </div>
           </div>
-        </div>
+        </CardPanelSectionAction>
         <Modal
           isOpen={modals.addGroup.isOpen}
           onRequestClose={this.props.closeAddGroupModal}

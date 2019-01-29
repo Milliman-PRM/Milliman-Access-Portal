@@ -55,12 +55,12 @@
         }
     }
 
-    .admin-panel-content-container {
-        flex: 1 1 auto;
-        overflow-y: auto;
-        overflow-x: hidden;
+    .admin-panel-content-container,
+    .admin-panel-action-container {
         padding-right: 1em;
         padding-left: 3px;
+        overflow-y: auto;
+        overflow-x: hidden;
         padding-top: 0;
 
         .admin-panel-content-action,
@@ -84,7 +84,7 @@
                 flex-flow: row nowrap;
                 align-items: center;
                 text-align: center;
-                height: 5em;
+                height: 5.25em;
                 text-transform: uppercase;
 
                 &:hover {
@@ -113,6 +113,10 @@
                 }
             }
         }
+    }
+
+    .admin-panel-content-container {
+        flex: 1 1 auto;
     }
 }
 
