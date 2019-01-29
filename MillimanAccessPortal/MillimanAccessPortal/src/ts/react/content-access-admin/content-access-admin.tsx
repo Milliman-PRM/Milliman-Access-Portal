@@ -484,6 +484,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
           ariaHideApp={false}
           className="modal"
           overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
         >
           <h3 className="title blue">Add Selection Group</h3>
           <span className="modal-text">Selection group name:</span>
@@ -521,6 +522,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
           ariaHideApp={false}
           className="modal"
           overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
         >
           <h3 className="title red">Delete Selection Group</h3>
           <span className="modal-text">Delete <strong>{groupDelete ? groupDelete.name : ''}</strong>?</span>
@@ -608,6 +610,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
           ariaHideApp={false}
           className="modal"
           overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
         >
           <h3 className="title orange">Warning</h3>
           <span className="modal-text">
