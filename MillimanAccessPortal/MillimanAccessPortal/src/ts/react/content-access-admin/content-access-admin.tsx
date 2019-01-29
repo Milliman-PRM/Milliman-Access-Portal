@@ -390,6 +390,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                             style={{ width: '100%' }}
                           >
                             <Select
+                              className="react-select"
                               options={users.map((u) => ({
                                 value: u.id,
                                 label: `${u.firstName} ${u.lastName}`,
