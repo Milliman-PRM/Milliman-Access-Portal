@@ -3,6 +3,7 @@
 import * as React from 'react';
 
 import { getData } from '../../shared';
+import { StatusMonitor } from '../../status-monitor';
 import { ContentTypeEnum } from '../../view-models/content-publishing';
 import { ContentContainer } from '../shared-components/content-container';
 import { Filter } from '../shared-components/filter';
@@ -15,6 +16,8 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
+  private readonly statusMonitor = new StatusMonitor('/Account/SessionStatus', () => null, 60000);
+
   public constructor(props) {
     super(props);
 
@@ -24,6 +27,8 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       selectedContentType: null,
       filterString: '',
     };
+
+    this.statusMonitor.start();
 
     this.setFilterString = this.setFilterString.bind(this);
   }
@@ -44,6 +49,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
               document.getElementById('page-header').style.display = display;
               document.getElementById('page-footer').style.display = display;
               document.getElementById('authorized-content-container').style.display = display;
+              this.statusMonitor.start();
             });
           }
         }
@@ -60,6 +66,11 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       document.getElementById('page-header').style.display = display;
       document.getElementById('page-footer').style.display = display;
       document.getElementById('authorized-content-container').style.display = display;
+      if (contentURL) {
+        this.statusMonitor.stop();
+      } else {
+        this.statusMonitor.start();
+      }
       if (!contentURL) {
         // IE doesn't support popstate on URL hashchange so we need to treat it differently here.
         const isIE = navigator.userAgent.indexOf('MSIE ') > -1 || navigator.userAgent.indexOf('Trident/') > -1;
