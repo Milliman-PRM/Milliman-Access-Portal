@@ -354,7 +354,9 @@ const data = createReducer<AccessStateData>(_initialData, {
     const groups = { ...state.groups };
     const items = { ...state.items };
     _.forEach(liveSelectionsSet, (liveSelections, groupId) => {
-      groups[groupId].selectedValues = liveSelections;
+      if (groups[groupId]) {
+        groups[groupId].selectedValues = liveSelections;
+      }
     });
     _.forEach(groups, (group, groupId) => {
       if (action.payload.groups[groupId]) {
