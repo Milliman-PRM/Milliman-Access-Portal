@@ -70,8 +70,43 @@ INSERT INTO public."AuditEvent"
 	(SELECT "Id", "EventCode", "EventData", "EventType", "SessionId", "TimeStampUtc", "User" 
 	 FROM maplog."AuditEvent" 
 	 WHERE "EventCode" in ( -- List event codes to be extracted
+		1001,
 		1008,
-		1009
+		1009,
+		2001,
+		2002,
+		2003,
+		2005,
+		2006,
+		2007,
+		3001,
+		3004,
+		4001,
+		4002,
+		4003,
+		4004,
+		4005,
+		4006,
+		4007,
+		4008,
+		4009,
+		6001,
+		6002,
+		6003,
+		6101,
+		6102,
+		6103,
+		6105,
+		6106,
+		6107,
+		7001,
+		7002,
+		7003,
+		7004,
+		7101,
+		7103,
+		7104,
+		7105
 		))
 	 ON CONFLICT ON CONSTRAINT "PK_AuditEvent" DO NOTHING;
 
