@@ -240,6 +240,7 @@ namespace MillimanAccessPortal.DataQueries
                 Id = group.Id,
                 RootContentItemId = group.RootContentItemId,
                 IsSuspended = group.IsSuspended,
+                IsInactive = group.IsInactive,
                 IsMaster = group.IsMaster,
                 Name = group.GroupName,
                 AssignedUsers = users,
