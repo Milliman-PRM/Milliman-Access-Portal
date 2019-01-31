@@ -37,7 +37,7 @@ require('../scss/map.scss');
 
 const ajaxStatus: any = {};
 const SHOW_DURATION = 50;
-let eligibleUsers;
+let eligibleUsers: any;
 let formObject: FormBase;
 let defaultWelcomeText: string;
 let statusMonitor: StatusMonitor<null>;
@@ -85,7 +85,7 @@ function showClientDetails() {
   });
 }
 
-function populateClientForm(response) {
+function populateClientForm(response: any) {
   const clientEntity = response.ClientEntity;
   const $clientForm = $('#client-info form.admin-panel-content');
   $clientForm.find(':input,select').removeAttr('data-original-value');
@@ -121,7 +121,7 @@ function populateClientForm(response) {
   }
   bindForm();
 }
-function populateProfitCenterDropDown(profitCenterList) {
+function populateProfitCenterDropDown(profitCenterList: any) {
   $('#ProfitCenterId option:not(option[value = ""])').remove();
   $.each(profitCenterList, function appendProfitCenter() {
     $('#ProfitCenterId').append($('<option />').val(this.Id).text(this.Name + ' (' + this.Code + ')'));
@@ -177,7 +177,7 @@ function displayActionPanelIcons(canManage: boolean) {
   }
 }
 
-function elevatedRoles(userRoles) {
+function elevatedRoles(userRoles: any) {
   return !!$.grep(userRoles, function isElevatedRole(role: {RoleEnum: number, IsAssigned: boolean}) {
     return [1, 3, 4].some(function matchesRole(elevatedRole) {
       return role.RoleEnum === elevatedRole;
@@ -186,7 +186,7 @@ function elevatedRoles(userRoles) {
     return role.IsAssigned;
   }).length;
 }
-function updateUserRoleIndicator(userId, userRoles) {
+function updateUserRoleIndicator(userId: any, userRoles: any) {
   $('#client-users ul.admin-panel-content')
     .find('.card-container[data-user-id="' + userId + '"]')
     .find('.card-user-role-indicator')
@@ -195,7 +195,7 @@ function updateUserRoleIndicator(userId, userRoles) {
     .show();
 }
 
-function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
+function setUserRole(clientId: any, userId: any, roleEnum: any, isAssigned: any, onResponse: any) {
   const $cardContainer = $('#client-users ul.admin-panel-content .card-container[data-user-id="' + userId + '"]');
   const postData = {
     ClientId: clientId,
@@ -219,7 +219,7 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
     });
     updateUserRoleIndicator(postData.UserId, response);
     // Filter response to get the role that was set by the request
-    const modifiedRole = response.filter(function filter(responseRole) {
+    const modifiedRole = response.filter(function filter(responseRole: any) {
       return responseRole.RoleEnum.toString() === postData.RoleEnum;
     })[0];
 
@@ -234,7 +234,7 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
   });
 }
 
-function userCardRoleToggleClickHandler(event) {
+function userCardRoleToggleClickHandler(event: any) {
   const $clickedInput = $(event.target).closest('.toggle-switch').find('.toggle-switch-checkbox');
   event.preventDefault();
   event.stopPropagation();
@@ -255,8 +255,8 @@ function userCardRoleToggleClickHandler(event) {
   $clickedInput.data('disabled', true);
 }
 
-function renderUserNode(client, user) {
-  const $card = new card.UserCard(
+function renderUserNode(client: any, user: any) {
+  const $card: any = new (card.UserCard as any)(
     user,
     client.ClientEntity,
     client.CanManage,
@@ -268,11 +268,11 @@ function renderUserNode(client, user) {
   updateUserRoleIndicator(user.Id, user.UserRoles);
 }
 
-function renderUserList(response) {
+function renderUserList(response: any) {
   const client = response;
   const $clientUserList = $('#client-users ul.admin-panel-content');
   $clientUserList.empty();
-  client.AssignedUsers.forEach(function render(user) {
+  client.AssignedUsers.forEach(function render(user: any) {
     renderUserNode(client, user);
   });
   $clientUserList.find('.tooltip').tooltipster();
@@ -285,12 +285,12 @@ function renderUserList(response) {
     .show();
   $('#client-users ul.admin-panel-content')
     .filter(() => client.CanManage)
-    .append(new card.AddUserActionCard(addUserClickHandler).build());
+    .append(new (card.AddUserActionCard as any)(addUserClickHandler).build());
 }
 
 function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
   const parentClientId = $parentClientDiv.parent().data().clientId;
-  const $template = new card.AddChildInsertCard(1).build();
+  const $template = new (card.AddChildInsertCard as any)(1).build();
 
   shared.clearForm($('#client-info'));
   $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
@@ -320,7 +320,7 @@ function clearUserList() {
   $('#client-users .action-icon').hide();
 }
 
-function getClientDetail($clientDiv, accessMode?: AccessMode, callback: () => void = null) {
+function getClientDetail($clientDiv: any, accessMode?: AccessMode, callback: () => void = null) {
   const data = $clientDiv.data();
   const clientId = data.clientId;
 
@@ -359,7 +359,7 @@ function getClientDetail($clientDiv, accessMode?: AccessMode, callback: () => vo
   });
 }
 
-function openClientCardReadOnly($clientCard, callback: () => void = null) {
+function openClientCardReadOnly($clientCard: any, callback: () => void = null) {
   removeClientInserts();
   clearClientSelection();
   $clientCard.attr('selected', '');
@@ -377,15 +377,15 @@ function openNewClientForm() {
   showClientDetails();
 }
 
-function clientCardDeleteClickHandler(event) {
+function clientCardDeleteClickHandler(event: any) {
   const $clickedCard = $(this).closest('.card-container');
   const clientId = $clickedCard.data().clientId;
   const clientName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
-  new dialog.DeleteClientDialog(
+  new (dialog.DeleteClientDialog as any)(
     clientName,
     clientId,
-    (data, callback) => {
+    (data: any, callback: any) => {
       if (data.password) {
         shared.showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
@@ -401,11 +401,11 @@ function clientCardDeleteClickHandler(event) {
   ).open();
 }
 
-function userCardRemoveClickHandler(event) {
+function userCardRemoveClickHandler(event: any) {
   const $clickedCard = $(this).closest('.card-container');
   const userName = $clickedCard.find('.card-body-primary-text').html();
   event.stopPropagation();
-  new dialog.RemoveUserDialog(userName, function removeUser(_, callback) {
+  new (dialog.RemoveUserDialog as any)(userName, function removeUser(_: any, callback: any) {
     const clientId = $clickedCard.attr('data-client-id');
     const userId = $clickedCard.attr('data-user-id');
     removeUserFromClient(clientId, userId, callback);
@@ -414,7 +414,7 @@ function userCardRemoveClickHandler(event) {
 
 const newClientClickHandler = shared.wrapCardCallback(() => openNewClientForm(), () => formObject);
 
-function saveNewUser(username, email, callback) {
+function saveNewUser(username: any, email: any, callback: any) {
   const clientId = $('#client-tree [selected]').closest('[data-client-id]').attr('data-client-id');
   $.ajax({
     data: {
@@ -443,9 +443,9 @@ function saveNewUser(username, email, callback) {
 }
 
 function addUserClickHandler() {
-  new dialog.AddUserDialog(
+  new (dialog.AddUserDialog as any)(
     eligibleUsers,
-    (data, callback) => {
+    (data: any, callback: any) => {
       let singleMatch = 0;
       shared.userSubstringMatcher(eligibleUsers)(data.username, (matches) => {
         singleMatch = matches.length;
@@ -467,7 +467,7 @@ function addUserClickHandler() {
   ).open();
 }
 
-function removeUserFromClient(clientId, userId, callback) {
+function removeUserFromClient(clientId: any, userId: any, callback: any) {
   const userName = $(`#client-users ul.admin-panel-content [data-user-id="${userId}"] .card-body-primary-text`).html();
   const clientName = $('#client-tree [data-client-id="' + clientId + '"] .card-body-primary-text').html();
   shared.showButtonSpinner($('.vex-first'), 'Removing');
@@ -507,8 +507,8 @@ function cancelIconClickHandler() {
   });
 }
 
-function renderClientNode(client, level) {
-  const $clientCard = new card.ClientCard(
+function renderClientNode(client: any, level: any) {
+  const $clientCard = new (card.ClientCard as any)(
     client.ClientModel.ClientEntity,
     client.ClientModel.AssignedUsers.length,
     client.ClientModel.ContentItems.length,
@@ -549,15 +549,15 @@ function renderClientNode(client, level) {
   $('#client-tree ul.admin-panel-content').append($clientCard.build());
 
   // Render child nodes
-  client.Children.forEach((child) => {
+  client.Children.forEach((child: any) => {
     renderClientNode(child, level + 1);
   });
 }
 
-function renderClientTree(clientTreeList, clientId) {
+function renderClientTree(clientTreeList: any, clientId: any) {
   const $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
-  clientTreeList.forEach(function render(rootClient) {
+  clientTreeList.forEach(function render(rootClient: any) {
     renderClientNode(rootClient, 0);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
@@ -567,11 +567,11 @@ function renderClientTree(clientTreeList, clientId) {
     $('#client-tree [data-client-id="' + clientId + '"] .card-body-container').click();
   }
   if ($('#client-tree .action-icon-add').length) {
-    $clientTreeList.append(new card.AddClientActionCard(newClientClickHandler).build());
+    $clientTreeList.append(new (card.AddClientActionCard as any)(newClientClickHandler).build());
   }
 }
 
-function deleteClient(clientId, clientName, password, callback) {
+function deleteClient(clientId: any, clientName: any, password: any, callback: any) {
   $.ajax({
     data: {
       Id: clientId,
@@ -596,7 +596,7 @@ function deleteClient(clientId, clientName, password, callback) {
   });
 }
 
-function getClientTree(clientId?) {
+function getClientTree(clientId?: any) {
   $('#client-tree .loading-wrapper').show();
   $.ajax({
     type: 'GET',
@@ -635,7 +635,7 @@ $(function onReady() {
   $('.tooltip').tooltipster();
 
   $('#client-info form.admin-panel-content #AcceptedEmailDomainList').selectize({
-    create: function onCreate(input) {
+    create: function onCreate(input: any) {
       if (input.match(domainRegex())) {
         return {
           text: input,
@@ -656,7 +656,7 @@ $(function onReady() {
   });
 
   $('#client-info form.admin-panel-content #AcceptedEmailAddressExceptionList').selectize({
-    create: function onCreate(input) {
+    create: function onCreate(input: any) {
       if (input.match(emailRegex())) {
         return {
           text: input,

@@ -7,15 +7,15 @@ import './check-password';
 
 require('../scss/map.scss');
 
-$(document).ready(function () {
+$(document).ready(() => {
   // Don't ignore hidden fields in jquery Validator
-  $("form").data("validator").settings.ignore = "";
+  $('form').data('validator').settings.ignore = '';
 
-  $("input").on("keyup", function () {
+  $('input').on('keyup', () => {
     if ($('form').validate().checkForm()) {
       $('button[type="submit"]').removeAttr('disabled');
     } else {
       $('button[type="submit"]').attr('disabled', 'disabled');
     }
-  })
-})
+  });
+});

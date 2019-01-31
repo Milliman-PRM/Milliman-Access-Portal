@@ -1,6 +1,5 @@
 import $ = require('jquery');
 import toastr = require('toastr');
-import shared = require('./shared');
 const vex = require('vex-js');
 require('typeahead.js');
 
@@ -17,9 +16,9 @@ interface User {
 // This is a duplicate of the function in shared
 // Better separation of functionality would allow this to exist in one place
 // This is a temporary solution only.
-const userSubstringMatcher = (users) => {
-  return function findMatches(query, callback) {
-    const matches = [];
+const userSubstringMatcher = (users: any) => {
+  return function findMatches(query: any, callback: any) {
+    const matches: any = [];
     const regex = new RegExp(query, 'i');
 
     $.each(users, function check(_, user) {
@@ -35,8 +34,8 @@ const userSubstringMatcher = (users) => {
 };
 
 export function Dialog(
-  title, message, buttons, color, input,
-  callback, submitHandler: (data, callback: () => void, origText: string) => void,
+  title: any, message: any, buttons: any, color: any, input: any,
+  callback: any, submitHandler: (data: any, callback: () => void, origText: string) => void,
 ) {
   const self = this;
   this.title = title;
@@ -51,10 +50,10 @@ export function Dialog(
   };
   if (submitHandler) {
     this.options = $.extend(this.options, {
-      onSubmit(event) {
+      onSubmit(event: any) {
         const vexObject = this;
         event.preventDefault();
-        const data = {};
+        const data: any = {};
         if (self.options.input) {
           $.each($('.vex-dialog-input input').serializeArray(), (_, obj) => {
             data[obj.name] = obj.value;
@@ -81,7 +80,7 @@ Dialog.prototype.open = function() {
   if (this.afterOpen) { this.afterOpen(); }
 };
 
-export function ConfirmationDialog(title, message, buttonText, callback) {
+export function ConfirmationDialog(title: any, message: any, buttonText: any, callback: any) {
   Dialog.call(
     this,
     title,
@@ -92,7 +91,7 @@ export function ConfirmationDialog(title, message, buttonText, callback) {
     ],
     'blue',
     null,
-    (result) => {
+    (result: any) => {
       if (result) {
         callback();
       }
@@ -102,7 +101,7 @@ export function ConfirmationDialog(title, message, buttonText, callback) {
 ConfirmationDialog.prototype = Object.create(Dialog.prototype);
 ConfirmationDialog.prototype.constructor = ConfirmationDialog;
 
-export function DiscardConfirmationDialog(callback) {
+export function DiscardConfirmationDialog(callback: any) {
   ConfirmationDialog.call(
     this,
     'Discard Changes',
@@ -114,7 +113,7 @@ export function DiscardConfirmationDialog(callback) {
 DiscardConfirmationDialog.prototype = Object.create(ConfirmationDialog.prototype);
 DiscardConfirmationDialog.prototype.constructor = DiscardConfirmationDialog;
 
-export function ResetConfirmationDialog(callback) {
+export function ResetConfirmationDialog(callback: any) {
   ConfirmationDialog.call(
     this,
     'Reset Form',
@@ -126,7 +125,7 @@ export function ResetConfirmationDialog(callback) {
 ResetConfirmationDialog.prototype = Object.create(ConfirmationDialog.prototype);
 ResetConfirmationDialog.prototype.constructor = ResetConfirmationDialog;
 
-export function RemoveUserDialog(username, submitHandler) {
+export function RemoveUserDialog(username: any, submitHandler: any) {
   this.buttonText = 'Removing';
   Dialog.call(
     this,
@@ -145,7 +144,7 @@ export function RemoveUserDialog(username, submitHandler) {
 RemoveUserDialog.prototype = Object.create(Dialog.prototype);
 RemoveUserDialog.prototype.constructor = RemoveUserDialog;
 
-export function DeleteSelectionGroupDialog($selectionGroup, submitHandler) {
+export function DeleteSelectionGroupDialog($selectionGroup: any, submitHandler: any) {
   Dialog.call(
     this,
     'Delete Selection Group',
@@ -165,7 +164,7 @@ export function DeleteSelectionGroupDialog($selectionGroup, submitHandler) {
 DeleteSelectionGroupDialog.prototype = Object.create(Dialog.prototype);
 DeleteSelectionGroupDialog.prototype.constructor = DeleteSelectionGroupDialog;
 
-export function PasswordDialog(title, message, buttons, color, submitHandler) {
+export function PasswordDialog(title: any, message: any, buttons: any, color: any, submitHandler: any) {
   Dialog.call(
     this,
     title,
@@ -180,7 +179,7 @@ export function PasswordDialog(title, message, buttons, color, submitHandler) {
 PasswordDialog.prototype = Object.create(Dialog.prototype);
 PasswordDialog.prototype.constructor = PasswordDialog;
 
-export function DeleteClientDialog(clientName, _, submitHandler) {
+export function DeleteClientDialog(clientName: any, _: any, submitHandler: any) {
   const title = 'Delete Client';
   const buttons = [
     { type: vex.dialog.buttons.yes, text: 'Delete' },
@@ -194,9 +193,9 @@ export function DeleteClientDialog(clientName, _, submitHandler) {
     buttons,
     color,
     null,
-    (confirm) => {
+    (confirm: any) => {
       if (confirm) {
-        new PasswordDialog(
+        new (PasswordDialog as any)(
           title,
           'Please provide your password to delete <strong>' + clientName + '</strong>.',
           buttons,
@@ -212,7 +211,7 @@ export function DeleteClientDialog(clientName, _, submitHandler) {
 DeleteClientDialog.prototype = Object.create(Dialog.prototype);
 DeleteClientDialog.prototype.constructor = DeleteClientDialog;
 
-export function DeleteRootContentItemDialog(rootContentItemName, _, submitHandler) {
+export function DeleteRootContentItemDialog(rootContentItemName: any, _: any, submitHandler: any) {
   const title = 'Delete Content Item';
   const buttons = [
     { type: vex.dialog.buttons.yes, text: 'Delete' },
@@ -226,9 +225,9 @@ export function DeleteRootContentItemDialog(rootContentItemName, _, submitHandle
     buttons,
     color,
     null,
-    (confirm) => {
+    (confirm: any) => {
       if (confirm) {
-        new PasswordDialog(
+        new (PasswordDialog as any)(
           title,
           'Please provide your password to delete <strong>' + rootContentItemName + '</strong>.',
           buttons,
@@ -244,7 +243,7 @@ export function DeleteRootContentItemDialog(rootContentItemName, _, submitHandle
 DeleteRootContentItemDialog.prototype = Object.create(Dialog.prototype);
 DeleteRootContentItemDialog.prototype.constructor = DeleteRootContentItemDialog;
 
-export function AddUserDialog(eligibleUsers, submitHandler) {
+export function AddUserDialog(eligibleUsers: any, submitHandler: any) {
   Dialog.call(
     this,
     'Add User',
@@ -293,7 +292,7 @@ export function AddUserDialog(eligibleUsers, submitHandler) {
 AddUserDialog.prototype = Object.create(Dialog.prototype);
 AddUserDialog.prototype.constructor = AddUserDialog;
 
-export function AddSelectionGroupDialog(submitHandler) {
+export function AddSelectionGroupDialog(submitHandler: any) {
   Dialog.call(
     this,
     'Add Selection Group',
@@ -315,7 +314,9 @@ export function AddSelectionGroupDialog(submitHandler) {
 AddSelectionGroupDialog.prototype = Object.create(Dialog.prototype);
 AddSelectionGroupDialog.prototype.constructor = AddSelectionGroupDialog;
 
-export function CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, submitHandler) {
+export function CancelContentPublicationRequestDialog(
+  rootContentItemId: any, rootContentItemName: any, submitHandler: any,
+) {
   Dialog.call(
     this,
     'Cancel content publication request',
@@ -334,7 +335,7 @@ export function CancelContentPublicationRequestDialog(rootContentItemId, rootCon
 CancelContentPublicationRequestDialog.prototype = Object.create(Dialog.prototype);
 CancelContentPublicationRequestDialog.prototype.constructor = CancelContentPublicationRequestDialog;
 
-export function NoSelectionsDialog(submitHandler) {
+export function NoSelectionsDialog(submitHandler: any) {
   Dialog.call(
     this,
     'Warning',
