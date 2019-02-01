@@ -104,7 +104,7 @@ namespace MillimanAccessPortal
                     #endregion
                 })
             .ConfigureLogging((hostingContext, config) => config.ClearProviders())  // remove asp default logger
-            // .UseApplicationINsights() is removed due to use of Serilog. Consider package serilog.sinks.applicationinsights if this is needed.
+            .UseApplicationInsights() // is removed due to use of Serilog. Consider package serilog.sinks.applicationinsights if this is needed.
             ;
 
             if (new List<string> { "DEVELOPMENT", "STAGING" }.Contains(EnvironmentNameUpper))
