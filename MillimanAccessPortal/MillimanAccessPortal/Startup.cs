@@ -38,6 +38,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using NetEscapades.AspNetCore.SecurityHeaders;
 using MillimanAccessPortal.Utilities;
+using System.Diagnostics;
+using Serilog;
 
 namespace MillimanAccessPortal
 {
@@ -204,6 +206,18 @@ namespace MillimanAccessPortal
             var options = new RewriteOptions()
                .AddRedirectToHttps();
 
+            // time the entire middleware execution
+            app.Use(async (context, next) =>
+            {
+                var stopwatch = new Stopwatch();
+
+                stopwatch.Start();
+                await next();
+                stopwatch.Stop();
+
+                Log.Information("Middleware pipeline took {elapsed}ms", stopwatch.Elapsed.TotalMilliseconds);
+            });
+
             app.UseRewriter(options);
 
             if (env.IsDevelopment() || env.EnvironmentName.ToUpper() == "AZURECI")
@@ -287,6 +301,19 @@ namespace MillimanAccessPortal
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
 
             app.UseSession();
+
+            // time action execution
+            app.Use(async (context, next) =>
+            {
+                var stopwatch = new Stopwatch();
+
+                stopwatch.Start();
+                await next();
+                stopwatch.Stop();
+
+                Log.Information("MVC took {elapsed}ms", stopwatch.Elapsed.TotalMilliseconds);
+            });
+
 
             app.UseMvc(routes =>
             {
