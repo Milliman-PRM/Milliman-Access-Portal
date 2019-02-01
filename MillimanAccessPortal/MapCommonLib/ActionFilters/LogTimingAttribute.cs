@@ -1,6 +1,6 @@
 ﻿/*
  * OBJECTIVE: Log high level timing for an action
- * DEVELOPER NOTES: For an action, OnAction... methods and both called before either OnResult... methods.
+ * DEVELOPER NOTES: For an action, OnAction... methods are both called before either OnResult... methods.
  */
 
 using Microsoft.AspNetCore.Mvc.Filters;
