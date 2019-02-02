@@ -112,3 +112,7 @@ footer {
     background-color: transparent;
     z-index: 20;
 }
+
+#username[readonly] {
+    cursor: pointer !important;
+}
