@@ -166,6 +166,7 @@
     &.hidden {
         top: -1rem;
         opacity: 0;
+        pointer-events: none;
     }
 }
 
