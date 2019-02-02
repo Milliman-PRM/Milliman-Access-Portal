@@ -1,6 +1,10 @@
 ﻿@import "../../map_modules/variables";
 @import "../../map_modules/mixins";
 
+body {
+    overflow: hidden;
+}
+
 #login-splash-panel {
     position: absolute;
     height: 100vh;
@@ -10,6 +14,7 @@
     transform: skew(-10deg, 0deg);
     overflow: hidden;
     box-shadow: rgba(0, 0, 0, .3) .2em .2em .75em;
+
 
     &:before {
         content: "";
@@ -24,6 +29,23 @@
     }
 }
 
+@include for-laptop-down {
+    #login-splash-panel {
+        position: relative;
+        display: block;
+        height: 25vh;
+        width: 100vw;
+        left: 0;
+        transform: none;
+
+        &:before {
+            transform: none;
+            background-position: center -10vh;
+            background-size: contain;
+        }
+    }
+}
+
 #login-wrapper {
     position: absolute;
     right: 0;
@@ -35,6 +57,14 @@
     width: 40vw;
     padding: 1em 5vw;
 
+    @include for-laptop-down {
+        left: 0;
+        top: 25vh;
+        height: 75vh;
+        width: 100vw;
+        padding: 1em;
+    }
+
     #login-container {
         display: flex;
         flex-flow: column nowrap;
@@ -44,8 +74,12 @@
         align-self: center;
         margin: 0 auto;
         padding: 1em;
-        width: 30rem;
-        max-width: 95vw;
+        width: 100%;
+        max-width: 30em;
+
+        @include for-tablet-down {
+            justify-content: flex-start;
+        }
 
         #login-form-container {
             display: inline-block;
@@ -98,6 +132,10 @@
 
 footer a {
     color: $white !important;
+
+    @include for-laptop-down {
+        color: $blue !important;
+    }
 }
 
 footer #copyright {
