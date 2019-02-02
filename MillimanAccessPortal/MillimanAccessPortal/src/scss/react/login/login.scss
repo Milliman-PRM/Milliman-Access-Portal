@@ -136,6 +136,10 @@ footer a {
     @include for-laptop-down {
         color: $blue !important;
     }
+
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
 footer #copyright {
