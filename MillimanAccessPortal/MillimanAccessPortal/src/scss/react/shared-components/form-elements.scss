@@ -95,7 +95,6 @@
                 border: none;
                 background-color: transparent;
                 color: $charcoal;
-                z-index: 1;
                 transition: all .25s;
 
                 &:focus:not([readonly]) {
@@ -138,7 +137,7 @@
                 font-weight: 300;
                 color: $dark-grey;
                 opacity: 0;
-                z-index: 0;
+                pointer-events: none;
             }
         }
     }
