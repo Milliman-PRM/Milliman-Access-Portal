@@ -141,6 +141,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
             type="button"
             className="red-button"
             onClick={this.props.onCancelReduction}
+            style={{ alignSelf: 'flex-start' }}
           >
             Cancel
             {this.props.submitting
