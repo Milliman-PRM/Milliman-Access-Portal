@@ -10,3 +10,10 @@
 .rrt-warning, .toast-warning {
     background-color: $red !important;
 }
+
+.rrt-right-container > button {
+    margin: 0;
+}
+.rrt-middle-container {
+    padding: 24px 5px !important;
+}

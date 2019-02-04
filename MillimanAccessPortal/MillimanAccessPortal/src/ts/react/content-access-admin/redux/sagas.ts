@@ -70,36 +70,36 @@ export default function* rootSaga() {
 
   // toastr
   yield takeEvery(AccessAction.CreateGroup + DataSuffixes.Succeeded, function*() {
-    toastr.success('', 'Selection group created');
+    toastr.success('', 'Selection group created.');
   });
   yield takeEvery(AccessAction.DeleteGroup + DataSuffixes.Succeeded, function*() {
-    toastr.success('', 'Selection group deleted');
+    toastr.success('', 'Selection group deleted.');
   });
   yield takeEvery(AccessAction.UpdateGroup + DataSuffixes.Succeeded, function*() {
-    toastr.success('', 'Selection group updated');
+    toastr.success('', 'Selection group updated.');
   });
   yield takeEvery(AccessAction.SuspendGroup + DataSuffixes.Succeeded, function*(action: any) {
     const { isSuspended } = action.payload;
-    toastr.success('', `Selection group ${isSuspended ? '' : 'un'}suspended`);
+    toastr.success('', `Selection group ${isSuspended ? '' : 'un'}suspended.`);
   });
   yield takeEvery(AccessAction.UpdateSelections + DataSuffixes.Succeeded, function*(action: any) {
     const { group, reduction } = action.payload;
     toastr.success('', reduction && reduction.taskStatus === 10
-      ? 'Reduction queued'
+      ? 'Reduction queued.'
       : group && group.isMaster
-        ? 'Unrestricted access granted'
-        : 'Group inactivated');
+        ? 'Unrestricted access granted.'
+        : 'Group inactivated.');
   });
   yield takeEvery(AccessAction.CancelReduction + DataSuffixes.Succeeded, function*() {
-    toastr.success('', 'Reduction canceled');
+    toastr.success('', 'Reduction canceled.');
   });
   yield takeEvery(AccessAction.CancelReduction + DataSuffixes.Failed, function*() {
-    toastr.info('', 'The reduction has already begun processing');
+    toastr.info('', 'The reduction has already begun processing.');
   });
   yield takeEvery((action) => (
       action.type.match(`${DataSuffixes.Failed}$`)
       && !action.type.match(`^${AccessAction.CancelReduction}`)
     ), function*() {
-      toastr.warning('', 'An unexpected error has occured');
+      toastr.warning('', 'An unexpected error has occured.');
   });
 }
