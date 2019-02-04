@@ -125,7 +125,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
               type="button"
               className="blue-button"
               onClick={this.props.onBeginReduction}
-              style={{ alignSelf: 'flex-start' }}
+              style={{ alignSelf: 'flex-end' }}
             >
               Submit
               {this.props.submitting
@@ -141,7 +141,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
             type="button"
             className="red-button"
             onClick={this.props.onCancelReduction}
-            style={{ alignSelf: 'flex-start' }}
+            style={{ alignSelf: 'flex-end' }}
           >
             Cancel
             {this.props.submitting
