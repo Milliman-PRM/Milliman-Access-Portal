@@ -96,7 +96,10 @@ export default function* rootSaga() {
   yield takeEvery(AccessAction.CancelReduction + DataSuffixes.Failed, function*() {
     toastr.info('', 'The reduction has already begun processing');
   });
-  yield takeEvery((action) => action.type.match(`${DataSuffixes.Failed}$`), function*() {
-    toastr.warning('', 'An unexpected error has occured');
+  yield takeEvery((action) => (
+      action.type.match(`${DataSuffixes.Failed}$`)
+      && !action.type.match(`^${AccessAction.CancelReduction}`)
+    ), function*() {
+      toastr.warning('', 'An unexpected error has occured');
   });
 }
