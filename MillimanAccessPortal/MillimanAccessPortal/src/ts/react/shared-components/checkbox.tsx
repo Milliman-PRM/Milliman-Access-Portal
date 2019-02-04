@@ -12,10 +12,10 @@ export interface CheckboxProps extends CheckboxData {
 
 export class Checkbox extends React.Component<CheckboxProps> {
   public render() {
-    const { name, selected, modified } = this.props;
+    const { name, selected, modified, readOnly } = this.props;
     return (
       <div className="selection-option-container">
-        <label className="selection-option-label">
+        <label className={`selection-option-label${readOnly ? ' readonly' : ''}`}>
           {name}{modified ? '*' : ''}
           <input
             type="checkbox"

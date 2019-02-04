@@ -124,7 +124,6 @@
 /* Checkboxes */
 .selection-option-container {
     padding-left: .5em;
-    cursor: pointer;
 }
 
 .selection-option-label {
@@ -138,9 +137,9 @@
     .selection-option-value {
         position: absolute;
         opacity: 0;
-        cursor: pointer;
         width: 0;
     }
+
 
     .selection-option-checkmark {
         position: absolute;
@@ -164,15 +163,37 @@
         }
     }
 
-    &:hover .selection-option-value ~ .selection-option-checkmark {
-        background-color: $dark-grey;
-    }
-
     .selection-option-value:checked ~ .selection-option-checkmark {
         background-color: $blue;
 
         &:after {
             display: block;
+        }
+    }
+
+    &:hover .selection-option-value ~ .selection-option-checkmark {
+        background-color: darken($grey, 20%);
+    }
+    &:hover .selection-option-value:checked ~ .selection-option-checkmark {
+        background-color: darken($blue, 20%);
+    }
+
+    &.readonly {
+        cursor: default;
+
+        .selection-option-checkmark {
+            cursor: default;
+        }
+
+        .selection-option-value:checked ~ .selection-option-checkmark {
+            background-color: $dark-grey;
+        }
+
+        &:hover .selection-option-value ~ .selection-option-checkmark {
+            background-color: $grey;
+        }
+        &:hover .selection-option-value:checked ~ .selection-option-checkmark {
+            background-color: $dark-grey;
         }
     }
 }
