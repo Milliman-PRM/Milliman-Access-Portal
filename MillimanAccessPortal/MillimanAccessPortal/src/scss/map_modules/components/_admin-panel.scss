@@ -134,6 +134,9 @@
     cursor: pointer;
     user-select: none;
 
+    padding-top: 0.125em;
+    padding-bottom: 0.125em;
+
     .selection-option-value {
         position: absolute;
         opacity: 0;
