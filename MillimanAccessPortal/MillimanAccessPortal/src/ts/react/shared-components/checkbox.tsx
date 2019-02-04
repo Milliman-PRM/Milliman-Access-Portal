@@ -1,3 +1,6 @@
+import '../../../images/add-circle.svg';
+import '../../../images/remove-circle.svg';
+
 import * as React from 'react';
 
 export interface CheckboxData {
@@ -13,10 +16,18 @@ export interface CheckboxProps extends CheckboxData {
 export class Checkbox extends React.Component<CheckboxProps> {
   public render() {
     const { name, selected, modified, readOnly } = this.props;
+    const modifiedClass = modified
+      ? selected
+        ? ' added'
+        : ' removed'
+      : '';
     return (
-      <div className="selection-option-container">
+      <div className="selection-option-container" style={{ display: 'flex' }}>
+        <svg className={`selection-option-modified${modifiedClass}`}>
+          <use href={`#${selected ? 'add' : 'remove'}-circle`} />
+        </svg>
         <label className={`selection-option-label${readOnly ? ' readonly' : ''}`}>
-          {name}{modified ? '*' : ''}
+          {name}
           <input
             type="checkbox"
             className="selection-option-value"

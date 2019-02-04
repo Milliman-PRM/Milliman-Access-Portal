@@ -123,7 +123,25 @@
 
 /* Checkboxes */
 .selection-option-container {
-    padding-left: .5em;
+    padding-left: .2em;
+}
+
+.selection-option-modified {
+    width: 1.3125em;
+    height: 1.3125em;
+    flex: none;
+    margin-right: 0.4em;
+    align-self: flex-start;
+    color: rgba(0, 0, 0, 0);
+    cursor: default;
+
+    &.added {
+        color: $green;
+    }
+
+    &.removed {
+        color: $red;
+    }
 }
 
 .selection-option-label {
@@ -156,7 +174,7 @@
             content: "";
             position: absolute;
             display: none;
-            left: .65em;
+            left: .67em;
             top: .30em;
             width: .5em;
             height: 1em;
