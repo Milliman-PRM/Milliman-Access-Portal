@@ -41,9 +41,17 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
     return loading
       ? <ColumnSpinner />
       : (
-        <div className="admin-panel-form">
+        <div className="admin-panel-form" style={{ display: 'flex', flex: 'auto' }}>
           <div className="admin-panel-content-container">
-            <form className="admin-panel-content">
+            <form
+              className="admin-panel-content"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 'auto',
+                height: 'calc(100% - 1.5em)',
+              }}
+            >
               <h2>{title}</h2>
               <h3>{subtitle}</h3>
               <Toggle
@@ -62,8 +70,15 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
     const { doesReduce, isMaster, onIsMasterChange, status } = this.props;
     return doesReduce
       ? (
-        <div className="selection-content">
-          <hr />
+        <div
+          className="selection-content"
+          style={{
+            flex: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <hr style={{ width: '100%', marginTop: 0 }} />
           <Toggle
             label={'Unrestricted Access'}
             checked={isMaster}
@@ -80,7 +95,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
     return this.props.isMaster
       ? null
       : (
-        <div className="fieldset-container">
+        <div className="fieldset-container" style={{ flex: '1 1 1px', overflowY: 'auto' }}>
           {this.renderReductionFields()}
         </div>
       );
@@ -110,6 +125,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
               type="button"
               className="blue-button"
               onClick={this.props.onBeginReduction}
+              style={{ alignSelf: 'flex-start' }}
             >
               Submit
               {this.props.submitting
