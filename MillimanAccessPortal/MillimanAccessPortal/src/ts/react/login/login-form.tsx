@@ -29,6 +29,9 @@ export class LoginForm extends Form<{}, LoginFormState> {
       .label('Password'),
   };
 
+  private usernameInput: string | React.RefObject<{}> | any;
+  private passwordInput: string | React.RefObject<{}> | any;
+
   public constructor(props: {}) {
     super(props);
 
@@ -39,6 +42,11 @@ export class LoginForm extends Form<{}, LoginFormState> {
       data: { username: '', password: '' },
       errors: {},
     };
+
+    this.usernameInput = React.createRef<HTMLInputElement>();
+    this.passwordInput = React.createRef<HTMLInputElement>();
+    this.focusUsernameInput = this.focusUsernameInput.bind(this);
+    this.focusPasswordInput = this.focusPasswordInput.bind(this);
   }
 
   public render() {
@@ -64,6 +72,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
         <Input
           name="username"
           label="Username"
+          ref={this.usernameInput}
           type="text"
           value={data.username}
           onChange={this.handleChange}
@@ -79,6 +88,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
         <Input
           name="password"
           label="Password"
+          ref={this.passwordInput}
           type="password"
           value={data.password}
           onChange={this.handleChange}
@@ -130,7 +140,9 @@ export class LoginForm extends Form<{}, LoginFormState> {
   }
 
   protected handleUsernameClick = () => {
-    this.setState({ userConfirmed: false });
+    this.setState({ userConfirmed: false }, () => {
+      this.focusUsernameInput();
+    });
   }
 
   private checkUser = (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
@@ -152,8 +164,18 @@ export class LoginForm extends Form<{}, LoginFormState> {
         this.setState({
           userConfirmed: true,
           awaitingConfirmation: false,
+        }, () => {
+          this.focusPasswordInput();
         });
       }, 2000);
     });
+  }
+
+  private focusUsernameInput() {
+    this.usernameInput.current.focus();
+  }
+
+  private focusPasswordInput() {
+    this.passwordInput.current.focus();
   }
 }
