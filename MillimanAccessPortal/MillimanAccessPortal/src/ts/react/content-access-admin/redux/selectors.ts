@@ -458,7 +458,7 @@ export function groupEntities(state: AccessState) {
     ...g,
     assignedUsers: _.sortBy(
       pendingGroupUserAssignments(state, g.id).map((id) => state.data.users[id]),
-      [(u) => u.firstName + u.lastName, 'username'],
+      [(u) => u.firstName && u.lastName && (u.firstName + u.lastName), 'username'],
     ) as User[],
     name: pendingGroupName(state, g.id),
     editing: state.pending.group.id === g.id,

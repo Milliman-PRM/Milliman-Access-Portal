@@ -375,8 +375,20 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                           : <ActionIcon icon="user" />
                       }
                         <div className="detail-item-user-name">
-                          <h4>{`${u.firstName} ${u.lastName}`}</h4>
-                          <span>{u.userName}</span>
+                          {u.firstName && u.lastName
+                          ? (
+                            <div style={{ fontSize: '1em', fontWeight: 'bold' }}>
+                              {`${u.firstName} ${u.lastName}`}
+                            </div>
+                          )
+                          : (
+                            <div style={{ fontSize: '1em' }}>
+                              (Unactivated)
+                            </div>
+                          )}
+                          <div style={{ fontSize: '0.85em' }}>
+                            {u.userName}
+                          </div>
                         </div>
                       </span>
                     </li>
@@ -393,11 +405,37 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                               className="react-select"
                               options={users.map((u) => ({
                                 value: u.id,
-                                label: `${u.firstName} ${u.lastName}`,
+                                firstLast: u.firstName && u.lastName && `${u.firstName} ${u.lastName}`,
+                                username: u.userName,
                               }))}
+                              formatOptionLabel={(data) => (
+                                <>
+                                  {data.firstLast
+                                  ? (
+                                    <div style={{ fontSize: '1em', fontWeight: 'bold' }}>
+                                      {data.firstLast}
+                                    </div>
+                                  )
+                                  : (
+                                    <div style={{ fontSize: '1em' }}>
+                                      (Unactivated)
+                                    </div>
+                                  )}
+                                  <div style={{ fontSize: '0.85em' }}>
+                                    {data.username}
+                                  </div>
+                                </>
+                              )}
+                              filterOption={({ data }, rawInput) => (
+                                data.username.toLowerCase().match(rawInput.toLowerCase())
+                                || (
+                                  data.firstLast
+                                  && data.firstLast.toLowerCase().match(rawInput.toLowerCase())
+                                )
+                              )}
                               onChange={(value, action) => {
                                 if (action.action === 'select-option') {
-                                  const singleValue = value as { value: string; label: string; };
+                                  const singleValue = value as { value: string; };
                                   this.props.setPendingGroupUserAssigned(singleValue.value);
                                 }
                               }}
