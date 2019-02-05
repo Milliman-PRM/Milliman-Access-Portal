@@ -104,7 +104,6 @@ namespace MillimanAccessPortal
                     #endregion
                 })
             .ConfigureLogging((hostingContext, config) => config.ClearProviders())  // remove ASP default logger
-            .UseApplicationInsights()  // consider package Serilog.Sinks.ApplicationInsights for logging telemetry
             ;
 
             if (new List<string> { "DEVELOPMENT", "STAGING" }.Contains(EnvironmentNameUpper))

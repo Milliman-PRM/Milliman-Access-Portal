@@ -172,6 +172,8 @@ namespace MillimanAccessPortal
                 }
             });
 
+            services.AddApplicationInsightsTelemetry(Configuration);
+
             string fileUploadPath = Path.GetTempPath();
             // The environment variable check enables migrations to be deployed to Staging or Production via the MAP deployment server
             // This variable should never be set on a real production or staging system
