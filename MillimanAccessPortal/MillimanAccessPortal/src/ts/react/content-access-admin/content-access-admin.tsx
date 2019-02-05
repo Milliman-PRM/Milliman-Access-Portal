@@ -363,17 +363,25 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                   {entity.assignedUsers.map((u) => (
                     <li key={u.id}>
                       <span className="detail-item-user">
-                      {
-                        entity.editing
-                          ? <div>
-                              <CardButton
-                                icon="remove-circle"
-                                color="red"
-                                onClick={() => this.props.setPendingGroupUserRemoved(u.id)}
-                              />
-                            </div>
-                          : <ActionIcon icon="user" />
-                      }
+                        <div style={{ marginRight: '0.5em' }}>
+                        {
+                          entity.editing
+                            ? <CardButton
+                              icon="remove-circle"
+                              color="red"
+                              onClick={() => this.props.setPendingGroupUserRemoved(u.id)}
+                            />
+                            : <svg
+                              className="action-icon"
+                              style={{
+                                width: 'calc(1.8em + 4px)',
+                                height: 'calc(1.8em + 4px)',
+                              }}
+                            >
+                              <use xlinkHref={'#user'} />
+                            </svg>
+                        }
+                        </div>
                         <div className="detail-item-user-name">
                           {u.firstName && u.lastName
                           ? (
