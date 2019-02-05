@@ -288,7 +288,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             var usersToKeep = currentUsers
                 .Where(u => users.Contains(u.UserId))
-                .Select(u => u.Id);
+                .Select(u => u.UserId);
             var usersToAdd = users.Except(usersToKeep).Select(uid => new UserInSelectionGroup
             {
                 UserId = uid,

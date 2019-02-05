@@ -230,20 +230,18 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="name">New name for the selection group</param>
         /// <param name="users">New list of users for the selection group</param>
         /// <returns>Response model</returns>
-        public BasicSelectionGroupWithAssignedUsers UpdateGroup(Guid selectionGroupId, string name, List<Guid> users)
+        public UpdateGroupResponseModel UpdateGroup(Guid selectionGroupId, string name, List<Guid> users)
         {
             _selectionGroupQueries.UpdateSelectionGroupName(selectionGroupId, name);
             var group = _selectionGroupQueries.UpdateSelectionGroupUsers(selectionGroupId, users);
 
-            return new BasicSelectionGroupWithAssignedUsers
+            var groupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
+            var contentItemStats = _contentItemQueries.SelectContentItemWithStats(group.RootContentItemId);
+
+            return new UpdateGroupResponseModel
             {
-                Id = group.Id,
-                RootContentItemId = group.RootContentItemId,
-                IsSuspended = group.IsSuspended,
-                IsInactive = group.IsInactive,
-                IsMaster = group.IsMaster,
-                Name = group.GroupName,
-                AssignedUsers = users,
+                Group = groupWithUsers,
+                ContentItemStats = contentItemStats,
             };
         }
 

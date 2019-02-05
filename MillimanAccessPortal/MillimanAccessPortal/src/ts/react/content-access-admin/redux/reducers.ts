@@ -405,7 +405,7 @@ const data = createReducer<AccessStateData>(_initialData, {
     };
   },
   [AccessAction.UpdateGroup + DataSuffixes.Succeeded]: (state, action) => {
-    const group = action.payload;
+    const { group, contentItemStats } = action.payload;
     return {
       ...state,
       groups: {
@@ -413,6 +413,13 @@ const data = createReducer<AccessStateData>(_initialData, {
         [group.id]: {
           ...state.groups[group.id],
           ...group,
+        },
+      },
+      items: {
+        ...state.items,
+        [contentItemStats.id]: {
+          ...state.items[contentItemStats.id],
+          ...contentItemStats,
         },
       },
     };
