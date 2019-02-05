@@ -87,6 +87,7 @@ export interface ContentReductionTask {
   selectedValues: Guid[];
   createDateTimeUtc: string;
   taskStatus: ReductionStatus;
+  taskStatusMessage: string;
 }
 export interface ContentType {
   id: Guid;

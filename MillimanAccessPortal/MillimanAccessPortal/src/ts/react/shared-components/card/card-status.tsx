@@ -1,11 +1,13 @@
 import * as moment from 'moment';
 import * as React from 'react';
+import { toastr } from 'react-redux-toastr';
 
 import {
     isPublicationActive, isReductionActive, PublicationStatus, ReductionStatus,
 } from '../../../view-models/content-publishing';
 import {
-    isPublicationRequest, PublicationWithQueueDetails, ReductionWithQueueDetails, User,
+    isPublicationRequest, isReductionTask, PublicationWithQueueDetails, ReductionWithQueueDetails,
+    User,
 } from '../../models';
 
 export interface CardStatusProps {
@@ -19,7 +21,15 @@ export class CardStatus extends React.Component<CardStatusProps> {
       : [status.taskStatus, isReductionActive(status.taskStatus)];
     return isActive
       ? (
-        <div className={`card-status-container status-${statusValue}`}>
+        <div
+          className={`card-status-container status-${statusValue}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            if (isReductionTask(status) && status.taskStatusMessage) {
+              toastr.error('', status.taskStatusMessage);
+            }
+          }}
+        >
           <div className="status-top">{this.renderStatusTitle()}</div>
           <div className="status-bot">{this.renderStatusMessage()}</div>
         </div>
@@ -68,6 +78,10 @@ export class CardStatus extends React.Component<CardStatusProps> {
       if (taskStatus === ReductionStatus.Queued) {
         const { queuePosition: position } = queueDetails;
         queueString = `(behind ${position} other reduction${s(position)})`;
+      } else if (taskStatus === ReductionStatus.Error) {
+        queueString = status.taskStatusMessage
+          ? '(click for details)'
+          : '';
       }
     }
 
