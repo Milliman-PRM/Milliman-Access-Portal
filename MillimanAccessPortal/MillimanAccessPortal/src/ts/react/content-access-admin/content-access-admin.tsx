@@ -1,3 +1,4 @@
+import '../../../images/add.svg';
 import '../../../images/user.svg';
 
 import * as React from 'react';
@@ -14,9 +15,6 @@ import {
 import { ActionIcon } from '../shared-components/action-icon';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
-import {
-    CardPanelSectionAction, CardPanelSectionContent,
-} from '../shared-components/card-panel/card-panel-sections';
 import {
     PanelSectionToolbar, PanelSectionToolbarButtons,
 } from '../shared-components/card-panel/panel-sections';
@@ -305,6 +303,13 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
           action={this.props.setAllCollapsedGroup}
         />
       );
+    const addGroupIcon = (
+      <ActionIcon
+        label="Add group"
+        icon="add"
+        action={this.props.openAddGroupModal}
+      />
+    );
 
     return activeClient && activeItem && (
       <CardPanel
@@ -523,6 +528,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
           <PanelSectionToolbarButtons>
             {expandAllIcon}
             {collapseAllIcon}
+            {addGroupIcon}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         <Modal
