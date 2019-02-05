@@ -498,6 +498,20 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             </Card>
           );
         }}
+        renderNewEntityButton={() => (
+          <div className="card-container action-card-container" onClick={this.props.openAddGroupModal}>
+            <div className="admin-panel-content">
+              <div className="card-body-container card-100 action-card">
+                <h2 className="card-body-primary-text">
+                  <svg className="action-card-icon">
+                    <use href="#add" />
+                  </svg>
+                  <span>NEW GROUP</span>
+                </h2>
+              </div>
+            </div>
+          </div>
+        )}
       >
         <h3 className="admin-panel-header">Selection Groups</h3>
         <PanelSectionToolbar>
@@ -511,20 +525,6 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             {collapseAllIcon}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
-        <CardPanelSectionAction>
-          <div className="card-container action-card-container" onClick={this.props.openAddGroupModal}>
-            <div className="admin-panel-content">
-              <div className="card-body-container card-100 action-card">
-                <h2 className="card-body-primary-text">
-                  <svg className="action-card-icon">
-                    <use href="#add" />
-                  </svg>
-                  <span>NEW GROUP</span>
-                </h2>
-              </div>
-            </div>
-          </div>
-        </CardPanelSectionAction>
         <Modal
           isOpen={modals.addGroup.isOpen}
           onRequestClose={this.props.closeAddGroupModal}

@@ -9,6 +9,7 @@ import { PanelSectionContainer } from './panel-sections';
 export interface CardPanelProps<TEntity> {
   entities: TEntity[];
   renderEntity: (entity: TEntity, key: number) => JSX.Element;
+  renderNewEntityButton?: () => JSX.Element;
   loading?: boolean;
 }
 
@@ -24,7 +25,7 @@ export class CardPanel<TEntity> extends React.Component<CardPanelProps<TEntity>>
   }
 
   private renderContentSection() {
-    const { loading, entities, renderEntity } = this.props;
+    const { loading, entities, renderEntity, renderNewEntityButton } = this.props;
     return loading
       ? <ColumnSpinner />
       : (
@@ -37,6 +38,7 @@ export class CardPanel<TEntity> extends React.Component<CardPanelProps<TEntity>>
             )
             : <div>No results.</div>
           }
+          {renderNewEntityButton && renderNewEntityButton()}
         </CardPanelSectionContent>
       );
   }
