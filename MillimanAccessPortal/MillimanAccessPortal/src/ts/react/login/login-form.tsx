@@ -15,6 +15,7 @@ import { Input } from '../shared-components/input';
 interface LoginFormState extends BaseFormState {
   userConfirmed: boolean;
   awaitingConfirmation: boolean;
+  awaitingLogin: boolean;
   loginWarning: string;
 }
 
@@ -39,6 +40,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
     this.state = {
       userConfirmed: false,
       awaitingConfirmation: false,
+      awaitingLogin: false,
       loginWarning: null,
       data: { username: '', password: '' },
       errors: {},
@@ -51,7 +53,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
   }
 
   public render() {
-    const { data, errors, userConfirmed, awaitingConfirmation, loginWarning } = this.state;
+    const { data, errors, userConfirmed, awaitingConfirmation, awaitingLogin, loginWarning } = this.state;
     let actionButton;
     if (!userConfirmed && !awaitingConfirmation) {
       actionButton = (
@@ -104,11 +106,12 @@ export class LoginForm extends Form<{}, LoginFormState> {
           <a href="/Account/ForgotPassword" className="link-button">Forgot Password</a>
           <button
             type={userConfirmed ? 'submit' : 'button'}
-            disabled={userConfirmed && (this.validate()) ? true : false}
+            disabled={awaitingLogin || (userConfirmed && (this.validate()) ? true : false)}
             className="blue-button"
             onClick={userConfirmed ? this.handleSubmit : undefined}
           >
             Login
+            {awaitingLogin && <ButtonSpinner />}
           </button>
         </div>
       </form>
@@ -118,9 +121,12 @@ export class LoginForm extends Form<{}, LoginFormState> {
   protected handleSubmit = (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    this.setState({ awaitingLogin: true });
+
     const errors = this.validate();
     this.setState({ errors: errors || {} });
     if (errors) {
+      this.setState({ awaitingLogin: false });
       return;
     }
 
@@ -130,7 +136,8 @@ export class LoginForm extends Form<{}, LoginFormState> {
         if (loginWarning) {
           const data = { ...this.state.data };
           data.password = '';
-          this.setState({ data, loginWarning });
+          this.focusPasswordInput();
+          this.setState({ data, loginWarning, awaitingLogin: false });
           return;
         } else if (response.redirected === true || response.status === 302) {
           window.location.replace(response.url);
