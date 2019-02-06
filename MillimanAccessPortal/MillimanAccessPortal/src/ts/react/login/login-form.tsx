@@ -8,6 +8,7 @@ import * as Joi from 'joi';
 import * as React from 'react';
 
 import { postData } from '../../shared';
+import { ButtonSpinner } from '../shared-components/button-spinner';
 import { BaseFormState, Form } from '../shared-components/form';
 import { Input } from '../shared-components/input';
 
@@ -60,8 +61,8 @@ export class LoginForm extends Form<{}, LoginFormState> {
       );
     } else if (awaitingConfirmation) {
       actionButton = (
-        <div className="action-icon-label waiting">
-          <svg className="action-icon"><use xlinkHref="#login" /></svg>
+        <div className="action-icon-label">
+          <ButtonSpinner />
         </div>
       );
     } else {
