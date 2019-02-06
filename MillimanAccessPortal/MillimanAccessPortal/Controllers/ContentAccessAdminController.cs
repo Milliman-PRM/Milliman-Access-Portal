@@ -347,6 +347,18 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            // reject this request if the SelectionGroup has a pending reduction
+            bool blockedByPendingReduction = DbContext.ContentReductionTask
+                .Where(r => r.SelectionGroupId == selectionGroup.Id)
+                .Where(r => r.ReductionStatus.IsActive())
+                .Any();
+            if (blockedByPendingReduction)
+            {
+                Response.Headers.Add("Warning",
+                    "A selection group may not be deleted while it has a pending reduction.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             // reject this request if the RootContentItem has a pending publication request
             bool blockedByPendingPublication = DbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == selectionGroup.RootContentItemId)
@@ -355,7 +367,7 @@ namespace MillimanAccessPortal.Controllers
             if (blockedByPendingPublication)
             {
                 Response.Headers.Add("Warning",
-                    "A new selection group may not be created while this content item has a pending publication.");
+                    "A selection group may not be deleted while this content item has a pending publication.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion

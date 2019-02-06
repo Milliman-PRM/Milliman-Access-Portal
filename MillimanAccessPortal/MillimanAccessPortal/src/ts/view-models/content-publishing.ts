@@ -85,7 +85,6 @@ export function isReductionActive(status: ReductionStatus) {
     ReductionStatus.Queued,
     ReductionStatus.Reducing,
     ReductionStatus.Reduced,
-    ReductionStatus.Error,
   ].indexOf(status) !== -1;
 }
 

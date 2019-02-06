@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 import Select from 'react-select';
 
-import { isPublicationActive, ReductionStatus } from '../../view-models/content-publishing';
+import { isPublicationActive, ReductionStatus, isReductionActive } from '../../view-models/content-publishing';
 import {
     Client, ClientWithEligibleUsers, ReductionFieldset, RootContentItem,
     RootContentItemWithPublication, SelectionGroup, SelectionGroupWithStatus, User,
@@ -336,12 +336,17 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             )
             : (
               <>
-                <CardButton
-                  color={'red'}
-                  tooltip={'Delete selection group'}
-                  onClick={() => this.props.openDeleteGroupModal(entity.id)}
-                  icon={'delete'}
-                />
+                {isReductionActive(entity.status.taskStatus)
+                  ? null
+                  : (
+                    <CardButton
+                      color={'red'}
+                      tooltip={'Delete selection group'}
+                      onClick={() => this.props.openDeleteGroupModal(entity.id)}
+                      icon={'delete'}
+                    />
+                  )
+                }
                 {pending.group.id === null
                   ? (
                     <CardButton
