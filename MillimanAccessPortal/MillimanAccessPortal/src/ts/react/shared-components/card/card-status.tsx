@@ -25,7 +25,7 @@ export class CardStatus extends React.Component<CardStatusProps> {
           className={`card-status-container status-${statusValue}`}
           onClick={(event) => {
             event.stopPropagation();
-            if (isReductionTask(status) && status.taskStatusMessage) {
+            if (isReductionTask(status) && status.taskStatus === ReductionStatus.Error && status.taskStatusMessage) {
               toastr.error('', status.taskStatusMessage);
             }
           }}
