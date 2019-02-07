@@ -80,7 +80,9 @@
             background-color: $orange;
         }
 
-        &.status-20 {
+        &.status-20,
+        &.status-25,
+        &.status-27 {
             display: block;
             background-color: $blue;
         }

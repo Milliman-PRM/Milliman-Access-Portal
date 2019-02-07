@@ -48,7 +48,7 @@ interface Handlers<TState, TAction> {
   [type: string]: (state: TState, action: TAction) => TState;
 }
 function createReducer<TState>(initialState: TState, handlers: Handlers<TState, any>) {
-  return (state: TState = initialState, action) => {
+  return (state: TState = initialState, action: any) => {
     return action.type in handlers
       ? handlers[action.type](state, action)
       : state;

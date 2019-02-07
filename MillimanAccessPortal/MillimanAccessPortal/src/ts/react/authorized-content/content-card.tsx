@@ -15,7 +15,7 @@ require('tooltipster/src/css/tooltipster.css');
 interface ContentCardProps extends ContentItem, ContentCardFunctions { }
 export class ContentCard extends React.Component<ContentCardProps, {}> {
 
-  public constructor(props) {
+  public constructor(props: ContentCardProps) {
     super(props);
 
     this.selectContent = this.selectContent.bind(this);

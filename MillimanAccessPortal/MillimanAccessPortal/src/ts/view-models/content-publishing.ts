@@ -58,14 +58,14 @@ export enum ReductionStatus {
   Replaced = 50,
   Error = 90,
 }
-export const publicationStatusNames = {
+export const publicationStatusNames: { [status: number]: string; } = {
   9: 'Virus scanning',
   10: 'Queued',
   20: 'Processing',
   30: 'Processed',
   90: 'Error',
 };
-export const reductionStatusNames = {
+export const reductionStatusNames: { [status: number]: string; } = {
   10: 'Queued',
   20: 'Reducing',
   30: 'Reduced',

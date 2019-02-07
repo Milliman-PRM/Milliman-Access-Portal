@@ -18,7 +18,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
 
   private url: string = 'SystemAdmin/CreateProfitCenter';
 
-  public constructor(props) {
+  public constructor(props: Modal.Props) {
     super(props);
 
     this.state = {

@@ -201,7 +201,14 @@ namespace ContentPublishingLib.JobRunners
             {
                 // Don't touch JobDetail.Result.Status or JobDetail.Result.OutcomeReason in the finally block. This value should always be set before we get here. 
                 JobDetail.Result.ProcessingDuration = DateTime.UtcNow - ProcessingStartTime;
-                Cleanup();
+                try
+                {
+                    Cleanup();
+                }
+                catch (System.Exception e)  // fail safe in case any exception gets to this point
+                {
+                    GlobalFunctions.TraceWriteLine($"In QvReductionRunner.Execute(), Cleanup method failed with exception: {Environment.NewLine}{GlobalFunctions.LoggableExceptionString(e)}");
+                }
             }
 
             return JobDetail;
@@ -334,7 +341,9 @@ namespace ContentPublishingLib.JobRunners
             // Run Qlikview publisher (QDS) task
             try
             {
-                await RunQdsTask(HierarchyTask, 5);
+                string AbsoluteDocPath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, DocumentNodeArg.Name);
+                int FileSizeHectoMillionBytes = (int)(new FileInfo(AbsoluteDocPath).Length / 1E8 );
+                await RunQdsTask(HierarchyTask, Math.Max(FileSizeHectoMillionBytes, 5));  // Allow 1 minute per 1E8 Bytes, at least 5 minutes
             }
             finally
             {
@@ -502,7 +511,15 @@ namespace ContentPublishingLib.JobRunners
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
             if (!string.IsNullOrWhiteSpace(WorkingFolderRelative) && Directory.Exists(WorkingFolderAbsolute))
             {
-                FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
+                try
+                {
+                    FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
+                }
+                catch (System.Exception e)  // Do not let this throw upward
+                {
+                    // Log this as an error or warning when switching to Serilog
+                    GlobalFunctions.TraceWriteLine($"In QvReductionRunner.Cleanup(), failed to delete reduction directory {WorkingFolderAbsolute}, exception was: {Environment.NewLine}{GlobalFunctions.LoggableExceptionString(e)}");
+                }
             }
 
             GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed Cleanup");
@@ -718,19 +735,20 @@ namespace ContentPublishingLib.JobRunners
             QlikviewLib.Qms.TaskStatus Status;
 
             // Save the task to Qlikview server
+            DateTime SaveStartTime = DateTime.Now;
             IQMS QmsClient = QmsClientCreator.New(QmsUrl);
             await QmsClient.SaveDocumentTaskAsync(DocTask);
             TaskInfo TInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName);
             Guid TaskIdGuid = TInfo.ID;
-            GlobalFunctions.TraceWriteLine($"QDS task with ID '{TaskIdGuid.ToString("D")}' successfully saved");
+            GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} successfully saved after {DateTime.Now - SaveStartTime}");
 
             try
             {
+                DateTime RunStartTime = DateTime.Now;
                 // Get the task started, this generally requires more than one call to RunTaskAsync
-                DateTime StartTime = DateTime.Now;
                 do
                 {
-                    if (DateTime.Now - StartTime > MaxStartDelay)
+                    if (DateTime.Now - RunStartTime > MaxStartDelay)
                     {
                         JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.ReductionProcessingTimeout;
                         throw new System.Exception($"Qlikview publisher failed to start task {TaskIdGuid.ToString("D")} before timeout");
@@ -742,8 +760,7 @@ namespace ContentPublishingLib.JobRunners
 
                     Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
                 } while (Status == null || Status.Extended == null || !(DateTime.TryParse(Status.Extended.StartTime, out _) || DateTime.TryParse(Status.Extended.FinishedTime, out _)));
-
-                GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} started running after {DateTime.Now - StartTime}");
+                GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} started running after {DateTime.Now - RunStartTime}");
 
                 // Wait for started task to finish
                 DateTime RunningStartTime = DateTime.Now;

@@ -28,7 +28,7 @@ export class Card extends React.Component<CardProps> {
     suspended: false,
     inactive: false,
     indentation: 1,
-    status: null,
+    status: null as PublicationWithQueueDetails | ReductionWithQueueDetails,
   };
 
   private indentClasses: { [indent: number]: string; } = {

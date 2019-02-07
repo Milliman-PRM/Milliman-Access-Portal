@@ -898,7 +898,7 @@ namespace MillimanAccessPortal.Controllers
             // Client must exist
             if (ExistingClientRecord == null)
             {
-                Log.Debug("In ClientAdminController.EditClient action: referenced client no found");
+                Log.Warning("In ClientAdminController.EditClient action: referenced client not found");
                 return BadRequest("The modified client was not found in the system.");
             }
             #endregion
@@ -907,7 +907,7 @@ namespace MillimanAccessPortal.Controllers
             // 1) Changing Parent is not supported
             if (Model.ParentClientId != ExistingClientRecord.ParentClientId)
             {
-                Log.Debug("In ClientAdminController.EditClient action: parent client ID may not be changed, aborting");
+                Log.Warning("In ClientAdminController.EditClient action: parent client ID may not be changed, aborting");
                 Response.Headers.Add("Warning", "Client may not be moved to a new parent Client");
                 return Unauthorized();
             }
@@ -916,7 +916,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, Model.Id));
             if (!Result1.Succeeded)
             {
-                Log.Debug($"In ClientAdminController.EditClient action: current user {User.Identity.Name} is not administrator of client {Model.Id}");
+                Log.Information($"In ClientAdminController.EditClient action: current user {User.Identity.Name} is not administrator of client {Model.Id}");
                 Response.Headers.Add("Warning", $"The requesting user is not a ClientAdministrator for the requested client ({ExistingClientRecord.Name})");
                 return Unauthorized();
             }
@@ -928,7 +928,7 @@ namespace MillimanAccessPortal.Controllers
                 AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, Model.ProfitCenterId));
                 if (!Result2.Succeeded)
                 {
-                    Log.Debug($"In ClientAdminController.EditClient action: profit center change was requested but current user {User.Identity.Name} is not authorized to new profit center {Model.ProfitCenterId}");
+                    Log.Information($"In ClientAdminController.EditClient action: profit center change was requested but current user {User.Identity.Name} is not authorized to new profit center {Model.ProfitCenterId}");
                     Response.Headers.Add("Warning", "You are not authorized to assign clients to the specified profit center, authorization failure");
                     return Unauthorized();
                 }
@@ -978,7 +978,7 @@ namespace MillimanAccessPortal.Controllers
             // Parent client (if any) must exist
             if (Model.ParentClientId != null && !DbContext.ClientExists(Model.ParentClientId.Value))
             {
-                Log.Debug($"In ClientAdminController.EditClient action: referenced parent client with ID {Model.ParentClientId} not found");
+                Log.Warning($"In ClientAdminController.EditClient action: client {Model.Id} references a parent client with ID {Model.ParentClientId} that is not found");
                 Response.Headers.Add("Warning", "The specified parent of the client is invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -986,7 +986,7 @@ namespace MillimanAccessPortal.Controllers
             // ProfitCenter must exist
             if (!DbContext.ProfitCenter.Any(pc => pc.Id == Model.ProfitCenterId))
             {
-                Log.Debug($"In ClientAdminController.EditClient action: referenced profit center with ID {Model.ProfitCenterId} not found");
+                Log.Warning($"In ClientAdminController.EditClient action: referenced profit center with ID {Model.ProfitCenterId} not found");
                 Response.Headers.Add("Warning", "The specified ProfitCenter is invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }

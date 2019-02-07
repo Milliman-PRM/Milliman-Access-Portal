@@ -1,6 +1,7 @@
 ﻿import 'promise-polyfill/dist/polyfill';
 import 'whatwg-fetch';
 
+import * as $ from 'jquery';
 import toastr = require('toastr');
 
 import './lib-options';
@@ -27,10 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
           await postData('/Account/CheckPasswordValidity', { proposedPassword }, true);
           newPasswordInput.removeAttribute('Warning');
           newPasswordInput.setAttribute('Validated', 'Validated');
+          $('#PasswordsAreValid').val('valid');
+          $('[data-valmsg-for="PasswordsAreValid"]').remove();
         } catch (err) {
-          toastr.warning(err.message);
+          toastr.warning(err.message, null, {
+            timeOut: 0,
+          });
           newPasswordInput.removeAttribute('Validated');
           newPasswordInput.setAttribute('Warning', 'Warning');
+          $('#PasswordsAreValid').val('');
         }
       }
     } else {

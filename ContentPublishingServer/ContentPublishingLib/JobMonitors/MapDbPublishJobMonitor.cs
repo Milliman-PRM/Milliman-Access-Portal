@@ -130,6 +130,7 @@ namespace ContentPublishingLib.JobMonitors
                 // .ToList() is needed because the body changes the original List. 
                 foreach (PublishJobTrackingItem CompletedPublishRunnerItem in ActivePublicationRunnerItems.Where(t => t.task.IsCompleted).ToList())
                 {
+                    GlobalFunctions.TraceWriteLine($"PublishJobMonitor({JobMonitorType.ToString()}) completed processing for PublicationRequestId {CompletedPublishRunnerItem.requestId.ToString()}");
                     UpdateRequest(CompletedPublishRunnerItem.task.Result);
                     ActivePublicationRunnerItems.Remove(CompletedPublishRunnerItem);
                 }
@@ -175,8 +176,8 @@ namespace ContentPublishingLib.JobMonitors
                             }
                         }
 
-                        Thread.Sleep(1000);  // Allow time for any new runner(s) to start executing
                         QueueMutex.ReleaseMutex();
+                        Thread.Sleep(500 * (1 + JobMonitorInstanceCounter));  // Allow time for any new runner(s) to start executing
                     }
                     else
                     {
@@ -241,11 +242,10 @@ namespace ContentPublishingLib.JobMonitors
             {
                 try
                 {
-                    var QueuedPublicationQuery = Db.ContentPublicationRequest.Where(r => DateTime.UtcNow - r.CreateDateTimeUtc > TaskAgeBeforeExecution)
-                                                                             .Where(r => r.RequestStatus == PublicationStatus.Queued)
-                                                                             .Include(r => r.RootContentItem)
-                                                                             .OrderBy(r => r.CreateDateTimeUtc)
-                                                                             .Take(ReturnNoMoreThan);
+                    IQueryable<ContentPublicationRequest> QueuedPublicationQuery = Db.ContentPublicationRequest.Where(r => DateTime.UtcNow - r.CreateDateTimeUtc > TaskAgeBeforeExecution)
+                                                                                                               .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                                                                                                               .Include(r => r.RootContentItem)
+                                                                                                               .OrderBy(r => r.CreateDateTimeUtc);
 
                     // Customize the query based on this job monitor type
                     switch (JobMonitorType)
@@ -274,15 +274,19 @@ namespace ContentPublishingLib.JobMonitors
                             throw new ApplicationException($"Cannot query publication job queue using unsupported JobMonitorType {JobMonitorType.ToString()}");
                     }
 
-                    List<ContentPublicationRequest> TopItems = QueuedPublicationQuery.ToList();
+                    List<ContentPublicationRequest> TopItems = QueuedPublicationQuery.Take(ReturnNoMoreThan).ToList();
 
                     if (TopItems.Count > 0)
                     {
-                        TopItems.ForEach(r => r.RequestStatus = PublicationStatus.Processing);
+                        TopItems.ForEach(r =>
+                        {
+                            r.RequestStatus = PublicationStatus.Processing;
+                            GlobalFunctions.TraceWriteLine($"PublishJobMonitor({JobMonitorType.ToString()}) initiating processing for PublicationRequestId {r.Id.ToString()}");
+                        });
                         Db.ContentPublicationRequest.UpdateRange(TopItems);
                         Db.SaveChanges();
                         Transaction.Commit();
-                    }
+                }
 
                     return TopItems;
                 }
@@ -356,7 +360,7 @@ namespace ContentPublishingLib.JobMonitors
                             DbRequest.RequestStatus = PublicationStatus.Canceled;
                             break;
                         case PublishJobDetail.JobStatusEnum.Success:
-                            DbRequest.RequestStatus = PublicationStatus.Processed;
+                            DbRequest.RequestStatus = PublicationStatus.PostProcessReady;
                             DbRequest.ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
                             {
                                 new ReductionRelatedFiles

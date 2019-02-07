@@ -23,7 +23,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
 
   private url: string = 'SystemAdmin/UpdateProfitCenter';
 
-  public constructor(props) {
+  public constructor(props: CardModalProps) {
     super(props);
 
     this.state = {
@@ -143,7 +143,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
   }
 
   private handleChangeName = (event: React.ChangeEvent<HTMLInputElement>) => {
-    event.stopPropagation()
+    event.stopPropagation();
     this.setState({
       name: event.target.value,
     });

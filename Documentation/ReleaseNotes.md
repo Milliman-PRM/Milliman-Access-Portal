@@ -2,14 +2,36 @@
 
 ## Release Notes
 
+### v1.3.4
+
+- Prevent forced signout while a content item is open in the Content view
+
+### v1.3.3
+
+- Add audit logging for content access
+
+### v1.3.2
+
+- Enable the user to retry after an error occurs during content publication go-live
+
+### v1.3.1
+
+- Fixed an issue where an error during publication go-live left the publication stuck in going-live state and the related content inaccessible
+- Fixed an issue where new users appeared to be able to submit a password during account activation that did not meet the password requirements
+- Fixed an issue where a user attempting to log in to an account that had not been activated erroneously displayed an account lockout message
+- Fixed an issue where usernames were case sensitive when adding users to selection groups
+- Added the MAP site URL to the welcome email text to help users find the site after their account has been activated
+- Removed the expand icon from the Go Live preview for File Upload content types
+
 ### v1.3.0
 
-- A publication request involving any reduction error will no longer be aborted (reduced content only)
-- Each selection group associated with a reduction error will become inactive (reduced content only)
-- The publication go-live preview now displays more detailed information about each associated reduction outcome
+- Publication requests involving reduction errors will no longer be aborted
+- Added the ability to put selection groups in an inactive state
+- Added additional information about Selection Group reduction outcomes to the Go-Live preview for reduced content
+- Non-reducing content publications will now be published independently of the reducible content items
+- Improved process efficiency for reducing content items
 - Fixed an issue where the status of a queued publication changed to 'Processing' before processing could actually begin
-- Reduced processing time for publication of a reducing content item
-- Processing of non-reducing content publications no longer waits to run after queued reducing content publications
+- Fixed an issue where a timeout of a hierarchy extraction task would cause the publication service to crash
 
 ### v1.2.0
 
@@ -37,7 +59,7 @@
 
 ### v1.1.2
 
-- Allow heirarchy comparison values to wrap in the Go Live preview to better support long values
+- Allow hierarchy comparison values to wrap in the Go Live preview to better support long values
 - Fixed an issue with Qlikview content where a special character (e.g. ~ ' ") in a selectable value of a reduction hierarchy field would become quoted
 - Fixed an issue with upload of large content files
 - Fixed an issue where long running Qlikview reductions would fail to complete

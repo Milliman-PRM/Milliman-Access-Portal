@@ -1,4 +1,4 @@
-﻿import { ContentTypeEnum } from "../../view-models/content-publishing";
+﻿import { ContentTypeEnum } from '../../view-models/content-publishing';
 
 export interface QueryFilter {
   userId?: string;

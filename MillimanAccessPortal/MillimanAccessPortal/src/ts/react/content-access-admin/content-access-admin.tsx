@@ -7,7 +7,9 @@ import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 import Select from 'react-select';
 
-import { isPublicationActive, ReductionStatus, isReductionActive } from '../../view-models/content-publishing';
+import {
+    isPublicationActive, isReductionActive, ReductionStatus,
+} from '../../view-models/content-publishing';
 import {
     Client, ClientWithEligibleUsers, ReductionFieldset, RootContentItem,
     RootContentItemWithPublication, SelectionGroup, SelectionGroupWithStatus, User,

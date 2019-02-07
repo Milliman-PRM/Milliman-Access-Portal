@@ -167,10 +167,15 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         switch (PubRequest.RootContentItem.ContentType.TypeEnum)
                         {
                             case ContentTypeEnum.Qlikview:
-                                await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(Path.GetDirectoryName(Link), ContentTypeConfig as QlikviewConfig, Path.GetFileName(Link));
-
-                                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, Context.User.Identity.Name, ContentTypeConfig, Context.Request);
-                                ReturnObj.MasterContentLink = QvwUri.Uri.AbsoluteUri;
+                                UriBuilder qvwUrlBuilder = new UriBuilder
+                                {
+                                    Host = Context.Request.Host.Host,
+                                    Scheme = Context.Request.Scheme,
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = "/AuthorizedContent/QvwPreview",
+                                    Query = $"publicationRequestId={PubRequest.Id}",
+                                };
+                                ReturnObj.MasterContentLink = qvwUrlBuilder.Uri.AbsoluteUri;
                                 break;
 
                             case ContentTypeEnum.Pdf:

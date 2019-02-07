@@ -20,8 +20,8 @@ export interface ActionIconProps {
 
 export class ActionIcon extends React.Component<ActionIconProps, {}> {
   public static defaultProps = {
-    label: null,
-    action: () => null,
+    label: null as string,
+    action: (): null => null,
     inline: true,
   };
   public render() {

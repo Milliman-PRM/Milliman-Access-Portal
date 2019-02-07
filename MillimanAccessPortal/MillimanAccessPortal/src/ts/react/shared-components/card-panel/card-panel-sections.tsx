@@ -7,4 +7,3 @@ export const CardPanelSectionContent: React.SFC = (props) => (
 export const CardPanelSectionAction: React.SFC = (props) => (
   <div className="admin-panel-action-container">{props.children}</div>
 );
-

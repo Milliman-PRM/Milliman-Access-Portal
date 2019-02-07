@@ -79,7 +79,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
-  public constructor(props) {
+  public constructor(props: {}) {
     super(props);
 
     this.state = {
@@ -644,7 +644,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     if (filteredCards.length === 0) {
       return [];
     } else if (isClientInfo(filteredCards[0])) {
-      const rootIndices = [];
+      const rootIndices: number[] = [];
       filteredCards.forEach((entity: ClientInfoWithDepth, i) => {
         if (!entity.parentId) {
           rootIndices.push(i);
@@ -1156,7 +1156,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
-  private pushUserClient = (_, role: RoleEnum) => {
+  private pushUserClient = (_: React.MouseEvent<HTMLInputElement>, role: RoleEnum) => {
     const { secondaryDetail } = this.state.data;
     if (!isUserClientRoles(secondaryDetail)) {
       return;

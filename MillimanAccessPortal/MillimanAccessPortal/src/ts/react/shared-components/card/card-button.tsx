@@ -20,7 +20,7 @@ export interface CardButtonProps {
 export default class CardButton extends React.Component<CardButtonProps> {
   public static defaultProps = {
     tooltip: '',
-    additionalClasses: [],
+    additionalClasses: [] as string[],
   };
 
   public render() {

@@ -1,5 +1,6 @@
 import 'jquery-validation';
 import 'jquery-validation-unobtrusive';
+import '../../images/expand-frame.svg';
 
 import * as $ from 'jquery';
 import { unionWith } from 'lodash';
@@ -14,17 +15,16 @@ import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import { Guid } from '../react/shared-components/interfaces';
 import {
-  collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
-  updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
+    collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
+    hideButtonSpinner, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
+    updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
 import { setUnloadAlert } from '../unload-alerts';
 import { UploadComponent } from '../upload/upload';
 import {
-  BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, isSelection,
-  PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue,
-  ReductionFieldValueSelection, RootContentItemDetail, RootContentItemList, RootContentItemSummary,
-  RootContentItemSummaryAndDetail,
+    BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, isSelection,
+    PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue, RootContentItemDetail,
+    RootContentItemList, RootContentItemSummary, RootContentItemSummaryAndDetail,
 } from '../view-models/content-publishing';
 import { PublicationStatusMonitor } from './publication-status-monitor';
 
@@ -73,15 +73,15 @@ function deleteRootContentItem(
     statusMonitor.checkStatus();
   });
 }
-export function rootContentItemDeleteClickHandler(event) {
+export function rootContentItemDeleteClickHandler(event: Event) {
   const $clickedCard = $(this).closest('.card-container');
   const rootContentItemId = $clickedCard.data().rootContentItemId;
   const rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
-  new DeleteRootContentItemDialog(
+  new (DeleteRootContentItemDialog as any)(
     rootContentItemName,
     rootContentItemId,
-    (data, callback) => {
+    (data: { password: string }, callback: () => void) => {
       if (data.password) {
         showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
@@ -96,7 +96,7 @@ export function rootContentItemDeleteClickHandler(event) {
     },
   ).open();
 }
-function cancelContentPublication(data, callback) {
+function cancelContentPublication(data: { RootContentItemId: string }, callback: () => void) {
   $.ajax({
     data: {
       RootContentItemId: data.RootContentItemId,
@@ -118,12 +118,13 @@ function cancelContentPublication(data, callback) {
   });
 }
 
-export function rootContentItemCancelClickHandler(event) {
+export function rootContentItemCancelClickHandler(event: Event) {
   const $clickedCard = $(this).closest('.card-container');
   const rootContentItemId = $clickedCard.data().rootContentItemId;
   const rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
-  new CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, cancelContentPublication).open();
+  new (CancelContentPublicationRequestDialog as any)(
+    rootContentItemId, rootContentItemName, cancelContentPublication).open();
 }
 export function openNewRootContentItemForm() {
   if (formObject && formObject.submissionMode === 'new') {
@@ -221,9 +222,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     { sectionName: 'release-notes', link: response.releaseNotesLink },
   ];
   linkPairs.forEach((pair) => {
-    $(`#confirmation-section-${pair.sectionName} div`)
-      .filter(pair.node || '.content-preview')
-      .find('a,iframe,object')
+    $(`#confirmation-section-${pair.sectionName} .content-preview-container`)
+      .find(pair.node || '.content-preview')
       .attr('src', function() {
         return $(this).is('iframe')
           ? pair.link
@@ -239,20 +239,24 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           ? pair.link
           : null;
       })
-      .parent()
       .show()
-      .siblings('div')
+      .siblings()
       .hide()
       .filter(() => pair.link === null)
       .filter('.content-preview-none')
       .show()
-      .siblings('div')
+      .siblings()
       .hide()
-      .find('iframe,object')
       .closest('.confirmation-section').find('label')
       .hide()
       .find('input')
       .attr('disabled', '');
+    // hide/show new tab links
+    $(`#confirmation-section-${pair.sectionName} .new-tab-icon`)
+      .show()
+      .attr('href', pair.link)
+      .filter(() => pair.link === null || response.contentTypeName === 'FileDownload')
+      .hide();
   });
 
   // render hierarchy diff and selection group changes
@@ -306,13 +310,13 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       }
       live.fields.forEach(({ values: liveValues, fieldName, displayName }) => {
         $diff.append(`<h3 class="hierarchy-diff-field">${displayName}</h3>`);
-        const pendingValues = pending.fields.find((f) => f.fieldName === fieldName).values;
+        const pendingValues = pending.fields.filter((f) => f.fieldName === fieldName)[0].values;
         const allValues = unionWith(liveValues, pendingValues,
           (v1: TValue, v2: TValue) => v1.value === v2.value);
 
         // exclude values that aren't in the live hierarchy if using selectedOnly
         const filteredValues = allValues.filter((value) => {
-          const liveData = liveValues.find((v) => v.value === value.value);
+          const liveData = liveValues.filter((v) => v.value === value.value)[0];
           if (selectedOnly) {
             if (!liveData || (liveData && isSelection(liveData) && !liveData.selectionStatus)) {
               return false;
@@ -349,8 +353,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           </table>
         </div>`);
         filteredValues.forEach((value) => {
-          const liveData = liveValues.find((v) => v.value === value.value);
-          const pendingData = pendingValues.find((v) => v.value === value.value);
+          const liveData = liveValues.filter((v) => v.value === value.value)[0];
+          const pendingData = pendingValues.filter((v) => v.value === value.value)[0];
           const $row = $('<tr></tr>');
           if (selectedOnly) {
             // accounts for removal of selection as well as removal of value from new hierarchy
@@ -363,7 +367,9 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
             $row.append($(`<td><div>${liveData.value}</div></td>`));
           } else {
             const $diffSymbol = $(`
-              <td class="hierarchy-diff-symbol"><div>${!pendingData ? 'Removed' : !liveData ? 'Added' : ''}</div></td>`);
+              <td class="hierarchy-diff-symbol"><div>
+                ${!pendingData ? 'Removed' : !liveData ? 'Added' : ''}
+              </div></td>`);
             if (!pendingData) {
               $diffSymbol.addClass('minus');
             } else if (!liveData) {
@@ -514,7 +520,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       $statsList.append($selectionGroupStats);
     });
     // add a message explaining what inactive means
-    if (response.selectionGroups.find((sg) => sg.isInactive)) {
+    if (response.selectionGroups.filter((sg) => sg.isInactive)[0]) {
       $statsList.prepend(`<div>
         Some selection groups will be marked <strong>inactive</strong> if this publication goes live
         due to reduction failures.
@@ -702,7 +708,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
 }
 
 function renderRootContentItem(item: RootContentItemSummary) {
-  const $rootContentItemCard = new RootContentItemCard(
+  const $rootContentItemCard = new (RootContentItemCard as any)(
     item,
     wrapCardCallback(get(
       'ContentPublishing/RootContentItemDetail',
@@ -760,7 +766,7 @@ function renderRootContentItemList(response: RootContentItemList, rootContentIte
 }
 
 function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
-  const $card = new ClientCard(
+  const $card = new (ClientCard as any)(
     client.value,
     client.value.eligibleUserCount,
     client.value.rootContentItemCount,
@@ -848,7 +854,7 @@ export function setup() {
     $('#content-publishing-form').show();
   });
   $('#root-content-items ul.admin-panel-content-action')
-    .append(new AddRootContentItemActionCard(
+    .append(new (AddRootContentItemActionCard as any)(
       wrapCardCallback(openNewRootContentItemForm, () => formObject),
     ).build());
 

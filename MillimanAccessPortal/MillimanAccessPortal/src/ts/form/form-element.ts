@@ -13,8 +13,8 @@ export abstract class FormElement {
   }
 
   // The uppermost DOM element that is part of this form element
-  private _$entryPoint;
-  private entryPoint;
+  private _$entryPoint: JQuery<HTMLElement>;
+  private entryPoint: HTMLElement;
   protected get $entryPoint(): JQuery<HTMLElement> {
     if (!this._$entryPoint) {
       this._$entryPoint = this.entryPoint && $(this.entryPoint);

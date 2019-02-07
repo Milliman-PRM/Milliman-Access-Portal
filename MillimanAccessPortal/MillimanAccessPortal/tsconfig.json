@@ -9,7 +9,7 @@
       "scripthost"
     ],
     "downlevelIteration": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "noUnusedParameters": true,
     "sourceMap": true,
     "target": "es5",

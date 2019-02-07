@@ -17,7 +17,7 @@ import * as shared from './shared';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { RootContentItemSummary, UserInfo } from './view-models/content-publishing';
 
-const cardLayout = {
+const cardLayout: any = {
   card: {
     body: {
       main: {
@@ -53,7 +53,7 @@ const cardLayout = {
   },
 };
 
-const components = Object.assign(
+const components: any = Object.assign(
   {},
   {
     action: {
@@ -67,8 +67,8 @@ const components = Object.assign(
         '  <span></span>',
         '</h2>',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.verify(component);
           this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.html(component, properties.text, 'span');
@@ -90,8 +90,8 @@ const components = Object.assign(
         '  </div>',
         '</div>',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.verify(component);
           this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.html(component, properties.text, 'span');
@@ -105,8 +105,8 @@ const components = Object.assign(
         '<h2 class="card-body-primary-text"></h2>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.verify(component);
           this.html(component, properties.text);
         };
@@ -122,12 +122,12 @@ const components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.verify(component);
           this.html(component, properties.text, 'h2');
           this.val(component, properties.text, 'input');
-          this.click(component, (event) => {
+          this.click(component, (event: any) => {
             event.stopPropagation();
           }, 'input');
         };
@@ -140,8 +140,8 @@ const components = Object.assign(
         '<p class="card-body-secondary-text"></p>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.add(component);
           this.html(component, properties.text);
         };
@@ -159,8 +159,8 @@ const components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.add(component);
           this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.html(component, properties.value, '.card-stat-value');
@@ -180,8 +180,8 @@ const components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           if (this.readonly || this.disabled) {
             return;
           }
@@ -206,8 +206,8 @@ const components = Object.assign(
         '</svg>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.add(component);
           this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.addClass(component, properties.class);
@@ -221,8 +221,8 @@ const components = Object.assign(
         '<h4 class="card-expansion-category-label"></h4>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.verify(component);
           this.html(component, properties.text);
         };
@@ -244,8 +244,8 @@ const components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.add(component);
           this.attr(
             component,
@@ -274,7 +274,7 @@ const components = Object.assign(
         '</ul>',
         '<stub />',
       ].join(''),
-      render(component) {
+      render(component: any) {
         return function() {
           this.verify(component);
         };
@@ -307,8 +307,8 @@ const components = Object.assign(
         '</li>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.add(component);
           this.attr(
             component,
@@ -339,8 +339,8 @@ const components = Object.assign(
         '</span>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.add(component);
           this.click(component, properties.addCallback, '.detail-item-user-add');
           this.click(component, properties.inputCallback, '.detail-item-user-input');
@@ -355,8 +355,8 @@ const components = Object.assign(
         '<h4 class="detail-item"></h4>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.add(component);
           this.html(component, properties.text);
         };
@@ -373,7 +373,7 @@ const components = Object.assign(
         '  </div>',
         '</div>',
       ].join(''),
-      render(component) {
+      render(component: any) {
         return function() {
           this.verify(component);
         };
@@ -391,8 +391,8 @@ const components = Object.assign(
         '  </div>',
         '</li>',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.verify(component);
           if (Object.hasOwnProperty.call(properties, 'id')) {
             this.attr(component, { id: properties.id });
@@ -416,8 +416,8 @@ const components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.verify(component);
           if (Object.hasOwnProperty.call(properties, 'id')) {
             this.addClass(component, 'card-100 action-card');
@@ -444,7 +444,7 @@ const components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render(component) {
+      render(component: any) {
         return function() {
           this.verify(component);
         };
@@ -459,7 +459,7 @@ const components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render(component) {
+      render(component: any) {
         return function() {
           this.verify(component);
         };
@@ -474,7 +474,7 @@ const components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render(component) {
+      render(component: any) {
         return function() {
           this.verify(component);
         };
@@ -489,8 +489,8 @@ const components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render(component) {
-        return function(properties) {
+      render(component: any) {
+        return function(properties: any) {
           this.verify(component);
           this.click(component, properties.click);
         };
@@ -505,7 +505,7 @@ const components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render(component) {
+      render(component: any) {
         return function() {
           this.verify(component);
         };
@@ -526,7 +526,7 @@ const components = Object.assign(
         '  </div>',
         '</div>',
       ].join(''),
-      render(component) {
+      render(component: any) {
         return function() {
           this.verify(component);
           this.click(component, shared.toggleExpandedListener, '.card-button-background');
@@ -553,7 +553,7 @@ const components = Object.assign(
         '  </div>',
         '</div>',
       ].join(''),
-      render(component) {
+      render(component: any) {
         return function() {
           this.verify(component);
         };
@@ -564,7 +564,7 @@ const components = Object.assign(
 
 // Compute select properties
 (() => {
-  const setParents = (layout, parent) => {
+  const setParents = (layout: any, parent: any) => {
     const keys = Object.keys(layout);
     for (const key of keys) {
       if (Object.hasOwnProperty.call(layout, key)) {
@@ -580,8 +580,8 @@ const components = Object.assign(
 })();
 
 // Helper function definitions
-function toAttr(data) {
-  const attrs = {};
+function toAttr(data: any) {
+  const attrs: any = {};
   Object.keys(data).forEach((key) => {
     if (Object.hasOwnProperty.call(data, key)) {
       attrs['data-' + key] = data[key];
@@ -591,17 +591,17 @@ function toAttr(data) {
 }
 
 // Class definitions
-export function Card(representation) {
+export function Card(representation: any) {
   this.components = [];
   this.data = {};
-  this.callback = () => undefined;
+  this.callback = $.noop;
   this.readonly = false;
   this.disabled = false;
   this.disabledReason = '';
   this.$representation = $(representation || components.card.html);
 }
 
-Card.prototype.exists = function(name) {
+Card.prototype.exists = function(name: any) {
   if (name === '') {
     return true; // base case
   }
@@ -612,7 +612,7 @@ Card.prototype.exists = function(name) {
   return this.$representation.find(components[name].selector).length > 0;
 };
 
-Card.prototype.addComponent = function(name, properties) {
+Card.prototype.addComponent = function(name: any, properties: any) {
   if (!Object.hasOwnProperty.call(components, name)) {
     // invalid component
     return;
@@ -627,7 +627,7 @@ Card.prototype.addComponent = function(name, properties) {
   this.components[name].push(properties);
 };
 
-Card.prototype.renderComponent = function(component, properties) {
+Card.prototype.renderComponent = function(component: any, properties: any) {
   if (!Object.hasOwnProperty.call(components, component)) {
     // invalid component
     return;
@@ -644,7 +644,7 @@ Card.prototype.build = function() {
   this.$representation = $('<stub />'); // own function
   Object.keys(this.components).forEach((key) => {
     if (Object.hasOwnProperty.call(self.components, key)) {
-      self.components[key].forEach((properties) => {
+      self.components[key].forEach((properties: any) => {
         self.renderComponent(key, properties);
       });
     }
@@ -666,42 +666,42 @@ Card.prototype.build = function() {
   return this.$representation;
 };
 
-Card.prototype.html = function(component, value, selector) {
+Card.prototype.html = function(component: any, value: any, selector: any) {
   this.findComponent(component, selector).html(value);
 };
-Card.prototype.attr = function(component, value, selector) {
+Card.prototype.attr = function(component: any, value: any, selector: any) {
   this.findComponent(component, selector).attr(value);
 };
-Card.prototype.prop = function(component, value, selector) {
+Card.prototype.prop = function(component: any, value: any, selector: any) {
   this.findComponent(component, selector).prop(value);
 };
-Card.prototype.addClass = function(component, value, selector) {
+Card.prototype.addClass = function(component: any, value: any, selector: any) {
   this.findComponent(component, selector).addClass(value);
 };
-Card.prototype.val = function(component, value, selector) {
+Card.prototype.val = function(component: any, value: any, selector: any) {
   this.findComponent(component, selector).val(value);
 };
 
-Card.prototype.click = function(component, value, selector) {
+Card.prototype.click = function(component: any, value: any, selector: any) {
   const $component = this.findComponent(component, selector);
   $component.click(component !== 'body' && (this.readonly || this.disabled)
-    ? (event) => {
+    ? (event: any) => {
       event.preventDefault();
     }
     : value);
 };
-Card.prototype.key = function(component, value, selector) {
+Card.prototype.key = function(component: any, value: any, selector: any) {
   const $component = this.findComponent(component, selector);
   $component.on('keydown', value);
 };
 
-Card.prototype.tooltip = function(component, value, selector) {
+Card.prototype.tooltip = function(component: any, value: any, selector: any) {
   const $component = this.findComponent(component, selector);
   $component.addClass('tooltip');
   $component.attr('title', value);
 };
 
-Card.prototype.findComponent = function(component, selector) {
+Card.prototype.findComponent = function(component: any, selector: any) {
   const $component = components[component]
     ? this.$representation
       .find(components[component].selector)
@@ -711,7 +711,7 @@ Card.prototype.findComponent = function(component, selector) {
   return $subcomponent.length ? $subcomponent : $component;
 };
 
-Card.prototype.componentPath = function(component) {
+Card.prototype.componentPath = function(component: any) {
   const parent = components[component].parent;
   if (Object.hasOwnProperty.call(components, parent)) {
     return this.componentPath(parent).concat([component]);
@@ -719,7 +719,7 @@ Card.prototype.componentPath = function(component) {
   return [component];
 };
 
-Card.prototype.verify = function(component, partialPath) {
+Card.prototype.verify = function(component: any, partialPath: any) {
   const self = this;
   const path = partialPath || this.componentPath(component);
   let prevSelector = '';
@@ -740,7 +740,7 @@ Card.prototype.verify = function(component, partialPath) {
   return prevSelector;
 };
 
-Card.prototype.add = function(component, partialPath) {
+Card.prototype.add = function(component: any, partialPath: any) {
   const path = partialPath || this.componentPath(component);
   const newElement = path.pop();
   const prevSelector = this.verify(component, path);
@@ -750,7 +750,7 @@ Card.prototype.add = function(component, partialPath) {
   return prevSelector + components[newElement].selector;
 };
 
-export function ActionCard(icon, text, callback) {
+export function ActionCard(icon: any, text: any, callback: any) {
   Card.call(this);
 
   this.addComponent('body', {
@@ -765,31 +765,31 @@ export function ActionCard(icon, text, callback) {
 ActionCard.prototype = Object.create(Card.prototype);
 ActionCard.prototype.constructor = ActionCard;
 
-export function AddClientActionCard(callback) {
+export function AddClientActionCard(callback: any) {
   ActionCard.call(this, 'add', 'New Client', callback);
 }
 AddClientActionCard.prototype = Object.create(ActionCard.prototype);
 AddClientActionCard.prototype.constructor = AddClientActionCard;
 
-export function AddUserActionCard(callback) {
+export function AddUserActionCard(callback: any) {
   ActionCard.call(this, 'add', 'Add User', callback);
 }
 AddUserActionCard.prototype = Object.create(ActionCard.prototype);
 AddUserActionCard.prototype.constructor = AddUserActionCard;
 
-export function AddRootContentItemActionCard(callback) {
+export function AddRootContentItemActionCard(callback: any) {
   ActionCard.call(this, 'add', 'Add Content Item', callback);
 }
 AddRootContentItemActionCard.prototype = Object.create(ActionCard.prototype);
 AddRootContentItemActionCard.prototype.constructor = AddRootContentItemActionCard;
 
-export function AddSelectionGroupActionCard(callback) {
+export function AddSelectionGroupActionCard(callback: any) {
   ActionCard.call(this, 'add', 'Add Selection Group', callback);
 }
 AddSelectionGroupActionCard.prototype = Object.create(ActionCard.prototype);
 AddSelectionGroupActionCard.prototype.constructor = AddSelectionGroupActionCard;
 
-export function InsertCard(icon, text, level, callback) {
+export function InsertCard(icon: any, text: any, level: any, callback: any) {
   Card.call(this);
 
   this.addComponent('card', {
@@ -808,15 +808,15 @@ export function InsertCard(icon, text, level, callback) {
 InsertCard.prototype = Object.create(Card.prototype);
 InsertCard.prototype.constructor = InsertCard;
 
-export function AddChildInsertCard(level, callback?) {
+export function AddChildInsertCard(level: any, callback?: any) {
   InsertCard.call(this, 'expand-card', 'New Sub-Client', level, callback);
 }
 AddChildInsertCard.prototype = Object.create(InsertCard.prototype);
 AddChildInsertCard.prototype.constructor = AddChildInsertCard;
 
 export function ClientCard(
-  client, userCount, reportCount, level,
-  callback, deleteCallback?, editCallback?, newChildCallback?,
+  client: any, userCount: any, reportCount: any, level: any,
+  callback: any, deleteCallback?: any, editCallback?: any, newChildCallback?: any,
   userText?: string,
 ) {
   Card.call(this);
@@ -863,7 +863,7 @@ ClientCard.prototype.constructor = ClientCard;
 
 export function RootContentItemCard(
   rootContentItemSummary: RootContentItemSummary,
-  callback, publishCallback?, deleteCallback?, cancelCallback?, goLiveCallback?,
+  callback: any, publishCallback?: any, deleteCallback?: any, cancelCallback?: any, goLiveCallback?: any,
 ) {
   Card.call(this);
 
@@ -929,7 +929,7 @@ RootContentItemCard.prototype = Object.create(Card.prototype);
 RootContentItemCard.prototype.constructor = RootContentItemCard;
 
 export function FileUploadCard(
-  contentName,
+  contentName: any,
 ) {
   Card.call(this);
 
@@ -942,7 +942,7 @@ FileUploadCard.prototype.constructor = FileUploadCard;
 
 export function SelectionGroupCard(
   selectionGroup: SelectionGroupSummary,
-  callback, deleteCallback, editCallback, confirmCallback,
+  callback: any, deleteCallback: any, editCallback: any, confirmCallback: any,
 ) {
   Card.call(this);
 
@@ -1000,7 +1000,7 @@ export function SelectionGroupCard(
       ? ''
       : member.userName;
     this.addComponent('user', {
-      callback: (event) => shared.removeUserFromSelectionGroup(event, member, selectionGroup),
+      callback: (event: any) => shared.removeUserFromSelectionGroup(event, member, selectionGroup),
       data: {
         'user-id': member.id,
       },
@@ -1036,7 +1036,7 @@ export function SelectionGroupCard(
     inputCallback: (event: Event) => {
       event.stopPropagation();
     },
-    keyCallback: (event) => {
+    keyCallback: (event: any) => {
       // Using keyCode is deprecated but has the best support across browsers
       // Key code 13 is Enter
       if (event.keyCode === 13) {
@@ -1094,8 +1094,8 @@ SelectionGroupCard.prototype = Object.create(Card.prototype);
 SelectionGroupCard.prototype.constructor = SelectionGroupCard;
 
 export function UserCard(
-  user, client, canManage,
-  roleCallback, removeCallback,
+  user: any, client: any, canManage: any,
+  roleCallback: any, removeCallback: any,
 ) {
   const names = [];
 
@@ -1133,7 +1133,7 @@ export function UserCard(
       tooltip: 'Remove user',
     });
     this.addComponent('detailText', { text: 'User roles' });
-    user.userRoles.forEach(function(role) {
+    user.userRoles.forEach(function(role: any) {
       this.addComponent('toggle', {
         callback: roleCallback,
         checked: role.isAssigned,

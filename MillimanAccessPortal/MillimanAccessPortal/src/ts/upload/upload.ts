@@ -76,7 +76,7 @@ export class Upload {
     }
     this.scanner = new FileScanner();
 
-    this.resumable.on('fileAdded', async (resumableFile) => {
+    this.resumable.on('fileAdded', async (resumableFile: any) => {
       const file: File = resumableFile.file;
       this.setCancelable(true);
       this.onFileAdded(resumableFile);
@@ -117,7 +117,7 @@ export class Upload {
     });
 
     this.resumable.on('beforeCancel', () => {
-      this.resumable.files.forEach((file) => {
+      this.resumable.files.forEach((file: any) => {
         const cancelInfo: ResumableInfo = {
           Checksum: this.checksum,
           ChunkNumber: 0,
@@ -147,7 +147,7 @@ export class Upload {
       }
     });
 
-    this.resumable.on('fileSuccess', (file) => {
+    this.resumable.on('fileSuccess', (file: any) => {
       this.setCancelable(false);
       this.onUploadProgress(ProgressSummary.full());
       const finalizeInfo: ResumableInfo = {

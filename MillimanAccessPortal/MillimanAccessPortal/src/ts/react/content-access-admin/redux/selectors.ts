@@ -158,7 +158,7 @@ export function clientsTree(state: AccessState) {
     groups[cur.parentId]
       ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
       : { ...groups, [cur.parentId]: [ cur ] },
-    {});
+    {} as { [id: string]: ClientWithEligibleUsers[] });
   const iteratees = ['name', 'code'];
   const clientTree = _.sortBy(parentGroups.null, iteratees).map((c) => ({
     parent: c,
@@ -412,12 +412,15 @@ export function activeReductionFieldsets(state: AccessState): ReductionFieldset[
   return _.sortBy(activeFields, ['displayName']);
 }
 
+interface ClientWithIndent extends ClientWithEligibleUsers {
+  indent: 1 | 2;
+}
 /**
  * Select clients with additional rendering data.
  * @param state Redux store
  */
 export function clientEntities(state: AccessState) {
-  const entities = [];
+  const entities: ClientWithIndent[] = [];
   activeClients(state).forEach(({ parent, children }) => {
     entities.push({
       ...parent,
@@ -458,7 +461,7 @@ export function groupEntities(state: AccessState) {
     ...g,
     assignedUsers: _.sortBy(
       pendingGroupUserAssignments(state, g.id).map((id) => state.data.users[id]),
-      [(u) => u.firstName && u.lastName && (u.firstName + u.lastName), 'username'],
+      [(u: User) => u.firstName && u.lastName && (u.firstName + u.lastName), 'username'],
     ) as User[],
     name: pendingGroupName(state, g.id),
     editing: state.pending.group.id === g.id,

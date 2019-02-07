@@ -21,10 +21,10 @@ export interface CardTextProps {
 }
 export class CardText extends React.Component<CardTextProps> {
   public static defaultProps = {
-    textSuffix: null,
+    textSuffix: '',
     subtitle: '',
     editing: false,
-    setText: () => null,
+    setText: (): null => null,
   };
   public render() {
     const { text, textSuffix, subtext, editing, setText } = this.props;

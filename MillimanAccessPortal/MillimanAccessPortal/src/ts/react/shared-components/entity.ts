@@ -1,4 +1,6 @@
-import { EntityInfo, isRootContentItemInfo, isUserInfo, isClientInfo, isProfitCenterInfo } from '../system-admin/interfaces';
+import {
+    EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo,
+} from '../system-admin/interfaces';
 import { Guid } from './interfaces';
 
 // Represents an object displayable on a card
