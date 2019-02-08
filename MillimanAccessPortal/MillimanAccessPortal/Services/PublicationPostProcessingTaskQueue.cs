@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapCommonLib;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -26,7 +27,9 @@ namespace MillimanAccessPortal.Services
         public void QueuePublicationPostProcess(Guid publicationRequestId)
         {
             _publicationRequestIdQueue.Enqueue(publicationRequestId);
+            int initialCount = _signal.CurrentCount;
             _signal.Release();
+            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"PublicationPostProcessingTaskQueue.QueuePublicationPostProcess: queue has enqueued publication Id <{publicationRequestId}> and signaled semaphore, semaphore count {_signal.CurrentCount}, was {initialCount}");
         }
 
         /// <summary>
@@ -37,17 +40,22 @@ namespace MillimanAccessPortal.Services
         /// <returns>A Guid from the queue, or Guid.Empty if none was found</returns>
         public async Task<Guid> DequeueAsync(CancellationToken cancellationToken, int timeoutMs = -1)
         {
+            int initialCount = _signal.CurrentCount;
+
             if (! await _signal.WaitAsync(timeoutMs, cancellationToken))
             {
+                GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"PublicationPostProcessingTaskQueue.DequeueAsync: _signal.WaitAsync returned false, semaphore count {_signal.CurrentCount}, was {initialCount}, invalid Guid.Empty will be returned from the queue");
                 return Guid.Empty;
             }
 
             bool LegitId = _publicationRequestIdQueue.TryDequeue(out var publicationRequestId);
             if (!LegitId)
             {
+                GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"PublicationPostProcessingTaskQueue.DequeueAsync: _publicationRequestIdQueue.TryDequeue returned false, semaphore count {_signal.CurrentCount}, was {initialCount}, invalid Guid.Empty will be returned from the queue");
                 return Guid.Empty;
             }
 
+            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"PublicationPostProcessingTaskQueue.DequeueAsync: returning publication Id <{publicationRequestId}>, semaphore count {_signal.CurrentCount}, was {initialCount}");
             return publicationRequestId;
         }
     }

@@ -46,6 +46,7 @@ namespace MillimanAccessPortal.Services
             {
                 // Retrieve the id of a publication request to post-process
                 Guid publicationRequestId = await TaskQueue.DequeueAsync(cancellationToken);
+                GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.ExecuteAsync: obtained publication Id <{publicationRequestId}> from the queue, starting to process");
 
                 if (publicationRequestId != Guid.Empty)
                 {
@@ -58,12 +59,13 @@ namespace MillimanAccessPortal.Services
                         try
                         {
                             await PostProcess(publicationRequestId, dbContext, configuration, qlikConfig);
+                            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.ExecuteAsync: postprocessing completed with no exception");
                         }
                         catch (Exception e)
                         {
                             try
                             {
-                                Log.Error(e.Message);
+                                Log.Error(e, "QueuedPublicationPostProcessingHostedService.ExecuteAsync, Exception thrown from QueuedPublicationPostProcessingHostedService.PostProcess");
                                 ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
                                 thisPubRequest.RequestStatus = PublicationStatus.Error;
                                 thisPubRequest.StatusMessage = e.Message;
@@ -73,7 +75,10 @@ namespace MillimanAccessPortal.Services
                                 }
                                 dbContext.SaveChanges();
                             }
-                            catch (Exception) { /*gulp*/ }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "QueuedPublicationPostProcessingHostedService.ExecuteAsync, Exception thrown from exception handler block");
+                            }
                         }
                     }
                 }
@@ -99,6 +104,7 @@ namespace MillimanAccessPortal.Services
                 string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), no publication request record found with ID {publicationRequestId}";
                 throw new ApplicationException(Msg);
             }
+            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.PostProcess: found the request object, request object is: {{thisPubRequest}}", Serilog.Events.LogEventLevel.Information, thisPubRequest);
 
             List<PublicationStatus> WaitStatusList = new List<PublicationStatus> { PublicationStatus.Queued, PublicationStatus.Processing };
             // While the request is processing, wait and requery
@@ -108,6 +114,7 @@ namespace MillimanAccessPortal.Services
                 dbContext.Entry(thisPubRequest).State = EntityState.Detached;  // force update from db
                 thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
             }
+            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.PostProcess: after polling loop completed, request object is: {{thisPubRequest}}", Serilog.Events.LogEventLevel.Information, thisPubRequest);
             // Ensure that the request is ready for post-processing
             if (thisPubRequest.RequestStatus != PublicationStatus.PostProcessReady)
             {
