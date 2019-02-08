@@ -4,8 +4,8 @@ import '../../../images/icons/login.svg';
 import '../../../images/icons/password.svg';
 import '../../../images/icons/user.svg';
 
-import * as Joi from 'joi';
 import * as React from 'react';
+import * as Yup from 'yup';
 
 import { postData } from '../../shared';
 import { ButtonSpinner } from '../shared-components/button-spinner';
@@ -21,15 +21,15 @@ interface LoginFormState extends BaseFormState {
 
 export class LoginForm extends Form<{}, LoginFormState> {
 
-  protected schema = {
-    username: Joi.string()
+  protected schema = Yup.object({
+    username: Yup.string()
       .email()
       .required()
       .label('Username'),
-    password: Joi.string()
+    password: Yup.string()
       .required()
       .label('Password'),
-  };
+  });
 
   private usernameInput: string | React.RefObject<{}> | any;
   private passwordInput: string | React.RefObject<{}> | any;
@@ -44,6 +44,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
       loginWarning: null,
       data: { username: '', password: '' },
       errors: {},
+      formIsValid: false,
     };
 
     this.usernameInput = React.createRef<HTMLInputElement>();
@@ -53,7 +54,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
   }
 
   public render() {
-    const { data, errors, userConfirmed, awaitingConfirmation, awaitingLogin, loginWarning } = this.state;
+    const { data, errors, formIsValid, userConfirmed, awaitingConfirmation, awaitingLogin, loginWarning } = this.state;
     let actionButton;
     if (!userConfirmed && !awaitingConfirmation) {
       actionButton = (
@@ -106,7 +107,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
           <a href="/Account/ForgotPassword" className="link-button">Forgot Password</a>
           <button
             type={userConfirmed ? 'submit' : 'button'}
-            disabled={awaitingLogin || (userConfirmed && (this.validate()) ? true : false)}
+            disabled={awaitingLogin || userConfirmed && !formIsValid}
             className="blue-button"
             onClick={userConfirmed ? this.handleSubmit : undefined}
           >
@@ -118,12 +119,12 @@ export class LoginForm extends Form<{}, LoginFormState> {
     );
   }
 
-  protected handleSubmit = (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
+  protected handleSubmit = async (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     this.setState({ awaitingLogin: true });
 
-    const errors = this.validate();
+    const errors = await this.validate();
     this.setState({ errors: errors || {} });
     if (errors) {
       this.setState({ awaitingLogin: false });
@@ -153,13 +154,13 @@ export class LoginForm extends Form<{}, LoginFormState> {
     });
   }
 
-  private checkUser = (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
+  private checkUser = async (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const errors = { ...this.state.errors };
-    const errorMessage = this.validateProperty({ name: 'username', value: this.state.data.username });
+    const errorMessage = await this.validateProperty({ name: 'username', value: this.state.data.username });
     if (errorMessage) {
-      errors.username = errorMessage;
+      errors.username = errorMessage.username;
       this.setState({ errors });
       return;
     } else {
