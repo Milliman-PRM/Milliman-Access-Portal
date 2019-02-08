@@ -86,6 +86,10 @@ module.exports = {
         to: 'images/login-hero.jpg',
       },
       {
+        from: 'src/js/polyfills.min.js',
+        to: 'js/polyfills.min.js',
+      },
+      {
         from: 'src/html/Error/502.html',
         to: 'Error/502.html',
       },

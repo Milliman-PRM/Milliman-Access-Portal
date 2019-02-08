@@ -11,7 +11,12 @@
 
     @RenderSection("CSS", required: false)
 
-    @*    @Html.Raw(JavaScriptSnippet.FullScript) *@
+    <script type="text/javascript">
+        if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+            document.write('<script src="/js/polyfills.min.js"><\/script>');
+        }
+    </script>
+    
     @RenderSection("Scripts", required: false)
 </head>
 <body data-nav-location="@ViewData["NavIcon"]">
