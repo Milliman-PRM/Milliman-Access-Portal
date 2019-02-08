@@ -8,7 +8,7 @@
 *.pdb
 *.dll.config
 *.cache
-**/js/**/*.js
+**/ts-compiled/**/*.js
 *.map
 *.suo
 .sass-cache
