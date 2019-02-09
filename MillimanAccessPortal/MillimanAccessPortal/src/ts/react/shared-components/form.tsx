@@ -22,12 +22,12 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
     let error: Yup.ValidationError = null;
     await this.schema.validate(this.state.data, options)
       .catch((err) => {
-        // this.setState({ formIsValid: false });
+        this.setState({ formIsValid: false });
         error = err;
       });
 
     if (!error) {
-      // this.setState({ formIsValid: true });
+      this.setState({ formIsValid: true });
       return null;
     }
 
@@ -41,7 +41,6 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
     let error: Yup.ValidationError = null;
     await this.schema.validateAt(name, this.state.data)
       .catch((err) => {
-        // this.setState({ formIsValid: false });
         error = err;
       });
 
@@ -63,6 +62,7 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
   protected handleChange = async ({ currentTarget: input }: React.FormEvent<HTMLInputElement>) => {
     const errorMessage = this.validateProperty(input);
     const { data, errors } = Object.assign({}, this.state);
+    this.validate();
 
     if (!errorMessage) {
       delete errors[input.name];
