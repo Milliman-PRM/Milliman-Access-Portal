@@ -4,7 +4,7 @@
     height: 100%;
     width: 100%;
     color: $white;
-    animation: loading-spinner 1s infinite linear;
+    animation: loading-spinner 1s steps(12, end) infinite;
 }
 
 button {
@@ -18,6 +18,14 @@ button {
         width: 1.5em;
         margin-left: .5em;
     }
+}
+
+#loading-spinner_hand {
+    opacity: 1;
+}
+
+#loading-spinner_circle {
+    opacity: .42;
 }
 
 @keyframes loading-spinner {
