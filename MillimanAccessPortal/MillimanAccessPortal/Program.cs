@@ -61,7 +61,6 @@ namespace MillimanAccessPortal
 
             var webHost = 
             WebHost.CreateDefaultBuilder(args)
-                .UseApplicationInsights()
             .UseStartup<Startup>()
             .ConfigureAppConfiguration((hostContext, config) =>
                 {
