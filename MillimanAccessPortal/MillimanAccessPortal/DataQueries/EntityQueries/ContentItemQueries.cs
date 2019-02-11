@@ -30,7 +30,7 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="id">Content item ID</param>
         /// <returns>Content item</returns>
-        private BasicContentItem _findContentItem(Guid id)
+        private BasicContentItem FindContentItem(Guid id)
         {
             var contentItem = _dbContext.RootContentItem
                 .Where(i => i.Id == id)
@@ -55,7 +55,7 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="role">Role</param>
         /// <param name="clientId">Client ID</param>
         /// <returns>List of content items</returns>
-        private List<BasicContentItem> _selectContentItemsWhereClient(
+        private List<BasicContentItem> SelectContentItemsWhereClient(
             ApplicationUser user, RoleEnum role, Guid clientId)
         {
             var contentItems = _dbContext.UserRoleInRootContentItem
@@ -85,7 +85,7 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="items">List of content items</param>
         /// <returns>List of content items with stats</returns>
-        private List<BasicContentItemWithStats> _withStats(List<BasicContentItem> items)
+        private List<BasicContentItemWithStats> WithStats(List<BasicContentItem> items)
         {
             var itemsWith = new List<BasicContentItemWithStats> { };
             foreach (var item in items)
@@ -120,11 +120,11 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="role">Role</param>
         /// <param name="clientId">Client ID</param>
         /// <returns>List of content items with stats</returns>
-        internal List<BasicContentItemWithStats> SelectContentItemsWhereClient(
+        internal List<BasicContentItemWithStats> SelectContentItemsWithStatsWhereClient(
             ApplicationUser user, RoleEnum role, Guid clientId)
         {
-            var contentItems = _selectContentItemsWhereClient(user, role, clientId);
-            var contentItemsWithStats = _withStats(contentItems);
+            var contentItems = SelectContentItemsWhereClient(user, role, clientId);
+            var contentItemsWithStats = WithStats(contentItems);
 
             return contentItemsWithStats;
         }
@@ -136,8 +136,8 @@ namespace MillimanAccessPortal.DataQueries
         /// <returns>Content item with stats</returns>
         internal BasicContentItemWithStats SelectContentItemWithStats(Guid contentItemId)
         {
-            var contentItem = _findContentItem(contentItemId);
-            var contentItemWithStats = _withStats(new List<BasicContentItem> { contentItem })
+            var contentItem = FindContentItem(contentItemId);
+            var contentItemWithStats = WithStats(new List<BasicContentItem> { contentItem })
                 .SingleOrDefault();
 
             return contentItemWithStats;

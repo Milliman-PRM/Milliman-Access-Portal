@@ -25,7 +25,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="contentItemId">Content item ID</param>
         /// <returns>Most recent publication request for the content item</returns>
-        private ContentPublicationRequest _publicationWhereContentItem(Guid contentItemId)
+        private ContentPublicationRequest PublicationWhereContentItem(Guid contentItemId)
         {
             var publicationRequest = _dbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == contentItemId)
@@ -40,7 +40,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="selectionGroupId">Selection group ID</param>
         /// <returns>Most recent reduction request for the selection group</returns>
-        private ContentReductionTask _reductionWhereSelectionGroup(Guid selectionGroupId)
+        private ContentReductionTask ReductionWhereSelectionGroup(Guid selectionGroupId)
         {
             var reductionTask = _dbContext.ContentReductionTask
                 .Where(t => t.SelectionGroupId == selectionGroupId)
@@ -61,7 +61,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             var publications = new List<BasicPublication> { };
             foreach (var contentItemId in contentItemIds)
             {
-                var publicationRequest = _publicationWhereContentItem(contentItemId);
+                var publicationRequest = PublicationWhereContentItem(contentItemId);
 
                 if (publicationRequest != null)
                 {
@@ -131,7 +131,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             var reductions = new List<BasicReduction> { };
             foreach (var selectionGroupId in selectionGroupIds)
             {
-                var reductionTask = _reductionWhereSelectionGroup(selectionGroupId);
+                var reductionTask = ReductionWhereSelectionGroup(selectionGroupId);
 
                 if (reductionTask != null)
                 {
@@ -181,7 +181,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>List of value IDs</returns>
         internal List<Guid> SelectReductionSelections(Guid selectionGroupId)
         {
-            var reductionTask = _reductionWhereSelectionGroup(selectionGroupId);
+            var reductionTask = ReductionWhereSelectionGroup(selectionGroupId);
             if (reductionTask == null)
             {
                 return new List<Guid> { };

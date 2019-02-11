@@ -418,18 +418,18 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSelections([FromBody] UpdateSelectionsRequestModel model)
         {
-            return await _updateSelections(model.GroupId, model.IsMaster, model.Selections.ToArray());
+            return await UpdateSelections(model.GroupId, model.IsMaster, model.Selections.ToArray());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelReduction([FromBody] CancelReductionRequestModel model)
         {
-            return await _cancelReduction(model.GroupId);
+            return await CancelReduction(model.GroupId);
         }
 
         [NonAction]
-        private async Task<IActionResult> _updateSelections(Guid selectionGroupId, bool isMaster, Guid[] selections)
+        private async Task<IActionResult> UpdateSelections(Guid selectionGroupId, bool isMaster, Guid[] selections)
         {
             var selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -646,7 +646,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        public async Task<IActionResult> _cancelReduction(Guid SelectionGroupId)
+        private async Task<IActionResult> CancelReduction(Guid SelectionGroupId)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)

@@ -65,7 +65,7 @@ namespace MillimanAccessPortal.DataQueries
         public ContentItemsResponseModel SelectContentItems(ApplicationUser user, Guid clientId)
         {
             var items = _contentItemQueries
-                .SelectContentItemsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId);
+                .SelectContentItemsWithStatsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId);
             var itemIds = items.ConvertAll(i => i.Id);
 
             var contentTypes = _contentItemQueries.SelectContentTypesContentItemIn(itemIds);
@@ -146,7 +146,7 @@ namespace MillimanAccessPortal.DataQueries
         public StatusResponseModel SelectStatus(ApplicationUser user, Guid clientId, Guid contentItemId)
         {
             var contentItemIds = _contentItemQueries
-                .SelectContentItemsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
+                .SelectContentItemsWithStatsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
                 .ConvertAll((i) => i.Id);
             var selectionGroupIds = _selectionGroupQueries
                 .SelectSelectionGroupsWhereContentItem(contentItemId)
@@ -159,7 +159,7 @@ namespace MillimanAccessPortal.DataQueries
             var reductionQueue = _publicationQueries
                 .SelectQueueDetailsWhereReductionIn(reductions.ConvertAll((r) => r.Id));
             var liveSelectionsSet = _selectionGroupQueries.SelectSelectionsWhereSelectionGroupIn(selectionGroupIds);
-            var items = _contentItemQueries.SelectContentItemsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
+            var items = _contentItemQueries.SelectContentItemsWithStatsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
                 .ConvertAll(i => new BasicContentItem
                 {
                     Id = i.Id,

@@ -705,7 +705,7 @@ namespace MapTests
             #region Act
             int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
 
-            var view = await controller._cancelReduction(TestUtil.MakeTestGuid(SelectionGroupId));
+            var view = await controller.CancelReduction(TestUtil.MakeTestGuid(SelectionGroupId));
 
             int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion
@@ -736,7 +736,7 @@ namespace MapTests
             #region Act
             int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
 
-            var view = await controller._cancelReduction(TestUtil.MakeTestGuid(SelectionGroupId));
+            var view = await controller.CancelReduction(TestUtil.MakeTestGuid(SelectionGroupId));
 
             int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion
@@ -762,7 +762,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller._cancelReduction(TestUtil.MakeTestGuid(1));
+            var view = await controller.CancelReduction(TestUtil.MakeTestGuid(1));
             #endregion
 
             #region Assert
@@ -799,7 +799,7 @@ namespace MapTests
                 .Where(crt => crt.ReductionStatus == ReductionStatusEnum.Queued)
                 .Count();
 
-            var view = await controller._cancelReduction(TestUtil.MakeTestGuid(SelectionGroupId));
+            var view = await controller.CancelReduction(TestUtil.MakeTestGuid(SelectionGroupId));
 
             int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             int queuedPostCount = TestResources.DbContextObject.ContentReductionTask

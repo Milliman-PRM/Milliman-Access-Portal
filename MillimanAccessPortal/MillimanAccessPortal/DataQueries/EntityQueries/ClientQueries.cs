@@ -30,7 +30,7 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="id">Client ID</param>
         /// <returns>Client</returns>
-        private BasicClient _findClient(Guid id)
+        private BasicClient FindClient(Guid id)
         {
             return _dbContext.Client
                 .Where(c => c.Id == id)
@@ -50,7 +50,7 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="user">User</param>
         /// <param name="role">Role</param>
         /// <returns>Clients where User has Role</returns>
-        private List<BasicClient> _selectClientWhereRole(ApplicationUser user, RoleEnum role)
+        private List<BasicClient> SelectClientWhereRole(ApplicationUser user, RoleEnum role)
         {
             return _dbContext.UserRoleInClient
                 .Where(r => r.User.Id == user.Id)
@@ -72,7 +72,7 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="clients">List of clients</param>
         /// <returns>List of clients with stats</returns>
-        private List<BasicClientWithStats> _withStats(List<BasicClient> clients)
+        private List<BasicClientWithStats> WithStats(List<BasicClient> clients)
         {
             var clientsWith = new List<BasicClientWithStats> { };
             foreach (var client in clients)
@@ -103,7 +103,7 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="clients">List of clients</param>
         /// <returns>List of clients with stats and eligble users</returns>
-        private List<BasicClientWithEligibleUsers> _withEligibleUsers(List<BasicClientWithStats> clients)
+        private List<BasicClientWithEligibleUsers> WithEligibleUsers(List<BasicClientWithStats> clients)
         {
             var clientsWith = new List<BasicClientWithEligibleUsers> { };
             foreach (var client in clients)
@@ -143,9 +143,9 @@ namespace MillimanAccessPortal.DataQueries
                 return new List<BasicClientWithEligibleUsers> { };
             }
 
-            var clients = _selectClientWhereRole(user, role);
-            var clientsWithStats = _withStats(clients);
-            var clientsWithEligibleUsers = _withEligibleUsers(clientsWithStats);
+            var clients = SelectClientWhereRole(user, role);
+            var clientsWithStats = WithStats(clients);
+            var clientsWithEligibleUsers = WithEligibleUsers(clientsWithStats);
 
             return clientsWithEligibleUsers;
         }
@@ -157,8 +157,8 @@ namespace MillimanAccessPortal.DataQueries
         /// <returns>Client with stats</returns>
         internal BasicClientWithStats SelectClientWithStats(Guid clientId)
         {
-            var client = _findClient(clientId);
-            var clientWithStats = _withStats(new List<BasicClient> { client })
+            var client = FindClient(clientId);
+            var clientWithStats = WithStats(new List<BasicClient> { client })
                 .SingleOrDefault();
 
             return clientWithStats;

@@ -32,7 +32,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="id">Selection group ID</param>
         /// <returns>Selection group</returns>
-        private BasicSelectionGroup _findSelectionGroup(Guid id)
+        private BasicSelectionGroup FindSelectionGroup(Guid id)
         {
             var selectionGroup = _dbContext.SelectionGroup
                 .Where(g => g.Id == id)
@@ -51,35 +51,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         }
 
         /// <summary>
-        /// Select all selection groups for a content item
-        /// </summary>
-        /// <param name="contentItemId">Content item ID</param>
-        /// <returns>List of selection groups</returns>
-        private List<BasicSelectionGroup> _selectSelectionGroupsWhereContentItem(Guid contentItemId)
-        {
-            var selectionGroups = _dbContext.SelectionGroup
-                .Where(g => g.RootContentItemId == contentItemId)
-                .OrderBy(g => g.GroupName)
-                .Select(g => new BasicSelectionGroup
-                {
-                    Id = g.Id,
-                    RootContentItemId = g.RootContentItemId,
-                    IsSuspended = g.IsSuspended,
-                    IsInactive = g.IsInactive,
-                    IsMaster = g.IsMaster,
-                    Name = g.GroupName,
-                })
-                .ToList();
-
-            return selectionGroups;
-        }
-
-        /// <summary>
         /// Add a list of assigned users for a single selection group
         /// </summary>
         /// <param name="group">Selection group</param>
         /// <returns>Selection group with assigned users</returns>
-        private BasicSelectionGroupWithAssignedUsers _withAssignedUsers(BasicSelectionGroup group)
+        private BasicSelectionGroupWithAssignedUsers WithAssignedUsers(BasicSelectionGroup group)
         {
             var groupWith = new BasicSelectionGroupWithAssignedUsers
             {
@@ -105,7 +81,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="group">List of selection groups</param>
         /// <returns>List of selection groups with assigned users</returns>
-        private List<BasicSelectionGroupWithAssignedUsers> _withAssignedUsers(List<BasicSelectionGroup> groups)
+        private List<BasicSelectionGroupWithAssignedUsers> WithAssignedUsers(List<BasicSelectionGroup> groups)
         {
             var groupsWith = new List<BasicSelectionGroupWithAssignedUsers> { };
             foreach (var group in groups)
@@ -137,8 +113,21 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="contentItemId">Content item ID</param>
         /// <returns>List of selection groups</returns>
-        internal List<BasicSelectionGroup> SelectSelectionGroupsWhereContentItem(Guid contentItemId) {
-            var selectionGroups = _selectSelectionGroupsWhereContentItem(contentItemId);
+        internal List<BasicSelectionGroup> SelectSelectionGroupsWhereContentItem(Guid contentItemId)
+        {
+            var selectionGroups = _dbContext.SelectionGroup
+                .Where(g => g.RootContentItemId == contentItemId)
+                .OrderBy(g => g.GroupName)
+                .Select(g => new BasicSelectionGroup
+                {
+                    Id = g.Id,
+                    RootContentItemId = g.RootContentItemId,
+                    IsSuspended = g.IsSuspended,
+                    IsInactive = g.IsInactive,
+                    IsMaster = g.IsMaster,
+                    Name = g.GroupName,
+                })
+                .ToList();
 
             return selectionGroups;
         }
@@ -150,8 +139,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>List of selection groups with assigned users</returns>
         internal List<BasicSelectionGroupWithAssignedUsers> SelectSelectionGroupsWithAssignedUsers(Guid contentItemId)
         {
-            var selectionGroups = _selectSelectionGroupsWhereContentItem(contentItemId);
-            var selectionGroupsWithAssignedUsers = _withAssignedUsers(selectionGroups);
+            var selectionGroups = SelectSelectionGroupsWhereContentItem(contentItemId);
+            var selectionGroupsWithAssignedUsers = WithAssignedUsers(selectionGroups);
 
             return selectionGroupsWithAssignedUsers;
         }
@@ -163,8 +152,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>List of selection groups with assigned users</returns>
         internal BasicSelectionGroupWithAssignedUsers SelectSelectionGroupWithAssignedUsers(Guid selectionGroupId)
         {
-            var selectionGroup = _findSelectionGroup(selectionGroupId);
-            var selectionGroupsWithAssignedUser = _withAssignedUsers(selectionGroup);
+            var selectionGroup = FindSelectionGroup(selectionGroupId);
+            var selectionGroupsWithAssignedUser = WithAssignedUsers(selectionGroup);
 
             return selectionGroupsWithAssignedUser;
         }
