@@ -1,15 +1,15 @@
-import '../images/add-circle.svg';
-import '../images/add.svg';
-import '../images/cancel.svg';
-import '../images/checkmark.svg';
-import '../images/delete.svg';
-import '../images/edit.svg';
-import '../images/expand-card.svg';
-import '../images/group.svg';
-import '../images/remove-circle.svg';
-import '../images/reports.svg';
-import '../images/upload.svg';
-import '../images/user.svg';
+import '../images/icons/add-circle.svg';
+import '../images/icons/add.svg';
+import '../images/icons/cancel.svg';
+import '../images/icons/checkmark.svg';
+import '../images/icons/delete.svg';
+import '../images/icons/edit.svg';
+import '../images/icons/expand-card.svg';
+import '../images/icons/group.svg';
+import '../images/icons/remove-circle.svg';
+import '../images/icons/reports.svg';
+import '../images/icons/upload.svg';
+import '../images/icons/user.svg';
 
 import * as toastr from 'toastr';
 

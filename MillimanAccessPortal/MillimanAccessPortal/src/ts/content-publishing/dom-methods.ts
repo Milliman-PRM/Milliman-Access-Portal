@@ -1,6 +1,7 @@
+import '../../images/icons/expand-frame.svg';
+
 import 'jquery-validation';
 import 'jquery-validation-unobtrusive';
-import '../../images/expand-frame.svg';
 
 import * as $ from 'jquery';
 import { unionWith } from 'lodash';

@@ -2,7 +2,7 @@
 
 import 'tooltipster';
 import 'tooltipster/src/css/tooltipster.css';
-import '../../../images/cancel.svg';
+import '../../../images/icons/cancel.svg';
 
 import * as React from 'react';
 

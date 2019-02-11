@@ -1,8 +1,8 @@
 declare function require(moduleName: string): any;
 
-import '../../images/add.svg';
-import '../../images/collapse-cards.svg';
-import '../../images/expand-cards.svg';
+import '../../images/icons/add.svg';
+import '../../images/icons/collapse-cards.svg';
+import '../../images/icons/expand-cards.svg';
 import '../../images/map-logo.svg';
 
 import * as $ from 'jquery';

@@ -12,7 +12,6 @@
     "moment": "^2.22.2",
     "node-forge": "^0.7.5",
     "popper.js": "^1.14.1",
-    "promise-polyfill": "8.1.0",
     "react": "^16.3.0",
     "react-dom": "^16.3.0",
     "react-modal": "^3.5.1",
@@ -22,7 +21,7 @@
     "tooltipster": "4.2.6",
     "typeahead.js": "v0.11.1",
     "vex-js": "v4.1.0",
-    "whatwg-fetch": "3.0.0"
+    "yup": "^0.26.10"
   },
   "devDependencies": {
     "@types/jest": "^23.3.8",
@@ -42,6 +41,7 @@
     "@types/typeahead": "^0.11.32",
     "@types/vex-js": "^2.3.29",
     "@types/webpack-env": "^1.13.5",
+    "@types/yup": "^0.26.7",
     "aspnet-webpack": "^3.0.0",
     "awesome-typescript-loader": "^5.2.1",
     "clean-webpack-plugin": "^0.1.19",
