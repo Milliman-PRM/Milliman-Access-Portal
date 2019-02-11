@@ -130,9 +130,6 @@
       <DependentUpon>BuildTimeProperties.tt</DependentUpon>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Connected Services" />
-  </ItemGroup>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="cd ..\..\Documentation&#xD;&#xA;CompileUserDocs.bat" />
   </Target>
