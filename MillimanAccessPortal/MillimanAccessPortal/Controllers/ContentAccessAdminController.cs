@@ -65,7 +65,7 @@ namespace MillimanAccessPortal.Controllers
                 .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin));
             if (!roleResult.Succeeded)
             {
-                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor} "
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
                         + $"for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to administer content access.");
                 return Unauthorized();
@@ -83,7 +83,7 @@ namespace MillimanAccessPortal.Controllers
                 .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin));
             if (!roleResult.Succeeded)
             {
-                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor} "
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
                         + $"for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to administer content access.");
                 return Unauthorized();
@@ -104,7 +104,7 @@ namespace MillimanAccessPortal.Controllers
                 .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, clientId));
             if (!roleResult.Succeeded)
             {
-                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor} "
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
                         + $"for user {User.Identity.Name}");
                 Response.Headers.Add("Warning",
                     "You are not authorized to administer content access for this client.");
@@ -126,7 +126,7 @@ namespace MillimanAccessPortal.Controllers
                 .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
             if (!roleResult.Succeeded)
             {
-                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor} "
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
                         + $"for user {User.Identity.Name}");
                 Response.Headers.Add("Warning",
                     "You are not authorized to administer content access for this content item.");
@@ -152,7 +152,7 @@ namespace MillimanAccessPortal.Controllers
                 .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
             if (!roleResult.Succeeded)
             {
-                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor} "
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
                         + $"for user {User.Identity.Name}");
                 Response.Headers.Add("Warning",
                     "You are not authorized to administer content access to the specified content item.");
@@ -191,7 +191,7 @@ namespace MillimanAccessPortal.Controllers
                     RoleEnum.ContentAccessAdmin, model.ItemId));
             if (!roleResult.Succeeded)
             {
-                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor} "
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
                         + $"for user {User.Identity.Name}");
                 Response.Headers.Add("Warning",
                     "You are not authorized to administer content access to the specified content item.");
@@ -248,7 +248,7 @@ namespace MillimanAccessPortal.Controllers
                 .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
             if (!roleResult.Succeeded)
             {
-                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor} "
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
                         + $"for user {User.Identity.Name}");
                 Response.Headers.Add("Warning",
                     "You are not authorized to administer content access to the specified content item.");
@@ -310,7 +310,7 @@ namespace MillimanAccessPortal.Controllers
                 .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
             if (!roleResult.Succeeded)
             {
-                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor} "
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
                         + $"for user {User.Identity.Name}");
                 Response.Headers.Add("Warning",
                     "You are not authorized to administer content access to the specified content item.");
@@ -338,7 +338,7 @@ namespace MillimanAccessPortal.Controllers
                     RoleEnum.ContentAccessAdmin, selectionGroup?.RootContentItemId));
             if (!roleResult.Succeeded)
             {
-                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor} "
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
                         + $"for user {User.Identity.Name}");
                 Response.Headers.Add("Warning",
                     "You are not authorized to administer content access to the specified content item.");
