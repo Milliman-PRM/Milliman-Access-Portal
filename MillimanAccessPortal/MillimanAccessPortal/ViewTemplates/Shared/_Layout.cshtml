@@ -12,7 +12,7 @@
     @RenderSection("CSS", required: false)
 
     <script type="text/javascript">
-        if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        if (!("fetch" in window && "Promise" in window && "Map" in window && "Set" in window)) {
             document.write('<script src="/js/polyfills.min.js"><\/script>');
         }
     </script>
