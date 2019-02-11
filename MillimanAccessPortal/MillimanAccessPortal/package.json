@@ -1,6 +1,6 @@
 {
   "name": "milliman-access-portal",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "Milliman Access Portal",
   "license": "UNLICENSED",
   "dependencies": {
