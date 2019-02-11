@@ -192,7 +192,7 @@ if ($buildType -ne "Release")
 
 log_statement "Restoring packages and building MAP"
 
-$command = "npm install -g yarn@1.5.1"
+$command = "npm install -g yarn@1.12.3"
 invoke-expression $command
 
 if ($LASTEXITCODE -ne 0) {

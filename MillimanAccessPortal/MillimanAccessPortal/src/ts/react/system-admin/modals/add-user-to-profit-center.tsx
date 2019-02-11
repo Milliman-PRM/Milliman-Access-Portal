@@ -19,7 +19,7 @@ export class AddUserToProfitCenterModal
 
   private url: string = 'SystemAdmin/AddUserToProfitCenter';
 
-  public constructor(props) {
+  public constructor(props: AddUserToProfitCenterModalProps) {
     super(props);
 
     this.state = {

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Serilog;
+using Serilog.Events;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -163,5 +165,19 @@ namespace MapCommonLib
             return domains.Contains(email.Substring(email.IndexOf('@') + 1), comparer) || addresses.Contains(email, comparer);
         }
 
+        public static void IssueLog(IssueLogEnum issue, string message, LogEventLevel level = LogEventLevel.Information, params object[] parms)
+        {
+            Log.Write(level, $"{issue.ToString()}: {message}", parms);
+        }
     }
+
+    /// <summary>
+    /// This enum helps to quickly find/remove code associated with an issue after the issue is resolved. 
+    /// Remove the enum value and the compiler will highlight all references. 
+    /// </summary>
+    public enum IssueLogEnum
+    {
+        QueuePostProcessing
+    }
+
 }
