@@ -9,11 +9,11 @@
 @Html.AntiForgeryToken()
 
 <div id="content-wrapper" class="navbar-offset">
-    @Html.Partial("_Header")
+    @Html.PartialAsync("_Header")
     <div id="content-container">
         @RenderBody()
     </div>
-    @Html.Partial("_Footer")
+    @Html.PartialAsync("_Footer")
 </div>
 
 
