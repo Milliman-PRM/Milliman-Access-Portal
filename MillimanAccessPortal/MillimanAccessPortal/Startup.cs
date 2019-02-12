@@ -99,13 +99,14 @@ namespace MillimanAccessPortal
                 .AddCommonWordsValidator<ApplicationUser>(commonWords)
                 .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName);
 
-            AuthenticationBuilder authenticationBuilder = services.AddAuthentication();
-
+            #region Configure authentication services
             var WsFederationConfigSections = Configuration.GetSection("WsFederationSources").GetChildren();
             if (WsFederationConfigSections.Select(s => s.GetValue<string>("Scheme")).Distinct().Count() != WsFederationConfigSections.Count())
             {
-                // Error, multiple configured schemes with same scheme name
+                // Error, multiple configured schemes with the same name
             }
+
+            AuthenticationBuilder authenticationBuilder = services.AddAuthentication();
 
             foreach (ConfigurationSection section in WsFederationConfigSections)
             {
@@ -114,10 +115,10 @@ namespace MillimanAccessPortal
                 {
                     wsFederationConfig = (WsFederationConfig)section;
                 }
-                catch (Exception ex)
+                catch (ApplicationException ex)
                 {
                     string Msg = ex.Message;
-                    // log a configuration failure
+                    // Error, log a configuration failure
                     continue;
                 }
 
@@ -130,6 +131,7 @@ namespace MillimanAccessPortal
             }
 
             authenticationBuilder.AddCookie();
+            #endregion
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 

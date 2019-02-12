@@ -85,14 +85,42 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // POST: /Account/ChooseAuthentication
+        // POST: /Account/IsLocalAccount
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChooseAuthentication(string userName)
+        public async Task<IActionResult> IsLocalAccount(string userName)
         {
-            return Challenge("prmtest");
-            //return Redirect
+            if (userName == "tom@prmtest.com")
+            {
+                return Json(new { LocalAccount = false });
+            }
+
+            string userDomain = userName.Substring(userName.IndexOf('@') + 1);
+            userDomain = userDomain.Substring(0, userName.IndexOf('.'));
+            var schemes = (await _signInManager.GetExternalAuthenticationSchemesAsync()).Select(s => s.Name);
+
+            if (schemes.Contains(userDomain))
+            {
+                return Json(new { LocalAccount = false });
+            }
+
+            return Json(new { LocalAccount = true });
+        }
+
+        //
+        // POST: /Account/RemoteAuthenticate
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public IActionResult RemoteAuthenticate(string userName)
+        {
+            if (userName == "tom@prmtest.com")
+            {
+                return Challenge("prmtest");
+            }
+
+            return Challenge("millimantest");
         }
 
         //
@@ -102,7 +130,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LocalLogin(LoginViewModel model, string returnUrl = null)
         {
-            Log.Verbose("Entered AccountController.Login action");
+            Log.Verbose("Entered AccountController.LocalLogin action");
 
             ViewData["ReturnUrl"] = returnUrl;
 
@@ -112,7 +140,7 @@ namespace MillimanAccessPortal.Controllers
 
                 if (user == null || user.IsSuspended)
                 {
-                    Log.Debug($"User {model.Username} suspended or not found, login rejected");
+                    Log.Debug($"User {model.Username} suspended or not found, local login rejected");
                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
                     Response.Headers.Add("Warning", "Invalid login attempt.");
                     return Ok();
