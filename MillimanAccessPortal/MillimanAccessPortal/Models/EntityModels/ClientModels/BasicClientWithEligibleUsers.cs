@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.ClientModels
 {
-    public class BasicClientWithEligibleUsers : BasicClientWithStats
+    public class BasicClientWithEligibleUsers : BasicClientWithCardStats
     {
         public List<Guid> EligibleUsers { get; set; }
     }

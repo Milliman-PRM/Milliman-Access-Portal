@@ -6,6 +6,6 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
     public class DeleteGroupResponseModel
     {
         public Guid GroupId { get; set; }
-        public BasicContentItemWithStats ContentItemStats { get; set; }
+        public BasicContentItemWithCardStats ContentItemStats { get; set; }
     }
 }

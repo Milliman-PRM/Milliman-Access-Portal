@@ -65,7 +65,7 @@ namespace MillimanAccessPortal.DataQueries
         public ContentItemsResponseModel SelectContentItems(ApplicationUser user, Guid clientId)
         {
             var contentItems = _contentItemQueries
-                .SelectContentItemsWithStatsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId);
+                .SelectContentItemsWithCardStatsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId);
             var contentItemIds = contentItems.ConvertAll(i => i.Id);
 
             var contentTypes = _contentItemQueries.SelectContentTypesContentItemIn(contentItemIds);
@@ -74,7 +74,7 @@ namespace MillimanAccessPortal.DataQueries
 
             var queueDetails = _publicationQueries.SelectQueueDetailsWherePublicationIn(publicationIds);
 
-            var clientStats = _clientQueries.SelectClientWithStats(clientId);
+            var clientStats = _clientQueries.SelectClientWithCardStats(clientId);
 
             return new ContentItemsResponseModel
             {
@@ -101,8 +101,8 @@ namespace MillimanAccessPortal.DataQueries
 
             var queueDetails = _publicationQueries.SelectQueueDetailsWhereReductionIn(reductionIds);
 
-            var contentItemStats = _contentItemQueries.SelectContentItemWithStats(contentItemId);
-            var clientStats = _clientQueries.SelectClientWithStats(contentItemStats.ClientId);
+            var contentItemStats = _contentItemQueries.SelectContentItemWithCardStats(contentItemId);
+            var clientStats = _clientQueries.SelectClientWithCardStats(contentItemStats.ClientId);
 
             return new SelectionGroupsResponseModel
             {
@@ -146,7 +146,7 @@ namespace MillimanAccessPortal.DataQueries
         public StatusResponseModel SelectStatus(ApplicationUser user, Guid clientId, Guid contentItemId)
         {
             var contentItemIds = _contentItemQueries
-                .SelectContentItemsWithStatsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
+                .SelectContentItemsWithCardStatsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
                 .ConvertAll((i) => i.Id);
             var selectionGroupIds = _selectionGroupQueries
                 .SelectSelectionGroupsWhereContentItem(contentItemId)
@@ -159,7 +159,7 @@ namespace MillimanAccessPortal.DataQueries
             var reductionQueue = _publicationQueries
                 .SelectQueueDetailsWhereReductionIn(reductions.ConvertAll((r) => r.Id));
             var liveSelectionsSet = _selectionGroupQueries.SelectSelectionsWhereSelectionGroupIn(selectionGroupIds);
-            var contentItems = _contentItemQueries.SelectContentItemsWithStatsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
+            var contentItems = _contentItemQueries.SelectContentItemsWithCardStatsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
                 .ConvertAll(i => new BasicContentItem
                 {
                     Id = i.Id,
@@ -194,7 +194,7 @@ namespace MillimanAccessPortal.DataQueries
             var group = _selectionGroupQueries.CreateReducingSelectionGroup(contentItemId, name);
 
             var groupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
-            var contentItemStats = _contentItemQueries.SelectContentItemWithStats(contentItemId);
+            var contentItemStats = _contentItemQueries.SelectContentItemWithCardStats(contentItemId);
 
             return new CreateGroupResponseModel
             {
@@ -214,7 +214,7 @@ namespace MillimanAccessPortal.DataQueries
             var group = _selectionGroupQueries.CreateMasterSelectionGroup(contentItemId, name);
 
             var groupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
-            var contentItemStats = _contentItemQueries.SelectContentItemWithStats(contentItemId);
+            var contentItemStats = _contentItemQueries.SelectContentItemWithCardStats(contentItemId);
 
             return new CreateGroupResponseModel
             {
@@ -236,7 +236,7 @@ namespace MillimanAccessPortal.DataQueries
             var group = _selectionGroupQueries.UpdateSelectionGroupUsers(selectionGroupId, users);
 
             var groupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
-            var contentItemStats = _contentItemQueries.SelectContentItemWithStats(group.RootContentItemId);
+            var contentItemStats = _contentItemQueries.SelectContentItemWithCardStats(group.RootContentItemId);
 
             return new UpdateGroupResponseModel
             {
@@ -253,7 +253,7 @@ namespace MillimanAccessPortal.DataQueries
         public DeleteGroupResponseModel DeleteGroup(Guid selectionGroupId)
         {
             var group = _selectionGroupQueries.DeleteSelectionGroup(selectionGroupId);
-            var contentItemStats = _contentItemQueries.SelectContentItemWithStats(group.RootContentItemId);
+            var contentItemStats = _contentItemQueries.SelectContentItemWithCardStats(group.RootContentItemId);
 
             return new DeleteGroupResponseModel
             {

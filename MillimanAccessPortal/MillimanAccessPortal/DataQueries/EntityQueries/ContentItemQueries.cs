@@ -81,16 +81,16 @@ namespace MillimanAccessPortal.DataQueries
         }
 
         /// <summary>
-        /// Add stats for each content item in a list
+        /// Add card stats for each content item in a list
         /// </summary>
         /// <param name="contentItems">List of content items</param>
-        /// <returns>List of content items with stats</returns>
-        private List<BasicContentItemWithStats> WithStats(List<BasicContentItem> contentItems)
+        /// <returns>List of content items with card stats</returns>
+        private List<BasicContentItemWithCardStats> WithCardStats(List<BasicContentItem> contentItems)
         {
-            var contentItemsWith = new List<BasicContentItemWithStats> { };
+            var contentItemsWith = new List<BasicContentItemWithCardStats> { };
             foreach (var contentItem in contentItems)
             {
-                var contentItemWith = new BasicContentItemWithStats
+                var contentItemWith = new BasicContentItemWithCardStats
                 {
                     Id = contentItem.Id,
                     ClientId = contentItem.ClientId,
@@ -114,30 +114,30 @@ namespace MillimanAccessPortal.DataQueries
         #endregion
 
         /// <summary>
-        /// Select all content items with stats for a client where user has a specific role
+        /// Select all content items with card stats for a client where user has a specific role
         /// </summary>
         /// <param name="user">User</param>
         /// <param name="role">Role</param>
         /// <param name="clientId">Client ID</param>
-        /// <returns>List of content items with stats</returns>
-        internal List<BasicContentItemWithStats> SelectContentItemsWithStatsWhereClient(
+        /// <returns>List of content items with card stats</returns>
+        internal List<BasicContentItemWithCardStats> SelectContentItemsWithCardStatsWhereClient(
             ApplicationUser user, RoleEnum role, Guid clientId)
         {
             var contentItems = SelectContentItemsWhereClient(user, role, clientId);
-            var contentItemsWithStats = WithStats(contentItems);
+            var contentItemsWithStats = WithCardStats(contentItems);
 
             return contentItemsWithStats;
         }
 
         /// <summary>
-        /// Select a single content item by ID with stats
+        /// Select a single content item by ID with card stats
         /// </summary>
         /// <param name="contentItemId">Content item ID</param>
-        /// <returns>Content item with stats</returns>
-        internal BasicContentItemWithStats SelectContentItemWithStats(Guid contentItemId)
+        /// <returns>Content item with card stats</returns>
+        internal BasicContentItemWithCardStats SelectContentItemWithCardStats(Guid contentItemId)
         {
             var contentItem = FindContentItem(contentItemId);
-            var contentItemWithStats = WithStats(new List<BasicContentItem> { contentItem })
+            var contentItemWithStats = WithCardStats(new List<BasicContentItem> { contentItem })
                 .SingleOrDefault();
 
             return contentItemWithStats;

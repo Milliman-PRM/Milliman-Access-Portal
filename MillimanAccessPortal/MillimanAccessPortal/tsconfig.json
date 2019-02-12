@@ -19,7 +19,7 @@
     "jsx": "react"
   },
   "include": [
-    "src/ts/**/*"
+    "src/ts/**/*", "Models/EntityModels/ContentItemModels/BasicContentItemWithCardStats.cs"
   ],
   "exclude": [
     "node_modules",

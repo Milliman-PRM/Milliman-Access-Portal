@@ -13,7 +13,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public Dictionary<Guid, BasicReduction> Reductions { get; set; }
         public Dictionary<Guid, ReductionQueueDetails> ReductionQueue { get; set; }
 
-        public BasicContentItemWithStats ContentItemStats { get; set; }
-        public BasicClientWithStats ClientStats { get; set; }
+        public BasicContentItemWithCardStats ContentItemStats { get; set; }
+        public BasicClientWithCardStats ClientStats { get; set; }
     }
 }

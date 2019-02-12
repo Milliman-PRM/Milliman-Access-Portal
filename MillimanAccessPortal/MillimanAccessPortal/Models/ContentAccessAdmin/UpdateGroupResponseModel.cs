@@ -6,6 +6,6 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
     public class UpdateGroupResponseModel
     {
         public BasicSelectionGroupWithAssignedUsers Group { get; set; }
-        public BasicContentItemWithStats ContentItemStats { get; set; }
+        public BasicContentItemWithCardStats ContentItemStats { get; set; }
     }
 }

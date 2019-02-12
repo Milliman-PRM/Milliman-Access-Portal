@@ -68,16 +68,16 @@ namespace MillimanAccessPortal.DataQueries
         }
 
         /// <summary>
-        /// Add stats for each client in a list
+        /// Add card stats for each client in a list
         /// </summary>
         /// <param name="clients">List of clients</param>
-        /// <returns>List of clients with stats</returns>
-        private List<BasicClientWithStats> WithStats(List<BasicClient> clients)
+        /// <returns>List of clients with card stats</returns>
+        private List<BasicClientWithCardStats> WithCardStats(List<BasicClient> clients)
         {
-            var clientsWith = new List<BasicClientWithStats> { };
+            var clientsWith = new List<BasicClientWithCardStats> { };
             foreach (var client in clients)
             {
-                var clientWith = new BasicClientWithStats
+                var clientWith = new BasicClientWithCardStats
                 {
                     Id = client.Id,
                     ParentId = client.ParentId,
@@ -99,11 +99,11 @@ namespace MillimanAccessPortal.DataQueries
         }
 
         /// <summary>
-        /// Add a list of eligible users to a client with stats model
+        /// Add a list of eligible users to a client with card stats model
         /// </summary>
         /// <param name="clients">List of clients</param>
-        /// <returns>List of clients with stats and eligble users</returns>
-        private List<BasicClientWithEligibleUsers> WithEligibleUsers(List<BasicClientWithStats> clients)
+        /// <returns>List of clients with card stats and eligble users</returns>
+        private List<BasicClientWithEligibleUsers> WithEligibleUsers(List<BasicClientWithCardStats> clients)
         {
             var clientsWith = new List<BasicClientWithEligibleUsers> { };
             foreach (var client in clients)
@@ -131,7 +131,7 @@ namespace MillimanAccessPortal.DataQueries
         #endregion
 
         /// <summary>
-        /// Select clients for a specific user and role with stats and list of eligible users
+        /// Select clients for a specific user and role with card stats and list of eligible users
         /// </summary>
         /// <param name="user">User</param>
         /// <param name="role">Role</param>
@@ -144,21 +144,21 @@ namespace MillimanAccessPortal.DataQueries
             }
 
             var clients = SelectClientWhereRole(user, role);
-            var clientsWithStats = WithStats(clients);
+            var clientsWithStats = WithCardStats(clients);
             var clientsWithEligibleUsers = WithEligibleUsers(clientsWithStats);
 
             return clientsWithEligibleUsers;
         }
 
         /// <summary>
-        /// Select a single client by ID with stats
+        /// Select a single client by ID with card stats
         /// </summary>
         /// <param name="clientId"></param>
-        /// <returns>Client with stats</returns>
-        internal BasicClientWithStats SelectClientWithStats(Guid clientId)
+        /// <returns>Client with card stats</returns>
+        internal BasicClientWithCardStats SelectClientWithCardStats(Guid clientId)
         {
             var client = FindClient(clientId);
-            var clientWithStats = WithStats(new List<BasicClient> { client })
+            var clientWithStats = WithCardStats(new List<BasicClient> { client })
                 .SingleOrDefault();
 
             return clientWithStats;
