@@ -88,24 +88,45 @@ namespace MillimanAccessPortal.Controllers
         // POST: /Account/IsLocalAccount
         [HttpPost]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
+        //[ValidateAntiForgeryToken]
         public async Task<IActionResult> IsLocalAccount(string userName)
         {
-            if (userName == "tom@prmtest.com")
+            string scheme = await GetAuthenticationSchemeForUser(userName);
+            return Json(new { LocalAccount = string.IsNullOrWhiteSpace(scheme) });
+        }
+
+        [NonAction]
+        private async Task<string> GetAuthenticationSchemeForUser(string userName)
+        {
+            ApplicationUser requestedUser = await _userManager.FindByNameAsync(userName);
+            if (requestedUser == null)
             {
-                return Json(new { LocalAccount = false });
+                return null;
             }
 
-            string userDomain = userName.Substring(userName.IndexOf('@') + 1);
-            userDomain = userDomain.Substring(0, userName.IndexOf('.'));
-            var schemes = (await _signInManager.GetExternalAuthenticationSchemesAsync()).Select(s => s.Name);
+            string userDomain = userName.Substring(0, userName.LastIndexOf('.'))
+                                        .Substring(userName.IndexOf('@') + 1);
 
-            if (schemes.Contains(userDomain))
+            // 1. Does the specified user have a scheme name stored?
+            if (false)
             {
-                return Json(new { LocalAccount = false });
+                return "TheStoredSchemeName";
             }
 
-            return Json(new { LocalAccount = true });
+            // 2. Does the email domain map to a scheme?
+            if (false)
+            {
+                return "TheMappedSchemeName";
+            }
+
+            // 3. Does the email domain match a scheme?
+            var allSchemes = (await _signInManager.GetExternalAuthenticationSchemesAsync()).Select(s => s.Name);
+            if (allSchemes.Contains(userDomain))
+            {
+                return userDomain;
+            }
+
+            return null;
         }
 
         //
