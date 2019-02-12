@@ -62,7 +62,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
       const classes = `nav-element ${(this.props.currentView === element.View) ? 'selected' : null }`;
       return (
         <a href={'/' + element.URL} key={element.View}>
-          <div className={classes} style={{ order: element.Order }}>
+          <div className={classes} style={{ order: element.Order }} title={element.Label}>
             <h3 className="nav-element-label">{element.Label}</h3>
             <svg className="nav-element-icon">
               <use xlinkHref={`#${element.Icon}`} />
@@ -85,19 +85,19 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
               </div>
             </div>
             {navElements}
-            <div className="nav-element" style={{ order: 98 }} onClick={this.openUserGuide}>
+            <div className="nav-element" style={{ order: 98 }} onClick={this.openUserGuide} title="User Guide">
               <h3 className="nav-element-label">User Guide</h3>
               <svg className="nav-element-icon">
                 <use xlinkHref="#userguide" />
               </svg>
             </div>
-            <div className="nav-element" style={{ order: 99 }} onClick={this.openContactForm}>
+            <div className="nav-element" style={{ order: 99 }} onClick={this.openContactForm} title="Contact Support">
               <h3 className="nav-element-label">Contact Support</h3>
               <svg className="nav-element-icon">
                 <use xlinkHref="#email" />
               </svg>
             </div>
-            <div className="nav-element" style={{ order: 100 }} onClick={this.logout}>
+            <div className="nav-element" style={{ order: 100 }} onClick={this.logout} title="Log Out">
               <h3 className="nav-element-label">Log Out</h3>
               <svg className="nav-element-icon">
                 <use xlinkHref="#logout" />
