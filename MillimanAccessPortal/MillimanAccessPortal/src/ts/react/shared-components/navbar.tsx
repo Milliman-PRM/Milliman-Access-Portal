@@ -79,6 +79,11 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
           onClick={this.toggleNavBarOpen}
         >
           <div onClick={this.stopPropagation}>
+            <div id="navbar-button" onClick={this.toggleNavBarOpen}>
+              <div id="navbar-button-box">
+                <div id="navbar-button-inner" />
+              </div>
+            </div>
             {navElements}
             <div className="nav-element" style={{ order: 98 }} onClick={this.openUserGuide}>
               <h3 className="nav-element-label">User Guide</h3>

@@ -25,6 +25,80 @@ nav {
 
     &.open {
         left: 0;
+
+        #navbar-button-inner:before {
+            transform: translate3d(-.75em, .15em, 0) rotate(-45deg) scaleX(.7);
+        }
+
+        #navbar-button-inner:after {
+            transform: translate3d(-.75em, -.15em, 0) rotate(45deg) scaleX(.7);
+        }
+    }
+
+    #navbar-button {
+        position: absolute;
+        top: 1em;
+        right: 0;
+        display: inline-block;
+        overflow: visible;
+        margin: 0;
+        width: 6.5vmin;
+        height: 6.5vmin;
+        padding: .5vmin;
+        cursor: pointer;
+        transition-timing-function: ease-in-out;
+        transition-duration: .25s;
+        transition-property: opacity, filter;
+        text-transform: none;
+        border: 0;
+        background-color: transparent;
+
+        &:hover #navbar-button-box {
+
+            #navbar-button-inner,
+            #navbar-button-inner:before,
+            #navbar-button-inner:after {
+                background-color: $blue;
+            }
+        }
+
+        #navbar-button-box {
+            position: absolute;
+            display: block;
+            top: 50%;
+
+            #navbar-button-inner {
+                display: block;
+                margin-top: -2.25vmin;
+            }
+
+            #navbar-button-inner,
+            #navbar-button-inner:before,
+            #navbar-button-inner:after {
+                background-color: $white;
+                position: absolute;
+                width: 5.5vmin;
+                height: .3em;
+                transition-timing-function: ease-in-out;
+                transition-duration: .25s;
+                transition-property: transform;
+                border-radius: .25em;
+            }
+
+            #navbar-button-inner:before,
+            #navbar-button-inner:after {
+                display: block;
+                content: "";
+            }
+
+            #navbar-button-inner:before {
+                top: -1.5vmin;
+            }
+
+            #navbar-button-inner:after {
+                bottom: -1.5vmin;
+            }
+        }
     }
 
     a {
@@ -79,7 +153,6 @@ nav {
     bottom: 0;
     opacity: 0;
 }
-
 /* IE Specific overrides */
 @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
 
