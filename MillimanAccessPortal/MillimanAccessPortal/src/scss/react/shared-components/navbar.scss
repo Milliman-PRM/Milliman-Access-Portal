@@ -27,24 +27,24 @@ nav {
         left: 0;
 
         #navbar-button-inner:before {
-            transform: translate3d(-.75em, .15em, 0) rotate(-45deg) scaleX(.7);
+            transform: translate3d(-1.25vmin, 0.5vmin, 0) rotate(-45deg) scaleX(.7);
         }
 
         #navbar-button-inner:after {
-            transform: translate3d(-.75em, -.15em, 0) rotate(45deg) scaleX(.7);
+            transform: translate3d(-1.25vmin, -0.5vmin, 0) rotate(45deg) scaleX(.7);
         }
     }
 
     #navbar-button {
         position: absolute;
-        top: 1em;
+        top: 2vmin;
         right: 0;
         display: inline-block;
         overflow: visible;
         margin: 0;
         width: 6.5vmin;
         height: 6.5vmin;
-        padding: .5vmin;
+        padding: 1vmin;
         cursor: pointer;
         transition-timing-function: ease-in-out;
         transition-duration: .25s;
@@ -77,8 +77,8 @@ nav {
             #navbar-button-inner:after {
                 background-color: $white;
                 position: absolute;
-                width: 5.5vmin;
-                height: .3em;
+                width: 4.5vmin;
+                height: .25em;
                 transition-timing-function: ease-in-out;
                 transition-duration: .25s;
                 transition-property: transform;
