@@ -35,6 +35,17 @@ nav {
         }
     }
 
+    &.close #navbar-button:hover {
+
+        #navbar-button-inner:before {
+            transform: translate3d(1.25vmin, 0.5vmin, 0) rotate(45deg) scaleX(.7);
+        }
+
+        #navbar-button-inner:after {
+            transform: translate3d(1.25vmin, -0.5vmin, 0) rotate(-45deg) scaleX(.7);
+        }
+    }
+
     #navbar-button {
         position: absolute;
         top: 2vmin;
@@ -47,7 +58,7 @@ nav {
         padding: 1vmin;
         cursor: pointer;
         transition-timing-function: ease-in-out;
-        transition-duration: .25s;
+        transition-duration: .15s;
         transition-property: opacity, filter;
         text-transform: none;
         border: 0;
@@ -80,7 +91,7 @@ nav {
                 width: 4.5vmin;
                 height: .25em;
                 transition-timing-function: ease-in-out;
-                transition-duration: .25s;
+                transition-duration: .15s;
                 transition-property: transform;
                 border-radius: .25em;
             }
