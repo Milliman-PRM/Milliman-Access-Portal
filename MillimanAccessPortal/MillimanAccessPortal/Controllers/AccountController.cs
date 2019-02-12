@@ -85,11 +85,22 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // POST: /Account/Login
+        // POST: /Account/ChooseAuthentication
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
+        public async Task<IActionResult> ChooseAuthentication(string userName)
+        {
+            return Challenge("prmtest");
+            //return Redirect
+        }
+
+        //
+        // POST: /Account/LocalLogin
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LocalLogin(LoginViewModel model, string returnUrl = null)
         {
             Log.Verbose("Entered AccountController.Login action");
 
@@ -277,7 +288,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In AccountController.Logout action: user {appUser?.UserName ?? "<unknown>"} logged out.");
             _auditLogger.Log(AuditEventType.Logout.ToEvent(), appUser?.UserName);
 
-            Response.Cookies.Delete(".AspNetCore.Session");
+            Response.Cookies.Delete(".AspNetCore.Session");  // TODO get the cookie name from the authentication middleware, don't hard code
             HttpContext.Session.Clear();
 
             return Ok();
