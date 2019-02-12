@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.EntityFrameworkCore;
@@ -97,7 +98,41 @@ namespace MillimanAccessPortal
                 .AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
                 .AddCommonWordsValidator<ApplicationUser>(commonWords)
                 .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName);
-            
+
+            AuthenticationBuilder authenticationBuilder = services.AddAuthentication();
+
+            var WsFederationConfigSections = Configuration.GetSection("WsFederationSources").GetChildren();
+            if (WsFederationConfigSections.Select(s => s.GetValue<string>("Scheme")).Distinct().Count() != WsFederationConfigSections.Count())
+            {
+                // Error, multiple configured schemes with same scheme name
+            }
+
+            foreach (ConfigurationSection section in WsFederationConfigSections)
+            {
+                WsFederationConfig wsFederationConfig;
+                try
+                {
+                    wsFederationConfig = (WsFederationConfig)section;
+                }
+                catch (Exception ex)
+                {
+                    string Msg = ex.Message;
+                    // log a configuration failure
+                    continue;
+                }
+
+                authenticationBuilder = authenticationBuilder.AddWsFederation(wsFederationConfig.Scheme, $"{wsFederationConfig.DisplayName}", options =>
+                {
+                    options.MetadataAddress = wsFederationConfig.MetadataAddress;
+                    options.Wtrealm = wsFederationConfig.Wtrealm;
+                    options.CallbackPath = $"{options.CallbackPath}-{wsFederationConfig.Scheme}";
+                });
+            }
+
+            authenticationBuilder.AddCookie();
+
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
             services.Configure<PasswordHasherOptions>(options => options.IterationCount = passwordHashingIterations);
 
             services.Configure<IdentityOptions>(options =>
