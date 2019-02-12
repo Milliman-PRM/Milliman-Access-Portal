@@ -57,6 +57,9 @@ namespace MillimanAccessPortal.Controllers
             QvConfig = QvConfigArg.Value;
         }
 
+        /// <summary>
+        /// GET content access admin view
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -75,6 +78,9 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
+        /// <summary>
+        /// GET clients authorized to the current user
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Clients()
         {
@@ -96,6 +102,10 @@ namespace MillimanAccessPortal.Controllers
             return Json(clients);
         }
 
+        /// <summary>
+        /// GET content items for a client authorized to the current user
+        /// </summary>
+        /// <param name="clientId">Client to whom content items must belong</param>
         [HttpGet]
         public async Task<IActionResult> ContentItems(Guid clientId)
         {
@@ -118,6 +128,10 @@ namespace MillimanAccessPortal.Controllers
             return Json(contentItems);
         }
 
+        /// <summary>
+        /// GET selection groups for a content item authorized to the current user
+        /// </summary>
+        /// <param name="contentItemId">Content item to whom the selection groups must belong</param>
         [HttpGet]
         public async Task<IActionResult> SelectionGroups(Guid contentItemId)
         {
@@ -139,6 +153,10 @@ namespace MillimanAccessPortal.Controllers
             return Json(selectionGroups);
         }
 
+        /// <summary>
+        /// GET selections for a selection group authorized to the current user
+        /// </summary>
+        /// <param name="groupId">Selection group to whom the selections must belong</param>
         [HttpGet]
         public async Task<IActionResult> Selections(Guid groupId)
         {
@@ -165,6 +183,11 @@ namespace MillimanAccessPortal.Controllers
             return Json(selections);
         }
 
+        /// <summary>
+        /// GET publication and reduction status
+        /// </summary>
+        /// <param name="clientId">Client to whom publications should belong</param>
+        /// <param name="contentItemId">Content item to whom reductions should belong</param>
         [HttpGet]
         [PreventAuthRefresh]
         public async Task<IActionResult> Status(Guid clientId, Guid contentItemId)
@@ -175,6 +198,9 @@ namespace MillimanAccessPortal.Controllers
             return Json(status);
         }
 
+        /// <summary>
+        /// POST a selection group to create
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequestModel model)
@@ -232,6 +258,9 @@ namespace MillimanAccessPortal.Controllers
             return Json(selectionGroups);
         }
 
+        /// <summary>
+        /// POST an update to a selection group
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateGroup([FromBody] UpdateGroupRequestModel model)
@@ -296,6 +325,9 @@ namespace MillimanAccessPortal.Controllers
             return Json(group);
         }
 
+        /// <summary>
+        /// POST a selection group to suspend
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SuspendGroup([FromBody] SuspendGroupRequestModel model)
@@ -323,6 +355,9 @@ namespace MillimanAccessPortal.Controllers
             return Json(group);
         }
 
+        /// <summary>
+        /// POST a selection group to delete
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteGroup([FromBody] DeleteGroupRequestModel model)
@@ -414,6 +449,9 @@ namespace MillimanAccessPortal.Controllers
             return Json(selectionGroups);
         }
 
+        /// <summary>
+        /// POST a change to selected values
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSelections([FromBody] UpdateSelectionsRequestModel model)
@@ -421,6 +459,9 @@ namespace MillimanAccessPortal.Controllers
             return await UpdateSelections(model.GroupId, model.IsMaster, model.Selections.ToArray());
         }
 
+        /// <summary>
+        /// POST a request to cancel a reduction
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelReduction([FromBody] CancelReductionRequestModel model)
