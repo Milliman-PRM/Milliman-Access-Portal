@@ -119,11 +119,11 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> SelectionGroups(Guid itemId)
+        public async Task<IActionResult> SelectionGroups(Guid contentItemId)
         {
             #region Authorization
             var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
+                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, contentItemId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
@@ -134,7 +134,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selectionGroups = _queries.SelectSelectionGroups(itemId);
+            var selectionGroups = _queries.SelectSelectionGroups(contentItemId);
 
             return Json(selectionGroups);
         }
@@ -142,14 +142,14 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> Selections(Guid groupId)
         {
-            Guid itemId = DbContext.SelectionGroup
+            Guid contentItemId = DbContext.SelectionGroup
                 .Where(g => g.Id == groupId)
                 .Select(g => g.RootContentItemId)
                 .SingleOrDefault();
 
             #region Authorization
             var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
+                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, contentItemId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
@@ -167,10 +167,10 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpGet]
         [PreventAuthRefresh]
-        public async Task<IActionResult> Status(Guid clientId, Guid itemId)
+        public async Task<IActionResult> Status(Guid clientId, Guid contentItemId)
         {
             var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var status = _queries.SelectStatus(currentUser, clientId, itemId);
+            var status = _queries.SelectStatus(currentUser, clientId, contentItemId);
 
             return Json(status);
         }
@@ -180,15 +180,15 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequestModel model)
         {
             var contentItem = DbContext.RootContentItem
-                .Where(i => i.Id == model.ItemId)
-                .Include(item => item.Client)
-                .Include(item => item.ContentType)
+                .Where(i => i.Id == model.ContentItemId)
+                .Include(i => i.Client)
+                .Include(i => i.ContentType)
                 .SingleOrDefault();
 
             #region Authorization
             var roleResult = await AuthorizationService
                 .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(
-                    RoleEnum.ContentAccessAdmin, model.ItemId));
+                    RoleEnum.ContentAccessAdmin, model.ContentItemId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
@@ -226,8 +226,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var selectionGroups = contentItem.DoesReduce
-                ? _queries.CreateReducingGroup(model.ItemId, model.Name)
-                : _queries.CreateMasterGroup(model.ItemId, model.Name);
+                ? _queries.CreateReducingGroup(model.ContentItemId, model.Name)
+                : _queries.CreateMasterGroup(model.ContentItemId, model.Name);
 
             return Json(selectionGroups);
         }
@@ -236,7 +236,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateGroup([FromBody] UpdateGroupRequestModel model)
         {
-            (Guid itemId, Guid clientId) = DbContext.SelectionGroup
+            (Guid contentItemId, Guid clientId) = DbContext.SelectionGroup
                 .Where(g => g.Id == model.GroupId)
                 .Select(g => g.RootContentItem)
                 .ToList()
@@ -245,7 +245,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
+                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, contentItemId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
@@ -280,7 +280,7 @@ namespace MillimanAccessPortal.Controllers
 
             var anyInOtherGroup = DbContext.UserInSelectionGroup
                 .Where(u => model.Users.Contains(u.UserId))
-                .Where(u => u.SelectionGroup.RootContentItemId == itemId)
+                .Where(u => u.SelectionGroup.RootContentItemId == contentItemId)
                 .Where(u => u.SelectionGroupId != model.GroupId)
                 .Any();
             if (anyInOtherGroup)
@@ -300,14 +300,14 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SuspendGroup([FromBody] SuspendGroupRequestModel model)
         {
-            Guid itemId = DbContext.SelectionGroup
+            Guid contentItemId = DbContext.SelectionGroup
                 .Where(g => g.Id == model.GroupId)
                 .Select(g => g.RootContentItemId)
                 .SingleOrDefault();
 
             #region Authorization
             var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, itemId));
+                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, contentItemId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "

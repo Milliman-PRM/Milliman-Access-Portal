@@ -8,7 +8,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
     public class ContentItemsResponseModel
     {
-        public Dictionary<Guid, BasicContentItemWithStats> Items { get; set; }
+        public Dictionary<Guid, BasicContentItemWithStats> ContentItems { get; set; }
         public Dictionary<Guid, BasicContentType> ContentTypes { get; set; }
         public Dictionary<Guid, BasicPublication> Publications { get; set; }
         public Dictionary<Guid, PublicationQueueDetails> PublicationQueue { get; set; }

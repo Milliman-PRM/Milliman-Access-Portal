@@ -83,33 +83,33 @@ namespace MillimanAccessPortal.DataQueries
         /// <summary>
         /// Add stats for each content item in a list
         /// </summary>
-        /// <param name="items">List of content items</param>
+        /// <param name="contentItems">List of content items</param>
         /// <returns>List of content items with stats</returns>
-        private List<BasicContentItemWithStats> WithStats(List<BasicContentItem> items)
+        private List<BasicContentItemWithStats> WithStats(List<BasicContentItem> contentItems)
         {
-            var itemsWith = new List<BasicContentItemWithStats> { };
-            foreach (var item in items)
+            var contentItemsWith = new List<BasicContentItemWithStats> { };
+            foreach (var contentItem in contentItems)
             {
-                var itemWith = new BasicContentItemWithStats
+                var contentItemWith = new BasicContentItemWithStats
                 {
-                    Id = item.Id,
-                    ClientId = item.ClientId,
-                    ContentTypeId = item.ContentTypeId,
-                    IsSuspended = item.IsSuspended,
-                    DoesReduce = item.DoesReduce,
-                    Name = item.Name,
+                    Id = contentItem.Id,
+                    ClientId = contentItem.ClientId,
+                    ContentTypeId = contentItem.ContentTypeId,
+                    IsSuspended = contentItem.IsSuspended,
+                    DoesReduce = contentItem.DoesReduce,
+                    Name = contentItem.Name,
                 };
 
-                itemWith.SelectionGroupCount = _dbContext.SelectionGroup
-                    .Where(g => g.RootContentItemId == item.Id)
+                contentItemWith.SelectionGroupCount = _dbContext.SelectionGroup
+                    .Where(g => g.RootContentItemId == contentItem.Id)
                     .Count();
-                itemWith.AssignedUserCount = _dbContext.UserInSelectionGroup
-                    .Where(u => u.SelectionGroup.RootContentItemId == item.Id)
+                contentItemWith.AssignedUserCount = _dbContext.UserInSelectionGroup
+                    .Where(u => u.SelectionGroup.RootContentItemId == contentItem.Id)
                     .Count();
 
-                itemsWith.Add(itemWith);
+                contentItemsWith.Add(contentItemWith);
             }
-            return itemsWith;
+            return contentItemsWith;
         }
         #endregion
 

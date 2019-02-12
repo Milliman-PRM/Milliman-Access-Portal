@@ -236,7 +236,7 @@ namespace MapTests
             int preCount = TestResources.DbContextObject.SelectionGroup.Count();
             var view = await controller.CreateGroup(new CreateGroupRequestModel
             {
-                ItemId = TestUtil.MakeTestGuid(RootContentItemId),
+                ContentItemId = TestUtil.MakeTestGuid(RootContentItemId),
                 Name = "GroupName",
             });
             int postCount = TestResources.DbContextObject.SelectionGroup.Count();
@@ -261,7 +261,7 @@ namespace MapTests
             int preCount = TestResources.DbContextObject.SelectionGroup.Count();
             var view = await controller.CreateGroup(new CreateGroupRequestModel
             {
-                ItemId = TestUtil.MakeTestGuid(RootContentItemId),
+                ContentItemId = TestUtil.MakeTestGuid(RootContentItemId),
                 Name = "GroupName",
             });
             int postCount = TestResources.DbContextObject.SelectionGroup.Count();
@@ -283,7 +283,7 @@ namespace MapTests
             #region Act
             var view = await controller.CreateGroup(new CreateGroupRequestModel
             {
-                ItemId = TestUtil.MakeTestGuid(1),
+                ContentItemId = TestUtil.MakeTestGuid(1),
                 Name = "GroupName",
             });
             #endregion
@@ -304,7 +304,7 @@ namespace MapTests
             int preCount = TestResources.DbContextObject.SelectionGroup.Count();
             var view = await controller.CreateGroup(new CreateGroupRequestModel
             {
-                ItemId = TestUtil.MakeTestGuid(1),
+                ContentItemId = TestUtil.MakeTestGuid(1),
                 Name = "GroupName",
             });
             int postCount = TestResources.DbContextObject.SelectionGroup.Count();

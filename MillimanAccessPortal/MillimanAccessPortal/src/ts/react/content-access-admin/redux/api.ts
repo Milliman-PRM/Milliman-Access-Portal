@@ -11,9 +11,9 @@ export async function fetchItems(clientId: Guid) {
   });
 }
 
-export async function fetchGroups(itemId: Guid) {
+export async function fetchGroups(contentItemId: Guid) {
   return await getJsonData('/ContentAccessAdmin/SelectionGroups', {
-    itemId,
+    contentItemId,
   });
 }
 
@@ -23,10 +23,10 @@ export async function fetchSelections(groupId: Guid) {
   });
 }
 
-export async function fetchStatusRefresh(clientId: Guid, itemId: Guid) {
+export async function fetchStatusRefresh(clientId: Guid, contentItemId: Guid) {
   return await getJsonData('/ContentAccessAdmin/Status', {
     clientId,
-    itemId,
+    contentItemId,
   });
 }
 
@@ -34,9 +34,9 @@ export async function fetchSessionCheck() {
   return await getData('/Account/SessionStatus');
 }
 
-export async function createGroup(itemId: Guid, name: string) {
+export async function createGroup(contentItemId: Guid, name: string) {
   return await postJsonData('/ContentAccessAdmin/CreateGroup', {
-    itemId,
+    contentItemId,
     name,
   });
 }

@@ -7,7 +7,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         /// <summary>
         /// ID of the content item under which the new selection group will be created.
         /// </summary>
-        public Guid ItemId { get; set; }
+        public Guid ContentItemId { get; set; }
 
         /// <summary>
         /// Name of the new selection group.
