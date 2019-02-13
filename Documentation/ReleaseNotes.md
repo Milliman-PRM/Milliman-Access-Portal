@@ -2,6 +2,16 @@
 
 ## Release Notes
 
+### v1.3.6
+
+- Mitigate a potential concurrency issue in email service
+
+### v1.3.5
+
+- Add Application Insights telemetry
+- Add further logging around middleware and action timing
+- Add diagnostic logging around reduction post-processing pipeline
+
 ### v1.3.4
 
 - Prevent forced signout while a content item is open in the Content view

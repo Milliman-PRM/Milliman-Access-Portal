@@ -38,6 +38,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using NetEscapades.AspNetCore.SecurityHeaders;
 using MillimanAccessPortal.Utilities;
+using System.Diagnostics;
+using Serilog;
 
 namespace MillimanAccessPortal
 {
@@ -172,6 +174,8 @@ namespace MillimanAccessPortal
                 }
             });
 
+            services.AddApplicationInsightsTelemetry(Configuration);
+
             string fileUploadPath = Path.GetTempPath();
             // The environment variable check enables migrations to be deployed to Staging or Production via the MAP deployment server
             // This variable should never be set on a real production or staging system
@@ -203,6 +207,18 @@ namespace MillimanAccessPortal
         {
             var options = new RewriteOptions()
                .AddRedirectToHttps();
+
+            // time the entire middleware execution
+            app.Use(async (context, next) =>
+            {
+                var stopwatch = new Stopwatch();
+
+                stopwatch.Start();
+                await next();
+                stopwatch.Stop();
+
+                Log.Information("Middleware pipeline took {elapsed}ms", stopwatch.Elapsed.TotalMilliseconds);
+            });
 
             app.UseRewriter(options);
 
@@ -287,6 +303,19 @@ namespace MillimanAccessPortal
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
 
             app.UseSession();
+
+            // time action execution
+            app.Use(async (context, next) =>
+            {
+                var stopwatch = new Stopwatch();
+
+                stopwatch.Start();
+                await next();
+                stopwatch.Stop();
+
+                Log.Information("MVC took {elapsed}ms", stopwatch.Elapsed.TotalMilliseconds);
+            });
+
 
             app.UseMvc(routes =>
             {
