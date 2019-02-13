@@ -110,7 +110,7 @@ if ($sessionFileList.Count -gt 0)
                 $duration = $duration - (New-TimeSpan -minutes 30) # subtract 30 minutes when the session closed due to timeout
            }
 
-           $sessionStartTime = $session.'Session Start'
+           $sessionStartTime = Get-Date
           
 
            # Convert session start time to a DateTime object - Custom format is required because .NET doesn't understand the QlikView timestamp format by default.
