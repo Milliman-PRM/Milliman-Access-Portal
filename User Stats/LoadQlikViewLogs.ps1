@@ -167,7 +167,7 @@ if ($auditFileList.Count -gt 0)
     $auditValues | Add-Content $auditInsertFilePath -Force
 
     # Finalize file with ON CONFLICT [...] DO NOTHING statement
-    write-output "finaliznig query"
+    write-output "finalizing query"
     $EndQuery = "`r`n ON CONFLICT ON CONSTRAINT `"UNIQUE_QVAudit_LogFileName_LogFileLine`" DO NOTHING"
     $EndQuery | Add-Content $auditInsertFilePath -Force
 
@@ -179,12 +179,12 @@ $env:PGPASSWORD = $pgsqlPassword
 
 # Load session records
 write-output "Loading Qlikview session records into datbase"
-$command = "$psqlExePath --dbname=$pgsqlDatabase --username=$pgsqlUser --host=$pgsqlServer --file=`"$sessionInsertFilePath`" --echo-errors"
+$command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$sessionInsertFilePath`" --echo-errors"
 Invoke-Expression $command
 
 # Load audit records
 write-output "Loading Qlikview audit records into database"
-$command = "$psqlExePath --dbname=$pgsqlDatabase --username=$pgsqlUser --host=$pgsqlServer --file=`"$auditInsertFilePath`" --echo-errors"
+$command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$auditInsertFilePath`" --echo-errors"
 Invoke-Expression $command
 
 $env:PGPASSWORD = ""
