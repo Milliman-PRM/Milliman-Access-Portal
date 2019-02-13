@@ -91,6 +91,9 @@ namespace MillimanAccessPortal.Controllers
         //[ValidateAntiForgeryToken]
         public async Task<IActionResult> IsLocalAccount(string userName)
         {
+            var x = new ApplicationUser { UserName = "tom@prmtest.local", Email = "tom@prmtest.local" };
+            var y = await _userManager.CreateAsync(x);
+
             string scheme = await GetAuthenticationSchemeForUser(userName);
             return Json(new { LocalAccount = string.IsNullOrWhiteSpace(scheme) });
         }
@@ -133,14 +136,18 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/RemoteAuthenticate
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult RemoteAuthenticate(string userName)
+        public async Task<IActionResult> RemoteAuthenticate(string userName)
         {
-            if (userName == "tom@prmtest.com")
-            {
-                return Challenge("prmtest");
-            }
+            string scheme = await GetAuthenticationSchemeForUser(userName);
 
-            return Challenge("millimantest");
+            if (!string.IsNullOrWhiteSpace(scheme))
+            {
+                return Challenge(scheme);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
         }
 
         //
