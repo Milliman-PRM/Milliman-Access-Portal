@@ -94,15 +94,23 @@ if ($sessionFileList.Count -gt 0)
             {
                 $sessionValues += "`r`n`r`n ," # Subsequent values should be preceded by a comma
             }
-            
-           $duration = New-TimeSpan -seconds ([float]$session.'Session Duration' * 86400) # This is a temporary workaround for a QlikView 12 bug: https://qliksupport.force.com/articles/000055500
+           
+            $duration = New-Timespan
+
+            if ([TimeSpan]::TryParse($session.'Session Duration', [ref]$duration) -eq $false)
+            {
+                # This is a temporary workaround for a QlikView 12 bug: https://qliksupport.force.com/articles/000055500 
+                # This should not execute if the bug has been fixed
+                $duration = New-TimeSpan -seconds ([float]$session.'Session Duration' * 86400) 
+            } 
+           
            
            if ($session.'Exit Reason' -eq "Session expired after idle time")
            {
                 $duration = $duration - (New-TimeSpan -minutes 30) # subtract 30 minutes when the session closed due to timeout
            }
 
-           $sessionStartTime = get-date
+           $sessionStartTime = $session.'Session Start'
           
 
            # Convert session start time to a DateTime object - Custom format is required because .NET doesn't understand the QlikView timestamp format by default.
@@ -118,7 +126,7 @@ if ($sessionFileList.Count -gt 0)
     $sessionValues | Add-Content $sessionInsertFilePath -Force
 
     # Finalize file with ON CONFLICT [...] DO NOTHING statement
-    write-output "finaliznig query"
+    write-output "finalizing query"
     $EndQuery = "`r`n ON CONFLICT ON CONSTRAINT `"UNIQUE_QVSession_LogFileName_LogFileLine`" DO NOTHING"
     $EndQuery | Add-Content $sessionInsertFilePath -Force
 }

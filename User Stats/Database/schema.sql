@@ -62,6 +62,7 @@ CREATE TABLE public."Users"
   "FirstName" text,
   "LastName" text,
   "UserName" character varying(256),
+  "Employer" text,
   CONSTRAINT "PK_Users" PRIMARY KEY ("Id")
 );
 

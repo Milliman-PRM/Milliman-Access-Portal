@@ -11,8 +11,8 @@ BEGIN TRANSACTION;
 */
 
 INSERT INTO public."Users"
-	("Id", "FirstName", "LastName", "UserName")
-	(select "Id", "FirstName", "LastName", "UserName" from map."AspNetUsers")
+	("Id", "FirstName", "LastName", "UserName", "Employer")
+	(select "Id", "FirstName", "LastName", "UserName", "Employer" from map."AspNetUsers")
 	ON CONFLICT ON CONSTRAINT "PK_Users" DO NOTHING;
 
 INSERT INTO public."ContentType"

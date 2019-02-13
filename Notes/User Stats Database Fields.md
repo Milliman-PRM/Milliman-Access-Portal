@@ -1,6 +1,6 @@
 # User Stats Database
 
-## User
+## Users
 
 **Data source:** MAP application database
 
@@ -84,7 +84,7 @@
 |-------------------|-----------|----------------------------------------------------------------------------------------------------------|
 | Id                | integer   | Auto-incremented primary key                                                                             |
 | RootContentItemId | uuid      | Foreign key to Root Content Item Id                                                                      |
-| PublishingUser    | uuid      | Foreign key to User Id; Indicates the user who created the publishing request                            |
+| RequestingUserId  | uuid      | Foreign key to User Id; Indicates the user who created the publishing request                            |
 | RequestTimestamp  | timestamp | When the publishing request was created                                                                  |
 | ApprovingUser     | uuid      | Foreign key to User Id; Indicates the user who approved the publication to go live; comes from Audit Log |
 | ApprovalTimestamp | timestamp | When the publication was approved to go live; comes from Audit Log                                       |
