@@ -4,7 +4,7 @@
 
 ### v1.3.6
 
-- Mitigate a potential concurrency issue
+- Mitigate a potential concurrency issue in email service
 
 ### v1.3.5
 
