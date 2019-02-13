@@ -46,7 +46,7 @@ INSERT INTO public."ProfitCenter"
 
 -- Update existing records that are no longer applicable
 UPDATE public."ClientInProfitCenter"
-SET "EndDate" = current_date - interval '1 day'
+SET "EndDate" = (current_timestamp AT TIME ZONE 'UTC') - interval '1 day'
 WHERE ctid IN
 	(SELECT cpc.ctid
 		FROM public."ClientInProfitCenter" cpc
@@ -56,7 +56,7 @@ WHERE ctid IN
 -- Insert currently applicable records
 INSERT INTO public."ClientInProfitCenter"
 	("ClientId", "ProfitCenterId", "StartDate")
-	(SELECT "Id", "ProfitCenterId", current_date FROM map."Client")
+	(SELECT "Id", "ProfitCenterId", (current_timestamp AT TIME ZONE 'UTC') FROM map."Client")
 	ON CONFLICT ON CONSTRAINT "UNIQUE_Client_ProfitCenter_Current" DO NOTHING;
 
 /*
