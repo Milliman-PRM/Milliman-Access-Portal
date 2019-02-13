@@ -169,14 +169,31 @@ export class LoginForm extends Form<{}, LoginFormState> {
 
     // hold for
     this.setState({ awaitingConfirmation: true }, () => {
-      setTimeout(() => {
-        this.setState({
-          userConfirmed: true,
-          awaitingConfirmation: false,
-        }, () => {
-          this.focusPasswordInput();
-        });
-      }, 2000);
+      postData('/Account/IsLocalAccount', { username: this.state.data.username })
+        .then((response) => {
+          if (response.LocalAccount) {
+            this.setState({
+              userConfirmed: true,
+              awaitingConfirmation: false,
+            }, () => {
+              this.focusPasswordInput();
+            });
+          } else {
+            window.location.href = `/Account/RemoteAuthenticate?username=${this.state.data.username}`;
+          }
+        })
+        .catch(() => {
+          errors.username = 'An error occured.';
+          alert(errors.username);
+          this.setState({
+            errors,
+            userConfirmed: false,
+            awaitingConfirmation: false,
+          }, () => {
+            this.focusUsernameInput();
+          });
+        })
+          ;
     });
   }
 

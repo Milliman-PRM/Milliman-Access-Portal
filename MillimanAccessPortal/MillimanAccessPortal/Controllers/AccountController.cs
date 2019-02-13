@@ -130,10 +130,9 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // POST: /Account/RemoteAuthenticate
-        [HttpPost]
+        // GET: /Account/RemoteAuthenticate
+        [HttpGet]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
         public IActionResult RemoteAuthenticate(string userName)
         {
             if (userName == "tom@prmtest.com")
@@ -145,13 +144,13 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // POST: /Account/LocalLogin
+        // POST: /Account/Login
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> LocalLogin(LoginViewModel model, string returnUrl = null)
+        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
-            Log.Verbose("Entered AccountController.LocalLogin action");
+            Log.Verbose("Entered AccountController.Login action");
 
             ViewData["ReturnUrl"] = returnUrl;
 
