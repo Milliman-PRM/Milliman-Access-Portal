@@ -103,32 +103,6 @@
             right: 0;
             bottom: 0;
             z-index: 5;
-
-            &.content-card-download {
-                overflow: hidden;
-
-                &:hover > .content-card-download-indicator {
-                    bottom: 0;
-                    transition: .25s all linear;
-                }
-
-                .content-card-download-indicator {
-                    position: absolute;
-                    bottom: -4.5em;
-                    left: 0;
-                    right: 0;
-                    background: linear-gradient(to bottom right, rgba($charcoal, .5), rgba($charcoal, .95));
-                    padding: .5em 1em;
-                    text-align: right;
-                    transition: .25s all linear;
-
-                    .content-card-download-icon {
-                        color: $green;
-                        height: 3em;
-                        width: 3em;
-                    }
-                }
-            }
         }
     }
 }
