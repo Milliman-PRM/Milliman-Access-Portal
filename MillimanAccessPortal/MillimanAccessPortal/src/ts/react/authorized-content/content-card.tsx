@@ -1,7 +1,4 @@
-﻿import '../../../images/download.svg';
-import '../../../images/release-notes.svg';
-import '../../../images/userguide.svg';
-import '../../../scss/react/authorized-content/content-card.scss';
+﻿import '../../../scss/react/authorized-content/content-card.scss';
 
 import * as React from 'react';
 
