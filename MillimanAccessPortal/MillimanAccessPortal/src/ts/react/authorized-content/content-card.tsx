@@ -44,7 +44,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
           className="secondary-button"
           onClick={this.selectUserGuide}
         >
-          Userguide
+          User Guide
         </a>
       )
       : null;
