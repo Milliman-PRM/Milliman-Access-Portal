@@ -1,6 +1,6 @@
 # User Stats Database
 
-## User
+## Users
 
 **Data source:** MAP application database
 
@@ -64,7 +64,7 @@
 | ClientId       | uuid    | Foreign key to Client Id                                       |
 | ProfitCenterId | uuid    | Foreign key to Profit Center Id                                |
 | StartDate      | date    |                                                                |
-| EndDate        | date    | Nullable; null value indicates a currently active relationship |
+| EndDate        | date    | Default value of 12-31-9999 indicates currently active record  |
 
 ## Profit Center
 
@@ -84,14 +84,14 @@
 |-------------------|-----------|----------------------------------------------------------------------------------------------------------|
 | Id                | integer   | Auto-incremented primary key                                                                             |
 | RootContentItemId | uuid      | Foreign key to Root Content Item Id                                                                      |
-| PublishingUser    | uuid      | Foreign key to User Id; Indicates the user who created the publishing request                            |
+| RequestingUserId  | uuid      | Foreign key to User Id; Indicates the user who created the publishing request                            |
 | RequestTimestamp  | timestamp | When the publishing request was created                                                                  |
 | ApprovingUser     | uuid      | Foreign key to User Id; Indicates the user who approved the publication to go live; comes from Audit Log |
 | ApprovalTimestamp | timestamp | When the publication was approved to go live; comes from Audit Log                                       |
 | RequestStatus     | integer   |   |
 
 
-## Audit Log
+## Audit Event
 
 **Data source:** MAP audit log database
 
@@ -118,9 +118,14 @@
 | SessionStartTime | timestamp |                                                                                  |
 | SessionDuration  | timestamp |                                                                                  |
 | SessionEndTime   | timestamp | Not provided in the text file; has to be calculated at the time of the data load |
+| UserName         | text      |                                                                                  |
 | CalType          | text      | The type of QlikView CAL used by the session (Document or Named User)            |
 | Browser          | text      |                                                                                  |
 | Session          | integer   | Session ID (new in QlikView 12)                                                  |
+| LogFileName      | text      | The name of the log file the record was extracted from                           |
+| LogFileLineNumber | integer  | The line number where the record appeared in the log file                        |
+
+> The combination of LogFileName and LogFileLineNumber must be unique. This is implemented to protect against accidental duplication of log records in the database.
 
 ## QlikView Audit
 
@@ -131,8 +136,13 @@
 | Id        | integer   | Auto-incremented primary key                                                            |
 | Session   | integer   | Foreign key to QlikView Session table's Session                                         |
 | Timestamp | timestamp | The time the logged event occurred                                                      |
+| Document  | text      | File path of the QVW being accessed in the session                                      |
 | EventType | text      | Category of action taken                                                                |
 | Message   | text      | Detailed information; may contain ePHI and must be sanitized before presenting to users |
+| LogFileName      | text      | The name of the log file the record was extracted from                           |
+| LogFileLineNumber | integer  | The line number where the record appeared in the log file                        |
+
+> The combination of LogFileName and LogFileLineNumber must be unique. This is implemented to protect against accidental duplication of log records in the database.
 
 ## Selected Fields
 
