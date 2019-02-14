@@ -135,9 +135,8 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
   }
 
   private toggleNavBarOpen() {
-    const navBarOpen = (this.state.navBarOpen) ? false : true;
     this.setState({
-      navBarOpen,
+      navBarOpen: !this.state.navBarOpen,
       contactFormOpen: false,
       userGuideOpen: false,
     });
