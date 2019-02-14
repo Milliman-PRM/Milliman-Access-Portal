@@ -32,7 +32,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         <a
           href={this.props.ReleaseNotesURL}
           target="_blank"
-          className="link-button"
+          className="secondary-button"
           onClick={this.selectReleaseNotes}
         >
           Release Notes
@@ -44,7 +44,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         <a
           href={this.props.UserguideURL}
           target="_blank"
-          className="link-button"
+          className="secondary-button"
           onClick={this.selectUserGuide}
         >
           Userguide
@@ -56,7 +56,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         <a
           href={this.props.ContentURL}
           download={true}
-          className="link-button"
+          className="secondary-button"
         >
           Download
         </a>
@@ -64,7 +64,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         <a
           href={this.props.ContentURL}
           target="_blank"
-          className="link-button"
+          className="secondary-button"
         >
           Open in New Tab
         </a>
@@ -96,7 +96,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
               {this.props.Description}
             </p>
           </div>
-          <div className="content-card-secondary-actions">
+          <div className="secondary-actions">
             {newWindow}
             {releaseNotes}
             {userGuide}

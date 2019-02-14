@@ -32,6 +32,7 @@
         border-radius: .25em;
         border: 1px solid $charcoal;
         min-height: 7.5em;
+        overflow: hidden;
 
         &:hover {
             box-shadow: rgba(0, 0, 0, .3) .2em .2em .75em;
@@ -68,14 +69,31 @@
             }
         }
 
-        .content-card-secondary-actions {
+        .secondary-actions {
             flex: 1 0 auto;
             display: flex;
             flex-flow: row nowrap;
-            justify-content: space-around;
+            border-top: 2px solid $charcoal;
+            margin: 1em -1.2em -1.2em;
             padding: 0;
             font-size: .9em;
             z-index: 10;
+
+            .secondary-button {
+                flex: 1 0 auto;
+                display: block;
+                padding: 1em;
+                margin: 0;
+                background-color: $blue;
+                color: $white;
+                font-weight: bold;
+                border-right: 1px solid $charcoal;
+                text-align: center;
+
+                &:hover {
+                    background-color: darken($blue, 5%);
+                }
+            }
         }
 
         .content-card-link {
