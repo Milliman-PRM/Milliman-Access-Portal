@@ -1,0 +1,26 @@
+@model MillimanAccessPortal.Models.AuthorizedContentViewModels.ContentDisclaimer
+
+@{
+    ViewData["Title"] = "Content Disclaimer";
+    Layout = "_Layout";
+    ViewData["NavIcon"] = "Content Disclaimer";
+}
+
+@section CSS {
+    <% for (var css in htmlWebpackPlugin.files.css) { %>
+    <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+    <% } %>
+}
+
+<div>@Model.ContentName</div>
+<div>@Model.DisclaimerText</div>
+<form action="/AuthorizedContent/AcceptDisclaimer">
+    <input asp-for="SelectionGroupId" style="visibility: hidden;">
+    <input id="accept-button" type="submit" value="Click Me" />,
+</form>
+
+@section Scripts {
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+}

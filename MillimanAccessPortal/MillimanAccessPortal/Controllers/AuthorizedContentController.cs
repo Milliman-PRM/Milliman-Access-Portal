@@ -107,6 +107,11 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered AuthorizedContentController.WebHostedContent action: user {User.Identity.Name}, selectionGroupId {selectionGroupId}");
 
+            var user = await Queries.GetCurrentApplicationUser(User);
+            var userInSelectionGroup = DataContext.UserInSelectionGroup
+                .Where(u => u.UserId == user.Id)
+                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .FirstOrDefault();
             var selectionGroup = DataContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rc => rc.ContentType)
@@ -117,6 +122,7 @@ namespace MillimanAccessPortal.Controllers
                 .Where(sg => !sg.IsSuspended)
                 .Where(sg => !sg.RootContentItem.IsSuspended)
                 .FirstOrDefault();
+
             #region Validation
             if (selectionGroup?.RootContentItem?.ContentType == null)
             {
@@ -136,6 +142,18 @@ namespace MillimanAccessPortal.Controllers
 
                 Response.Headers.Add("Warning", "You are not authorized to access the requested content");
                 return Unauthorized();
+            }
+            #endregion
+
+            #region Content Disclaimer Verification
+            if (!userInSelectionGroup.DisclaimerAccepted)
+            {
+                return View("ContentDisclaimer", new ContentDisclaimer
+                {
+                    SelectionGroupId = selectionGroupId,
+                    ContentName = selectionGroup.RootContentItem.ContentName,
+                    DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
+                });
             }
             #endregion
 
@@ -225,6 +243,21 @@ namespace MillimanAccessPortal.Controllers
                 TempData["ReturnToAction"] = "Index";
                 return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
             }
+        }
+
+        public async Task<IActionResult> AcceptDisclaimer(Guid selectionGroupId)
+        {
+            var user = await Queries.GetCurrentApplicationUser(User);
+            var userInSelectionGroup = await DataContext.UserInSelectionGroup
+                .Where(u => u.UserId == user.Id)
+                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .FirstOrDefaultAsync();
+
+            userInSelectionGroup.DisclaimerAccepted = true;
+
+            await DataContext.SaveChangesAsync();
+
+            return RedirectToAction(nameof(WebHostedContent), new { selectionGroupId });
         }
 
         /// <summary>
