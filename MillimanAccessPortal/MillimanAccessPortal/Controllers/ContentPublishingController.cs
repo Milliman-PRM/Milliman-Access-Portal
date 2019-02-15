@@ -323,6 +323,16 @@ namespace MillimanAccessPortal.Controllers
             currentRootContentItem.Notes = rootContentItem.Notes;
             currentRootContentItem.TypeSpecificDetail = rootContentItem.TypeSpecificDetail;
 
+            if (currentRootContentItem.ContentDisclaimer != rootContentItem.ContentDisclaimer)
+            {
+                // Reset disclaimer acceptance
+                var usersInGroup = DbContext.UserInSelectionGroup
+                    .Where(u => u.SelectionGroup.RootContentItemId == currentRootContentItem.Id)
+                    .ToList();
+                usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
+            }
+            currentRootContentItem.ContentDisclaimer = rootContentItem.ContentDisclaimer;
+
             DbContext.RootContentItem.Update(currentRootContentItem);
             DbContext.SaveChanges();
 
