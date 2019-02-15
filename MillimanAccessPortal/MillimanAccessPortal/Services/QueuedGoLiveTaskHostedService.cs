@@ -452,6 +452,12 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         break;
                 }
 
+                // Reset disclaimer acceptance
+                var usersInGroup = dbContext.UserInSelectionGroup
+                    .Where(u => u.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
+                    .ToList();
+                usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
+
                 dbContext.SaveChanges();
                 Txn.Commit();
             }
