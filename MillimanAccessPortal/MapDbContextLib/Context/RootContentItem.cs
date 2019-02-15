@@ -42,6 +42,10 @@ namespace MapDbContextLib.Context
 
         public bool IsSuspended { get; set; }
 
+        [DataType(DataType.MultilineText)]
+        [Display(Name = "Content Disclaimer")]
+        public string ContentDisclaimer { get; set; }
+
         [Column(TypeName = "jsonb")]
         public string ContentFiles { get; set; } = "[]";
 
