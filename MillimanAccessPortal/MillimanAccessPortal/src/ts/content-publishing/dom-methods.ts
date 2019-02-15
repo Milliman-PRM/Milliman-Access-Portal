@@ -139,6 +139,7 @@ export function openNewRootContentItemForm() {
     DoesReduce: false,
     Id: '0',
     Notes: '',
+    ContentDisclaimer: '',
     RelatedFiles: [],
     IsSuspended: false,
   });
@@ -183,6 +184,7 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
   formMap.set('DoesReduce',  item.DoesReduce);
   formMap.set('Description', item.Description);
   formMap.set('Notes', item.Notes);
+  formMap.set('ContentDisclaimer', item.ContentDisclaimer);
 
   return formMap;
 }
