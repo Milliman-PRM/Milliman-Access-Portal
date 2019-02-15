@@ -11,6 +11,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -88,13 +89,11 @@ namespace MillimanAccessPortal.Controllers
         // POST: /Account/IsLocalAccount
         [HttpPost]
         [AllowAnonymous]
-        //[ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> IsLocalAccount(string userName)
         {
-            var x = new ApplicationUser { UserName = "tom@prmtest.local", Email = "tom@prmtest.local" };
-            var y = await _userManager.CreateAsync(x);
-
             string scheme = await GetAuthenticationSchemeForUser(userName);
+
             return Json(new { LocalAccount = string.IsNullOrWhiteSpace(scheme) });
         }
 
@@ -142,7 +141,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (!string.IsNullOrWhiteSpace(scheme))
             {
-                return Challenge(scheme);
+                return Challenge(new AuthenticationProperties {RedirectUri = "/AuthorizedContent/Index" }, scheme);
             }
             else
             {

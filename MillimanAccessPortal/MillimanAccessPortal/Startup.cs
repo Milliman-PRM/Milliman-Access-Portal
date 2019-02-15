@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.EntityFrameworkCore;
@@ -93,11 +94,12 @@ namespace MillimanAccessPortal
                 })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
-                .AddTop100000PasswordValidator<ApplicationUser>()
-                .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
-                .AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
-                .AddCommonWordsValidator<ApplicationUser>(commonWords)
-                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName);
+                //.AddTop100000PasswordValidator<ApplicationUser>()
+                //.AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
+                //.AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
+                //.AddCommonWordsValidator<ApplicationUser>(commonWords)
+                //.AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName)
+                ;
 
             #region Configure authentication services
             var WsFederationConfigSections = Configuration.GetSection("WsFederationSources").GetChildren();
@@ -106,7 +108,11 @@ namespace MillimanAccessPortal
                 // Error, multiple configured schemes with the same name
             }
 
-            AuthenticationBuilder authenticationBuilder = services.AddAuthentication();
+            AuthenticationBuilder authenticationBuilder = services.AddAuthentication(sharedOptions => 
+            {
+                sharedOptions.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                sharedOptions.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            });
 
             foreach (ConfigurationSection section in WsFederationConfigSections)
             {
@@ -127,10 +133,26 @@ namespace MillimanAccessPortal
                     options.MetadataAddress = wsFederationConfig.MetadataAddress;
                     options.Wtrealm = wsFederationConfig.Wtrealm;
                     options.CallbackPath = $"{options.CallbackPath}-{wsFederationConfig.Scheme}";
+
+                    options.Events.OnAuthenticationFailed = context => { var xx = context; return Task.CompletedTask; };
+                    options.Events.OnMessageReceived = context => { var xx = context; return Task.CompletedTask; };
+                    options.Events.OnRedirectToIdentityProvider = context => { var xx = context; return Task.CompletedTask; };
+                    options.Events.OnRemoteFailure = context => { var xx = context; return Task.CompletedTask; };
+                    options.Events.OnRemoteSignOut = context => { var xx = context; return Task.CompletedTask; };
+                    options.Events.OnSecurityTokenReceived = context => { var xx = context; return Task.CompletedTask; };
+                    options.Events.OnSecurityTokenValidated = context => { var xx = context; return Task.CompletedTask; };
+                    options.Events.OnTicketReceived = async context => { var xx = context; await context.HttpContext.SignInAsync(context.Principal); };
                 });
             }
+            authenticationBuilder.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+            {
+                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
+                //options.LoginPath = "/Account/LogIn";
+                //options.LogoutPath = "/Account/LogOut";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.SlidingExpiration = true;
+            });
 
-            authenticationBuilder.AddCookie();
             #endregion
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
@@ -169,16 +191,6 @@ namespace MillimanAccessPortal
             services.Configure<DataProtectionTokenProviderOptions>(options =>
                 {
                     options.TokenLifespan = TimeSpan.FromDays(accountActivationTokenTimespanDays);
-                }
-            );
-
-            // Cookie settings
-            services.ConfigureApplicationCookie(options =>
-                {
-                    options.LoginPath = "/Account/LogIn";
-                    options.LogoutPath = "/Account/LogOut";
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-                    options.SlidingExpiration = true;
                 }
             );
 
@@ -299,12 +311,12 @@ namespace MillimanAccessPortal
                 .AddCustomHeader("X-UA-Compatible", "IE=Edge");
             app.UseSecurityHeaders(policyCollection);
 
-            // Conditionally omit auth cookie
+            // Conditionally omit authentication cookie, intended for status calls that should not extend the user session
             app.Use(next => context =>
             {
                 context.Response.OnStarting(state =>
                 {
-                    if (context.Items.ContainsKey("PreventAuthRefresh"))
+                    if (context.Items.ContainsKey("PreventAuthRefresh"))  // if the action was invoked with [PreventAuthRefreshAttribute]
                     {
                         var response = (HttpResponse) state;
 
@@ -320,6 +332,7 @@ namespace MillimanAccessPortal
             });
 
             app.UseAuthentication();
+            //Todo: read this: https://github.com/aspnet/Security/issues/1310
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
 
