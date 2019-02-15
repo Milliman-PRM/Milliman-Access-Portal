@@ -846,6 +846,13 @@ namespace MillimanAccessPortal.Controllers
                 selectionGroup.SelectedHierarchyFieldValueList = new Guid[0];
                 selectionGroup.SetContentUrl(Path.GetFileName(LiveMasterFile.FullPath));
                 DbContext.SelectionGroup.Update(selectionGroup);
+
+                // Reset disclaimer acceptance
+                var usersInGroup = DbContext.UserInSelectionGroup
+                    .Where(u => u.SelectionGroupId == selectionGroupId)
+                    .ToList();
+                usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
+
                 DbContext.SaveChanges();
 
                 AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup));

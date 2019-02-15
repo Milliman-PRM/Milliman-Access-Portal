@@ -193,6 +193,12 @@ namespace MillimanAccessPortal
                     break;
             }
 
+            // Reset disclaimer acceptance
+            var usersInGroup = Db.UserInSelectionGroup
+                .Where(u => u.SelectionGroupId == reductionTask.SelectionGroupId)
+                .ToList();
+            usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
+
             // save changes
             Db.SaveChanges();
 
