@@ -284,10 +284,10 @@ const data = createReducer<AccessStateData>(_initialData, {
     users: action.payload.users,
   }),
   [AccessAction.FetchItems + DataSuffixes.Succeeded]: (state, action) => {
-    const { items, contentTypes, publications, publicationQueue, clientStats } = action.payload;
+    const { contentItems, contentTypes, publications, publicationQueue, clientStats } = action.payload;
     return {
       ...state,
-      items,
+      items: contentItems,
       contentTypes,
       publications,
       publicationQueue,
