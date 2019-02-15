@@ -87,11 +87,9 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
           <div className="content-card-header">
             <h2 className="content-card-title">{this.props.Name}</h2>
           </div>
-          <div className="content-card-body">
+          <div className={`content-card-body${this.props.Description ? '' : ' image-only'}`}>
             {image}
-            <p className="content-card-description">
-              {this.props.Description}
-            </p>
+            {this.props.Description && <p className="content-card-description">{this.props.Description}</p>}
           </div>
           <div className="secondary-actions">
             {newWindow}

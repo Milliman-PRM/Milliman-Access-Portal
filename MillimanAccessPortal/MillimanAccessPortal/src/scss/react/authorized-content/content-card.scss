@@ -56,6 +56,15 @@
         .content-card-body {
             flex: 1 0 auto;
 
+            &.image-only {
+                text-align: center;
+
+                .content-card-image {
+                    margin: 0;
+                    float: none;
+                }
+            }
+
             .content-card-image {
                 width: 42%;
                 margin-right: 1em;
