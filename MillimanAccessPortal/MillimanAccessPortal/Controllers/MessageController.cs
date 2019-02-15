@@ -1,5 +1,5 @@
 /*
- * CODE OWNERS: Ben Wyatt
+ * CODE OWNERS: Ben Wyatt, Tom Puckett
  * OBJECTIVE: Provide a controller for AJAX calls to send mail, leveraging MessageServices
  * DEVELOPER NOTES: 
  */
@@ -20,19 +20,19 @@ namespace MillimanAccessPortal.Controllers
 {
     public class MessageController : Controller
     {
+        IMessageQueue _messageQueue { get; set; }
         private readonly IConfiguration _configuration;
-        IMessageQueue _mailSender { get; set; }
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly StandardQueries Queries;
         
         public MessageController(
             IConfiguration configuration,
-            IMessageQueue mailSenderArg,
+            IMessageQueue messageQueueArg,
             UserManager<ApplicationUser> UserManagerArg,
             StandardQueries QueriesArg)
         {
             _configuration = configuration;
-            _mailSender = mailSenderArg;
+            _messageQueue = messageQueueArg;
             UserManager = UserManagerArg;
             Queries = QueriesArg;
         }
@@ -51,20 +51,10 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult SendEmail (IEnumerable<string> recipients, string subject, string message, string senderAddress=null, string senderName=null)
         {
             Log.Verbose($"Entered MessageController.SendEmail action for recipients <{string.Join(", ", recipients)}>, subject <{subject}>");
-            bool Result =_mailSender.QueueEmail(recipients, subject, message, senderAddress, senderName);
+            _messageQueue.QueueEmail(recipients, subject, message, senderAddress, senderName);
 
-            if (Result)
-            {
-                Log.Verbose($"In MessageController.SendEmail action: email queued successfully");
-                return Ok();
-            }
-            else
-            {
-                // Send attempt failed. Log failure and return failure code.
-                Log.Warning($"In MessageController.SendEmail action: failed to queue email");
-                return BadRequest();
-            }
-
+            Log.Verbose($"In MessageController.SendEmail action: email queued successfully");
+            return Ok();
         }
 
         /// <summary>
@@ -79,19 +69,10 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult SendEmail (string recipient, string subject, string message)
         {
             Log.Verbose($"Entered MessageController.SendEmail action for recipient <recipient>, subject <{subject}>");
-            bool Result = _mailSender.QueueEmail(recipient, subject, message);
+            _messageQueue.QueueEmail(recipient, subject, message);
 
-            if (Result)
-            {
-                Log.Verbose($"In MessageController.SendEmail action: email queued successfully");
-                return Ok();
-            }
-            else
-            {
-                // Send attempt failed. Log failure and return failure code.
-                Log.Warning($"In MessageController.SendEmail action: failed to queue email");
-                return BadRequest();
-            }
+            Log.Verbose($"In MessageController.SendEmail action: email queued successfully");
+            return Ok();
         }
 
         [HttpPost]
@@ -105,19 +86,10 @@ namespace MillimanAccessPortal.Controllers
             var senderName = $"{user.FirstName} {user.LastName}";
             var recipient = _configuration.GetValue<string>("SupportEmailAddress");
 
-            bool result = _mailSender.QueueEmail(new List<string> { recipient }, subject, message, senderAddress, senderName);
+            _messageQueue.QueueEmail(new List<string> { recipient }, subject, message, senderAddress, senderName);
 
-            if (result)
-            {
-                Log.Verbose($"In MessageController.SendSupportEmail action: email queued successfully");
-                return Ok();
-            }
-            else
-            {
-                // Send attempt failed. Log failure and return failure code.
-                Log.Warning($"In MessageController.SendSupportEmail action: failed to queue email");
-                return BadRequest();
-            }
+            Log.Verbose($"In MessageController.SendSupportEmail action: email queued successfully");
+            return Ok();
         }
 
         /// <summary>
@@ -150,19 +122,10 @@ namespace MillimanAccessPortal.Controllers
             string senderAddress = user.Email;
             string senderName = $"{user.FirstName} {user.LastName}";
 
-            bool Result = _mailSender.QueueEmail(new List<string> { recipient }, subject, message, senderAddress, senderName);
+            _messageQueue.QueueEmail(new List<string> { recipient }, subject, message, senderAddress, senderName);
 
-            if (Result)
-            {
-                Log.Verbose($"In MessageController.SendEmailFromUser action: email queued successfully");
-                return Ok();
-            }
-            else
-            {
-                // Send attempt failed. Log failure and return failure code.
-                Log.Warning($"In MessageController.SendEmailFromUser action: failed to queue email");
-                return BadRequest();
-            }
+            Log.Verbose($"In MessageController.SendEmailFromUser action: email queued successfully");
+            return Ok();
         }
     }
 }
