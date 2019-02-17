@@ -5,6 +5,7 @@
 ### v1.4.0
 
 - Reconfigure the NavBar to open on click instead of hover
+- Clear content previews when switching to go live preview for a different content item
 
 #### v1.3.6
 
