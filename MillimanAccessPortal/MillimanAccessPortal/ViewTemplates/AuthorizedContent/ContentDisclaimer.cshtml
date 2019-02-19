@@ -10,5 +10,6 @@
 <div>@Model.DisclaimerText</div>
 <form action="/AuthorizedContent/AcceptDisclaimer">
     <input asp-for="SelectionGroupId" style="visibility: hidden;">
+    <input asp-for="ValidationId" style="visibility: hidden;">
     <input id="accept-button" type="submit" value="Click Me" />,
 </form>

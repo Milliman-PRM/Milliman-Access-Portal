@@ -459,11 +459,11 @@ namespace MillimanAccessPortal.Controllers
             {
                 using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
                 {
-                    DbContext.UserInSelectionGroup.RemoveRange(
-                        DbContext.UserInSelectionGroup
-                            .Where(usg => UserRemovals.Contains(usg.UserId))
-                            .Where(usg => usg.SelectionGroupId == SelectionGroup.Id)
-                        );
+                    var usersToRemove = DbContext.UserInSelectionGroup
+                        .Where(usg => UserRemovals.Contains(usg.UserId))
+                        .Where(usg => usg.SelectionGroupId == SelectionGroup.Id)
+                        .ToList();
+                    DbContext.UserInSelectionGroup.RemoveRange(usersToRemove);
                     DbContext.SaveChanges();
 
                     DbContext.UserInSelectionGroup.AddRange(
@@ -479,6 +479,7 @@ namespace MillimanAccessPortal.Controllers
                     DbContext.SaveChanges();
 
                     DbTransaction.Commit();
+                    AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersToRemove));
                 }
             }
             catch (Exception ex)
@@ -856,6 +857,7 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.SaveChanges();
 
                 AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup));
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersInGroup));
             }
             else
             {

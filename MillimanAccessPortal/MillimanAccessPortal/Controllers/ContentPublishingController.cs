@@ -323,10 +323,11 @@ namespace MillimanAccessPortal.Controllers
             currentRootContentItem.Notes = rootContentItem.Notes;
             currentRootContentItem.TypeSpecificDetail = rootContentItem.TypeSpecificDetail;
 
+            List<UserInSelectionGroup> usersInGroup = null;
             if (currentRootContentItem.ContentDisclaimer != rootContentItem.ContentDisclaimer)
             {
                 // Reset disclaimer acceptance
-                var usersInGroup = DbContext.UserInSelectionGroup
+                usersInGroup = DbContext.UserInSelectionGroup
                     .Where(u => u.SelectionGroup.RootContentItemId == currentRootContentItem.Id)
                     .ToList();
                 usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
@@ -338,6 +339,10 @@ namespace MillimanAccessPortal.Controllers
 
             Log.Verbose($"In ContentPublishingController.UpdateRootContentItem action: success");
             AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(rootContentItem));
+            if (usersInGroup != null)
+            {
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersInGroup));
+            }
 
             RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, currentRootContentItem);
             RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, currentRootContentItem);

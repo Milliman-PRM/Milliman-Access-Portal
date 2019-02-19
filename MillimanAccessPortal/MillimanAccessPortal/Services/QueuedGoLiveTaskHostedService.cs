@@ -460,6 +460,8 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
                 dbContext.SaveChanges();
                 Txn.Commit();
+
+                auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersInGroup));
             }
         }
         catch (Exception)

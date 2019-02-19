@@ -156,12 +156,16 @@ namespace MillimanAccessPortal.Controllers
             #region Content Disclaimer Verification
             if (!userInSelectionGroup.DisclaimerAccepted)
             {
-                return View("ContentDisclaimer", new ContentDisclaimer
+                var disclaimer = new ContentDisclaimer
                 {
+                    ValidationId = Guid.NewGuid().ToString("D"),
                     SelectionGroupId = selectionGroupId,
                     ContentName = selectionGroup.RootContentItem.ContentName,
                     DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
-                });
+                };
+                AuditLogger.Log(AuditEventType.ContentDisclaimerPresented.ToEvent(
+                    userInSelectionGroup, disclaimer.ValidationId, disclaimer.DisclaimerText));
+                return View("ContentDisclaimer", disclaimer);
             }
             #endregion
 
@@ -260,7 +264,7 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
-        public async Task<IActionResult> AcceptDisclaimer(Guid selectionGroupId)
+        public async Task<IActionResult> AcceptDisclaimer(Guid selectionGroupId, string validationId)
         {
             var user = await Queries.GetCurrentApplicationUser(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
@@ -271,6 +275,7 @@ namespace MillimanAccessPortal.Controllers
             userInSelectionGroup.DisclaimerAccepted = true;
 
             await DataContext.SaveChangesAsync();
+            AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, validationId));
 
             return RedirectToAction(nameof(WebHostedContent), new { selectionGroupId });
         }
