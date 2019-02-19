@@ -161,6 +161,12 @@ module.exports = {
       chunks: ['commons', 'message'],
     }),
     new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'Shared', 'ContentMessage.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'Shared', 'ContentMessage.cshtml.template'),
+      inject: false,
+      chunks: ['commons', 'message'],
+    }),
+    new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'Account', 'Login.cshtml'),
       template: path.resolve(__dirname, 'ViewTemplates', 'Account', 'Login.cshtml.template'),
       inject: false,

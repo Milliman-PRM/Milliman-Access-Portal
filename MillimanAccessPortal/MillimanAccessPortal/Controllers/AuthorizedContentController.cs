@@ -126,10 +126,15 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (selectionGroup?.RootContentItem?.ContentType == null)
             {
-                string ErrMsg = $"In AuthorizedContentController.WebHostedContent action, failed to obtain the requested selection group, content item, or content type";
-                Log.Error(ErrMsg + $": user {User.Identity.Name}, selectionGroupId {selectionGroupId}, aborting");
+                Log.Error("In AuthorizedContentController.WebHostedContent action, " + 
+                    "failed to obtain the requested selection group, content item, or content type: " +
+                    $"user {User.Identity.Name}, selectionGroupId {selectionGroupId}, aborting");
 
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                var ErrMsg = new List<string>
+                {
+                    "You are not authorized to access the requested content.",
+                };
+                return View("ContentMessage", ErrMsg);
             }
             #endregion
 
@@ -140,8 +145,11 @@ namespace MillimanAccessPortal.Controllers
                 Log.Verbose($"In AuthorizedContentController.WebHostedContent action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
-                Response.Headers.Add("Warning", "You are not authorized to access the requested content");
-                return Unauthorized();
+                var ErrMsg = new List<string>
+                {
+                    "You are not authorized to access the requested content.",
+                };
+                return View("ContentMessage", ErrMsg);
             }
             #endregion
 
@@ -174,9 +182,16 @@ namespace MillimanAccessPortal.Controllers
 
             if (requestedContentFile == null)
             {
-                Log.Error($"In AuthorizedContentController.WebHostedContent action: content file path not found for {(selectionGroup.IsMaster ? "master" : "reduced")} selection group {selectionGroupId}, aborting");
-                Response.Headers.Add("Warning", "This content file path could not be found. Please refresh this web page (F5) in a few minutes, and contact MAP Support if this error continues.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                Log.Error("In AuthorizedContentController.WebHostedContent action: content file path not found " +
+                    $"for {(selectionGroup.IsMaster ? "master" : "reduced")} " +
+                    $"selection group {selectionGroupId}, aborting");
+                var ErrMsg = new List<string>
+                {
+                    "This content file path could not be found.",
+                    "Please refresh this web page (F5) in a few minutes, " +
+                    "and contact MAP Support if this error continues.",
+                };
+                return View("ContentMessage", ErrMsg);
             }
 
             // Make sure the checksum currently matches the value stored at the time the file went live
