@@ -40,6 +40,9 @@ using NetEscapades.AspNetCore.SecurityHeaders;
 using MillimanAccessPortal.Utilities;
 using System.Diagnostics;
 using Serilog;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AzureKeyVault;
+using System.Security.Cryptography.X509Certificates;
 
 namespace MillimanAccessPortal
 {
@@ -55,6 +58,25 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
+
+            // Configure Data Protection for production and staging
+            switch (EnvironmentNameUpper)
+            {
+                case "PRODUCTION":
+                case "STAGING":
+                    var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                    store.Open(OpenFlags.ReadOnly);
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, Configuration["AzureCertificateThumbprint"], false);
+
+                    services.AddDataProtection()
+                        .PersistKeysToFileSystem(new DirectoryInfo(@"c:\temp-keys\"))
+                        .ProtectKeysWithAzureKeyVault("DataProtection",
+                                                        Configuration["AzureClientID"],
+                                                        cert.OfType<X509Certificate2>().Single());
+                    break;
+            }
 
             services.Configure<MvcOptions>(options =>
             {
