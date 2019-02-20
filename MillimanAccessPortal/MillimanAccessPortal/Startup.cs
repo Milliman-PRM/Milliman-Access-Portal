@@ -219,32 +219,7 @@ namespace MillimanAccessPortal
                     var certCollection = store.Certificates.Find(X509FindType.FindByThumbprint, Configuration["AzureCertificateThumbprint"], false);
                     var cert = certCollection.OfType<X509Certificate2>().Single();
 
-                    Log.Debug(" matching certificates found");
-
                     DirectoryInfo keyDirectory = new DirectoryInfo(@"C:\temp-keys");
-
-                    Log.Debug("Key persistence directory {directoryName} contains {fileCount} files", keyDirectory.FullName, keyDirectory.GetFiles().Count());
-
-                    try
-                    {
-                        string subDirectoryName = "tryCreate";
-                        string subDirectoryPath = "{keyDirectory.FullName}\\{subDirectoryName}";
-                        if (!Directory.Exists(subDirectoryPath))
-                        {
-                            Log.Debug("Attempting to create subdirectory of key persistence directory");
-                            keyDirectory.CreateSubdirectory(subDirectoryName);
-                        }
-
-                        Log.Debug("Attempting to delete test subdirectory from key persistence directory");
-                        DirectoryInfo subDirInfo = new DirectoryInfo("{keyDirectory.FullName}\\{subDirectoryName}");
-                        subDirInfo.Delete();
-                    }
-                    catch
-                    {
-                        throw new AccessViolationException("File permission tests for data protection key directory failed (Path: {keyDirectory.FullName})");
-                    }
-
-                    Log.Debug("Adding data protection with keys protected by Azure Key Vault with client ID {clientID}", Configuration["AzureClientID"]);
 
                     services.AddDataProtection()
                         .PersistKeysToFileSystem(keyDirectory)
