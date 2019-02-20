@@ -59,55 +59,6 @@ namespace MillimanAccessPortal
         public void ConfigureServices(IServiceCollection services)
         {
 
-            string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
-
-            // Configure Data Protection for production and staging
-            switch (EnvironmentNameUpper)
-            {
-                case "PRODUCTION":
-                case "STAGING":
-
-                    Log.Verbose("Configuring Data Protection");
-
-                    var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
-                    store.Open(OpenFlags.ReadOnly);
-                    var certCollection = store.Certificates.Find(X509FindType.FindByThumbprint, Configuration["AzureCertificateThumbprint"], false);
-                    var cert = certCollection.OfType<X509Certificate2>().Single();
-
-                    Log.Verbose(" matching certificates found");
-                    
-                    DirectoryInfo keyDirectory = new DirectoryInfo(@"C:\temp-keys");
-
-                    Log.Verbose("Key persistence directory {directoryName} contains {fileCount} files", keyDirectory.FullName, keyDirectory.GetFiles().Count());
-
-                    try
-                    {
-                        Log.Verbose("Attempting to create subdirectory of key persistence directory");
-                        string subDirectoryName = "tryCreate";
-                        keyDirectory.CreateSubdirectory(subDirectoryName);
-
-                        Log.Verbose("Attempting to delete test subdirectory from key persistence directory");
-                        DirectoryInfo subDirInfo = new DirectoryInfo("{keyDirectory.FullName}\\{subDirectoryName}");
-                        subDirInfo.Delete();
-                    }
-                    catch
-                    {
-                        throw new AccessViolationException("File permission tests for data protection key directory failed (Path: {keyDirectory.FullName})");
-                    }
-
-                    Log.Verbose("Adding data protection with keys protected by Azure Key Vault with client ID {clientID}", Configuration["AzureClientID"]);
-
-                    services.AddDataProtection()
-                        .PersistKeysToFileSystem(keyDirectory)
-                        .ProtectKeysWithAzureKeyVault("DataProtection",
-                                                        Configuration["AzureClientID"],
-                                                        cert);
-
-                    Log.Verbose("Finished configuring data protection");
-
-                    break;
-            }
-
             services.Configure<MvcOptions>(options =>
             {
                 options.Filters.Add(new RequireHttpsAttribute());
@@ -252,6 +203,55 @@ namespace MillimanAccessPortal
             services.AddHostedService<QueuedPublicationPostProcessingHostedService>();
             services.AddSingleton<IPublicationPostProcessingTaskQueue, PublicationPostProcessingTaskQueue>();
             services.AddScoped<FileSystemTasks>();
+
+            string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
+
+            // Configure Data Protection for production and staging
+            switch (EnvironmentNameUpper)
+            {
+                case "PRODUCTION":
+                case "STAGING":
+
+                    Log.Verbose("Configuring Data Protection");
+
+                    var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                    store.Open(OpenFlags.ReadOnly);
+                    var certCollection = store.Certificates.Find(X509FindType.FindByThumbprint, Configuration["AzureCertificateThumbprint"], false);
+                    var cert = certCollection.OfType<X509Certificate2>().Single();
+
+                    Log.Verbose(" matching certificates found");
+
+                    DirectoryInfo keyDirectory = new DirectoryInfo(@"C:\temp-keys");
+
+                    Log.Verbose("Key persistence directory {directoryName} contains {fileCount} files", keyDirectory.FullName, keyDirectory.GetFiles().Count());
+
+                    try
+                    {
+                        Log.Verbose("Attempting to create subdirectory of key persistence directory");
+                        string subDirectoryName = "tryCreate";
+                        keyDirectory.CreateSubdirectory(subDirectoryName);
+
+                        Log.Verbose("Attempting to delete test subdirectory from key persistence directory");
+                        DirectoryInfo subDirInfo = new DirectoryInfo("{keyDirectory.FullName}\\{subDirectoryName}");
+                        subDirInfo.Delete();
+                    }
+                    catch
+                    {
+                        throw new AccessViolationException("File permission tests for data protection key directory failed (Path: {keyDirectory.FullName})");
+                    }
+
+                    Log.Verbose("Adding data protection with keys protected by Azure Key Vault with client ID {clientID}", Configuration["AzureClientID"]);
+
+                    services.AddDataProtection()
+                        .PersistKeysToFileSystem(keyDirectory)
+                        .ProtectKeysWithAzureKeyVault("DataProtection",
+                                                        Configuration["AzureClientID"],
+                                                        cert);
+
+                    Log.Verbose("Finished configuring data protection");
+
+                    break;
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
