@@ -105,7 +105,7 @@ namespace MapTests
 
             #region Assert
             // Test that a 500 error was returned instead of the content
-            Assert.IsType<UnauthorizedResult>(view);
+            Assert.IsType<ViewResult>(view);
             #endregion
         }
 
@@ -270,11 +270,7 @@ namespace MapTests
 
             #region Assert
             // Test that a content view was returned
-            Assert.IsType<ObjectResult>(actionResult);
-
-            // Test that the expected error was returned
-            ObjectResult objectResult = actionResult as ObjectResult;
-            Assert.Equal(500, objectResult.StatusCode);
+            Assert.IsType<ViewResult>(actionResult);
             #endregion
         }
 
@@ -317,8 +313,7 @@ namespace MapTests
 
             #region Assert
             // Test that a content view was returned
-            Assert.IsType<UnauthorizedResult>(actionResult);
-            Assert.Contains("You are not authorized to access the requested content", sut.Response.Headers.Select(h => h.Value));
+            Assert.IsType<ViewResult>(actionResult);
             #endregion
         }
 

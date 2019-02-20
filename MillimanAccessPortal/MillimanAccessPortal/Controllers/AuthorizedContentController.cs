@@ -154,7 +154,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Content Disclaimer Verification
-            if (!userInSelectionGroup.DisclaimerAccepted)
+            if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer)
+                && !userInSelectionGroup.DisclaimerAccepted)
             {
                 var disclaimer = new ContentDisclaimer
                 {
