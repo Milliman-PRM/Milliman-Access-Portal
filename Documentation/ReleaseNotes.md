@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.3.7
+
+- Fixed an issue where existing account activation links became invalidated before 7 days had passed
+
 ### v1.3.6
 
 - Mitigate a potential concurrency issue in email service
