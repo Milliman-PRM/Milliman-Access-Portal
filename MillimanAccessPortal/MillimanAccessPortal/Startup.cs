@@ -223,7 +223,7 @@ namespace MillimanAccessPortal
 
                     services.AddDataProtection()
                         .PersistKeysToFileSystem(keyDirectory)
-                        .ProtectKeysWithAzureKeyVault("DataProtection",
+                        .ProtectKeysWithAzureKeyVault(Configuration["DataProtectionKeyId"],
                                                         Configuration["AzureClientID"],
                                                         cert);
 
