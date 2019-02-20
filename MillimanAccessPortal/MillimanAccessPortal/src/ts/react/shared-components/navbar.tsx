@@ -22,6 +22,7 @@ export interface NavBarProps {
 
 export interface NavBarState {
   navBarElements: NavBarElement[];
+  navBarOpen: boolean;
   contactFormOpen: boolean;
   userGuideOpen: boolean;
 }
@@ -32,10 +33,12 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
 
     this.state = {
       navBarElements: null,
+      navBarOpen: false,
       contactFormOpen: false,
       userGuideOpen: false,
     };
 
+    this.toggleNavBarOpen = this.toggleNavBarOpen.bind(this);
     this.openContactForm = this.openContactForm.bind(this);
     this.closeContactForm = this.closeContactForm.bind(this);
     this.openUserGuide = this.openUserGuide.bind(this);
@@ -59,7 +62,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
       const classes = `nav-element ${(this.props.currentView === element.view) ? 'selected' : null }`;
       return (
         <a href={'/' + element.url} key={element.view}>
-          <div className={classes} style={{ order: element.order }}>
+          <div className={classes} style={{ order: element.order }} title={element.label}>
             <h3 className="nav-element-label">{element.label}</h3>
             <svg className="nav-element-icon">
               <use xlinkHref={`#${element.icon}`} />
@@ -70,36 +73,49 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
     });
 
     return (
-      <nav className={this.state.navBarElements && 'loaded'}>
-        {navElements}
-        <div className="nav-element" style={{ order: 98 }} onClick={this.openUserGuide}>
-          <h3 className="nav-element-label">User Guide</h3>
-          <svg className="nav-element-icon">
-            <use xlinkHref="#userguide" />
-          </svg>
-        </div>
-        <div className="nav-element" style={{ order: 99 }} onClick={this.openContactForm}>
-          <h3 className="nav-element-label">Contact Support</h3>
-          <svg className="nav-element-icon">
-            <use xlinkHref="#email" />
-          </svg>
-        </div>
-        <div className="nav-element" style={{ order: 100 }} onClick={this.logout}>
-          <h3 className="nav-element-label">Log Out</h3>
-          <svg className="nav-element-icon">
-            <use xlinkHref="#logout" />
-          </svg>
-        </div>
-        <ContactFormModal
-          isOpen={this.state.contactFormOpen}
-          onRequestClose={this.closeContactForm}
-        />
-        <UserGuideModal
-          isOpen={this.state.userGuideOpen}
-          onRequestClose={this.closeUserGuide}
-          source={this.props.currentView}
-        />
-      </nav>
+      <>
+        <nav
+          className={`${this.state.navBarElements && 'loaded'} ${(this.state.navBarOpen) ? 'open' : 'close'}`}
+          onClick={this.toggleNavBarOpen}
+        >
+          <div onClick={this.stopPropagation}>
+            <div id="navbar-button" onClick={this.toggleNavBarOpen}>
+              <div id="navbar-button-box">
+                <div id="navbar-button-inner" />
+              </div>
+            </div>
+            {navElements}
+            <div className="nav-element" style={{ order: 98 }} onClick={this.openUserGuide} title="User Guide">
+              <h3 className="nav-element-label">User Guide</h3>
+              <svg className="nav-element-icon">
+                <use xlinkHref="#userguide" />
+              </svg>
+            </div>
+            <div className="nav-element" style={{ order: 99 }} onClick={this.openContactForm} title="Contact Support">
+              <h3 className="nav-element-label">Contact Support</h3>
+              <svg className="nav-element-icon">
+                <use xlinkHref="#email" />
+              </svg>
+            </div>
+            <div className="nav-element" style={{ order: 100 }} onClick={this.logout} title="Log Out">
+              <h3 className="nav-element-label">Log Out</h3>
+              <svg className="nav-element-icon">
+                <use xlinkHref="#logout" />
+              </svg>
+            </div>
+            <ContactFormModal
+              isOpen={this.state.contactFormOpen}
+              onRequestClose={this.closeContactForm}
+            />
+            <UserGuideModal
+              isOpen={this.state.userGuideOpen}
+              onRequestClose={this.closeUserGuide}
+              source={this.props.currentView}
+            />
+          </div>
+        </nav>
+        {this.state.navBarOpen && <div id="navBarModalBackground" onClick={this.toggleNavBarOpen} />}
+      </>
     );
   }
 
@@ -114,16 +130,30 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
     });
   }
 
+  private stopPropagation(event: React.MouseEvent) {
+    event.stopPropagation();
+  }
+
+  private toggleNavBarOpen() {
+    this.setState({
+      navBarOpen: !this.state.navBarOpen,
+      contactFormOpen: false,
+      userGuideOpen: false,
+    });
+  }
+
   private openContactForm() {
     this.setState({
       contactFormOpen: true,
       userGuideOpen: false,
+      navBarOpen: false,
     });
   }
 
   private closeContactForm() {
     this.setState({
       contactFormOpen: false,
+      navBarOpen: false,
     });
   }
 
@@ -131,12 +161,14 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
     this.setState({
       contactFormOpen: false,
       userGuideOpen: true,
+      navBarOpen: false,
     });
   }
 
   private closeUserGuide() {
     this.setState({
       userGuideOpen: false,
+      navBarOpen: false,
     });
   }
 }
