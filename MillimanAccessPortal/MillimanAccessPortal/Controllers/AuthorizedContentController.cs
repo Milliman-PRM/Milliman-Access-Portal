@@ -278,7 +278,7 @@ namespace MillimanAccessPortal.Controllers
             await DataContext.SaveChangesAsync();
             AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, validationId));
 
-            return RedirectToAction(nameof(WebHostedContent), new { selectionGroupId });
+            return Ok();
         }
 
         /// <summary>
