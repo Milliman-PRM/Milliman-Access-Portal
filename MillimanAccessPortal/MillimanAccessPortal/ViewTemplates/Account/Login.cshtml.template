@@ -14,7 +14,7 @@
 
 <div id="content-wrapper">
 </div>
-@Html.PartialAsync("_Footer")
+@await Html.PartialAsync("_Footer")
 
 @section CSS {
   <% for (var css in htmlWebpackPlugin.files.css) { %>
