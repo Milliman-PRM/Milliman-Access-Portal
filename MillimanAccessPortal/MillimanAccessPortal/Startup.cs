@@ -227,9 +227,13 @@ namespace MillimanAccessPortal
 
                     try
                     {
-                        Log.Debug("Attempting to create subdirectory of key persistence directory");
                         string subDirectoryName = "tryCreate";
-                        keyDirectory.CreateSubdirectory(subDirectoryName);
+                        string subDirectoryPath = "{keyDirectory.FullName}\\{subDirectoryName}";
+                        if (!Directory.Exists(subDirectoryPath))
+                        {
+                            Log.Debug("Attempting to create subdirectory of key persistence directory");
+                            keyDirectory.CreateSubdirectory(subDirectoryName);
+                        }
 
                         Log.Debug("Attempting to delete test subdirectory from key persistence directory");
                         DirectoryInfo subDirInfo = new DirectoryInfo("{keyDirectory.FullName}\\{subDirectoryName}");
