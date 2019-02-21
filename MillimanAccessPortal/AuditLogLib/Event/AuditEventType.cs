@@ -42,17 +42,26 @@ namespace AuditLogLib.Event
                 QueryText = queryText,
                 RowsAffected = rows,
             });
-        public static readonly AuditEventType<string, string, string, string, string, string> UserContentAccess =
-            new AuditEventType<string, string, string, string, string, string>(1008, "Content access",
-                (contentItemId, selectionGroupId, contentItemName, selectionGroupName, clientId, clientName) => new
-                {
-                    ContentItem = contentItemId,
-                    SelectionGroup = selectionGroupId,
-                    ContentItemName = contentItemName,
-                    SelectionGroupName = selectionGroupName,
-                    ClientId = clientId,
-                    ClientName = clientName,
-                });
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client> UserContentAccess =
+           new AuditEventType<SelectionGroup, RootContentItem, Client>(1008, "Content access",
+               (selectionGroup, contentItem, client) => new
+               {
+                   SelectionGroup = new
+                   {
+                       Id = selectionGroup.Id,
+                       GroupName = selectionGroup.GroupName,
+                   },
+                   ContentItem = new
+                   {
+                       Id = contentItem.Id,
+                       ContentName = contentItem.ContentName,
+                   },
+                   Client = new
+                   {
+                       Id = client.Id,
+                       Name = client.Name,
+                   },
+               });
         public static readonly AuditEventType<string, string, string> UserContentRelatedFileAccess =
             new AuditEventType<string, string, string>(1009, "Content related file access",
                 (contentItemId, selectionGroupId, relatedFilePurpose) => new
@@ -529,33 +538,6 @@ namespace AuditLogLib.Event
         {
             var auditEvent = ToEvent(callerName, callerPath, callerLine);
             auditEvent.EventDataObject = logObjectTransform(param1, param2, param3, param4, param5);
-
-            return auditEvent;
-        }
-    }
-
-    public sealed class AuditEventType<P1, P2, P3, P4, P5, P6> : AuditEventTypeBase
-    {
-        private readonly Func<P1, P2, P3, P4, P5, P6, object> logObjectTransform;
-
-        /// <summary>
-        /// Represents a class of loggable event.
-        /// </summary>
-        /// <param name="id">AuditEvent ID. This value is logged and is used to uniquely identify this event type.</param>
-        /// <param name="name">Name of the event type.</param>
-        /// <param name="logObjectTransform">Defines the log object for this event type.</param>
-        public AuditEventType(int id, string name, Func<P1, P2, P3, P4, P5, P6, object> logObjectTransform) : base(id, name)
-        {
-            this.logObjectTransform = logObjectTransform;
-        }
-
-        public AuditEvent ToEvent(P1 param1, P2 param2, P3 param3, P4 param4, P5 param5, P6 param6,
-           [CallerMemberName] string callerName = "",
-           [CallerFilePath] string callerPath = "",
-           [CallerLineNumber] int callerLine = 0)
-        {
-            var auditEvent = ToEvent(callerName, callerPath, callerLine);
-            auditEvent.EventDataObject = logObjectTransform(param1, param2, param3, param4, param5, param6);
 
             return auditEvent;
         }
