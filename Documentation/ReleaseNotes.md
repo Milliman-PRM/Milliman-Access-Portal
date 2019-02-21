@@ -5,6 +5,7 @@
 ### v1.3.7
 
 - Fixed an issue where existing account activation links became invalidated before 7 days had passed
+- Improved logging of user access to content
 
 ### v1.3.6
 
