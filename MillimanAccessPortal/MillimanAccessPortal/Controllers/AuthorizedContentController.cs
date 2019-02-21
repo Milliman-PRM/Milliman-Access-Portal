@@ -181,13 +181,9 @@ namespace MillimanAccessPortal.Controllers
 
             // Log content access
             AuditLogger.Log(AuditEventType.UserContentAccess.ToEvent(
-                selectionGroup.RootContentItemId.ToString(), 
-                selectionGroup.Id.ToString(),
-                selectionGroup.RootContentItem.ContentName,
-                selectionGroup.GroupName,
-                selectionGroup.RootContentItem.Client.Id.ToString(),
-                selectionGroup.RootContentItem.Client.Name
-                ));
+                selectionGroup, 
+                selectionGroup.RootContentItem, 
+                selectionGroup.RootContentItem.Client));
 
             try
             {
