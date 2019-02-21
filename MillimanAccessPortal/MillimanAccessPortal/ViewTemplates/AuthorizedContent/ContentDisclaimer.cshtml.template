@@ -12,14 +12,20 @@
   <% } %>
 }
 
-<div>@Model.ContentName</div>
-<div>@Model.DisclaimerText</div>
-<form>
-    <input asp-for="SelectionGroupId" style="visibility: hidden;">
-    <input asp-for="ValidationId" style="visibility: hidden;">
-    @Html.AntiForgeryToken()
-    <input id="accept-button" type="button" value="Accept" />
-</form>
+<div id="disclaimer-container">
+	<h2 id="content-name">Legal Disclaimer: @Model.ContentName</h2>
+	<div id="content-disclaimer-text">
+		@Model.DisclaimerText
+	</div>
+	<form id="content-disclaimer-form">
+		<input asp-for="SelectionGroupId" style="visibility: hidden;">
+		<input asp-for="ValidationId" style="visibility: hidden;">
+		@Html.AntiForgeryToken()
+		<div class="button-container">
+			<button id="accept-button" type="button" class="green-button">Accept</button>
+		</div>
+	</form>
+</div>
 
 @section Scripts {
     <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>

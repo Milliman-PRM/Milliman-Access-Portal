@@ -1,5 +1,7 @@
 import { postData } from './shared';
 
+import '../scss/content-disclaimer.scss';
+
 document.addEventListener('DOMContentLoaded', () => {
   const acceptButton = document.getElementById('accept-button');
   acceptButton.onclick = async () => {
