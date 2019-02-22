@@ -178,12 +178,14 @@ if ($IsMerged.ToLower() -eq 'true' -and $env:Action.ToLower() -eq 'closed') {
     $checkoutPath = "$env:TEMP\Milliman-Access-Portal\"
     Set-Location $env:TEMP
     Remove-Item $checkoutPath -Recurse -ErrorAction Ignore
+
     & $gitExePath clone $CloneURL
     Set-Location $checkoutPath
     $env:git_branch_name = $MergeBase
     $env:Action = "opened"
     $env:RunTests = "False"
     & $gitExePath checkout $MergeBase
+    test-path "$($checkoutPath)Publish\CI_Publish.ps1"
     & "$($checkoutPath)Publish\CI_Publish.ps1"
 
     if ($LASTEXITCODE -eq 0) {
