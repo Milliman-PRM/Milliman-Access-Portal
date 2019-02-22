@@ -590,7 +590,7 @@ export function getData(url = '', data: any = {}) {
   });
 }
 
-export function getJsonData(url = '', data: any = {}) {
+export function getJsonData<TResponse = any>(url = '', data: any = {}) {
   const queryParams: string[] = [];
   Object.keys(data).forEach((key) => {
     if (Object.prototype.hasOwnProperty.call(data, key)) {
@@ -607,7 +607,7 @@ export function getJsonData(url = '', data: any = {}) {
     if (!response.ok) {
       throw new Error(response.headers.get('Warning') || 'Unknown error');
     }
-    return response.json();
+    return response.json() as Promise<TResponse>;
   });
 }
 
@@ -639,7 +639,7 @@ export function postData(url: string = '', data: any = {}, rawResponse: boolean 
   });
 }
 
-export function postJsonData(url: string = '', data: object = {}) {
+export function postJsonData<TResponse = any>(url: string = '', data: object = {}) {
   const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
   return fetch(url, {
     method: 'POST',
@@ -654,8 +654,8 @@ export function postJsonData(url: string = '', data: object = {}) {
   })
   .then((response) => {
     if (!response.ok) {
-      throw new Error(response.headers.get('Warning') || 'Unknown error');
+      throw new Error(response.headers.get('Warning') || `${response.status}`);
     }
-    return response.json();
+    return response.json() as Promise<TResponse>;
   });
 }

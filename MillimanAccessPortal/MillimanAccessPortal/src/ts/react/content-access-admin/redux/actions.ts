@@ -1,138 +1,418 @@
-import { Action } from 'redux';
+import {
+    ClientWithEligibleUsers, ClientWithStats, ContentPublicationRequest, ContentReductionTask,
+    ContentType, Guid, PublicationQueueDetails, ReductionField, ReductionFieldValue,
+    ReductionQueueDetails, RootContentItem, RootContentItemWithStats, SelectionGroup,
+    SelectionGroupWithAssignedUsers, User,
+} from '../../models';
+import { Dict } from './store';
 
-import { Guid } from '../../models';
-import * as api from './api';
+export type TSError = any;  // any by necessity due to the nature of try/catch in TypeScript
 
-export enum AccessAction {
-  SelectClient = 'SELECT_CLIENT',
-  SelectItem = 'SELECT_ITEM',
-  SelectGroup = 'SELECT_GROUP',
-  SetExpandedGroup = 'SET_EXPANDED_GROUP',
-  SetCollapsedGroup = 'SET_COLLAPSED_GROUP',
-  SetAllExpandedGroup = 'SET_ALL_EXPANDED_GROUP',
-  SetAllCollapsedGroup = 'SET_ALL_COLLAPSED_GROUP',
-  SetFilterTextClient = 'SET_FILTER_TEXT_CLIENT',
-  SetFilterTextItem = 'SET_FILTER_TEXT_ITEM',
-  SetFilterTextGroup = 'SET_FILTER_TEXT_GROUP',
-  SetFilterTextSelections = 'SET_FILTER_TEXT_SELECTIONS',
-  SetPendingIsMaster = 'SET_PENDING_IS_MASTER',
-  SetPendingSelectionOn = 'SET_PENDING_SELECTION_ON',
-  SetPendingSelectionOff = 'SET_PENDING_SELECTION_OFF',
-  OpenAddGroupModal = 'OPEN_ADD_GROUP_MODAL',
-  CloseAddGroupModal = 'CLOSE_ADD_GROUP_MODAL',
-  OpenDeleteGroupModal = 'OPEN_DELETE_GROUP_MODAL',
-  CloseDeleteGroupModal = 'CLOSE_DELETE_GROUP_MODAL',
-  OpenInvalidateModal = 'OPEN_INVALIDATE_MODAL',
-  CloseInvalidateModal = 'CLOSE_INVALIDATE_MODAL',
-  SetPendingNewGroupName = 'SET_PENDING_NEW_GROUP_NAME',
-  SetGroupEditingOn = 'SET_GROUP_EDITING_ON',
-  SetGroupEditingOff = 'SET_GROUP_EDITING_OFF',
-  SetPendingGroupName = 'SET_PENDING_GROUP_NAME',
-  SetPendingGroupUserQuery = 'SET_PENDING_GROUP_USER_QUERY',
-  SetPendingGroupUserAssigned = 'SET_PENDING_GROUP_USER_ASSIGNED',
-  SetPendingGroupUserRemoved = 'SET_PENDING_GROUP_USER_REMOVED',
-  FetchClients = 'FETCH_CLIENTS',
-  FetchItems = 'FETCH_ITEMS',
-  FetchGroups = 'FETCH_GROUPS',
-  FetchSelections = 'FETCH_SELECTIONS',
-  FetchStatusRefresh = 'FETCH_STATUS_REFRESH',
-  FetchSessionCheck = 'FETCH_SESSION_CHECK',
-  CreateGroup = 'CREATE_GROUP',
-  UpdateGroup = 'UPDATE_GROUP',
-  DeleteGroup = 'DELETE_GROUP',
-  SuspendGroup = 'SUSPEND_GROUP',
-  UpdateSelections = 'UPDATE_SELECTIONS',
-  CancelReduction = 'CANCEL_REDUCTION',
-  ScheduleStatusRefresh = 'SCHEDULE_STATUS_REFRESH',
-  ScheduleSessionCheck = 'SCHEDULE_SESSION_CHECK',
+export interface SelectClient {
+  type: 'SELECT_CLIENT';
+  id: Guid;
 }
-
-export enum DataSuffixes {
-  None = '',
-  Succeeded = '_SUCCEEDED',
-  Failed = '_FAILED',
+export interface SelectItem {
+  type: 'SELECT_ITEM';
+  id: Guid;
 }
-
-// ~~ Page actions ~~
-
-// Card selection
-export const selectClient = (id: Guid) => ({ type: AccessAction.SelectClient, id });
-export const selectItem = (id: Guid) => ({ type: AccessAction.SelectItem, id });
-export const selectGroup = (id: Guid) => ({ type: AccessAction.SelectGroup, id });
-
-// Group card expansion
-export const setExpandedGroup = (id: Guid) => ({ type: AccessAction.SetExpandedGroup, id });
-export const setCollapsedGroup = (id: Guid) => ({ type: AccessAction.SetCollapsedGroup, id });
-export const setAllExpandedGroup = () => ({ type: AccessAction.SetAllExpandedGroup });
-export const setAllCollapsedGroup = () => ({ type: AccessAction.SetAllCollapsedGroup });
-
-// Card filters
-export const setFilterTextClient = (text: string) => ({ type: AccessAction.SetFilterTextClient, text });
-export const setFilterTextItem = (text: string) => ({ type: AccessAction.SetFilterTextItem, text });
-export const setFilterTextGroup = (text: string) => ({ type: AccessAction.SetFilterTextGroup, text });
-export const setFilterTextSelections = (text: string) => ({ type: AccessAction.SetFilterTextSelections, text });
-
-// Pending value selections
-export const setPendingIsMaster = (isMaster: boolean) => ({ type: AccessAction.SetPendingIsMaster, isMaster });
-export const setPendingSelectionOn = (id: Guid) => ({ type: AccessAction.SetPendingSelectionOn, id });
-export const setPendingSelectionOff = (id: Guid) => ({ type: AccessAction.SetPendingSelectionOff, id });
-
-// Add selection group modal
-export const openAddGroupModal = () => ({ type: AccessAction.OpenAddGroupModal });
-export const closeAddGroupModal = () => ({ type: AccessAction.CloseAddGroupModal });
-export const setPendingNewGroupName = (name: string) => ({ type: AccessAction.SetPendingNewGroupName, name });
-export const openDeleteGroupModal = (id: Guid) => ({ type: AccessAction.OpenDeleteGroupModal, id });
-export const closeDeleteGroupModal = () => ({ type: AccessAction.CloseDeleteGroupModal });
-export const openInvalidateModal = () => ({ type: AccessAction.OpenInvalidateModal });
-export const closeInvalidateModal = () => ({ type: AccessAction.CloseInvalidateModal });
-
-// Selection group card editing
-export const setGroupEditingOn = (id: Guid) => ({ type: AccessAction.SetGroupEditingOn, id });
-export const setGroupEditingOff = (id: Guid) => ({ type: AccessAction.SetGroupEditingOff, id });
-export const setPendingGroupName = (name: string) => ({ type: AccessAction.SetPendingGroupName, name });
-export const setPendingGroupUserQuery = (query: string) => ({ type: AccessAction.SetPendingGroupUserQuery, query });
-export const setPendingGroupUserAssigned = (id: Guid) => ({ type: AccessAction.SetPendingGroupUserAssigned, id });
-export const setPendingGroupUserRemoved = (id: Guid) => ({ type: AccessAction.SetPendingGroupUserRemoved, id });
-
-// Schedule other actions
-export interface ScheduleAction extends Action {
-  delay: number;
+export interface SelectGroup {
+  type: 'SELECT_GROUP';
+  id: Guid;
 }
-
-export const scheduleStatusRefresh = (delay: number) => ({ type: AccessAction.ScheduleStatusRefresh, delay });
-export const scheduleSessionCheck = (delay: number) =>
-  ({ type: AccessAction.ScheduleSessionCheck, delay });
-
-// ~~ Server actions
-
-export type DataArgs = Array<number | string | boolean | object>;
-export interface DataAction<T extends DataArgs, R> extends Action {
-  callback: (...args: T) => R;
-  args: T;
+export interface SetExpandedGroup {
+  type: 'SET_EXPANDED_GROUP';
+  id: Guid;
 }
-function createDataActionCreator<T extends DataArgs, R>(
-    action: AccessAction, callback: (...args: T) => R): (...args: T) => DataAction<T, R> {
-  return (...args: T) => {
-    return {
-      type: action,
-      callback,
-      args,
-    };
+export interface SetCollapsedGroup {
+  type: 'SET_COLLAPSED_GROUP';
+  id: Guid;
+}
+export interface SetAllExpandedGroup {
+  type: 'SET_ALL_EXPANDED_GROUP';
+}
+export interface SetAllCollapsedGroup {
+  type: 'SET_ALL_COLLAPSED_GROUP';
+}
+export interface SetFilterTextClient {
+  type: 'SET_FILTER_TEXT_CLIENT';
+  text: string;
+}
+export interface SetFilterTextItem {
+  type: 'SET_FILTER_TEXT_ITEM';
+  text: string;
+}
+export interface SetFilterTextGroup {
+  type: 'SET_FILTER_TEXT_GROUP';
+  text: string;
+}
+export interface SetFilterTextSelections {
+  type: 'SET_FILTER_TEXT_SELECTIONS';
+  text: string;
+}
+export interface SetPendingIsMaster {
+  type: 'SET_PENDING_IS_MASTER';
+  isMaster: boolean;
+}
+export interface SetPendingSelectionOn {
+  type: 'SET_PENDING_SELECTION_ON';
+  id: Guid;
+}
+export interface SetPendingSelectionOff {
+  type: 'SET_PENDING_SELECTION_OFF';
+  id: Guid;
+}
+export interface OpenAddGroupModal {
+  type: 'OPEN_ADD_GROUP_MODAL';
+}
+export interface CloseAddGroupModal {
+  type: 'CLOSE_ADD_GROUP_MODAL';
+}
+export interface OpenDeleteGroupModal {
+  type: 'OPEN_DELETE_GROUP_MODAL';
+  id: Guid;
+}
+export interface CloseDeleteGroupModal {
+  type: 'CLOSE_DELETE_GROUP_MODAL';
+}
+export interface OpenInvalidateModal {
+  type: 'OPEN_INVALIDATE_MODAL';
+}
+export interface CloseInvalidateModal {
+  type: 'CLOSE_INVALIDATE_MODAL';
+}
+export interface SetPendingNewGroupName {
+  type: 'SET_PENDING_NEW_GROUP_NAME';
+  name: string;
+}
+export interface SetGroupEditingOn {
+  type: 'SET_GROUP_EDITING_ON';
+  id: Guid;
+}
+export interface SetGroupEditingOff {
+  type: 'SET_GROUP_EDITING_OFF';
+  id: Guid;
+}
+export interface SetPendingGroupName {
+  type: 'SET_PENDING_GROUP_NAME';
+  name: string;
+}
+export interface SetPendingGroupUserQuery {
+  type: 'SET_PENDING_GROUP_USER_QUERY';
+  query: string;
+}
+export interface SetPendingGroupUserAssigned {
+  type: 'SET_PENDING_GROUP_USER_ASSIGNED';
+  id: Guid;
+}
+export interface SetPendingGroupUserRemoved {
+  type: 'SET_PENDING_GROUP_USER_REMOVED';
+  id: Guid;
+}
+// ~~ Action export interfaces: fetches ~~
+export interface FetchClients {
+  type: 'FETCH_CLIENTS';
+  request: {};
+}
+export interface FetchClientsSucceeded {
+  type: 'FETCH_CLIENTS_SUCCEEDED';
+  response: {
+    clients: Dict<ClientWithEligibleUsers>;
+    users: Dict<User>;
   };
 }
+export interface FetchClientsFailed {
+  type: 'FETCH_CLIENTS_FAILED';
+  error: TSError;
+}
+export interface FetchItems {
+  type: 'FETCH_ITEMS';
+  request: {
+    clientId: Guid;
+  };
+}
+export interface FetchItemsSucceeded {
+  type: 'FETCH_ITEMS_SUCCEEDED';
+  response: {
+    contentItems: Dict<RootContentItemWithStats>;
+    contentTypes: Dict<ContentType>;
+    publications: Dict<ContentPublicationRequest>;
+    publicationQueue: Dict<PublicationQueueDetails>;
+    clientStats: ClientWithStats;
+  };
+}
+export interface FetchItemsFailed {
+  type: 'FETCH_ITEMS_FAILED';
+  error: TSError;
+}
+export interface FetchGroups {
+  type: 'FETCH_GROUPS';
+  request: {
+    contentItemId: Guid;
+  };
+}
+export interface FetchGroupsSucceeded {
+  type: 'FETCH_GROUPS_SUCCEEDED';
+  response: {
+    groups: Dict<SelectionGroupWithAssignedUsers>;
+    reductions: Dict<ContentReductionTask>;
+    reductionQueue: Dict<ReductionQueueDetails>;
+    contentItemStats: RootContentItemWithStats;
+    clientStats: ClientWithStats;
+  };
+}
+export interface FetchGroupsFailed {
+  type: 'FETCH_GROUPS_FAILED';
+  error: TSError;
+}
+export interface FetchSelections {
+  type: 'FETCH_SELECTIONS';
+  request: {
+    groupId: Guid;
+  };
+}
+export interface FetchSelectionsSucceeded {
+  type: 'FETCH_SELECTIONS_SUCCEEDED';
+  response: {
+    id: Guid;
+    liveSelections: Guid[];
+    reductionSelections: Guid[];
+    fields: Dict<ReductionField>;
+    values: Dict<ReductionFieldValue>;
+  };
+}
+export interface FetchSelectionsFailed {
+  type: 'FETCH_SELECTIONS_FAILED';
+  error: TSError;
+}
+export interface FetchStatusRefresh {
+  type: 'FETCH_STATUS_REFRESH';
+  request: {
+    clientId: Guid;
+    contentItemId: Guid;
+  };
+}
+export interface FetchStatusRefreshSucceeded {
+  type: 'FETCH_STATUS_REFRESH_SUCCEEDED';
+  response: {
+    publications: Dict<ContentPublicationRequest>;
+    publicationQueue: Dict<PublicationQueueDetails>;
+    reductions: Dict<ContentReductionTask>;
+    reductionQueue: Dict<ReductionQueueDetails>;
+    liveSelectionsSet: Dict<Guid[]>;
+    contentItems: Dict<RootContentItem>;
+    groups: Dict<SelectionGroup>;
+  };
+}
+export interface FetchStatusRefreshFailed {
+  type: 'FETCH_STATUS_REFRESH_FAILED';
+  error: TSError;
+}
+export interface ScheduleStatusRefresh {
+  type: 'SCHEDULE_STATUS_REFRESH';
+  delay: number;
+}
+export interface FetchSessionCheck {
+  type: 'FETCH_SESSION_CHECK';
+  request: {};
+}
+export interface FetchSessionCheckSucceeded {
+  type: 'FETCH_SESSION_CHECK_SUCCEEDED';
+  response: {};
+}
+export interface FetchSessionCheckFailed {
+  type: 'FETCH_SESSION_CHECK_FAILED';
+  error: TSError;
+}
+export interface ScheduleSessionCheck {
+  type: 'SCHEDULE_SESSION_CHECK';
+  delay: number;
+}
+export interface CreateGroup {
+  type: 'CREATE_GROUP';
+  request: {
+    contentItemId: Guid;
+    name: string;
+  };
+}
+export interface CreateGroupSucceeded {
+  type: 'CREATE_GROUP_SUCCEEDED';
+  response: {
+    group: SelectionGroupWithAssignedUsers;
+    contentItemStats: RootContentItemWithStats;
+  };
+}
+export interface CreateGroupFailed {
+  type: 'CREATE_GROUP_FAILED';
+  error: TSError;
+}
+export interface UpdateGroup {
+  type: 'UPDATE_GROUP';
+  request: {
+    groupId: Guid;
+    name: string;
+    users: Guid[];
+  };
+}
+export interface UpdateGroupSucceeded {
+  type: 'UPDATE_GROUP_SUCCEEDED';
+  response: {
+    group: SelectionGroupWithAssignedUsers;
+    contentItemStats: RootContentItemWithStats;
+  };
+}
+export interface UpdateGroupFailed {
+  type: 'UPDATE_GROUP_FAILED';
+  error: TSError;
+}
+export interface DeleteGroup {
+  type: 'DELETE_GROUP';
+  request: {
+    groupId: Guid;
+  };
+}
+export interface DeleteGroupSucceeded {
+  type: 'DELETE_GROUP_SUCCEEDED';
+  response: {
+    groupId: Guid;
+    contentItemStats: RootContentItemWithStats;
+  };
+}
+export interface DeleteGroupFailed {
+  type: 'DELETE_GROUP_FAILED';
+  error: TSError;
+}
+export interface SuspendGroup {
+  type: 'SUSPEND_GROUP';
+  request: {
+    groupId: Guid;
+    isSuspended: boolean;
+  };
+}
+export interface SuspendGroupSucceeded {
+  type: 'SUSPEND_GROUP_SUCCEEDED';
+  response: SelectionGroup;
+}
+export interface SuspendGroupFailed {
+  type: 'SUSPEND_GROUP_FAILED';
+  error: TSError;
+}
+export interface UpdateSelections {
+  type: 'UPDATE_SELECTIONS';
+  request: {
+    groupId: Guid;
+    isMaster: boolean;
+    selections: Guid[];
+  };
+}
+export interface UpdateSelectionsSucceeded {
+  type: 'UPDATE_SELECTIONS_SUCCEEDED';
+  response: {
+    group: SelectionGroup;
+    reduction: ContentReductionTask;
+    reductionQueue: ReductionQueueDetails;
+    liveSelections: Guid[];
+  };
+}
+export interface UpdateSelectionsFailed {
+  type: 'UPDATE_SELECTIONS_FAILED';
+  error: TSError;
+}
+export interface CancelReduction {
+  type: 'CANCEL_REDUCTION';
+  request: {
+    groupId: Guid;
+  };
+}
+export interface CancelReductionSucceeded {
+  type: 'CANCEL_REDUCTION_SUCCEEDED';
+  response: {
+    group: SelectionGroup;
+    reduction: ContentReductionTask;
+    reductionQueue: ReductionQueueDetails;
+    liveSelections: Guid[];
+  };
+}
+export interface CancelReductionFailed {
+  type: 'CANCEL_REDUCTION_FAILED';
+  error: TSError;
+}
 
-// Data fetches
-export const fetchClients = createDataActionCreator(AccessAction.FetchClients, api.fetchClients);
-export const fetchItems = createDataActionCreator(AccessAction.FetchItems, api.fetchItems);
-export const fetchGroups = createDataActionCreator(AccessAction.FetchGroups, api.fetchGroups);
-export const fetchSelections = createDataActionCreator(AccessAction.FetchSelections, api.fetchSelections);
-export const fetchStatusRefresh = createDataActionCreator(AccessAction.FetchStatusRefresh, api.fetchStatusRefresh);
-export const fetchSessionCheck = createDataActionCreator(AccessAction.FetchSessionCheck, api.fetchSessionCheck);
+export type PageAction = SelectClient
+  | SelectItem
+  | SelectGroup
+  | SetExpandedGroup
+  | SetCollapsedGroup
+  | SetAllExpandedGroup
+  | SetAllCollapsedGroup
+  | SetFilterTextClient
+  | SetFilterTextItem
+  | SetFilterTextGroup
+  | SetFilterTextSelections
+  | SetPendingIsMaster
+  | SetPendingSelectionOn
+  | SetPendingSelectionOff
+  | OpenAddGroupModal
+  | CloseAddGroupModal
+  | OpenDeleteGroupModal
+  | CloseDeleteGroupModal
+  | OpenInvalidateModal
+  | CloseInvalidateModal
+  | SetPendingNewGroupName
+  | SetGroupEditingOn
+  | SetGroupEditingOff
+  | SetPendingGroupName
+  | SetPendingGroupUserQuery
+  | SetPendingGroupUserAssigned
+  | SetPendingGroupUserRemoved;
+export type ScheduleAction = ScheduleSessionCheck | ScheduleStatusRefresh;
+export type RequestAction = FetchClients
+  | FetchItems
+  | FetchGroups
+  | FetchSelections
+  | FetchStatusRefresh
+  | FetchSessionCheck
+  | CreateGroup
+  | UpdateGroup
+  | DeleteGroup
+  | SuspendGroup
+  | UpdateSelections
+  | CancelReduction
+  ;
+export type ResponseAction = FetchClientsSucceeded
+  | FetchItemsSucceeded
+  | FetchGroupsSucceeded
+  | FetchSelectionsSucceeded
+  | FetchStatusRefreshSucceeded
+  | FetchSessionCheckSucceeded
+  | CreateGroupSucceeded
+  | UpdateGroupSucceeded
+  | DeleteGroupSucceeded
+  | SuspendGroupSucceeded
+  | UpdateSelectionsSucceeded
+  | CancelReductionSucceeded
+  ;
+export type ErrorAction = FetchClientsFailed
+  | FetchItemsFailed
+  | FetchGroupsFailed
+  | FetchSelectionsFailed
+  | FetchStatusRefreshFailed
+  | FetchSessionCheckFailed
+  | CreateGroupFailed
+  | UpdateGroupFailed
+  | DeleteGroupFailed
+  | SuspendGroupFailed
+  | UpdateSelectionsFailed
+  | CancelReductionFailed
+  ;
+// All actions for the content access admin page
+export type AccessAction = PageAction | ScheduleAction | RequestAction | ResponseAction | ErrorAction;
 
-// Updates
-export const createGroup = createDataActionCreator(AccessAction.CreateGroup, api.createGroup);
-export const updateGroup = createDataActionCreator(AccessAction.UpdateGroup, api.updateGroup);
-export const deleteGroup = createDataActionCreator(AccessAction.DeleteGroup, api.deleteGroup);
-export const suspendGroup = createDataActionCreator(AccessAction.SuspendGroup, api.suspendGroup);
-export const updateSelections = createDataActionCreator(AccessAction.UpdateSelections, api.updateSelections);
-export const cancelReduction = createDataActionCreator(AccessAction.CancelReduction, api.cancelReduction);
+// Additional action categories
+export type FilterAction = SetFilterTextClient | SetFilterTextItem | SetFilterTextGroup | SetFilterTextSelections;
+export type OpenAction = OpenAddGroupModal | OpenDeleteGroupModal | OpenInvalidateModal;
+export type CloseAction = CloseAddGroupModal | CloseDeleteGroupModal | CloseInvalidateModal;
+
+export function isScheduleAction(action: AccessAction): action is ScheduleAction {
+  return (action as ScheduleAction).delay !== undefined;
+}

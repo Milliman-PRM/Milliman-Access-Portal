@@ -30,7 +30,8 @@ import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
 import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
-import * as actions from './redux/actions';
+import * as AccessActionCreators from './redux/action-creators';
+import * as AccessActions from './redux/actions';
 import {
     activeReductionFieldsets, activeSelectedClient, activeSelectedGroup, activeSelectedItem,
     addableUsers, allGroupsCollapsed, allGroupsExpanded, clientEntities, groupEntities,
@@ -81,66 +82,15 @@ interface ContentAccessAdminProps {
   allGroupsCollapsed: boolean;
   groupToDelete: SelectionGroup;
 }
-interface ContentAccessAdminActions {
-  selectClient: (id: Guid) => void;
-  selectItem: (id: Guid) => void;
-  selectGroup: (id: Guid) => void;
 
-  setExpandedGroup: (id: Guid) => void;
-  setCollapsedGroup: (id: Guid) => void;
-  setAllExpandedGroup: () => void;
-  setAllCollapsedGroup: () => void;
-
-  setFilterTextClient: (text: string) => void;
-  setFilterTextItem: (text: string) => void;
-  setFilterTextGroup: (text: string) => void;
-  setFilterTextSelections: (text: string) => void;
-
-  setPendingIsMaster: (isMaster: boolean) => void;
-  setPendingSelectionOn: (id: Guid) => void;
-  setPendingSelectionOff: (id: Guid) => void;
-
-  openAddGroupModal: () => void;
-  closeAddGroupModal: () => void;
-  setPendingNewGroupName: (name: string) => void;
-  openDeleteGroupModal: (id: Guid) => void;
-  closeDeleteGroupModal: () => void;
-  openInvalidateModal: () => void;
-  closeInvalidateModal: () => void;
-
-  setGroupEditingOn: (id: Guid) => void;
-  setGroupEditingOff: (id: Guid) => void;
-  setPendingGroupName: (me: string) => void;
-  setPendingGroupUserQuery: (query: string) => void;
-  setPendingGroupUserAssigned: (id: Guid) => void;
-  setPendingGroupUserRemoved: (id: Guid) => void;
-
-  scheduleStatusRefresh: (delay: number) => void;
-  scheduleSessionCheck: (delay: number) => void;
-
-  fetchClients: () => void;
-  fetchItems: (id: Guid) => void;
-  fetchGroups: (id: Guid) => void;
-  fetchSelections: (id: Guid) => void;
-  fetchStatusRefresh: (clientId: Guid, itemId: Guid) => void;
-  fetchSessionCheck: () => void;
-
-  createGroup: (id: Guid, name: string) => void;
-  updateGroup: (id: Guid, name: string, users: Guid[]) => void;
-  deleteGroup: (id: Guid) => void;
-  suspendGroup: (id: Guid, isSuspended: boolean) => void;
-  updateSelections: (id: Guid, isMaster: boolean, selections: Guid[]) => void;
-  cancelReduction: (id: Guid) => void;
-}
-
-class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & ContentAccessAdminActions> {
+class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeof AccessActionCreators> {
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
   public componentDidMount() {
-    this.props.fetchClients();
-    this.props.scheduleStatusRefresh(0);
-    this.props.scheduleSessionCheck(0);
+    this.props.fetchClients({});
+    this.props.scheduleStatusRefresh({ delay: 0 });
+    this.props.scheduleSessionCheck({ delay: 0 });
   }
 
   public render() {
@@ -175,9 +125,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               selected={selected.client === entity.id}
               onSelect={() => {
                 if (selected.client !== entity.id) {
-                  this.props.fetchItems(entity.id);
+                  this.props.fetchItems({ clientId: entity.id });
                 }
-                this.props.selectClient(entity.id);
+                this.props.selectClient({ id: entity.id });
               }}
               indentation={entity.indent}
             >
@@ -206,7 +156,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter clients...'}
-            setFilterText={this.props.setFilterTextClient}
+            setFilterText={(text) => this.props.setFilterTextClient({ text })}
             filterText={filters.client.text}
           />
           <PanelSectionToolbarButtons>
@@ -230,9 +180,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             selected={selected.item === entity.id}
             onSelect={() => {
               if (selected.item !== entity.id) {
-                this.props.fetchGroups(entity.id);
+                this.props.fetchGroups({ contentItemId: entity.id });
               }
-              this.props.selectItem(entity.id);
+              this.props.selectItem({ id: entity.id });
             }}
             suspended={entity.isSuspended}
             status={entity.status}
@@ -259,7 +209,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter content items...'}
-            setFilterText={this.props.setFilterTextItem}
+            setFilterText={(text) => this.props.setFilterTextItem({ text })}
             filterText={filters.item.text}
           />
           <PanelSectionToolbarButtons>
@@ -293,7 +243,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         <ActionIcon
           label="Expand all"
           icon="expand-cards"
-          action={this.props.setAllExpandedGroup}
+          action={() => this.props.setAllExpandedGroup({})}
         />
       );
     const collapseAllIcon = allCollapsed
@@ -302,14 +252,14 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         <ActionIcon
           label="Collapse all"
           icon="collapse-cards"
-          action={this.props.setAllCollapsedGroup}
+          action={() => this.props.setAllCollapsedGroup({})}
         />
       );
     const addGroupIcon = (
       <ActionIcon
         label="Add group"
         icon="add"
-        action={this.props.openAddGroupModal}
+        action={() => this.props.openAddGroupModal({})}
       />
     );
 
@@ -325,13 +275,17 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                 <CardButton
                   color={'green'}
                   tooltip={'Save changes'}
-                  onClick={() => this.props.updateGroup(entity.id, entity.name, entity.assignedUsers.map((u) => u.id))}
+                  onClick={() => this.props.updateGroup({
+                    groupId: entity.id,
+                    name: entity.name,
+                    users: entity.assignedUsers.map((u) => u.id),
+                  })}
                   icon={'checkmark'}
                 />
                 <CardButton
                   color={'red'}
                   tooltip={'Cancel'}
-                  onClick={() => this.props.setGroupEditingOff(entity.id)}
+                  onClick={() => this.props.setGroupEditingOff({ id: entity.id })}
                   icon={'cancel'}
                 />
               </>
@@ -344,7 +298,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                     <CardButton
                       color={'red'}
                       tooltip={'Delete selection group'}
-                      onClick={() => this.props.openDeleteGroupModal(entity.id)}
+                      onClick={() => this.props.openDeleteGroupModal({ id: entity.id })}
                       icon={'delete'}
                     />
                   )
@@ -354,7 +308,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                     <CardButton
                       color={'blue'}
                       tooltip={'Edit selection group'}
-                      onClick={() => this.props.setGroupEditingOn(entity.id)}
+                      onClick={() => this.props.setGroupEditingOn({ id: entity.id })}
                       icon={'edit'}
                     />
                   )
@@ -368,8 +322,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                 label={'Assigned Users'}
                 expanded={card && card.expanded}
                 setExpanded={(value) => value
-                  ? this.props.setExpandedGroup(entity.id)
-                  : this.props.setCollapsedGroup(entity.id)}
+                  ? this.props.setExpandedGroup({ id: entity.id })
+                  : this.props.setCollapsedGroup({ id: entity.id})}
               >
                 <ul className="detail-item-user-list">
                   {entity.assignedUsers.map((u) => (
@@ -381,7 +335,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                             ? <CardButton
                               icon="remove-circle"
                               color="red"
-                              onClick={() => this.props.setPendingGroupUserRemoved(u.id)}
+                              onClick={() => this.props.setPendingGroupUserRemoved({ id: u.id })}
                             />
                             : <svg
                               className="action-icon"
@@ -456,10 +410,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                             onChange={(value, action) => {
                               if (action.action === 'select-option') {
                                 const singleValue = value as { value: string; };
-                                this.props.setPendingGroupUserAssigned(singleValue.value);
+                                this.props.setPendingGroupUserAssigned({ id: singleValue.value });
                               }
                             }}
-                            onInputChange={(newValue) => this.props.setPendingGroupUserQuery(newValue)}
+                            onInputChange={(query) => this.props.setPendingGroupUserQuery({ query })}
                             inputValue={entity.userQuery}
                             controlShouldRenderValue={false}
                             placeholder="Select users..."
@@ -479,9 +433,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               selected={selected.group === entity.id}
               onSelect={() => {
                 if (selected.group !== entity.id) {
-                  this.props.fetchSelections(entity.id);
+                  this.props.fetchSelections({ groupId: entity.id });
                 }
-                this.props.selectGroup(entity.id);
+                this.props.selectGroup({ id: entity.id });
               }}
               suspended={entity.isSuspended}
               inactive={entity.isInactive}
@@ -493,7 +447,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                   textSuffix={entity.isSuspended ? '[Suspended]' : entity.isInactive ? '[Inactive]' : ''}
                   subtext={item.name}
                   editing={entity.editing}
-                  setText={(text) => this.props.setPendingGroupName(text)}
+                  setText={(name) => this.props.setPendingGroupName({ name })}
                 />
                 <CardSectionStats>
                   <CardStat
@@ -529,7 +483,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter selection groups...'}
-            setFilterText={this.props.setFilterTextGroup}
+            setFilterText={(text) => this.props.setFilterTextGroup({ text })}
             filterText={filters.group.text}
           />
           <PanelSectionToolbarButtons>
@@ -552,14 +506,19 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
               if (!this.props.pending.data.createGroup) {
-                this.props.createGroup(this.props.selectedItem.id, this.props.pending.newGroupName);
+                this.props.createGroup({
+                  contentItemId: this.props.selectedItem.id,
+                  name: this.props.pending.newGroupName,
+                });
               }
             }}
           >
             <input
               type="text"
               placeholder="Selection group name"
-              onChange={(event) => this.props.setPendingNewGroupName(event.target.value)}
+              onChange={(event) => this.props.setPendingNewGroupName({
+                name: event.target.value,
+              })}
               autoFocus={true}
             />
             <div className="button-container">
@@ -594,7 +553,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               className="red-button"
               onClick={() => {
                 if (!this.props.pending.data.deleteGroup) {
-                  this.props.deleteGroup(this.props.groupToDelete.id);
+                  this.props.deleteGroup({ groupId: this.props.groupToDelete.id });
                 }
               }}
             >
@@ -633,26 +592,30 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         selected: selectedValues.indexOf(v.id) !== -1,
         modified: modifiedValues.indexOf(v.id) !== -1,
         onChange: (selected: boolean) => selected
-          ? this.props.setPendingSelectionOn(v.id)
-          : this.props.setPendingSelectionOff(v.id),
+          ? this.props.setPendingSelectionOn({ id: v.id })
+          : this.props.setPendingSelectionOff({ id: v.id }),
       })),
     }));
     return activeClient && activeItem && activeGroup && (
       <SelectionsPanel
         isSuspended={group.isSuspended}
-        onIsSuspendedChange={(value) => this.props.suspendGroup(group.id, value)}
+        onIsSuspendedChange={(value) => this.props.suspendGroup({ groupId: group.id, isSuspended: value })}
         doesReduce={item.doesReduce}
         isModified={formModified}
         isMaster={selectedMaster}
-        onIsMasterChange={this.props.setPendingIsMaster}
+        onIsMasterChange={(isMaster) => this.props.setPendingIsMaster({ isMaster })}
         title={group.name}
         subtitle={item.name}
         status={group.status.taskStatus || ReductionStatus.Unspecified}
         onBeginReduction={() => selectedValues.length || selectedMaster
-          ? this.props.updateSelections(group.id, selectedMaster, selectedValues)
-          : this.props.openInvalidateModal()
+          ? this.props.updateSelections({
+            groupId: group.id,
+            isMaster: selectedMaster,
+            selections: selectedValues,
+          })
+          : this.props.openInvalidateModal({})
         }
-        onCancelReduction={() => this.props.cancelReduction(group.id)}
+        onCancelReduction={() => this.props.cancelReduction({ groupId: group.id })}
         loading={pending.data.selections}
         submitting={pending.data.updateSelections || pending.data.cancelReduction}
         fieldsets={fieldsets}
@@ -660,7 +623,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter fields and values...'}
-            setFilterText={this.props.setFilterTextSelections}
+            setFilterText={(text) => this.props.setFilterTextSelections({ text })}
             filterText={filters.selections.text}
           />
         </PanelSectionToolbar>
@@ -686,7 +649,11 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
               className="orange-button"
               onClick={() => {
                 if (!this.props.pending.data.updateSelections) {
-                  this.props.updateSelections(group.id, selectedMaster, selectedValues);
+                  this.props.updateSelections({
+                    groupId: group.id,
+                    isMaster: selectedMaster,
+                    selections: selectedValues,
+                  });
                 }
               }}
             >
@@ -737,5 +704,5 @@ function mapStateToProps(state: AccessState): ContentAccessAdminProps {
 
 export const ConnectedContentAccessAdmin = connect(
   mapStateToProps,
-  actions,
+  AccessActionCreators,
 )(ContentAccessAdmin);

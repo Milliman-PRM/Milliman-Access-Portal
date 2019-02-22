@@ -1,77 +1,60 @@
-import { getData, getJsonData, postJsonData } from '../../../shared';
-import { Guid } from '../../models';
+import { getJsonData, postJsonData } from '../../../shared';
+import { RequestAction, ResponseAction } from './actions';
+import * as AccessActions from './actions';
 
-export async function fetchClients() {
-  return await getJsonData('/ContentAccessAdmin/Clients');
-}
+// Couple request action, response action, and request method and URL
+const createJsonRequestor =
+  <TRequestAction extends RequestAction, TResponseAction extends ResponseAction>
+  (method: 'GET' | 'POST', url: string) =>
+  async (requestModel: TRequestAction['request']) =>
+    method === 'GET'
+      ? await getJsonData<TResponseAction['response']>(url, requestModel)
+      : await postJsonData<TResponseAction['response']>(url, requestModel);
 
-export async function fetchItems(clientId: Guid) {
-  return await getJsonData('/ContentAccessAdmin/ContentItems', {
-    clientId,
-  });
-}
+export const fetchClients =
+  createJsonRequestor<AccessActions.FetchClients, AccessActions.FetchClientsSucceeded>
+  ('GET', '/ContentAccessAdmin/Clients');
 
-export async function fetchGroups(contentItemId: Guid) {
-  return await getJsonData('/ContentAccessAdmin/SelectionGroups', {
-    contentItemId,
-  });
-}
+export const fetchItems =
+  createJsonRequestor<AccessActions.FetchItems, AccessActions.FetchItemsSucceeded>
+  ('GET', '/ContentAccessAdmin/ContentItems');
 
-export async function fetchSelections(groupId: Guid) {
-  return await getJsonData('/ContentAccessAdmin/Selections', {
-    groupId,
-  });
-}
+export const fetchGroups =
+  createJsonRequestor<AccessActions.FetchGroups, AccessActions.FetchGroupsSucceeded>
+  ('GET', '/ContentAccessAdmin/SelectionGroups');
 
-export async function fetchStatusRefresh(clientId: Guid, contentItemId: Guid) {
-  return await getJsonData('/ContentAccessAdmin/Status', {
-    clientId,
-    contentItemId,
-  });
-}
+export const fetchSelections =
+  createJsonRequestor<AccessActions.FetchSelections, AccessActions.FetchSelectionsSucceeded>
+  ('GET', '/ContentAccessAdmin/Selections');
 
-export async function fetchSessionCheck() {
-  return await getData('/Account/SessionStatus');
-}
+export const fetchStatusRefresh =
+  createJsonRequestor<AccessActions.FetchStatusRefresh, AccessActions.FetchStatusRefreshSucceeded>
+  ('GET', '/ContentAccessAdmin/Status');
 
-export async function createGroup(contentItemId: Guid, name: string) {
-  return await postJsonData('/ContentAccessAdmin/CreateGroup', {
-    contentItemId,
-    name,
-  });
-}
+export const fetchSessionCheck =
+  createJsonRequestor<AccessActions.FetchSessionCheck, AccessActions.FetchSessionCheckSucceeded>
+  ('GET', '/Account/SessionStatus');
 
-export async function updateGroup(groupId: Guid, name: string, users: Guid[]) {
-  return await postJsonData('/ContentAccessAdmin/UpdateGroup', {
-    groupId,
-    name,
-    users,
-  });
-}
+export const createGroup =
+  createJsonRequestor<AccessActions.CreateGroup, AccessActions.CreateGroupSucceeded>
+  ('POST', '/ContentAccessAdmin/CreateGroup');
 
-export async function deleteGroup(groupId: Guid) {
-  return await postJsonData('/ContentAccessAdmin/DeleteGroup', {
-    groupId,
-  });
-}
+export const updateGroup =
+  createJsonRequestor<AccessActions.UpdateGroup, AccessActions.UpdateGroupSucceeded>
+  ('POST', '/ContentAccessAdmin/UpdateGroup');
 
-export async function suspendGroup(groupId: Guid, isSuspended: boolean) {
-  return await postJsonData('/ContentAccessAdmin/SuspendGroup', {
-    groupId,
-    isSuspended,
-  });
-}
+export const deleteGroup =
+  createJsonRequestor<AccessActions.DeleteGroup, AccessActions.DeleteGroupSucceeded>
+  ('POST', '/ContentAccessAdmin/DeleteGroup');
 
-export async function updateSelections(groupId: Guid, isMaster: boolean, selections: Guid[]) {
-  return await postJsonData('/ContentAccessAdmin/UpdateSelections', {
-    groupId,
-    isMaster,
-    selections,
-  });
-}
+export const suspendGroup =
+  createJsonRequestor<AccessActions.SuspendGroup, AccessActions.SuspendGroupSucceeded>
+  ('POST', '/ContentAccessAdmin/SuspendGroup');
 
-export async function cancelReduction(groupId: Guid) {
-  return await postJsonData('/ContentAccessAdmin/CancelReduction', {
-    groupId,
-  });
-}
+export const updateSelections =
+  createJsonRequestor<AccessActions.UpdateSelections, AccessActions.UpdateSelectionsSucceeded>
+  ('POST', '/ContentAccessAdmin/UpdateSelections');
+
+export const cancelReduction =
+  createJsonRequestor<AccessActions.CancelReduction, AccessActions.CancelReductionSucceeded>
+  ('POST', '/ContentAccessAdmin/CancelReduction');

@@ -4,7 +4,8 @@ import { combineReducers } from 'redux';
 
 import { Guid } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
-import { AccessAction, DataSuffixes } from './actions';
+import * as AccessActions from './actions';
+import { AccessAction, CloseAction, FilterAction, OpenAction } from './actions';
 import {
     AccessStateData, AccessStateSelected, FilterState, ModalState, PendingDataState,
     PendingGroupState, PendingGroupUserState,
@@ -44,24 +45,23 @@ const _initialPendingGroups: PendingGroupState = {
 };
 
 // utility functions
-interface Handlers<TState, TAction> {
-  [type: string]: (state: TState, action: TAction) => TState;
-}
-function createReducer<TState>(initialState: TState, handlers: Handlers<TState, any>) {
-  return (state: TState = initialState, action: any) => {
-    return action.type in handlers
+type Handlers<TState, TAction extends AccessAction> = {
+  [type in TAction['type']]?: (state: TState, action: TAction) => TState;
+};
+const createReducer =
+  <TState, TAction extends AccessAction = AccessAction>
+  (initialState: TState, handlers: Handlers<TState, TAction>) =>
+    (state: TState = initialState, action: TAction) => action.type in handlers
       ? handlers[action.type](state, action)
       : state;
-  };
-}
-const createFilterReducer = (actionType: AccessAction) =>
-  createReducer<FilterState>({ text: '' }, {
-    [actionType]: (state, action) => ({
+const createFilterReducer = (actionType: FilterAction['type']) =>
+  createReducer({ text: '' }, {
+    [actionType]: (state: FilterState, action: FilterAction) => ({
       ...state,
       text: action.text,
     }),
   });
-const createModalReducer = (openActions: string[], closeActions: string[]) => {
+const createModalReducer = (openActions: Array<OpenAction['type']>, closeActions: Array<AccessAction['type']>) => {
   const handlers: Handlers<ModalState, any> = {};
   openActions.forEach((action) => {
     handlers[action] = (state) => ({
@@ -99,17 +99,17 @@ function updateAllMap<T extends object>(map: Map<Guid, T>, value: Partial<T>) {
 
 const groupCardAttributes = createReducer<Map<Guid, CardAttributes>>(_initialCards,
   {
-    [AccessAction.SetExpandedGroup]: (state, action) =>
+    SET_EXPANDED_GROUP: (state, action: AccessActions.SetExpandedGroup) =>
       updateMap(state, action.id, { expanded: true }),
-    [AccessAction.SetCollapsedGroup]: (state, action) =>
+    SET_COLLAPSED_GROUP: (state, action: AccessActions.SetCollapsedGroup) =>
       updateMap(state, action.id, { expanded: false }),
-    [AccessAction.SetAllExpandedGroup]: (state) =>
+    SET_ALL_EXPANDED_GROUP: (state) =>
       updateAllMap(state, { expanded: true }),
-    [AccessAction.SetAllCollapsedGroup]: (state) =>
+    SET_ALL_COLLAPSED_GROUP: (state) =>
       updateAllMap(state, { expanded: false }),
-    [AccessAction.FetchGroups + DataSuffixes.Succeeded]: (state, action) => {
+    FETCH_GROUPS_SUCCEEDED: (state, action: AccessActions.FetchGroupsSucceeded) => {
       const clone = new Map(state);
-      Object.keys(action.payload.groups).forEach((group) => {
+      Object.keys(action.response.groups).forEach((group) => {
         if (!clone.has(group)) {
           clone.set(group, {});
         }
@@ -119,172 +119,172 @@ const groupCardAttributes = createReducer<Map<Guid, CardAttributes>>(_initialCar
   },
 );
 const pendingData = createReducer<PendingDataState>(_initialPendingData, {
-  [AccessAction.FetchClients]: (state) => ({
+  FETCH_CLIENTS: (state) => ({
     ...state,
     clients: true,
   }),
-  [AccessAction.FetchClients + DataSuffixes.Succeeded]: (state) => ({
+  FETCH_CLIENTS_SUCCEEDED: (state) => ({
     ...state,
     clients: false,
   }),
-  [AccessAction.FetchClients + DataSuffixes.Failed]: (state) => ({
+  FETCH_CLIENTS_FAILED: (state) => ({
     ...state,
     clients: false,
   }),
-  [AccessAction.FetchItems]: (state) => ({
+  FETCH_ITEMS: (state) => ({
     ...state,
     items: true,
   }),
-  [AccessAction.FetchItems + DataSuffixes.Succeeded]: (state) => ({
+  FETCH_ITEMS_SUCCEEDED: (state) => ({
     ...state,
     items: false,
   }),
-  [AccessAction.FetchItems + DataSuffixes.Failed]: (state) => ({
+  FETCH_ITEMS_FAILED: (state) => ({
     ...state,
     items: false,
   }),
-  [AccessAction.FetchGroups]: (state) => ({
+  FETCH_GROUPS: (state) => ({
     ...state,
     groups: true,
   }),
-  [AccessAction.FetchGroups + DataSuffixes.Succeeded]: (state) => ({
+  FETCH_GROUPS_SUCCEEDED: (state) => ({
     ...state,
     groups: false,
   }),
-  [AccessAction.FetchGroups + DataSuffixes.Failed]: (state) => ({
+  FETCH_GROUPS_FAILED: (state) => ({
     ...state,
     groups: false,
   }),
-  [AccessAction.FetchSelections]: (state) => ({
+  FETCH_SELECTIONS: (state) => ({
     ...state,
     selections: true,
   }),
-  [AccessAction.FetchSelections + DataSuffixes.Succeeded]: (state) => ({
+  FETCH_SELECTIONS_SUCCEEDED: (state) => ({
     ...state,
     selections: false,
   }),
-  [AccessAction.FetchSelections + DataSuffixes.Failed]: (state) => ({
+  FETCH_SELECTIONS_FAILED: (state) => ({
     ...state,
     selections: false,
   }),
-  [AccessAction.CreateGroup]: (state) => ({
+  CREATE_GROUP: (state) => ({
     ...state,
     createGroup: true,
   }),
-  [AccessAction.CreateGroup + DataSuffixes.Succeeded]: (state) => ({
+  CREATE_GROUP_SUCCEEDED: (state) => ({
     ...state,
     createGroup: false,
   }),
-  [AccessAction.CreateGroup + DataSuffixes.Failed]: (state) => ({
+  CREATE_GROUP_FAILED: (state) => ({
     ...state,
     createGroup: false,
   }),
-  [AccessAction.DeleteGroup]: (state) => ({
+  DELETE_GROUP: (state) => ({
     ...state,
     deleteGroup: true,
   }),
-  [AccessAction.DeleteGroup + DataSuffixes.Succeeded]: (state) => ({
+  DELETE_GROUP_SUCCEEDED: (state) => ({
     ...state,
     deleteGroup: false,
   }),
-  [AccessAction.DeleteGroup + DataSuffixes.Failed]: (state) => ({
+  DELETE_GROUP_FAILED: (state) => ({
     ...state,
     deleteGroup: false,
   }),
-  [AccessAction.SuspendGroup]: (state) => ({
+  SUSPEND_GROUP: (state) => ({
     ...state,
     suspendGroup: true,
   }),
-  [AccessAction.SuspendGroup + DataSuffixes.Succeeded]: (state) => ({
+  SUSPEND_GROUP_SUCCEEDED: (state) => ({
     ...state,
     suspendGroup: false,
   }),
-  [AccessAction.SuspendGroup + DataSuffixes.Failed]: (state) => ({
+  SUSPEND_GROUP_FAILED: (state) => ({
     ...state,
     suspendGroup: false,
   }),
-  [AccessAction.UpdateSelections]: (state) => ({
+  UPDATE_SELECTIONS: (state) => ({
     ...state,
     updateSelections: true,
   }),
-  [AccessAction.UpdateSelections + DataSuffixes.Succeeded]: (state) => ({
+  UPDATE_SELECTIONS_SUCCEEDED: (state) => ({
     ...state,
     updateSelections: false,
   }),
-  [AccessAction.UpdateSelections + DataSuffixes.Failed]: (state) => ({
+  UPDATE_SELECTIONS_FAILED: (state) => ({
     ...state,
     updateSelections: false,
   }),
-  [AccessAction.CancelReduction]: (state) => ({
+  CANCEL_REDUCTION: (state) => ({
     ...state,
     cancelReduction: true,
   }),
-  [AccessAction.CancelReduction + DataSuffixes.Succeeded]: (state) => ({
+  CANCEL_REDUCTION_SUCCEEDED: (state) => ({
     ...state,
     cancelReduction: false,
   }),
-  [AccessAction.CancelReduction + DataSuffixes.Failed]: (state) => ({
+  CANCEL_REDUCTION_FAILED: (state) => ({
     ...state,
     cancelReduction: false,
   }),
 });
 const pendingIsMaster = createReducer<boolean>(null, {
-  [AccessAction.SetPendingIsMaster]: (_state, action) => action.isMaster,
-  [AccessAction.SelectGroup]: () => null,
-  [AccessAction.UpdateSelections + DataSuffixes.Succeeded]: () => null,
-  [AccessAction.CancelReduction + DataSuffixes.Succeeded]: () => null,
+  SET_PENDING_IS_MASTER: (_state, action: AccessActions.SetPendingIsMaster) => action.isMaster,
+  SELECT_GROUP: () => null,
+  UPDATE_SELECTIONS_SUCCEEDED: () => null,
+  CANCEL_REDUCTION_SUCCEEDED: () => null,
 });
 const pendingSelections = createReducer<Map<Guid, { selected: boolean }>>(new Map(), {
-  [AccessAction.SetPendingSelectionOn]: (state, action) =>
+  SET_PENDING_SELECTION_ON: (state, action: AccessActions.SetPendingSelectionOn) =>
     updateMap(state, action.id, { selected: true }),
-  [AccessAction.SetPendingSelectionOff]: (state, action) =>
+  SET_PENDING_SELECTION_OFF: (state, action: AccessActions.SetPendingSelectionOff) =>
     updateMap(state, action.id, { selected: false }),
-  [AccessAction.SelectGroup]: () => new Map(),
-  [AccessAction.UpdateSelections + DataSuffixes.Succeeded]: () => new Map(),
-  [AccessAction.CancelReduction + DataSuffixes.Succeeded]: () => new Map(),
+  SELECT_GROUP: () => new Map(),
+  UPDATE_SELECTIONS_SUCCEEDED: () => new Map(),
+  CANCEL_REDUCTION_SUCCEEDED: () => new Map(),
 });
 const pendingNewGroupName = createReducer<string>('', {
-  [AccessAction.SetPendingNewGroupName]: (_state, action) => action.name,
+  SET_PENDING_NEW_GROUP_NAME: (_state, action: AccessActions.SetPendingNewGroupName) => action.name,
 });
 const pendingGroups = createReducer<PendingGroupState>(_initialPendingGroups, {
-  [AccessAction.SetGroupEditingOn]: (state, action) => ({
+  SET_GROUP_EDITING_ON: (state, action: AccessActions.SetGroupEditingOn) => ({
     ...state,
     id: action.id,
   }),
-  [AccessAction.UpdateGroup + DataSuffixes.Succeeded]: () => _initialPendingGroups,
-  [AccessAction.SetGroupEditingOff]: () => _initialPendingGroups,
-  [AccessAction.SetPendingGroupName]: (state, action) => ({
+  UPDATE_GROUP_SUCCEEDED: () => _initialPendingGroups,
+  SET_GROUP_EDITING_OFF: () => _initialPendingGroups,
+  SET_PENDING_GROUP_NAME: (state, action: AccessActions.SetPendingGroupName) => ({
     ...state,
     name: action.name,
   }),
-  [AccessAction.SetPendingGroupUserQuery]: (state, action) => ({
+  SET_PENDING_GROUP_USER_QUERY: (state, action: AccessActions.SetPendingGroupUserQuery) => ({
     ...state,
     userQuery: action.query,
   }),
-  [AccessAction.SetPendingGroupUserAssigned]: (state, action) => ({
+  SET_PENDING_GROUP_USER_ASSIGNED: (state, action: AccessActions.SetPendingGroupUserAssigned) => ({
     ...state,
     users: updateMap(state.users, action.id, { assigned: true }),
     userQuery: '',
   }),
-  [AccessAction.SetPendingGroupUserRemoved]: (state, action) => ({
+  SET_PENDING_GROUP_USER_REMOVED: (state, action: AccessActions.SetPendingGroupUserRemoved) => ({
     ...state,
     users: updateMap(state.users, action.id, { assigned: false }),
   }),
 });
 const pendingDeleteGroup = createReducer<Guid>(null, {
-  [AccessAction.OpenDeleteGroupModal]: (_state, action) => action.id,
-  [AccessAction.CloseDeleteGroupModal]: () => null,
-  [AccessAction.DeleteGroup + DataSuffixes.Succeeded]: () => null,
+  OPEN_DELETE_GROUP_MODAL: (_state, action: AccessActions.OpenDeleteGroupModal) => action.id,
+  CLOSE_DELETE_GROUP_MODAL: () => null,
+  DELETE_GROUP_SUCCEEDED: () => null,
 });
 
 const data = createReducer<AccessStateData>(_initialData, {
-  [AccessAction.FetchClients + DataSuffixes.Succeeded]: (state, action) => ({
+  FETCH_CLIENTS_SUCCEEDED: (state, action: AccessActions.FetchClientsSucceeded) => ({
     ...state,
-    clients: action.payload.clients,
-    users: action.payload.users,
+    clients: action.response.clients,
+    users: action.response.users,
   }),
-  [AccessAction.FetchItems + DataSuffixes.Succeeded]: (state, action) => {
-    const { contentItems, contentTypes, publications, publicationQueue, clientStats } = action.payload;
+  FETCH_ITEMS_SUCCEEDED: (state, action: AccessActions.FetchItemsSucceeded) => {
+    const { contentItems, contentTypes, publications, publicationQueue, clientStats } = action.response;
     return {
       ...state,
       items: contentItems,
@@ -300,8 +300,8 @@ const data = createReducer<AccessStateData>(_initialData, {
       },
     };
   },
-  [AccessAction.FetchGroups + DataSuffixes.Succeeded]: (state, action) => {
-    const { groups, reductions, reductionQueue, contentItemStats, clientStats } = action.payload;
+  FETCH_GROUPS_SUCCEEDED: (state, action: AccessActions.FetchGroupsSucceeded) => {
+    const { groups, reductions, reductionQueue, contentItemStats, clientStats } = action.response;
     return {
       ...state,
       groups,
@@ -323,8 +323,8 @@ const data = createReducer<AccessStateData>(_initialData, {
       },
     };
   },
-  [AccessAction.FetchSelections + DataSuffixes.Succeeded]: (state, action) => {
-    const { id, liveSelections, reductionSelections, fields, values } = action.payload;
+  FETCH_SELECTIONS_SUCCEEDED: (state, action: AccessActions.FetchSelectionsSucceeded) => {
+    const { id, liveSelections, reductionSelections, fields, values } = action.response;
     const reduction = _.find(state.reductions, (r) => r.selectionGroupId === id);
     const reductions = reduction
       ? {
@@ -349,8 +349,8 @@ const data = createReducer<AccessStateData>(_initialData, {
       values,
     };
   },
-  [AccessAction.FetchStatusRefresh + DataSuffixes.Succeeded]: (state, action) => {
-    const { liveSelectionsSet } = action.payload;
+  FETCH_STATUS_REFRESH_SUCCEEDED: (state, action: AccessActions.FetchStatusRefreshSucceeded) => {
+    const { liveSelectionsSet } = action.response;
     const groups = { ...state.groups };
     const items = { ...state.items };
     _.forEach(liveSelectionsSet, (liveSelections, groupId) => {
@@ -359,18 +359,18 @@ const data = createReducer<AccessStateData>(_initialData, {
       }
     });
     _.forEach(groups, (group, groupId) => {
-      if (action.payload.groups[groupId]) {
+      if (action.response.groups[groupId]) {
         groups[groupId] = {
             ...group,
-            ...action.payload.groups[groupId],
+            ...action.response.groups[groupId],
         };
       }
     });
     _.forEach(items, (item, itemId) => {
-      if (action.payload.groups[itemId]) {
-        groups[itemId] = {
-            ...item,
-            ...action.payload.groups[itemId],
+      if (action.response.contentItems[itemId]) {
+        items[itemId] = {
+          ...item,
+          ...action.response.contentItems[itemId],
         };
       }
     });
@@ -379,14 +379,14 @@ const data = createReducer<AccessStateData>(_initialData, {
       ...state,
       groups,
       items,
-      publications: action.payload.publications,
-      publicationQueue: action.payload.publicationQueue,
-      reductions: action.payload.reductions,
-      reductionQueue: action.payload.reductionQueue,
+      publications: action.response.publications,
+      publicationQueue: action.response.publicationQueue,
+      reductions: action.response.reductions,
+      reductionQueue: action.response.reductionQueue,
     };
   },
-  [AccessAction.CreateGroup + DataSuffixes.Succeeded]: (state, action) => {
-    const { group, contentItemStats } = action.payload;
+  CREATE_GROUP_SUCCEEDED: (state, action: AccessActions.CreateGroupSucceeded) => {
+    const { group, contentItemStats } = action.response;
     return {
       ...state,
       groups: {
@@ -404,8 +404,8 @@ const data = createReducer<AccessStateData>(_initialData, {
       },
     };
   },
-  [AccessAction.UpdateGroup + DataSuffixes.Succeeded]: (state, action) => {
-    const { group, contentItemStats } = action.payload;
+  UPDATE_GROUP_SUCCEEDED: (state, action: AccessActions.UpdateGroupSucceeded) => {
+    const { group, contentItemStats } = action.response;
     return {
       ...state,
       groups: {
@@ -424,8 +424,8 @@ const data = createReducer<AccessStateData>(_initialData, {
       },
     };
   },
-  [AccessAction.DeleteGroup + DataSuffixes.Succeeded]: (state, action) => {
-    const { groupId, contentItemStats } = action.payload;
+  DELETE_GROUP_SUCCEEDED: (state, action: AccessActions.DeleteGroupSucceeded) => {
+    const { groupId, contentItemStats } = action.response;
     const groups = { ...state.groups };
     delete groups[groupId];
     return {
@@ -440,8 +440,8 @@ const data = createReducer<AccessStateData>(_initialData, {
       },
     };
   },
-  [AccessAction.SuspendGroup + DataSuffixes.Succeeded]: (state, action) => {
-    const group = action.payload;
+  SUSPEND_GROUP_SUCCEEDED: (state, action: AccessActions.SuspendGroupSucceeded) => {
+    const group = action.response;
     return {
       ...state,
       groups: {
@@ -453,8 +453,8 @@ const data = createReducer<AccessStateData>(_initialData, {
       },
     };
   },
-  [AccessAction.UpdateSelections + DataSuffixes.Succeeded]: (state, action) => {
-    const { group, reduction, reductionQueue: queue, liveSelections } = action.payload;
+  UPDATE_SELECTIONS_SUCCEEDED: (state, action: AccessActions.UpdateSelectionsSucceeded) => {
+    const { group, reduction, reductionQueue: queue, liveSelections } = action.response;
     const reductions = reduction
       ? {
         ...state.reductions,
@@ -487,8 +487,8 @@ const data = createReducer<AccessStateData>(_initialData, {
       reductionQueue,
     };
   },
-  [AccessAction.CancelReduction + DataSuffixes.Succeeded]: (state, action) => {
-    const { group, reduction, reductionQueue: queue } = action.payload;
+  CANCEL_REDUCTION_SUCCEEDED: (state, action: AccessActions.CancelReductionSucceeded) => {
+    const { group, reduction, reductionQueue: queue } = action.response;
     const reductions = reduction
       ? {
         ...state.reductions,
@@ -528,17 +528,17 @@ const selected = createReducer<AccessStateSelected>(
     group: null,
   },
   {
-    [AccessAction.SelectClient]: (state, action) => ({
+    SELECT_CLIENT: (state, action: AccessActions.SelectClient) => ({
       client: action.id === state.client ? null : action.id,
       item: null,
       group: null,
     }),
-    [AccessAction.SelectItem]: (state, action) => ({
+    SELECT_ITEM: (state, action: AccessActions.SelectItem) => ({
       ...state,
       item: action.id === state.item ? null : action.id,
       group: null,
     }),
-    [AccessAction.SelectGroup]: (state, action) => ({
+    SELECT_GROUP: (state, action: AccessActions.SelectGroup) => ({
       ...state,
       group: action.id === state.group ? null : action.id,
     }),
@@ -556,26 +556,26 @@ const pending = combineReducers({
   deleteGroup: pendingDeleteGroup,
 });
 const filters = combineReducers({
-  client: createFilterReducer(AccessAction.SetFilterTextClient),
-  item: createFilterReducer(AccessAction.SetFilterTextItem),
-  group: createFilterReducer(AccessAction.SetFilterTextGroup),
-  selections: createFilterReducer(AccessAction.SetFilterTextSelections),
+  client: createFilterReducer('SET_FILTER_TEXT_CLIENT'),
+  item: createFilterReducer('SET_FILTER_TEXT_ITEM'),
+  group: createFilterReducer('SET_FILTER_TEXT_GROUP'),
+  selections: createFilterReducer('SET_FILTER_TEXT_SELECTIONS'),
 });
 const modals = combineReducers({
-  addGroup: createModalReducer([ AccessAction.OpenAddGroupModal ], [
-    AccessAction.CloseAddGroupModal,
-    AccessAction.CreateGroup + DataSuffixes.Succeeded,
-    AccessAction.CreateGroup + DataSuffixes.Failed,
+  addGroup: createModalReducer([ 'OPEN_ADD_GROUP_MODAL' ], [
+    'CLOSE_ADD_GROUP_MODAL',
+    'CREATE_GROUP_SUCCEEDED',
+    'CREATE_GROUP_FAILED',
   ]),
-  deleteGroup: createModalReducer([ AccessAction.OpenDeleteGroupModal ], [
-    AccessAction.CloseDeleteGroupModal,
-    AccessAction.DeleteGroup + DataSuffixes.Succeeded,
-    AccessAction.DeleteGroup + DataSuffixes.Failed,
+  deleteGroup: createModalReducer([ 'OPEN_DELETE_GROUP_MODAL' ], [
+    'CLOSE_DELETE_GROUP_MODAL',
+    'DELETE_GROUP_SUCCEEDED',
+    'DELETE_GROUP_FAILED',
   ]),
-  invalidate: createModalReducer([ AccessAction.OpenInvalidateModal ], [
-    AccessAction.CloseInvalidateModal,
-    AccessAction.UpdateSelections + DataSuffixes.Succeeded,
-    AccessAction.UpdateSelections + DataSuffixes.Failed,
+  invalidate: createModalReducer([ 'OPEN_INVALIDATE_MODAL' ], [
+    'CLOSE_INVALIDATE_MODAL',
+    'UPDATE_SELECTIONS_SUCCEEDED',
+    'UPDATE_SELECTIONS_FAILED',
   ]),
 });
 
