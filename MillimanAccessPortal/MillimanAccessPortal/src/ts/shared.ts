@@ -6,19 +6,19 @@ import * as toastr from 'toastr';
 
 import { DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
 import { FormBase } from './form/form-base';
-import { ReductionStatus, SelectionGroupSummary, ReductionSummary } from './view-models/content-access-admin';
-import { PublicationStatus, UserInfo, PublicationSummary } from './view-models/content-publishing';
+import { ReductionSummary, SelectionGroupSummary } from './view-models/content-access-admin';
+import { PublicationStatus, PublicationSummary, UserInfo } from './view-models/content-publishing';
 
 const SHOW_DURATION = 50;
-const ajaxStatus = [];
+const ajaxStatus: any = [];
 
 // Functions with associated event listeners
 
 // Filtering
-export function filterTree($panel, $this) {
+export function filterTree($panel: any, $this: any) {
   const $content = $panel.find('ul.admin-panel-content');
   $content.children('.hr').hide();
-  $content.find('[data-filter-string]').each((_, element) => {
+  $content.find('[data-filter-string]').each((_: any, element: any) => {
     const $element = $(element);
     if ($element.data('filter-string').indexOf($this.val().toUpperCase()) > -1) {
       $element.show();
@@ -29,12 +29,12 @@ export function filterTree($panel, $this) {
     }
   });
 }
-export function filterTreeListener(event) {
+export function filterTreeListener(event: any) {
   buildListener.call(this, filterTree).bind(this)(event);
 }
-export function filterForm($panel, $this) {
+export function filterForm($panel: any, $this: any) {
   const $content = $panel.find('form.admin-panel-content');
-  $content.find('[data-selection-value]').each((_, element) => {
+  $content.find('[data-selection-value]').each((_: any, element: any) => {
     const $element = $(element);
     if ($element.data('selection-value').indexOf($this.val().toUpperCase()) > -1) {
       $element.show();
@@ -43,7 +43,7 @@ export function filterForm($panel, $this) {
     }
   });
 }
-export function filterFormListener(event) {
+export function filterFormListener(event: any) {
   buildListener.call(this, filterForm).bind(this)(event);
 }
 
@@ -63,11 +63,11 @@ export function setExpanded($panel: JQuery<HTMLElement>, $this: JQuery<HTMLEleme
       .tooltipster('content', 'Collapse card');
   updateToolbarIcons($panel);
 }
-export function toggleExpanded($panel, $this) {
+export function toggleExpanded($panel: any, $this: any) {
   const $cardContainer = $this.closest('.card-container');
   $cardContainer
     .find('.card-expansion-container')
-    .attr('maximized', (_, attr) => {
+    .attr('maximized', (_: any, attr: any) => {
       const data = (attr === '')
         ? { text: 'Expand card', rv: null }
         : { text: 'Collapse card', rv: '' };
@@ -76,30 +76,30 @@ export function toggleExpanded($panel, $this) {
     });
   updateToolbarIcons($panel);
 }
-export function toggleExpandedListener(event) {
+export function toggleExpandedListener(event: any) {
   buildListener.call(this, toggleExpanded).bind(this)(event);
 }
-export function expandAll($panel) {
+export function expandAll($panel: any) {
   $panel.find('.card-expansion-container').attr('maximized', '');
   updateToolbarIcons($panel);
 }
-export function expandAllListener(event) {
+export function expandAllListener(event: any) {
   buildListener.call(this, expandAll).bind(this)(event);
 }
-export function collapseAll($panel) {
+export function collapseAll($panel: any) {
   $panel.find('.card-expansion-container[maximized]').removeAttr('maximized');
   updateToolbarIcons($panel);
 }
-export function collapseAllListener(event) {
+export function collapseAllListener(event: any) {
   buildListener.call(this, collapseAll).bind(this)(event);
 }
 
 // Form control
-export function resetValidation($panel) {
+export function resetValidation($panel: any) {
   $panel.find('form.admin-panel-content').validate().resetForm();
   $panel.find('.field-validation-error > span').remove();
 }
-export function clearForm($panel) {
+export function clearForm($panel: any) {
   $panel.find('.selectized').each(function() {
     this.selectize.clear();
     this.selectize.clearOptions();
@@ -111,8 +111,8 @@ export function clearForm($panel) {
   resetValidation($panel);
 }
 
-function buildListener(fn) {
-  return ((event) => {
+function buildListener(fn: any) {
+  return ((event: any) => {
     const $this = $(this);
     const $panel = $this.closest('.admin-panel-container');
     event.stopPropagation();
@@ -167,7 +167,7 @@ export function wrapCardIconCallback(
   sameCard?: ($card: JQuery<HTMLElement>) => boolean,
   always?: () => void,
 ) {
-  return function(event) {
+  return function(event: any) {
     event.stopPropagation();
 
     const $icon = $(this);
@@ -277,8 +277,8 @@ export function put<T>(url: string, successMessage: string, callbacks: Array<(re
   return set('PUT', url, successMessage, callbacks);
 }
 
-export function showButtonSpinner($buttons, text?) {
-  $buttons.each((i) => {
+export function showButtonSpinner($buttons: any, text?: any) {
+  $buttons.each((i: any) => {
     const $button = $buttons.eq(i);
     if ($buttons.find('.spinner-small').length) { return; }
     $button.data('originalText', $button.html());
@@ -287,8 +287,8 @@ export function showButtonSpinner($buttons, text?) {
   });
 }
 
-export function hideButtonSpinner($buttons) {
-  $buttons.each((i) => {
+export function hideButtonSpinner($buttons: any) {
+  $buttons.each((i: any) => {
     const $button = $buttons.eq(i);
     $button.html($button.data().originalText);
   });
@@ -346,9 +346,9 @@ export function updateMemberList(
   $memberCard.find('.card-stat-value').html(memberList.length.toString());
 }
 
-export function removeUserFromSelectionGroup(event, member: UserInfo, selectionGroup: SelectionGroupSummary) {
+export function removeUserFromSelectionGroup(event: any, member: UserInfo, selectionGroup: SelectionGroupSummary) {
   event.stopPropagation();
-  const assignment = {};
+  const assignment: any = {};
   assignment[member.Id] = false;
   const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.Id}"]`);
   put<SelectionGroupSummary>(
@@ -432,7 +432,7 @@ function msToTimeReferenceString(timeMs: number) {
   }
 }
 
-export function updateCardStatus($card, reductionDetails: ReductionSummary | PublicationSummary) {
+export function updateCardStatus($card: any, reductionDetails: ReductionSummary | PublicationSummary) {
   const $statusContainer = $card.find('.card-status-container');
   const $statusTop = $statusContainer.find('.status-top');
   const $statusBot = $statusContainer.find('.status-bot');
@@ -494,10 +494,10 @@ export function updateCardStatus($card, reductionDetails: ReductionSummary | Pub
   $statusTop.html(statusTop);
   $statusBot.html(statusBot);
   $statusContainer
-    .removeClass((_, classString) => {
+    .removeClass((_: any, classString: any) => {
       const classNames = classString.split(' ');
       return classNames
-        .filter((className) => {
+        .filter((className: any) => {
           return className.indexOf('status-') === 0;
         })
         .join(' ');
@@ -546,7 +546,7 @@ export function updateFormStatusButtons() {
 }
 
 // Dialog helpers
-export function confirmAndContinue(dialogConstructor, form?: FormBase, onContinue?) {
+export function confirmAndContinue(dialogConstructor: any, form?: FormBase, onContinue?: any) {
   if (form && form.modified) {
     new dialogConstructor(() => {
       // Assigning to access mode forces the form to reset
@@ -560,16 +560,16 @@ export function confirmAndContinue(dialogConstructor, form?: FormBase, onContinu
   }
 }
 
-export function confirmAndContinueForm(onContinue, condition = true) {
+export function confirmAndContinueForm(onContinue: any, condition = true) {
   if (condition) {
-    new ResetConfirmationDialog(onContinue).open();
+    new (ResetConfirmationDialog as any)(onContinue).open();
   } else {
     onContinue();
   }
 }
 
 // fetch helpers
-export function getData(url = '', data = {}) {
+export function getData(url = '', data: any = {}) {
   const queryParams: string[] = [];
   Object.keys(data).forEach((key) => {
     if (Object.prototype.hasOwnProperty.call(data, key)) {
@@ -590,7 +590,7 @@ export function getData(url = '', data = {}) {
   });
 }
 
-export function postData(url: string = '', data: object = {}, rawResponse: boolean = false) {
+export function postData(url: string = '', data: any = {}, rawResponse: boolean = false) {
   const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
   const formData = Object.keys(data).map((key) => {
     if (Object.prototype.hasOwnProperty.call(data, key)) {

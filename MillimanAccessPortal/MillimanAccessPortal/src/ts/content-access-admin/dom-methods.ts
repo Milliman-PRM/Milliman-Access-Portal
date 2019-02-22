@@ -36,7 +36,7 @@ function updateSelectionGroupCount() {
 }
 
 function selectionGroupAddClickHandler() {
-  new AddSelectionGroupDialog(post(
+  new (AddSelectionGroupDialog as any)(post(
     'ContentAccessAdmin/CreateSelectionGroup',
     'Selection group successfully created.',
     [
@@ -50,7 +50,7 @@ function selectionGroupAddClickHandler() {
 
 function selectionGroupDeleteClickHandler(event: Event) {
   event.stopPropagation();
-  new DeleteSelectionGroupDialog($(this).closest('.card-container'), del<SelectionGroupList>(
+  new (DeleteSelectionGroupDialog as any)($(this).closest('.card-container'), del<SelectionGroupList>(
     'ContentAccessAdmin/DeleteSelectionGroup',
     'Selection group successfully deleted.',
     [
@@ -246,7 +246,7 @@ function renderSelections(response: SelectionsDetail) {
 
 function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
   $('#root-content-items [selected]').parent().data('eligibleMembers', selectionGroup.MemberList);
-  const $card = new SelectionGroupCard(
+  const $card = new (SelectionGroupCard as any)(
     selectionGroup,
     wrapCardCallback(get(
       'ContentAccessAdmin/Selections',
@@ -311,7 +311,7 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
   updateCardStatus($card, selectionGroup.ReductionDetails);
   $('#selection-groups ul.admin-panel-content').append($card);
 }
-function renderSelectionGroupList(response: SelectionGroupList, selectionGroupId?) {
+function renderSelectionGroupList(response: SelectionGroupList, selectionGroupId?: string) {
   const $selectionGroupList = $('#selection-groups ul.admin-panel-content');
   $selectionGroupList.empty();
   response.SelectionGroups.forEach((selectionGroup) =>
@@ -330,7 +330,7 @@ function renderSelectionGroupList(response: SelectionGroupList, selectionGroupId
 }
 
 function renderRootContentItem(item: RootContentItemSummary) {
-  const rootContentItemCard = new RootContentItemCard(
+  const rootContentItemCard = new (RootContentItemCard as any)(
     item,
     wrapCardCallback(get(
       'ContentAccessAdmin/SelectionGroups',
@@ -360,7 +360,7 @@ function renderRootContentItemList(response: RootContentItemList, rootContentIte
 }
 
 function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
-  const $card = new ClientCard(
+  const $card = new (ClientCard as any)(
     client.Value,
     client.Value.EligibleUserCount,
     client.Value.RootContentItemCount,
@@ -410,13 +410,13 @@ export function setup() {
   $('.admin-panel-searchbar-form').keyup(filterFormListener);
 
   $('#selection-groups ul.admin-panel-content-action')
-    .append(new AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
+    .append(new (AddSelectionGroupActionCard as any)(selectionGroupAddClickHandler).build());
   $('#selection-info .blue-button').click(() => {
     const anySelected = $('#selection-info .selection-content input[type="checkbox"]')
       .toArray().map((element) => $(element).prop('checked'))
       .reduce((cum, cur) => cum || cur, false);
     if (!anySelected) {
-      new NoSelectionsDialog((_, callback) => {
+      new (NoSelectionsDialog as any)((_: any, callback: () => void) => {
         callback();
         submitSelectionForm();
       }).open();

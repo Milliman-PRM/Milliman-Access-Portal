@@ -171,7 +171,7 @@ if ($buildType -ne "Release")
     foreach ($diff in $diffOutput)
     {
     # If both of these are true, the line being examined is likely a change to the software that needs testing
-    if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike '.github/*' -and $diff -notlike 'UtilityScripts/*')
+    if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike 'User Stats/*' -and $diff -notlike '.github/*' -and $diff -notlike 'UtilityScripts/*')
     {
         log_statement "Code change found in $diff"
         $codeChangeFound = $true

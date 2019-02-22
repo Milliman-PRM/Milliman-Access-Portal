@@ -23,7 +23,7 @@ export class UpdateProfitCenterModal
 
   private url: string = 'SystemAdmin/UpdateProfitCenter';
 
-  public constructor(props) {
+  public constructor(props: UpdateProfitCenterModalProps) {
     super(props);
 
     this.state = {
