@@ -375,7 +375,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                   {entity.assignedUsers.map((u) => (
                     <li key={u.id}>
                       <span className="detail-item-user">
-                        <div style={{ marginRight: '0.5em' }}>
+                        <div className="detail-item-icon">
                         {
                           entity.editing
                             ? <CardButton
@@ -416,55 +416,54 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                   {
                     entity.editing
                       ? <li>
-                        <span className="detail-item-user">
-                          <div
-                            onClick={(event) => event.stopPropagation()}
-                            style={{ width: '100%' }}
-                          >
-                            <Select
-                              className="react-select"
-                              options={users.map((u) => ({
-                                value: u.id,
-                                firstLast: u.firstName && u.lastName && `${u.firstName} ${u.lastName}`,
-                                username: u.userName,
-                              }))}
-                              formatOptionLabel={(data) => (
-                                <>
-                                  {data.firstLast
-                                  ? (
-                                    <div style={{ fontSize: '1em', fontWeight: 'bold' }}>
-                                      {data.firstLast}
-                                    </div>
-                                  )
-                                  : (
-                                    <div style={{ fontSize: '1em' }}>
-                                      (Unactivated)
-                                    </div>
-                                  )}
-                                  <div style={{ fontSize: '0.85em' }}>
-                                    {data.username}
+                        <span
+                          className="detail-item-user"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          <Select
+                            className="react-select"
+                            classNamePrefix="react-select"
+                            options={users.map((u) => ({
+                              value: u.id,
+                              firstLast: u.firstName && u.lastName && `${u.firstName} ${u.lastName}`,
+                              username: u.userName,
+                            }))}
+                            formatOptionLabel={(data) => (
+                              <>
+                                {data.firstLast
+                                ? (
+                                  <div style={{ fontSize: '1em', fontWeight: 'bold' }}>
+                                    {data.firstLast}
                                   </div>
-                                </>
-                              )}
-                              filterOption={({ data }, rawInput) => (
-                                data.username.toLowerCase().match(rawInput.toLowerCase())
-                                || (
-                                  data.firstLast
-                                  && data.firstLast.toLowerCase().match(rawInput.toLowerCase())
                                 )
-                              )}
-                              onChange={(value, action) => {
-                                if (action.action === 'select-option') {
-                                  const singleValue = value as { value: string; };
-                                  this.props.setPendingGroupUserAssigned(singleValue.value);
-                                }
-                              }}
-                              onInputChange={(newValue) => this.props.setPendingGroupUserQuery(newValue)}
-                              inputValue={entity.userQuery}
-                              controlShouldRenderValue={false}
-                              autoFocus={true}
-                            />
-                          </div>
+                                : (
+                                  <div style={{ fontSize: '1em' }}>
+                                    (Unactivated)
+                                  </div>
+                                )}
+                                <div style={{ fontSize: '0.85em' }}>
+                                  {data.username}
+                                </div>
+                              </>
+                            )}
+                            filterOption={({ data }, rawInput) => (
+                              data.username.toLowerCase().match(rawInput.toLowerCase())
+                              || (
+                                data.firstLast
+                                && data.firstLast.toLowerCase().match(rawInput.toLowerCase())
+                              )
+                            )}
+                            onChange={(value, action) => {
+                              if (action.action === 'select-option') {
+                                const singleValue = value as { value: string; };
+                                this.props.setPendingGroupUserAssigned(singleValue.value);
+                              }
+                            }}
+                            onInputChange={(newValue) => this.props.setPendingGroupUserQuery(newValue)}
+                            inputValue={entity.userQuery}
+                            controlShouldRenderValue={false}
+                            autoFocus={true}
+                          />
                         </span>
                       </li>
                       : null

@@ -123,6 +123,10 @@
                 }
             }
 
+            .detail-item-icon .action-icon {
+                color: $white;
+            }
+            
             .react-select {
                 color: $black;
             }
@@ -464,31 +468,26 @@
                     align-items: center;
                     margin-bottom: .5em;
 
+                    .detail-item-icon,
                     .detail-item-user-icon {
                         display: flex;
                         flex-flow: column nowrap;
                         justify-content: center;
+                        margin: .5em;
 
-                        .card-user-icon {
-                            height: 3em;
-                            width: 3em;
+                        .card-button-background {
+                            margin: 0;
                         }
                     }
 
-                    .detail-item-user-remove {
+                    .card-button-background {
                         display: flex;
-                        flex-flow: column nowrap;
+                        align-items: center;
                         justify-content: center;
-
-                        .card-button-background {
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            width: 2em;
-                            height: 2em;
-                            margin: .5em;
-                            cursor: pointer;
-                        }
+                        width: 2em;
+                        height: 2em;
+                        margin: .5em;
+                        cursor: pointer;
                     }
 
                     .detail-item-user-name {
@@ -500,33 +499,23 @@
                             margin: 0;
                         }
                     }
-                }
-            }
 
-            .detail-item-user-create {
-                display: flex;
-                flex-flow: row nowrap;
-                justify-content: center;
-                white-space: nowrap;
-                margin-bottom: 1.25em;
+                    .react-select {
+                        width: 100%;
+                        margin-bottom: 1.5em;
 
-                .detail-item-user-add {
-                    flex: none;
+                        .react-select__indicators {
+                            cursor: pointer;
+                        }
 
-                    .card-button-background {
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        width: 2em;
-                        height: 2em;
-                        margin: .5em;
-                        cursor: pointer;
+                        .react-select__menu {
+                            margin: 1px 0 0;
+
+                            .react-select__option {
+                                cursor: pointer;
+                            }
+                        }
                     }
-                }
-
-                .detail-item-user-input {
-                    flex: 1 0 auto;
-                    padding: .5em;
                 }
             }
         }
