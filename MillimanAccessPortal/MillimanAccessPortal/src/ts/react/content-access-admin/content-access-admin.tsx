@@ -44,9 +44,7 @@ import {
 } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
 
-interface ClientEntity extends ClientWithEligibleUsers {
-  indent: 1 | 2;
-}
+type ClientEntity = (ClientWithEligibleUsers & { indent: 1 | 2 }) | 'divider';
 interface RootContentItemEntity extends RootContentItemWithPublication {
   contentTypeName: string;
 }
@@ -118,8 +116,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
       <CardPanel
         entities={clients}
         loading={pending.data.clients}
-        renderEntity={(entity, key) => entity
-          ? (
+        renderEntity={(entity, key) => entity === 'divider'
+          ? <div className="hr" key={key} />
+          : (
             <Card
               key={key}
               selected={selected.client === entity.id}
@@ -147,9 +146,6 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
                 </CardSectionStats>
               </CardSectionMain>
             </Card>
-          )
-          : (
-            <div className="hr" key={key} />
           )}
       >
         <h3 className="admin-panel-header">Clients</h3>

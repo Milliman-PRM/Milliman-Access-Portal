@@ -423,7 +423,7 @@ interface ClientWithIndent extends ClientWithEligibleUsers {
  * @param state Redux store
  */
 export function clientEntities(state: AccessState) {
-  const entities: ClientWithIndent[] = [];
+  const entities: Array<ClientWithIndent | 'divider'> = [];
   activeClients(state).forEach(({ parent, children }) => {
     entities.push({
       ...parent,
@@ -435,7 +435,7 @@ export function clientEntities(state: AccessState) {
         indent: 2,
       });
     });
-    entities.push(null);  // null represents a divider
+    entities.push('divider');
   });
   entities.pop();  // remove last divider
   return entities;
@@ -489,7 +489,8 @@ export function selectedClient(state: AccessState) {
  * @param state Redux store
  */
 export function activeSelectedClient(state: AccessState) {
-  return clientEntities(state).filter((c) => c && (c.id === state.selected.client))[0];
+  return clientEntities(state)
+    .filter((c) => c !== 'divider' && (c.id === state.selected.client))[0] as ClientWithIndent;
 }
 
 /**
