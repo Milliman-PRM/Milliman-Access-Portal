@@ -386,8 +386,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & Conte
                             : <svg
                               className="action-icon"
                               style={{
-                                width: 'calc(1.8em + 4px)',
-                                height: 'calc(1.8em + 4px)',
+                                width: '2em',
+                                height: '2em',
                               }}
                             >
                               <use xlinkHref={'#user'} />
