@@ -109,6 +109,9 @@ export interface SetPendingGroupUserRemoved {
   type: 'SET_PENDING_GROUP_USER_REMOVED';
   id: Guid;
 }
+export interface PromptGroupEditing {
+  type: 'PROMPT_GROUP_EDITING';
+}
 // ~~ Action export interfaces: fetches ~~
 export interface FetchClients {
   type: 'FETCH_CLIENTS';
@@ -364,7 +367,9 @@ export type PageAction = SelectClient
   | SetPendingGroupName
   | SetPendingGroupUserQuery
   | SetPendingGroupUserAssigned
-  | SetPendingGroupUserRemoved;
+  | SetPendingGroupUserRemoved
+  | PromptGroupEditing
+  ;
 export type ScheduleAction = ScheduleSessionCheck | ScheduleStatusRefresh;
 export type RequestAction = FetchClients
   | FetchItems

@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 import Select from 'react-select';
 
+import { setUnloadAlert } from '../../unload-alerts';
 import {
     isPublicationActive, isReductionActive, ReductionStatus,
 } from '../../view-models/content-publishing';
@@ -31,7 +32,6 @@ import { Filter } from '../shared-components/filter';
 import { Guid } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import * as AccessActionCreators from './redux/action-creators';
-import * as AccessActions from './redux/actions';
 import {
     activeReductionFieldsets, activeSelectedClient, activeSelectedGroup, activeSelectedItem,
     addableUsers, allGroupsCollapsed, allGroupsExpanded, clientEntities, groupEntities,
@@ -90,6 +90,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
     this.props.fetchClients({});
     this.props.scheduleStatusRefresh({ delay: 0 });
     this.props.scheduleSessionCheck({ delay: 0 });
+    setUnloadAlert(() => this.props.pending.group.id !== null);
   }
 
   public render() {
@@ -124,6 +125,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
               key={key}
               selected={selected.client === entity.id}
               onSelect={() => {
+                if (pending.group.id !== null) {
+                  this.props.promptGroupEditing({});
+                  return;
+                }
                 if (selected.client !== entity.id) {
                   this.props.fetchItems({ clientId: entity.id });
                 }
@@ -176,6 +181,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             disabled={isPublicationActive(entity.status && entity.status.requestStatus)}
             selected={selected.item === entity.id}
             onSelect={() => {
+              if (pending.group.id !== null) {
+                this.props.promptGroupEditing({});
+                return;
+              }
               if (selected.item !== entity.id) {
                 this.props.fetchGroups({ contentItemId: entity.id });
               }

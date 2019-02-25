@@ -21,11 +21,11 @@ function* requestSaga(
     yield put(createErrorActionCreator(`${action.type}_FAILED` as ErrorAction['type'])(error));
   }
 }
-function* takeLatestRequest<TRequest extends RequestAction>(
+function takeLatestRequest<TRequest extends RequestAction>(
   type: TRequest['type'],
   apiCall: (request: TRequest['request']) => Promise<ResponseAction['response']>,
 ) {
-  yield takeLatest(type, requestSaga, apiCall);
+  return takeLatest(type, requestSaga, apiCall);
 }
 
 // Scheduled actions
@@ -41,13 +41,16 @@ function* scheduleSaga(
   if (isScheduleAction(action)) {
     yield call(sleep, action.delay);
   }
-  yield put(yield nextActionCreator());
+  const nextAction = yield nextActionCreator();
+  if (nextAction) {
+    yield put(nextAction);
+  }
 }
-function* takeLatestSchedule<TAction extends AccessAction, TNext extends AccessAction>(
+function takeLatestSchedule<TAction extends AccessAction, TNext extends AccessAction>(
   type: TAction['type'] | ((type: TAction) => boolean),
   nextActionCreator: () => (TNext | IterableIterator<Effect | AccessAction>),
 ) {
-  yield takeLatest(type, scheduleSaga, nextActionCreator);
+  return takeLatest(type, scheduleSaga, nextActionCreator);
 }
 
 // Toast triggers
@@ -58,7 +61,7 @@ function* toastSaga(
 ) {
   yield toastr[level]('', typeof message === 'string' ? message : message(action.response));
 }
-function* takeEveryToast<TAction extends AccessAction>(
+function takeEveryToast<TAction extends AccessAction>(
   type: TAction['type'] | Array<TAction['type']> | ((type: TAction) => boolean),
   message: string | (TAction extends ResponseAction
     ? (response: TAction['response']) => string
@@ -67,62 +70,59 @@ function* takeEveryToast<TAction extends AccessAction>(
       : never),
   level: 'error' | 'info' | 'message' | 'success' | 'warning' = 'success',
 ) {
-  yield takeEvery(type, toastSaga, message, level);
+  return takeEvery(type, toastSaga, message, level);
 }
 
 export default function* rootSaga() {
   // API requests
-  yield all([
-    takeLatestRequest('FETCH_CLIENTS', api.fetchClients),
-    takeLatestRequest('FETCH_ITEMS', api.fetchItems),
-    takeLatestRequest('FETCH_GROUPS', api.fetchGroups),
-    takeLatestRequest('FETCH_SELECTIONS', api.fetchSelections),
-    takeLatestRequest('FETCH_STATUS_REFRESH', api.fetchStatusRefresh),
-    takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck),
-    takeLatestRequest('CREATE_GROUP', api.createGroup),
-    takeLatestRequest('UPDATE_GROUP', api.updateGroup),
-    takeLatestRequest('DELETE_GROUP', api.deleteGroup),
-    takeLatestRequest('SUSPEND_GROUP', api.suspendGroup),
-    takeLatestRequest('UPDATE_SELECTIONS', api.updateSelections),
-    takeLatestRequest('CANCEL_REDUCTION', api.cancelReduction),
-  ]);
-  yield all([
-    takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
-      const client: ClientWithEligibleUsers = yield select(selectedClient);
-      const item: RootContentItemWithStats = yield select(selectedItem);
-      yield client
-        ? AccessActionCreators.fetchStatusRefresh({
-          clientId: client.id,
-          contentItemId: item && item.id,
-        })
-        : AccessActionCreators.scheduleStatusRefresh({ delay: 45000 });
-    }),
-    takeLatestSchedule(
-      (action) => action.type.match(/^FETCH_STATUS_REFRESH_/).length > 0,
-      () => AccessActionCreators.scheduleStatusRefresh({ delay: 45000 })),
-    takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessActionCreators.fetchSessionCheck({})),
-    takeLatestSchedule('FETCH_SESSION_CHECK_SUCCEEDED',
-      () => AccessActionCreators.scheduleSessionCheck({ delay: 60000 })),
-    takeLatest('FETCH_SESSION_CHECK_FAILED', function*() { yield window.location.reload(); }),
-  ]);
+  yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
+  yield takeLatestRequest('FETCH_ITEMS', api.fetchItems);
+  yield takeLatestRequest('FETCH_GROUPS', api.fetchGroups);
+  yield takeLatestRequest('FETCH_SELECTIONS', api.fetchSelections);
+  yield takeLatestRequest('FETCH_STATUS_REFRESH', api.fetchStatusRefresh);
+  yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);
+  yield takeLatestRequest('CREATE_GROUP', api.createGroup);
+  yield takeLatestRequest('UPDATE_GROUP', api.updateGroup);
+  yield takeLatestRequest('DELETE_GROUP', api.deleteGroup);
+  yield takeLatestRequest('SUSPEND_GROUP', api.suspendGroup);
+  yield takeLatestRequest('UPDATE_SELECTIONS', api.updateSelections);
+  yield takeLatestRequest('CANCEL_REDUCTION', api.cancelReduction);
 
-  yield all([
-    takeEveryToast('CREATE_GROUP_SUCCEEDED', 'Selection group created.'),
-    takeEveryToast('DELETE_GROUP_SUCCEEDED', 'Selection group deleted.'),
-    takeEveryToast('UPDATE_GROUP_SUCCEEDED', 'Selection group updated.'),
-    takeEveryToast<AccessActions.SuspendGroupSucceeded>
-      ('SUSPEND_GROUP_SUCCEEDED', ({ isSuspended }) =>
-        `Selection group ${isSuspended ? '' : 'un'}suspended.`),
-    takeEveryToast<AccessActions.UpdateSelectionsSucceeded>
-      ('UPDATE_SELECTIONS_SUCCEEDED', ({ reduction, group }) =>
-        reduction && reduction.taskStatus === 10
-          ? 'Reduction queued.'
-          : group && group.isMaster
-            ? 'Unrestricted access granted.'
-            : 'Group inactivated.'),
-    takeEveryToast('CANCEL_REDUCTION_SUCCEEDED', 'Reduction canceled.'),
-  ]);
+  // Scheduled actions
+  yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
+    const client: ClientWithEligibleUsers = yield select(selectedClient);
+    const item: RootContentItemWithStats = yield select(selectedItem);
+    return client
+      ? AccessActionCreators.fetchStatusRefresh({
+        clientId: client.id,
+        contentItemId: item && item.id,
+      })
+      : AccessActionCreators.scheduleStatusRefresh({ delay: 5000 });
+  });
+  yield takeLatestSchedule(
+    (action) => action.type.match(/^FETCH_STATUS_REFRESH_/) !== null,
+    () => AccessActionCreators.scheduleStatusRefresh({ delay: 5000 }));
+  yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessActionCreators.fetchSessionCheck({}));
+  yield takeLatestSchedule('FETCH_SESSION_CHECK_SUCCEEDED',
+    () => AccessActionCreators.scheduleSessionCheck({ delay: 60000 }));
+  yield takeLatest('FETCH_SESSION_CHECK_FAILED', function*() { yield window.location.reload(); });
 
+  // Toasts
+  yield takeEveryToast('CREATE_GROUP_SUCCEEDED', 'Selection group created.');
+  yield takeEveryToast('DELETE_GROUP_SUCCEEDED', 'Selection group deleted.');
+  yield takeEveryToast('UPDATE_GROUP_SUCCEEDED', 'Selection group updated.');
+  yield takeEveryToast<AccessActions.SuspendGroupSucceeded>
+    ('SUSPEND_GROUP_SUCCEEDED', ({ isSuspended }) =>
+      `Selection group ${isSuspended ? '' : 'un'}suspended.`);
+  yield takeEveryToast<AccessActions.UpdateSelectionsSucceeded>
+    ('UPDATE_SELECTIONS_SUCCEEDED', ({ reduction, group }) =>
+      reduction && reduction.taskStatus === 10
+        ? 'Reduction queued.'
+        : group && group.isMaster
+          ? 'Unrestricted access granted.'
+          : 'Group inactivated.');
+  yield takeEveryToast('CANCEL_REDUCTION_SUCCEEDED', 'Reduction canceled.');
+  yield takeEveryToast('PROMPT_GROUP_EDITING', 'Please finish editing before performing this action.', 'warning');
   yield takeEveryToast<ErrorAction>([
     'FETCH_CLIENTS_FAILED',
     'FETCH_ITEMS_FAILED',

@@ -1151,7 +1151,7 @@ namespace MillimanAccessPortal.Controllers
         [LogTiming]
         public IActionResult SessionStatus()
         {
-            return Ok();
+            return Json(new { });
         }
 
         #region Helpers
