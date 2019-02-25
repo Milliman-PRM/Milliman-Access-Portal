@@ -6,7 +6,7 @@ import {
 } from '../../../view-models/content-publishing';
 import {
     ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, Guid,
-    ReductionFieldset, User,
+    ReductionFieldset, RootContentItemWithStats, User,
 } from '../../models';
 import { AccessState } from './store';
 
@@ -192,9 +192,12 @@ export function filteredClients(state: AccessState) {
  */
 export function filteredItems(state: AccessState) {
   const filterTextLower = state.filters.item.text.toLowerCase();
-  return _.filter(state.data.items, (item) => (
+  return _.filter(state.data.items, (item: RootContentItemWithStats) => (
     filterTextLower === ''
     || item.name.toLowerCase().indexOf(filterTextLower) !== -1
+    || (
+      state.data.contentTypes[item.contentTypeId]
+      && state.data.contentTypes[item.contentTypeId].name.toLowerCase().indexOf(filterTextLower) !== -1)
   ));
 }
 
