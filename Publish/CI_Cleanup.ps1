@@ -44,6 +44,65 @@ $IsMerged = $env:IsMerged
 $MergeBase = $env:MergeBase
 $CloneURL = "https://indy-github.milliman.com/PRM/milliman-access-portal.git"
 
+#region Prepare nuget package for Octopus cleanup tasks
+
+mkdir $nugetDestination
+
+copy-item "$rootPath\Publish\OctopusSetBranch.ps1" -Destination "$nugetDestination\OctopusSetBranch.ps1"
+copy-item "$rootPath\Publish\OctopusCleanup.ps1" -Destination "$nugetDestination\OctopusCleanup.ps1"
+
+Set-Location $nugetDestination
+
+log_statement "Packaging cleanup scripts for deployment"
+
+octo pack --id MAPCleanup --version $cleanupPackageVersion $nugetDestination --outfolder $nugetDestination
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package cleanup script for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+octo push --package "MAPCleanup.$cleanupPackageVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to push package to Octopus"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+log_statement "Creating release"
+
+octo create-release --project "Test Branch Cleanup" --version $cleanupPackageVersion --packageVersion $cleanupPackageVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Cleanup release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for cleanup"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+log_statement "Deploying and executing cleanup package"
+
+octo deploy-release --project "Test Branch Cleanup" --deployto "Development" --channel "Development" --version $cleanupPackageVersion --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Cleanup release deployed successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to deploy the cleanup package"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+#endregion
+
 #region Drop Databases
 
 $env:PGPASSWORD = $dbPassword
@@ -108,65 +167,6 @@ else
 {
     log_statement "Audit Log database was not found for this branch"
 }
-#endregion
-
-#region Prepare nuget package for Octopus cleanup tasks
-
-mkdir $nugetDestination
-
-copy-item "$rootPath\Publish\OctopusSetBranch.ps1" -Destination "$nugetDestination\OctopusSetBranch.ps1"
-copy-item "$rootPath\Publish\OctopusCleanup.ps1" -Destination "$nugetDestination\OctopusCleanup.ps1"
-
-Set-Location $nugetDestination
-
-log_statement "Packaging cleanup scripts for deployment"
-
-octo pack --id MAPCleanup --version $cleanupPackageVersion $nugetDestination --outfolder $nugetDestination
-
-if ($LASTEXITCODE -ne 0) {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to package cleanup script for nuget"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
-
-octo push --package "MAPCleanup.$cleanupPackageVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
-
-if ($LASTEXITCODE -ne 0) {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to push package to Octopus"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
-
-log_statement "Creating release"
-
-octo create-release --project "Test Branch Cleanup" --version $cleanupPackageVersion --packageVersion $cleanupPackageVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
-
-if ($LASTEXITCODE -eq 0) {
-    log_statement "Cleanup release created successfully"
-}
-else {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to create Octopus release for cleanup"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
-
-log_statement "Deploying and executing cleanup package"
-
-octo deploy-release --project "Test Branch Cleanup" --deployto "Development" --channel "Development" --version $cleanupPackageVersion --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
-
-if ($LASTEXITCODE -eq 0) {
-    log_statement "Cleanup release deployed successfully"
-}
-else {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to deploy the cleanup package"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
-
 #endregion
 
 #region Modify Environment to push base branch to Dev
