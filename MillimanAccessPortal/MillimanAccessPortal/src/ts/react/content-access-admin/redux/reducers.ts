@@ -99,6 +99,8 @@ function updateAllMap<T extends object>(map: Map<Guid, T>, value: Partial<T>) {
 
 const groupCardAttributes = createReducer<Map<Guid, CardAttributes>>(_initialCards,
   {
+    SET_GROUP_EDITING_ON: (state, action: AccessActions.SetGroupEditingOn) =>
+      updateMap(state, action.id, { expanded: true }),
     SET_EXPANDED_GROUP: (state, action: AccessActions.SetExpandedGroup) =>
       updateMap(state, action.id, { expanded: true }),
     SET_COLLAPSED_GROUP: (state, action: AccessActions.SetCollapsedGroup) =>
