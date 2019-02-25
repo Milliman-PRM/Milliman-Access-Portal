@@ -505,7 +505,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
           <form
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              if (!this.props.pending.data.createGroup) {
+              if (!this.props.pending.data.createGroup && this.props.pending.newGroupName) {
                 this.props.createGroup({
                   contentItemId: this.props.selectedItem.id,
                   name: this.props.pending.newGroupName,
@@ -519,6 +519,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
               onChange={(event) => this.props.setPendingNewGroupName({
                 name: event.target.value,
               })}
+              value={this.props.pending.newGroupName}
               autoFocus={true}
             />
             <div className="button-container">
