@@ -605,7 +605,9 @@ export function getJsonData<TResponse = any>(url = '', data: any = {}) {
   })
   .then((response) => {
     if (!response.ok) {
-      throw new Error(response.headers.get('Warning') || 'Unknown error');
+      throw new Error(response.headers.get('Warning') || `${response.status}`);
+    } else if (response.redirected && response.url.match(/\/Account\/LogIn/) !== null) {
+      throw new Error('sessionExpired');
     }
     return response.json() as Promise<TResponse>;
   });
@@ -655,6 +657,8 @@ export function postJsonData<TResponse = any>(url: string = '', data: object = {
   .then((response) => {
     if (!response.ok) {
       throw new Error(response.headers.get('Warning') || `${response.status}`);
+    } else if (response.redirected && response.url.match(/\/Account\/LogIn/) !== null) {
+      throw new Error('sessionExpired');
     }
     return response.json() as Promise<TResponse>;
   });

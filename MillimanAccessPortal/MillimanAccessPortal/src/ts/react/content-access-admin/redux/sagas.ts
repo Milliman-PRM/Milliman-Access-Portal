@@ -6,7 +6,7 @@ import * as AccessActionCreators from './action-creators';
 import { createErrorActionCreator, createResponseActionCreator } from './action-creators';
 import * as AccessActions from './actions';
 import {
-    AccessAction, ErrorAction, isScheduleAction, RequestAction, ResponseAction,
+    AccessAction, ErrorAction, isErrorAction, isScheduleAction, RequestAction, ResponseAction,
 } from './actions';
 import * as api from './api';
 import { selectedClient, selectedItem } from './selectors';
@@ -55,11 +55,16 @@ function takeLatestSchedule<TAction extends AccessAction, TNext extends AccessAc
 
 // Toast triggers
 function* toastSaga(
-  message: string | ((response: ResponseAction['response']) => string),
+  message: string
+    | ((response: ResponseAction['response'] | ErrorAction['error']) => string),
   level: 'error' | 'info' | 'message' | 'success' | 'warning',
-  action: ResponseAction,
+  action: ResponseAction | ErrorAction,
 ) {
-  yield toastr[level]('', typeof message === 'string' ? message : message(action.response));
+  yield toastr[level]('', typeof message === 'string'
+    ? message
+    : isErrorAction(action)
+      ? message(action.error)
+      : message(action.response));
 }
 function takeEveryToast<TAction extends AccessAction>(
   type: TAction['type'] | Array<TAction['type']> | ((type: TAction) => boolean),
@@ -99,8 +104,7 @@ export default function* rootSaga() {
       })
       : AccessActionCreators.scheduleStatusRefresh({ delay: 5000 });
   });
-  yield takeLatestSchedule(
-    (action) => action.type.match(/^FETCH_STATUS_REFRESH_/) !== null,
+  yield takeLatestSchedule('FETCH_STATUS_REFRESH_SUCCEEDED',
     () => AccessActionCreators.scheduleStatusRefresh({ delay: 5000 }));
   yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessActionCreators.fetchSessionCheck({}));
   yield takeLatestSchedule('FETCH_SESSION_CHECK_SUCCEEDED',
@@ -136,10 +140,10 @@ export default function* rootSaga() {
     'SUSPEND_GROUP_FAILED',
     'UPDATE_SELECTIONS_FAILED',
     'CANCEL_REDUCTION_FAILED',
-  ], ({ message }) => isNaN(message)
-    ? message
-    : message === '401'
+  ], ({ message }) => message === 'sessionExpired'
       ? 'Your session has expired. Please refresh the page.'
-      : 'An unexpected error has occured.',
+      : isNaN(message)
+        ? message
+        : 'An unexpected error has occured.',
     'error');
 }

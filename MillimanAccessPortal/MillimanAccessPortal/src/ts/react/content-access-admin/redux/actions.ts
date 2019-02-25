@@ -421,3 +421,6 @@ export type CloseAction = CloseAddGroupModal | CloseDeleteGroupModal | CloseInva
 export function isScheduleAction(action: AccessAction): action is ScheduleAction {
   return (action as ScheduleAction).delay !== undefined;
 }
+export function isErrorAction(action: AccessAction): action is ErrorAction {
+  return (action as ErrorAction).error !== undefined;
+}
