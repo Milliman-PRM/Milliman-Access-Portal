@@ -175,12 +175,15 @@ if ($IsMerged.ToLower() -eq 'true' -and $env:Action.ToLower() -eq 'closed') {
 
     log_statement "Deploying $MergeBase to dev infrastructure"
 
-    $checkoutPath = "$env:TEMP\Milliman-Access-Portal\"
+    $checkoutPath = mkdir "$env:TEMP\MAP" -Force
+    $empty = mkdir "$env:TEMP\empty" -Force
     Set-Location $env:TEMP
-    Remove-Item $checkoutPath -Recurse -ErrorAction Ignore
+    & "robocopy.exe $empty $checkoutPath /purge"
 
-    & $gitExePath clone $CloneURL
     Set-Location $checkoutPath
+    & $gitExePath clone $CloneURL
+    $map_dir = Join-Path -Path $checkoutPath -ChildPath "Milliman-Access-Portal"
+    Set-Location $map_dir
     $env:git_branch_name = $MergeBase
     $env:Action = "opened"
     $env:RunTests = "False"
