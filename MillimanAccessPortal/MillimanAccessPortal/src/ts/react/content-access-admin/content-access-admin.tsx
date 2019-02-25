@@ -50,6 +50,7 @@ interface RootContentItemEntity extends RootContentItemWithPublication {
 }
 interface SelectionGroupEntity extends SelectionGroupWithStatus {
   assignedUsers: User[];
+  assignedUserCount: number;
   userQuery: string;
   editing: boolean;
 }
@@ -456,7 +457,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
                 >
                   <CardStat
                     name={'Assigned users'}
-                    value={entity.assignedUsers.length}
+                    value={entity.assignedUserCount}
                     icon={'user'}
                   />
                 </div>

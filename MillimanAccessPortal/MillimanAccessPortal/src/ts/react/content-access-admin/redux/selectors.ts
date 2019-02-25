@@ -360,6 +360,7 @@ export function activeGroupsWithStatus(state: AccessState) {
     const reduction = relatedReduction(state, g.id);
     return {
       ...g,
+      assignedUserCount: g.assignedUsers.length,
       status: {
         ...reduction,
         applicationUser: reduction && state.data.users[reduction.applicationUserId],
