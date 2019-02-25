@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Guid, PublicationWithQueueDetails, ReductionWithQueueDetails } from '../../models';
+import { PublicationWithQueueDetails, ReductionWithQueueDetails } from '../../models';
 import { CardStatus } from './card-status';
 
 export interface CardAttributes {
@@ -17,6 +17,7 @@ export interface CardProps {
   selected: boolean;
   suspended: boolean;
   inactive: boolean;
+  locked: boolean;
   indentation: number;
   status: PublicationWithQueueDetails | ReductionWithQueueDetails;
 }
@@ -27,6 +28,7 @@ export class Card extends React.Component<CardProps> {
     disabled: false,
     suspended: false,
     inactive: false,
+    locked: false,
     indentation: 1,
     status: null as PublicationWithQueueDetails | ReductionWithQueueDetails,
   };
@@ -38,14 +40,14 @@ export class Card extends React.Component<CardProps> {
   };
 
   public render() {
-    const { indentation, disabled, selected, suspended, inactive, onSelect, status, children } = this.props;
+    const { indentation, disabled, selected, suspended, inactive, locked, onSelect, status, children } = this.props;
 
     const cardClass = 'card-container'
       + (indentation ? ` ${this.indentClasses[indentation] || this.indentClasses[1]}` : '')
       + (disabled ? ' card-disabled' : '');
     const cardBodyClass = 'card-body-container'
       + (selected ? ' selected' : '')
-      + (suspended ? ' suspended' : inactive ? ' inactive' : '');
+      + (locked ? ' locked' : suspended ? ' suspended' : inactive ? ' inactive' : '');
 
     return (
       <div className={cardClass} onClick={disabled ? () => null : onSelect}>

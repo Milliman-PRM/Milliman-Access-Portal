@@ -438,6 +438,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
               key={key}
               selected={selected.group === entity.id}
               onSelect={() => {
+                if (pending.group.id !== null && pending.group.id !== entity.id) {
+                  this.props.promptGroupEditing({});
+                  return;
+                }
                 if (selected.group !== entity.id) {
                   this.props.fetchSelections({ groupId: entity.id });
                 }
@@ -445,6 +449,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
               }}
               suspended={entity.isSuspended}
               inactive={entity.isInactive}
+              locked={entity.id === pending.group.id}
               status={entity.status}
             >
               <CardSectionMain>

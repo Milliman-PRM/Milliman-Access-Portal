@@ -109,10 +109,26 @@
         border: 2px solid $charcoal;
         border-radius: .25em;
 
+        &.locked {
+            border-color: $blue;
+        }
+
+        &.suspended {
+            border-color: $red;
+        }
+
+        &.inactive {
+            border-color: $orange;
+        }
+
         &[selected],
         &.selected {
             color: $white;
             background-color: $blue;
+
+            &.locked {
+                border-color: $black;
+            }
 
             input {
                 color: $white;
@@ -130,14 +146,6 @@
             .react-select {
                 color: $black;
             }
-        }
-
-        &.suspended {
-            border-color: $red;
-        }
-
-        &.inactive {
-            border-color: $orange;
         }
 
         .card-body-main-container {

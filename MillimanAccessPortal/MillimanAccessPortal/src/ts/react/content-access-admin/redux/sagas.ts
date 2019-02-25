@@ -126,7 +126,8 @@ export default function* rootSaga() {
           ? 'Unrestricted access granted.'
           : 'Group inactivated.');
   yield takeEveryToast('CANCEL_REDUCTION_SUCCEEDED', 'Reduction canceled.');
-  yield takeEveryToast('PROMPT_GROUP_EDITING', 'Please finish editing before performing this action.', 'warning');
+  yield takeEveryToast('PROMPT_GROUP_EDITING',
+    'Please finish editing the current selection group before performing this action.', 'warning');
   yield takeEveryToast<ErrorAction>([
     'FETCH_CLIENTS_FAILED',
     'FETCH_ITEMS_FAILED',

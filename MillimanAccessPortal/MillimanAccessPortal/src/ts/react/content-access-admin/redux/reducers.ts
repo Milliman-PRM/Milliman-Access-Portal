@@ -544,6 +544,10 @@ const selected = createReducer<AccessStateSelected>(
       ...state,
       group: action.id === state.group ? null : action.id,
     }),
+    SET_GROUP_EDITING_ON: (state, action: AccessActions.SetGroupEditingOn) => ({
+      ...state,
+      group: action.id === state.group ? action.id : null,
+    }),
   },
 );
 const cardAttributes = combineReducers({
