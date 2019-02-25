@@ -178,7 +178,7 @@ if ($IsMerged.ToLower() -eq 'true' -and $env:Action.ToLower() -eq 'closed') {
     $checkoutPath = mkdir "$env:TEMP\MAP" -Force
     $empty = mkdir "$env:TEMP\empty" -Force
     Set-Location $env:TEMP
-    & "robocopy.exe" "$empty" "$checkoutPath" "/purge"
+    & "robocopy.exe" "$empty" "$checkoutPath" "/purge" "/ns" "/nfl" "/nc" "/ndl" "/np"
 
     Set-Location $checkoutPath
     & $gitExePath clone $CloneURL
