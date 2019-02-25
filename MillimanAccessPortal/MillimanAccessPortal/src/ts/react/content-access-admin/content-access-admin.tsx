@@ -449,13 +449,21 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
                   editing={entity.editing}
                   setText={(name) => this.props.setPendingGroupName({ name })}
                 />
-                <CardSectionStats>
+                <div
+                  className="card-stats-container"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    card && card.expanded
+                      ? this.props.setCollapsedGroup({ id: entity.id})
+                      : this.props.setExpandedGroup({ id: entity.id });
+                  }}
+                >
                   <CardStat
                     name={'Assigned users'}
                     value={entity.assignedUsers.length}
                     icon={'user'}
                   />
-                </CardSectionStats>
+                </div>
                 <CardSectionButtons>
                   {cardButtons}
                 </CardSectionButtons>
