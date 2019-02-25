@@ -158,7 +158,7 @@ namespace MillimanAccessPortal.DataQueries
                 .Select(t => new BasicContentType
                 {
                     Id = t.Id,
-                    Name = t.Name,
+                    Name = ContentType.ContentTypeString.GetValueOrDefault(t.TypeEnum),
                     CanReduce = t.CanReduce,
                     FileExtensions = t.FileExtensions.ToList(),
                 })
