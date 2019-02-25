@@ -188,8 +188,9 @@ if ($IsMerged.ToLower() -eq 'true' -and $env:Action.ToLower() -eq 'closed') {
     $env:Action = "opened"
     $env:RunTests = "False"
     & $gitExePath checkout $MergeBase
-    test-path "$($checkoutPath)Publish\CI_Publish.ps1"
-    & "$($checkoutPath)Publish\CI_Publish.ps1"
+    Write-Output "$map_dir exists:"
+    test-path "$($map_dir)Publish\CI_Publish.ps1"
+    & "$($map_dir)Publish\CI_Publish.ps1"
 
     if ($LASTEXITCODE -eq 0) {
         log_statement "$MergeBase deployed successfully"
