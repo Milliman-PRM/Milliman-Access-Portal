@@ -6,7 +6,7 @@ import {
 } from '../../../view-models/content-publishing';
 import {
     ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, Guid,
-    ReductionFieldset, RootContentItemWithStats, User,
+    ReductionFieldset, RootContentItemWithStats, SelectionGroupWithAssignedUsers, User,
 } from '../../models';
 import { AccessState } from './store';
 
@@ -137,6 +137,26 @@ export function pendingGroupUserAssignments(state: AccessState, groupId: Guid) {
 }
 
 /**
+ * Select filtered pending user assignments for a selection group
+ * @param state Redux store
+ * @param groupId The ID of the group to check
+ */
+export function filteredPendingGroupUserAssignments(state: AccessState, groupId: Guid) {
+  const users: User[] = _.sortBy(
+    pendingGroupUserAssignments(state, groupId).map((id) => state.data.users[id]),
+    [(u: User) => u.firstName && u.lastName && (u.firstName + u.lastName), 'username'],
+  );
+  const filterTextLower = state.filters.group.text.toLowerCase();
+  const group = state.data.groups[groupId];
+  return _.filter(users, (user: User) => (
+    filterTextLower === ''
+    || (group.name && group.name.toLowerCase().indexOf(filterTextLower) !== -1)
+    || (user.userName && user.userName.toLowerCase().indexOf(filterTextLower) !== -1)
+    || (`${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().indexOf(filterTextLower) !== -1)
+  ));
+}
+
+/**
  * Select the group that is pending deletion
  * @param state Redux store
  */
@@ -207,9 +227,12 @@ export function filteredItems(state: AccessState) {
  */
 export function filteredGroups(state: AccessState) {
   const filterTextLower = state.filters.group.text.toLowerCase();
-  return _.filter(state.data.groups, (group) => (
+  return _.filter(state.data.groups, (group: SelectionGroupWithAssignedUsers) => (
     filterTextLower === ''
-    || group.name.toLowerCase().indexOf(filterTextLower) !== -1
+    || (
+      group.name && group.name.toLowerCase().indexOf(filterTextLower) !== -1
+      && pendingGroupUserAssignments(state, group.id).length === 0)
+    || filteredPendingGroupUserAssignments(state, group.id).length > 0
   ));
 }
 
@@ -447,7 +470,6 @@ export function clientEntities(state: AccessState) {
  */
 export function itemEntities(state: AccessState) {
   return activeItemsWithStatus(state).map((i) => {
-    const groups = _.filter(state.data.groups, (g) => g.rootContentItemId === i.id);
     return {
       ...i,
       contentTypeName: state.data.contentTypes[i.contentTypeId].name,
@@ -462,10 +484,7 @@ export function itemEntities(state: AccessState) {
 export function groupEntities(state: AccessState) {
   return activeGroupsWithStatus(state).map((g) => ({
     ...g,
-    assignedUsers: _.sortBy(
-      pendingGroupUserAssignments(state, g.id).map((id) => state.data.users[id]),
-      [(u: User) => u.firstName && u.lastName && (u.firstName + u.lastName), 'username'],
-    ) as User[],
+    assignedUsers: filteredPendingGroupUserAssignments(state, g.id),
     name: pendingGroupName(state, g.id),
     editing: state.pending.group.id === g.id,
     userQuery: state.pending.group
