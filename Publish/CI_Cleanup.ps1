@@ -180,6 +180,13 @@ if ($IsMerged.ToLower() -eq 'true' -and $env:Action.ToLower() -eq 'closed') {
     Set-Location $env:TEMP
     & "robocopy.exe" "$empty" "$checkoutPath" "/purge" > "$env:TEMP\robo.log"
 
+    if ($LASTEXITCODE -gt 6) { # https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/robocopy#exit-return-codes
+        $error_code = $LASTEXITCODE
+        log_statement "ERROR: Failed to nuke temp dir from orbit"
+        log_statement $requestResult.stdout
+        exit 420000
+    }
+
     Set-Location $checkoutPath
     & $gitExePath clone $CloneURL
     $map_dir = Join-Path -Path $checkoutPath -ChildPath "Milliman-Access-Portal"
