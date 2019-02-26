@@ -79,7 +79,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Login(string returnUrl = null)
         {
             // Clear the existing external cookie to ensure a clean login process
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            await HttpContext.SignOutAsync();
 
             ViewData["ReturnUrl"] = returnUrl;
             return View();
@@ -97,6 +97,11 @@ namespace MillimanAccessPortal.Controllers
             return Json(new { LocalAccount = string.IsNullOrWhiteSpace(scheme) });
         }
 
+        /// <summary>
+        /// Evaluates the appropriate authentication scheme for a provided username
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns>The scheme for the specified user, or <see langword="null"/> if no scheme is appropriate</returns>
         [NonAction]
         private async Task<string> GetAuthenticationSchemeForUser(string userName)
         {
@@ -122,13 +127,8 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // 3. Does the email domain match a scheme?
-            var allSchemes = (await _signInManager.GetExternalAuthenticationSchemesAsync()).Select(s => s.Name);
-            if (allSchemes.Contains(userDomain))
-            {
-                return userDomain;
-            }
-
-            return null;
+            var allSchemeNames = (await _signInManager.GetExternalAuthenticationSchemesAsync()).Select(s => s.Name);
+            return allSchemeNames.SingleOrDefault(s => s.Equals(userDomain, StringComparison.OrdinalIgnoreCase));
         }
 
         //
@@ -138,10 +138,12 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> RemoteAuthenticate(string userName)
         {
             string scheme = await GetAuthenticationSchemeForUser(userName);
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), "Account", new { ReturnUrl = "/AuthorizedContent/Index" });
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
 
             if (!string.IsNullOrWhiteSpace(scheme))
             {
-                return Challenge(new AuthenticationProperties {RedirectUri = "/AuthorizedContent/Index" }, scheme);
+                return Challenge(properties, scheme);
             }
             else
             {
@@ -202,7 +204,7 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
+                    LoginCommon();
 
                     Log.Information($"User {model.Username} logged in");
                     _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(), model.Username);
@@ -254,6 +256,13 @@ namespace MillimanAccessPortal.Controllers
             // If we got this far, something failed, redisplay form
             Response.Headers.Add("Warning", "Login failed.");
             return Ok();
+        }
+
+        [NonAction]
+        private void LoginCommon()
+        {
+            // TODO Add all the things that are common to both internal and external user signin
+            HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
         }
 
         //
@@ -335,8 +344,15 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Logout()
         {
             Log.Verbose("Entered AccountController.Logout action");
-
-            ApplicationUser appUser = await Queries.GetCurrentApplicationUser(User);
+            ApplicationUser appUser = null;
+            try
+            {
+                appUser = await Queries.GetCurrentApplicationUser(User);
+            }
+            catch (Exception ex)
+            {
+                var x = ex;
+            }
             await _signInManager.SignOutAsync();
 
             Log.Verbose($"In AccountController.Logout action: user {appUser?.UserName ?? "<unknown>"} logged out.");
@@ -358,55 +374,41 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("Entered AccountController.ExternalLogin action with {@Provider}", provider);
 
             // Request a redirect to the external login provider.
-            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { ReturnUrl = returnUrl });
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), "Account", new { ReturnUrl = returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return Challenge(properties, provider);
         }
 
         //
-        // GET: /Account/ExternalLoginCallback
+        // GET: /Account/ExternalLoginCallbackAsync
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> ExternalLoginCallbackAsync(string returnUrl = null, string remoteError = null)
         {
             Log.Verbose("Entered AccountController.ExternalLoginCallback action");
 
-            if (remoteError != null)
+            string authenticatedUserName = User.Claims.Single(c => c.Type == ClaimTypes.Name).Value;
+            //string authenticationScheme = User.Claims.Single(c => c.Type == "AuthScheme").Value;
+
+            ApplicationUser user = await _userManager.FindByNameAsync(authenticatedUserName);
+            if (user == null)
             {
-                ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
-                return View(nameof(Login));
-            }
-            var info = await _signInManager.GetExternalLoginInfoAsync();
-            if (info == null)
-            {
-                return RedirectToAction(nameof(Login));
+                // TODO the user is not in our database, handle this properly
+                return RedirectToAction("Login");
             }
 
-            // Sign in the user with this external login provider if the user already has a login.
-            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
-            if (result.Succeeded)
+            returnUrl = returnUrl ?? Url.Content("~/");
+            if (remoteError != null)
             {
-                Log.Information($"User logged in with provider {info.LoginProvider}");
-                return RedirectToLocal(returnUrl);
+                // TODO handle this too.
+                //ErrorMessage = $"Error from external provider: {remoteError}";
+                return RedirectToAction("./Login", new { ReturnUrl = returnUrl });
             }
-            if (result.RequiresTwoFactor)
-            {
-                return RedirectToAction(nameof(SendCode), new { ReturnUrl = returnUrl });
-            }
-            if (result.IsLockedOut)
-            {
-                Log.Information($"From ExternalLoginCallback, ExternalLoginSignInAsync result is LockedOut from provider {info.LoginProvider}");
-                var lockoutMessage = "This account has been locked out, please try again later.";
-                return View("Message", lockoutMessage);
-            }
-            else
-            {
-                // If the user does not have an account, then ask the user to create an account.
-                ViewData["ReturnUrl"] = returnUrl;
-                ViewData["LoginProvider"] = info.LoginProvider;
-                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = email });
-            }
+
+            await _signInManager.SignInAsync(user, false);
+            LoginCommon();
+
+            return LocalRedirect(returnUrl);
         }
 
         //

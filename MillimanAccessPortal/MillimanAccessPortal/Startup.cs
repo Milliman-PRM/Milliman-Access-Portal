@@ -37,6 +37,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using NetEscapades.AspNetCore.SecurityHeaders;
 using MillimanAccessPortal.Utilities;
@@ -62,7 +63,6 @@ namespace MillimanAccessPortal
             });
 
             #region Configure application connection string
-
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
             
             // If the database name is defined in the environment, update the connection string
@@ -88,17 +88,20 @@ namespace MillimanAccessPortal
 
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
-            services.AddIdentity<ApplicationUser, ApplicationRole>(config =>
+            services.AddIdentityCore<ApplicationUser>(config =>
                 {
                     config.SignIn.RequireConfirmedEmail = true;
+                    // Does this work instead of the below?  config.Tokens.PasswordResetTokenProvider = tokenProviderName;
                 })
+                .AddRoles<ApplicationRole>()
+                .AddSignInManager()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
-                //.AddTop100000PasswordValidator<ApplicationUser>()
-                //.AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
-                //.AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
-                //.AddCommonWordsValidator<ApplicationUser>(commonWords)
-                //.AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName)
+                .AddTop100000PasswordValidator<ApplicationUser>()
+                .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
+                .AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
+                .AddCommonWordsValidator<ApplicationUser>(commonWords)
+                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName)
                 ;
 
             #region Configure authentication services
@@ -110,8 +113,8 @@ namespace MillimanAccessPortal
 
             AuthenticationBuilder authenticationBuilder = services.AddAuthentication(sharedOptions => 
             {
-                sharedOptions.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                sharedOptions.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                sharedOptions.DefaultScheme = IdentityConstants.ApplicationScheme;
+                sharedOptions.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
             });
 
             foreach (ConfigurationSection section in WsFederationConfigSections)
@@ -132,8 +135,10 @@ namespace MillimanAccessPortal
                 {
                     options.MetadataAddress = wsFederationConfig.MetadataAddress;
                     options.Wtrealm = wsFederationConfig.Wtrealm;
+                    //options.CallbackPath = $"/Account/ExternalLoginCallbackAsync";
                     options.CallbackPath = $"{options.CallbackPath}-{wsFederationConfig.Scheme}";
 
+                    /*
                     options.Events.OnAuthenticationFailed = context => { var xx = context; return Task.CompletedTask; };
                     options.Events.OnMessageReceived = context => { var xx = context; return Task.CompletedTask; };
                     options.Events.OnRedirectToIdentityProvider = context => { var xx = context; return Task.CompletedTask; };
@@ -141,21 +146,36 @@ namespace MillimanAccessPortal
                     options.Events.OnRemoteSignOut = context => { var xx = context; return Task.CompletedTask; };
                     options.Events.OnSecurityTokenReceived = context => { var xx = context; return Task.CompletedTask; };
                     options.Events.OnSecurityTokenValidated = context => { var xx = context; return Task.CompletedTask; };
-                    options.Events.OnTicketReceived = async context => { var xx = context; await context.HttpContext.SignInAsync(context.Principal); };
+                    */
+                    options.Events.OnTicketReceived = context => 
+                    {
+                        //The ClaimsIdentity received here does not match the one used in the SigninManager so session does not work
+                        List<AuthenticationToken> tokens = context.Properties.GetTokens() as List<AuthenticationToken>;
+                        tokens.Add(new AuthenticationToken() { Name = "TicketCreated", Value = DateTime.UtcNow.ToString() });
+                        context.Properties.StoreTokens(tokens);
+
+                        // Add a claim that carries the scheme name (TODO: remove if this is not needed in callback)
+                        //ClaimsIdentity identity = (ClaimsIdentity)context.Principal.Identity;
+                        //identity.AddClaim(new Claim("AuthScheme", context.Scheme.Name));
+
+                        //context.HandleResponse();
+                        //context.Response.Redirect("/Account/ExternalLoginCallbackAsync");
+
+                        //context.Response.ContentType = "text/plain";
+                        //if (Environment.IsDevelopment())
+                        //{
+                            // Debug only, in production do not share exceptions with the remote host.
+                            //return c.Response.WriteAsync(c.Exception.ToString());
+                        //}
+                        //return c.Response.WriteAsync("An error occurred processing your authentication.");
+
+                        return Task.CompletedTask;
+                    };
                 });
             }
-            authenticationBuilder.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-            {
-                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
-                //options.LoginPath = "/Account/LogIn";
-                //options.LogoutPath = "/Account/LogOut";
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-                options.SlidingExpiration = true;
-            });
+            authenticationBuilder.AddIdentityCookies();
 
             #endregion
-
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services.Configure<PasswordHasherOptions>(options => options.IterationCount = passwordHashingIterations);
 
@@ -210,6 +230,7 @@ namespace MillimanAccessPortal
                              .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
             })
+            .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
             .AddControllersAsServices()
             .AddJsonOptions(opt =>
             {
