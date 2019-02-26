@@ -282,7 +282,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
                   color={'green'}
                   tooltip={'Save changes'}
                   onClick={() => {
-                    if (!pending.group.name) {
+                    if (pending.group.name === '') {
                       this.props.promptGroupNameEmpty({});
                       return;
                     }
