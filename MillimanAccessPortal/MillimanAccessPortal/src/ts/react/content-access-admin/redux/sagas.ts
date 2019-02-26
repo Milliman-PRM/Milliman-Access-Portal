@@ -128,6 +128,8 @@ export default function* rootSaga() {
   yield takeEveryToast('CANCEL_REDUCTION_SUCCEEDED', 'Reduction canceled.');
   yield takeEveryToast('PROMPT_GROUP_EDITING',
     'Please finish editing the current selection group before performing this action.', 'warning');
+  yield takeEveryToast('PROMPT_GROUP_NAME_EMPTY',
+    'Please name the selection group before saving changes.', 'warning');
   yield takeEveryToast<ErrorAction>([
     'FETCH_CLIENTS_FAILED',
     'FETCH_ITEMS_FAILED',

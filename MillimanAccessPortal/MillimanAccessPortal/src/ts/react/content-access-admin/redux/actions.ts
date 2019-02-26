@@ -112,6 +112,9 @@ export interface SetPendingGroupUserRemoved {
 export interface PromptGroupEditing {
   type: 'PROMPT_GROUP_EDITING';
 }
+export interface PromptGroupNameEmpty {
+  type: 'PROMPT_GROUP_NAME_EMPTY';
+}
 // ~~ Action export interfaces: fetches ~~
 export interface FetchClients {
   type: 'FETCH_CLIENTS';
@@ -369,6 +372,7 @@ export type PageAction = SelectClient
   | SetPendingGroupUserAssigned
   | SetPendingGroupUserRemoved
   | PromptGroupEditing
+  | PromptGroupNameEmpty
   ;
 export type ScheduleAction = ScheduleSessionCheck | ScheduleStatusRefresh;
 export type RequestAction = FetchClients

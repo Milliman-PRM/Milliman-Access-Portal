@@ -281,11 +281,17 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
                 <CardButton
                   color={'green'}
                   tooltip={'Save changes'}
-                  onClick={() => this.props.updateGroup({
-                    groupId: entity.id,
-                    name: entity.name,
-                    users: entity.assignedUsers.map((u) => u.id),
-                  })}
+                  onClick={() => {
+                    if (!pending.group.name) {
+                      this.props.promptGroupNameEmpty({});
+                      return;
+                    }
+                    this.props.updateGroup({
+                      groupId: entity.id,
+                      name: entity.name,
+                      users: entity.assignedUsers.map((u) => u.id),
+                    });
+                  }}
                   icon={'checkmark'}
                 />
                 <CardButton
@@ -524,7 +530,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
           <form
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              if (!this.props.pending.data.createGroup && this.props.pending.newGroupName) {
+              if (!pending.data.createGroup && pending.newGroupName) {
                 this.props.createGroup({
                   contentItemId: this.props.selectedItem.id,
                   name: this.props.pending.newGroupName,
@@ -545,7 +551,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
               <button className="link-button" type="button" onClick={() => this.props.closeAddGroupModal({})}>
                 Cancel
               </button>
-              <button className="blue-button" type="submit">
+              <button
+                className={`blue-button${pending.newGroupName ? '' : ' disabled'}`}
+                type="submit"
+              >
                 Add
                 {this.props.pending.data.createGroup
                   ? <ButtonSpinner />

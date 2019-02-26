@@ -98,6 +98,8 @@ export const setPendingGroupUserRemoved =
   createActionCreator<AccessActions.SetPendingGroupUserRemoved>('SET_PENDING_GROUP_USER_REMOVED');
 export const promptGroupEditing =
   createActionCreator<AccessActions.PromptGroupEditing>('PROMPT_GROUP_EDITING');
+export const promptGroupNameEmpty =
+  createActionCreator<AccessActions.PromptGroupNameEmpty>('PROMPT_GROUP_NAME_EMPTY');
 
 // Data fetches
 export const fetchClients =
