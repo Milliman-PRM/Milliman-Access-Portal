@@ -1,5 +1,5 @@
-﻿import { Guid } from '../shared-components/interfaces';
-import { ContentTypeEnum } from '../../view-models/content-publishing';
+﻿import { ContentTypeEnum } from '../../view-models/content-publishing';
+import { Guid } from '../shared-components/interfaces';
 
 export interface Filterable {
   filterString: string;

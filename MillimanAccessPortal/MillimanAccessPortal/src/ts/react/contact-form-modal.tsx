@@ -20,7 +20,7 @@ interface ContactFormModalState {
 
 export class ContactFormModal extends React.Component<Modal.Props, ContactFormModalState> {
 
-  public constructor(props) {
+  public constructor(props: Modal.Props) {
     super(props);
 
     this.state = {

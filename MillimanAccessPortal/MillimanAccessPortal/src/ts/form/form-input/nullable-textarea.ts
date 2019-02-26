@@ -29,7 +29,7 @@ export class NullableTextareaInput extends FormInput {
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('textarea');
 
   protected getValueFn = ($input: JQuery<HTMLElement>) =>
-    this.$entryPoint.find('input').prop('checked') ? $input.val : () => null
+    this.$entryPoint.find('input').prop('checked') ? $input.val : () => ''
   protected setValueFn = ($input: JQuery<HTMLElement>) => (val: string) => {
     this.$entryPoint.find('input').prop('checked', val !== null);
     $input.val(val || '');

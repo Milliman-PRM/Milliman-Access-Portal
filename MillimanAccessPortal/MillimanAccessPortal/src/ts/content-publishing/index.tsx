@@ -15,7 +15,6 @@ import { setup as Root } from './dom-methods';
 
 import $ = require('jquery');
 require('tooltipster');
-import toastr = require('toastr');
 
 import 'toastr/toastr.scss';
 import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css';
