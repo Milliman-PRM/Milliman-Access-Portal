@@ -246,6 +246,7 @@ const pendingSelections = createReducer<Map<Guid, { selected: boolean }>>(new Ma
   CANCEL_REDUCTION_SUCCEEDED: () => new Map(),
 });
 const pendingNewGroupName = createReducer<string>('', {
+  OPEN_ADD_GROUP_MODAL: (_state) => '',
   SET_PENDING_NEW_GROUP_NAME: (_state, action: AccessActions.SetPendingNewGroupName) => action.name,
 });
 const pendingGroups = createReducer<PendingGroupState>(_initialPendingGroups, {
