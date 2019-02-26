@@ -1,16 +1,9 @@
-﻿import '../../../images/download.svg';
-import '../../../images/release-notes.svg';
-import '../../../images/userguide.svg';
-import '../../../scss/react/authorized-content/content-card.scss';
+﻿import '../../../scss/react/authorized-content/content-card.scss';
 
 import * as React from 'react';
 
 import { ContentTypeEnum } from '../../view-models/content-publishing';
-import { ActionIcon } from '../shared-components/action-icon';
 import { ContentCardFunctions, ContentItem } from './interfaces';
-
-require('tooltipster');
-require('tooltipster/src/css/tooltipster.css');
 
 interface ContentCardProps extends ContentItem, ContentCardFunctions { }
 export class ContentCard extends React.Component<ContentCardProps, {}> {
@@ -36,14 +29,10 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         <a
           href={this.props.releaseNotesURL}
           target="_blank"
-          className="action-icon-link"
+          className="secondary-button"
           onClick={this.selectReleaseNotes}
         >
-          <ActionIcon
-            action={() => false}
-            label="View Release Notes"
-            icon="release-notes"
-          />
+          Release Notes
         </a>
       )
       : null;
@@ -52,32 +41,39 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         <a
           href={this.props.userguideURL}
           target="_blank"
-          className="action-icon-link"
+          className="secondary-button"
           onClick={this.selectUserGuide}
         >
-          <ActionIcon
-            action={() => false}
-            label="View Userguide"
-            icon="userguide"
-          />
+          User Guide
         </a>
       )
       : null;
+    const newWindow = (this.props.contentTypeEnum === ContentTypeEnum.FileDownload)
+      ? (
+        <a
+          href={this.props.contentURL}
+          download={true}
+          className="secondary-button"
+        >
+          Download
+        </a>
+      ) : (
+        <a
+          href={this.props.contentURL}
+          target="_blank"
+          className="secondary-button"
+        >
+          Open in New Tab
+        </a>
+      );
     const contentLink = (this.props.contentTypeEnum === ContentTypeEnum.FileDownload)
       ? (
         <a
           href={this.props.contentURL}
           download={true}
           className="content-card-link content-card-download"
-        >
-          <div className="content-card-download-indicator">
-            <svg className="content-card-download-icon">
-              <use xlinkHref="#download" />
-            </svg>
-          </div>
-        </a>
-      )
-      : (
+        />
+      ) : (
         <a
           href={this.props.contentURL}
           target="_blank"
@@ -90,16 +86,15 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         <div className="content-card">
           <div className="content-card-header">
             <h2 className="content-card-title">{this.props.name}</h2>
-            <div className="content-card-icons">
-              {releaseNotes}
-              {userGuide}
-            </div>
           </div>
-          <div className="content-card-body">
+          <div className={`content-card-body${this.props.description ? '' : ' image-only'}`}>
             {image}
-            <p className="content-card-description">
-              {this.props.description}
-            </p>
+            {this.props.description && <p className="content-card-description">{this.props.description}</p>}
+          </div>
+          <div className="secondary-actions">
+            {newWindow}
+            {releaseNotes}
+            {userGuide}
           </div>
           {contentLink}
         </div>
