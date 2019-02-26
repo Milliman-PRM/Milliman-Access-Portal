@@ -484,7 +484,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
           );
         }}
         renderNewEntityButton={() => (
-          <div className="card-container action-card-container" onClick={this.props.openAddGroupModal}>
+          <div className="card-container action-card-container" onClick={() => this.props.openAddGroupModal({})}>
             <div className="admin-panel-content">
               <div className="card-body-container card-100 action-card">
                 <h2 className="card-body-primary-text">
@@ -513,7 +513,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         </PanelSectionToolbar>
         <Modal
           isOpen={modals.addGroup.isOpen}
-          onRequestClose={this.props.closeAddGroupModal}
+          onRequestClose={() => this.props.closeAddGroupModal({})}
           ariaHideApp={false}
           className="modal"
           overlayClassName="modal-overlay"
@@ -542,7 +542,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
               autoFocus={true}
             />
             <div className="button-container">
-              <button className="link-button" type="button" onClick={this.props.closeAddGroupModal}>
+              <button className="link-button" type="button" onClick={() => this.props.closeAddGroupModal({})}>
                 Cancel
               </button>
               <button className="blue-button" type="submit">
@@ -557,7 +557,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         </Modal>
         <Modal
           isOpen={modals.deleteGroup.isOpen}
-          onRequestClose={this.props.closeDeleteGroupModal}
+          onRequestClose={() => this.props.closeDeleteGroupModal({})}
           ariaHideApp={false}
           className="modal"
           overlayClassName="modal-overlay"
@@ -566,7 +566,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
           <h3 className="title red">Delete Selection Group</h3>
           <span className="modal-text">Delete <strong>{groupDelete ? groupDelete.name : ''}</strong>?</span>
           <div className="button-container">
-            <button className="link-button" type="button" onClick={this.props.closeDeleteGroupModal}>
+            <button className="link-button" type="button" onClick={() => this.props.closeDeleteGroupModal({})}>
               Cancel
             </button>
             <button
