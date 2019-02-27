@@ -475,6 +475,7 @@
                     flex-flow: row nowrap;
                     align-items: center;
                     margin-bottom: .5em;
+                    cursor: pointer;
 
                     .detail-item-icon,
                     .detail-item-user-icon {
@@ -512,8 +513,12 @@
                         width: 100%;
                         margin-bottom: 1.5em;
 
-                        .react-select__indicators {
-                            cursor: pointer;
+                        .react-select__control {
+                            cursor: text;
+
+                            .react-select__indicators {
+                                cursor: pointer;
+                            }
                         }
 
                         .react-select__menu {
