@@ -40,7 +40,7 @@ export interface PendingGroupState {
   id: Guid;
   name: string;
   userQuery: string;
-  users: Map<Guid, PendingGroupUserState>;
+  users: Dict<PendingGroupUserState>;
 }
 
 export interface AccessStateData {
@@ -62,12 +62,12 @@ export interface AccessStateSelected {
   group: Guid;
 }
 export interface AccessStateCardAttributes {
-  group: Map<Guid, CardAttributes>;
+  group: Dict<CardAttributes>;
 }
 export interface AccessStatePending {
   data: PendingDataState;
   isMaster: boolean;
-  selections: Map<Guid, { selected: boolean }>;
+  selections: Dict<{ selected: boolean }>;
   newGroupName: string;
   group: PendingGroupState;
   deleteGroup: Guid;

@@ -5,10 +5,10 @@ import { combineReducers } from 'redux';
 import { Guid } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import * as AccessActions from './actions';
-import { AccessAction, CloseAction, FilterAction, OpenAction } from './actions';
+import { AccessAction, FilterAction, OpenAction } from './actions';
 import {
-    AccessStateData, AccessStateSelected, FilterState, ModalState, PendingDataState,
-    PendingGroupState, PendingGroupUserState,
+    AccessStateData, AccessStateSelected, Dict, FilterState, ModalState, PendingDataState,
+    PendingGroupState,
 } from './store';
 
 const _initialData: AccessStateData = {
@@ -24,7 +24,7 @@ const _initialData: AccessStateData = {
   reductions: {},
   reductionQueue: {},
 };
-const _initialCards = new Map<Guid, CardAttributes>([]);
+const _initialCards = {};
 const _initialPendingData: PendingDataState = {
   clients: false,
   items: false,
@@ -41,7 +41,7 @@ const _initialPendingGroups: PendingGroupState = {
   id: null,
   name: null,
   userQuery: '',
-  users: new Map<Guid, PendingGroupUserState>(),
+  users: {},
 };
 
 // utility functions
@@ -97,26 +97,42 @@ function updateAllMap<T extends object>(map: Map<Guid, T>, value: Partial<T>) {
   return clone;
 }
 
-const groupCardAttributes = createReducer<Map<Guid, CardAttributes>>(_initialCards,
+const groupCardAttributes = createReducer<Dict<CardAttributes>>(_initialCards,
   {
-    SET_GROUP_EDITING_ON: (state, action: AccessActions.SetGroupEditingOn) =>
-      updateMap(state, action.id, { expanded: true }),
-    SET_EXPANDED_GROUP: (state, action: AccessActions.SetExpandedGroup) =>
-      updateMap(state, action.id, { expanded: true }),
-    SET_COLLAPSED_GROUP: (state, action: AccessActions.SetCollapsedGroup) =>
-      updateMap(state, action.id, { expanded: false }),
+    SET_GROUP_EDITING_ON: (state, action: AccessActions.SetGroupEditingOn) => ({
+      ...state,
+      [action.id]: {
+        expanded: true,
+      },
+    }),
+    SET_EXPANDED_GROUP: (state, action: AccessActions.SetExpandedGroup) => ({
+      ...state,
+      [action.id]: {
+        expanded: true,
+      },
+    }),
+    SET_COLLAPSED_GROUP: (state, action: AccessActions.SetCollapsedGroup) => ({
+      ...state,
+      [action.id]: {
+        expanded: false,
+      },
+    }),
     SET_ALL_EXPANDED_GROUP: (state) =>
-      updateAllMap(state, { expanded: true }),
+      _.mapValues(state, (group) => ({
+        ...group,
+        expanded: true,
+      })),
     SET_ALL_COLLAPSED_GROUP: (state) =>
-      updateAllMap(state, { expanded: false }),
-    FETCH_GROUPS_SUCCEEDED: (state, action: AccessActions.FetchGroupsSucceeded) => {
-      const clone = new Map(state);
+      _.mapValues(state, (group) => ({
+        ...group,
+        expanded: false,
+      })),
+    FETCH_GROUPS_SUCCEEDED: (_state, action: AccessActions.FetchGroupsSucceeded) => {
+      const state: Dict<CardAttributes> = {};
       Object.keys(action.response.groups).forEach((group) => {
-        if (!clone.has(group)) {
-          clone.set(group, {});
-        }
+        state[group] = {};
       });
-      return clone;
+      return state;
     },
   },
 );
@@ -236,14 +252,22 @@ const pendingIsMaster = createReducer<boolean>(null, {
   UPDATE_SELECTIONS_SUCCEEDED: () => null,
   CANCEL_REDUCTION_SUCCEEDED: () => null,
 });
-const pendingSelections = createReducer<Map<Guid, { selected: boolean }>>(new Map(), {
-  SET_PENDING_SELECTION_ON: (state, action: AccessActions.SetPendingSelectionOn) =>
-    updateMap(state, action.id, { selected: true }),
-  SET_PENDING_SELECTION_OFF: (state, action: AccessActions.SetPendingSelectionOff) =>
-    updateMap(state, action.id, { selected: false }),
-  SELECT_GROUP: () => new Map(),
-  UPDATE_SELECTIONS_SUCCEEDED: () => new Map(),
-  CANCEL_REDUCTION_SUCCEEDED: () => new Map(),
+const pendingSelections = createReducer<Dict<{ selected: boolean }>>({}, {
+  SET_PENDING_SELECTION_ON: (state, action: AccessActions.SetPendingSelectionOn) => ({
+    ...state,
+    [action.id]: {
+      selected: true,
+    },
+  }),
+  SET_PENDING_SELECTION_OFF: (state, action: AccessActions.SetPendingSelectionOff) => ({
+    ...state,
+    [action.id]: {
+      selected: false,
+    },
+  }),
+  SELECT_GROUP: () => ({}),
+  UPDATE_SELECTIONS_SUCCEEDED: () => ({}),
+  CANCEL_REDUCTION_SUCCEEDED: () => ({}),
 });
 const pendingNewGroupName = createReducer<string>('', {
   OPEN_ADD_GROUP_MODAL: (_state) => '',
@@ -266,12 +290,22 @@ const pendingGroups = createReducer<PendingGroupState>(_initialPendingGroups, {
   }),
   SET_PENDING_GROUP_USER_ASSIGNED: (state, action: AccessActions.SetPendingGroupUserAssigned) => ({
     ...state,
-    users: updateMap(state.users, action.id, { assigned: true }),
+    users: {
+      ...state.users,
+      [action.id]: {
+        assigned: true,
+      },
+    },
     userQuery: '',
   }),
   SET_PENDING_GROUP_USER_REMOVED: (state, action: AccessActions.SetPendingGroupUserRemoved) => ({
     ...state,
-    users: updateMap(state.users, action.id, { assigned: false }),
+    users: {
+      ...state.users,
+      [action.id]: {
+        assigned: false,
+      },
+    },
   }),
 });
 const pendingDeleteGroup = createReducer<Guid>(null, {

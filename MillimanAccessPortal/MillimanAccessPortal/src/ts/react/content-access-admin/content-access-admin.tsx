@@ -274,7 +274,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         entities={groups}
         loading={pending.data.groups}
         renderEntity={(entity, key) => {
-          const card = cardAttributes.group.get(entity.id);
+          const card = cardAttributes.group[entity.id];
           const cardButtons = entity.editing
             ? (
               <>

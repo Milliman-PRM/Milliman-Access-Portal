@@ -36,10 +36,10 @@ export function pendingReductionValues(state: AccessState) {
     return _relatedReduction.selectedValues.map((i) => state.data.values[i]).filter((i) => i);
   }
   return _.filter(state.data.values, (v) => {
-    const selectionChanges = state.pending.selections || new Map();
-    return _selectedGroup.selectedValues && _selectedGroup.selectedValues.find((sv) => sv === v.id)
-      ? !selectionChanges.has(v.id) || selectionChanges.get(v.id).selected
-      : selectionChanges.has(v.id) && selectionChanges.get(v.id).selected;
+    const selectionChanges = state.pending.selections || {};
+    return _selectedGroup.selectedValues && _selectedGroup.selectedValues.filter((sv) => sv === v.id).length
+      ? !(v.id in selectionChanges) || selectionChanges[v.id].selected
+      : (v.id in selectionChanges) && selectionChanges[v.id].selected;
   });
 }
 
@@ -121,14 +121,14 @@ export function pendingGroupUserAssignments(state: AccessState, groupId: Guid) {
   const users = [...group.assignedUsers];
   const pendingUsers = state.pending.group.id === group.id
     ? state.pending.group.users
-    : new Map();
-  for (const userId of pendingUsers.keys()) {
-    if (pendingUsers.get(userId).assigned) {
-      if (users.find((id) => id === userId) === undefined) {
+    : {};
+  for (const userId in pendingUsers) {
+    if (pendingUsers[userId].assigned) {
+      if (users.filter((id) => id === userId).length === 0) {
         users.push(userId);
       }
     } else {
-      if (users.find((id) => id === userId) !== undefined) {
+      if (users.filter((id) => id === userId).length) {
         users.splice(users.indexOf(userId), 1);
       }
     }
@@ -378,7 +378,7 @@ export function allGroupsExpanded(state: AccessState) {
   return activeGroups(state)
     .filter((g) => g.assignedUsers.length || state.pending.group.id === g.id)
     .reduce((prev, g) => {
-      const card = state.cardAttributes.group.get(g.id);
+      const card = state.cardAttributes.group[g.id];
       return prev && card && card.expanded;
     }, true);
 }
@@ -391,7 +391,7 @@ export function allGroupsCollapsed(state: AccessState) {
   return activeGroups(state)
     .filter((g) => g.assignedUsers.length)
     .reduce((prev, g) => {
-      const card = state.cardAttributes.group.get(g.id);
+      const card = state.cardAttributes.group[g.id];
       return prev && (!card || !card.expanded);
     }, true);
 }
