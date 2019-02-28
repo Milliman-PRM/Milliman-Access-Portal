@@ -7,8 +7,8 @@
 .PARAMETER logFolderPath
     The full path to the folder to search for QlikView log files
     
-.PARAMETER sinceDate
-    The first day of files to parse
+.PARAMETER logDays
+    The number of days of logs to process. Default is 0 (current day only)
     
 .PARAMETER pgsqlServer
     The PostgreSQL Server hosting the user stats database
@@ -35,7 +35,7 @@
 # Define parameters
 param (
     [Parameter(Mandatory=$true)][string]$logFolderPath,
-    [Parameter(Mandatory=$true)][DateTime]$sinceDate,
+    [Parameter(Mandatory=$true)][int]$logDays=0,
     [Parameter(Mandatory=$true)][string]$pgsqlServer,
     [Parameter(Mandatory=$true)][string]$pgsqlDatabase,
     [Parameter(Mandatory=$true)][string]$pgsqlUser,
@@ -58,6 +58,8 @@ if (Test-Path $auditInsertFilePath)
     Remove-Item $sessionInsertFilePath
  }
 
+$dateSpan = New-TimeSpan -days $logDays
+$sinceDate = (get-date).Subtract($dateSpan)
 
 # Identify files to be loaded
 
