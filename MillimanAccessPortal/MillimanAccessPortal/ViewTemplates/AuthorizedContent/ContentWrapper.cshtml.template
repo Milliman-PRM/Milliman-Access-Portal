@@ -1,0 +1,17 @@
+@model MillimanAccessPortal.Models.AuthorizedContentViewModels.ContentWrapperModel
+
+@{
+    ViewData["Title"] = "";
+    Layout = "_Layout";
+    ViewData["NavIcon"] = "";
+}
+
+<div id="content-url" style="display: none;">@Model.ContentURL</div>
+<div id="content-type" style="display: none;">@Model.ContentType</div>
+<div id="content-wrapper"></div>
+
+@section Scripts {
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+}

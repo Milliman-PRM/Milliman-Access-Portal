@@ -11,6 +11,7 @@ module.exports = {
     'client-admin': './src/ts/client-admin.tsx',
     'content-access-admin': './src/ts/content-access-admin/index.tsx',
     'content-disclaimer': './src/ts/content-disclaimer.ts',
+    'content-wrapper': './src/ts/react/authorized-content/content-wrapper.tsx',
     'content-publishing': './src/ts/content-publishing/index.tsx',
     'create-initial-user': './src/ts/create-initial-user.ts',
     'enable-account': './src/ts/enable-account.ts',
@@ -160,6 +161,12 @@ module.exports = {
       template: path.resolve(__dirname, 'ViewTemplates', 'AuthorizedContent', 'ContentDisclaimer.cshtml.template'),
       inject: false,
       chunks: [ 'commons', 'content-disclaimer' ],
+    }),
+    new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'AuthorizedContent', 'ContentWrapper.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'AuthorizedContent', 'ContentWrapper.cshtml.template'),
+      inject: false,
+      chunks: [ 'commons', 'content-wrapper' ],
     }),
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'Shared', 'Message.cshtml'),

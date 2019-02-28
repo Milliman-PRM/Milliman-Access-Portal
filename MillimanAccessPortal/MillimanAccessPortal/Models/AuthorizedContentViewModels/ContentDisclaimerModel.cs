@@ -2,7 +2,7 @@
 
 namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
 {
-    public class ContentDisclaimer
+    public class ContentDisclaimerModel
     {
         public string ValidationId { get; set; }
         public Guid SelectionGroupId { get; set; }

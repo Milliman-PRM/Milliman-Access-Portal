@@ -99,6 +99,105 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
+        /// Return a view that contains either content disclaimer text or the content
+        /// </summary>
+        public async Task<IActionResult> ContentWrapper(Guid selectionGroupId)
+        {
+            var user = await Queries.GetCurrentApplicationUser(User);
+            var userInSelectionGroup = await DataContext.UserInSelectionGroup
+                .Where(u => u.UserId == user.Id)
+                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .FirstOrDefaultAsync();
+            var selectionGroup = DataContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(i => i.ContentType)
+                .Where(sg => sg.Id == selectionGroupId)
+                .Where(sg => sg.ContentInstanceUrl != null)
+                .Where(sg => !sg.IsSuspended)
+                .Where(sg => !sg.RootContentItem.IsSuspended)
+                .FirstOrDefault();
+
+            #region Validation
+            if (selectionGroup?.RootContentItem == null)
+            {
+                Log.Error("In AuthorizedContentController.ContentWrapper action, " + 
+                    "failed to obtain the requested selection group, content item, or content type: " +
+                    $"user {User.Identity.Name}, selectionGroupId {selectionGroupId}, aborting");
+
+                var ErrMsg = new List<string>
+                {
+                    "You are not authorized to access the requested content.",
+                };
+                return View("ContentMessage", ErrMsg);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(selectionGroupId));
+            if (!Result1.Succeeded)
+            {
+                Log.Verbose($"In AuthorizedContentController.WebHostedContent action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
+
+                var ErrMsg = new List<string>
+                {
+                    "You are not authorized to access the requested content.",
+                };
+                return View("ContentMessage", ErrMsg);
+            }
+            #endregion
+
+            #region Content Disclaimer Verification
+            if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer)
+                && !userInSelectionGroup.DisclaimerAccepted)
+            {
+                var disclaimer = new ContentDisclaimerModel
+                {
+                    ValidationId = Guid.NewGuid().ToString("D"),
+                    SelectionGroupId = selectionGroupId,
+                    ContentName = selectionGroup.RootContentItem.ContentName,
+                    DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
+                };
+                AuditLogger.Log(AuditEventType.ContentDisclaimerPresented.ToEvent(
+                    userInSelectionGroup, disclaimer.ValidationId, disclaimer.DisclaimerText));
+
+                return View("ContentDisclaimer", disclaimer);
+            }
+            #endregion
+
+            UriBuilder contentUrlBuilder = new UriBuilder
+            {
+                Host = Request.Host.Host,
+                Scheme = Request.Scheme,
+                Port = Request.Host.Port ?? -1,
+                Path = "/AuthorizedContent/WebHostedContent",
+                Query = $"selectionGroupId=",
+            };
+
+            return View("ContentWrapper", new ContentWrapperModel
+            {
+                ContentURL = $"{contentUrlBuilder.Uri.AbsoluteUri}{selectionGroup.Id}",
+                ContentType = selectionGroup.RootContentItem.ContentType.TypeEnum,
+            });
+        }
+
+        public async Task<IActionResult> AcceptDisclaimer(Guid selectionGroupId, string validationId)
+        {
+            var user = await Queries.GetCurrentApplicationUser(User);
+            var userInSelectionGroup = await DataContext.UserInSelectionGroup
+                .Where(u => u.UserId == user.Id)
+                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .FirstOrDefaultAsync();
+
+            userInSelectionGroup.DisclaimerAccepted = true;
+
+            await DataContext.SaveChangesAsync();
+            AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, validationId));
+
+            return Ok();
+        }
+
+        /// <summary>
         /// Handles a request to display content that is hosted by a web server. 
         /// </summary>
         /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
@@ -157,16 +256,10 @@ namespace MillimanAccessPortal.Controllers
             if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer)
                 && !userInSelectionGroup.DisclaimerAccepted)
             {
-                var disclaimer = new ContentDisclaimer
+                return View("ContentMessage", new List<string>
                 {
-                    ValidationId = Guid.NewGuid().ToString("D"),
-                    SelectionGroupId = selectionGroupId,
-                    ContentName = selectionGroup.RootContentItem.ContentName,
-                    DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
-                };
-                AuditLogger.Log(AuditEventType.ContentDisclaimerPresented.ToEvent(
-                    userInSelectionGroup, disclaimer.ValidationId, disclaimer.DisclaimerText));
-                return View("ContentDisclaimer", disclaimer);
+                    "You are not authorized to access the requested content.",
+                });
             }
             #endregion
 
@@ -263,22 +356,6 @@ namespace MillimanAccessPortal.Controllers
                 TempData["ReturnToAction"] = "Index";
                 return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
             }
-        }
-
-        public async Task<IActionResult> AcceptDisclaimer(Guid selectionGroupId, string validationId)
-        {
-            var user = await Queries.GetCurrentApplicationUser(User);
-            var userInSelectionGroup = await DataContext.UserInSelectionGroup
-                .Where(u => u.UserId == user.Id)
-                .Where(u => u.SelectionGroupId == selectionGroupId)
-                .FirstOrDefaultAsync();
-
-            userInSelectionGroup.DisclaimerAccepted = true;
-
-            await DataContext.SaveChangesAsync();
-            AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, validationId));
-
-            return Ok();
         }
 
         /// <summary>

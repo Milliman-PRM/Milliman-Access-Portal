@@ -58,7 +58,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
                 Port = Context.Request.Host.Port ?? -1,
-                Path = "/AuthorizedContent/WebHostedContent",
+                Path = "/AuthorizedContent/ContentWrapper",
                 Query = $"selectionGroupId=",
             };
 
