@@ -75,6 +75,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/Login
         [HttpGet]
         [AllowAnonymous]
+        [LogTiming]
         public async Task<IActionResult> Login(string returnUrl = null)
         {
             // Clear the existing external cookie to ensure a clean login process
@@ -1148,6 +1149,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpGet]
         [PreventAuthRefresh]
+        [LogTiming]
         public IActionResult SessionStatus()
         {
             return Ok();
