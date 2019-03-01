@@ -206,24 +206,30 @@ if ($sessionFileCount -eq 0 -and $auditFileCount -eq 0)
 
 $env:PGPASSWORD = $pgsqlPassword
 
-# Load session records
-write-output "$(get-date) Loading Qlikview session records into datbase"
-$command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$sessionInsertFilePath`" --echo-errors"
-Invoke-Expression $command
-
-if ($? -eq $false)
+if ($sessionFileCount -gt 0)
 {
-    write-output "$(get-date) ERROR: Failed to write QlikView session records into the database. See output above for failure details."
+    # Load session records
+    write-output "$(get-date) Loading Qlikview session records into datbase"
+    $command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$sessionInsertFilePath`" --echo-errors"
+    Invoke-Expression $command
+
+    if ($? -eq $false)
+    {
+        write-output "$(get-date) ERROR: Failed to write QlikView session records into the database. See output above for failure details."
+    }
 }
 
-# Load audit records
-write-output "$(get-date) Loading Qlikview audit records into database"
-$command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$auditInsertFilePath`" --echo-errors"
-Invoke-Expression $command
-
-if ($? -eq $false)
+if ($auditFileCount -gt 0)
 {
-    write-output "$(get-date) ERROR: Failed to write QlikView session records into the database. See output above for failure details."
+    # Load audit records
+    write-output "$(get-date) Loading Qlikview audit records into database"
+    $command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$auditInsertFilePath`" --echo-errors"
+    Invoke-Expression $command
+
+    if ($? -eq $false)
+    {
+        write-output "$(get-date) ERROR: Failed to write QlikView session records into the database. See output above for failure details."
+    }
 }
 
 $env:PGPASSWORD = ""
@@ -231,5 +237,12 @@ $env:PGPASSWORD = ""
 
 # Delete temp files
 
-remove-item $sessionInsertFilePath
-remove-item $auditInsertFilePath
+if (test-path $sessionInsertFilePath)
+{
+    remove-item $sessionInsertFilePath
+}
+
+if (test-path $auditInsertFilePath)
+{
+    remove-item $auditInsertFilePath
+}
