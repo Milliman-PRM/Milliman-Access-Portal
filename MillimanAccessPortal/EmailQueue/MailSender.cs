@@ -33,20 +33,23 @@ namespace EmailQueue
 
         public MailSender(ILogger loggerArg)
         {
-            if (smtpConfig == null)
+            lock (ThreadSafetyLock)
             {
-                throw new Exception("Attempt to instantiate MailSender before initializing!");
-            }
-
-            InstanceCount++;
-            _logger = loggerArg;
-            
-            if (WorkerTask == null || (WorkerTask.Status != TaskStatus.Running && WorkerTask.Status != TaskStatus.WaitingToRun))
-            {
-                WorkerTask = Task.Run(() => ProcessQueueEvents());
-                while (WorkerTask.Status != TaskStatus.Running)
+                if (smtpConfig == null)
                 {
-                    Thread.Sleep(1);
+                    throw new Exception("Attempt to instantiate MailSender before initializing!");
+                }
+
+                InstanceCount++;
+                _logger = loggerArg;
+
+                if (WorkerTask == null || (WorkerTask.Status != TaskStatus.Running && WorkerTask.Status != TaskStatus.WaitingToRun))
+                {
+                    WorkerTask = Task.Run(() => ProcessQueueEvents());
+                    while (WorkerTask.Status != TaskStatus.Running)
+                    {
+                        Thread.Sleep(1);
+                    }
                 }
             }
         }
