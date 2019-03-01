@@ -949,33 +949,11 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(424242), "password");
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(424242));
             #endregion
 
             #region Assert
             Assert.IsType<BadRequestResult>(view);
-            #endregion
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Theory]
-        [InlineData(6, null)]// Password check fails
-        [InlineData(3, "password")]// User is not authorized as Admin of the client
-        [InlineData(4, "password")]// User is not authorized as Admin of the client's profit center
-        public async Task DeleteClient_ErrorWhenUnauthorized(int clientIdArg, string passwordArg)
-        {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            #endregion
-
-            #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(clientIdArg), passwordArg);
-            #endregion
-
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
             #endregion
         }
 
@@ -988,11 +966,10 @@ namespace MapTests
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
-            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(7), "password");
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(7));
             #endregion
 
             #region Assert
@@ -1010,11 +987,10 @@ namespace MapTests
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
-            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(8), "password");
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(8));
             #endregion
 
             #region Assert
@@ -1032,14 +1008,13 @@ namespace MapTests
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
-            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
 
             int clientPreCount = TestResources.DbContextObject.Client.Count();
             int claimsPreCount = TestResources.DbContextObject.UserClaims.Count();
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(6), "password");
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(6));
             #endregion
 
             #region Assert
