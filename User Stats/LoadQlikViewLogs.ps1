@@ -91,6 +91,7 @@ if ($sessionFileCount -gt 0)
 
         $sessions = Import-CsV $file.FullName -Delimiter "`t"
 
+        $lineNumber = 0
         foreach ($session in $sessions)
         {
             if ($firstValue) # This approach allows us to ensure we're working with the first overall values, regardless of which file or line number it is
@@ -126,8 +127,8 @@ if ($sessionFileCount -gt 0)
            
            $sessionEndTime = $sessionStartTime.AddSeconds($duration.TotalSeconds)
 
-           $sessionValues += "('$($session.Timestamp)', '$($session.Document)', '$($session.'Exit Reason')', '$($session.'Session Start')', '$duration', '$($sessionEndTime.ToString())', '$($session.'Authenticated user')', '$($session.'Cal Type')', '', '$($session.Session)', '$($file.Name)', $($sessions.IndexOf($session)))"
-        
+           $sessionValues += "('$($session.Timestamp)', '$($session.Document)', '$($session.'Exit Reason')', '$($session.'Session Start')', '$duration', '$($sessionEndTime.ToString())', '$($session.'Authenticated user')', '$($session.'Cal Type')', '', '$($session.Session)', '$($file.Name)', $lineNumber)"
+           $lineNumber++
         }
         
         $fileCounter++
@@ -164,6 +165,8 @@ if ($auditFileCount -gt 0)
 
         $audits = Import-CsV $file.FullName -Delimiter "`t"
 
+
+        $lineNumber = 0
         foreach ($audit in $audits)
         {
             if ($firstValue) # This approach allows us to ensure we're working with the first overall values, regardless of which file or line number it is
@@ -176,8 +179,8 @@ if ($auditFileCount -gt 0)
                 $auditValues += "`r`n`r`n ," # Subsequent values should be preceded by a comma
             }
 
-            $auditValues += "($($audit.Session), '$($audit.Timestamp)', '$($audit.Document)', '$($audit.Type)', '$($audit.Message.Replace('''', ''))', '$($file.Name)', $($audits.IndexOf($audit)))"
-        
+            $auditValues += "($($audit.Session), '$($audit.Timestamp)', '$($audit.Document)', '$($audit.Type)', '$($audit.Message.Replace('''', ''))', '$($file.Name)', $lineNumber)"
+            $lineNumber++
         }
         
         $fileCounter++
