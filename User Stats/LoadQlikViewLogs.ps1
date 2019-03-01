@@ -87,7 +87,7 @@ if ($sessionFileCount -gt 0)
     foreach ($file in $sessionFileList)
     {
         
-        write-output "$(get-date) Processing session file $fileCounter of $sessionFileCount - $($file.Name)"
+        write-output "$(get-date) Processing session file $fileCounter of $sessionFileCount - $($file.Name) ($([math]::Round($file.length / 1MB, 2)) MB)"
 
         $sessions = Import-CsV $file.FullName -Delimiter "`t"
 
@@ -131,6 +131,8 @@ if ($sessionFileCount -gt 0)
            $lineNumber++
         }
         
+		write-output "$lineNumber records processed"
+		
         $fileCounter++
     }
 
@@ -161,7 +163,7 @@ if ($auditFileCount -gt 0)
 
     foreach ($file in $auditFileList)
     {
-        write-output "$(get-date) Processing audit file $fileCounter of $auditFileCount - $($file.Name)"
+        write-output "$(get-date) Processing audit file $fileCounter of $auditFileCount - $($file.Name) ($([math]::Round($file.length / 1MB, 2)) MB)"
 
         $audits = Import-CsV $file.FullName -Delimiter "`t"
 
@@ -183,6 +185,8 @@ if ($auditFileCount -gt 0)
             $lineNumber++
         }
         
+		write-output "$lineNumber records processed"
+		
         $fileCounter++
     }
 
