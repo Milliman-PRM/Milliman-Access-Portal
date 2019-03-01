@@ -1075,7 +1075,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteClient(Guid Id, string Password)
+        public async Task<IActionResult> DeleteClient(Guid Id)
         {
             Log.Verbose($"Entered ClientAdminController.DeleteClient action with client ID {Id}");
 
@@ -1093,13 +1093,6 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             ApplicationUser CurrentUser = await Queries.GetCurrentApplicationUser(User);
-            if (!await UserManager.CheckPasswordAsync(CurrentUser, Password))
-            {
-                Log.Debug($"In ClientAdminController.DeleteClient action: incorrect password for current user {CurrentUser.UserName}, aborting");
-                Response.Headers.Add("Warning", "Incorrect password");
-                return Unauthorized();
-            }
-
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
                     new RoleInClientRequirement(RoleEnum.Admin, Id),
