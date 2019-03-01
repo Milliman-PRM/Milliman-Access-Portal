@@ -68,11 +68,12 @@ $auditFileList = $fileList | where {$_.Name -like "Audit*.log"}
 $sessionFileList = $fileList | where {$_.Name -like "Session*.log"}
 
 # Extract records from files
+$sessionFileCount = $sessionFileList.Count
+write-output "$sessionFileCount session files found"
 
 # Load session file entries to be inserted
-if ($sessionFileList.Count -gt 0)
+if ($sessionFileCount -gt 0)
 {
-
     # Initialize file with INSERT statement
     write-output "Preparing session log insert statement"
     $BeginQuery = "INSERT INTO public.`"QlikViewSession`"(`"Timestamp`", `"Document`", `"ExitReason`", `"SessionStartTime`", `"SessionDuration`", `"SessionEndTime`", `"Username`", `"CalType`", `"Browser`", `"Session`", `"LogFileName`", `"LogFileLineNumber`") VALUES"
@@ -81,8 +82,13 @@ if ($sessionFileList.Count -gt 0)
     $sessionValues = ""
     $firstValue = $true
 
+    $fileCounter = 1
+
     foreach ($file in $sessionFileList)
     {
+        
+        write-output "Processing session file $fileCounter of $sessionFileCount - $($file.Name)"
+
         $sessions = Import-CsV $file.FullName -Delimiter "`t"
 
         foreach ($session in $sessions)
@@ -121,7 +127,10 @@ if ($sessionFileList.Count -gt 0)
            $sessionEndTime = $sessionStartTime.AddSeconds($duration.TotalSeconds)
 
            $sessionValues += "('$($session.Timestamp)', '$($session.Document)', '$($session.'Exit Reason')', '$($session.'Session Start')', '$duration', '$($sessionEndTime.ToString())', '$($session.'Authenticated user')', '$($session.'Cal Type')', '', '$($session.Session)', '$($file.Name)', $($sessions.IndexOf($session)))"
+        
         }
+        
+        $fileCounter++
     }
 
     write-output "writing insert statements to file"
@@ -134,7 +143,10 @@ if ($sessionFileList.Count -gt 0)
 }
 
 # Load audit file entries to be inserted
-if ($auditFileList.Count -gt 0)
+$auditFileCount = $auditFileList.Count
+write-output "$auditFileCount audit files found"
+
+if ($auditFileCount -gt 0)
 {
     # Initialize file with INSERT statement
     write-output "Preparing audit log insert statement"
@@ -144,8 +156,12 @@ if ($auditFileList.Count -gt 0)
     $auditValues = ""
     $firstValue = $true
 
+    $fileCounter = 1
+
     foreach ($file in $auditFileList)
     {
+        write-output "Processing audit file $fileCounter of $auditFileCount - $($file.Name)"
+
         $audits = Import-CsV $file.FullName -Delimiter "`t"
 
         foreach ($audit in $audits)
@@ -161,8 +177,10 @@ if ($auditFileList.Count -gt 0)
             }
 
             $auditValues += "($($audit.Session), '$($audit.Timestamp)', '$($audit.Document)', '$($audit.Type)', '$($audit.Message.Replace('''', ''))', '$($file.Name)', $($audits.IndexOf($audit)))"
+        
         }
-
+        
+        $fileCounter++
     }
 
     write-output "writing insert statements to file"
@@ -175,6 +193,12 @@ if ($auditFileList.Count -gt 0)
 
 }
 
+if ($sessionFileCount -eq 0 -and $auditFileCount -eq 0)
+{
+    write-output "ERROR: No QlikView log files were found"
+    return 42
+}
+
 # Load into database
 
 $env:PGPASSWORD = $pgsqlPassword
@@ -184,10 +208,20 @@ write-output "Loading Qlikview session records into datbase"
 $command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$sessionInsertFilePath`" --echo-errors"
 Invoke-Expression $command
 
+if ($? -eq $false)
+{
+    write-output "ERROR: Failed to write QlikView session records into the database. See output above for failure details."
+}
+
 # Load audit records
 write-output "Loading Qlikview audit records into database"
 $command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$auditInsertFilePath`" --echo-errors"
 Invoke-Expression $command
+
+if ($? -eq $false)
+{
+    write-output "ERROR: Failed to write QlikView session records into the database. See output above for failure details."
+}
 
 $env:PGPASSWORD = ""
 
