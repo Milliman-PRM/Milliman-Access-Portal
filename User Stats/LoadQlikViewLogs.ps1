@@ -43,14 +43,6 @@ param (
     [Parameter(Mandatory=$true)][string]$psqlExePath
 )
 
-function log_statement {
-    Param([string]$statement)
-
-    $datestring = get-date -Format "yyyy-MM-dd HH:mm:ss"
-
-    log_statement $datestring"|"$statement
-}
-
 # Set up environment
 $sessionInsertFilePath = "$env:temp\sessionInsert.sql"
 $auditInsertFilePath = "$env:temp\auditInsert.sql"
@@ -77,13 +69,13 @@ $sessionFileList = $fileList | where {$_.Name -like "Session*.log"}
 
 # Extract records from files
 $sessionFileCount = $sessionFileList.Count
-log_statement "$sessionFileCount session files found"
+write-output "$(get-date) $sessionFileCount session files found"
 
 # Load session file entries to be inserted
 if ($sessionFileCount -gt 0)
 {
     # Initialize file with INSERT statement
-    log_statement "Preparing session log insert statement"
+    write-output "$(get-date) Preparing session log insert statement"
     $BeginQuery = "INSERT INTO public.`"QlikViewSession`"(`"Timestamp`", `"Document`", `"ExitReason`", `"SessionStartTime`", `"SessionDuration`", `"SessionEndTime`", `"Username`", `"CalType`", `"Browser`", `"Session`", `"LogFileName`", `"LogFileLineNumber`") VALUES"
     $BeginQuery | set-content $sessionInsertFilePath -Force
 
@@ -95,7 +87,7 @@ if ($sessionFileCount -gt 0)
     foreach ($file in $sessionFileList)
     {
         
-        log_statement "Processing session file $fileCounter of $sessionFileCount - $($file.Name)"
+        write-output "$(get-date) Processing session file $fileCounter of $sessionFileCount - $($file.Name)"
 
         $sessions = Import-CsV $file.FullName -Delimiter "`t"
 
@@ -141,23 +133,23 @@ if ($sessionFileCount -gt 0)
         $fileCounter++
     }
 
-    log_statement "writing insert statements to file"
+    write-output "$(get-date) writing insert statements to file"
     $sessionValues | Add-Content $sessionInsertFilePath -Force
 
     # Finalize file with ON CONFLICT [...] DO NOTHING statement
-    log_statement "finalizing query"
+    write-output "$(get-date) finalizing query"
     $EndQuery = "`r`n ON CONFLICT ON CONSTRAINT `"UNIQUE_QVSession_LogFileName_LogFileLine`" DO NOTHING"
     $EndQuery | Add-Content $sessionInsertFilePath -Force
 }
 
 # Load audit file entries to be inserted
 $auditFileCount = $auditFileList.Count
-log_statement "$auditFileCount audit files found"
+write-output "$(get-date) $auditFileCount audit files found"
 
 if ($auditFileCount -gt 0)
 {
     # Initialize file with INSERT statement
-    log_statement "Preparing audit log insert statement"
+    write-output "$(get-date) Preparing audit log insert statement"
     $BeginQuery = "INSERT INTO public.`"QlikViewAudit`" (`"Session`", `"Timestamp`", `"Document`", `"EventType`", `"Message`", `"LogFileName`", `"LogFileLineNumber`") VALUES"
     $BeginQuery | set-content $auditInsertFilePath -Force
 
@@ -168,7 +160,7 @@ if ($auditFileCount -gt 0)
 
     foreach ($file in $auditFileList)
     {
-        log_statement "Processing audit file $fileCounter of $auditFileCount - $($file.Name)"
+        write-output "$(get-date) Processing audit file $fileCounter of $auditFileCount - $($file.Name)"
 
         $audits = Import-CsV $file.FullName -Delimiter "`t"
 
@@ -191,11 +183,11 @@ if ($auditFileCount -gt 0)
         $fileCounter++
     }
 
-    log_statement "writing insert statements to file"
+    write-output "$(get-date) writing insert statements to file"
     $auditValues | Add-Content $auditInsertFilePath -Force
 
     # Finalize file with ON CONFLICT [...] DO NOTHING statement
-    log_statement "finalizing query"
+    write-output "$(get-date) finalizing query"
     $EndQuery = "`r`n ON CONFLICT ON CONSTRAINT `"UNIQUE_QVAudit_LogFileName_LogFileLine`" DO NOTHING"
     $EndQuery | Add-Content $auditInsertFilePath -Force
 
@@ -203,7 +195,7 @@ if ($auditFileCount -gt 0)
 
 if ($sessionFileCount -eq 0 -and $auditFileCount -eq 0)
 {
-    log_statement "ERROR: No QlikView log files were found"
+    write-output "$(get-date) ERROR: No QlikView log files were found"
     return 42
 }
 
@@ -212,23 +204,23 @@ if ($sessionFileCount -eq 0 -and $auditFileCount -eq 0)
 $env:PGPASSWORD = $pgsqlPassword
 
 # Load session records
-log_statement "Loading Qlikview session records into datbase"
+write-output "$(get-date) Loading Qlikview session records into datbase"
 $command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$sessionInsertFilePath`" --echo-errors"
 Invoke-Expression $command
 
 if ($? -eq $false)
 {
-    log_statement "ERROR: Failed to write QlikView session records into the database. See output above for failure details."
+    write-output "$(get-date) ERROR: Failed to write QlikView session records into the database. See output above for failure details."
 }
 
 # Load audit records
-log_statement "Loading Qlikview audit records into database"
+write-output "$(get-date) Loading Qlikview audit records into database"
 $command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$auditInsertFilePath`" --echo-errors"
 Invoke-Expression $command
 
 if ($? -eq $false)
 {
-    log_statement "ERROR: Failed to write QlikView session records into the database. See output above for failure details."
+    write-output "$(get-date) ERROR: Failed to write QlikView session records into the database. See output above for failure details."
 }
 
 $env:PGPASSWORD = ""
