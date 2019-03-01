@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using MimeKit;
 
 namespace EmailQueue
@@ -13,7 +11,6 @@ namespace EmailQueue
         public MailItem(string subject, string messageBody, IEnumerable<string> recipients, string senderAddress, string senderName)
         {
             // Configure required fields for message
-            
             MimeEntity encodedBody = new TextPart("plain")
             {
                 Text = messageBody
