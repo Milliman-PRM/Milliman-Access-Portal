@@ -40,6 +40,9 @@ using NetEscapades.AspNetCore.SecurityHeaders;
 using MillimanAccessPortal.Utilities;
 using System.Diagnostics;
 using Serilog;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AzureKeyVault;
+using System.Security.Cryptography.X509Certificates;
 
 namespace MillimanAccessPortal
 {
@@ -200,6 +203,34 @@ namespace MillimanAccessPortal
             services.AddHostedService<QueuedPublicationPostProcessingHostedService>();
             services.AddSingleton<IPublicationPostProcessingTaskQueue, PublicationPostProcessingTaskQueue>();
             services.AddScoped<FileSystemTasks>();
+
+            string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
+
+            // Configure Data Protection for production and staging
+            switch (EnvironmentNameUpper)
+            {
+                case "PRODUCTION":
+                case "STAGING":
+
+                    Log.Debug("Configuring Data Protection");
+
+                    var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                    store.Open(OpenFlags.ReadOnly);
+                    var certCollection = store.Certificates.Find(X509FindType.FindByThumbprint, Configuration["AzureCertificateThumbprint"], false);
+                    var cert = certCollection.OfType<X509Certificate2>().Single();
+
+                    DirectoryInfo keyDirectory = new DirectoryInfo(@"C:\temp-keys");
+
+                    services.AddDataProtection()
+                        .PersistKeysToFileSystem(keyDirectory)
+                        .ProtectKeysWithAzureKeyVault(Configuration["DataProtectionKeyId"],
+                                                        Configuration["AzureClientID"],
+                                                        cert);
+
+                    Log.Debug("Finished configuring data protection");
+
+                    break;
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

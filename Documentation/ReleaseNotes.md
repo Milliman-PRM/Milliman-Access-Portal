@@ -7,6 +7,8 @@
 - Reconfigure the NavBar to open on click instead of hover
 - Reconfigure the Content Card layout to make accessing content more intuitive
 - Clear content previews when switching to go live preview for a different content item
+- Fixed an issue where existing account activation links became invalidated before 7 days had passed
+- Improved logging of user access to content
 
 #### v1.3.6
 
