@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MapCommonLib.ActionFilters;
+using System;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
@@ -7,6 +8,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         /// <summary>
         /// ID of the selection group to delete.
         /// </summary>
+        [EmitBeforeAfterLog]
         public Guid GroupId { get; set; }
     }
 }

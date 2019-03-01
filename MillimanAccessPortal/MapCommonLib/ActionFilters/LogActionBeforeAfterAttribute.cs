@@ -1,13 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc.Controllers;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace MapCommonLib.ActionFilters
 {
+    /// <summary>
+    /// This filter should only be used with actions that accept JSON data bound to an object
+    /// </summary>
     public class LogActionBeforeAfterAttribute : ActionFilterAttribute
     {
         public override void OnActionExecuting(ActionExecutingContext context)
@@ -17,55 +20,59 @@ namespace MapCommonLib.ActionFilters
                 return;
             }
 
-            var arguments = new Dictionary<string, object>(context.ActionArguments);
+            var methodAttributes = controllerActionDescriptor.MethodInfo.CustomAttributes;
+            var actionParameters = controllerActionDescriptor.MethodInfo.GetParameters();
 
-            // Consider log-relevant custom parameter attributes
-            foreach (var paramInfo in controllerActionDescriptor.MethodInfo.GetParameters())
+            // Log parameters for GET requests
+            if (methodAttributes.Select(a => a.AttributeType).Contains(typeof(HttpGetAttribute)))
             {
-                foreach (var attr in paramInfo.CustomAttributes)
+                var logObject = new Dictionary<string, object>();
+
+                foreach (var paramInfo in actionParameters)
                 {
-                    if (attr.AttributeType == typeof(SuppressLogAttribute))
+                    var argument = context.ActionArguments.Single(a => a.Key == paramInfo.Name);
+                    if (paramInfo.CustomAttributes.Select(a => a.AttributeType).Contains(
+                        typeof(EmitBeforeAfterLogAttribute)))
                     {
-                        var suppressed = attr.NamedArguments
-                            .SingleOrDefault(a => a.MemberName == nameof(SuppressLogAttribute.Properties));
-
-                        if (suppressed.MemberInfo == null)
-                        {
-                            // suppress the entire object
-                            arguments.Remove(paramInfo.Name);
-                        }
-                        else
-                        {
-                            // suppress top-level properties provided by SuppressLogAttribute
-                            var argument = arguments[paramInfo.Name];
-                            var argumentClone = Activator.CreateInstance(argument.GetType());
-
-                            // clone to keep from mutating original argument
-                            var cloneProps = argumentClone.GetType().GetProperties();
-                            foreach (var cloneProp in cloneProps)
-                            {
-                                cloneProp.SetValue(argumentClone, cloneProp.GetValue(argument));
-                            }
-
-                            var supressedProps = suppressed.TypedValue.Value as string;
-                            foreach (var suppressedProp in supressedProps?.Split(',') ?? new string[] { })
-                            {
-                                var cloneProp = argumentClone.GetType().GetProperty(suppressedProp);
-                                if (cloneProp != null)
-                                {
-                                    // setting the value to null is a simple way to obfuscate the property
-                                    cloneProp.SetValue(argumentClone, null);
-                                }
-
-                                arguments[paramInfo.Name] = argumentClone;
-                            }
-                        }
+                        // add parameter to the log object
+                        logObject.Add(argument.Key, argument.Value);
+                    }
+                    else
+                    {
+                        logObject.Add(argument.Key, Activator.CreateInstance(argument.Value.GetType()));
                     }
                 }
-            }
 
-            Log.Verbose($"Executing action {context.ActionDescriptor.DisplayName} "
-                      + "with parameters {@actionArguments}", arguments);
+                Log.Verbose($"Executing action {context.ActionDescriptor.DisplayName} "
+                           + "with arguments {@logObject}", logObject);
+            }
+            // Log JSON body top-level properties for POST requests
+            else if (methodAttributes.Select(a => a.AttributeType).Contains(typeof(HttpPostAttribute)))
+            {
+                if (actionParameters.Length != 1)
+                {
+                    return;
+                }
+
+                var paramInfo = actionParameters.Single();
+                var singleArgument = context.ActionArguments.Single().Value;
+
+                // suppress top-level properties provided by SuppressLogAttribute
+                var logObject = Activator.CreateInstance(singleArgument.GetType());
+
+                foreach (var prop in paramInfo.ParameterType.GetProperties())
+                {
+                    if (prop.CustomAttributes.Select(a => a.AttributeType).Contains(
+                        typeof(EmitBeforeAfterLogAttribute)))
+                    {
+                        // add property to the log object
+                        prop.SetValue(logObject, prop.GetValue(singleArgument));
+                    }
+                }
+
+                Log.Verbose($"Executing action {context.ActionDescriptor.DisplayName} "
+                           + "with request object {@logObject}", logObject);
+            }
         }
 
         public override void OnResultExecuted(ResultExecutedContext context)
@@ -76,13 +83,10 @@ namespace MapCommonLib.ActionFilters
     }
 
     /// <summary>
-    /// Prevent LogActionBeforeAfterAttribute from logging specific parameters or top-level argument properties
+    /// Instruct LogActionBeforeAfterAttribute to log specific properties in a request or response model.
+    ///
+    /// This attribute should be applied to top-level properties of objects that are used as the single request
+    /// or response value for an action that has the LogBeforeAfter attribute.
     /// </summary>
-    public class SuppressLogAttribute : Attribute
-    {
-        /// <summary>
-        /// A comma-separated list of top-level property names to null out when logging the parameter
-        /// </summary>
-        public string Properties { get; set; } = null;
-    }
+    public class EmitBeforeAfterLogAttribute : Attribute { }
 }

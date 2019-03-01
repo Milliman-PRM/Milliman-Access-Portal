@@ -107,7 +107,7 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         /// <param name="clientId">Client to whom content items must belong</param>
         [HttpGet]
-        public async Task<IActionResult> ContentItems(Guid clientId)
+        public async Task<IActionResult> ContentItems([EmitBeforeAfterLog] Guid clientId)
         {
             #region Authorization
             var roleResult = await AuthorizationService
@@ -133,7 +133,7 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         /// <param name="contentItemId">Content item to whom the selection groups must belong</param>
         [HttpGet]
-        public async Task<IActionResult> SelectionGroups(Guid contentItemId)
+        public async Task<IActionResult> SelectionGroups([EmitBeforeAfterLog] Guid contentItemId)
         {
             #region Authorization
             var roleResult = await AuthorizationService
@@ -158,7 +158,7 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         /// <param name="groupId">Selection group to whom the selections must belong</param>
         [HttpGet]
-        public async Task<IActionResult> Selections(Guid groupId)
+        public async Task<IActionResult> Selections([EmitBeforeAfterLog] Guid groupId)
         {
             Guid contentItemId = DbContext.SelectionGroup
                 .Where(g => g.Id == groupId)
@@ -190,7 +190,8 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="contentItemId">Content item to whom reductions should belong</param>
         [HttpGet]
         [PreventAuthRefresh]
-        public async Task<IActionResult> Status(Guid clientId, Guid contentItemId)
+        public async Task<IActionResult> Status(
+            [EmitBeforeAfterLog] Guid clientId, [EmitBeforeAfterLog] Guid contentItemId)
         {
             var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
             var status = _queries.SelectStatus(currentUser, clientId, contentItemId);
