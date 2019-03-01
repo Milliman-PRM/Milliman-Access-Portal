@@ -139,7 +139,8 @@ namespace MillimanAccessPortal.Controllers
         {
             string scheme = await GetAuthenticationSchemeForUser(userName);
             var redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
-            var properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
+            AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
+            properties.SetString("username", userName);
 
             if (!string.IsNullOrWhiteSpace(scheme))
             {

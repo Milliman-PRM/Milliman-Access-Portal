@@ -135,7 +135,17 @@ namespace MillimanAccessPortal
                     options.Wtrealm = wsFederationConfig.Wtrealm;
                     options.CallbackPath = $"{options.CallbackPath}-{wsFederationConfig.Scheme}";
 
-                    // Event override to avoid directly signing in the externally authenticated ClaimsPrinciple
+                    // Event override to add username query parameter to adfs request
+                    options.Events.OnRedirectToIdentityProvider = context =>
+                    {
+                        if (context.Properties.Items.ContainsKey("username"))
+                        {
+                            context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
+                        }
+                        return Task.CompletedTask;
+                    };
+
+                    // Event override to avoid default application signin of the externally authenticated ClaimsPrinciple
                     options.Events.OnTicketReceived = async context =>
                     {
                         using (IServiceScope scope = context.HttpContext.RequestServices.CreateScope())
