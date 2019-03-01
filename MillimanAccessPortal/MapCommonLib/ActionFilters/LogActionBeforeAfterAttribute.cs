@@ -26,7 +26,11 @@ namespace MapCommonLib.ActionFilters
             // Log parameters for GET requests
             if (methodAttributes.Select(a => a.AttributeType).Contains(typeof(HttpGetAttribute)))
             {
-                var logObject = new Dictionary<string, object>();
+                var logObject = new
+                {
+                    Arguments = new Dictionary<string, object>(),
+                    Suppressed = new List<string>(),
+                };
 
                 foreach (var paramInfo in actionParameters)
                 {
@@ -35,16 +39,19 @@ namespace MapCommonLib.ActionFilters
                         typeof(EmitBeforeAfterLogAttribute)))
                     {
                         // add parameter to the log object
-                        logObject.Add(argument.Key, argument.Value);
+                        logObject.Arguments.Add(argument.Key, argument.Value);
                     }
                     else
                     {
-                        logObject.Add(argument.Key, Activator.CreateInstance(argument.Value.GetType()));
+                        logObject.Suppressed.Add(argument.Key);
                     }
                 }
 
                 Log.Verbose($"Executing action {context.ActionDescriptor.DisplayName} "
-                           + "with arguments {@logObject}", logObject);
+                           + "with arguments {@logObject}"
+                           + (logObject.Suppressed.Any()
+                             ? ", suppressed arguments {@suppressed}"
+                             : ""), logObject.Arguments, logObject.Suppressed);
             }
             // Log JSON body top-level properties for POST requests
             else if (methodAttributes.Select(a => a.AttributeType).Contains(typeof(HttpPostAttribute)))
@@ -58,7 +65,11 @@ namespace MapCommonLib.ActionFilters
                 var singleArgument = context.ActionArguments.Single().Value;
 
                 // suppress top-level properties provided by SuppressLogAttribute
-                var logObject = Activator.CreateInstance(singleArgument.GetType());
+                var logObject = new
+                {
+                    Properties = new Dictionary<string, object>(),
+                    Suppressed = new List<string>(),
+                };
 
                 foreach (var prop in paramInfo.ParameterType.GetProperties())
                 {
@@ -66,12 +77,19 @@ namespace MapCommonLib.ActionFilters
                         typeof(EmitBeforeAfterLogAttribute)))
                     {
                         // add property to the log object
-                        prop.SetValue(logObject, prop.GetValue(singleArgument));
+                        logObject.Properties.Add(prop.Name, prop.GetValue(singleArgument));
+                    }
+                    else
+                    {
+                        logObject.Suppressed.Add(prop.Name);
                     }
                 }
 
                 Log.Verbose($"Executing action {context.ActionDescriptor.DisplayName} "
-                           + "with request object {@logObject}", logObject);
+                           + "with request object {@logObject}"
+                           + (logObject.Suppressed.Any()
+                             ? ", suppressed properties {@suppressed}"
+                             : ""), logObject.Properties, logObject.Suppressed);
             }
         }
 
