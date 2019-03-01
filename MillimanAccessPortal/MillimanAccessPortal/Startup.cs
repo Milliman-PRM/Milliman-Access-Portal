@@ -1,10 +1,11 @@
 ﻿/*
- * CODE OWNERS: Ben Wyatt, Michael Reisz
+ * CODE OWNERS: Ben Wyatt, Michael Reisz, Tom Puckett
  * OBJECTIVE: Configure application runtime environment at startup
  * DEVELOPER NOTES: 
  */
 
 using AuditLogLib;
+using AuditLogLib.Event;
 using AuditLogLib.Services;
 using EmailQueue;
 using MapCommonLib;
@@ -33,6 +34,7 @@ using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Services;
 using QlikviewLib;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -91,7 +93,7 @@ namespace MillimanAccessPortal
             services.AddIdentityCore<ApplicationUser>(config =>
                 {
                     config.SignIn.RequireConfirmedEmail = true;
-                    // Does this work instead of the below?  config.Tokens.PasswordResetTokenProvider = tokenProviderName;
+                    // TODO Does this work instead of the below?  config.Tokens.PasswordResetTokenProvider = tokenProviderName;
                 })
                 .AddRoles<ApplicationRole>()
                 .AddSignInManager()
@@ -108,14 +110,10 @@ namespace MillimanAccessPortal
             var WsFederationConfigSections = Configuration.GetSection("WsFederationSources").GetChildren();
             if (WsFederationConfigSections.Select(s => s.GetValue<string>("Scheme")).Distinct().Count() != WsFederationConfigSections.Count())
             {
-                // Error, multiple configured schemes with the same name
+                Log.Error("Multiple configured WsFederation schemes have the same name");
             }
 
-            AuthenticationBuilder authenticationBuilder = services.AddAuthentication(sharedOptions => 
-            {
-                sharedOptions.DefaultScheme = IdentityConstants.ApplicationScheme;
-                sharedOptions.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
-            });
+            AuthenticationBuilder authenticationBuilder = services.AddAuthentication(IdentityConstants.ApplicationScheme);
 
             foreach (ConfigurationSection section in WsFederationConfigSections)
             {
@@ -127,7 +125,7 @@ namespace MillimanAccessPortal
                 catch (ApplicationException ex)
                 {
                     string Msg = ex.Message;
-                    // Error, log a configuration failure
+                    Log.Error(ex, "Unable to convert WsFederation appsettings section {@Settings} to WsFederationConfig instance", section);
                     continue;
                 }
 
@@ -135,41 +133,42 @@ namespace MillimanAccessPortal
                 {
                     options.MetadataAddress = wsFederationConfig.MetadataAddress;
                     options.Wtrealm = wsFederationConfig.Wtrealm;
-                    //options.CallbackPath = $"/Account/ExternalLoginCallbackAsync";
                     options.CallbackPath = $"{options.CallbackPath}-{wsFederationConfig.Scheme}";
 
-                    /*
-                    options.Events.OnAuthenticationFailed = context => { var xx = context; return Task.CompletedTask; };
-                    options.Events.OnMessageReceived = context => { var xx = context; return Task.CompletedTask; };
-                    options.Events.OnRedirectToIdentityProvider = context => { var xx = context; return Task.CompletedTask; };
-                    options.Events.OnRemoteFailure = context => { var xx = context; return Task.CompletedTask; };
-                    options.Events.OnRemoteSignOut = context => { var xx = context; return Task.CompletedTask; };
-                    options.Events.OnSecurityTokenReceived = context => { var xx = context; return Task.CompletedTask; };
-                    options.Events.OnSecurityTokenValidated = context => { var xx = context; return Task.CompletedTask; };
-                    */
-                    options.Events.OnTicketReceived = context => 
+                    // Event override to avoid directly signing in the externally authenticated ClaimsPrinciple
+                    options.Events.OnTicketReceived = async context =>
                     {
-                        //The ClaimsIdentity received here does not match the one used in the SigninManager so session does not work
-                        List<AuthenticationToken> tokens = context.Properties.GetTokens() as List<AuthenticationToken>;
-                        tokens.Add(new AuthenticationToken() { Name = "TicketCreated", Value = DateTime.UtcNow.ToString() });
-                        context.Properties.StoreTokens(tokens);
+                        using (IServiceScope scope = context.HttpContext.RequestServices.CreateScope())
+                        {
+                            IServiceProvider serviceProvider = scope.ServiceProvider;
+                            SignInManager<ApplicationUser> _signInManager = serviceProvider.GetService<SignInManager<ApplicationUser>>();
+                            try
+                            {
+                                ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(context.Principal.Identity.Name);
+                                var x = context.Properties.ExpiresUtc;
+                                if (_applicationUser != null && !_applicationUser.IsSuspended)
+                                {
+                                    await _signInManager.SignInAsync(_applicationUser, false);
+                                }
+                                else
+                                {
+                                    // TODO Maybe we need new audit log event types to support external authentication
+                                    throw new ApplicationException($"User {context.Principal.Identity.Name} suspended or not found, remote login rejected");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Information(ex, ex.Message);
+                                IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
+                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name));
 
-                        // Add a claim that carries the scheme name (TODO: remove if this is not needed in callback)
-                        //ClaimsIdentity identity = (ClaimsIdentity)context.Principal.Identity;
-                        //identity.AddClaim(new Claim("AuthScheme", context.Scheme.Name));
+                                // Make sure nobody remains signed in
+                                await _signInManager.SignOutAsync();
+                            }
+                        }
 
-                        //context.HandleResponse();
-                        //context.Response.Redirect("/Account/ExternalLoginCallbackAsync");
-
-                        //context.Response.ContentType = "text/plain";
-                        //if (Environment.IsDevelopment())
-                        //{
-                            // Debug only, in production do not share exceptions with the remote host.
-                            //return c.Response.WriteAsync(c.Exception.ToString());
-                        //}
-                        //return c.Response.WriteAsync("An error occurred processing your authentication.");
-
-                        return Task.CompletedTask;
+                        context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to abort default processing
+                        context.Response.Redirect("/Account/ExternalLoginCallbackAsync");
                     };
                 });
             }
@@ -209,10 +208,18 @@ namespace MillimanAccessPortal
 
             // Configure the default token provider used for account activation
             services.Configure<DataProtectionTokenProviderOptions>(options =>
-                {
-                    options.TokenLifespan = TimeSpan.FromDays(accountActivationTokenTimespanDays);
-                }
-            );
+            {
+                options.TokenLifespan = TimeSpan.FromDays(accountActivationTokenTimespanDays);
+            });
+
+            // Cookie settings
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/Account/LogIn";
+                options.LogoutPath = "/Account/LogOut";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.SlidingExpiration = true;
+            });
 
             services.Configure<QlikviewConfig>(Configuration);
             services.Configure<AuditLoggerConfiguration>(Configuration);

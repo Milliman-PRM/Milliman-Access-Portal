@@ -105,8 +105,8 @@ namespace MillimanAccessPortal.Controllers
         [NonAction]
         private async Task<string> GetAuthenticationSchemeForUser(string userName)
         {
-            ApplicationUser requestedUser = await _userManager.FindByNameAsync(userName);
-            if (requestedUser == null)
+            string normalizedUserName = _userManager.NormalizeKey(userName);
+            if (!DbContext.Users.Any(u => u.NormalizedUserName == normalizedUserName))
             {
                 return null;
             }
@@ -138,7 +138,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> RemoteAuthenticate(string userName)
         {
             string scheme = await GetAuthenticationSchemeForUser(userName);
-            var redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), "Account", new { ReturnUrl = "/AuthorizedContent/Index" });
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
 
             if (!string.IsNullOrWhiteSpace(scheme))
@@ -147,7 +147,7 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(nameof(Login));
             }
         }
 
@@ -204,9 +204,9 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    LoginCommon();
+                    SignInCommon();
 
-                    Log.Information($"User {model.Username} logged in");
+                    Log.Information($"Local user {model.Username} logged in");
                     _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(), model.Username);
 
                     // The default route is /AuthorizedContent/Index as configured in startup.cs
@@ -258,10 +258,12 @@ namespace MillimanAccessPortal.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Does everything that is common to externally and internally signed in users
+        /// </summary>
         [NonAction]
-        private void LoginCommon()
+        private void SignInCommon()
         {
-            // TODO Add all the things that are common to both internal and external user signin
             HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
         }
 
@@ -383,31 +385,25 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/ExternalLoginCallbackAsync
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> ExternalLoginCallbackAsync(string returnUrl = null, string remoteError = null)
+        public IActionResult ExternalLoginCallbackAsync(string returnUrl = null, string remoteError = null)
         {
             Log.Verbose("Entered AccountController.ExternalLoginCallback action");
 
-            string authenticatedUserName = User.Claims.Single(c => c.Type == ClaimTypes.Name).Value;
-            //string authenticationScheme = User.Claims.Single(c => c.Type == "AuthScheme").Value;
-
-            ApplicationUser user = await _userManager.FindByNameAsync(authenticatedUserName);
-            if (user == null)
+            if (string.IsNullOrWhiteSpace(HttpContext.User.Identity.Name) || 
+                !HttpContext.User.Identity.IsAuthenticated)
             {
-                // TODO the user is not in our database, handle this properly
-                return RedirectToAction("Login");
+                return RedirectToAction(nameof(Login));
             }
 
-            returnUrl = returnUrl ?? Url.Content("~/");
             if (remoteError != null)
             {
-                // TODO handle this too.
-                //ErrorMessage = $"Error from external provider: {remoteError}";
-                return RedirectToAction("./Login", new { ReturnUrl = returnUrl });
+                Log.Error("Error during remote authentication");
+                return RedirectToAction(nameof(Login));
             }
 
-            await _signInManager.SignInAsync(user, false);
-            LoginCommon();
+            SignInCommon();
 
+            returnUrl = returnUrl ?? Url.Content("~/");
             return LocalRedirect(returnUrl);
         }
 
@@ -520,7 +516,7 @@ namespace MillimanAccessPortal.Controllers
             if (user.EmailConfirmed)  // Account is already activated
             {
                 Log.Debug($"In AccountController.EnableAccount GET action: user {userId} account is already enabled, aborting");
-                return View("Login");
+                return View(nameof(Login));
             }
 
             // If the code is not valid (likely expired), re-send the welcome email and notify the user
@@ -570,7 +566,7 @@ namespace MillimanAccessPortal.Controllers
             if (user.EmailConfirmed)  // Account is already activated
             {
                 Log.Debug($"In AccountController.EnableAccount POST action: user {model.Id} account is already activated, aborting");
-                return View("Login");
+                return View(nameof(Login));
             }
 
             using (var Txn = DbContext.Database.BeginTransaction())
@@ -646,7 +642,7 @@ namespace MillimanAccessPortal.Controllers
                 Log.Verbose($"User {model.Username} account enabled and profile saved");
                 _auditLogger.Log(AuditEventType.UserAccountEnabled.ToEvent(user));
 
-                return View("Login");
+                return View(nameof(Login));
             }
         }
 
