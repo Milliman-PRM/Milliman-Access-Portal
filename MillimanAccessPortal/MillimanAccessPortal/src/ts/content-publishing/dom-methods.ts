@@ -45,13 +45,11 @@ const goLiveEnabledTooltip = 'Approve content and go live';
 function deleteRootContentItem(
   rootContentItemId: Guid,
   rootContentItemName: string,
-  password: string,
   callback: () => void,
 ) {
   $.ajax({
     data: {
       rootContentItemId,
-      password,
     },
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
@@ -82,16 +80,14 @@ export function rootContentItemDeleteClickHandler(event: Event) {
   new (DeleteRootContentItemDialog as any)(
     rootContentItemName,
     rootContentItemId,
-    (data: { password: string }, callback: () => void) => {
-      if (data.password) {
+    (data: { confirmDeletion: string }, callback: () => void) => {
+      if (data.confirmDeletion.toUpperCase() === 'DELETE') {
         showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
-        deleteRootContentItem(rootContentItemId, rootContentItemName, data.password, callback);
-      } else if (data.password === '') {
-        toastr.warning('Please enter your password to proceed');
-        return false;
+        deleteRootContentItem(rootContentItemId, rootContentItemName, callback);
       } else {
-        toastr.info('Deletion was canceled');
+        toastr.warning('Please type <strong>DELETE</strong> to proceed with deletion');
+        return false;
       }
       return true;
     },
