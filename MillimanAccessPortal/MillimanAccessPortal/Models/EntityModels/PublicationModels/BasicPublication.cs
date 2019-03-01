@@ -3,6 +3,10 @@ using System;
 
 namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
 {
+    /// <summary>
+    /// A simplified representation of a ContentPublicationRequest.
+    /// This model is intended to be extended to satisfy front end needs.
+    /// </summary>
     public class BasicPublication
     {
         public Guid Id { get; set; }

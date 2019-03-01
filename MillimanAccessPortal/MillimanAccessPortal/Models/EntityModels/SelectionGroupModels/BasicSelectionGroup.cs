@@ -3,6 +3,10 @@ using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Models.EntityModels.SelectionGroupModels
 {
+    /// <summary>
+    /// A simplified representation of a SelectionGroup.
+    /// This model is intended to be extended to satisfy front end needs.
+    /// </summary>
     public class BasicSelectionGroup
     {
         public Guid Id { get; set; }

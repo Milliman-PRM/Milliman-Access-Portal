@@ -2,6 +2,10 @@
 
 namespace MillimanAccessPortal.Models.EntityModels.HierarchyModels
 {
+    /// <summary>
+    /// A simplified representation of a HierarchyField.
+    /// This model is intended to be extended to satisfy front end needs.
+    /// </summary>
     public class BasicField
     {
         public Guid Id { get; set; }

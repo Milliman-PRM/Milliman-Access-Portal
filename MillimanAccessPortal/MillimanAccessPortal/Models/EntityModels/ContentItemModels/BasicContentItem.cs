@@ -2,6 +2,10 @@
 
 namespace MillimanAccessPortal.Models.EntityModels.ContentItemModels
 {
+    /// <summary>
+    /// A simplified representation of a RootContentItem.
+    /// This model is intended to be extended to satisfy front end needs.
+    /// </summary>
     public class BasicContentItem
     {
         public Guid Id { get; set; }

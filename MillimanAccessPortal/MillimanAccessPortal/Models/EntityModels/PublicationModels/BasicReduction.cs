@@ -5,6 +5,10 @@ using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
 {
+    /// <summary>
+    /// A simplified representation of a ContentReductionTask.
+    /// This model is intended to be extended to satisfy front end needs.
+    /// </summary>
     public class BasicReduction
     {
         public Guid Id { get; set; }

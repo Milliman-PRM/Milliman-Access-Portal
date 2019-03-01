@@ -3,6 +3,10 @@ using System;
 
 namespace MillimanAccessPortal.Models.ClientModels
 {
+    /// <summary>
+    /// A simplified representation of a Client.
+    /// This model is intended to be extended to satisfy front end needs.
+    /// </summary>
     public class BasicClient
     {
         public Guid Id { get; set; }

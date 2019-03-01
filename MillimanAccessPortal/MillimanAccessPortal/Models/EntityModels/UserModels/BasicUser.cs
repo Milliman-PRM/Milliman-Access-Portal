@@ -3,6 +3,10 @@ using System;
 
 namespace MillimanAccessPortal.Models.UserModels
 {
+    /// <summary>
+    /// A simplified representation of an ApplicationUser.
+    /// This model is intended to be extended to satisfy front end needs.
+    /// </summary>
     public class BasicUser
     {
         public Guid Id { get; set; }
