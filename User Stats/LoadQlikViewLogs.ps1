@@ -131,7 +131,7 @@ if ($sessionFileCount -gt 0)
            $lineNumber++
         }
         
-		write-output "$lineNumber records processed"
+		write-output "$(get-date) $lineNumber records processed"
 		
         $fileCounter++
     }
@@ -185,7 +185,7 @@ if ($auditFileCount -gt 0)
             $lineNumber++
         }
         
-		write-output "$lineNumber records processed"
+		write-output "$(get-date) $lineNumber records processed"
 		
         $fileCounter++
     }
