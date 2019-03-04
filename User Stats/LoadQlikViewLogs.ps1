@@ -77,7 +77,7 @@ if ($sessionFileCount -gt 0)
     # Initialize file with INSERT statement
     write-output "$(get-date) Preparing session log insert statement"
     $BeginQuery = "INSERT INTO public.`"QlikViewSession`"(`"Timestamp`", `"Document`", `"ExitReason`", `"SessionStartTime`", `"SessionDuration`", `"SessionEndTime`", `"Username`", `"CalType`", `"Browser`", `"Session`", `"LogFileName`", `"LogFileLineNumber`") VALUES"
-    $BeginQuery | set-content $sessionInsertFilePath -Force
+    $BeginQuery | set-content $sessionInsertFilePath -Force -Encoding UTF8
 
     $sessionValues = ""
     $firstValue = $true
@@ -137,12 +137,12 @@ if ($sessionFileCount -gt 0)
     }
 
     write-output "$(get-date) writing insert statements to file"
-    $sessionValues | Add-Content $sessionInsertFilePath -Force
+    $sessionValues | Add-Content $sessionInsertFilePath -Force -Encoding UTF8
 
     # Finalize file with ON CONFLICT [...] DO NOTHING statement
     write-output "$(get-date) finalizing query"
     $EndQuery = "`r`n ON CONFLICT ON CONSTRAINT `"UNIQUE_QVSession_LogFileName_LogFileLine`" DO NOTHING"
-    $EndQuery | Add-Content $sessionInsertFilePath -Force
+    $EndQuery | Add-Content $sessionInsertFilePath -Force -Encoding UTF8
 }
 
 # Load audit file entries to be inserted
@@ -154,7 +154,7 @@ if ($auditFileCount -gt 0)
     # Initialize file with INSERT statement
     write-output "$(get-date) Preparing audit log insert statement"
     $BeginQuery = "INSERT INTO public.`"QlikViewAudit`" (`"Session`", `"Timestamp`", `"Document`", `"EventType`", `"Message`", `"LogFileName`", `"LogFileLineNumber`") VALUES"
-    $BeginQuery | set-content $auditInsertFilePath -Force
+    $BeginQuery | set-content $auditInsertFilePath -Force -Encoding UTF8
 
     $auditValues = ""
     $firstValue = $true
@@ -191,12 +191,12 @@ if ($auditFileCount -gt 0)
     }
 
     write-output "$(get-date) writing insert statements to file"
-    $auditValues | Add-Content $auditInsertFilePath -Force
+    $auditValues | Add-Content $auditInsertFilePath -Force -Encoding UTF8
 
     # Finalize file with ON CONFLICT [...] DO NOTHING statement
     write-output "$(get-date) finalizing query"
     $EndQuery = "`r`n ON CONFLICT ON CONSTRAINT `"UNIQUE_QVAudit_LogFileName_LogFileLine`" DO NOTHING"
-    $EndQuery | Add-Content $auditInsertFilePath -Force
+    $EndQuery | Add-Content $auditInsertFilePath -Force -Encoding UTF8
 
 }
 
