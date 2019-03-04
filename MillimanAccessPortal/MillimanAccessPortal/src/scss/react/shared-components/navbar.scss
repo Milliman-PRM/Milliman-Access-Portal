@@ -175,12 +175,60 @@ nav {
         left: -18.5em;
         width: 18.5em;
 
-        &.loaded {
-            left: -14.5em;
+        &.loaded.open {
+            left: 0;
+
+            #navbar-button-inner:before {
+                transform: translate3d(-1em, .5em, 0) rotate(-45deg) scaleX(.5);
+            }
+
+            #navbar-button-inner:after {
+                transform: translate3d(-1em, -.5em, 0) rotate(45deg) scaleX(.5);
+            }
         }
 
-        &:hover {
-            left: 0;
+        &.close #navbar-button:hover {
+
+            #navbar-button-inner:before {
+                transform: translate3d(1em, .5em, 0) rotate(45deg) scaleX(.5);
+            }
+
+            #navbar-button-inner:after {
+                transform: translate3d(1em, -.5em, 0) rotate(-45deg) scaleX(.5);
+            }
+        }
+
+
+        #navbar-button {
+            top: 0;
+            width: 4rem;
+            height: 4rem;
+            padding: .5em;
+
+            #navbar-button-box {
+
+                #navbar-button-inner {
+                    margin-top: 0px;
+                }
+
+                #navbar-button-inner,
+                #navbar-button-inner:before,
+                #navbar-button-inner:after {
+                    width: 3em;
+                }
+
+                #navbar-button-inner:before {
+                    top: -1em;
+                }
+
+                #navbar-button-inner:after {
+                    bottom: -1em;
+                }
+            }
+        }
+               
+        &.loaded {
+            left: -14.5em;
         }
 
         .nav-element {

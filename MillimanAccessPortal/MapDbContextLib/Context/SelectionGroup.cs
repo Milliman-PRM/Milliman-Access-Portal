@@ -40,6 +40,9 @@ namespace MapDbContextLib.Context
         [Required]
         public bool IsSuspended { get; set; }
 
+        [NotMapped]
+        public bool IsInactive { get => ContentInstanceUrl == null; }
+
         public string ReducedContentChecksum { get; set; }
 
         /// <summary>

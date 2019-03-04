@@ -1,4 +1,4 @@
-﻿import '../../../images/client-admin.svg';
+﻿import '../../../images/client.svg';
 import '../../../images/content-access.svg';
 import '../../../images/content-grid.svg';
 import '../../../images/content-publishing.svg';
@@ -11,7 +11,7 @@ import '../../../scss/react/shared-components/navbar.scss';
 
 import * as React from 'react';
 
-import { getData, postData } from '../../shared';
+import { getJsonData, postData } from '../../shared';
 import { ContactFormModal } from '../contact-form-modal';
 import { UserGuideModal } from '../user-guide-modal';
 import { NavBarElement } from './interfaces';
@@ -46,7 +46,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
   }
 
   public componentDidMount() {
-    getData('/Account/NavBarElements')
+    getJsonData('/Account/NavBarElements')
     .then((response) => {
       this.setState({
         navBarElements: response,
@@ -59,13 +59,13 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
 
   public render() {
     const navElements = this.state.navBarElements && this.state.navBarElements.map((element: NavBarElement) => {
-      const classes = `nav-element ${(this.props.currentView === element.View) ? 'selected' : null }`;
+      const classes = `nav-element ${(this.props.currentView === element.view) ? 'selected' : null }`;
       return (
-        <a href={'/' + element.URL} key={element.View}>
-          <div className={classes} style={{ order: element.Order }} title={element.Label}>
-            <h3 className="nav-element-label">{element.Label}</h3>
+        <a href={'/' + element.url} key={element.view}>
+          <div className={classes} style={{ order: element.order }} title={element.label}>
+            <h3 className="nav-element-label">{element.label}</h3>
             <svg className="nav-element-icon">
-              <use xlinkHref={`#${element.Icon}`} />
+              <use xlinkHref={`#${element.icon}`} />
             </svg>
           </div>
         </a>
