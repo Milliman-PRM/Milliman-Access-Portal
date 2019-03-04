@@ -20,11 +20,10 @@ namespace MapCommonLib.ActionFilters
                 return;
             }
 
-            var methodAttributes = controllerActionDescriptor.MethodInfo.CustomAttributes;
             var actionParameters = controllerActionDescriptor.MethodInfo.GetParameters();
 
             // Log parameters for GET requests
-            if (methodAttributes.Select(a => a.AttributeType).Contains(typeof(HttpGetAttribute)))
+            if (context.HttpContext.Request.Method == "GET")
             {
                 var logObject = new
                 {
@@ -54,17 +53,11 @@ namespace MapCommonLib.ActionFilters
                              : ""), logObject.Arguments, logObject.Suppressed);
             }
             // Log JSON body top-level properties for POST requests
-            else if (methodAttributes.Select(a => a.AttributeType).Contains(typeof(HttpPostAttribute)))
+            else if (context.HttpContext.Request.Method == "POST" && actionParameters.Length == 1)
             {
-                if (actionParameters.Length != 1)
-                {
-                    return;
-                }
-
                 var paramInfo = actionParameters.Single();
                 var singleArgument = context.ActionArguments.Single().Value;
 
-                // suppress top-level properties provided by SuppressLogAttribute
                 var logObject = new
                 {
                     Properties = new Dictionary<string, object>(),
@@ -90,6 +83,10 @@ namespace MapCommonLib.ActionFilters
                            + (logObject.Suppressed.Any()
                              ? ", suppressed properties {@suppressed}"
                              : ""), logObject.Properties, logObject.Suppressed);
+            }
+            else
+            {
+                Log.Verbose($"Executing action {context.ActionDescriptor.DisplayName}");
             }
         }
 
