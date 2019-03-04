@@ -209,6 +209,7 @@ if ($sessionFileCount -eq 0 -and $auditFileCount -eq 0)
 # Load into database
 
 $env:PGPASSWORD = $pgsqlPassword
+$env:PGSSLMODE = "require"
 
 if ($sessionFileCount -gt 0)
 {
