@@ -68,6 +68,7 @@ $auditFileList = $fileList | where {$_.Name -like "Audit*.log"}
 $sessionFileList = $fileList | where {$_.Name -like "Session*.log"}
 
 # Extract records from files
+$sessionRecordCount = 0
 $sessionFileCount = $sessionFileList.Count
 write-output "$(get-date) $sessionFileCount session files found"
 
@@ -132,11 +133,11 @@ if ($sessionFileCount -gt 0)
         }
         
 		write-output "$(get-date) $lineNumber records processed"
-		
+		$sessionRecordCount += $lineNumber
         $fileCounter++
     }
 
-    write-output "$(get-date) writing insert statements to file"
+    write-output "$(get-date) writing session insert statements to file ($sessionRecordCount rows)"
     $sessionValues | Add-Content $sessionInsertFilePath -Force -Encoding UTF8
 
     # Finalize file with ON CONFLICT [...] DO NOTHING statement
@@ -146,6 +147,7 @@ if ($sessionFileCount -gt 0)
 }
 
 # Load audit file entries to be inserted
+$auditRecordCount = 0
 $auditFileCount = $auditFileList.Count
 write-output "$(get-date) $auditFileCount audit files found"
 
@@ -186,11 +188,11 @@ if ($auditFileCount -gt 0)
         }
         
 		write-output "$(get-date) $lineNumber records processed"
-		
+		$auditRecordCount += $lineNumber
         $fileCounter++
     }
 
-    write-output "$(get-date) writing insert statements to file"
+    write-output "$(get-date) writing audit insert statements to file ($auditRecordCount rows)"
     $auditValues | Add-Content $auditInsertFilePath -Force -Encoding UTF8
 
     # Finalize file with ON CONFLICT [...] DO NOTHING statement
@@ -234,7 +236,7 @@ if ($auditFileCount -gt 0)
 
     if ($LASTEXITCODE -ne 0)
     {
-        write-output "$(get-date) ERROR: Failed to write QlikView session records into the database. See output above for failure details."
+        write-output "$(get-date) ERROR: Failed to write QlikView audit records into the database. See output above for failure details."
         return 42
     }
 }
