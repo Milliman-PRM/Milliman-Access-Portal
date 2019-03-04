@@ -23,7 +23,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, 'wwwroot'),
-    publicPath: '/~/',
+    publicPath: '/',
   },
   module: {
     rules: [

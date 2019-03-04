@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading.Tasks;
 
 
@@ -189,10 +190,13 @@ namespace MillimanAccessPortal.Controllers
                 .Where(u => u.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
 
-            userInSelectionGroup.DisclaimerAccepted = true;
+            if (!userInSelectionGroup.DisclaimerAccepted)
+            {
+                userInSelectionGroup.DisclaimerAccepted = true;
 
-            await DataContext.SaveChangesAsync();
-            AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, validationId));
+                await DataContext.SaveChangesAsync();
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, validationId));
+            }
 
             return Ok();
         }
@@ -329,7 +333,13 @@ namespace MillimanAccessPortal.Controllers
 
                     case ContentTypeEnum.FileDownload:
                         Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning file {requestedContentFile.FullPath}");
-                        return PhysicalFile(requestedContentFile.FullPath, "application/octet-stream", requestedContentFile.FileOriginalName);
+                        var contentDisposition = new ContentDisposition
+                        {
+                            FileName = requestedContentFile.FileOriginalName,
+                            Inline = false,
+                        };
+                        Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
+                        return PhysicalFile(requestedContentFile.FullPath, "application/octet-stream");
 
                     case ContentTypeEnum.Pdf:
                         Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning file {requestedContentFile.FullPath}");

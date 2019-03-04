@@ -48,39 +48,26 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         </a>
       )
       : null;
-    const newWindow = (this.props.ContentTypeEnum === ContentTypeEnum.FileDownload)
-      ? (
-        <a
-          href={this.props.ContentURL}
-          download={true}
-          className="secondary-button"
-        >
-          Download
-        </a>
-      ) : (
-        <a
-          href={this.props.ContentURL}
-          target="_blank"
-          className="secondary-button"
-        >
-          Open in New Tab
-        </a>
-      );
-    const contentLink = (this.props.ContentTypeEnum === ContentTypeEnum.FileDownload)
-      ? (
-        <a
-          href={this.props.ContentURL}
-          download={true}
-          className="content-card-link content-card-download"
-        />
-      ) : (
-        <a
-          href={this.props.ContentURL}
-          target="_blank"
-          className="content-card-link"
-          onClick={this.selectContent}
-        />
-        );
+    const newWindow = (
+      <a
+        href={this.props.ContentURL}
+        target="_blank"
+        className="secondary-button"
+      >
+        {this.props.ContentTypeEnum === ContentTypeEnum.FileDownload
+          ? 'Download'
+          : 'Open in New Tab'
+        }
+      </a>
+    );
+    const contentLink = (
+      <a
+        href={this.props.ContentURL}
+        target="_blank"
+        className="content-card-link"
+        onClick={this.selectContent}
+      />
+    );
     return (
       <div className="content-card-container">
         <div className="content-card">

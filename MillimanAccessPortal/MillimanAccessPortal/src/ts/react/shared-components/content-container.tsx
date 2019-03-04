@@ -16,12 +16,19 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
   }
 
   public componentDidMount() {
-    history.pushState({ content: this.props.contentURL }, null);
+    if (this.props.contentType === ContentTypeEnum.FileDownload) {
+      window.location.href = this.props.contentURL;
+    }
   }
 
   public render() {
-    let sandboxValues;
+    if (this.props.contentType === ContentTypeEnum.FileDownload) {
+      return (
+        <div>Your download should begin shortly...</div>
+      );
+    }
 
+    let sandboxValues;
     switch (this.props.contentType) {
       case ContentTypeEnum.Pdf:
         sandboxValues = null;
