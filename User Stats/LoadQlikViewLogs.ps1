@@ -217,9 +217,10 @@ if ($sessionFileCount -gt 0)
     $command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$sessionInsertFilePath`" --echo-errors"
     Invoke-Expression $command
 
-    if ($? -eq $false)
+    if ($LASTEXITCODE -ne 0)
     {
         write-output "$(get-date) ERROR: Failed to write QlikView session records into the database. See output above for failure details."
+        return 42
     }
 }
 
@@ -230,9 +231,10 @@ if ($auditFileCount -gt 0)
     $command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$auditInsertFilePath`" --echo-errors"
     Invoke-Expression $command
 
-    if ($? -eq $false)
+    if ($LASTEXITCODE -ne 0)
     {
         write-output "$(get-date) ERROR: Failed to write QlikView session records into the database. See output above for failure details."
+        return 42
     }
 }
 
