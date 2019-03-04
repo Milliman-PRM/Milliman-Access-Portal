@@ -739,6 +739,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
     wrapCardIconCallback((card) => {
       $('#report-confirmation .admin-panel-content-container').hide();
       $('#report-confirmation .loading-wrapper').show();
+      $('.confirmation-section iframe,object')
+        .attr('src', 'about:blank')
+        .attr('data', 'about:blank');
       get(
         'ContentPublishing/PreLiveSummary',
         [

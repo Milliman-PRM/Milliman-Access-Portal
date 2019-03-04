@@ -15,6 +15,7 @@ using MillimanAccessPortal.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using MillimanAccessPortal.Models.ContentPublishing;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -151,11 +152,17 @@ namespace MillimanAccessPortal
                 {
                     Db.SaveChanges();
                     postProcessingTaskQueue.QueuePublicationPostProcess(publicationRequest.Id);
+                    GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"ContentPublishSupport.MonitorPublicationRequestForQueueing: completed queuing of publication Id <{publicationRequest.Id}> to postProcessingTaskQueue");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     // PublicationRequest was likely set to canceled, no extra cleanup needed
                     return;
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, $"Exception while queuing either publication request or postprocessing, for publication request Id <{publicationRequest.Id}>");
+                    throw;
                 }
             }
         }
