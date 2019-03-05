@@ -247,7 +247,7 @@ const pendingIsMaster = createReducer<boolean>(null, {
   UPDATE_SELECTIONS_SUCCEEDED: () => null,
   CANCEL_REDUCTION_SUCCEEDED: () => null,
 });
-const pendingSelections = createReducer<Dict<{ selected: boolean }>>({}, {
+const pendingSelections = createReducer<Dict<{ selected?: boolean }>>({}, {
   SET_PENDING_SELECTION_ON: (state, action: AccessActions.SetPendingSelectionOn) => ({
     ...state,
     [action.id]: {
@@ -260,9 +260,26 @@ const pendingSelections = createReducer<Dict<{ selected: boolean }>>({}, {
       selected: false,
     },
   }),
-  SELECT_GROUP: () => ({}),
-  UPDATE_SELECTIONS_SUCCEEDED: () => ({}),
-  CANCEL_REDUCTION_SUCCEEDED: () => ({}),
+  SET_PENDING_ALL_SELECTIONS_ON: (state) =>
+    _.mapValues(state, (selection) => ({
+      ...selection,
+      selected: true,
+    })),
+  SET_PENDING_ALL_SELECTIONS_OFF: (state) =>
+    _.mapValues(state, (selection) => ({
+      ...selection,
+      selected: false,
+    })),
+  SELECT_GROUP: (state) => _.mapValues(state, () => ({})),
+  FETCH_SELECTIONS_SUCCEEDED: (_state, action: AccessActions.FetchSelectionsSucceeded) => {
+    const state: Dict<{ selected?: boolean }> = {};
+    Object.keys(action.response.values).forEach((value) => {
+      state[value] = {};
+    });
+    return state;
+  },
+  UPDATE_SELECTIONS_SUCCEEDED: (state) => _.mapValues(state, () => ({})),
+  CANCEL_REDUCTION_SUCCEEDED: (state) => _.mapValues(state, () => ({})),
 });
 const pendingNewGroupName = createReducer<string>('', {
   OPEN_ADD_GROUP_MODAL: (_state) => '',

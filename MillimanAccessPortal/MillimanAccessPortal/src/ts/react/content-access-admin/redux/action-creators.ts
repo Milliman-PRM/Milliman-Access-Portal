@@ -86,6 +86,10 @@ export const setPendingSelectionOn =
   createActionCreator<AccessActions.SetPendingSelectionOn>('SET_PENDING_SELECTION_ON');
 export const setPendingSelectionOff =
   createActionCreator<AccessActions.SetPendingSelectionOff>('SET_PENDING_SELECTION_OFF');
+export const setPendingAllSelectionsOn =
+  createActionCreator<AccessActions.SetPendingAllSelectionsOn>('SET_PENDING_ALL_SELECTIONS_ON');
+export const setPendingAllSelectionsOff =
+  createActionCreator<AccessActions.SetPendingAllSelectionsOff>('SET_PENDING_ALL_SELECTIONS_OFF');
 
 export const openAddGroupModal =
   createActionCreator<AccessActions.OpenAddGroupModal>('OPEN_ADD_GROUP_MODAL');

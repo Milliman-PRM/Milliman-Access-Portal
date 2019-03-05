@@ -38,8 +38,8 @@ export function pendingReductionValues(state: AccessState) {
   return _.filter(state.data.values, (v) => {
     const selectionChanges = state.pending.selections || {};
     return _selectedGroup.selectedValues && _selectedGroup.selectedValues.filter((sv) => sv === v.id).length
-      ? !(v.id in selectionChanges) || selectionChanges[v.id].selected
-      : (v.id in selectionChanges) && selectionChanges[v.id].selected;
+      ? selectionChanges[v.id].selected === undefined || selectionChanges[v.id].selected
+      : selectionChanges[v.id].selected !== undefined && selectionChanges[v.id].selected;
   });
 }
 
