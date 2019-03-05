@@ -1,25 +1,25 @@
 import * as shared from '../shared';
 
 interface User {
-  Email: string;
-  UserName: string;
-  FirstName: string;
-  LastName: string;
+  email: string;
+  userName: string;
+  firstName: string;
+  lastName: string;
 }
 
 test('matches user substring', () => {
   const users: User[] = [
     {
-      Email: 'email1@client.zxc',
-      FirstName: 'John',
-      LastName: 'Smith',
-      UserName: 'username1',
+      email: 'email1@client.zxc',
+      firstName: 'John',
+      lastName: 'Smith',
+      userName: 'username1',
     },
     {
-      Email: 'email2@client.zxc',
-      FirstName: 'Mike',
-      LastName: 'Adams',
-      UserName: 'username2',
+      email: 'email2@client.zxc',
+      firstName: 'Mike',
+      lastName: 'Adams',
+      userName: 'username2',
     },
   ];
   const matcher: (query: string, callback: (matches: any) => void) => void

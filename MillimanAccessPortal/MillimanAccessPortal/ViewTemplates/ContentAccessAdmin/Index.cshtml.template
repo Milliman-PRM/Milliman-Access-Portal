@@ -1,5 +1,3 @@
-@model IEnumerable<MillimanAccessPortal.Models.ContentAccessAdmin.ApplicationUserViewModel>
-
 @{
     /*
      * CODE OWNERS: Ben Wyatt

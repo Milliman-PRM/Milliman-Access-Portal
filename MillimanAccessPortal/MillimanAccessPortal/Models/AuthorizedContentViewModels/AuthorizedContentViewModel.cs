@@ -112,7 +112,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                         ReleaseNotesURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "releasenotes"))
                             ? $"{releaseNotesUrlBuilder.Uri.AbsoluteUri}{sg.Id}"
                             : null,
-                    }).OrderBy(item => item.Name).ToList(),
+                    }).OrderBy(contentItem => contentItem.Name).ToList(),
                 }).OrderBy(group => group.Name).ToList(),
             };
         }

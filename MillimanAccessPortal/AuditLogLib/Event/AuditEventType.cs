@@ -42,13 +42,26 @@ namespace AuditLogLib.Event
                 QueryText = queryText,
                 RowsAffected = rows,
             });
-        public static readonly AuditEventType<string, string> UserContentAccess =
-            new AuditEventType<string, string>(1008, "Content access",
-                (contentItemId, selectionGroupId) => new
-                {
-                    ContentItem = contentItemId,
-                    SelectionGroup = selectionGroupId,
-                });
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client> UserContentAccess =
+           new AuditEventType<SelectionGroup, RootContentItem, Client>(1008, "Content access",
+               (selectionGroup, contentItem, client) => new
+               {
+                   SelectionGroup = new
+                   {
+                       Id = selectionGroup.Id,
+                       GroupName = selectionGroup.GroupName,
+                   },
+                   ContentItem = new
+                   {
+                       Id = contentItem.Id,
+                       ContentName = contentItem.ContentName,
+                   },
+                   Client = new
+                   {
+                       Id = client.Id,
+                       Name = client.Name,
+                   },
+               });
         public static readonly AuditEventType<string, string, string> UserContentRelatedFileAccess =
             new AuditEventType<string, string, string>(1009, "Content related file access",
                 (contentItemId, selectionGroupId, relatedFilePurpose) => new

@@ -9,7 +9,7 @@ module.exports = {
     'account-settings': './src/ts/account-settings.tsx',
     'authorized-content': './src/ts/react/authorized-content/index.tsx',
     'client-admin': './src/ts/client-admin.tsx',
-    'content-access-admin': './src/ts/content-access-admin/index.tsx',
+    'content-access-admin': './src/ts/react/content-access-admin/index.tsx',
     'content-disclaimer': './src/ts/content-disclaimer.ts',
     'content-wrapper': './src/ts/react/authorized-content/content-wrapper.tsx',
     'content-publishing': './src/ts/content-publishing/index.tsx',

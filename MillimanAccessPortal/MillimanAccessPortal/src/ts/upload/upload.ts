@@ -22,11 +22,11 @@ export enum FileUploadStatus {
 }
 
 interface FileUpload {
-  Id: string;
-  InitiatedDateTimeUtc: string;
-  ClientFileIdentifier: string;
-  Status: FileUploadStatus;
-  StatusMessage: string;
+  id: string;
+  initiatedDateTimeUtc: string;
+  clientFileIdentifier: string;
+  status: FileUploadStatus;
+  statusMessage: string;
 }
 
 interface ResumableInfo {
@@ -172,16 +172,16 @@ export class Upload {
         this._finalizationMonitor = new StatusMonitor(
           `/FileUpload/FinalizeUpload?fileUploadId=${uploadId}`,
           (fileUpload: FileUpload) => {
-            if (fileUpload.Status === FileUploadStatus.Complete) {
+            if (fileUpload.status === FileUploadStatus.Complete) {
               this.monitor.deactivate();
               this.onUploadProgress(ProgressSummary.full());
               this.setFileGUID(uploadId);
               this.onFileSuccess(this.fileGUID);
               this.setChecksum(null);
               this._finalizationMonitor.stop();
-            } else if (fileUpload.Status === FileUploadStatus.Error) {
+            } else if (fileUpload.status === FileUploadStatus.Error) {
               this.setCancelable(true);
-              this.onError(fileUpload.StatusMessage
+              this.onError(fileUpload.statusMessage
                 || 'Something went wrong during upload. Please try again.');
               this.setChecksum(null);
               this._finalizationMonitor.stop();

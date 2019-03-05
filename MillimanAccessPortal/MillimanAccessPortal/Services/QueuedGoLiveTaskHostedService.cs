@@ -210,15 +210,18 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 publicationRequest.RequestStatus = PublicationStatus.Confirmed;
 
                 //1.2  ContentReductionTask.Status
-                var previousLiveTasks = dbContext.ContentReductionTask
-                    .Where(r => r.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
-                    .Where(r => r.ReductionStatus == ReductionStatusEnum.Live);
-                foreach (ContentReductionTask PreviousLiveTask in previousLiveTasks)
+                if (ReductionIsInvolved)
                 {
-                    PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
-                    dbContext.ContentReductionTask.Update(PreviousLiveTask);
+                    var previousLiveTasks = dbContext.ContentReductionTask
+                        .Where(r => r.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
+                        .Where(r => r.ReductionStatus == ReductionStatusEnum.Live);
+                    foreach (ContentReductionTask PreviousLiveTask in previousLiveTasks)
+                    {
+                        PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
+                        dbContext.ContentReductionTask.Update(PreviousLiveTask);
+                    }
+                    relatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
                 }
-                relatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
 
                 //1.3  HierarchyFieldValue due to hierarchy changes
                 //1.3.1  If this is first publication for this root content item, add the fields to db
