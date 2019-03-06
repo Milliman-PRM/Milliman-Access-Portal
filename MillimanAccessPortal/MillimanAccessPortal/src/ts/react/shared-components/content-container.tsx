@@ -15,6 +15,14 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
     super(props);
   }
 
+  public closeWindow() {
+    if (window.location === window.parent.location) {
+      window.close();
+    } else {
+      window.parent.history.back();
+    }
+  }
+
   public componentDidMount() {
     if (this.props.contentType === ContentTypeEnum.FileDownload) {
       window.location.href = this.props.contentURL;
@@ -24,7 +32,11 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
   public render() {
     if (this.props.contentType === ContentTypeEnum.FileDownload) {
       return (
-        <div>Your download should begin shortly...</div>
+        <div id="message-container">
+          <h2 className="primary-message">Your download should begin shortly...</h2>
+          <h3 className="secondary-message">Once your download has completed, you can close this window</h3>
+          <button onClick={this.closeWindow}>Close</button>
+        </div>
       );
     }
 
