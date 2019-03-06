@@ -102,14 +102,14 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 .Where(usg => usg.SelectionGroup.RootContentItem.ClientId == clientId)
                 .Select(usg => usg.SelectionGroup.RootContentItem);
 
-            var itemInfoList = new List<RootContentItemInfo>();
-            foreach (var item in query)
+            var contentItemInfoList = new List<RootContentItemInfo>();
+            foreach (var contentItem in query)
             {
-                var itemInfo = (RootContentItemInfo)item;
-                itemInfoList.Add(itemInfo);
+                var contentItemInfo = (RootContentItemInfo)contentItem;
+                contentItemInfoList.Add(contentItemInfo);
             }
 
-            RootContentItems = itemInfoList;
+            RootContentItems = contentItemInfoList;
         }
     }
 }

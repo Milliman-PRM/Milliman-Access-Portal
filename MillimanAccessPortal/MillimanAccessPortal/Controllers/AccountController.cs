@@ -793,8 +793,8 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Conditionally add the Client Admin Element
-            AuthorizationResult ClientAdminResult1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null));
-            AuthorizationResult ClientAdminResult2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null));
+            AuthorizationResult ClientAdminResult1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            AuthorizationResult ClientAdminResult2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin));
             if (ClientAdminResult1.Succeeded || ClientAdminResult2.Succeeded)
             {
                 NavBarElements.Add(new NavBarElementModel
@@ -803,12 +803,12 @@ namespace MillimanAccessPortal.Controllers
                     Label = "Manage Clients",
                     URL = nameof(ClientAdminController).Replace("Controller", ""),
                     View = "ClientAdmin",
-                    Icon = "client-admin",
+                    Icon = "client",
                 });
             }
 
             // Conditionally add the Content Publishing Element
-            AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
+            AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher));
             if (ContentPublishResult.Succeeded)
             {
                 NavBarElements.Add(new NavBarElementModel
@@ -822,7 +822,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Conditionally add the Content Access Element
-            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin));
             if (ContentAccessResult.Succeeded)
             {
                 NavBarElements.Add(new NavBarElementModel
@@ -1152,7 +1152,7 @@ namespace MillimanAccessPortal.Controllers
         [LogTiming]
         public IActionResult SessionStatus()
         {
-            return Ok();
+            return Json(new { });
         }
 
         #region Helpers

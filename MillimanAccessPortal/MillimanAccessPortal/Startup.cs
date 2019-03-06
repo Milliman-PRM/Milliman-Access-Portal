@@ -12,7 +12,8 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AzureKeyVault;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -24,25 +25,23 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Services;
+using MillimanAccessPortal.Utilities;
+using NetEscapades.AspNetCore.SecurityHeaders;
 using QlikviewLib;
+using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using NetEscapades.AspNetCore.SecurityHeaders;
-using MillimanAccessPortal.Utilities;
-using System.Diagnostics;
-using Serilog;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.AzureKeyVault;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal
 {
@@ -58,7 +57,6 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.Configure<MvcOptions>(options =>
             {
                 options.Filters.Add(new RequireHttpsAttribute());
@@ -169,12 +167,7 @@ namespace MillimanAccessPortal
             .AddControllersAsServices()
             .AddJsonOptions(opt =>
             {
-                var resolver = opt.SerializerSettings.ContractResolver;
-                if (resolver != null)
-                {
-                    var res = resolver as Newtonsoft.Json.Serialization.DefaultContractResolver;
-                    res.NamingStrategy = null;  // Remove the default lowerCamelCasing of the json output
-                }
+                opt.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
             });
 
             services.AddApplicationInsightsTelemetry(Configuration);
@@ -191,7 +184,17 @@ namespace MillimanAccessPortal
             // These depend on UserManager from Identity, which is scoped, so don't add the following as singleton
             services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();
             services.AddScoped<IAuditLogger, AuditLogger>();
+
+            // Queries
             services.AddScoped<StandardQueries>();
+            services.AddScoped<ContentAccessAdminQueries>();
+
+            services.AddScoped<ClientQueries>();
+            services.AddScoped<ContentItemQueries>();
+            services.AddScoped<HierarchyQueries>();
+            services.AddScoped<SelectionGroupQueries>();
+            services.AddScoped<PublicationQueries>();
+            services.AddScoped<UserQueries>();
 
             // Add application services.
             services.AddTransient<IMessageQueue, MessageQueueServices>();

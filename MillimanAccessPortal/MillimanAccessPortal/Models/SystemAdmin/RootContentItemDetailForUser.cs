@@ -15,19 +15,19 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public string ContentName { get; set; }
         public string ContentType { get; set; }
 
-        public static explicit operator RootContentItemDetailForUser(RootContentItem item)
+        public static explicit operator RootContentItemDetailForUser(RootContentItem contentItem)
         {
-            if (item == null)
+            if (contentItem == null)
             {
                 return null;
             }
 
             return new RootContentItemDetailForUser
             {
-                Id = item.Id,
-                ContentName = item.ContentName,
+                Id = contentItem.Id,
+                ContentName = contentItem.ContentName,
                 ContentType = MapDbContextLib.Context.ContentType
-                    .ContentTypeString[item.ContentType?.TypeEnum ?? ContentTypeEnum.Unknown],
+                    .ContentTypeString[contentItem.ContentType?.TypeEnum ?? ContentTypeEnum.Unknown],
             };
         }
     }

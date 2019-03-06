@@ -48,6 +48,10 @@
         &.red {
             background-color: $red;
         }
+
+        &.orange {
+            background-color: $orange;
+        }
     }
 
     .modal-text {
@@ -92,5 +96,17 @@
 
 .ReactModalPortal {
     z-index: 10;
-    position: relative;
+}
+
+.ReactModal__Overlay {
+    opacity: 0;
+    transition: opacity 100ms ease-out;
+}
+
+.ReactModal__Overlay--after-open{
+    opacity: 1;
+}
+
+.ReactModal__Overlay--before-close{
+    opacity: 0;
 }

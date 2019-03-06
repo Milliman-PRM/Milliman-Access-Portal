@@ -108,7 +108,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("Entered ContentPublishingController.Clients action");
 
             #region Authorization
-            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher));
             if (!RoleInClientResult.Succeeded)
             {
                 Log.Debug($"In ContentPublishingController.Clients action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.ContentPublisher.ToString()}");

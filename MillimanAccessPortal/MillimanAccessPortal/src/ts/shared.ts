@@ -303,19 +303,19 @@ export function updateMemberList(
   const eligibleList = $eligibleCard.data().eligibleList as UserInfo[];
 
   eligibleList.filter((eligible) =>
-      memberList.filter((member) => eligible.Id === member.Id).length === 0);
+      memberList.filter((member) => eligible.id === member.id).length === 0);
   memberList
     .forEach((user) => {
-      const firstLast = user.FirstName || user.LastName
-        ? `${user.FirstName || ''} ${user.LastName || ''}`
-        : user.UserName;
-      const userName = firstLast === user.UserName
+      const firstLast = user.firstName || user.lastName
+        ? `${user.firstName || ''} ${user.lastName || ''}`
+        : user.userName;
+      const userName = firstLast === user.userName
         ? ''
-        : user.UserName;
+        : user.userName;
       const $li = $([
         // If you make any changes to this component, also change the user component in card.ts
         '<li>',
-        `  <span class="detail-item-user" data-user-id="${user.Id}">`,
+        `  <span class="detail-item-user" data-user-id="${user.id}">`,
         '    <div class="detail-item-user-icon">',
         '      <svg class="card-user-icon">',
         '        <use href="#user"></use>',
@@ -346,14 +346,14 @@ export function updateMemberList(
 export function removeUserFromSelectionGroup(event: any, member: UserInfo, selectionGroup: SelectionGroupSummary) {
   event.stopPropagation();
   const assignment: any = {};
-  assignment[member.Id] = false;
-  const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.Id}"]`);
+  assignment[member.id] = false;
+  const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.id}"]`);
   put<SelectionGroupSummary>(
     'ContentAccessAdmin/UpdateSelectionGroupUserAssignments/',
-    `Removed ${member.Email} from selection group ${selectionGroup.Name}.`,
+    `Removed ${member.email} from selection group ${selectionGroup.name}.`,
     [
       (response) => {
-        $selectionGroup.data('memberList', response.MemberList);
+        $selectionGroup.data('memberList', response.memberList);
         updateMemberList(
           $selectionGroup,
           $('#root-content-items [selected]').parent(),
@@ -363,7 +363,7 @@ export function removeUserFromSelectionGroup(event: any, member: UserInfo, selec
     ],
   )(
     {
-      SelectionGroupId: selectionGroup.Id,
+      SelectionGroupId: selectionGroup.id,
       UserAssignments: assignment,
     },
     () => undefined,
@@ -371,8 +371,8 @@ export function removeUserFromSelectionGroup(event: any, member: UserInfo, selec
   );
 }
 export function addUserToSelectionGroup(selectionGroup: SelectionGroupSummary) {
-  const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.Id}"]`);
-  $selectionGroup.data('memberList', selectionGroup.MemberList);
+  const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.id}"]`);
+  $selectionGroup.data('memberList', selectionGroup.memberList);
   updateMemberList(
     $selectionGroup,
     $('#root-content-items [selected]').parent(),
@@ -387,9 +387,9 @@ export function userSubstringMatcher(users: any) {
     const regex = new RegExp(query, 'i');
 
     $.each(users, function check(_, user) {
-      if (regex.test(user.Email) ||
-          regex.test(user.UserName) ||
-          regex.test(user.FirstName + ' ' + user.LastName)) {
+      if (regex.test(user.email) ||
+          regex.test(user.userName) ||
+          regex.test(user.firstName + ' ' + user.lastName)) {
         matches.push(user);
       }
     });
@@ -404,11 +404,11 @@ export function eligibleUserMatcher(query: string, callback: (matches: any) => v
     .map((card) => $(card).data().memberList)
     .reduce((cum: UserInfo[], cur: UserInfo[]) => cum.concat(cur), []) as UserInfo[];
   const eligibleUsers = allEligibleUsers.filter((eligibleUser) =>
-    assignedUsers.filter((assignedUser) => eligibleUser.Id === assignedUser.Id).length === 0);
+    assignedUsers.filter((assignedUser) => eligibleUser.id === assignedUser.id).length === 0);
 
   const regex = new RegExp(query, 'i');
   callback(eligibleUsers.filter((user) =>
-    [user.Email, user.UserName, `${user.FirstName} ${user.LastName}`].filter((text) =>
+    [user.email, user.userName, `${user.firstName} ${user.lastName}`].filter((text) =>
       regex.test(text)).length > 0));
 }
 
@@ -434,57 +434,57 @@ export function updateCardStatus($card: any, reductionDetails: ReductionSummary 
   const $statusTop = $statusContainer.find('.status-top');
   const $statusBot = $statusContainer.find('.status-bot');
   const details = {
-    User: {
-      FirstName: '',
-      LastName: '',
+    user: {
+      firstName: '',
+      lastName: '',
     },
-    StatusEnum: 0,
-    StatusName: '',
-    StatusMessage: '',
-    SelectionGroupId: 0,
-    RootContentItemId: 0,
-    QueuedDurationMs: -1,
-    QueuePosition: -1,
-    QueueTotal: -1,
+    statusEnum: 0,
+    statusName: '',
+    statusMessage: '',
+    selectionGroupId: 0,
+    rootContentItemId: 0,
+    queuedDurationMs: -1,
+    queuePosition: -1,
+    queueTotal: -1,
     ...reductionDetails,
   };
 
-  let statusTop = `<strong>${details.StatusName}</strong>`;
-  let statusBot = `Initiated by ${details.User.FirstName[0]}. ${details.User.LastName}`;
-  const durationText = details.QueuedDurationMs > 0
-    ? msToTimeReferenceString(details.QueuedDurationMs)
+  let statusTop = `<strong>${details.statusName}</strong>`;
+  let statusBot = `Initiated by ${details.user.firstName[0]}. ${details.user.lastName}`;
+  const durationText = details.queuedDurationMs > 0
+    ? msToTimeReferenceString(details.queuedDurationMs)
     : '';
-  if (!details.SelectionGroupId) {
+  if (!details.selectionGroupId) {
     // Publication status
-    if (details.StatusName === 'Queued') {
-      if (details.QueuePosition >= 0) {
-        statusTop += ` (behind ${details.QueuePosition + 1} other publication${details.QueuePosition ? 's' : ''})`;
+    if (details.statusName === 'Queued') {
+      if (details.queuePosition >= 0) {
+        statusTop += ` (behind ${details.queuePosition + 1} other publication${details.queuePosition ? 's' : ''})`;
       }
       statusBot += durationText;
-    } else if (details.StatusName === 'Processing') {
-      if (details.QueueTotal > 0) {
-        statusTop += ` (${details.QueuePosition}/${details.QueueTotal} completed)`;
+    } else if (details.statusName === 'Processing') {
+      if (details.queueTotal > 0) {
+        statusTop += ` (${details.queuePosition}/${details.queueTotal} completed)`;
       }
       statusBot += durationText;
-    } else if (details.StatusName === 'Error') {
-      if (details.StatusMessage) {
+    } else if (details.statusName === 'Error') {
+      if (details.statusMessage) {
         statusTop += ' (click for details)';
       }
-    } else if (details.StatusName === 'Processed') {
+    } else if (details.statusName === 'Processed') {
       statusBot += durationText;
     }
   } else {
     // Reduction status
-    if (details.StatusName === 'Queued') {
-      if (details.QueuePosition >= 0) {
-        statusTop += ` (behind ${details.QueuePosition + 1} other reduction${details.QueuePosition ? 's' : ''})`;
+    if (details.statusName === 'Queued') {
+      if (details.queuePosition >= 0) {
+        statusTop += ` (behind ${details.queuePosition + 1} other reduction${details.queuePosition ? 's' : ''})`;
       }
       statusBot += durationText;
-    } else if (details.StatusName === 'Error') {
-      if (details.StatusMessage) {
+    } else if (details.statusName === 'Error') {
+      if (details.statusMessage) {
         statusTop += ' (click for details)';
       }
-    } else if (details.StatusName === 'Processing' || details.StatusName === 'Processed') {
+    } else if (details.statusName === 'Processing' || details.statusName === 'Processed') {
       statusBot += durationText;
     }
   }
@@ -499,11 +499,11 @@ export function updateCardStatus($card: any, reductionDetails: ReductionSummary 
         })
         .join(' ');
     })
-    .addClass('status-' + details.StatusEnum);
+    .addClass('status-' + details.statusEnum);
   $statusContainer.off('click');
-  if (details.StatusName.match(/^Error/) && details.StatusMessage) {
+  if (details.statusName.match(/^Error/) && details.statusMessage) {
     $statusContainer.on('click', () => {
-      toastr.warning(details.StatusMessage);
+      toastr.warning(details.statusMessage);
     });
   }
 }
@@ -583,7 +583,30 @@ export function getData(url = '', data: any = {}) {
     if (!response.ok) {
       throw new Error(response.headers.get('Warning') || 'Unknown error');
     }
-    return response.json();
+    return response;
+  });
+}
+
+export function getJsonData<TResponse = any>(url = '', data: any = {}) {
+  const queryParams: string[] = [];
+  Object.keys(data).forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      queryParams.push(`${key}=${data[key]}`);
+    }
+  });
+  url = `${url}?${queryParams.join('&')}`;
+  return fetch(url, {
+    method: 'GET',
+    cache: 'no-cache',
+    credentials: 'same-origin',
+  })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(response.headers.get('Warning') || `${response.status}`);
+    } else if (response.redirected && response.url.match(/\/Account\/LogIn/) !== null) {
+      throw new Error('sessionExpired');
+    }
+    return response.json() as Promise<TResponse>;
   });
 }
 
@@ -612,5 +635,28 @@ export function postData(url: string = '', data: any = {}, rawResponse: boolean 
     return rawResponse
       ? response
       : response.json();
+  });
+}
+
+export function postJsonData<TResponse = any>(url: string = '', data: object = {}) {
+  const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
+  return fetch(url, {
+    method: 'POST',
+    cache: 'no-cache',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'RequestVerificationToken': antiforgeryToken,
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(data),
+  })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(response.headers.get('Warning') || `${response.status}`);
+    } else if (response.redirected && response.url.match(/\/Account\/LogIn/) !== null) {
+      throw new Error('sessionExpired');
+    }
+    return response.json() as Promise<TResponse>;
   });
 }
