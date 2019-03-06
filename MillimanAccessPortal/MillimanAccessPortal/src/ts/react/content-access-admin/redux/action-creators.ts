@@ -122,78 +122,30 @@ export const promptGroupNameEmpty =
 // Data fetches
 export const fetchClients =
   createRequestActionCreator<AccessActions.FetchClients>('FETCH_CLIENTS');
-export const fetchClientsSucceeded =
-  createActionCreator<AccessActions.FetchClientsSucceeded>('FETCH_CLIENTS_SUCCEEDED');
-export const fetchClientsFailed =
-  createActionCreator<AccessActions.FetchClientsFailed>('FETCH_CLIENTS_FAILED');
 export const fetchItems =
   createRequestActionCreator<AccessActions.FetchItems>('FETCH_ITEMS');
-export const fetchItemsSucceeded =
-  createActionCreator<AccessActions.FetchItemsSucceeded>('FETCH_ITEMS_SUCCEEDED');
-export const fetchItemsFailed =
-  createActionCreator<AccessActions.FetchItemsFailed>('FETCH_ITEMS_FAILED');
 export const fetchGroups =
   createRequestActionCreator<AccessActions.FetchGroups>('FETCH_GROUPS');
-export const fetchGroupsSucceeded =
-  createActionCreator<AccessActions.FetchGroupsSucceeded>('FETCH_GROUPS_SUCCEEDED');
-export const fetchGroupsFailed =
-  createActionCreator<AccessActions.FetchGroupsFailed>('FETCH_GROUPS_FAILED');
 export const fetchSelections =
   createRequestActionCreator<AccessActions.FetchSelections>('FETCH_SELECTIONS');
-export const fetchSelectionsSucceeded =
-  createActionCreator<AccessActions.FetchSelectionsSucceeded>('FETCH_SELECTIONS_SUCCEEDED');
-export const fetchSelectionsFailed =
-  createActionCreator<AccessActions.FetchSelectionsFailed>('FETCH_SELECTIONS_FAILED');
 export const fetchStatusRefresh =
   createRequestActionCreator<AccessActions.FetchStatusRefresh>('FETCH_STATUS_REFRESH');
-export const fetchStatusRefreshSucceeded =
-  createActionCreator<AccessActions.FetchStatusRefreshSucceeded>('FETCH_STATUS_REFRESH_SUCCEEDED');
-export const fetchStatusRefreshFailed =
-  createActionCreator<AccessActions.FetchStatusRefreshFailed>('FETCH_STATUS_REFRESH_FAILED');
 export const fetchSessionCheck =
   createRequestActionCreator<AccessActions.FetchSessionCheck>('FETCH_SESSION_CHECK');
-export const fetchSessionCheckSucceeded =
-  createActionCreator<AccessActions.FetchSessionCheckSucceeded>('FETCH_SESSION_CHECK_SUCCEEDED');
-export const fetchSessionCheckFailed =
-  createActionCreator<AccessActions.FetchSessionCheckFailed>('FETCH_SESSION_CHECK_FAILED');
 
 // Updates
 export const createGroup =
   createRequestActionCreator<AccessActions.CreateGroup>('CREATE_GROUP');
-export const createGroupSucceeded =
-  createActionCreator<AccessActions.CreateGroupSucceeded>('CREATE_GROUP_SUCCEEDED');
-export const createGroupFailed =
-  createActionCreator<AccessActions.CreateGroupFailed>('CREATE_GROUP_FAILED');
 export const updateGroup =
   createRequestActionCreator<AccessActions.UpdateGroup>('UPDATE_GROUP');
-export const updateGroupSucceeded =
-  createActionCreator<AccessActions.UpdateGroupSucceeded>('UPDATE_GROUP_SUCCEEDED');
-export const updateGroupFailed =
-  createActionCreator<AccessActions.UpdateGroupFailed>('UPDATE_GROUP_FAILED');
 export const deleteGroup =
   createRequestActionCreator<AccessActions.DeleteGroup>('DELETE_GROUP');
-export const deleteGroupSucceeded =
-  createActionCreator<AccessActions.DeleteGroupSucceeded>('DELETE_GROUP_SUCCEEDED');
-export const deleteGroupFailed =
-  createActionCreator<AccessActions.DeleteGroupFailed>('DELETE_GROUP_FAILED');
 export const suspendGroup =
   createRequestActionCreator<AccessActions.SuspendGroup>('SUSPEND_GROUP');
-export const suspendGroupSucceeded =
-  createActionCreator<AccessActions.SuspendGroupSucceeded>('SUSPEND_GROUP_SUCCEEDED');
-export const suspendGroupFailed =
-  createActionCreator<AccessActions.SuspendGroupFailed>('SUSPEND_GROUP_FAILED');
 export const updateSelections =
   createRequestActionCreator<AccessActions.UpdateSelections>('UPDATE_SELECTIONS');
-export const updateSelectionsSucceeded =
-  createActionCreator<AccessActions.UpdateSelectionsSucceeded>('UPDATE_SELECTIONS_SUCCEEDED');
-export const updateSelectionsFailed =
-  createActionCreator<AccessActions.UpdateSelectionsFailed>('UPDATE_SELECTIONS_FAILED');
 export const cancelReduction =
   createRequestActionCreator<AccessActions.CancelReduction>('CANCEL_REDUCTION');
-export const cancelReductionSucceeded =
-  createActionCreator<AccessActions.CancelReductionSucceeded>('CANCEL_REDUCTION_SUCCEEDED');
-export const cancelReductionFailed =
-  createActionCreator<AccessActions.CancelReductionFailed>('CANCEL_REDUCTION_FAILED');
 
 // Scheduled actions
 export const scheduleStatusRefresh =
