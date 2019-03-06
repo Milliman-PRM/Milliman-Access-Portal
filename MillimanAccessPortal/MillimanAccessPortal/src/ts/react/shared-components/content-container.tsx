@@ -35,8 +35,8 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
       return (
         <div id="message-container" className="form-section-container">
           <h2 className="primary-message">Your download should begin shortly...</h2>
-          <h3 className="secondary-message">Once your download has completed, you can close this window</h3>
-          <button id="download-close-button" className="red-button" onClick={this.closeWindow}>CLOSE WINDOW</button>
+          <h3 className="secondary-message">This window can be closed once your download has completed</h3>
+          <button id="download-close-button" className="blue-button" onClick={this.closeWindow}>CLOSE WINDOW</button>
         </div>
       );
     }
