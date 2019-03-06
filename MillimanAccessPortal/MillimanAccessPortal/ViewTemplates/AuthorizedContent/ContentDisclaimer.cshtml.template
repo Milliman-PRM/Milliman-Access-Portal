@@ -1,9 +1,8 @@
 @model MillimanAccessPortal.Models.AuthorizedContentViewModels.ContentDisclaimerModel
 
 @{
-    ViewData["Title"] = "Content Disclaimer";
+    ViewData["Title"] = "";
     Layout = "_Layout";
-    ViewData["NavIcon"] = "Content Disclaimer";
 }
 
 @section CSS {
