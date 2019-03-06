@@ -101,9 +101,9 @@ export const openDeleteGroupModal =
   createActionCreator<AccessActions.OpenDeleteGroupModal>('OPEN_DELETE_GROUP_MODAL');
 export const closeDeleteGroupModal =
   createActionCreator<AccessActions.CloseDeleteGroupModal>('CLOSE_DELETE_GROUP_MODAL');
-export const openInvalidateModal =
+export const openInactiveModal =
   createActionCreator<AccessActions.OpenInactiveModal>('OPEN_INACTIVE_MODAL');
-export const closeInvalidateModal =
+export const closeInactiveModal =
   createActionCreator<AccessActions.CloseInactiveModal>('CLOSE_INACTIVE_MODAL');
 
 export const setGroupEditingOn =

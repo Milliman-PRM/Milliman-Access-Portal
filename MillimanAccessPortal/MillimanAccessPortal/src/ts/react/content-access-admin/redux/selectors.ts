@@ -397,6 +397,22 @@ export function allGroupsCollapsed(state: AccessState) {
 }
 
 /**
+ * Select whether all reduction values are selected.
+ * @param state Redux store
+ */
+export function allValuesSelected(state: AccessState) {
+  return selectedReductionValues(state).length === activeReductionValues(state).length;
+}
+
+/**
+ * Select whether all reduction values are deselected.
+ * @param state Redux store
+ */
+export function allValuesDeselected(state: AccessState) {
+  return selectedReductionValues(state).length === 0;
+}
+
+/**
  * Select all reductions that belong to an active selection group.
  * @param state Redux store
  */

@@ -34,9 +34,10 @@ import { NavBar } from '../shared-components/navbar';
 import * as AccessActionCreators from './redux/action-creators';
 import {
     activeReductionFieldsets, activeSelectedClient, activeSelectedGroup, activeSelectedItem,
-    addableUsers, allGroupsCollapsed, allGroupsExpanded, clientEntities, groupEntities,
-    groupToDelete, itemEntities, modifiedReductionValues, pendingMaster, pendingReductionValues,
-    selectedGroupWithStatus, selectedItem, selectionsFormModified,
+    addableUsers, allGroupsCollapsed, allGroupsExpanded, allValuesDeselected, allValuesSelected,
+    clientEntities, groupEntities, groupToDelete, itemEntities, modifiedReductionValues,
+    pendingMaster, pendingReductionValues, selectedGroupWithStatus, selectedItem,
+    selectionsFormModified,
 } from './redux/selectors';
 import {
     AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateModals,
@@ -79,6 +80,8 @@ interface ContentAccessAdminProps {
 
   allGroupsExpanded: boolean;
   allGroupsCollapsed: boolean;
+  allValuesSelected: boolean;
+  allValuesDeselected: boolean;
   groupToDelete: SelectionGroup;
 }
 
@@ -642,7 +645,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             isMaster: selectedMaster,
             selections: selectedValues,
           })
-          : this.props.openInvalidateModal({})
+          : this.props.openInactiveModal({})
         }
         onCancelReduction={() => this.props.cancelReduction({ groupId: group.id })}
         loading={pending.data.selections}
@@ -658,7 +661,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         </PanelSectionToolbar>
         <Modal
           isOpen={modals.invalidate.isOpen}
-          onRequestClose={() => this.props.closeInvalidateModal({})}
+          onRequestClose={() => this.props.closeInactiveModal({})}
           ariaHideApp={false}
           className="modal"
           overlayClassName="modal-overlay"
@@ -671,7 +674,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             and all of its users will be unable to view its content until values are selected.
           </span>
           <div className="button-container">
-            <button className="link-button" type="button" onClick={() => this.props.closeInvalidateModal({})}>
+            <button className="link-button" type="button" onClick={() => this.props.closeInactiveModal({})}>
               Cancel
             </button>
             <button
@@ -727,6 +730,8 @@ function mapStateToProps(state: AccessState): ContentAccessAdminProps {
     addableUsers: addableUsers(state),
     allGroupsExpanded: allGroupsExpanded(state),
     allGroupsCollapsed: allGroupsCollapsed(state),
+    allValuesSelected: allValuesSelected(state),
+    allValuesDeselected: allValuesDeselected(state),
     groupToDelete: groupToDelete(state),
   };
 }
