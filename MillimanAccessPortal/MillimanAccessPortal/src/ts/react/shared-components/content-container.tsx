@@ -1,4 +1,5 @@
-﻿import '../../../scss/react/shared-components/content-container.scss';
+﻿import '../../../scss/map_modules/_form.scss';
+import '../../../scss/react/shared-components/content-container.scss';
 
 import 'tooltipster';
 import 'tooltipster/src/css/tooltipster.css';
@@ -32,10 +33,10 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
   public render() {
     if (this.props.contentType === ContentTypeEnum.FileDownload) {
       return (
-        <div id="message-container">
+        <div id="message-container" className="form-section-container">
           <h2 className="primary-message">Your download should begin shortly...</h2>
           <h3 className="secondary-message">Once your download has completed, you can close this window</h3>
-          <button onClick={this.closeWindow}>Close</button>
+          <button id="download-close-button" className="red-button" onClick={this.closeWindow}>CLOSE WINDOW</button>
         </div>
       );
     }
