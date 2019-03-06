@@ -10,6 +10,8 @@
     <Authors>Milliman PRM Analytics Team</Authors>
 
     <Company>Milliman Inc.</Company>
+
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
