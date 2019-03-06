@@ -1,10 +1,40 @@
+<#
+.DESCRIPTION
+  Extracts data from a folder of QlikView Server log files (session and audit logs) and loads them into a database.
+
+  All parameters are required.
+
+.PARAMETER downloadPath
+    The full path to the folder to search for QlikView log files
+    
+.PARAMETER logDays
+    The number of days of logs to process. Default is 0 (current day only)
+
+.PARAMETER azureStorageAccountKey
+    The PostgreSQL Server hosting the user stats database
+
+.PARAMETER azureStorageShareName
+    The name of the file share which contains the QlikView log files
+
+.PARAMETER azureStoragePath
+    The path to the folder containing QlikView log files, relative to the root of the share
+    
+.PARAMETER azureStorageAccountName
+    The name of the Azure Storage Account that contains the targeted file share
+
+.NOTES
+  Author:         Ben Wyatt
+  
+#>
+
 # Define parameters
 param (
     [Parameter(Mandatory=$true)][string]$downloadPath,
     [Parameter(Mandatory=$true)][int]$logDays=0,
     [Parameter(Mandatory=$true)][string]$azureStorageAccountKey,
     [Parameter(Mandatory=$true)][string]$azureStoragePath,
-    [Parameter(Mandatory=$true)][string]$azureStorageAccountName
+    [Parameter(Mandatory=$true)][string]$azureStorageAccountName,
+    [Parameter(Mandatory=$true)][string]$azureStorageShareName
 )
 
 # Generate a list of possible file names
@@ -18,7 +48,7 @@ for ($i = 0; $i -lt $logDays; $i++)
 
 # Get a list of actual files in the share
 $context = New-AzureStorageContext -StorageAccountName $azureStorageAccountName -StorageAccountKey $azureStorageAccountKey 
-$directory = Get-AzureStorageFile -Context $context -ShareName live -Path $azureStoragePath
+$directory = Get-AzureStorageFile -Context $context -ShareName $azureStorageShareName -Path $azureStoragePath
 $logFiles = @($directory.ListFilesAndDirectories()) | where {$_.Name -in $fileNames}
 
 if ($logFiles.Length -eq 0)
