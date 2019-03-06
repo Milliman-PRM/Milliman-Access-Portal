@@ -108,10 +108,9 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     });
     const contentContainer = this.state.selectedContentURL
       ? (
-        <iframe
-          src={this.state.selectedContentURL}
-          style={{ width: '100%', border: 0 }}
-        />
+        <div id="iframe-container">
+          <iframe src={this.state.selectedContentURL} />
+        </div>
       )
       : null;
     return (
