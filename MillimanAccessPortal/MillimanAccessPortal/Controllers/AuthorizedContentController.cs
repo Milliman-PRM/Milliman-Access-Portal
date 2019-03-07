@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading.Tasks;
 
 
@@ -99,31 +100,36 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// Handles a request to display content that is hosted by a web server. 
+        /// Return a view that contains either content disclaimer text or the content
         /// </summary>
-        /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
-        /// <returns>A View (and model) that displays the requested content</returns>
-        public async Task<IActionResult> WebHostedContent(Guid selectionGroupId)
+        public async Task<IActionResult> ContentWrapper(Guid selectionGroupId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.WebHostedContent action: user {User.Identity.Name}, selectionGroupId {selectionGroupId}");
-
+            var user = await Queries.GetCurrentApplicationUser(User);
+            var userInSelectionGroup = await DataContext.UserInSelectionGroup
+                .Where(u => u.UserId == user.Id)
+                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .FirstOrDefaultAsync();
             var selectionGroup = DataContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
-                    .ThenInclude(rc => rc.ContentType)
-                .Include(sg => sg.RootContentItem)
-                    .ThenInclude(rc => rc.Client)
+                    .ThenInclude(i => i.ContentType)
                 .Where(sg => sg.Id == selectionGroupId)
                 .Where(sg => sg.ContentInstanceUrl != null)
                 .Where(sg => !sg.IsSuspended)
                 .Where(sg => !sg.RootContentItem.IsSuspended)
                 .FirstOrDefault();
-            #region Validation
-            if (selectionGroup?.RootContentItem?.ContentType == null)
-            {
-                string ErrMsg = $"In AuthorizedContentController.WebHostedContent action, failed to obtain the requested selection group, content item, or content type";
-                Log.Error(ErrMsg + $": user {User.Identity.Name}, selectionGroupId {selectionGroupId}, aborting");
 
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+            #region Validation
+            if (selectionGroup?.RootContentItem == null)
+            {
+                Log.Error("In AuthorizedContentController.ContentWrapper action, " + 
+                    "failed to obtain the requested selection group, content item, or content type: " +
+                    $"user {User.Identity.Name}, selectionGroupId {selectionGroupId}, aborting");
+
+                var ErrMsg = new List<string>
+                {
+                    "You are not authorized to access the requested content.",
+                };
+                return View("ContentMessage", ErrMsg);
             }
             #endregion
 
@@ -134,8 +140,130 @@ namespace MillimanAccessPortal.Controllers
                 Log.Verbose($"In AuthorizedContentController.WebHostedContent action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
-                Response.Headers.Add("Warning", "You are not authorized to access the requested content");
-                return Unauthorized();
+                var ErrMsg = new List<string>
+                {
+                    "You are not authorized to access the requested content.",
+                };
+                return View("ContentMessage", ErrMsg);
+            }
+            #endregion
+
+            #region Content Disclaimer Verification
+            if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer)
+                && !userInSelectionGroup.DisclaimerAccepted)
+            {
+                var disclaimer = new ContentDisclaimerModel
+                {
+                    ValidationId = Guid.NewGuid().ToString("D"),
+                    SelectionGroupId = selectionGroupId,
+                    ContentName = selectionGroup.RootContentItem.ContentName,
+                    DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
+                };
+                AuditLogger.Log(AuditEventType.ContentDisclaimerPresented.ToEvent(
+                    userInSelectionGroup, disclaimer.ValidationId, disclaimer.DisclaimerText));
+
+                return View("ContentDisclaimer", disclaimer);
+            }
+            #endregion
+
+            UriBuilder contentUrlBuilder = new UriBuilder
+            {
+                Host = Request.Host.Host,
+                Scheme = Request.Scheme,
+                Port = Request.Host.Port ?? -1,
+                Path = "/AuthorizedContent/WebHostedContent",
+                Query = $"selectionGroupId=",
+            };
+
+            return View("ContentWrapper", new ContentWrapperModel
+            {
+                ContentURL = $"{contentUrlBuilder.Uri.AbsoluteUri}{selectionGroup.Id}",
+                ContentType = selectionGroup.RootContentItem.ContentType.TypeEnum,
+            });
+        }
+
+        public async Task<IActionResult> AcceptDisclaimer(Guid selectionGroupId, string validationId)
+        {
+            var user = await Queries.GetCurrentApplicationUser(User);
+            var userInSelectionGroup = await DataContext.UserInSelectionGroup
+                .Where(u => u.UserId == user.Id)
+                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .FirstOrDefaultAsync();
+
+            if (!userInSelectionGroup.DisclaimerAccepted)
+            {
+                userInSelectionGroup.DisclaimerAccepted = true;
+
+                await DataContext.SaveChangesAsync();
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, validationId));
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Handles a request to display content that is hosted by a web server. 
+        /// </summary>
+        /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
+        /// <returns>A View (and model) that displays the requested content</returns>
+        public async Task<IActionResult> WebHostedContent(Guid selectionGroupId)
+        {
+            Log.Verbose($"Entered AuthorizedContentController.WebHostedContent action: user {User.Identity.Name}, selectionGroupId {selectionGroupId}");
+
+            var user = await Queries.GetCurrentApplicationUser(User);
+            var userInSelectionGroup = DataContext.UserInSelectionGroup
+                .Where(u => u.UserId == user.Id)
+                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .FirstOrDefault();
+            var selectionGroup = DataContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rc => rc.ContentType)
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rc => rc.Client)
+                .Where(sg => sg.Id == selectionGroupId)
+                .Where(sg => sg.ContentInstanceUrl != null)
+                .Where(sg => !sg.IsSuspended)
+                .Where(sg => !sg.RootContentItem.IsSuspended)
+                .FirstOrDefault();
+
+            #region Validation
+            if (selectionGroup?.RootContentItem?.ContentType == null)
+            {
+                Log.Error("In AuthorizedContentController.WebHostedContent action, " + 
+                    "failed to obtain the requested selection group, content item, or content type: " +
+                    $"user {User.Identity.Name}, selectionGroupId {selectionGroupId}, aborting");
+
+                var ErrMsg = new List<string>
+                {
+                    "You are not authorized to access the requested content.",
+                };
+                return View("ContentMessage", ErrMsg);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(selectionGroupId));
+            if (!Result1.Succeeded)
+            {
+                Log.Verbose($"In AuthorizedContentController.WebHostedContent action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
+
+                var ErrMsg = new List<string>
+                {
+                    "You are not authorized to access the requested content.",
+                };
+                return View("ContentMessage", ErrMsg);
+            }
+            #endregion
+
+            #region Content Disclaimer Verification
+            if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer)
+                && !userInSelectionGroup.DisclaimerAccepted)
+            {
+                return View("ContentMessage", new List<string>
+                {
+                    "You are not authorized to access the requested content.",
+                });
             }
             #endregion
 
@@ -156,9 +284,16 @@ namespace MillimanAccessPortal.Controllers
 
             if (requestedContentFile == null)
             {
-                Log.Error($"In AuthorizedContentController.WebHostedContent action: content file path not found for {(selectionGroup.IsMaster ? "master" : "reduced")} selection group {selectionGroupId}, aborting");
-                Response.Headers.Add("Warning", "This content file path could not be found. Please refresh this web page (F5) in a few minutes, and contact MAP Support if this error continues.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                Log.Error("In AuthorizedContentController.WebHostedContent action: content file path not found " +
+                    $"for {(selectionGroup.IsMaster ? "master" : "reduced")} " +
+                    $"selection group {selectionGroupId}, aborting");
+                var ErrMsg = new List<string>
+                {
+                    "This content file path could not be found.",
+                    "Please refresh this web page (F5) in a few minutes, " +
+                    "and contact MAP Support if this error continues.",
+                };
+                return View("ContentMessage", ErrMsg);
             }
 
             // Make sure the checksum currently matches the value stored at the time the file went live
@@ -200,7 +335,13 @@ namespace MillimanAccessPortal.Controllers
 
                     case ContentTypeEnum.FileDownload:
                         Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning file {requestedContentFile.FullPath}");
-                        return PhysicalFile(requestedContentFile.FullPath, "application/octet-stream", requestedContentFile.FileOriginalName);
+                        var contentDisposition = new ContentDisposition
+                        {
+                            FileName = requestedContentFile.FileOriginalName,
+                            Inline = false,
+                        };
+                        Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
+                        return PhysicalFile(requestedContentFile.FullPath, "application/octet-stream");
 
                     case ContentTypeEnum.Pdf:
                         Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning file {requestedContentFile.FullPath}");

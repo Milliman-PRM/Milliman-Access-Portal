@@ -1,4 +1,7 @@
-﻿body {
+﻿@import "./variables";
+@import "./mixins/breakpoints";
+
+body {
     font-family: "Helvetica Neue", sans-serif;
     background-color: $light-grey;
     color: $charcoal;
