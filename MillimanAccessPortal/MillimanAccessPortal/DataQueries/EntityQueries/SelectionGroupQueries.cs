@@ -292,13 +292,17 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             #region commit and log
             _dbContext.SaveChanges();
-            foreach (var user in usersToAdd)
+            foreach (var userInGroup in usersToAdd)
             {
-                _auditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(group, user.Id));
+                _auditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(group, userInGroup.UserId));
             }
-            foreach (var user in usersToRemove)
+            foreach (var userInGroup in usersToRemove)
             {
-                _auditLogger.Log(AuditEventType.SelectionGroupUserRemoved.ToEvent(group, user.Id));
+                _auditLogger.Log(AuditEventType.SelectionGroupUserRemoved.ToEvent(group, userInGroup.UserId));
+            }
+            if (usersToRemove.Any())
+            {
+                _auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersToRemove.ToList()));
             }
             #endregion
 

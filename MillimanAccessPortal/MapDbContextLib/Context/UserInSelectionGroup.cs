@@ -23,5 +23,8 @@ namespace MapDbContextLib.Context
         [ForeignKey("User")]
         public Guid UserId { get; set; }
         public ApplicationUser User { get; set; }
+
+        [Required]
+        public bool DisclaimerAccepted { get; set; }
     }
 }
