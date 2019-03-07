@@ -27,6 +27,7 @@ using AuditLogLib;
 using AuditLogLib.Services;
 using AuditLogLib.Event;
 using MillimanAccessPortal.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
@@ -93,43 +94,39 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> IsLocalAccount(string userName)
         {
-            string scheme = await GetAuthenticationSchemeForUser(userName);
+            string scheme = await GetExternalAuthenticationSchemeAsync(userName);
 
             return Json(new { LocalAccount = string.IsNullOrWhiteSpace(scheme) });
         }
 
         /// <summary>
-        /// Evaluates the appropriate authentication scheme for a provided username
+        /// Evaluates the appropriate external authentication scheme for a provided username
         /// </summary>
         /// <param name="userName"></param>
-        /// <returns>The scheme for the specified user, or <see langword="null"/> if no scheme is appropriate</returns>
+        /// <returns>The scheme name, or <see langword="null"/> if no external scheme is appropriate</returns>
         [NonAction]
-        private async Task<string> GetAuthenticationSchemeForUser(string userName)
+        private async Task<string> GetExternalAuthenticationSchemeAsync(string userName)
         {
             string normalizedUserName = _userManager.NormalizeKey(userName);
-            if (!DbContext.Users.Any(u => u.NormalizedUserName == normalizedUserName))
+            var appUser = await DbContext.ApplicationUser
+                                         .Include(u => u.AuthenticationScheme)
+                                         .SingleOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName);
+            if (appUser == null)
             {
                 return null;
             }
 
+            // 1. Does the specified user have an assigned scheme?
+            if (appUser.AuthenticationScheme != null)
+            {
+                return appUser.AuthenticationScheme.Name;
+            }
+
+            // 2. Does the email domain match a scheme?
             string userDomain = userName.Substring(0, userName.LastIndexOf('.'))
                                         .Substring(userName.IndexOf('@') + 1);
-
-            // 1. Does the specified user have a scheme name stored?
-            if (false)
-            {
-                return "TheStoredSchemeName";
-            }
-
-            // 2. Does the email domain map to a scheme?
-            if (false)
-            {
-                return "TheMappedSchemeName";
-            }
-
-            // 3. Does the email domain match a scheme?
-            var allSchemeNames = (await _signInManager.GetExternalAuthenticationSchemesAsync()).Select(s => s.Name);
-            return allSchemeNames.SingleOrDefault(s => s.Equals(userDomain, StringComparison.OrdinalIgnoreCase));
+            var matchingScheme = DbContext.AuthenticationScheme.Where(s => s.Name == userDomain).SingleOrDefault();
+            return matchingScheme?.Name;
         }
 
         //
@@ -138,8 +135,8 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RemoteAuthenticate(string userName)
         {
-            string scheme = await GetAuthenticationSchemeForUser(userName);
-            var redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
+            string scheme = await GetExternalAuthenticationSchemeAsync(userName);
+            string redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
             AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
             properties.SetString("username", userName);
 

@@ -44,7 +44,6 @@ using System.Threading.Tasks;
 using NetEscapades.AspNetCore.SecurityHeaders;
 using MillimanAccessPortal.Utilities;
 using System.Diagnostics;
-using Serilog;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AzureKeyVault;
 using System.Security.Cryptography.X509Certificates;

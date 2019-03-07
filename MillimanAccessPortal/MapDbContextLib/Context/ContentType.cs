@@ -111,7 +111,7 @@ namespace MapDbContextLib.Context
                 },
             };
 
-            ApplicationDbContext Db = serviceProvider.GetService<Context.ApplicationDbContext>();
+            ApplicationDbContext Db = serviceProvider.GetService<ApplicationDbContext>();
 
             foreach (ContentType type in AllProposedContentTypes)
             {
@@ -126,7 +126,6 @@ namespace MapDbContextLib.Context
                     fromDb.CanReduce = type.CanReduce;
                     fromDb.DefaultIconName = type.DefaultIconName;
                     fromDb.FileExtensions = type.FileExtensions;
-                    Db.ContentType.Update(fromDb);
                 }
             }
             Db.SaveChanges();

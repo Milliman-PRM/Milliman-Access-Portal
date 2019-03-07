@@ -10,6 +10,7 @@ using MapDbContextLib.Context;
 using Serilog;
 using System.Security.Cryptography.X509Certificates;
 using System.Linq;
+using System.Threading.Tasks;
 using MapCommonLib;
 
 namespace MillimanAccessPortal
@@ -17,7 +18,7 @@ namespace MillimanAccessPortal
     public class Program
     {
 
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var host = BuildWebHost(args);
 
@@ -41,7 +42,7 @@ namespace MillimanAccessPortal
 
                 try
                 {
-                    ApplicationDbContext.InitializeAll(serviceProvider);
+                    await ApplicationDbContext.InitializeAll(serviceProvider);
                 }
                 catch (Exception e)
                 {

@@ -9,6 +9,7 @@ using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Threading.Tasks;
 using System.Linq;
 
 namespace MapDbContextLib.Context
@@ -29,6 +30,7 @@ namespace MapDbContextLib.Context
         public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
         public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
         public DbSet<FileUpload> FileUpload { get; set; }
+        public DbSet<AuthenticationScheme> AuthenticationScheme { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
@@ -49,6 +51,7 @@ namespace MapDbContextLib.Context
             // Add your customizations after calling base.OnModelCreating(builder);
 
             builder.HasPostgresExtension("uuid-ossp");  // enable server extension to support uuid generation functions
+            builder.HasPostgresExtension("citext");  // enable server extension to support case insensitive text field type
 
             builder.Entity<ApplicationUser>(b =>
             {
@@ -135,10 +138,11 @@ namespace MapDbContextLib.Context
             return ProfitCenter.Any(pc => pc.Id == id);
         }
 
-        public static void InitializeAll(IServiceProvider serviceProvider)
+        public static async Task InitializeAll(IServiceProvider serviceProvider)
         {
-            Identity.ApplicationRole.SeedRoles(serviceProvider).Wait();
+            await Identity.ApplicationRole.SeedRoles(serviceProvider);
             Context.ContentType.InitializeContentTypes(serviceProvider);
+            await Context.AuthenticationScheme.SeedSchemes(serviceProvider);
         }
     }
 }
