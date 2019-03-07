@@ -1,4 +1,6 @@
-﻿@import url('https://fonts.googleapis.com/css?family=Roboto');
+@import "./variables";
+@import "./mixins/breakpoints";
+@import url('https://fonts.googleapis.com/css?family=Roboto');
 
 body {
     font-family: "Roboto", "Helvetica Neue", sans-serif;
@@ -28,4 +30,8 @@ body {
     .hide-for-tablet-down {
         display: none;
     }
+}
+
+svg:not([id='header-logo']):not(.action-icon):not(.cancel-icon):not(.upload-icon) {
+    pointer-events: none;
 }

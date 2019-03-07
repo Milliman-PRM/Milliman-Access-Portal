@@ -6,8 +6,10 @@
 @import "map_modules/form";
 @import "map_modules/components";
 @import "map_modules/views";
-@import "map_modules/toastr_overrides";
 @import "map_modules/typeahead_overrides";
 @import "map_modules/selectize_overrides";
 @import "map_modules/vex_overrides";
 @import "map_modules/upload_samples";
+
+@import "../../node_modules/react-redux-toastr/src/styles/index";
+@import "map_modules/toastr_overrides";

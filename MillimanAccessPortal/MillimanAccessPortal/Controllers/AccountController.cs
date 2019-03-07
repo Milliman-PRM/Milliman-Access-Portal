@@ -781,15 +781,30 @@ namespace MillimanAccessPortal.Controllers
                     user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
                     var addHistoryResult = await _userManager.UpdateAsync(user);
 
-                    if (addHistoryResult.Succeeded)
+                    // Unlock the account
+                    var unlock = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MinValue);
+                    var resetFailedCount = await _userManager.ResetAccessFailedCountAsync(user);
+
+                    if (!addHistoryResult.Succeeded)
+                    {
+                        Log.Error($"In AccountController.ResetPassword POST action: Failed to save password history for {user.UserName}, ResetPassword action rolled back, aborting");
+                    }
+
+                    if (!unlock.Succeeded)
+                    {
+                        Log.Error($"In AccountController.ResetPassword POST action: Failed to unlock account for {user.UserName}, ResetPassword action rolled back, aborting");
+                    }
+
+                    if (!resetFailedCount.Succeeded)
+                    {
+                        Log.Error($"In AccountController.ResetPassword POST action: Failed to reset failed login attempt count for {user.UserName}, ResetPassword action rolled back, aborting");
+                    }
+
+                    if (unlock.Succeeded && resetFailedCount.Succeeded && addHistoryResult.Succeeded)
                     {
                         Txn.Commit();
                         Log.Debug($"In AccountController.ResetPassword POST action: succeeded for user {user.UserName }");
                         _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user));
-                    }
-                    else
-                    {
-                        Log.Error($"In AccountController.ResetPassword POST action: Failed to save password history for {user.UserName}, ResetPassword action rolled back, aborting");
                     }
 
                     return View("Message", passwordResetMessage);
@@ -854,8 +869,8 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Conditionally add the Client Admin Element
-            AuthorizationResult ClientAdminResult1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null));
-            AuthorizationResult ClientAdminResult2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null));
+            AuthorizationResult ClientAdminResult1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            AuthorizationResult ClientAdminResult2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin));
             if (ClientAdminResult1.Succeeded || ClientAdminResult2.Succeeded)
             {
                 NavBarElements.Add(new NavBarElementModel
@@ -864,12 +879,12 @@ namespace MillimanAccessPortal.Controllers
                     Label = "Manage Clients",
                     URL = nameof(ClientAdminController).Replace("Controller", ""),
                     View = "ClientAdmin",
-                    Icon = "client-admin",
+                    Icon = "client",
                 });
             }
 
             // Conditionally add the Content Publishing Element
-            AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
+            AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher));
             if (ContentPublishResult.Succeeded)
             {
                 NavBarElements.Add(new NavBarElementModel
@@ -883,7 +898,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Conditionally add the Content Access Element
-            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin));
             if (ContentAccessResult.Succeeded)
             {
                 NavBarElements.Add(new NavBarElementModel
@@ -1213,7 +1228,7 @@ namespace MillimanAccessPortal.Controllers
         [LogTiming]
         public IActionResult SessionStatus()
         {
-            return Ok();
+            return Json(new { });
         }
 
         #region Helpers

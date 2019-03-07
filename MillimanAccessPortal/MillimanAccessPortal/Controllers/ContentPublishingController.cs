@@ -108,7 +108,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("Entered ContentPublishingController.Clients action");
 
             #region Authorization
-            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher));
             if (!RoleInClientResult.Succeeded)
             {
                 Log.Debug($"In ContentPublishingController.Clients action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.ContentPublisher.ToString()}");
@@ -323,11 +323,26 @@ namespace MillimanAccessPortal.Controllers
             currentRootContentItem.Notes = rootContentItem.Notes;
             currentRootContentItem.TypeSpecificDetail = rootContentItem.TypeSpecificDetail;
 
+            List<UserInSelectionGroup> usersInGroup = null;
+            if (currentRootContentItem.ContentDisclaimer != rootContentItem.ContentDisclaimer)
+            {
+                // Reset disclaimer acceptance
+                usersInGroup = DbContext.UserInSelectionGroup
+                    .Where(u => u.SelectionGroup.RootContentItemId == currentRootContentItem.Id)
+                    .ToList();
+                usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
+            }
+            currentRootContentItem.ContentDisclaimer = rootContentItem.ContentDisclaimer;
+
             DbContext.RootContentItem.Update(currentRootContentItem);
             DbContext.SaveChanges();
 
             Log.Verbose($"In ContentPublishingController.UpdateRootContentItem action: success");
             AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(rootContentItem));
+            if (usersInGroup != null)
+            {
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersInGroup));
+            }
 
             RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, currentRootContentItem);
             RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, currentRootContentItem);
@@ -337,7 +352,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId, string password)
+        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId)
         {
             Log.Verbose($"Entered ContentPublishingController.DeleteRootContentItem action with root content item id {rootContentItemId} and password");
 
@@ -347,13 +362,6 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault(x => x.Id == rootContentItemId);
 
             #region Preliminary Validation
-            if (!await UserManager.CheckPasswordAsync(await Queries.GetCurrentApplicationUser(User), password))
-            {
-                Log.Debug($"In ContentPublishingController.DeleteRootContentItem action: user password incorrect, aborting");
-                Response.Headers.Add("Warning", "Incorrect password");
-                return Unauthorized();
-            }
-
             if (rootContentItem == null)
             {
                 Log.Debug($"In ContentPublishingController.DeleteRootContentItem action: content item {rootContentItemId} not found, aborting");

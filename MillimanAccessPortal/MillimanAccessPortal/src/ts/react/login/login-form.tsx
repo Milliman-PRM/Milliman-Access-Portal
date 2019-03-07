@@ -65,7 +65,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
     } else if (awaitingConfirmation) {
       actionButton = (
         <div className="action-icon-label">
-          <ButtonSpinner />
+          <ButtonSpinner version="bars" />
         </div>
       );
     } else {
@@ -112,7 +112,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
             onClick={userConfirmed ? this.handleSubmit : undefined}
           >
             Login
-            {awaitingLogin && <ButtonSpinner />}
+            {awaitingLogin && <ButtonSpinner version="bars" />}
           </button>
         </div>
       </form>

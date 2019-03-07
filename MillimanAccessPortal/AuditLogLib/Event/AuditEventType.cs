@@ -171,11 +171,11 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType LoginIsLockedOut = new AuditEventType(3010, "Login account is locked out");
 
         public static readonly AuditEventType<ApplicationUser> UserPasswordExpired =
-            new AuditEventType<ApplicationUser>(3011, "User password expired", (user) => 
+            new AuditEventType<ApplicationUser>(3011, "User password expired", (user) =>
                 new { userId = user.Id, userName = user.UserName, dateLastSetUtc = user.LastPasswordChangeDateTimeUtc });
         #endregion
 
-        #region Content Access Admin [4000 - 4999]
+        #region Content Access [4000 - 4999]
         public static readonly AuditEventType<SelectionGroup> SelectionGroupCreated = new AuditEventType<SelectionGroup>(
             4001, "Selection group created", (selectionGroup) => new
             {
@@ -222,6 +222,42 @@ namespace AuditLogLib.Event
             {
                 ContentReductionTaskId = task.Id,
             });
+        public static readonly AuditEventType<List<UserInSelectionGroup>> ContentDisclaimerAcceptanceReset =
+            new AuditEventType<List<UserInSelectionGroup>>(
+                4101, "Content disclaimer acceptance reset", (usersInGroup) => new
+                {
+                    UsersInGroup = usersInGroup.Select(u => new
+                    {
+                        Id = u.Id,
+                        UserId = u.UserId,
+                        SelectionGroupId = u.SelectionGroupId,
+                    }),
+                });
+        public static readonly AuditEventType<UserInSelectionGroup, string, string> ContentDisclaimerPresented =
+            new AuditEventType<UserInSelectionGroup, string, string>(4102, "Content disclaimer presented to user",
+                (userInSelectionGroup, validationId, disclaimerText) => new
+                {
+                    ValidationId = validationId,
+                    UserInSelectionGroup = new
+                    {
+                        Id = userInSelectionGroup.Id,
+                        UserId = userInSelectionGroup.UserId,
+                        SelectionGroupId = userInSelectionGroup.SelectionGroupId,
+                    },
+                    DisclaimerText = disclaimerText,
+                });
+        public static readonly AuditEventType<UserInSelectionGroup, string> ContentDisclaimerAccepted =
+            new AuditEventType<UserInSelectionGroup, string>(4103, "Content disclaimer accepted by user",
+                (userInSelectionGroup, validationId) => new
+                {
+                    ValidationId = validationId,
+                    UserInSelectionGroup = new
+                    {
+                        Id = userInSelectionGroup.Id,
+                        UserId = userInSelectionGroup.UserId,
+                        SelectionGroupId = userInSelectionGroup.SelectionGroupId,
+                    },
+                });
 
         #endregion
 
@@ -263,6 +299,11 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<RootContentItem> RootContentItemUpdated = new AuditEventType<RootContentItem>(
             6003, "Root content item updated", (rootContentItem) => new
             {
+                Id = rootContentItem.Id,
+                ContentName = rootContentItem.ContentName,
+                Description = rootContentItem.Description,
+                Notes = rootContentItem.Notes,
+                ContentDisclaimer = rootContentItem.ContentDisclaimer,
             });
         public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> PublicationRequestInitiated = new AuditEventType<RootContentItem, ContentPublicationRequest>(
             6101, "Publication request initiated", (rootContentItem, publicationRequest) => new

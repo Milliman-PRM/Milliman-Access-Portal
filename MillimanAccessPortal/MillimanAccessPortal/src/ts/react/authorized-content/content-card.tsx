@@ -17,17 +17,17 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
   }
 
   public render() {
-    const image = this.props.ImageURL && (
+    const image = this.props.imageURL && (
       <img
         className="content-card-image"
-        src={this.props.ImageURL}
-        alt={this.props.Name}
+        src={this.props.imageURL}
+        alt={this.props.name}
       />
     );
-    const releaseNotes = this.props.ReleaseNotesURL
+    const releaseNotes = this.props.releaseNotesURL
       ? (
         <a
-          href={this.props.ReleaseNotesURL}
+          href={this.props.releaseNotesURL}
           target="_blank"
           className="secondary-button"
           onClick={this.selectReleaseNotes}
@@ -36,10 +36,10 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         </a>
       )
       : null;
-    const userGuide = this.props.UserguideURL
+    const userGuide = this.props.userguideURL
       ? (
         <a
-          href={this.props.UserguideURL}
+          href={this.props.userguideURL}
           target="_blank"
           className="secondary-button"
           onClick={this.selectUserGuide}
@@ -48,48 +48,35 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         </a>
       )
       : null;
-    const newWindow = (this.props.ContentTypeEnum === ContentTypeEnum.FileDownload)
-      ? (
-        <a
-          href={this.props.ContentURL}
-          download={true}
-          className="secondary-button"
-        >
-          Download
-        </a>
-      ) : (
-        <a
-          href={this.props.ContentURL}
-          target="_blank"
-          className="secondary-button"
-        >
-          Open in New Tab
-        </a>
-      );
-    const contentLink = (this.props.ContentTypeEnum === ContentTypeEnum.FileDownload)
-      ? (
-        <a
-          href={this.props.ContentURL}
-          download={true}
-          className="content-card-link content-card-download"
-        />
-      ) : (
-        <a
-          href={this.props.ContentURL}
-          target="_blank"
-          className="content-card-link"
-          onClick={this.selectContent}
-        />
-        );
+    const newWindow = (
+      <a
+        href={this.props.contentURL}
+        target="_blank"
+        className="secondary-button"
+      >
+        {this.props.contentTypeEnum === ContentTypeEnum.FileDownload
+          ? 'Download'
+          : 'Open in New Tab'
+        }
+      </a>
+    );
+    const contentLink = (
+      <a
+        href={this.props.contentURL}
+        target="_blank"
+        className="content-card-link"
+        onClick={this.selectContent}
+      />
+    );
     return (
       <div className="content-card-container">
         <div className="content-card">
           <div className="content-card-header">
-            <h2 className="content-card-title">{this.props.Name}</h2>
+            <h2 className="content-card-title">{this.props.name}</h2>
           </div>
-          <div className={`content-card-body${this.props.Description ? '' : ' image-only'}`}>
+          <div className={`content-card-body${this.props.description ? '' : ' image-only'}`}>
             {image}
-            {this.props.Description && <p className="content-card-description">{this.props.Description}</p>}
+            {this.props.description && <p className="content-card-description">{this.props.description}</p>}
           </div>
           <div className="secondary-actions">
             {newWindow}
@@ -105,18 +92,18 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
   private selectContent(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
     event.preventDefault();
-    this.props.selectContent(this.props.ContentURL, this.props.ContentTypeEnum);
+    this.props.selectContent(this.props.contentURL, this.props.contentTypeEnum);
   }
 
   private selectReleaseNotes(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
     event.preventDefault();
-    this.props.selectContent(this.props.ReleaseNotesURL, ContentTypeEnum.Pdf);
+    this.props.selectContent(this.props.releaseNotesURL, ContentTypeEnum.Pdf);
   }
 
   private selectUserGuide(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
     event.preventDefault();
-    this.props.selectContent(this.props.UserguideURL, ContentTypeEnum.Pdf);
+    this.props.selectContent(this.props.userguideURL, ContentTypeEnum.Pdf);
   }
 }

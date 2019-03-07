@@ -45,11 +45,11 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                         <h3 className="detail-section-title">Client Details</h3>
                         <div className="detail-container">
                           <span className="detail-label">Client Name</span>
-                          <span className="detail-value">{clientDetailForUser.ClientName}</span>
+                          <span className="detail-value">{clientDetailForUser.clientName}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Client Code</span>
-                          <span className="detail-value">{clientDetailForUser.ClientCode}</span>
+                          <span className="detail-value">{clientDetailForUser.clientCode}</span>
                         </div>
                       </div>
                     </div>
@@ -99,11 +99,11 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                         <h3 className="detail-section-title">Authorized Content Details</h3>
                         <div className="detail-container">
                           <span className="detail-label">Content Name</span>
-                          <span className="detail-value">{rootContentItemDetailForUser.ContentName}</span>
+                          <span className="detail-value">{rootContentItemDetailForUser.contentName}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Content Type</span>
-                          <span className="detail-value">{rootContentItemDetailForUser.ContentType}</span>
+                          <span className="detail-value">{rootContentItemDetailForUser.contentType}</span>
                         </div>
                       </div>
                     </div>
@@ -125,27 +125,27 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                         <h3 className="detail-section-title">User Details</h3>
                         <div className="detail-container">
                           <span className="detail-label">First Name</span>
-                          <span className="detail-value">{userDetailForClient.FirstName}</span>
+                          <span className="detail-value">{userDetailForClient.firstName}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Last Name</span>
-                          <span className="detail-value">{userDetailForClient.LastName}</span>
+                          <span className="detail-value">{userDetailForClient.lastName}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Company</span>
-                          <span className="detail-value">{userDetailForClient.Employer}</span>
+                          <span className="detail-value">{userDetailForClient.employer}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Username</span>
-                          <span className="detail-value">{userDetailForClient.UserName}</span>
+                          <span className="detail-value">{userDetailForClient.userName}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Email</span>
-                          <span className="detail-value">{userDetailForClient.Email}</span>
+                          <span className="detail-value">{userDetailForClient.email}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Phone</span>
-                          <span className="detail-value">{userDetailForClient.Phone}</span>
+                          <span className="detail-value">{userDetailForClient.phone}</span>
                         </div>
                       </div>
                     </div>
@@ -187,7 +187,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
               );
             case SystemAdminColumn.ROOT_CONTENT_ITEM:
               const rootContentItemDetailForClient = this.props.detail as RootContentItemDetailForClient;
-              const publishingStatus = rootContentItemDetailForClient.IsPublishing
+              const publishingStatus = rootContentItemDetailForClient.isPublishing
                 ? (
                   <span className="detail-value">
                     Yes (
@@ -213,15 +213,15 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                         <h3 className="detail-section-title">Content Item Details</h3>
                         <div className="detail-container">
                           <span className="detail-label">Name</span>
-                          <span className="detail-value">{rootContentItemDetailForClient.ContentName}</span>
+                          <span className="detail-value">{rootContentItemDetailForClient.contentName}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Content Type</span>
-                          <span className="detail-value">{rootContentItemDetailForClient.ContentType}</span>
+                          <span className="detail-value">{rootContentItemDetailForClient.contentType}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Description</span>
-                          <span className="detail-value">{rootContentItemDetailForClient.Description}</span>
+                          <span className="detail-value">{rootContentItemDetailForClient.description}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Reducing</span>
@@ -240,7 +240,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div className="detail-section">
                         <h3 className="detail-section-title">Selection Groups</h3>
                         <div className="nested-list-container">
-                          {this.renderNestedList(rootContentItemDetailForClient.SelectionGroups)}
+                          {this.renderNestedList(rootContentItemDetailForClient.selectionGroups)}
                         </div>
                       </div>
                     </div>
@@ -262,15 +262,15 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                         <h3 className="detail-section-title">Authorized User Details</h3>
                         <div className="detail-container">
                           <span className="detail-label">Name</span>
-                          <span className="detail-value">{userDetailForProfitCenter.FirstName}</span>
+                          <span className="detail-value">{userDetailForProfitCenter.firstName}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Email</span>
-                          <span className="detail-value">{userDetailForProfitCenter.Email}</span>
+                          <span className="detail-value">{userDetailForProfitCenter.email}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Phone</span>
-                          <span className="detail-value">{userDetailForProfitCenter.Phone}</span>
+                          <span className="detail-value">{userDetailForProfitCenter.phone}</span>
                         </div>
                       </div>
                     </div>
@@ -278,7 +278,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div className="detail-section">
                         <h3 className="detail-section-title">Assigned Clients</h3>
                         <div className="nested-list-container">
-                          {this.renderNestedList(userDetailForProfitCenter.AssignedClients)}
+                          {this.renderNestedList(userDetailForProfitCenter.assignedClients)}
                         </div>
                       </div>
                     </div>
@@ -295,23 +295,23 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                         <h3 className="detail-section-title">Client Details</h3>
                         <div className="detail-container">
                           <span className="detail-label">Name</span>
-                          <span className="detail-value">{clientDetailForProfitCenter.Name}</span>
+                          <span className="detail-value">{clientDetailForProfitCenter.name}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Code</span>
-                          <span className="detail-value">{clientDetailForProfitCenter.Code}</span>
+                          <span className="detail-value">{clientDetailForProfitCenter.code}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Contact</span>
-                          <span className="detail-value">{clientDetailForProfitCenter.ContactName}</span>
+                          <span className="detail-value">{clientDetailForProfitCenter.contactName}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Email</span>
-                          <span className="detail-value">{clientDetailForProfitCenter.ContactEmail}</span>
+                          <span className="detail-value">{clientDetailForProfitCenter.contactEmail}</span>
                         </div>
                         <div className="detail-container">
                           <span className="detail-label">Phone</span>
-                          <span className="detail-value">{clientDetailForProfitCenter.ContactPhone}</span>
+                          <span className="detail-value">{clientDetailForProfitCenter.contactPhone}</span>
                         </div>
                       </div>
                     </div>
@@ -319,7 +319,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div className="detail-section">
                         <h3 className="detail-section-title">Authorized Users</h3>
                         <div className="nested-list-container">
-                          {this.renderNestedList(clientDetailForProfitCenter.AuthorizedUsers)}
+                          {this.renderNestedList(clientDetailForProfitCenter.authorizedUsers)}
                         </div>
                       </div>
                     </div>
@@ -347,21 +347,21 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
   }
 
   private renderNestedList(list: NestedList): JSX.Element[] {
-    return list.Sections.map((section, i) => {
-      const values = section.Values.map((value, j) => (
+    return list.sections.map((section, i) => {
+      const values = section.values.map((value, j) => (
         <div
           key={j}
           className="nested-list-value"
         >{value}
         </div>
       ));
-      const cancelText = section.Marked
+      const cancelText = section.marked
         ? (
           <span>
             (
             <a
               href={''}
-              onClick={(event) => this.props.onCancelReduction(event, section.Id)}
+              onClick={(event) => this.props.onCancelReduction(event, section.id)}
             >
               Cancel
             </a>
@@ -374,7 +374,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
           key={i}
           className="nested-list-section"
         >
-          <h4 className="nested-list-section-title">{section.Name} {cancelText}</h4>
+          <h4 className="nested-list-section-title">{section.name} {cancelText}</h4>
           {values}
         </div>
       );
