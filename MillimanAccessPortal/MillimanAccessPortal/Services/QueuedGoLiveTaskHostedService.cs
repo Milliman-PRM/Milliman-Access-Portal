@@ -106,9 +106,9 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             RootContentItemId = publicationRequest.RootContentItemId
         };
 
-
-        bool ReductionIsInvolved = publicationRequest.RootContentItem.DoesReduce
-            && publicationRequest.LiveReadyFilesObj.Any(f => f.FilePurpose.ToLower() == "mastercontent");
+        bool MasterContentUploaded = publicationRequest.LiveReadyFilesObj
+            .Any(f => f.FilePurpose.ToLower() == "mastercontent");
+        bool ReductionIsInvolved = MasterContentUploaded && publicationRequest.RootContentItem.DoesReduce;
 
         var relatedReductionTasks = dbContext.ContentReductionTask
             .Include(t => t.SelectionGroup)
@@ -456,15 +456,22 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 }
 
                 // Reset disclaimer acceptance
-                var usersInGroup = dbContext.UserInSelectionGroup
-                    .Where(u => u.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
-                    .ToList();
-                usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
+                List<UserInSelectionGroup> usersInGroup = null;
+                if (MasterContentUploaded)
+                {
+                    usersInGroup = dbContext.UserInSelectionGroup
+                        .Where(u => u.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
+                        .ToList();
+                    usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
+                }
 
                 dbContext.SaveChanges();
                 Txn.Commit();
 
-                auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersInGroup));
+                if (MasterContentUploaded)
+                {
+                    auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersInGroup));
+                }
             }
         }
         catch (Exception)
