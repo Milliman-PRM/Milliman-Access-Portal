@@ -63,8 +63,8 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                     .Count();
 
                 RootContentItemCount = dbContext.RootContentItem
-                    .Where(item => item.ClientId == Id)
-                    .Select(item => item.Id)
+                    .Where(contentItem => contentItem.ClientId == Id)
+                    .Select(contentItem => contentItem.Id)
                     .Distinct().Count();
             }
         }

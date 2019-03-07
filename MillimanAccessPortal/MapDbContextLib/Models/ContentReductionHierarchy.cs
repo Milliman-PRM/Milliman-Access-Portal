@@ -59,6 +59,32 @@ namespace MapDbContextLib.Models
             }
         }
 
+        /// <summary>
+        /// Return a list of selected values in the hierarchy
+        /// </summary>
+        /// <returns></returns>
+        public List<Guid> GetSelectedValueIds()
+        {
+            var valueIds = new List<Guid> { };
+
+            foreach (var field in Fields)
+            {
+                foreach (var value in field.Values)
+                {
+                    if (value.HasSelectionStatus)
+                    {
+                        var v = value as ReductionFieldValueSelection;
+                        if (v.SelectionStatus)
+                        {
+                            valueIds.Add(value.Id);
+                        }
+                    }
+                }
+            }
+
+            return valueIds;
+        }
+
         /// <summary>Build hierarchy of selections for a selection group</summary>
         /// <remarks>This builds a nested data structure to represent a hierarchy from several flat tables.</remarks>
         /// <param name="SelectionGroupId">The selection group whose selections are to be gathered</param>
@@ -228,5 +254,6 @@ namespace MapDbContextLib.Models
 
             return result;
         }
+
     }
 }

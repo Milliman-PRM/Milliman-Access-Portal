@@ -1,5 +1,5 @@
-﻿import '../../../images/icons/add.svg';
-import '../../../images/icons/client-admin.svg';
+import '../../../images/icons/add.svg';
+import '../../../images/icons/client.svg';
 import '../../../images/icons/email.svg';
 import '../../../images/icons/expand-card.svg';
 import '../../../images/icons/group.svg';
@@ -9,22 +9,40 @@ import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
-import { getData, postData } from '../../shared';
+import { getJsonData, postData } from '../../shared';
 import { BasicNode } from '../../view-models/content-publishing';
-import { CardAttributes } from '../shared-components/card';
-import { ColumnIndicator } from '../shared-components/column-selector';
-import { ContentPanel } from '../shared-components/content-panel';
+import { ActionIcon } from '../shared-components/action-icon';
+import { CardPanel } from '../shared-components/card-panel/card-panel';
+import {
+    PanelSectionToolbar, PanelSectionToolbarButtons,
+} from '../shared-components/card-panel/panel-sections';
+import { Card, CardAttributes } from '../shared-components/card/card';
+import CardButton from '../shared-components/card/card-button';
+import { CardExpansion } from '../shared-components/card/card-expansion';
+import {
+    CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
+} from '../shared-components/card/card-sections';
+import { CardStat } from '../shared-components/card/card-stat';
+import { ColumnIndicator, ColumnSelector } from '../shared-components/column-selector';
+import { EntityHelper } from '../shared-components/entity';
+import { Filter } from '../shared-components/filter';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
-  ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfoTree,
-  isRootContentItemDetail, isUserClientRoles, isUserDetail, PrimaryDetail, PrimaryDetailData,
-  SecondaryDetail, SecondaryDetailData, UserClientRoles,
+    ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo,
+    isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
+    isUserClientRoles, isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail,
+    SecondaryDetailData, UserClientRoles,
 } from './interfaces';
+import { AddUserToClientModal } from './modals/add-user-to-client';
+import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
+import { CardModal } from './modals/card-modal';
+import { CreateProfitCenterModal } from './modals/create-profit-center';
+import { CreateUserModal } from './modals/create-user';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
-interface ContentPanelAttributes {
+export interface ContentPanelAttributes {
   selected: {
     column: SystemAdminColumn;
     card: string;
@@ -115,7 +133,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       if (primaryDetail === null) {
         this.fetchPrimaryDetail();
       } else {
-        if (isUserDetail(primaryDetail) && primaryDetail.IsSuspended === null) {
+        if (isUserDetail(primaryDetail) && primaryDetail.isSuspended === null) {
           this.fetchSystemAdmin();
           this.fetchSuspendUser();
         }
@@ -128,13 +146,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       if (secondaryDetail === null) {
         this.fetchSecondaryDetail();
       } else {
-        if (isUserClientRoles(secondaryDetail) && secondaryDetail.IsClientAdmin === null) {
+        if (isUserClientRoles(secondaryDetail) && secondaryDetail.isClientAdmin === null) {
           this.fetchUserClient(RoleEnum.Admin);
           this.fetchUserClient(RoleEnum.ContentPublisher);
           this.fetchUserClient(RoleEnum.ContentAccessAdmin);
           this.fetchUserClient(RoleEnum.ContentUser);
         }
-        if (isRootContentItemDetail(secondaryDetail) && secondaryDetail.IsSuspended === null) {
+        if (isRootContentItemDetail(secondaryDetail) && secondaryDetail.isSuspended === null) {
           this.fetchSuspendContent();
         }
       }
@@ -146,32 +164,249 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     const { column: primaryColumn, card: primaryCard } = this.state.primaryPanel.selected;
     const { column: secondaryColumn, card: secondaryCard } = this.state.secondaryPanel.selected;
 
+    const pEntities = this.filterEntities(primaryEntities, this.state.primaryPanel.filter.text);
+    const sEntities = this.filterEntities(secondaryEntities, this.state.secondaryPanel.filter.text);
+
     const secondaryQueryFilter = this.getSecondaryQueryFilter();
     const secondaryColumnComponent = secondaryColumn
       ? (
-        <ContentPanel
-          filterText={this.state.secondaryPanel.filter.text}
-          modalOpen={this.state.secondaryPanel.createModal.open}
-          onFilterTextChange={this.handleSecondaryFilterKeyup}
-          onModalOpen={this.handleSecondaryModalOpen}
-          onModalClose={this.handleSecondaryModalClose}
-          createAction={this.getCreateAction(secondaryColumn, primaryColumn)}
-          columns={this.getColumns(primaryColumn)}
-          onColumnSelect={this.handleSecondaryColumnSelected}
-          selectedColumn={this.getColumns(primaryColumn).filter((c) => c.id === secondaryColumn)[0]}
-          onExpandedToggled={this.handleSecondaryExpandedToggled}
-          cards={this.state.secondaryPanel.cards}
-          onCardSelect={this.handleSecondaryCardSelected}
-          selectedCard={secondaryCard}
-          queryFilter={secondaryQueryFilter}
-          entities={secondaryEntities}
-          onProfitCenterModalOpen={this.handleProfitCenterModalOpen}
-          onProfitCenterModalClose={this.handleProfitCenterModalClose}
-          onSendReset={this.handleSendReset}
-          onProfitCenterDelete={this.handleProfitCenterDelete}
-          onProfitCenterUserRemove={this.handleProfitCenterUserRemove}
-          onClientUserRemove={this.handleClientUserRemove}
-        />
+        <CardPanel
+          entities={sEntities}
+          renderEntity={(entity, key) => {
+            let cardContents: JSX.Element = null;
+            if (primaryColumn === SystemAdminColumn.USER) {
+              if (isClientInfo(entity)) {
+                cardContents = (
+                  <CardSectionMain>
+                    <CardText text={entity.name} subtext={entity.code} />
+                    <CardSectionStats>
+                      <CardStat
+                        name={'Reports'}
+                        value={entity.rootContentItemCount}
+                        icon={'reports'}
+                      />
+                    </CardSectionStats>
+                  </CardSectionMain>
+                );
+              } else if (isRootContentItemInfo(entity)) {
+                cardContents = (
+                  <CardSectionMain>
+                    <CardText text={entity.name} subtext={entity.clientName} />
+                  </CardSectionMain>
+                );
+              }
+            } else if (primaryColumn === SystemAdminColumn.CLIENT) {
+              if (isUserInfo(entity)) {
+                cardContents = (
+                  <>
+                    <CardSectionMain>
+                      <CardText
+                        text={entity.firstName + ' ' + entity.lastName}
+                        subtext={entity.userName}
+                      />
+                      <CardSectionStats>
+                        <CardStat
+                          name={'Reports'}
+                          value={entity.rootContentItemCount}
+                          icon={'reports'}
+                        />
+                      </CardSectionStats>
+                      <CardSectionButtons>
+                        <CardButton
+                          color={'blue'}
+                          tooltip={entity.activated ? 'Send password reset email' : 'Resend account activation email'}
+                          onClick={() => this.handleSendReset(entity.email)}
+                          icon={'email'}
+                        />
+                        <CardButton
+                          color={'red'}
+                          tooltip="Remove from client"
+                          onClick={() => this.handleClientUserRemove(entity.id, entity.clientId)}
+                          icon={'remove-circle'}
+                        />
+                      </CardSectionButtons>
+                    </CardSectionMain>
+                    {entity.rootContentItems && entity.rootContentItems.length
+                      ? (
+                        <CardExpansion
+                          label={'Content Items'}
+                          expanded={this.state.secondaryPanel.cards[entity.id].expanded}
+                          setExpanded={() => this.handleSecondaryExpandedToggled(entity.id)}
+                        >
+                          <ul className="detail-item-user-list">
+                            {entity.rootContentItems.map((i) => (
+                              <li key={i.id}>
+                                <span className="detail-item-user">
+                                  <div className="detail-item-user-icon">
+                                    <svg className="card-user-icon">
+                                      <use xlinkHref="#reports" />
+                                    </svg>
+                                  </div>
+                                  <div className="detail-item-user-name">
+                                    <h4>{i.name}</h4>
+                                  </div>
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardExpansion>
+                      )
+                      : null
+                    }
+                  </>
+                );
+              } else if (isRootContentItemInfo(entity)) {
+                cardContents = (
+                  <>
+                    <CardSectionMain>
+                      <CardText text={entity.name} subtext={entity.clientName} />
+                      <CardSectionStats>
+                        <CardStat
+                          name={'Users'}
+                          value={entity.userCount}
+                          icon={'user'}
+                        />
+                        <CardStat
+                          name={'Selection groups'}
+                          value={entity.selectionGroupCount}
+                          icon={'group'}
+                        />
+                      </CardSectionStats>
+                    </CardSectionMain>
+                    {entity.users && entity.users.length
+                      ? (
+                        <CardExpansion
+                          label={'Members'}
+                          expanded={this.state.secondaryPanel.cards[entity.id].expanded}
+                          setExpanded={() => this.handleSecondaryExpandedToggled(entity.id)}
+                        >
+                          <ul className="detail-item-user-list">
+                            {entity.users.map((u) => (
+                              <li key={u.id}>
+                                <span className="detail-item-user">
+                                  <div className="detail-item-user-icon">
+                                    <svg className="card-user-icon">
+                                      <use xlinkHref="#user" />
+                                    </svg>
+                                  </div>
+                                  <div className="detail-item-user-name">
+                                    <h4>{u.firstName + ' ' + u.lastName}</h4>
+                                    <span>{u.userName}</span>
+                                  </div>
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardExpansion>
+                      )
+                      : null
+                    }
+                  </>
+                );
+              }
+            } else if (primaryColumn === SystemAdminColumn.PROFIT_CENTER) {
+              if (isUserInfo(entity)) {
+                cardContents = (
+                  <CardSectionMain>
+                    <CardText
+                      text={entity.firstName + ' ' + entity.lastName}
+                      subtext={entity.userName}
+                    />
+                    <CardSectionStats>
+                      <CardStat
+                        name={'Clients'}
+                        value={entity.clientCount}
+                        icon={'client'}
+                      />
+                    </CardSectionStats>
+                    <CardSectionButtons>
+                      <CardButton
+                        color={'blue'}
+                        tooltip={entity.activated ? 'Send password reset email' : 'Resend account activation email'}
+                        onClick={() => this.handleSendReset(entity.email)}
+                        icon={'email'}
+                      />
+                      <CardButton
+                        color={'red'}
+                        tooltip="Remove from profit center"
+                        onClick={() => this.handleProfitCenterUserRemove(entity.id, entity.profitCenterId)}
+                        icon={'remove-circle'}
+                      />
+                    </CardSectionButtons>
+                  </CardSectionMain>
+                );
+              } else if (isClientInfo(entity)) {
+                cardContents = (
+                  <CardSectionMain>
+                    <CardText text={entity.name} subtext={entity.code} />
+                  </CardSectionMain>
+                );
+              }
+            }
+            return (
+              <Card
+                key={key}
+                selected={secondaryCard === entity.id}
+                onSelect={() => this.handleSecondaryCardSelected(entity.id)}
+              >
+                {cardContents}
+              </Card>
+            );
+          }}
+        >
+          <ColumnSelector
+            columns={this.getColumns(primaryColumn)}
+            onColumnSelect={this.handleSecondaryColumnSelected}
+            selectedColumn={this.getColumns(primaryColumn).filter((c) => c.id === secondaryColumn)[0]}
+          />
+          <PanelSectionToolbar>
+            <Filter
+              placeholderText={'Filter...'}
+              setFilterText={this.handleSecondaryFilterKeyup}
+              filterText={this.state.secondaryPanel.filter.text}
+            />
+            <PanelSectionToolbarButtons>
+              {this.state.secondaryPanel.selected.column === SystemAdminColumn.USER
+              ? (
+                this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
+                ? (
+                  <ActionIcon
+                    label="Add or create client user"
+                    icon="add"
+                    action={this.handleSecondaryModalOpen}
+                  />
+                )
+                : (
+                  <ActionIcon
+                    label="Add or create authorized profit center user"
+                    icon="add"
+                    action={this.handleSecondaryModalOpen}
+                  />
+                )
+              )
+              : null
+              }
+            </PanelSectionToolbarButtons>
+          </PanelSectionToolbar>
+          <AddUserToClientModal
+            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
+              && this.state.secondaryPanel.createModal.open}
+            onRequestClose={this.handleSecondaryModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+            clientId={this.state.primaryPanel.selected.card}
+          />
+          <AddUserToProfitCenterModal
+            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.PROFIT_CENTER
+              && this.state.secondaryPanel.createModal.open}
+            onRequestClose={this.handleSecondaryModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+            profitCenterId={this.state.primaryPanel.selected.card}
+          />
+        </CardPanel>
       )
       : null;
     return (
@@ -179,29 +414,166 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         <NavBar
           currentView={this.currentView}
         />
-        <ContentPanel
-          filterText={this.state.primaryPanel.filter.text}
-          modalOpen={this.state.primaryPanel.createModal.open}
-          onFilterTextChange={this.handlePrimaryFilterKeyup}
-          onModalOpen={this.handlePrimaryModalOpen}
-          onModalClose={this.handlePrimaryModalClose}
-          createAction={this.getCreateAction(primaryColumn)}
-          columns={this.getColumns()}
-          onColumnSelect={this.handlePrimaryColumnSelected}
-          selectedColumn={this.getColumns().filter((c) => c.id === primaryColumn)[0]}
-          onExpandedToggled={this.handlePrimaryExpandedToggled}
-          cards={this.state.primaryPanel.cards}
-          onCardSelect={this.handlePrimaryCardSelected}
-          selectedCard={primaryCard}
-          queryFilter={this.getPrimaryQueryFilter()}
-          entities={primaryEntities}
-          onProfitCenterModalOpen={this.handleProfitCenterModalOpen}
-          onProfitCenterModalClose={this.handleProfitCenterModalClose}
-          onSendReset={this.handleSendReset}
-          onProfitCenterDelete={this.handleProfitCenterDelete}
-          onProfitCenterUserRemove={this.handleProfitCenterUserRemove}
-          onClientUserRemove={this.handleClientUserRemove}
-        />
+        <CardPanel
+          entities={pEntities}
+          renderEntity={(entity, key) => {
+            let cardContents: JSX.Element = null;
+            if (isUserInfo(entity)) {
+              cardContents = (
+                <>
+                  <CardText
+                    text={entity.firstName + ' ' + entity.lastName}
+                    subtext={entity.userName}
+                  />
+                  <CardSectionStats>
+                    <CardStat
+                      name={'Clients'}
+                      value={entity.clientCount}
+                      icon={'client'}
+                    />
+                    <CardStat
+                      name={'Reports'}
+                      value={entity.rootContentItemCount}
+                      icon={'reports'}
+                    />
+                  </CardSectionStats>
+                  <CardSectionButtons>
+                    <CardButton
+                      color={'blue'}
+                      tooltip={entity.activated ? 'Send password reset email' : 'Resend account activation email'}
+                      onClick={() => this.handleSendReset(entity.email)}
+                      icon={'email'}
+                    />
+                  </CardSectionButtons>
+                </>
+              );
+            } else if (isClientInfo(entity)) {
+              cardContents = (
+                <>
+                  <CardText text={entity.name} subtext={entity.code} />
+                  <CardSectionStats>
+                    <CardStat
+                      name={'Users'}
+                      value={entity.userCount}
+                      icon={'user'}
+                    />
+                    <CardStat
+                      name={'Reports'}
+                      value={entity.rootContentItemCount}
+                      icon={'reports'}
+                    />
+                  </CardSectionStats>
+                </>
+              );
+            } else if (isProfitCenterInfo(entity)) {
+              cardContents = (
+                <>
+                  <CardText text={entity.name} subtext={entity.code} />
+                  <CardSectionStats>
+                    <CardStat
+                      name={'Authorized users'}
+                      value={entity.userCount}
+                      icon={'user'}
+                    />
+                    <CardStat
+                      name={'Clients'}
+                      value={entity.clientCount}
+                      icon={'client'}
+                    />
+                  </CardSectionStats>
+                  <CardSectionButtons>
+                    <CardButton
+                      color={'red'}
+                      tooltip="Delete profit center"
+                      onClick={() => this.handleProfitCenterDelete(entity.id)}
+                      icon={'delete'}
+                    />
+                    <CardButton
+                      color={'blue'}
+                      tooltip="Edit profit center"
+                      onClick={() => this.handleProfitCenterModalOpen(entity.id)}
+                      icon={'edit'}
+                    />
+                  </CardSectionButtons>
+                  <div onClick={(event) => event.stopPropagation()}>
+                    <CardModal
+                      isOpen={this.state.primaryPanel.cards[entity.id].profitCenterModalOpen}
+                      onRequestClose={() => this.handleProfitCenterModalClose(entity.id)}
+                      ariaHideApp={false}
+                      className="modal"
+                      overlayClassName="modal-overlay"
+                      profitCenterId={entity.id}
+                    />
+                  </div>
+                </>
+              );
+            }
+            const indentation = isClientInfo(entity)
+              ? (entity as ClientInfoWithDepth).depth
+              : 1;
+            return (
+              <Card
+                key={key}
+                selected={primaryCard === entity.id}
+                onSelect={() => this.handlePrimaryCardSelected(entity.id)}
+                indentation={indentation}
+              >
+                <CardSectionMain>
+                  {cardContents}
+                </CardSectionMain>
+              </Card>
+            );
+          }}
+        >
+          <ColumnSelector
+            columns={this.getColumns()}
+            onColumnSelect={this.handlePrimaryColumnSelected}
+            selectedColumn={this.getColumns().filter((c) => c.id === primaryColumn)[0]}
+          />
+          <PanelSectionToolbar>
+            <Filter
+              placeholderText={'Filter...'}
+              setFilterText={this.handlePrimaryFilterKeyup}
+              filterText={this.state.primaryPanel.filter.text}
+            />
+            <PanelSectionToolbarButtons>
+              {this.state.primaryPanel.selected.column === SystemAdminColumn.USER
+              ? (
+                <ActionIcon
+                  label="Create user"
+                  icon="add"
+                  action={this.handlePrimaryModalOpen}
+                />
+              )
+              : this.state.primaryPanel.selected.column === SystemAdminColumn.PROFIT_CENTER
+              ? (
+                <ActionIcon
+                  label="Create profit center"
+                  icon="add"
+                  action={this.handlePrimaryModalOpen}
+                />
+              )
+              : null
+              }
+            </PanelSectionToolbarButtons>
+          </PanelSectionToolbar>
+          <CreateUserModal
+            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.USER
+              && this.state.primaryPanel.createModal.open}
+            onRequestClose={this.handlePrimaryModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+          />
+          <CreateProfitCenterModal
+            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.PROFIT_CENTER
+              && this.state.primaryPanel.createModal.open}
+            onRequestClose={this.handlePrimaryModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+          />
+        </CardPanel>
         {secondaryColumnComponent}
         <div
           className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12"
@@ -213,9 +585,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             queryFilter={secondaryQueryFilter}
             detail={primaryDetail}
             onPushSystemAdmin={this.pushSystemAdmin}
-            checkedSystemAdmin={isUserDetail(primaryDetail) && primaryDetail.IsSystemAdmin}
+            checkedSystemAdmin={isUserDetail(primaryDetail) && primaryDetail.isSystemAdmin}
             onPushSuspend={this.pushSuspendUser}
-            checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.IsSuspended}
+            checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.isSuspended}
           />
           <SecondaryDetailPanel
             selectedCard={secondaryCard}
@@ -225,11 +597,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             detail={secondaryDetail}
             onCancelPublication={this.handlePublicationCanceled}
             onCancelReduction={this.handleReductionCanceled}
-            checkedClientAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.IsClientAdmin}
-            checkedContentPublisher={isUserClientRoles(secondaryDetail) && secondaryDetail.IsContentPublisher}
-            checkedAccessAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.IsAccessAdmin}
-            checkedContentUser={isUserClientRoles(secondaryDetail) && secondaryDetail.IsContentUser}
-            checkedSuspended={isRootContentItemDetail(secondaryDetail) && secondaryDetail.IsSuspended}
+            checkedClientAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.isClientAdmin}
+            checkedContentPublisher={isUserClientRoles(secondaryDetail) && secondaryDetail.isContentPublisher}
+            checkedAccessAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.isAccessAdmin}
+            checkedContentUser={isUserClientRoles(secondaryDetail) && secondaryDetail.isContentUser}
+            checkedSuspended={isRootContentItemDetail(secondaryDetail) && secondaryDetail.isSuspended}
             onPushUserClient={this.pushUserClient}
             onPushSuspend={this.pushSuspendContent}
           />
@@ -239,6 +611,53 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   // utility methods
+  private filterEntities(entities: EntityInfoCollection, filterText: string): EntityInfo[] {
+    if (!entities) {
+      return [];
+    }
+
+    let filteredCards: EntityInfo[];
+    if (isClientInfoTree(entities)) {
+      // flatten basic tree into an array
+      const traverse = (node: BasicNode<ClientInfo>, list: ClientInfoWithDepth[] = [], depth = 0) => {
+        if (node.value !== null) {
+          const clientDepth = {
+            ...node.value,
+            depth,
+          };
+          list.push(clientDepth);
+        }
+        if (node.children.length) {
+          node.children.forEach((child) => list = traverse(child, list, depth + 1));
+        }
+        return list;
+      };
+      filteredCards = traverse(entities.root);
+    } else {
+      filteredCards = entities;
+    }
+
+    // apply filter
+    filteredCards = filteredCards.filter((entity) =>
+        EntityHelper.applyFilter(entity, filterText));
+
+    if (filteredCards.length === 0) {
+      return [];
+    } else if (isClientInfo(filteredCards[0])) {
+      const rootIndices: number[] = [];
+      filteredCards.forEach((entity: ClientInfoWithDepth, i) => {
+        if (!entity.parentId) {
+          rootIndices.push(i);
+        }
+      });
+      const cardGroups = rootIndices.map((_, i) =>
+        filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
+      return cardGroups.reduce((cum, cur) => [...cum, ...cur], []);
+    } else {
+      return filteredCards;
+    }
+  }
+
   private getColumns(parent: SystemAdminColumn = null): ColumnIndicator[] {
     switch (parent) {
       case null:
@@ -497,7 +916,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   private fetchPrimaryEntities = () => {
     const { column } = this.state.primaryPanel.selected;
-    getData(`/SystemAdmin/${this.getDataAction(column)}`, {})
+    getJsonData(`/SystemAdmin/${this.getDataAction(column)}`, {})
     .then((response: EntityInfoCollection) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -515,7 +934,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   private fetchSecondaryEntities() {
     const { column } = this.state.secondaryPanel.selected;
-    getData(`/SystemAdmin/${this.getDataAction(column)}`, this.getSecondaryQueryFilter())
+    getJsonData(`/SystemAdmin/${this.getDataAction(column)}`, this.getSecondaryQueryFilter())
     .then((response) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -537,14 +956,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       return;
     }
 
-    getData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getSecondaryQueryFilter())
+    getJsonData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getSecondaryQueryFilter())
     .then((response: PrimaryDetail) => {
       let responseWithDefaults: PrimaryDetailData;
       if (isUserDetail(response)) {
         responseWithDefaults = {
           ...response,
-          IsSystemAdmin: null,
-          IsSuspended: null,
+          isSystemAdmin: null,
+          isSuspended: null,
         };
       } else {
         responseWithDefaults = response;
@@ -564,21 +983,21 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     if (!card) {
       return;
     }
-    getData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getFinalQueryFilter())
+    getJsonData(`/SystemAdmin/${this.getDetailAction(column)}`, this.getFinalQueryFilter())
     .then((response: SecondaryDetail) => {
       let responseWithDefaults: SecondaryDetailData;
       if (isUserClientRoles(response)) {
         responseWithDefaults = {
           ...response,
-          IsClientAdmin: null,
-          IsContentPublisher: null,
-          IsAccessAdmin: null,
-          IsContentUser: null,
+          isClientAdmin: null,
+          isContentPublisher: null,
+          isAccessAdmin: null,
+          isContentUser: null,
         };
       } else if (isRootContentItemDetail(response)) {
         responseWithDefaults = {
           ...response,
-          IsSuspended: null,
+          isSuspended: null,
         };
       } else {
         responseWithDefaults = response;
@@ -628,7 +1047,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSystemAdmin = () => {
-    getData('/SystemAdmin/SystemRole', {
+    getJsonData('/SystemAdmin/SystemRole', {
       ...this.getSecondaryQueryFilter(),
       role: RoleEnum.Admin,
     }).then((response: boolean) => {
@@ -638,7 +1057,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           primaryDetail: {
             ...prevState.data.primaryDetail,
-            IsSystemAdmin: response,
+            isSystemAdmin: response,
           },
         },
       }));
@@ -654,7 +1073,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     postData('/SystemAdmin/SystemRole', {
       ...this.getSecondaryQueryFilter(),
       role: RoleEnum.Admin,
-      value: !primaryDetail.IsSystemAdmin,
+      value: !primaryDetail.isSystemAdmin,
     }).then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -662,7 +1081,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           primaryDetail: {
             ...prevState.data.primaryDetail,
-            IsSystemAdmin: response,
+            isSystemAdmin: response,
           },
         },
       }));
@@ -670,7 +1089,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSuspendUser = () => {
-    getData('/SystemAdmin/UserSuspendedStatus', {
+    getJsonData('/SystemAdmin/UserSuspendedStatus', {
       ...this.getSecondaryQueryFilter(),
     }).then((response: boolean) => {
       this.setState((prevState) => ({
@@ -679,7 +1098,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           primaryDetail: {
             ...prevState.data.primaryDetail,
-            IsSuspended: response,
+            isSuspended: response,
           },
         },
       }));
@@ -694,7 +1113,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
     postData('/SystemAdmin/UserSuspendedStatus', {
       ...this.getSecondaryQueryFilter(),
-      value: !primaryDetail.IsSuspended,
+      value: !primaryDetail.isSuspended,
     }).then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -702,7 +1121,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           primaryDetail: {
             ...prevState.data.primaryDetail,
-            IsSuspended: response,
+            isSuspended: response,
           },
         },
       }));
@@ -710,19 +1129,19 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchUserClient = (role: RoleEnum) => {
-    getData('/SystemAdmin/UserClientRoleAssignment', {
+    getJsonData('/SystemAdmin/UserClientRoleAssignment', {
       ...this.getFinalQueryFilter(),
       role,
     }).then((response: boolean) => {
       let roleAssignment: Partial<UserClientRoles> = {};
       if (role === RoleEnum.Admin) {
-        roleAssignment = { IsClientAdmin: response };
+        roleAssignment = { isClientAdmin: response };
       } else if (role === RoleEnum.ContentPublisher) {
-        roleAssignment = { IsContentPublisher: response };
+        roleAssignment = { isContentPublisher: response };
       } else if (role === RoleEnum.ContentAccessAdmin) {
-        roleAssignment = { IsAccessAdmin: response };
+        roleAssignment = { isAccessAdmin: response };
       } else if (role === RoleEnum.ContentUser) {
-        roleAssignment = { IsContentUser: response };
+        roleAssignment = { isContentUser: response };
       }
       this.setState((prevState) => ({
         ...prevState,
@@ -745,13 +1164,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
     let prevValue = false;
     if (role === RoleEnum.Admin) {
-      prevValue = secondaryDetail.IsClientAdmin;
+      prevValue = secondaryDetail.isClientAdmin;
     } else if (role === RoleEnum.ContentPublisher) {
-      prevValue = secondaryDetail.IsContentPublisher;
+      prevValue = secondaryDetail.isContentPublisher;
     } else if (role === RoleEnum.ContentAccessAdmin) {
-      prevValue = secondaryDetail.IsAccessAdmin;
+      prevValue = secondaryDetail.isAccessAdmin;
     } else if (role === RoleEnum.ContentUser) {
-      prevValue = secondaryDetail.IsContentUser;
+      prevValue = secondaryDetail.isContentUser;
     }
     postData('/SystemAdmin/UserClientRoleAssignment', {
       ...this.getFinalQueryFilter(),
@@ -760,13 +1179,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }).then((response: boolean) => {
       let roleAssignment: Partial<UserClientRoles> = {};
       if (role === RoleEnum.Admin) {
-        roleAssignment = { IsClientAdmin: response };
+        roleAssignment = { isClientAdmin: response };
       } else if (role === RoleEnum.ContentPublisher) {
-        roleAssignment = { IsContentPublisher: response };
+        roleAssignment = { isContentPublisher: response };
       } else if (role === RoleEnum.ContentAccessAdmin) {
-        roleAssignment = { IsAccessAdmin: response };
+        roleAssignment = { isAccessAdmin: response };
       } else if (role === RoleEnum.ContentUser) {
-        roleAssignment = { IsContentUser: response };
+        roleAssignment = { isContentUser: response };
       }
       this.setState((prevState) => ({
         ...prevState,
@@ -782,7 +1201,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private fetchSuspendContent = () => {
-    getData('/SystemAdmin/ContentSuspendedStatus', {
+    getJsonData('/SystemAdmin/ContentSuspendedStatus', {
       ...this.getFinalQueryFilter(),
     }).then((response: boolean) => {
       this.setState((prevState) => ({
@@ -791,7 +1210,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           secondaryDetail: {
             ...prevState.data.secondaryDetail,
-            IsSuspended: response,
+            isSuspended: response,
           },
         },
       }));
@@ -806,7 +1225,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
     postData('/SystemAdmin/ContentSuspendedStatus', {
       ...this.getFinalQueryFilter(),
-      value: !secondaryDetail.IsSuspended,
+      value: !secondaryDetail.isSuspended,
     }).then((response: boolean) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -814,7 +1233,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           ...prevState.data,
           secondaryDetail: {
             ...prevState.data.secondaryDetail,
-            IsSuspended: response,
+            isSuspended: response,
           },
         },
       }));
@@ -986,19 +1405,19 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     if (isClientInfoTree(entities)) {
       // flatten basic tree into an array
       const traverse = (node: BasicNode<ClientInfo>, list: ClientInfoWithDepth[] = [], depth = 0) => {
-        if (node.Value !== null) {
+        if (node.value !== null) {
           const clientDepth = {
-            ...node.Value,
+            ...node.value,
             depth,
           };
           list.push(clientDepth);
         }
-        if (node.Children.length) {
-          node.Children.forEach((child) => list = traverse(child, list, depth + 1));
+        if (node.children.length) {
+          node.children.forEach((child) => list = traverse(child, list, depth + 1));
         }
         return list;
       };
-      entityInfo = traverse(entities.Root);
+      entityInfo = traverse(entities.root);
     } else {
       entityInfo = entities;
     }
@@ -1006,7 +1425,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       [id: string]: CardAttributes;
     } = {};
     entityInfo.forEach((entity) => {
-        cards[entity.Id] = {
+        cards[entity.id] = {
           expanded: false,
           profitCenterModalOpen: false,
         };

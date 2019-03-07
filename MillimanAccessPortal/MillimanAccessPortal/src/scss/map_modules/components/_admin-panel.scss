@@ -43,7 +43,6 @@
 
             .action-icon {
                 color: $charcoal;
-                cursor: pointer;
                 padding: 0 .25em;
                 height: 2.0em;
                 width: 2.0em;
@@ -55,12 +54,12 @@
         }
     }
 
-    .admin-panel-content-container {
-        flex: 1 1 auto;
-        overflow-y: auto;
-        overflow-x: hidden;
+    .admin-panel-content-container,
+    .admin-panel-action-container {
         padding-right: 1em;
         padding-left: 3px;
+        overflow-y: auto;
+        overflow-x: hidden;
         padding-top: 0;
 
         .admin-panel-content-action,
@@ -84,7 +83,7 @@
                 flex-flow: row nowrap;
                 align-items: center;
                 text-align: center;
-                height: 5em;
+                height: 5.25em;
                 text-transform: uppercase;
 
                 &:hover {
@@ -114,13 +113,37 @@
             }
         }
     }
+
+    .admin-panel-content-container {
+        flex: 1 1 auto;
+    }
+    .admin-panel-action-container {
+        overflow-y: hidden;
+    }
 }
 
 
 /* Checkboxes */
 .selection-option-container {
-    padding-left: .5em;
-    cursor: pointer;
+    padding-left: .2em;
+}
+
+.selection-option-modified {
+    width: 1.3125em;
+    height: 1.3125em;
+    flex: none;
+    margin-right: 0.4em;
+    align-self: flex-start;
+    color: rgba(0, 0, 0, 0);
+    cursor: default;
+
+    &.added {
+        color: $green;
+    }
+
+    &.removed {
+        color: $red;
+    }
 }
 
 .selection-option-label {
@@ -131,12 +154,15 @@
     cursor: pointer;
     user-select: none;
 
+    padding-top: 0.125em;
+    padding-bottom: 0.125em;
+
     .selection-option-value {
         position: absolute;
         opacity: 0;
-        cursor: pointer;
         width: 0;
     }
+
 
     .selection-option-checkmark {
         position: absolute;
@@ -150,8 +176,8 @@
             content: "";
             position: absolute;
             display: none;
-            left: .7em;
-            top: .4em;
+            left: .67em;
+            top: .30em;
             width: .5em;
             height: 1em;
             border: solid $white;
@@ -160,15 +186,37 @@
         }
     }
 
-    &:hover .selection-option-value ~ .selection-option-checkmark {
-        background-color: $dark-grey;
-    }
-
     .selection-option-value:checked ~ .selection-option-checkmark {
         background-color: $blue;
 
         &:after {
             display: block;
+        }
+    }
+
+    &:hover .selection-option-value ~ .selection-option-checkmark {
+        background-color: darken($grey, 20%);
+    }
+    &:hover .selection-option-value:checked ~ .selection-option-checkmark {
+        background-color: darken($blue, 20%);
+    }
+
+    &.readonly {
+        cursor: default;
+
+        .selection-option-checkmark {
+            cursor: default;
+        }
+
+        .selection-option-value:checked ~ .selection-option-checkmark {
+            background-color: $dark-grey;
+        }
+
+        &:hover .selection-option-value ~ .selection-option-checkmark {
+            background-color: $grey;
+        }
+        &:hover .selection-option-value:checked ~ .selection-option-checkmark {
+            background-color: $dark-grey;
         }
     }
 }

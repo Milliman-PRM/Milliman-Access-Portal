@@ -1,4 +1,6 @@
-import { EntityInfo, isRootContentItemInfo, isUserInfo } from '../system-admin/interfaces';
+import {
+    EntityInfo, isClientInfo, isProfitCenterInfo, isRootContentItemInfo, isUserInfo,
+} from '../system-admin/interfaces';
 import { Guid } from './interfaces';
 
 // Represents an object displayable on a card
@@ -29,13 +31,15 @@ export class EntityHelper {
   public static applyFilter(entity: EntityInfo, filterText: string): boolean {
     const filterTextLower = filterText.toLowerCase();
     const primaryText = isUserInfo(entity)
-      ? `${entity.FirstName} ${entity.LastName}`
-      : entity.Name;
+      ? `${entity.firstName} ${entity.lastName}`
+      : entity.name;
     const secondaryText = isUserInfo(entity)
-      ? entity.UserName
+      ? entity.userName
       : isRootContentItemInfo(entity)
-        ? entity.ClientName
-        : entity.Code;
+        ? entity.clientName
+        : (isClientInfo(entity) || isProfitCenterInfo(entity))
+          ? entity.code
+          : '';
     const primaryMatch = primaryText
       ? primaryText.toLowerCase().indexOf(filterTextLower) !== -1
       : false;

@@ -164,20 +164,20 @@ export function DeleteSelectionGroupDialog($selectionGroup: any, submitHandler: 
 DeleteSelectionGroupDialog.prototype = Object.create(Dialog.prototype);
 DeleteSelectionGroupDialog.prototype.constructor = DeleteSelectionGroupDialog;
 
-export function PasswordDialog(title: any, message: any, buttons: any, color: any, submitHandler: any) {
+export function DeleteConfirmationDialog(title: any, message: any, buttons: any, color: any, submitHandler: any) {
   Dialog.call(
     this,
     title,
     message,
     buttons,
     color,
-    '<input name="password" type="password" placeholder="Password" required autofocus />',
+    '<input name="confirmDeletion" type="text" placeholder="DELETE" required autofocus />',
     null,
     submitHandler,
   );
 }
-PasswordDialog.prototype = Object.create(Dialog.prototype);
-PasswordDialog.prototype.constructor = PasswordDialog;
+DeleteConfirmationDialog.prototype = Object.create(Dialog.prototype);
+DeleteConfirmationDialog.prototype.constructor = DeleteConfirmationDialog;
 
 export function DeleteClientDialog(clientName: any, _: any, submitHandler: any) {
   const title = 'Delete Client';
@@ -195,9 +195,9 @@ export function DeleteClientDialog(clientName: any, _: any, submitHandler: any) 
     null,
     (confirm: any) => {
       if (confirm) {
-        new (PasswordDialog as any)(
+        new (DeleteConfirmationDialog as any)(
           title,
-          'Please provide your password to delete <strong>' + clientName + '</strong>.',
+          'Please type the word <strong>DELETE</strong> to delete <strong>' + clientName + '</strong>.',
           buttons,
           color,
           submitHandler,
@@ -227,9 +227,9 @@ export function DeleteRootContentItemDialog(rootContentItemName: any, _: any, su
     null,
     (confirm: any) => {
       if (confirm) {
-        new (PasswordDialog as any)(
+        new (DeleteConfirmationDialog as any)(
           title,
-          'Please provide your password to delete <strong>' + rootContentItemName + '</strong>.',
+          'Please type the word <strong>DELETE</strong> to delete <strong>' + rootContentItemName + '</strong>.',
           buttons,
           color,
           submitHandler,

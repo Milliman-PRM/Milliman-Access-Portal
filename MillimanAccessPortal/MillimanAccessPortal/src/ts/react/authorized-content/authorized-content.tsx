@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-import { getData } from '../../shared';
+import { getJsonData } from '../../shared';
 import { StatusMonitor } from '../../status-monitor';
 import { ContentTypeEnum } from '../../view-models/content-publishing';
 import { ContentContainer } from '../shared-components/content-container';
@@ -22,7 +22,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     super(props);
 
     this.state = {
-      ItemGroups: [],
+      itemGroups: [],
       selectedContentURL: null,
       selectedContentType: null,
       filterString: '',
@@ -34,7 +34,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   }
 
   public componentDidMount() {
-    getData('AuthorizedContent/Content/')
+    getJsonData('/AuthorizedContent/Content')
     .then((json: ContentItemGroupList) => this.setState(json));
     window.onpopstate = () => {
       if (window.history && window.history.pushState) {
@@ -67,6 +67,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       document.getElementById('page-footer').style.display = display;
       document.getElementById('authorized-content-container').style.display = display;
       if (contentURL) {
+        history.pushState({ content: contentURL }, null);
         this.statusMonitor.stop();
       } else {
         this.statusMonitor.start();
@@ -91,26 +92,25 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
 
   public render() {
     const clientGroups = this.filteredArray().map((client: ContentItemGroup) => {
-      const clientItems = client.Items.map((contentItem: ContentItem) => (
+      const clientItems = client.items.map((contentItem: ContentItem) => (
         <ContentCard
-          key={contentItem.Id.toString()}
+          key={contentItem.id.toString()}
           selectContent={this.selectContentItem}
           {...contentItem}
         />
       ));
       return (
-        <div key={`client-${client.Id}`} className="client-content-container">
-          <h1 className="client-name">{client.Name}</h1>
+        <div key={`client-${client.id}`} className="client-content-container">
+          <h1 className="client-name">{client.name}</h1>
           {clientItems}
         </div>
       );
     });
     const contentContainer = this.state.selectedContentURL
       ? (
-        <ContentContainer
-          contentURL={this.state.selectedContentURL}
-          contentType={this.state.selectedContentType}
-        />
+        <div id="iframe-container">
+          <iframe src={this.state.selectedContentURL} />
+        </div>
       )
       : null;
     return (
@@ -135,12 +135,12 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
 
   private filteredArray() {
     // Deep copy state
-    const groups = JSON.parse(JSON.stringify(this.state.ItemGroups)) as ContentItemGroup[];
+    const groups = JSON.parse(JSON.stringify(this.state.itemGroups)) as ContentItemGroup[];
     return groups.map((itemGroup: ContentItemGroup) => {
-      itemGroup.Items = itemGroup.Items.filter((item) =>
-        [itemGroup.Name, item.Name, item.Description].filter((text) =>
+      itemGroup.items = itemGroup.items.filter((item) =>
+        [itemGroup.name, item.name, item.description].filter((text) =>
           text && text.toLowerCase().indexOf(this.state.filterString.toLowerCase()) > -1).length);
       return itemGroup;
-    }).filter((itemGroup: ContentItemGroup) => itemGroup.Items.length);
+    }).filter((itemGroup: ContentItemGroup) => itemGroup.items.length);
   }
 }

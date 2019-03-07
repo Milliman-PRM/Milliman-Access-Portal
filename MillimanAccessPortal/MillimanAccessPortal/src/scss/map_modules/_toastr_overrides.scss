@@ -1,12 +1,19 @@
-.toast-info {
+.rrt-info, .toast-info {
     background-color: $blue !important;
 }
-.toast-error {
-    background-color: $orange !important;
+.rrt-error, .toast-error {
+    background-color: $red !important;
 }
-.toast-success {
+.rrt-success, .toast-success {
     background-color: $green !important;
 }
-.toast-warning {
-    background-color: $red !important;
+.rrt-warning, .toast-warning {
+    background-color: $orange !important;
+}
+
+.rrt-right-container > button {
+    margin: 0;
+}
+.rrt-middle-container {
+    padding: 24px 5px !important;
 }

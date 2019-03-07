@@ -29,7 +29,6 @@ using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
 using MillimanAccessPortal.Authorization;
-using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MillimanAccessPortal.Models.AccountViewModels;
@@ -82,8 +81,8 @@ namespace MillimanAccessPortal.Controllers
         {
             #region Authorization
             // User must have Admin role to at least 1 Client OR to at least 1 ProfitCenter
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null));
-            AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null));
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin));
             if (!Result1.Succeeded && !Result2.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to the Client Admin page.");
@@ -104,8 +103,8 @@ namespace MillimanAccessPortal.Controllers
         {
             #region Authorization
             // User must have Admin role to at least 1 Client or ProfitCenter
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null));
-            AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null));
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin));
             if (!Result1.Succeeded &&
                 !Result2.Succeeded)
             {
@@ -1075,7 +1074,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteClient(Guid Id, string Password)
+        public async Task<IActionResult> DeleteClient(Guid Id)
         {
             Log.Verbose($"Entered ClientAdminController.DeleteClient action with client ID {Id}");
 
@@ -1093,13 +1092,6 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             ApplicationUser CurrentUser = await Queries.GetCurrentApplicationUser(User);
-            if (!await UserManager.CheckPasswordAsync(CurrentUser, Password))
-            {
-                Log.Debug($"In ClientAdminController.DeleteClient action: incorrect password for current user {CurrentUser.UserName}, aborting");
-                Response.Headers.Add("Warning", "Incorrect password");
-                return Unauthorized();
-            }
-
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
                     new RoleInClientRequirement(RoleEnum.Admin, Id),
