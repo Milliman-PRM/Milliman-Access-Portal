@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom';
 import { ContentTypeEnum } from '../../view-models/content-publishing';
 import { ContentContainer } from '../shared-components/content-container';
 
+import '../../../scss/react/authorized-content/authorized-content.scss';
 import '../../../scss/react/authorized-content/content-wrapper.scss';
 
 document.addEventListener('DOMContentLoaded', () => {
