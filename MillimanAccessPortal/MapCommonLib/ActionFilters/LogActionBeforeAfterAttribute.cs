@@ -33,12 +33,12 @@ namespace MapCommonLib.ActionFilters
 
                 foreach (var paramInfo in actionParameters)
                 {
-                    var argument = context.ActionArguments.Single(a => a.Key == paramInfo.Name);
+                    var argument = context.ActionArguments.SingleOrDefault(a => a.Key == paramInfo.Name);
                     if (paramInfo.CustomAttributes.Select(a => a.AttributeType).Contains(
                         typeof(EmitBeforeAfterLogAttribute)))
                     {
                         // add parameter to the log object
-                        logObject.Arguments.Add(argument.Key, argument.Value);
+                        logObject.Arguments.Add(paramInfo.Name, argument.Value);
                     }
                     else
                     {

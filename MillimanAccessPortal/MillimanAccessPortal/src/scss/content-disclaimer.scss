@@ -1,0 +1,48 @@
+﻿@import "../../node_modules/bootstrap/scss/bootstrap-reboot";
+@import "map_modules/variables";
+@import "map_modules/form";
+
+body {
+    width: 100%;
+    min-height: 100vh;
+    background-color: $light-grey;
+}
+
+#disclaimer-container {
+    display: flex;
+    flex-flow: column nowrap;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 2em;
+    background-color: $white;
+    border: 1px solid $charcoal;
+    border-radius: 1em;
+    max-height: 95vh;
+    max-width: 95vw;
+    width: 42em;
+
+    #content-name {
+        flex: none;
+    }
+
+    #content-disclaimer-text {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        white-space: pre-line;
+    }
+
+    #content-disclaimer-form {
+        flex: none;
+        width: 100%;
+
+        input[type="text"] {
+            height: 0;
+        }
+
+        .button-container {
+            text-align: right;
+        }
+    }
+}

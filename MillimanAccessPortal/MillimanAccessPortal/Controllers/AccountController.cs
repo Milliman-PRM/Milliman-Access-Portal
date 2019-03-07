@@ -720,15 +720,30 @@ namespace MillimanAccessPortal.Controllers
                     user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
                     var addHistoryResult = await _userManager.UpdateAsync(user);
 
-                    if (addHistoryResult.Succeeded)
+                    // Unlock the account
+                    var unlock = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MinValue);
+                    var resetFailedCount = await _userManager.ResetAccessFailedCountAsync(user);
+
+                    if (!addHistoryResult.Succeeded)
+                    {
+                        Log.Error($"In AccountController.ResetPassword POST action: Failed to save password history for {user.UserName}, ResetPassword action rolled back, aborting");
+                    }
+
+                    if (!unlock.Succeeded)
+                    {
+                        Log.Error($"In AccountController.ResetPassword POST action: Failed to unlock account for {user.UserName}, ResetPassword action rolled back, aborting");
+                    }
+
+                    if (!resetFailedCount.Succeeded)
+                    {
+                        Log.Error($"In AccountController.ResetPassword POST action: Failed to reset failed login attempt count for {user.UserName}, ResetPassword action rolled back, aborting");
+                    }
+
+                    if (unlock.Succeeded && resetFailedCount.Succeeded && addHistoryResult.Succeeded)
                     {
                         Txn.Commit();
                         Log.Debug($"In AccountController.ResetPassword POST action: succeeded for user {user.UserName }");
                         _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user));
-                    }
-                    else
-                    {
-                        Log.Error($"In AccountController.ResetPassword POST action: Failed to save password history for {user.UserName}, ResetPassword action rolled back, aborting");
                     }
 
                     return View("Message", passwordResetMessage);

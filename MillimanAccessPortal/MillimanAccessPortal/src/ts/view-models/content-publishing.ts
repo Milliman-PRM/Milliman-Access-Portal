@@ -141,6 +141,7 @@ export interface RootContentItemDetail {
   relatedFiles: ContentRelatedFile[];
   description: string;
   notes: string;
+  contentDisclaimer: string;
   isSuspended: boolean;
 }
 

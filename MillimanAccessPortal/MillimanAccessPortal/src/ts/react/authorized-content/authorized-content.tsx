@@ -34,7 +34,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   }
 
   public componentDidMount() {
-    getJsonData('AuthorizedContent/Content/')
+    getJsonData('/AuthorizedContent/Content')
     .then((json: ContentItemGroupList) => this.setState(json));
     window.onpopstate = () => {
       if (window.history && window.history.pushState) {
@@ -67,6 +67,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       document.getElementById('page-footer').style.display = display;
       document.getElementById('authorized-content-container').style.display = display;
       if (contentURL) {
+        history.pushState({ content: contentURL }, null);
         this.statusMonitor.stop();
       } else {
         this.statusMonitor.start();
@@ -107,10 +108,9 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     });
     const contentContainer = this.state.selectedContentURL
       ? (
-        <ContentContainer
-          contentURL={this.state.selectedContentURL}
-          contentType={this.state.selectedContentType}
-        />
+        <div id="iframe-container">
+          <iframe src={this.state.selectedContentURL} />
+        </div>
       )
       : null;
     return (
