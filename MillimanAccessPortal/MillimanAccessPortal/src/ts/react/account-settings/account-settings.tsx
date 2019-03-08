@@ -9,6 +9,16 @@ import { AccountState } from './redux/store';
 
 // tslint:disable-next-line
 interface AccountSettingsProps {
+  data: {
+    username: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    employer: string;
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  };
 }
 class AccountSettings extends React.Component<AccountSettingsProps & typeof AccountActionCreators> {
   public render() {
@@ -47,18 +57,19 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderInformationSection() {
+    const { username, firstName, lastName, phone, employer } = this.props.data;
     return (
       <>
         <div className="form-section" data-section="username">
           <h4 className="form-section-title">User Information</h4>
           <div className="form-input-container" style={{ marginBottom: 0 }}>
             <div className="form-input htmlForm-input-text flex-item-12-12">
-              <label className="form-input-text-title" htmlFor="UserName">Username</label>
+              <label className="form-input-text-title" htmlFor="username">Username</label>
               <div>
                 <input
                   type="text"
-                  name="UserName"
-                  value="joseph.sweeney@milliman.com"
+                  name="username"
+                  value={username}
                   readOnly={true}
                 />
               </div>
@@ -68,47 +79,64 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
         <div className="form-section" data-section="account">
           <div className="form-input-container">
             <div className="form-input form-input-text flex-item-for-tablet-up-6-12">
-              <label className="form-input-text-title" htmlFor="FirstName">First Name</label>
+              <label className="form-input-text-title" htmlFor="firstName">First Name</label>
               <div>
                 <input
                   type="text"
-                  name="FirstName"
-                  value="Joseph"
+                  name="firstName"
+                  value={firstName}
+                  onChange={({ target }) => this.props.setPendingTextInputValue({
+                    inputName: 'firstName',
+                    value: target.value,
+                  })}
                   autoFocus={true}
                 />
                 <span className="text-danger field-validation-valid" />
               </div>
             </div>
             <div className="form-input form-input-text flex-item-for-tablet-up-6-12">
-              <label className="form-input-text-title" htmlFor="LastName">Last Name</label>
+              <label className="form-input-text-title" htmlFor="lastName">Last Name</label>
               <div>
-                <input type="text" name="LastName" value="Sweeney" />
-                <span className="text-danger field-validation-valid" />
-              </div>
-            </div>
-            <div className="form-input htmlForm-input-text flex-item-12-12" style={{ display: 'none' }}>
-              <label className="form-input-text-title" htmlFor="Email">Email Address</label>
-              <div>
-                <input type="email" name="Email" value="joseph.sweeney@milliman.com" />
+                <input
+                  type="text"
+                  name="lastName"
+                  value={lastName}
+                  onChange={({ target }) => this.props.setPendingTextInputValue({
+                    inputName: 'lastName',
+                    value: target.value,
+                  })}
+                />
                 <span className="text-danger field-validation-valid" />
               </div>
             </div>
             <div className="form-input form-input-text flex-item-for-tablet-up-4-12">
-              <label className="form-input-text-title" htmlFor="PhoneNumber">Phone Number</label>
+              <label className="form-input-text-title" htmlFor="phone">Phone Number</label>
               <div>
                 <input
                   placeholder="(###) ###-####"
                   type="tel"
-                  name="PhoneNumber"
-                  value="don't call me please"
+                  name="phone"
+                  value={phone}
+                  onChange={({ target }) => this.props.setPendingTextInputValue({
+                    inputName: 'phone',
+                    value: target.value,
+                  })}
                 />
                 <span className="text-danger field-validation-valid" />
               </div>
             </div>
             <div className="form-input form-input-text flex-item-for-tablet-up-8-12">
-              <label className="form-input-text-title" htmlFor="Employer">Employer</label>
+              <label className="form-input-text-title" htmlFor="employer">Employer</label>
               <div>
-                <input type="text" name="Employer" value="Milliman" />
+                <input
+                  type="text"
+                  name="employer"
+                  value={employer}
+                  onChange={({ target }) => this.props.setPendingTextInputValue({
+                    inputName: 'employer',
+                    value: target.value,
+                  })}
+                />
                 <span className="text-danger field-validation-valid" />
               </div>
             </div>
@@ -119,27 +147,52 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderPasswordSection() {
+    const { currentPassword, newPassword, confirmPassword } = this.props.data;
     return (
       <div className="form-section">
         <h4 className="form-section-title">Update Password</h4>
         <div className="form-input-container">
           <div className="form-input htmlForm-input-text flex-item-12-12">
-            <label className="form-input-text-title" htmlFor="CurrentPassword">Current Password</label>
+            <label className="form-input-text-title" htmlFor="currentPassword">Current Password</label>
             <div>
-              <input type="password" name="CurrentPassword" />
+              <input
+                type="password"
+                name="currentPassword"
+                value={currentPassword}
+                onChange={({ target }) => this.props.setPendingTextInputValue({
+                  inputName: 'currentPassword',
+                  value: target.value,
+                })}
+              />
             </div>
           </div>
           <div className="form-input htmlForm-input-text flex-item-12-12">
-            <label className="form-input-text-title" htmlFor="NewPassword">New Password</label>
+            <label className="form-input-text-title" htmlFor="newPassword">New Password</label>
             <div>
-              <input type="password" name="NewPassword" />
+              <input
+                type="password"
+                name="newPassword"
+                value={newPassword}
+                onChange={({ target }) => this.props.setPendingTextInputValue({
+                  inputName: 'newPassword',
+                  value: target.value,
+                })}
+              />
               <span className="text-danger field-validation-valid" />
             </div>
           </div>
           <div className="form-input htmlForm-input-text flex-item-12-12">
-            <label className="form-input-text-title" htmlFor="ConfirmNewPassword">Confirm password</label>
+            <label className="form-input-text-title" htmlFor="confirmPassword">Confirm password</label>
             <div>
-              <input type="password" name="ConfirmNewPassword" />
+              <input
+                type="password"
+                name="confirmPassword"
+                value={confirmPassword}
+                onChange={({ target }) => this.props.setPendingTextInputValue({
+                  inputName: 'confirmPassword',
+                  value: target.value,
+                })}
+              />
               <span className="text-danger field-validation-valid" />
             </div>
           </div>
@@ -171,8 +224,18 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
 }
 
 function mapStateToProps(state: AccountState): AccountSettingsProps {
-  const s = state;
-  return {};
+  return {
+    data: {
+      username: state.pending.fields.userName,
+      firstName: state.pending.fields.firstName,
+      lastName: state.pending.fields.lastName,
+      phone: state.pending.fields.phone,
+      employer: state.pending.fields.employer,
+      currentPassword: state.pending.fields.current,
+      newPassword: state.pending.fields.new,
+      confirmPassword: state.pending.fields.confirm,
+    },
+  };
 }
 
 export const ConnectedAccountSettings = connect(

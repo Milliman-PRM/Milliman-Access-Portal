@@ -11,6 +11,10 @@ export interface User {
   userName: string;
   email: string;
 }
+export interface UserFull extends User {
+  phone: string;
+  employer: string;
+}
 export interface ProfitCenter {
   id: Guid;
   name: string;
