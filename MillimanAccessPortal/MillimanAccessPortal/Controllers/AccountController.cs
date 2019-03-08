@@ -1080,6 +1080,28 @@ namespace MillimanAccessPortal.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<ActionResult> AccountSettings2()
+        {
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+
+            string scheme = await GetAuthenticationSchemeForUser(user.UserName);
+
+            return Json(new
+            {
+                Id = user.Id,
+                IsActivated = user.EmailConfirmed,
+                IsSuspended = user.IsSuspended,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                UserName = user.UserName,
+                Email = user.Email,
+                Phone = user.PhoneNumber,
+                Employer = user.Employer,
+                IsLocal = string.IsNullOrWhiteSpace(scheme),
+            });
+        }
+
         // POST /Account/UpdateAccountSettings
         [HttpPost]
         [ValidateAntiForgeryToken]

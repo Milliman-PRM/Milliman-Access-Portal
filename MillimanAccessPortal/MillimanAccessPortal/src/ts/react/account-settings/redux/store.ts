@@ -4,16 +4,16 @@ import createSagaMiddleware from 'redux-saga';
 
 import { UserFull } from '../../models';
 import { accountSettings } from './reducers';
-
-// import { accountSettings } from './reducers';
-// import sagas from './sagas';
+import sagas from './sagas';
 
 export interface AccountStatePassword {
   current: string;
   new: string;
   confirm: string;
 }
-export type PendingFieldsState = UserFull & AccountStatePassword;
+export type PendingFieldsState =
+  Pick<UserFull, Exclude<keyof UserFull, 'isActivated' | 'isSuspended' | 'isLocal'>>
+  & AccountStatePassword;
 export interface PendingRequestState {
   update: boolean;
   validatePassword: boolean;
@@ -35,6 +35,6 @@ export interface AccountState {
 const sagaMiddleware = createSagaMiddleware();
 export const store = createStore(
   accountSettings,
-//  applyMiddleware(sagaMiddleware),
+  applyMiddleware(sagaMiddleware),
   );
-// sagaMiddleware.run(sagas);
+sagaMiddleware.run(sagas);

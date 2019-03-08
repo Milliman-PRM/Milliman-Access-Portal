@@ -41,5 +41,7 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string ConfirmNewPassword { get; set; }
 
         public string Code { get; set; }
+
+        public bool IsLocal { get; set; }
     }
 }

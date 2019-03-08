@@ -12,6 +12,7 @@ export interface User {
   email: string;
 }
 export interface UserFull extends User {
+  isLocal: boolean;
   phone: string;
   employer: string;
 }

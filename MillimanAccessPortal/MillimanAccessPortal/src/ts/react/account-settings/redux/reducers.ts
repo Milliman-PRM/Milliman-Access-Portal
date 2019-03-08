@@ -2,7 +2,7 @@ import { reducer as toastrReducer } from 'react-redux-toastr';
 import { Action, combineReducers } from 'redux';
 
 import { UserFull } from '../../models';
-import { AccountAction, SetPendingTextInputValue } from './actions';
+import { AccountAction, FetchUserSucceeded, SetPendingTextInputValue } from './actions';
 import { AccountState, AccountStateData, PendingFieldsState, PendingRequestState } from './store';
 
 const _initialData: AccountStateData = {
@@ -10,6 +10,7 @@ const _initialData: AccountStateData = {
     id: '',
     isActivated: false,
     isSuspended: false,
+    isLocal: false,
     firstName: '',
     lastName: '',
     userName: '',
@@ -20,8 +21,6 @@ const _initialData: AccountStateData = {
 };
 const _initialPendingFields: PendingFieldsState = {
   id: null,
-  isActivated: null,
-  isSuspended: null,
   firstName: null,
   lastName: null,
   userName: null,
@@ -48,6 +47,13 @@ const createReducer =
       : state;
 
 const data = createReducer<AccountStateData>(_initialData, ({
+  FETCH_USER_SUCCEEDED: (state, { response }: FetchUserSucceeded) => ({
+    ...state,
+    user: {
+      ...state.user,
+      ...response,
+    },
+  }),
 }));
 const pendingFields = createReducer<PendingFieldsState>(_initialPendingFields, ({
   SET_PENDING_TEXT_INPUT_VALUE: (state, action: SetPendingTextInputValue) => ({
