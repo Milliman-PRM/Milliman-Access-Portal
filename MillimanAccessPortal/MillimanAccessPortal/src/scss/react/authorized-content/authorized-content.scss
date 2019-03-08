@@ -2,6 +2,8 @@
 @import "../../map_modules/mixins";
 
 #content-wrapper {
+    overflow-y: auto;
+    height: auto;
     min-height: 100vh;
     width: 100%;
 }
