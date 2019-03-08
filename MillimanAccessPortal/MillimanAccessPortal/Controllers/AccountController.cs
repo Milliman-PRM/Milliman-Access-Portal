@@ -11,6 +11,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -79,10 +80,77 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Login(string returnUrl = null)
         {
             // Clear the existing external cookie to ensure a clean login process
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            await HttpContext.SignOutAsync();
 
             ViewData["ReturnUrl"] = returnUrl;
             return View();
+        }
+
+        //
+        // POST: /Account/IsLocalAccount
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> IsLocalAccount(string userName)
+        {
+            string scheme = await GetAuthenticationSchemeForUser(userName);
+
+            return Json(new { LocalAccount = string.IsNullOrWhiteSpace(scheme) });
+        }
+
+        /// <summary>
+        /// Evaluates the appropriate authentication scheme for a provided username
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns>The scheme for the specified user, or <see langword="null"/> if no scheme is appropriate</returns>
+        [NonAction]
+        private async Task<string> GetAuthenticationSchemeForUser(string userName)
+        {
+            string normalizedUserName = _userManager.NormalizeKey(userName);
+            if (!DbContext.Users.Any(u => u.NormalizedUserName == normalizedUserName))
+            {
+                return null;
+            }
+
+            string userDomain = userName.Substring(0, userName.LastIndexOf('.'))
+                                        .Substring(userName.IndexOf('@') + 1);
+
+            // 1. Does the specified user have a scheme name stored?
+            if (false)
+            {
+                return "TheStoredSchemeName";
+            }
+
+            // 2. Does the email domain map to a scheme?
+            if (false)
+            {
+                return "TheMappedSchemeName";
+            }
+
+            // 3. Does the email domain match a scheme?
+            var allSchemeNames = (await _signInManager.GetExternalAuthenticationSchemesAsync()).Select(s => s.Name);
+            return allSchemeNames.SingleOrDefault(s => s.Equals(userDomain, StringComparison.OrdinalIgnoreCase));
+        }
+
+        //
+        // GET: /Account/RemoteAuthenticate
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> RemoteAuthenticate(string userName)
+        {
+            string scheme = await GetAuthenticationSchemeForUser(userName);
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
+            AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
+            properties.SetString("username", userName);
+
+            if (!string.IsNullOrWhiteSpace(scheme))
+            {
+                return Challenge(properties, scheme);
+            }
+            else
+            {
+                return RedirectToAction(nameof(Login));
+            }
         }
 
         //
@@ -102,7 +170,7 @@ namespace MillimanAccessPortal.Controllers
 
                 if (user == null || user.IsSuspended)
                 {
-                    Log.Debug($"User {model.Username} suspended or not found, login rejected");
+                    Log.Debug($"User {model.Username} suspended or not found, local login rejected");
                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
                     Response.Headers.Add("Warning", "Invalid login attempt.");
                     return Ok();
@@ -138,9 +206,9 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
+                    SignInCommon();
 
-                    Log.Information($"User {model.Username} logged in");
+                    Log.Information($"Local user {model.Username} logged in");
                     _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(), model.Username);
 
                     // The default route is /AuthorizedContent/Index as configured in startup.cs
@@ -190,6 +258,15 @@ namespace MillimanAccessPortal.Controllers
             // If we got this far, something failed, redisplay form
             Response.Headers.Add("Warning", "Login failed.");
             return Ok();
+        }
+
+        /// <summary>
+        /// Does everything that is common to externally and internally signed in users
+        /// </summary>
+        [NonAction]
+        private void SignInCommon()
+        {
+            HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
         }
 
         //
@@ -271,14 +348,21 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Logout()
         {
             Log.Verbose("Entered AccountController.Logout action");
-
-            ApplicationUser appUser = await Queries.GetCurrentApplicationUser(User);
+            ApplicationUser appUser = null;
+            try
+            {
+                appUser = await Queries.GetCurrentApplicationUser(User);
+            }
+            catch (Exception ex)
+            {
+                var x = ex;
+            }
             await _signInManager.SignOutAsync();
 
             Log.Verbose($"In AccountController.Logout action: user {appUser?.UserName ?? "<unknown>"} logged out.");
             _auditLogger.Log(AuditEventType.Logout.ToEvent(), appUser?.UserName);
 
-            Response.Cookies.Delete(".AspNetCore.Session");
+            Response.Cookies.Delete(".AspNetCore.Session");  // TODO get the cookie name from the authentication middleware, don't hard code
             HttpContext.Session.Clear();
 
             return Ok();
@@ -294,55 +378,35 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("Entered AccountController.ExternalLogin action with {@Provider}", provider);
 
             // Request a redirect to the external login provider.
-            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { ReturnUrl = returnUrl });
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), "Account", new { ReturnUrl = returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return Challenge(properties, provider);
         }
 
         //
-        // GET: /Account/ExternalLoginCallback
+        // GET: /Account/ExternalLoginCallbackAsync
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        public IActionResult ExternalLoginCallbackAsync(string returnUrl = null, string remoteError = null)
         {
             Log.Verbose("Entered AccountController.ExternalLoginCallback action");
 
-            if (remoteError != null)
-            {
-                ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
-                return View(nameof(Login));
-            }
-            var info = await _signInManager.GetExternalLoginInfoAsync();
-            if (info == null)
+            if (string.IsNullOrWhiteSpace(HttpContext.User.Identity.Name) || 
+                !HttpContext.User.Identity.IsAuthenticated)
             {
                 return RedirectToAction(nameof(Login));
             }
 
-            // Sign in the user with this external login provider if the user already has a login.
-            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
-            if (result.Succeeded)
+            if (remoteError != null)
             {
-                Log.Information($"User logged in with provider {info.LoginProvider}");
-                return RedirectToLocal(returnUrl);
+                Log.Error("Error during remote authentication");
+                return RedirectToAction(nameof(Login));
             }
-            if (result.RequiresTwoFactor)
-            {
-                return RedirectToAction(nameof(SendCode), new { ReturnUrl = returnUrl });
-            }
-            if (result.IsLockedOut)
-            {
-                Log.Information($"From ExternalLoginCallback, ExternalLoginSignInAsync result is LockedOut from provider {info.LoginProvider}");
-                var lockoutMessage = "This account has been locked out, please try again later.";
-                return View("Message", lockoutMessage);
-            }
-            else
-            {
-                // If the user does not have an account, then ask the user to create an account.
-                ViewData["ReturnUrl"] = returnUrl;
-                ViewData["LoginProvider"] = info.LoginProvider;
-                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = email });
-            }
+
+            SignInCommon();
+
+            returnUrl = returnUrl ?? Url.Content("~/");
+            return LocalRedirect(returnUrl);
         }
 
         //
@@ -454,7 +518,7 @@ namespace MillimanAccessPortal.Controllers
             if (user.EmailConfirmed)  // Account is already activated
             {
                 Log.Debug($"In AccountController.EnableAccount GET action: user {userId} account is already enabled, aborting");
-                return View("Login");
+                return View(nameof(Login));
             }
 
             // If the code is not valid (likely expired), re-send the welcome email and notify the user
@@ -504,7 +568,7 @@ namespace MillimanAccessPortal.Controllers
             if (user.EmailConfirmed)  // Account is already activated
             {
                 Log.Debug($"In AccountController.EnableAccount POST action: user {model.Id} account is already activated, aborting");
-                return View("Login");
+                return View(nameof(Login));
             }
 
             using (var Txn = DbContext.Database.BeginTransaction())
@@ -580,7 +644,7 @@ namespace MillimanAccessPortal.Controllers
                 Log.Verbose($"User {model.Username} account enabled and profile saved");
                 _auditLogger.Log(AuditEventType.UserAccountEnabled.ToEvent(user));
 
-                return View("Login");
+                return View(nameof(Login));
             }
         }
 

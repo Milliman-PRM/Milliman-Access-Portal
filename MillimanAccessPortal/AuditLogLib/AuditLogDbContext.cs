@@ -60,11 +60,11 @@ namespace AuditLogLib
 
         protected override void OnConfiguring(DbContextOptionsBuilder Builder)
         {
-            if (Builder.Options.Extensions.Any(e => e.GetType() == typeof(Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension)))
+            if (Builder.Options.Extensions.Any(e => e.GetType() == typeof(Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension)))
             {
                 // This block supports the use of a connection string provided through dependency injection
-                Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension Extension =
-                    Builder.Options.Extensions.First(x => x.GetType() == typeof(Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension)) as Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension;
+                Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension Extension =
+                    Builder.Options.Extensions.First(x => x.GetType() == typeof(Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension)) as Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension;
                 Builder.UseNpgsql(Extension.ConnectionString);
             }
             else
