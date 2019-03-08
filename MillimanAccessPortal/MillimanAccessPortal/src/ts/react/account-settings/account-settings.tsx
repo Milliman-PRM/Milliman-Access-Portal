@@ -5,11 +5,12 @@ import ReduxToastr from 'react-redux-toastr';
 import { ColumnSpinner } from '../shared-components/column-spinner';
 import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
+import { fieldProps } from './redux/selectors';
 import { AccountState } from './redux/store';
 
 // tslint:disable-next-line
 interface AccountSettingsProps {
-  data: {
+  fields: {
     username: string;
     firstName: string;
     lastName: string;
@@ -57,7 +58,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderInformationSection() {
-    const { username, firstName, lastName, phone, employer } = this.props.data;
+    const { username, firstName, lastName, phone, employer } = this.props.fields;
     return (
       <>
         <div className="form-section" data-section="username">
@@ -147,7 +148,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderPasswordSection() {
-    const { currentPassword, newPassword, confirmPassword } = this.props.data;
+    const { currentPassword, newPassword, confirmPassword } = this.props.fields;
     return (
       <div className="form-section">
         <h4 className="form-section-title">Update Password</h4>
@@ -160,7 +161,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                 name="currentPassword"
                 value={currentPassword}
                 onChange={({ target }) => this.props.setPendingTextInputValue({
-                  inputName: 'currentPassword',
+                  inputName: 'current',
                   value: target.value,
                 })}
               />
@@ -174,7 +175,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                 name="newPassword"
                 value={newPassword}
                 onChange={({ target }) => this.props.setPendingTextInputValue({
-                  inputName: 'newPassword',
+                  inputName: 'new',
                   value: target.value,
                 })}
               />
@@ -189,7 +190,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                 name="confirmPassword"
                 value={confirmPassword}
                 onChange={({ target }) => this.props.setPendingTextInputValue({
-                  inputName: 'confirmPassword',
+                  inputName: 'confirm',
                   value: target.value,
                 })}
               />
@@ -208,6 +209,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
           <button
             type="button"
             className="button-reset link-button"
+            onClick={() => this.props.resetForm({})}
           >
             Discard Changes
           </button>
@@ -225,16 +227,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
 
 function mapStateToProps(state: AccountState): AccountSettingsProps {
   return {
-    data: {
-      username: state.pending.fields.userName,
-      firstName: state.pending.fields.firstName,
-      lastName: state.pending.fields.lastName,
-      phone: state.pending.fields.phone,
-      employer: state.pending.fields.employer,
-      currentPassword: state.pending.fields.current,
-      newPassword: state.pending.fields.new,
-      confirmPassword: state.pending.fields.confirm,
-    },
+    fields: fieldProps(state),
   };
 }
 

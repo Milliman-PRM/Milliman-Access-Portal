@@ -1,7 +1,6 @@
 import { Action } from 'redux';
 
 import * as AccountActions from './actions';
-import { TSError } from './actions';
 
 export type ActionWithoutType<T> = Pick<T, Exclude<keyof T, 'type'>>;
 
@@ -15,3 +14,5 @@ function createActionCreator<T extends Action>(type: T['type']): (actionProps: A
 
 export const setPendingTextInputValue =
   createActionCreator<AccountActions.SetPendingTextInputValue>('SET_PENDING_TEXT_INPUT_VALUE');
+export const resetForm =
+  createActionCreator<AccountActions.ResetForm>('RESET_FORM');

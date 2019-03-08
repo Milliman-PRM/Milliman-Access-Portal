@@ -50,10 +50,11 @@ const createReducer =
 const data = createReducer<AccountStateData>(_initialData, ({
 }));
 const pendingFields = createReducer<PendingFieldsState>(_initialPendingFields, ({
-  SET_PENDING_TEXT_INPUT_VALUE: (state, action) => ({
+  SET_PENDING_TEXT_INPUT_VALUE: (state, action: SetPendingTextInputValue) => ({
     ...state,
     [action.inputName]: action.value,
   }),
+  RESET_FORM: () => _initialPendingFields,
 }));
 const pendingRequests = createReducer<PendingRequestState>(_initialPendingRequests, ({
 }));
