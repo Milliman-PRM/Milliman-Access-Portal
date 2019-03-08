@@ -14,6 +14,18 @@ export function pendingFieldValues(state: AccountState) {
   return data;
 }
 
+export function modifiedFields(state: AccountState) {
+  const data: Partial<PendingFieldsState> = { ...state.data.user };
+  const pending = { ...state.pending.fields };
+  return _.mapValues(pending, (value, key: keyof PendingFieldsState) => ({
+    modified: (value !== null && data[key] !== value),
+  }));
+}
+
+export function anyFieldModified(state: AccountState) {
+  return _.reduce(modifiedFields(state), (prev, cur) => prev || cur.modified, false);
+}
+
 export function fieldProps(state: AccountState) {
   const values = pendingFieldValues(state);
   return {

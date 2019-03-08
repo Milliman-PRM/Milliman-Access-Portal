@@ -5,7 +5,7 @@ import ReduxToastr from 'react-redux-toastr';
 import { ColumnSpinner } from '../shared-components/column-spinner';
 import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
-import { fieldProps } from './redux/selectors';
+import { anyFieldModified, fieldProps } from './redux/selectors';
 import { AccountState } from './redux/store';
 
 // tslint:disable-next-line
@@ -20,8 +20,13 @@ interface AccountSettingsProps {
     newPassword: string;
     confirmPassword: string;
   };
+  anyFieldModified: boolean;
 }
 class AccountSettings extends React.Component<AccountSettingsProps & typeof AccountActionCreators> {
+  public componentDidMount() {
+    this.props.fetchUser({});
+  }
+
   public render() {
     return (
       <>
@@ -206,13 +211,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
     return (
       <div className="form-submission-section">
         <div className="button-container button-container-update">
-          <button
-            type="button"
-            className="button-reset link-button"
-            onClick={() => this.props.resetForm({})}
-          >
-            Discard Changes
-          </button>
+          {this.renderResetButton()}
           <button
             type="submit"
             className="button-submit blue-button"
@@ -223,11 +222,27 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
       </div>
     );
   }
+
+  private renderResetButton() {
+    const { anyFieldModified: modified } = this.props;
+    return modified
+    ? (
+      <button
+        type="button"
+        className="button-reset link-button"
+        onClick={() => this.props.resetForm({})}
+      >
+        Discard Changes
+      </button>
+    )
+    : null;
+  }
 }
 
 function mapStateToProps(state: AccountState): AccountSettingsProps {
   return {
     fields: fieldProps(state),
+    anyFieldModified: anyFieldModified(state),
   };
 }
 

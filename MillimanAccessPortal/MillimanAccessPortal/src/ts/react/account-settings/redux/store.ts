@@ -15,6 +15,7 @@ export type PendingFieldsState =
   Pick<UserFull, Exclude<keyof UserFull, 'isActivated' | 'isSuspended' | 'isLocal'>>
   & AccountStatePassword;
 export interface PendingRequestState {
+  fetchUser: boolean;
   update: boolean;
   validatePassword: boolean;
 }

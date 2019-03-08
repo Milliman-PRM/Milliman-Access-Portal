@@ -32,6 +32,7 @@ const _initialPendingFields: PendingFieldsState = {
   confirm: null,
 };
 const _initialPendingRequests: PendingRequestState = {
+  fetchUser: false,
   update: false,
   validatePassword: false,
 };
@@ -63,6 +64,18 @@ const pendingFields = createReducer<PendingFieldsState>(_initialPendingFields, (
   RESET_FORM: () => _initialPendingFields,
 }));
 const pendingRequests = createReducer<PendingRequestState>(_initialPendingRequests, ({
+  FETCH_USER: (state) => ({
+    ...state,
+    fetchUser: true,
+  }),
+  FETCH_USER_SUCCEEDED: (state) => ({
+    ...state,
+    fetchUser: false,
+  }),
+  FETCH_USER_FAILED: (state) => ({
+    ...state,
+    fetchUser: false,
+  }),
 }));
 const pending = combineReducers({
   fields: pendingFields,
