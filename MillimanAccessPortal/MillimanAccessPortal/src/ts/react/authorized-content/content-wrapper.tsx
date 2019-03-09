@@ -20,6 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
       contentURL={contentURL}
       contentType={contentTypeMap[contentType]}
     />,
-    document.getElementById('content-wrapper'),
+    document.getElementById('content-wrapper-inner'),
   );
 });

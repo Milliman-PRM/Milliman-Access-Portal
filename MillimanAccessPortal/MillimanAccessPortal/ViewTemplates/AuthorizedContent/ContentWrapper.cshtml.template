@@ -14,7 +14,7 @@
 
 <div id="content-url" style="display: none;">@Model.ContentURL</div>
 <div id="content-type" style="display: none;">@Model.ContentType</div>
-<div id="content-wrapper"></div>
+<div id="content-wrapper-inner"></div>
 
 @section Scripts {
     <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
