@@ -10,11 +10,19 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 
 namespace MapDbContextLib.Context
 {
+    public enum AuthenticationType
+    {
+        Default,
+        WsFederation,
+    }
+
     public class AuthenticationScheme
     {
         [Key]
@@ -23,16 +31,42 @@ namespace MapDbContextLib.Context
         [Required]
         public string Name { get; set; }
 
+        [Required]
+        public AuthenticationType Type { get; set; }
+
+        /// <summary>
+        /// Storage of scheme handler specific properties.  Can be accessed using member <see cref="SchemePropertiesObj"/>
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string SchemeProperties { get; set; }
+
+        [NotMapped]
+        public AuthenticationSchemeProperties SchemePropertiesObj
+        {
+            get
+            {
+                switch (Type)
+                {
+                    case AuthenticationType.WsFederation:
+                        return JsonConvert.DeserializeObject<WsFederationSchemeProperties>(SchemeProperties);
+
+                    case AuthenticationType.Default:
+                        return null;
+
+                    default:
+                        throw new ApplicationException($"Authentication scheme type {Type} is not handled in the property getter of {nameof(AuthenticationScheme)}.{nameof(SchemePropertiesObj)}");
+                }
+            }
+            set
+            {
+                SchemeProperties = JsonConvert.SerializeObject(value);
+            }
+        }
+
         public string DisplayName { get; set; }
 
         [Required]
-        public string MetadataAddress { get; set; }
-
-        [Required]
-        public string Wtrealm { get; set; }
-
-        [Required]
-        [Column(TypeName = "citext[]")]
+        //[Column(TypeName = "citext[]")]
         public List<string> DomainList { get; set; } = new List<string>();
 
         #region Database initialization and validation
@@ -46,15 +80,14 @@ namespace MapDbContextLib.Context
             ApplicationDbContext dbContext = serviceProvider.GetService<ApplicationDbContext>();
             AuthenticationService authService = (AuthenticationService)serviceProvider.GetService<IAuthenticationService>();
 
-            string defaultScheme = (await authService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
-            if (!dbContext.AuthenticationScheme.Any(s => s.Name == defaultScheme))
+            string defaultSchemeName = (await authService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
+            if (!dbContext.AuthenticationScheme.Any(s => s.Name == defaultSchemeName))
             {
                 AuthenticationScheme newScheme = new AuthenticationScheme
                 {
-                    Name = defaultScheme,
+                    Name = defaultSchemeName,
                     DisplayName = "Local MAP Authentication",
-                    MetadataAddress = null,
-                    Wtrealm = null,
+                    SchemeProperties = null,
                 };
                 await dbContext.AuthenticationScheme.AddAsync(newScheme);
                 dbContext.SaveChanges();

@@ -11,7 +11,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.WsFederation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -48,6 +48,9 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService AuthorizationService;
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
+        private readonly AuthenticationService _authentService;
+        private readonly OptionsCache<WsFederationOptions> _wsFederationOptionsCache;
+//        private readonly WsFederationPostConfigureOptions _wsFederationPostConfigureOptions;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -59,7 +62,11 @@ namespace MillimanAccessPortal.Controllers
             StandardQueries QueriesArg,
             IAuthorizationService AuthorizationServiceArg,
             IConfiguration ConfigArg,
-            IServiceProvider serviceProviderArg)
+            IServiceProvider serviceProviderArg,
+            IAuthenticationService authentService,
+            IOptionsMonitorCache<WsFederationOptions> wsFederationOptionsCache
+            // ,IPostConfigureOptions<WsFederationOptions> wsFederationPostConfigureOptions
+            )
         {
             DbContext = ContextArg;
             _userManager = userManager;
@@ -71,6 +78,9 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationService = AuthorizationServiceArg;
             _configuration = ConfigArg;
             _serviceProvider = serviceProviderArg;
+            _authentService = (AuthenticationService)authentService;
+            _wsFederationOptionsCache = (OptionsCache<WsFederationOptions>)wsFederationOptionsCache;
+            // _wsFederationPostConfigureOptions = (WsFederationPostConfigureOptions)wsFederationPostConfigureOptions;
         }
 
         //
@@ -96,7 +106,9 @@ namespace MillimanAccessPortal.Controllers
         {
             string scheme = await GetExternalAuthenticationSchemeAsync(userName);
 
-            return Json(new { LocalAccount = string.IsNullOrWhiteSpace(scheme) });
+            bool LocalAccount = string.IsNullOrWhiteSpace(scheme) || 
+                                scheme == (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
+            return Json(new { LocalAccount });
         }
 
         /// <summary>
@@ -129,6 +141,81 @@ namespace MillimanAccessPortal.Controllers
             return matchingScheme?.Name;
         }
 
+        [AllowAnonymous]
+        public async Task<IActionResult> AddNewAuthenticationScheme(int type, string name, string displayName, string wtrealm, string metadataAddress)
+        {
+            AuthenticationType authType = (AuthenticationType)type;
+            switch (authType)
+            {
+                case AuthenticationType.WsFederation:
+                    try
+                    {
+                        if (await _authentService.Schemes.GetSchemeAsync(name) == null)
+                        {
+                            _authentService.Schemes.AddScheme(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(name, displayName, typeof(WsFederationHandler)));
+                        }
+                        else
+                        {
+                            _wsFederationOptionsCache.TryRemove(name);
+                        }
+
+                        WsFederationOptions newOptions = new WsFederationOptions { Wtrealm = wtrealm, MetadataAddress = metadataAddress, CallbackPath = $"/signin-wsfed-{name}" };
+                        // not needed? _wsFederationPostConfigureOptions.PostConfigure(name, newOptions);
+                        _wsFederationOptionsCache.TryAdd(name, newOptions);
+
+                        // Save to database table "AuthenticationScheme"
+                        MapDbContextLib.Context.AuthenticationScheme dbScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => s.Name.ToLower() == name.ToLower());
+                        if (dbScheme == null)
+                        {
+                            // INSERT new
+                            await DbContext.AuthenticationScheme.AddAsync(new MapDbContextLib.Context.AuthenticationScheme
+                            {
+                                DisplayName = displayName,
+                                DomainList = new List<string>(),
+                                Name = name,
+                                SchemePropertiesObj = new WsFederationSchemeProperties
+                                {
+                                    MetadataAddress = metadataAddress,
+                                    Wtrealm = wtrealm,
+                                },
+                                Type = AuthenticationType.WsFederation,
+                            });
+                        }
+                        else
+                        {
+                            // UPDATE existing record
+                            dbScheme.DisplayName = displayName;
+                            //dbScheme.DomainList = new List<string>();
+                            dbScheme.SchemePropertiesObj = new WsFederationSchemeProperties
+                            {
+                                MetadataAddress = metadataAddress,
+                                Wtrealm = wtrealm,
+                            };
+                        }
+                        await DbContext.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, $"Failed to add new authentication scheme of type {type.ToString()}, named {name}, wtrealm {wtrealm}, metadata address {metadataAddress}");
+
+                        _wsFederationOptionsCache.TryRemove(name);
+                        if (await _authentService.Schemes.GetSchemeAsync(name) != null)
+                        {
+                            _authentService.Schemes.RemoveScheme(name);
+                        }
+
+                        return Redirect("/");
+                    }
+
+                    break;
+
+                default:
+                    break;
+            }
+
+            return Ok();
+        }
+
         //
         // GET: /Account/RemoteAuthenticate
         [HttpGet]
@@ -136,12 +223,13 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> RemoteAuthenticate(string userName)
         {
             string scheme = await GetExternalAuthenticationSchemeAsync(userName);
-            string redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
-            AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
-            properties.SetString("username", userName);
 
             if (!string.IsNullOrWhiteSpace(scheme))
             {
+                string redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
+                AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
+                properties.SetString("username", userName);
+
                 return Challenge(properties, scheme);
             }
             else

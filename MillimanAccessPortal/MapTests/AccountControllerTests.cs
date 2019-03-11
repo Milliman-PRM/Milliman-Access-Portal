@@ -53,7 +53,9 @@ namespace MapTests
                 TestResources.QueriesObj,
                 TestResources.AuthorizationService,
                 TestResources.ConfigurationObject,
-                TestResources.ServiceProviderObject);
+                TestResources.ServiceProviderObject,
+                null,  // IAuthenticationService
+                null);  // IOptionsMonitorCache<WsFederationOptions>
 
             // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
             if (!string.IsNullOrWhiteSpace(UserName))

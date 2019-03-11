@@ -48,7 +48,9 @@ namespace MapTests
                 _testResources.QueriesObj,
                 _testResources.AuthorizationService,
                 _testResources.ConfigurationObject,
-                _testResources.ServiceProviderObject);
+                _testResources.ServiceProviderObject,
+                null,  // IAuthenticationService
+                null);  // IOptionsMonitorCache<WsFederationOptions>
 
             var testController = new SystemAdminController(
                 accountController,

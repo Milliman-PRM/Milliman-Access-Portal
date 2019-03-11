@@ -11,7 +11,10 @@ using EmailQueue;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.WsFederation;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -20,14 +23,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Authorization;
@@ -35,6 +37,8 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
+using NetEscapades.AspNetCore.SecurityHeaders;
+using Newtonsoft.Json;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -43,12 +47,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using NetEscapades.AspNetCore.SecurityHeaders;
-using MillimanAccessPortal.Utilities;
-using System.Diagnostics;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.AzureKeyVault;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
@@ -114,33 +113,28 @@ namespace MillimanAccessPortal
                 ;
 
             #region Configure authentication services
-            var WsFederationConfigSections = Configuration.GetSection("WsFederationSources").GetChildren();
-            if (WsFederationConfigSections.Select(s => s.GetValue<string>("Scheme")).Distinct().Count() != WsFederationConfigSections.Count())
+            List<MapDbContextLib.Context.AuthenticationScheme> allSchemes = new List<MapDbContextLib.Context.AuthenticationScheme>();
+
+            // get all configured schemes from database (no injected db service is available here)
+            DbContextOptions<ApplicationDbContext> ctxOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(appConnectionString).Options;
+            ApplicationDbContext applicationDb = new ApplicationDbContext(ctxOptions);
+            allSchemes = applicationDb.AuthenticationScheme.ToList();
+
+            if (allSchemes.Select(s => s.Name).Distinct().Count() != allSchemes.Count())
             {
                 Log.Error("Multiple configured WsFederation schemes have the same name");
             }
 
             AuthenticationBuilder authenticationBuilder = services.AddAuthentication(IdentityConstants.ApplicationScheme);
 
-            foreach (ConfigurationSection section in WsFederationConfigSections)
+            foreach (MapDbContextLib.Context.AuthenticationScheme scheme in allSchemes.Where(s => s.Type == AuthenticationType.WsFederation))
             {
-                WsFederationConfig wsFederationConfig;
-                try
+                WsFederationSchemeProperties schemeProperties = (WsFederationSchemeProperties)scheme.SchemePropertiesObj;
+                authenticationBuilder = authenticationBuilder.AddWsFederation(scheme.Name, $"{scheme.DisplayName}", options =>
                 {
-                    wsFederationConfig = (WsFederationConfig)section;
-                }
-                catch (ApplicationException ex)
-                {
-                    string Msg = ex.Message;
-                    Log.Error(ex, "Unable to convert WsFederation appsettings section {@Settings} to WsFederationConfig instance", section);
-                    continue;
-                }
-
-                authenticationBuilder = authenticationBuilder.AddWsFederation(wsFederationConfig.Scheme, $"{wsFederationConfig.DisplayName}", options =>
-                {
-                    options.MetadataAddress = wsFederationConfig.MetadataAddress;
-                    options.Wtrealm = wsFederationConfig.Wtrealm;
-                    options.CallbackPath = $"{options.CallbackPath}-{wsFederationConfig.Scheme}";
+                    options.MetadataAddress = schemeProperties.MetadataAddress;
+                    options.Wtrealm = schemeProperties.Wtrealm;
+                    options.CallbackPath = $"{options.CallbackPath}-{scheme.Name}";
 
                     // Event override to add username query parameter to adfs request
                     options.Events.OnRedirectToIdentityProvider = context =>
@@ -286,6 +280,9 @@ namespace MillimanAccessPortal
             services.AddScoped<SelectionGroupQueries>();
             services.AddScoped<PublicationQueries>();
             services.AddScoped<UserQueries>();
+
+            //services.AddSingleton<IOptionsMonitorCache<WsFederationOptions>, OptionsCache<WsFederationOptions>>();
+            services.AddSingleton<IPostConfigureOptions<WsFederationOptions>, WsFederationPostConfigureOptions>();
 
             // Add application services.
             services.AddTransient<IMessageQueue, MessageQueueServices>();

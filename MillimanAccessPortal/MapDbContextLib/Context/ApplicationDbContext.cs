@@ -63,6 +63,10 @@ namespace MapDbContextLib.Context
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
             });
 
+            builder.Entity<AuthenticationScheme>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
             builder.Entity<Client>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
