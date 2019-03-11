@@ -32,7 +32,7 @@ const _initialPendingFields: PendingFieldsState = {
   confirm: null,
 };
 const _initialPendingRequests: PendingRequestState = {
-  fetchUser: false,
+  fetchUser: true,
   update: false,
   validatePassword: false,
 };

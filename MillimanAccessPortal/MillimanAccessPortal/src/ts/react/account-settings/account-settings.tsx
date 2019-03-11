@@ -5,7 +5,7 @@ import ReduxToastr from 'react-redux-toastr';
 import { ColumnSpinner } from '../shared-components/column-spinner';
 import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
-import { anyFieldModified, fieldProps } from './redux/selectors';
+import { allFieldsValid, anyFieldModified, fieldProps } from './redux/selectors';
 import { AccountState } from './redux/store';
 
 // tslint:disable-next-line
@@ -21,6 +21,7 @@ interface AccountSettingsProps {
     confirmPassword: string;
   };
   anyFieldModified: boolean;
+  allFieldsValid: boolean;
 }
 class AccountSettings extends React.Component<AccountSettingsProps & typeof AccountActionCreators> {
   public componentDidMount() {
@@ -208,13 +209,14 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderSubmissionSection() {
+    const { allFieldsValid: valid } = this.props;
     return (
       <div className="form-submission-section">
         <div className="button-container button-container-update">
           {this.renderResetButton()}
           <button
-            type="submit"
-            className="button-submit blue-button"
+            type="button"
+            className={`button-submit blue-button${valid ? '' : ' disabled'}`}
           >
             Update Account
           </button>
@@ -243,6 +245,7 @@ function mapStateToProps(state: AccountState): AccountSettingsProps {
   return {
     fields: fieldProps(state),
     anyFieldModified: anyFieldModified(state),
+    allFieldsValid: allFieldsValid(state),
   };
 }
 

@@ -18,12 +18,18 @@ export function modifiedFields(state: AccountState) {
   const data: Partial<PendingFieldsState> = { ...state.data.user };
   const pending = { ...state.pending.fields };
   return _.mapValues(pending, (value, key: keyof PendingFieldsState) => ({
-    modified: (value !== null && data[key] !== value),
+    modified: (!state.pending.requests.fetchUser && (value !== null) && (data[key]
+      ? data[key] !== value
+      : value && value.length > 0)),
   }));
 }
 
 export function anyFieldModified(state: AccountState) {
   return _.reduce(modifiedFields(state), (prev, cur) => prev || cur.modified, false);
+}
+
+export function allFieldsValid(state: AccountState) {
+  return anyFieldModified(state);
 }
 
 export function fieldProps(state: AccountState) {
