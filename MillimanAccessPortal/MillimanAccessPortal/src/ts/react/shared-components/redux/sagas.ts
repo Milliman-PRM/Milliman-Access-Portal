@@ -2,9 +2,13 @@ import { toastr } from 'react-redux-toastr';
 import { Action } from 'redux';
 import { call, Effect, put, takeEvery, takeLatest } from 'redux-saga/effects';
 
-import { createErrorActionCreator, createResponseActionCreator } from './action-creators';
 import {
-    ErrorAction, isErrorAction, isScheduleAction, RequestAction, ResponseAction,
+    createErrorActionCreator, createResponseActionCreator, createValidationErrorActionCreator,
+    createValidationResultActionCreator,
+} from './action-creators';
+import {
+    ErrorAction, isErrorAction, isScheduleAction, RequestAction, ResponseAction, ValidationAction,
+    ValidationResultAction,
 } from './actions';
 
 /**
@@ -31,6 +35,37 @@ export function createTakeLatestRequest<TReq extends RequestAction, TRes extends
   return (
     type: TReq['type'],
     apiCall: (request: TReq['request']) => Promise<TRes['response']>,
+  ) => takeLatest(type, requestSaga, apiCall);
+}
+
+/**
+ * Return a custom effect that handles validation for a set of actions.
+ */
+export function createTakeLatestValidation<TVal extends ValidationAction, TRes extends ValidationResultAction>() {
+  /**
+   * Do an asynchronous validation and await the result
+   * @param validation Validation method to invoke
+   * @param action the validation action that caused this saga to fire
+   */
+  function* requestSaga(
+    validation: (input: TVal['inputName'], value: any) => TRes['result'],
+    action: TVal,
+  ) {
+    try {
+      const response = yield call(validation, action.inputName, action.value);
+      yield put(
+        createValidationResultActionCreator(`${action.type}_SUCCEEDED` as TRes['type'])
+        (action.inputName, response));
+    } catch (error) {
+      yield put(
+        createValidationErrorActionCreator(`${action.type}_FAILED` as ErrorAction['type'])
+        (action.inputName, error));
+    }
+  }
+
+  return (
+    type: TVal['type'],
+    apiCall: (input: TVal['inputName'], value: any) => Promise<TRes['result']>,
   ) => takeLatest(type, requestSaga, apiCall);
 }
 

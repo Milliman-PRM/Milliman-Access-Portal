@@ -1,4 +1,5 @@
 import { Action } from 'redux';
+import { ValidationError } from 'yup';
 
 /**
  * Error type alias.
@@ -17,6 +18,14 @@ export interface ResponseAction<TResponse extends {} = any> extends Action {
 }
 export interface ErrorAction extends Action {
   error: TSError;
+}
+export interface ValidationAction<TInputName extends string = string> extends Action {
+  inputName: TInputName;
+  value: any;
+}
+export interface ValidationResultAction<TInputName extends string = string> extends Action {
+  inputName: TInputName;
+  result: any | ValidationError;
 }
 
 /**

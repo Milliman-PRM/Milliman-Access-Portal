@@ -91,10 +91,16 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                   type="text"
                   name="firstName"
                   value={firstName}
-                  onChange={({ target }) => this.props.setPendingTextInputValue({
-                    inputName: 'firstName',
-                    value: target.value,
-                  })}
+                  onChange={({ target }) => {
+                    this.props.setPendingTextInputValue({
+                      inputName: 'firstName',
+                      value: target.value,
+                    });
+                    this.props.validateInput({
+                      inputName: 'firstName',
+                      value: target.value,
+                    });
+                  }}
                   autoFocus={true}
                 />
                 <span className="text-danger field-validation-valid" />
@@ -107,10 +113,16 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                   type="text"
                   name="lastName"
                   value={lastName}
-                  onChange={({ target }) => this.props.setPendingTextInputValue({
-                    inputName: 'lastName',
-                    value: target.value,
-                  })}
+                  onChange={({ target }) => {
+                    this.props.setPendingTextInputValue({
+                      inputName: 'lastName',
+                      value: target.value,
+                    });
+                    this.props.validateInput({
+                      inputName: 'lastName',
+                      value: target.value,
+                    });
+                  }}
                 />
                 <span className="text-danger field-validation-valid" />
               </div>
@@ -123,10 +135,16 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                   type="tel"
                   name="phone"
                   value={phone}
-                  onChange={({ target }) => this.props.setPendingTextInputValue({
-                    inputName: 'phone',
-                    value: target.value,
-                  })}
+                  onChange={({ target }) => {
+                    this.props.setPendingTextInputValue({
+                      inputName: 'phone',
+                      value: target.value,
+                    });
+                    this.props.validateInput({
+                      inputName: 'phone',
+                      value: target.value,
+                    });
+                  }}
                 />
                 <span className="text-danger field-validation-valid" />
               </div>
@@ -138,10 +156,16 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                   type="text"
                   name="employer"
                   value={employer}
-                  onChange={({ target }) => this.props.setPendingTextInputValue({
-                    inputName: 'employer',
-                    value: target.value,
-                  })}
+                  onChange={({ target }) => {
+                    this.props.setPendingTextInputValue({
+                      inputName: 'employer',
+                      value: target.value,
+                    });
+                    this.props.validateInput({
+                      inputName: 'employer',
+                      value: target.value,
+                    });
+                  }}
                 />
                 <span className="text-danger field-validation-valid" />
               </div>
@@ -181,10 +205,16 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                 type="password"
                 name="newPassword"
                 value={newPassword}
-                onChange={({ target }) => this.props.setPendingTextInputValue({
-                  inputName: 'new',
-                  value: target.value,
-                })}
+                onChange={({ target }) => {
+                  this.props.setPendingTextInputValue({
+                    inputName: 'new',
+                    value: target.value,
+                  });
+                  this.props.validateInput({
+                    inputName: 'new',
+                    value: target.value,
+                  });
+                }}
               />
               <span className="text-danger field-validation-valid" />
             </div>
@@ -196,10 +226,16 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                 type="password"
                 name="confirmPassword"
                 value={confirmPassword}
-                onChange={({ target }) => this.props.setPendingTextInputValue({
-                  inputName: 'confirm',
-                  value: target.value,
-                })}
+                onChange={({ target }) => {
+                  this.props.setPendingTextInputValue({
+                    inputName: 'confirm',
+                    value: target.value,
+                  });
+                  this.props.validateInput({
+                    inputName: 'confirm',
+                    value: target.value,
+                  });
+                }}
               />
               <span className="text-danger field-validation-valid" />
             </div>

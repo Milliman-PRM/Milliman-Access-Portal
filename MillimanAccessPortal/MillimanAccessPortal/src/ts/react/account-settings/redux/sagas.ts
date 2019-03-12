@@ -1,8 +1,12 @@
+import { takeEvery } from 'redux-saga/effects';
+
 import {
     createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
+    createTakeLatestValidation,
 } from '../../shared-components/redux/sagas';
 import {
-    AccountAction, ErrorAccountAction, RequestAccountAction, ResponseAccountAction,
+    AccountAction, ErrorAccountAction, RequestAccountAction, ResponseAccountAction, ValidateInput,
+    ValidateInputFailed, ValidateInputSucceeded,
 } from './actions';
 import * as api from './api';
 
@@ -28,6 +32,8 @@ const takeLatestSchedule = createTakeLatestSchedule<AccountAction>();
  */
 const takeEveryToast = createTakeEveryToast<AccountAction, ResponseAccountAction>();
 
+const takeLatestValidation = createTakeLatestValidation<ValidateInput, ValidateInputSucceeded | ValidateInputFailed>();
+
 export default function* rootSaga() {
   // API requests
   yield takeLatestRequest('FETCH_USER', api.fetchUser);
@@ -47,4 +53,15 @@ export default function* rootSaga() {
         ? message
         : 'An unexpected error has occured.',
     'error');
+
+  // Validation
+  yield takeLatestValidation('VALIDATE_INPUT', api.validateInput);
+  yield takeEvery('VALIDATE_INPUT_SUCCEEDED', function*(action: ValidateInputSucceeded) {
+    // tslint:disable-next-line
+    yield console.log(`Validation succeeded for input "${action.inputName}": ${action.result}`);
+  });
+  yield takeEvery('VALIDATE_INPUT_FAILED', function*(action: ValidateInputFailed) {
+    // tslint:disable-next-line
+    yield console.log(`Validation failed for input "${action.inputName}": ${JSON.stringify(action.result)}`);
+  });
 }

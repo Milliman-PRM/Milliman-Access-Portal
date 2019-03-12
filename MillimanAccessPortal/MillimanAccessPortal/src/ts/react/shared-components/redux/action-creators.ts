@@ -1,6 +1,9 @@
 import { Action } from 'redux';
+import { ValidationError } from 'yup';
 
-import { ErrorAction, RequestAction, ResponseAction, TSError } from './actions';
+import {
+    ErrorAction, RequestAction, ResponseAction, TSError, ValidationResultAction,
+} from './actions';
 
 export type ActionWithoutType<T> = Pick<T, Exclude<keyof T, 'type'>>;
 
@@ -54,5 +57,37 @@ export function createErrorActionCreator<T extends ErrorAction>(type: T['type'])
     {} as T,  // TypeScript can't infer T from its parts because it is generic
     { type },
     { error },
+  );
+}
+
+/**
+ * Create an action creator for an action that contains a validation result.
+ * This function is exported for use by sagas.
+ * @param type Action type
+ */
+export function createValidationResultActionCreator
+  <TInputName extends string, T extends ValidationResultAction>(type: T['type']):
+  (inputName: TInputName, result: any) => T {
+  return (inputName: TInputName, result: any) => Object.assign(
+    {} as T,  // TypeScript can't infer T from its parts because it is generic
+    { type },
+    { inputName },
+    { result },
+  );
+}
+
+/**
+ * Create an action creator for an action that contains a validation error.
+ * This function is exported for use by sagas.
+ * @param type Action type
+ */
+export function createValidationErrorActionCreator
+  <TInputName extends string, T extends ValidationResultAction>(type: T['type']):
+  (inputName: TInputName, result: ValidationError) => T {
+  return (inputName: TInputName, result: ValidationError) => Object.assign(
+    {} as T,  // TypeScript can't infer T from its parts because it is generic
+    { type },
+    { inputName },
+    { result },
   );
 }

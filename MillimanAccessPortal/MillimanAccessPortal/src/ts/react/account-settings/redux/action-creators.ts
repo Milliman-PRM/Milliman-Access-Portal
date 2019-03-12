@@ -10,3 +10,6 @@ export const resetForm =
 
 export const fetchUser =
   createRequestActionCreator<AccountActions.FetchUser>('FETCH_USER');
+
+export const validateInput =
+  createActionCreator<AccountActions.ValidateInput>('VALIDATE_INPUT');

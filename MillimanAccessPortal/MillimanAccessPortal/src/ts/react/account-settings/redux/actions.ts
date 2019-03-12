@@ -1,13 +1,25 @@
+import { ValidationError } from 'yup';
+
 import { UserFull } from '../../models';
 
 export type TSError = any;  // any by necessity due to the nature of try/catch in TypeScript
+
+type InputName =
+  | 'firstName'
+  | 'lastName'
+  | 'phone'
+  | 'employer'
+  | 'current'
+  | 'new'
+  | 'confirm'
+  ;
 
 /**
  * Set the value of a form input
  */
 export interface SetPendingTextInputValue {
   type: 'SET_PENDING_TEXT_INPUT_VALUE';
-  inputName: 'firstName' | 'lastName' | 'phone' | 'employer' | 'current' | 'new' | 'confirm';
+  inputName: InputName;
   value: string;
 }
 
@@ -33,6 +45,25 @@ export interface FetchUserSucceeded {
 export interface FetchUserFailed {
   type: 'FETCH_USER_FAILED';
   error: TSError;
+}
+
+/**
+ * Validate a form input
+ */
+export interface ValidateInput {
+  type: 'VALIDATE_INPUT';
+  inputName: InputName;
+  value: string;
+}
+export interface ValidateInputSucceeded {
+  type: 'VALIDATE_INPUT_SUCCEEDED';
+  inputName: InputName;
+  result: any;
+}
+export interface ValidateInputFailed {
+  type: 'VALIDATE_INPUT_FAILED';
+  inputName: InputName;
+  result: ValidationError;
 }
 
 /**
