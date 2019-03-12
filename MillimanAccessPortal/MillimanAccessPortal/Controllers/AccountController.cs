@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
@@ -49,8 +48,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
         private readonly AuthenticationService _authentService;
-        private readonly OptionsCache<WsFederationOptions> _wsFederationOptionsCache;
-//        private readonly WsFederationPostConfigureOptions _wsFederationPostConfigureOptions;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -63,9 +60,7 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService AuthorizationServiceArg,
             IConfiguration ConfigArg,
             IServiceProvider serviceProviderArg,
-            IAuthenticationService authentService,
-            IOptionsMonitorCache<WsFederationOptions> wsFederationOptionsCache
-            // ,IPostConfigureOptions<WsFederationOptions> wsFederationPostConfigureOptions
+            IAuthenticationService authentService
             )
         {
             DbContext = ContextArg;
@@ -79,8 +74,6 @@ namespace MillimanAccessPortal.Controllers
             _configuration = ConfigArg;
             _serviceProvider = serviceProviderArg;
             _authentService = (AuthenticationService)authentService;
-            _wsFederationOptionsCache = (OptionsCache<WsFederationOptions>)wsFederationOptionsCache;
-            // _wsFederationPostConfigureOptions = (WsFederationPostConfigureOptions)wsFederationPostConfigureOptions;
         }
 
         //
@@ -139,81 +132,6 @@ namespace MillimanAccessPortal.Controllers
                                         .Substring(userName.IndexOf('@') + 1);
             var matchingScheme = DbContext.AuthenticationScheme.Where(s => s.Name == userDomain).SingleOrDefault();
             return matchingScheme?.Name;
-        }
-
-        [AllowAnonymous]
-        public async Task<IActionResult> AddNewAuthenticationScheme(int type, string name, string displayName, string wtrealm, string metadataAddress)
-        {
-            AuthenticationType authType = (AuthenticationType)type;
-            switch (authType)
-            {
-                case AuthenticationType.WsFederation:
-                    try
-                    {
-                        if (await _authentService.Schemes.GetSchemeAsync(name) == null)
-                        {
-                            _authentService.Schemes.AddScheme(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(name, displayName, typeof(WsFederationHandler)));
-                        }
-                        else
-                        {
-                            _wsFederationOptionsCache.TryRemove(name);
-                        }
-
-                        WsFederationOptions newOptions = new WsFederationOptions { Wtrealm = wtrealm, MetadataAddress = metadataAddress, CallbackPath = $"/signin-wsfed-{name}" };
-                        // not needed? _wsFederationPostConfigureOptions.PostConfigure(name, newOptions);
-                        _wsFederationOptionsCache.TryAdd(name, newOptions);
-
-                        // Save to database table "AuthenticationScheme"
-                        MapDbContextLib.Context.AuthenticationScheme dbScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => s.Name.ToLower() == name.ToLower());
-                        if (dbScheme == null)
-                        {
-                            // INSERT new
-                            await DbContext.AuthenticationScheme.AddAsync(new MapDbContextLib.Context.AuthenticationScheme
-                            {
-                                DisplayName = displayName,
-                                DomainList = new List<string>(),
-                                Name = name,
-                                SchemePropertiesObj = new WsFederationSchemeProperties
-                                {
-                                    MetadataAddress = metadataAddress,
-                                    Wtrealm = wtrealm,
-                                },
-                                Type = AuthenticationType.WsFederation,
-                            });
-                        }
-                        else
-                        {
-                            // UPDATE existing record
-                            dbScheme.DisplayName = displayName;
-                            //dbScheme.DomainList = new List<string>();
-                            dbScheme.SchemePropertiesObj = new WsFederationSchemeProperties
-                            {
-                                MetadataAddress = metadataAddress,
-                                Wtrealm = wtrealm,
-                            };
-                        }
-                        await DbContext.SaveChangesAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning(ex, $"Failed to add new authentication scheme of type {type.ToString()}, named {name}, wtrealm {wtrealm}, metadata address {metadataAddress}");
-
-                        _wsFederationOptionsCache.TryRemove(name);
-                        if (await _authentService.Schemes.GetSchemeAsync(name) != null)
-                        {
-                            _authentService.Schemes.RemoveScheme(name);
-                        }
-
-                        return Redirect("/");
-                    }
-
-                    break;
-
-                default:
-                    break;
-            }
-
-            return Ok();
         }
 
         //

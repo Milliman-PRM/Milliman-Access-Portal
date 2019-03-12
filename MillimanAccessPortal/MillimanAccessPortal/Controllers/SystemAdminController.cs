@@ -22,12 +22,14 @@ using AuditLogLib.Services;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AccountViewModels;
@@ -38,6 +40,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.WsFederation;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -51,6 +56,9 @@ namespace MillimanAccessPortal.Controllers
         private readonly StandardQueries _queries;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly OptionsCache<WsFederationOptions> _wsFederationOptionsCache;
+        private readonly AuthenticationService _authentService;
+        //        private readonly WsFederationPostConfigureOptions _wsFederationPostConfigureOptions;
 
         public SystemAdminController(
             AccountController accountController,
@@ -60,7 +68,10 @@ namespace MillimanAccessPortal.Controllers
             ApplicationDbContext dbContext,
             StandardQueries queries,
             RoleManager<ApplicationRole> roleManager,
-            UserManager<ApplicationUser> userManager
+            UserManager<ApplicationUser> userManager,
+            IOptionsMonitorCache<WsFederationOptions> wsFederationOptionsCache,
+            IAuthenticationService authentService
+            // ,IPostConfigureOptions<WsFederationOptions> wsFederationPostConfigureOptions
             )
         {
             _accountController = accountController;
@@ -71,6 +82,9 @@ namespace MillimanAccessPortal.Controllers
             _queries = queries;
             _roleManager = roleManager;
             _userManager = userManager;
+            _wsFederationOptionsCache = (OptionsCache<WsFederationOptions>)wsFederationOptionsCache;
+            _authentService = (AuthenticationService)authentService;
+            // _wsFederationPostConfigureOptions = (WsFederationPostConfigureOptions)wsFederationPostConfigureOptions;
         }
 
         /// <summary>
@@ -781,6 +795,95 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger.Log(AuditEventType.UserAssignedToProfitCenter.ToEvent(profitCenter, user));
 
             return Json(user);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddNewAuthenticationScheme(int type, string name, string displayName, string wtrealm, string metadataAddress)
+        {
+            Log.Verbose("Entered SystemAdminController.AddNewAuthenticationScheme action with {@Type}, {@Name}, {@DisplayName}, {@Wtrealm}, {@MetadataAddress}", type, name, displayName, wtrealm, metadataAddress);
+
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In SystemAdminController.AddUserToProfitCenter action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            AuthenticationType authType = (AuthenticationType)type;
+            switch (authType)
+            {
+                case AuthenticationType.WsFederation:
+                    try
+                    {
+                        if (await _authentService.Schemes.GetSchemeAsync(name) == null)
+                        {
+                            _authentService.Schemes.AddScheme(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(name, displayName, typeof(WsFederationHandler)));
+                        }
+                        else
+                        {
+                            _wsFederationOptionsCache.TryRemove(name);
+                        }
+
+                        WsFederationOptions newOptions = new WsFederationOptions { Wtrealm = wtrealm, MetadataAddress = metadataAddress, CallbackPath = $"/signin-wsfed-{name}" };
+                        // not needed? _wsFederationPostConfigureOptions.PostConfigure(name, newOptions);
+                        _wsFederationOptionsCache.TryAdd(name, newOptions);
+
+                        // Save to database table "AuthenticationScheme"
+                        MapDbContextLib.Context.AuthenticationScheme dbScheme = _dbContext.AuthenticationScheme.SingleOrDefault(s => s.Name.ToLower() == name.ToLower());
+                        if (dbScheme == null)
+                        {
+                            // INSERT new
+                            await _dbContext.AuthenticationScheme.AddAsync(new MapDbContextLib.Context.AuthenticationScheme
+                            {
+                                DisplayName = displayName,
+                                DomainList = new List<string>(),
+                                Name = name,
+                                SchemePropertiesObj = new WsFederationSchemeProperties
+                                {
+                                    MetadataAddress = metadataAddress,
+                                    Wtrealm = wtrealm,
+                                },
+                                Type = AuthenticationType.WsFederation,
+                            });
+                        }
+                        else
+                        {
+                            // UPDATE existing record
+                            dbScheme.DisplayName = displayName;
+                            //dbScheme.DomainList = new List<string>();
+                            dbScheme.SchemePropertiesObj = new WsFederationSchemeProperties
+                            {
+                                MetadataAddress = metadataAddress,
+                                Wtrealm = wtrealm,
+                            };
+                        }
+                        await _dbContext.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, $"Failed to add new authentication scheme of type {type.ToString()}, named {name}, wtrealm {wtrealm}, metadata address {metadataAddress}");
+
+                        _wsFederationOptionsCache.TryRemove(name);
+                        if (await _authentService.Schemes.GetSchemeAsync(name) != null)
+                        {
+                            _authentService.Schemes.RemoveScheme(name);
+                        }
+
+                        return Redirect("/");
+                    }
+
+                    break;
+
+                default:
+                    break;
+            }
+
+            return Ok();
         }
         #endregion
 

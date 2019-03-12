@@ -49,8 +49,7 @@ namespace MapTests
                 _testResources.AuthorizationService,
                 _testResources.ConfigurationObject,
                 _testResources.ServiceProviderObject,
-                null,  // IAuthenticationService
-                null);  // IOptionsMonitorCache<WsFederationOptions>
+                null);
 
             var testController = new SystemAdminController(
                 accountController,
@@ -60,7 +59,9 @@ namespace MapTests
                 _testResources.DbContextObject,
                 _testResources.QueriesObj,
                 _testResources.RoleManagerObject,
-                _testResources.UserManagerObject);
+                _testResources.UserManagerObject,
+                null,
+                null);
 
             try
             {
