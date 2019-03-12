@@ -12,25 +12,45 @@ export interface AccountStatePassword {
   confirm: string;
 }
 export type PendingInputState =
-  & Pick<UserFull, Exclude<keyof UserFull, 'isActivated' | 'isSuspended' | 'isLocal'>>
+  & Pick<UserFull, Exclude<keyof UserFull,
+    | 'isActivated'
+    | 'isSuspended'
+    | 'isLocal'
+    | 'id'
+    | 'email'
+    | 'userName'
+    >>
   & AccountStatePassword;
 export interface PendingRequestState {
   fetchUser: boolean;
   update: boolean;
   validatePassword: boolean;
 }
-export interface AccountStatePending {
-  inputs: PendingInputState;
-  requests: PendingRequestState;
+export type PendingValidationState = {
+  [key in keyof PendingInputState]: boolean;
+};
+
+export interface ValidationState {
+  valid: boolean;
+  message?: string;
 }
+
 export interface AccountStateData {
   user: UserFull;
 }
+export interface AccountStatePending {
+  inputs: PendingInputState;
+  requests: PendingRequestState;
+  validation: PendingValidationState;
+}
+export type AccountStateForm = {
+  [key in keyof PendingInputState]: ValidationState;
+};
 
 export interface AccountState {
   data: AccountStateData;
   pending: AccountStatePending;
-  form: null;
+  form: AccountStateForm;
   toastr: toastr.ToastrState;
 }
 

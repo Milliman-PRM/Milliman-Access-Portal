@@ -56,12 +56,4 @@ export default function* rootSaga() {
 
   // Validation
   yield takeLatestValidation('VALIDATE_INPUT', api.validateInput);
-  yield takeEvery('VALIDATE_INPUT_SUCCEEDED', function*(action: ValidateInputSucceeded) {
-    // tslint:disable-next-line
-    yield console.log(`Validation succeeded for input "${action.inputName}": ${action.result}`);
-  });
-  yield takeEvery('VALIDATE_INPUT_FAILED', function*(action: ValidateInputFailed) {
-    // tslint:disable-next-line
-    yield console.log(`Validation failed for input "${action.inputName}": ${JSON.stringify(action.result)}`);
-  });
 }

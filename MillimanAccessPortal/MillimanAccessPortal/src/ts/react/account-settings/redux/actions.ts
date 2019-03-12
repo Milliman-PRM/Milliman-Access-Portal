@@ -103,6 +103,21 @@ export type ErrorAccountAction =
   ;
 
 /**
+ * An action that marks a request for validation of an input field.
+ */
+export type ValidationAccountAction =
+  | ValidateInput
+  ;
+
+/**
+ * An action that marks the validation result for an input field.
+ */
+export type ValidationResultAccountAction =
+  | ValidateInputSucceeded
+  | ValidateInputFailed
+  ;
+
+/**
  * An action available to the account settings page.
  */
 export type AccountAction =
@@ -110,4 +125,6 @@ export type AccountAction =
   | RequestAccountAction
   | ResponseAccountAction
   | ErrorAccountAction
+  | ValidationAccountAction
+  | ValidationResultAccountAction
   ;

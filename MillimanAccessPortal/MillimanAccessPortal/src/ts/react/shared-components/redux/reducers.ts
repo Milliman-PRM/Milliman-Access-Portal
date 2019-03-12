@@ -3,7 +3,7 @@ import { Action } from 'redux';
 /**
  * An object of actions and their state transformations
  */
-export type Handlers<TState, TAction extends Action> = {
+export type Handlers<TState, TAction extends Action<string>> = {
   [type in TAction['type']]?: (state: TState, action: TAction) => TState;
 };
 

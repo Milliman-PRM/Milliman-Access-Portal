@@ -55,7 +55,7 @@ export function allInputsValid(state: AccountState) {
 export function inputProps(state: AccountState) {
   const values = pendingInputValues(state);
   return {
-    username: values.userName,
+    username: state.data.user.userName,
     firstName: values.firstName,
     lastName: values.lastName,
     phone: values.phone,
