@@ -4,12 +4,11 @@ import { combineReducers } from 'redux';
 
 import { Guid } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
+import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import * as AccessActions from './actions';
-import { AccessAction, FilterAction, OpenAction } from './actions';
-import {
-    AccessStateData, AccessStateSelected, Dict, FilterState, ModalState, PendingDataState,
-    PendingGroupState,
-} from './store';
+import { AccessAction, FilterAccessAction, OpenAccessAction } from './actions';
+import { AccessStateData, AccessStateSelected, PendingDataState, PendingGroupState } from './store';
 
 const _initialData: AccessStateData = {
   clients: {},
@@ -43,29 +42,20 @@ const _initialPendingGroups: PendingGroupState = {
   users: {},
 };
 
-// An object of actions and their state transformations
-type Handlers<TState, TAction extends AccessAction> = {
-  [type in TAction['type']]?: (state: TState, action: TAction) => TState;
-};
-
 /**
- * Create a reducer for a subtree of the redux store
+ * Create reducers for a subtree of the redux store
  * @param initialState Subtree of state these handlers can influence
  * @param handlers Actions and their state transformations
  */
-const createReducer =
-  <TState, TAction extends AccessAction = AccessAction>
-  (initialState: TState, handlers: Handlers<TState, TAction>) =>
-    (state: TState = initialState, action: TAction) => action.type in handlers
-      ? handlers[action.type](state, action)
-      : state;
+const createReducer = createReducerCreator<AccessAction>();
+
 /**
  * Create a reducer for a filter
  * @param actionType Single filter action
  */
-const createFilterReducer = (actionType: FilterAction['type']) =>
+const createFilterReducer = (actionType: FilterAccessAction['type']) =>
   createReducer({ text: '' }, {
-    [actionType]: (state: FilterState, action: FilterAction) => ({
+    [actionType]: (state: FilterState, action: FilterAccessAction) => ({
       ...state,
       text: action.text,
     }),
@@ -75,7 +65,10 @@ const createFilterReducer = (actionType: FilterAction['type']) =>
  * @param openActions Actions that cause the modal to open
  * @param closeActions Actions that cause the modal to close
  */
-const createModalReducer = (openActions: Array<OpenAction['type']>, closeActions: Array<AccessAction['type']>) => {
+const createModalReducer = (
+  openActions: Array<OpenAccessAction['type']>,
+  closeActions: Array<AccessAction['type']>,
+) => {
   const handlers: Handlers<ModalState, any> = {};
   openActions.forEach((action) => {
     handlers[action] = (state) => ({

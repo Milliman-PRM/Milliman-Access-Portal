@@ -2,13 +2,11 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
-import { ColumnSpinner } from '../shared-components/column-spinner';
 import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
 import { allFieldsValid, anyFieldModified, fieldProps } from './redux/selectors';
 import { AccountState } from './redux/store';
 
-// tslint:disable-next-line
 interface AccountSettingsProps {
   fields: {
     username: string;
@@ -20,6 +18,7 @@ interface AccountSettingsProps {
     newPassword: string;
     confirmPassword: string;
   };
+  isLocal: boolean;
   anyFieldModified: boolean;
   allFieldsValid: boolean;
 }
@@ -154,8 +153,10 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderPasswordSection() {
+    const { isLocal } = this.props;
     const { currentPassword, newPassword, confirmPassword } = this.props.fields;
-    return (
+    return isLocal
+    ? (
       <div className="form-section">
         <h4 className="form-section-title">Update Password</h4>
         <div className="form-input-container">
@@ -205,7 +206,8 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
           </div>
         </div>
       </div>
-    );
+    )
+    : null;
   }
 
   private renderSubmissionSection() {
@@ -246,6 +248,7 @@ function mapStateToProps(state: AccountState): AccountSettingsProps {
     fields: fieldProps(state),
     anyFieldModified: anyFieldModified(state),
     allFieldsValid: allFieldsValid(state),
+    isLocal: state.data.user.isLocal,
   };
 }
 
