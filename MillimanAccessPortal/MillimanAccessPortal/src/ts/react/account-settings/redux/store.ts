@@ -11,8 +11,8 @@ export interface AccountStatePassword {
   new: string;
   confirm: string;
 }
-export type PendingFieldsState =
-  Pick<UserFull, Exclude<keyof UserFull, 'isActivated' | 'isSuspended' | 'isLocal'>>
+export type PendingInputState =
+  & Pick<UserFull, Exclude<keyof UserFull, 'isActivated' | 'isSuspended' | 'isLocal'>>
   & AccountStatePassword;
 export interface PendingRequestState {
   fetchUser: boolean;
@@ -20,12 +20,13 @@ export interface PendingRequestState {
   validatePassword: boolean;
 }
 export interface AccountStatePending {
-  fields: PendingFieldsState;
+  inputs: PendingInputState;
   requests: PendingRequestState;
 }
 export interface AccountStateData {
   user: UserFull;
 }
+
 export interface AccountState {
   data: AccountStateData;
   pending: AccountStatePending;

@@ -1,9 +1,9 @@
 import { reducer as toastrReducer } from 'react-redux-toastr';
-import { Action, combineReducers } from 'redux';
+import { combineReducers } from 'redux';
 
-import { UserFull } from '../../models';
+import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { AccountAction, FetchUserSucceeded, SetPendingTextInputValue } from './actions';
-import { AccountState, AccountStateData, PendingFieldsState, PendingRequestState } from './store';
+import { AccountStateData, PendingInputState, PendingRequestState } from './store';
 
 const _initialData: AccountStateData = {
   user: {
@@ -19,7 +19,7 @@ const _initialData: AccountStateData = {
     employer: '',
   },
 };
-const _initialPendingFields: PendingFieldsState = {
+const _initialPendingInputs: PendingInputState = {
   id: null,
   firstName: null,
   lastName: null,
@@ -37,15 +37,12 @@ const _initialPendingRequests: PendingRequestState = {
   validatePassword: false,
 };
 
-type Handlers<TState, TAction extends AccountAction> = {
-  [type in TAction['type']]?: (state: TState, action: TAction) => TState;
-};
-const createReducer =
-  <TState, TAction extends AccountAction = AccountAction>
-  (initialState: TState, handlers: Handlers<TState, TAction>) =>
-    (state: TState = initialState, action: TAction) => action.type in handlers
-      ? handlers[action.type as TAction['type']](state, action)
-      : state;
+/**
+ * Create reducers for a subtree of the redux store
+ * @param initialState Subtree of state these handlers can influence
+ * @param handlers Actions and their state transformations
+ */
+const createReducer = createReducerCreator<AccountAction>();
 
 const data = createReducer<AccountStateData>(_initialData, ({
   FETCH_USER_SUCCEEDED: (state, { response }: FetchUserSucceeded) => ({
@@ -56,12 +53,12 @@ const data = createReducer<AccountStateData>(_initialData, ({
     },
   }),
 }));
-const pendingFields = createReducer<PendingFieldsState>(_initialPendingFields, ({
+const pendingInputs = createReducer<PendingInputState>(_initialPendingInputs, ({
   SET_PENDING_TEXT_INPUT_VALUE: (state, action: SetPendingTextInputValue) => ({
     ...state,
     [action.inputName]: action.value,
   }),
-  RESET_FORM: () => _initialPendingFields,
+  RESET_FORM: () => _initialPendingInputs,
 }));
 const pendingRequests = createReducer<PendingRequestState>(_initialPendingRequests, ({
   FETCH_USER: (state) => ({
@@ -78,7 +75,7 @@ const pendingRequests = createReducer<PendingRequestState>(_initialPendingReques
   }),
 }));
 const pending = combineReducers({
-  fields: pendingFields,
+  inputs: pendingInputs,
   requests: pendingRequests,
 });
 const form: null = null;

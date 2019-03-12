@@ -4,11 +4,11 @@ import ReduxToastr from 'react-redux-toastr';
 
 import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
-import { allFieldsValid, anyFieldModified, fieldProps } from './redux/selectors';
+import { allInputsValid, anyInputModified, inputProps } from './redux/selectors';
 import { AccountState } from './redux/store';
 
 interface AccountSettingsProps {
-  fields: {
+  inputs: {
     username: string;
     firstName: string;
     lastName: string;
@@ -19,8 +19,8 @@ interface AccountSettingsProps {
     confirmPassword: string;
   };
   isLocal: boolean;
-  anyFieldModified: boolean;
-  allFieldsValid: boolean;
+  andInputModified: boolean;
+  allInputsValid: boolean;
 }
 class AccountSettings extends React.Component<AccountSettingsProps & typeof AccountActionCreators> {
   public componentDidMount() {
@@ -63,7 +63,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderInformationSection() {
-    const { username, firstName, lastName, phone, employer } = this.props.fields;
+    const { username, firstName, lastName, phone, employer } = this.props.inputs;
     return (
       <>
         <div className="form-section" data-section="username">
@@ -154,7 +154,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
 
   private renderPasswordSection() {
     const { isLocal } = this.props;
-    const { currentPassword, newPassword, confirmPassword } = this.props.fields;
+    const { currentPassword, newPassword, confirmPassword } = this.props.inputs;
     return isLocal
     ? (
       <div className="form-section">
@@ -211,7 +211,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderSubmissionSection() {
-    const { allFieldsValid: valid } = this.props;
+    const { allInputsValid: valid } = this.props;
     return (
       <div className="form-submission-section">
         <div className="button-container button-container-update">
@@ -228,7 +228,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderResetButton() {
-    const { anyFieldModified: modified } = this.props;
+    const { andInputModified: modified } = this.props;
     return modified
     ? (
       <button
@@ -245,9 +245,9 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
 
 function mapStateToProps(state: AccountState): AccountSettingsProps {
   return {
-    fields: fieldProps(state),
-    anyFieldModified: anyFieldModified(state),
-    allFieldsValid: allFieldsValid(state),
+    inputs: inputProps(state),
+    andInputModified: anyInputModified(state),
+    allInputsValid: allInputsValid(state),
     isLocal: state.data.user.isLocal,
   };
 }

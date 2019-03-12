@@ -3,7 +3,7 @@ import { RequestAccessAction, ResponseAccessAction } from './actions';
 import * as AccessActions from './actions';
 
 /**
- * Custom effect for handling request actions.
+ * Function for handling request actions.
  * @param method HTTP method to use
  * @param url Request URL
  */

@@ -1,10 +1,14 @@
 import * as _ from 'lodash';
 
-import { AccountState, PendingFieldsState } from './store';
+import { AccountState, PendingInputState } from './store';
 
-export function pendingFieldValues(state: AccountState) {
-  const data: Partial<PendingFieldsState> = { ...state.data.user };
-  _.forEach(state.pending.fields, (value, key: keyof PendingFieldsState) => {
+/**
+ * Select input values pending submission.
+ * @param state Redux store
+ */
+export function pendingInputValues(state: AccountState) {
+  const data: Partial<PendingInputState> = { ...state.data.user };
+  _.forEach(state.pending.inputs, (value, key: keyof PendingInputState) => {
     if (value !== null) {
       data[key] = value;
     } else if (!(key in data)) {
@@ -14,26 +18,42 @@ export function pendingFieldValues(state: AccountState) {
   return data;
 }
 
-export function modifiedFields(state: AccountState) {
-  const data: Partial<PendingFieldsState> = { ...state.data.user };
-  const pending = { ...state.pending.fields };
-  return _.mapValues(pending, (value, key: keyof PendingFieldsState) => ({
+/**
+ * Select whether each input is modified or not
+ * @param state Redux store
+ */
+export function modifiedInputs(state: AccountState) {
+  const data: Partial<PendingInputState> = { ...state.data.user };
+  const pending = { ...state.pending.inputs };
+  return _.mapValues(pending, (value, key: keyof PendingInputState) => ({
     modified: (!state.pending.requests.fetchUser && (value !== null) && (data[key]
       ? data[key] !== value
       : value && value.length > 0)),
   }));
 }
 
-export function anyFieldModified(state: AccountState) {
-  return _.reduce(modifiedFields(state), (prev, cur) => prev || cur.modified, false);
+/**
+ * Select whether any input is modified
+ * @param state Redux store
+ */
+export function anyInputModified(state: AccountState) {
+  return _.reduce(modifiedInputs(state), (prev, cur) => prev || cur.modified, false);
 }
 
-export function allFieldsValid(state: AccountState) {
-  return anyFieldModified(state);
+/**
+ * Select whether all inputs are valid
+ * @param state Redux store
+ */
+export function allInputsValid(state: AccountState) {
+  return anyInputModified(state);
 }
 
-export function fieldProps(state: AccountState) {
-  const values = pendingFieldValues(state);
+/**
+ * Select account settings input property
+ * @param state Redux store
+ */
+export function inputProps(state: AccountState) {
+  const values = pendingInputValues(state);
   return {
     username: values.userName,
     firstName: values.firstName,

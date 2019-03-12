@@ -1,77 +1,32 @@
-import { call, Effect, put, takeEvery, takeLatest } from 'redux-saga/effects';
-
-import * as AccountActionCreators from './action-creators';
-import { createErrorActionCreator, createResponseActionCreator } from './action-creators';
 import {
-    AccountAction, ErrorAction, isErrorAction, isScheduleAction, RequestAction, ResponseAction,
+    createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
+} from '../../shared-components/redux/sagas';
+import {
+    AccountAction, ErrorAccountAction, RequestAccountAction, ResponseAccountAction,
 } from './actions';
 import * as api from './api';
 
-function* requestSaga<TRequest extends RequestAction>(
-  apiCall: (request: RequestAction['request']) => ResponseAction['response'], action: TRequest) {
-  try {
-    const response = yield call(apiCall, action.request);
-    yield put(createResponseActionCreator(`${action.type}_SUCCEEDED` as ResponseAction['type'])(response));
-  } catch (error) {
-    yield put(createErrorActionCreator(`${action.type}_FAILED` as ErrorAction['type'])(error));
-  }
-}
-function takeLatestRequest<TRequest extends RequestAction>(
-  type: TRequest['type'],
-  apiCall: (request: TRequest['request']) => Promise<ResponseAction['response']>,
-) {
-  return takeLatest(type, requestSaga, apiCall);
-}
+/**
+ * Custom effect for handling request actions.
+ * @param type Action type
+ * @param apiCall API method to invoke
+ */
+const takeLatestRequest = createTakeLatestRequest<RequestAccountAction, ResponseAccountAction>();
 
-// Scheduled actions
-function sleep(duration: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, duration);
-  });
-}
-function* scheduleSaga(
-  nextActionCreator: () => (AccountAction | IterableIterator<Effect | AccountAction>),
-  action: AccountAction,
-) {
-  if (isScheduleAction(action)) {
-    // yield call(sleep, action.delay);
-  }
-  const nextAction = yield nextActionCreator();
-  if (nextAction) {
-    yield put(nextAction);
-  }
-}
-function takeLatestSchedule<TAction extends AccountAction, TNext extends AccountAction>(
-  type: TAction['type'] | ((type: TAction) => boolean),
-  nextActionCreator: () => (TNext | IterableIterator<Effect | AccountAction>),
-) {
-  return takeLatest(type, scheduleSaga, nextActionCreator);
-}
+/**
+ * Custom effect for handling schedule actions.
+ * @param type action type
+ * @param nextActionCreator action creator to invoke after the scheduled duration
+ */
+const takeLatestSchedule = createTakeLatestSchedule<AccountAction>();
 
-// Toast triggers
-function* toastSaga(
-  message: string
-    | ((response: ResponseAction['response'] | ErrorAction['error']) => string),
-  level: 'error' | 'info' | 'message' | 'success' | 'warning',
-  action: ResponseAction | ErrorAction,
-) {
-  yield toastr[level]('', typeof message === 'string'
-    ? message
-    : isErrorAction(action)
-      ? message(action.error)
-      : message(action.response));
-}
-function takeEveryToast<TAction extends AccountAction>(
-  type: TAction['type'] | Array<TAction['type']> | ((type: TAction) => boolean),
-  message: string | (TAction extends ResponseAction
-    ? (response: TAction['response']) => string
-    : TAction extends ErrorAction
-      ? (error: TAction['error']) => string
-      : never),
-  level: 'error' | 'info' | 'message' | 'success' | 'warning' = 'success',
-) {
-  return takeEvery(type, toastSaga, message, level);
-}
+/**
+ * Custom effect for handling actions that result in toasts.
+ * @param type action type
+ * @param message message to display, or a function that builds the message from a response
+ * @param level message severity
+ */
+const takeEveryToast = createTakeEveryToast<AccountAction, ResponseAccountAction>();
 
 export default function* rootSaga() {
   // API requests
@@ -84,7 +39,7 @@ export default function* rootSaga() {
   // yield takeLatest('FETCH_SESSION_CHECK_FAILED', function*() { yield window.location.reload(); });
 
   // Toasts
-  yield takeEveryToast<ErrorAction>([
+  yield takeEveryToast<ErrorAccountAction>([
     'FETCH_USER_FAILED',
   ], ({ message }) => message === 'sessionExpired'
       ? 'Your session has expired. Please refresh the page.'

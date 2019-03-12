@@ -1,14 +1,13 @@
-import { getJsonData, postJsonData } from '../../../shared';
-import { RequestAction, ResponseAction } from './actions';
+import { createJsonRequestorCreator } from '../../shared-components/redux/api';
+import { RequestAccountAction, ResponseAccountAction } from './actions';
 import * as AccountActions from './actions';
 
-const createJsonRequestor =
-  <TRequestAction extends RequestAction, TResponseAction extends ResponseAction>
-  (method: 'GET' | 'POST', url: string) =>
-  async (requestModel: TRequestAction['request']) =>
-    method === 'GET'
-      ? await getJsonData<TResponseAction['response']>(url, requestModel)
-      : await postJsonData<TResponseAction['response']>(url, requestModel);
+/**
+ * Function for handling request actions.
+ * @param method HTTP method to use
+ * @param url Request URL
+ */
+const createJsonRequestor = createJsonRequestorCreator<RequestAccountAction, ResponseAccountAction>();
 
 export const fetchUser =
   createJsonRequestor<AccountActions.FetchUser, AccountActions.FetchUserSucceeded>

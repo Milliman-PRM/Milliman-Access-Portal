@@ -555,7 +555,8 @@ export interface CancelReductionFailed {
 /**
  * An action that changes the state of the page.
  */
-export type PageAccessAction = SelectClient
+export type PageAccessAction =
+  | SelectClient
   | SelectItem
   | SelectGroup
   | SetExpandedGroup
@@ -589,14 +590,16 @@ export type PageAccessAction = SelectClient
 /**
  * An action that schedules another action.
  */
-export type ScheduleAccessAction = ScheduleSessionCheck
+export type ScheduleAccessAction =
+  | ScheduleSessionCheck
   | ScheduleStatusRefresh
   ;
 
 /**
  * An action that makes an Ajax request.
  */
-export type RequestAccessAction = FetchClients
+export type RequestAccessAction =
+  | FetchClients
   | FetchItems
   | FetchGroups
   | FetchSelections
@@ -613,7 +616,8 @@ export type RequestAccessAction = FetchClients
 /**
  * An action that marks the succesful response of an Ajax request.
  */
-export type ResponseAccessAction = FetchClientsSucceeded
+export type ResponseAccessAction =
+  | FetchClientsSucceeded
   | FetchItemsSucceeded
   | FetchGroupsSucceeded
   | FetchSelectionsSucceeded
@@ -630,7 +634,8 @@ export type ResponseAccessAction = FetchClientsSucceeded
 /**
  * An action that marks the errored response of an Ajax request.
  */
-export type ErrorAccessAction = FetchClientsFailed
+export type ErrorAccessAction =
+  | FetchClientsFailed
   | FetchItemsFailed
   | FetchGroupsFailed
   | FetchSelectionsFailed
@@ -647,7 +652,8 @@ export type ErrorAccessAction = FetchClientsFailed
 /**
  * An action available to the content access administration page.
  */
-export type AccessAction = PageAccessAction
+export type AccessAction =
+  | PageAccessAction
   | ScheduleAccessAction
   | RequestAccessAction
   | ResponseAccessAction
@@ -657,7 +663,8 @@ export type AccessAction = PageAccessAction
 /**
  * An action that sets filter text for a card column.
  */
-export type FilterAccessAction = SetFilterTextClient
+export type FilterAccessAction =
+  | SetFilterTextClient
   | SetFilterTextItem
   | SetFilterTextGroup
   | SetFilterTextSelections
@@ -666,7 +673,8 @@ export type FilterAccessAction = SetFilterTextClient
 /**
  * An action that opens a modal.
  */
-export type OpenAccessAction = OpenAddGroupModal
+export type OpenAccessAction =
+  | OpenAddGroupModal
   | OpenDeleteGroupModal
   | OpenInactiveModal
   ;
@@ -674,7 +682,8 @@ export type OpenAccessAction = OpenAddGroupModal
 /**
  * An action that closes a modal.
  */
-export type CloseAccessAction = CloseAddGroupModal
+export type CloseAccessAction =
+  | CloseAddGroupModal
   | CloseDeleteGroupModal
   | CloseInactiveModal
   ;
