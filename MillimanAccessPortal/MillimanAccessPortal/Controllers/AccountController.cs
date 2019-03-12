@@ -97,11 +97,19 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> IsLocalAccount(string userName)
         {
+            bool localAccount = await IsUserAccountLocal(userName);
+            return Json(new { localAccount });
+        }
+
+        [NonAction]
+        internal async Task<bool> IsUserAccountLocal(string userName)
+        {
             string scheme = await GetExternalAuthenticationSchemeAsync(userName);
 
-            bool LocalAccount = string.IsNullOrWhiteSpace(scheme) || 
-                                scheme == (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
-            return Json(new { LocalAccount });
+            bool isLocal = string.IsNullOrWhiteSpace(scheme) ||
+                           scheme == (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
+
+            return isLocal;
         }
 
         /// <summary>
@@ -110,13 +118,13 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="userName"></param>
         /// <returns>The scheme name, or <see langword="null"/> if no external scheme is appropriate</returns>
         [NonAction]
-        private async Task<string> GetExternalAuthenticationSchemeAsync(string userName)
+        internal async Task<string> GetExternalAuthenticationSchemeAsync(string userName)
         {
             string normalizedUserName = _userManager.NormalizeKey(userName);
             var appUser = await DbContext.ApplicationUser
                                          .Include(u => u.AuthenticationScheme)
                                          .SingleOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName);
-            if (appUser == null)
+            if (appUser == null || !appUser.EmailConfirmed)
             {
                 return null;
             }
@@ -506,7 +514,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.EnableAccount GET action with {@UserId}", userId);
 
-            if (userId == null || code == null)
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(code))
             {
                 Log.Debug("In AccountController.EnableAccount GET action: invalid argument(s), aborting");
                 return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
@@ -544,6 +552,7 @@ namespace MillimanAccessPortal.Controllers
                 Id = user.Id,
                 Code = code,
                 Username = user.UserName,
+                IsLocalAccount = await IsUserAccountLocal(user.UserName),
             };
             Log.Verbose($"In AccountController.EnableAccount GET action: complete");
             return View(model);
@@ -557,7 +566,14 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.EnableAccount POST action with {@UserName}", model.Username);
 
-            if (!ModelState.IsValid)
+            List<string> nonRequiredKeysForExternalAuthentication = new List<string> {
+                nameof(EnableAccountViewModel.NewPassword),
+                nameof(EnableAccountViewModel.ConfirmNewPassword),
+                nameof(EnableAccountViewModel.PasswordsAreValid) };
+
+            if ((model.IsLocalAccount && !ModelState.IsValid) ||
+                (!model.IsLocalAccount && ModelState.Where(v => v.Value.ValidationState == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
+                                                    .Any(v => !nonRequiredKeysForExternalAuthentication.Contains(v.Key))))
             {
                 return View(model);
             }
@@ -600,30 +616,33 @@ namespace MillimanAccessPortal.Controllers
                     }
                 }
 
-                // Set the initial password
-                IdentityResult addPasswordResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
-                if (!addPasswordResult.Succeeded)
+                if (model.IsLocalAccount)
                 {
-                    string addPasswordErrors = $"Error while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}";
-                    Response.Headers.Add("Warning", addPasswordErrors);
+                    // Set the initial password
+                    IdentityResult addPasswordResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
+                    if (!addPasswordResult.Succeeded)
+                    {
+                        string addPasswordErrors = $"Error while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}";
+                        Response.Headers.Add("Warning", addPasswordErrors);
 
-                    Log.Error($"Error for user {model.Username} while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}");
+                        Log.Error($"Error for user {model.Username} while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}");
 
-                    return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
-                }
+                        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                    }
 
-                // Save password hash in history
-                user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
-                user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
-                var addPasswordHistoryResult = await _userManager.UpdateAsync(user);
-                if (!addPasswordHistoryResult.Succeeded)
-                {
-                    string addPasswordHistoryErrors = $"Error while setting password history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}";
-                    Response.Headers.Add("Warning", addPasswordHistoryErrors);
+                    // Save password hash in history
+                    user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
+                    user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
+                    var addPasswordHistoryResult = await _userManager.UpdateAsync(user);
+                    if (!addPasswordHistoryResult.Succeeded)
+                    {
+                        string addPasswordHistoryErrors = $"Error while setting password history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}";
+                        Response.Headers.Add("Warning", addPasswordHistoryErrors);
 
-                    Log.Information($"Error for user {model.Username} while saving history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}");
+                        Log.Information($"Error for user {model.Username} while saving history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}");
 
-                    return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                    }
                 }
 
                 // Update other user account settings

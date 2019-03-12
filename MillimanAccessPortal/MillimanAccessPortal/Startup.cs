@@ -149,6 +149,8 @@ namespace MillimanAccessPortal
                     // Event override to avoid default application signin of the externally authenticated ClaimsPrinciple
                     options.Events.OnTicketReceived = async context =>
                     {
+                        context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to forego subsequent processing
+
                         using (IServiceScope scope = context.HttpContext.RequestServices.CreateScope())
                         {
                             IServiceProvider serviceProvider = scope.ServiceProvider;
@@ -156,15 +158,25 @@ namespace MillimanAccessPortal
                             try
                             {
                                 ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(context.Principal.Identity.Name);
-                                var x = context.Properties.ExpiresUtc;
-                                if (_applicationUser != null && !_applicationUser.IsSuspended)
-                                {
-                                    await _signInManager.SignInAsync(_applicationUser, false);
-                                }
-                                else
+
+                                if (_applicationUser == null || _applicationUser.IsSuspended)
                                 {
                                     // TODO Maybe we need new audit log event types to support external authentication
                                     throw new ApplicationException($"User {context.Principal.Identity.Name} suspended or not found, remote login rejected");
+                                }
+                                else if (!_applicationUser.EmailConfirmed)
+                                {
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller","")}/{nameof(Controllers.SharedController.Message)}",
+                                        Query = "Msg=Your MAP account has not been activated. Please look for a welcome email from support@map.com and follow instructions in that message to activate the account."
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
+                                }
+                                else
+                                {
+                                    await _signInManager.SignInAsync(_applicationUser, false);
                                 }
                             }
                             catch (Exception ex)
@@ -178,7 +190,6 @@ namespace MillimanAccessPortal
                             }
                         }
 
-                        context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to abort default processing
                         context.Response.Redirect("/Account/ExternalLoginCallbackAsync");
                     };
                 });
