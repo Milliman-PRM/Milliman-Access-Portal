@@ -11,7 +11,11 @@ import {
 import * as api from './api';
 import { selectedClient, selectedItem } from './selectors';
 
-// API requests
+/**
+ * Make an asynchronous API request and await the result.
+ * @param apiCall API method to invoke
+ * @param action the request action that caused this saga to fire
+ */
 function* requestSaga(
   apiCall: (request: RequestAction['request']) => ResponseAction['response'], action: RequestAction) {
   try {
@@ -21,6 +25,11 @@ function* requestSaga(
     yield put(createErrorActionCreator(`${action.type}_FAILED` as ErrorAction['type'])(error));
   }
 }
+/**
+ * Helper function for handling request actions.
+ * @param type Action type
+ * @param apiCall API method to invoke
+ */
 function takeLatestRequest<TRequest extends RequestAction>(
   type: TRequest['type'],
   apiCall: (request: TRequest['request']) => Promise<ResponseAction['response']>,
@@ -28,12 +37,20 @@ function takeLatestRequest<TRequest extends RequestAction>(
   return takeLatest(type, requestSaga, apiCall);
 }
 
-// Scheduled actions
+/**
+ * Sleep for the specified duration; awaitable.
+ * @param duration time to sleep in milliseconds
+ */
 function sleep(duration: number) {
   return new Promise((resolve) => {
     setTimeout(resolve, duration);
   });
 }
+/**
+ * Schedule an action to be fired at a later time.
+ * @param nextActionCreator action creator to invoke after the scheduled duration
+ * @param action the schedule action that caused this saga to fire
+ */
 function* scheduleSaga(
   nextActionCreator: () => (AccessAction | IterableIterator<Effect | AccessAction>),
   action: AccessAction,
@@ -46,6 +63,11 @@ function* scheduleSaga(
     yield put(nextAction);
   }
 }
+/**
+ * Helper function for handling schedule actions.
+ * @param type action type
+ * @param nextActionCreator action creator to invoke after the scheduled duration
+ */
 function takeLatestSchedule<TAction extends AccessAction, TNext extends AccessAction>(
   type: TAction['type'] | ((type: TAction) => boolean),
   nextActionCreator: () => (TNext | IterableIterator<Effect | AccessAction>),
@@ -53,7 +75,12 @@ function takeLatestSchedule<TAction extends AccessAction, TNext extends AccessAc
   return takeLatest(type, scheduleSaga, nextActionCreator);
 }
 
-// Toast triggers
+/**
+ * Display a toast.
+ * @param message message to display, or a function that builds the message from a response
+ * @param level message severity
+ * @param action the action that caused this saga to fire
+ */
 function* toastSaga(
   message: string
     | ((response: ResponseAction['response'] | ErrorAction['error']) => string),
@@ -66,6 +93,12 @@ function* toastSaga(
       ? message(action.error)
       : message(action.response));
 }
+/**
+ * Helper function for handling actions that result in toasts.
+ * @param type action type
+ * @param message message to display, or a function that builds the message from a response
+ * @param level message severity
+ */
 function takeEveryToast<TAction extends AccessAction>(
   type: TAction['type'] | Array<TAction['type']> | ((type: TAction) => boolean),
   message: string | (TAction extends ResponseAction
@@ -78,6 +111,9 @@ function takeEveryToast<TAction extends AccessAction>(
   return takeEvery(type, toastSaga, message, level);
 }
 
+/**
+ * Register all sagas for the page.
+ */
 export default function* rootSaga() {
   // API requests
   yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);

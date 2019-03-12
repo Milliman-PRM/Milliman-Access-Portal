@@ -642,7 +642,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             isMaster: selectedMaster,
             selections: selectedValues,
           })
-          : this.props.openInvalidateModal({})
+          : this.props.openInactiveModal({})
         }
         onCancelReduction={() => this.props.cancelReduction({ groupId: group.id })}
         loading={pending.data.selections}
@@ -658,7 +658,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         </PanelSectionToolbar>
         <Modal
           isOpen={modals.invalidate.isOpen}
-          onRequestClose={() => this.props.closeInvalidateModal({})}
+          onRequestClose={() => this.props.closeInactiveModal({})}
           ariaHideApp={false}
           className="modal"
           overlayClassName="modal-overlay"
@@ -671,7 +671,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             and all of its users will be unable to view its content until values are selected.
           </span>
           <div className="button-container">
-            <button className="link-button" type="button" onClick={() => this.props.closeInvalidateModal({})}>
+            <button className="link-button" type="button" onClick={() => this.props.closeInactiveModal({})}>
               Cancel
             </button>
             <button
