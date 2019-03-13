@@ -238,7 +238,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                               <li key={i.id}>
                                 <span className="detail-item-user">
                                   <div className="detail-item-user-icon">
-                                    <svg className="card-user-icon">
+                                    <svg
+                                      className="card-user-icon"
+                                      style={{
+                                        width: '2em',
+                                        height: '2em',
+                                      }}
+                                    >
                                       <use xlinkHref="#reports" />
                                     </svg>
                                   </div>
@@ -285,7 +291,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                               <li key={u.id}>
                                 <span className="detail-item-user">
                                   <div className="detail-item-user-icon">
-                                    <svg className="card-user-icon">
+                                    <svg
+                                      className="card-user-icon"
+                                      style={{
+                                        width: '2em',
+                                        height: '2em',
+                                      }}
+                                    >
                                       <use xlinkHref="#user" />
                                     </svg>
                                   </div>
