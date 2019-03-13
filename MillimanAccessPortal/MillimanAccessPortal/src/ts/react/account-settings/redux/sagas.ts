@@ -1,12 +1,10 @@
-import { takeEvery } from 'redux-saga/effects';
-
 import {
     createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
     createTakeLatestValidation,
 } from '../../shared-components/redux/sagas';
 import {
-    AccountAction, ErrorAccountAction, RequestAccountAction, ResponseAccountAction, ValidateInput,
-    ValidateInputFailed, ValidateInputSucceeded,
+    AccountAction, ErrorAccountAction, RequestAccountAction, ResponseAccountAction,
+    ValidationAccountAction, ValidationResultAccountAction,
 } from './actions';
 import * as api from './api';
 
@@ -32,7 +30,7 @@ const takeLatestSchedule = createTakeLatestSchedule<AccountAction>();
  */
 const takeEveryToast = createTakeEveryToast<AccountAction, ResponseAccountAction>();
 
-const takeLatestValidation = createTakeLatestValidation<ValidateInput, ValidateInputSucceeded | ValidateInputFailed>();
+const takeLatestValidation = createTakeLatestValidation<ValidationAccountAction, ValidationResultAccountAction>();
 
 export default function* rootSaga() {
   // API requests
@@ -55,5 +53,6 @@ export default function* rootSaga() {
     'error');
 
   // Validation
-  yield takeLatestValidation('VALIDATE_INPUT', api.validateInput);
+  yield takeLatestValidation('VALIDATE_INPUT_USER', api.validateUserInput);
+  yield takeLatestValidation('VALIDATE_INPUT_PASSWORD', api.validatePasswordInput);
 }

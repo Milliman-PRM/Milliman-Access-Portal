@@ -1,10 +1,10 @@
 import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
+import { boolean } from 'yup';
 
 import { createReducerCreator } from '../../shared-components/redux/reducers';
 import {
-    AccountAction, FetchUserSucceeded, SetPendingTextInputValue, ValidateInput, ValidateInputFailed,
-    ValidateInputSucceeded,
+    AccountAction, FetchUserSucceeded, SetPendingTextInputValue, ValidateInputUser,
 } from './actions';
 import {
     AccountStateData, AccountStateForm, PendingInputState, PendingRequestState,
@@ -49,13 +49,8 @@ const _initialPendingRequests: PendingRequestState = {
   validatePassword: false,
 };
 const _initialPendingValidation: PendingValidationState = {
-  firstName: false,
-  lastName: false,
-  phone: false,
-  employer: false,
-  current: false,
-  new: false,
-  confirm: false,
+  user: false,
+  password: false,
 };
 
 /**
@@ -96,17 +91,29 @@ const pendingRequests = createReducer<PendingRequestState>(_initialPendingReques
   }),
 }));
 const pendingValidation = createReducer<PendingValidationState>(_initialPendingValidation, ({
-  VALIDATE_INPUT: (state, { inputName }: ValidateInput) => ({
+  VALIDATE_INPUT_USER: (state) => ({
     ...state,
-    [inputName]: true,
+    user: true,
   }),
-  VALIDATE_INPUT_SUCCEEDED: (state, { inputName }: ValidateInputSucceeded) => ({
+  VALIDATE_INPUT_USER_SUCCEEDED: (state) => ({
     ...state,
-    [inputName]: false,
+    user: false,
   }),
-  VALIDATE_INPUT_FAILED: (state, { inputName }: ValidateInputFailed) => ({
+  VALIDATE_INPUT_USER_FAILED: (state) => ({
     ...state,
-    [inputName]: false,
+    user: false,
+  }),
+  VALIDATE_INPUT_PASSWORD: (state) => ({
+    ...state,
+    password: true,
+  }),
+  VALIDATE_INPUT_PASSWORD_SUCCEEDED: (state) => ({
+    ...state,
+    password: false,
+  }),
+  VALIDATE_INPUT_PASSWORD_FAILED: (state) => ({
+    ...state,
+    password: false,
   }),
 }));
 const pending = combineReducers({
@@ -115,17 +122,58 @@ const pending = combineReducers({
   validation: pendingValidation,
 });
 const form = createReducer<AccountStateForm>(_initialValidation, ({
-  VALIDATE_INPUT_SUCCEEDED: (state, { inputName }: ValidateInputSucceeded) => ({
+  VALIDATE_INPUT_USER_SUCCEEDED: (state) => ({
     ...state,
-    [inputName]: {
+    firstName: {
+      valid: true,
+    },
+    lastName: {
+      valid: true,
+    },
+    phone: {
+      valid: true,
+    },
+    employer: {
       valid: true,
     },
   }),
-  VALIDATE_INPUT_FAILED: (state, { inputName, result }: ValidateInputFailed) => ({
+  VALIDATE_INPUT_USER_FAILED: (state) => ({
     ...state,
-    [inputName]: {
+    firstName: {
       valid: false,
-      message: result.message,
+      message: '???',
+    },
+    lastName: {
+      valid: false,
+      message: '???',
+    },
+    phone: {
+      valid: false,
+      message: '???',
+    },
+    employer: {
+      valid: false,
+      message: '???',
+    },
+  }),
+  VALIDATE_INPUT_PASSWORD_SUCCEEDED: (state) => ({
+    ...state,
+    new: {
+      valid: true,
+    },
+    current: {
+      valid: true,
+    },
+  }),
+  VALIDATE_INPUT_PASSWORD_FAILED: (state) => ({
+    ...state,
+    new: {
+      valid: false,
+      message: '???',
+    },
+    current: {
+      valid: false,
+      message: '???',
     },
   }),
 }));

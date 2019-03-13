@@ -1193,6 +1193,45 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> CheckPasswordValidity2([FromBody] CheckPasswordViewModel Model)
+        {
+            Log.Verbose("Entered AccountController.CheckPasswordValidity2 action");
+
+            var passwordValidationErrors = new List<string>();
+
+            if (ModelState.IsValid)
+            {
+                ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+
+                foreach (IPasswordValidator<ApplicationUser> passwordValidator in _userManager.PasswordValidators)
+                {
+                    IdentityResult result = await passwordValidator.ValidateAsync(_userManager, user, Model.ProposedPassword);
+
+                    if (!result.Succeeded)
+                    {
+                        foreach (var errorResult in result.Errors)
+                        {
+                            passwordValidationErrors.Add(errorResult.Description);
+                        }
+                    }
+                }
+            }
+            
+            if (!passwordValidationErrors.Any())
+            {
+                Log.Verbose("In AccountController.CheckPasswordValidity action: proposed password is valid");
+                return Json(new { Valid = true });
+            }
+            else
+            {
+                Log.Verbose("In AccountController.CheckPasswordValidity action: proposed password not valid");
+                return Json(new { Valid = false, Messages = passwordValidationErrors });
+            }
+        }
+
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> UpdatePassword([Bind("UserName,CurrentPassword,NewPassword,ConfirmNewPassword")]AccountSettingsViewModel Model)
         {

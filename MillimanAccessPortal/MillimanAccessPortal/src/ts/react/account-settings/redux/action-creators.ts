@@ -11,5 +11,7 @@ export const resetForm =
 export const fetchUser =
   createRequestActionCreator<AccountActions.FetchUser>('FETCH_USER');
 
-export const validateInput =
-  createActionCreator<AccountActions.ValidateInput>('VALIDATE_INPUT');
+export const validateInputUser =
+  createActionCreator<AccountActions.ValidateInputUser>('VALIDATE_INPUT_USER');
+export const validateInputPassword =
+  createActionCreator<AccountActions.ValidateInputPassword>('VALIDATE_INPUT_PASSWORD');

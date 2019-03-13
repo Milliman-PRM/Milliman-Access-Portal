@@ -4,8 +4,8 @@ import ReduxToastr from 'react-redux-toastr';
 
 import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
-import { allInputsValid, anyInputModified, inputProps } from './redux/selectors';
-import { AccountState } from './redux/store';
+import { allInputsValid, anyInputModified, inputProps, validProps } from './redux/selectors';
+import { AccountState, ValidationState } from './redux/store';
 
 interface AccountSettingsProps {
   inputs: {
@@ -17,6 +17,15 @@ interface AccountSettingsProps {
     currentPassword: string;
     newPassword: string;
     confirmPassword: string;
+  };
+  valid: {
+    firstName: ValidationState;
+    lastName: ValidationState;
+    phone: ValidationState;
+    employer: ValidationState;
+    currentPassword: ValidationState;
+    newPassword: ValidationState;
+    confirmPassword: ValidationState;
   };
   isLocal: boolean;
   andInputModified: boolean;
@@ -96,14 +105,22 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                       inputName: 'firstName',
                       value: target.value,
                     });
-                    this.props.validateInput({
-                      inputName: 'firstName',
-                      value: target.value,
+                    this.props.validateInputUser({
+                      value: {
+                        ...this.props.inputs,
+                        firstName: target.value,
+                      },
                     });
                   }}
                   autoFocus={true}
                 />
-                <span className="text-danger field-validation-valid" />
+                {this.props.valid.firstName.valid
+                ? null
+                : (
+                  <span className="text-danger field-validation-valid">
+                    {this.props.valid.firstName.message}
+                  </span>
+                )}
               </div>
             </div>
             <div className="form-input form-input-text flex-item-for-tablet-up-6-12">
@@ -118,13 +135,21 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                       inputName: 'lastName',
                       value: target.value,
                     });
-                    this.props.validateInput({
-                      inputName: 'lastName',
-                      value: target.value,
+                    this.props.validateInputUser({
+                      value: {
+                        ...this.props.inputs,
+                        lastName: target.value,
+                      },
                     });
                   }}
                 />
-                <span className="text-danger field-validation-valid" />
+                {this.props.valid.lastName.valid
+                ? null
+                : (
+                  <span className="text-danger field-validation-valid">
+                    {this.props.valid.lastName.message}
+                  </span>
+                )}
               </div>
             </div>
             <div className="form-input form-input-text flex-item-for-tablet-up-4-12">
@@ -140,9 +165,11 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                       inputName: 'phone',
                       value: target.value,
                     });
-                    this.props.validateInput({
-                      inputName: 'phone',
-                      value: target.value,
+                    this.props.validateInputUser({
+                      value: {
+                        ...this.props.inputs,
+                        phone: target.value,
+                      },
                     });
                   }}
                 />
@@ -161,9 +188,11 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                       inputName: 'employer',
                       value: target.value,
                     });
-                    this.props.validateInput({
-                      inputName: 'employer',
-                      value: target.value,
+                    this.props.validateInputUser({
+                      value: {
+                        ...this.props.inputs,
+                        employer: target.value,
+                      },
                     });
                   }}
                 />
@@ -210,13 +239,21 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                     inputName: 'new',
                     value: target.value,
                   });
-                  this.props.validateInput({
-                    inputName: 'new',
-                    value: target.value,
+                  this.props.validateInputPassword({
+                    value: {
+                      confirm: this.props.inputs.confirmPassword,
+                      new: target.value,
+                    },
                   });
                 }}
               />
-              <span className="text-danger field-validation-valid" />
+              {this.props.valid.newPassword.valid
+              ? null
+              : (
+                <span className="text-danger field-validation-valid">
+                  {this.props.valid.newPassword.message}
+                </span>
+              )}
             </div>
           </div>
           <div className="form-input htmlForm-input-text flex-item-12-12">
@@ -231,13 +268,21 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                     inputName: 'confirm',
                     value: target.value,
                   });
-                  this.props.validateInput({
-                    inputName: 'confirm',
-                    value: target.value,
+                  this.props.validateInputPassword({
+                    value: {
+                      new: this.props.inputs.newPassword,
+                      confirm: target.value,
+                    },
                   });
                 }}
               />
-              <span className="text-danger field-validation-valid" />
+              {this.props.valid.confirmPassword.valid
+              ? null
+              : (
+                <span className="text-danger field-validation-valid">
+                  {this.props.valid.confirmPassword.message}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -282,6 +327,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
 function mapStateToProps(state: AccountState): AccountSettingsProps {
   return {
     inputs: inputProps(state),
+    valid: validProps(state),
     andInputModified: anyInputModified(state),
     allInputsValid: allInputsValid(state),
     isLocal: state.data.user.isLocal,

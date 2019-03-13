@@ -1,6 +1,7 @@
 import { ValidationError } from 'yup';
 
 import { UserFull } from '../../models';
+import { PasswordInputState, UserInputState } from './api';
 
 export type TSError = any;  // any by necessity due to the nature of try/catch in TypeScript
 
@@ -48,21 +49,34 @@ export interface FetchUserFailed {
 }
 
 /**
- * Validate a form input
+ * Validate the user section
  */
-export interface ValidateInput {
-  type: 'VALIDATE_INPUT';
-  inputName: InputName;
-  value: string;
+export interface ValidateInputUser {
+  type: 'VALIDATE_INPUT_USER';
+  value: UserInputState;
 }
-export interface ValidateInputSucceeded {
-  type: 'VALIDATE_INPUT_SUCCEEDED';
-  inputName: InputName;
+export interface ValidateInputUserSucceeded {
+  type: 'VALIDATE_INPUT_USER_SUCCEEDED';
   result: any;
 }
-export interface ValidateInputFailed {
-  type: 'VALIDATE_INPUT_FAILED';
-  inputName: InputName;
+export interface ValidateInputUserFailed {
+  type: 'VALIDATE_INPUT_USER_FAILED';
+  result: ValidationError;
+}
+
+/**
+ * Validate the password section
+ */
+export interface ValidateInputPassword {
+  type: 'VALIDATE_INPUT_PASSWORD';
+  value: PasswordInputState;
+}
+export interface ValidateInputPasswordSucceeded {
+  type: 'VALIDATE_INPUT_PASSWORD_SUCCEEDED';
+  result: any;
+}
+export interface ValidateInputPasswordFailed {
+  type: 'VALIDATE_INPUT_PASSWORD_FAILED';
   result: ValidationError;
 }
 
@@ -106,15 +120,18 @@ export type ErrorAccountAction =
  * An action that marks a request for validation of an input field.
  */
 export type ValidationAccountAction =
-  | ValidateInput
+  | ValidateInputUser
+  | ValidateInputPassword
   ;
 
 /**
  * An action that marks the validation result for an input field.
  */
 export type ValidationResultAccountAction =
-  | ValidateInputSucceeded
-  | ValidateInputFailed
+  | ValidateInputUserSucceeded
+  | ValidateInputUserFailed
+  | ValidateInputPasswordSucceeded
+  | ValidateInputPasswordFailed
   ;
 
 /**

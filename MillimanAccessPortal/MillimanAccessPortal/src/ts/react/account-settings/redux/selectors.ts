@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { AccountState, PendingInputState } from './store';
+import { AccountState, AccountStateForm, PendingInputState } from './store';
 
 /**
  * Select input values pending submission.
@@ -45,7 +45,7 @@ export function anyInputModified(state: AccountState) {
  * @param state Redux store
  */
 export function allInputsValid(state: AccountState) {
-  return anyInputModified(state);
+  return _.reduce(state.form, (prev, cur) => prev && cur.valid, true);
 }
 
 /**
@@ -63,5 +63,22 @@ export function inputProps(state: AccountState) {
     currentPassword: values.current,
     newPassword: values.new,
     confirmPassword: values.confirm,
+  };
+}
+
+/**
+ * Select account settings valid property
+ * @param state Redux store
+ */
+export function validProps(state: AccountState) {
+  const valid = state.form;
+  return {
+    firstName: valid.firstName,
+    lastName: valid.lastName,
+    phone: valid.phone,
+    employer: valid.employer,
+    currentPassword: valid.current,
+    newPassword: valid.new,
+    confirmPassword: valid.confirm,
   };
 }

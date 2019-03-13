@@ -19,12 +19,10 @@ export interface ResponseAction<TResponse extends {} = any> extends Action {
 export interface ErrorAction extends Action {
   error: TSError;
 }
-export interface ValidationAction<TInputName extends string = string> extends Action {
-  inputName: TInputName;
+export interface ValidationAction extends Action {
   value: any;
 }
-export interface ValidationResultAction<TInputName extends string = string> extends Action {
-  inputName: TInputName;
+export interface ValidationResultAction extends Action {
   result: any | ValidationError;
 }
 

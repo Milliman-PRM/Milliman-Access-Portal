@@ -26,9 +26,10 @@ export interface PendingRequestState {
   update: boolean;
   validatePassword: boolean;
 }
-export type PendingValidationState = {
-  [key in keyof PendingInputState]: boolean;
-};
+export interface PendingValidationState {
+  user: boolean;
+  password: boolean;
+}
 
 export interface ValidationState {
   valid: boolean;
