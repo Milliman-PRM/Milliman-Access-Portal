@@ -798,70 +798,58 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddNewAuthenticationScheme(int type, string name, string displayName, string wtrealm, string metadataAddress)
+        public async Task<IActionResult> AddNewAuthenticationScheme(int type, string name, string displayName, string wtrealm, string metadataAddress, List<string> domainList = null)
         {
+            // TODO convert the argument list to a model class that is not bound to WsFederation type
             Log.Verbose("Entered SystemAdminController.AddNewAuthenticationScheme action with {@Type}, {@Name}, {@DisplayName}, {@Wtrealm}, {@MetadataAddress}", type, name, displayName, wtrealm, metadataAddress);
 
             #region Authorization
-            // User must have a global Admin role
+            // User must have SysAdmin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
             if (!result.Succeeded)
             {
-                Log.Debug($"In SystemAdminController.AddUserToProfitCenter action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Log.Debug($"In SystemAdminController.AddNewAuthenticationScheme action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
             #endregion
 
+            #region Validation
+            if (await _authentService.Schemes.GetSchemeAsync(name) != null || 
+                _dbContext.AuthenticationScheme.Any(s => s.Name.ToLower() == name.ToLower()))
+            {
+                Log.Error($"Attempted to add external authentication scheme named {name} but a scheme with this name already exists");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+            #endregion
+
             AuthenticationType authType = (AuthenticationType)type;
+            MapDbContextLib.Context.AuthenticationScheme newSchemeRecord = new MapDbContextLib.Context.AuthenticationScheme
+            {
+                DisplayName = displayName,
+                DomainList = domainList ?? new List<string>(),
+                Name = name,
+                Type = authType,
+            };
+
             switch (authType)
             {
                 case AuthenticationType.WsFederation:
                     try
                     {
-                        if (await _authentService.Schemes.GetSchemeAsync(name) == null)
-                        {
-                            _authentService.Schemes.AddScheme(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(name, displayName, typeof(WsFederationHandler)));
-                        }
-                        else
-                        {
-                            _wsFederationOptionsCache.TryRemove(name);
-                        }
+                        _authentService.Schemes.AddScheme(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(name, displayName, typeof(WsFederationHandler)));
 
                         WsFederationOptions newOptions = new WsFederationOptions { Wtrealm = wtrealm, MetadataAddress = metadataAddress, CallbackPath = $"/signin-wsfed-{name}" };
                         // not needed? _wsFederationPostConfigureOptions.PostConfigure(name, newOptions);
                         _wsFederationOptionsCache.TryAdd(name, newOptions);
 
-                        // Save to database table "AuthenticationScheme"
-                        MapDbContextLib.Context.AuthenticationScheme dbScheme = _dbContext.AuthenticationScheme.SingleOrDefault(s => s.Name.ToLower() == name.ToLower());
-                        if (dbScheme == null)
+                        newSchemeRecord.SchemePropertiesObj = new WsFederationSchemeProperties
                         {
-                            // INSERT new
-                            await _dbContext.AuthenticationScheme.AddAsync(new MapDbContextLib.Context.AuthenticationScheme
-                            {
-                                DisplayName = displayName,
-                                DomainList = new List<string>(),
-                                Name = name,
-                                SchemePropertiesObj = new WsFederationSchemeProperties
-                                {
-                                    MetadataAddress = metadataAddress,
-                                    Wtrealm = wtrealm,
-                                },
-                                Type = AuthenticationType.WsFederation,
-                            });
-                        }
-                        else
-                        {
-                            // UPDATE existing record
-                            dbScheme.DisplayName = displayName;
-                            //dbScheme.DomainList = new List<string>();
-                            dbScheme.SchemePropertiesObj = new WsFederationSchemeProperties
-                            {
-                                MetadataAddress = metadataAddress,
-                                Wtrealm = wtrealm,
-                            };
-                        }
+                            MetadataAddress = metadataAddress,
+                            Wtrealm = wtrealm,
+                        };
+                        await _dbContext.AuthenticationScheme.AddAsync(newSchemeRecord);
                         await _dbContext.SaveChangesAsync();
                     }
                     catch (Exception ex)
@@ -873,14 +861,91 @@ namespace MillimanAccessPortal.Controllers
                         {
                             _authentService.Schemes.RemoveScheme(name);
                         }
+                        _dbContext.AuthenticationScheme.Remove(newSchemeRecord);
 
-                        return Redirect("/");
+                        return StatusCode(StatusCodes.Status500InternalServerError);
                     }
 
                     break;
 
                 default:
+                    throw new ApplicationException($"Request to {nameof(SystemAdminController)}.{nameof(AddNewAuthenticationScheme)} with unsupported AuthenticationType {type}");
+            }
+
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateAuthenticationScheme(int type, string name, string displayName, string wtrealm, string metadataAddress, List<string> domainList)
+        {
+            // TODO convert the argument list to a model class that is not bound to WsFederation type
+            Log.Verbose("Entered SystemAdminController.UpdateAuthenticationScheme action with {@Type}, {@Name}, {@DisplayName}, {@Wtrealm}, {@MetadataAddress}, {@DomainList}", type, name, displayName, wtrealm, metadataAddress, domainList);
+
+            #region Authorization
+            // User must have SysAdmin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In SystemAdminController.UpdateAuthenticationScheme action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (await _authentService.Schemes.GetSchemeAsync(name) == null ||
+                _dbContext.AuthenticationScheme.All(s => s.Name.ToLower() != name.ToLower()))
+            {
+                Log.Error($"Attempted to update external authentication scheme named {name} but no scheme with this name exists");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+            #endregion
+
+            AuthenticationType authType = (AuthenticationType)type;
+
+            MapDbContextLib.Context.AuthenticationScheme schemeRecord = _dbContext.AuthenticationScheme.Single(s => s.Name.ToLower() == name.ToLower());
+            schemeRecord.DisplayName = displayName;
+            schemeRecord.DomainList = domainList;
+            schemeRecord.Type = authType;
+
+            switch (authType)
+            {
+                case AuthenticationType.WsFederation:
+                    try
+                    {
+                        WsFederationOptions newOptions = new WsFederationOptions { Wtrealm = wtrealm, MetadataAddress = metadataAddress, CallbackPath = $"/signin-wsfed-{name}" };
+                        schemeRecord.SchemePropertiesObj = new WsFederationSchemeProperties
+                        {
+                            MetadataAddress = metadataAddress,
+                            Wtrealm = wtrealm,
+                        };
+
+                        _wsFederationOptionsCache.TryRemove(name);
+                        // not needed? _wsFederationPostConfigureOptions.PostConfigure(name, newOptions);
+                        _wsFederationOptionsCache.TryAdd(name, newOptions);
+
+                        await _dbContext.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"Failed to update authentication scheme of type {type.ToString()}, named {name}, wtrealm {wtrealm}, metadata address {metadataAddress}, removing scheme from the system");
+
+                        _wsFederationOptionsCache.TryRemove(name);
+                        if (await _authentService.Schemes.GetSchemeAsync(name) != null)
+                        {
+                            _authentService.Schemes.RemoveScheme(name);
+                        }
+
+                        _dbContext.AuthenticationScheme.Remove(schemeRecord);
+
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                    }
+
                     break;
+
+                default:
+                    throw new ApplicationException($"Request to {nameof(SystemAdminController)}.{nameof(AddNewAuthenticationScheme)} with unsupported AuthenticationType {type}");
             }
 
             return Ok();
