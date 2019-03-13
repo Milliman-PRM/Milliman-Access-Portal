@@ -33,19 +33,43 @@ export function modifiedInputs(state: AccountState) {
 }
 
 /**
- * Select whether any input is modified
+ * Select whether any user input is modified
  * @param state Redux store
  */
-export function anyInputModified(state: AccountState) {
-  return _.reduce(modifiedInputs(state), (prev, cur) => prev || cur.modified, false);
+export function anyUserInputModified(state: AccountState) {
+  return _.reduce(
+    _.filter(modifiedInputs(state), (__, key) => ['firstName', 'lastName', 'phone', 'employer'].indexOf(key) !== -1)
+    , (prev, cur) => prev || cur.modified, false);
 }
 
 /**
- * Select whether all inputs are valid
+ * Select whether any password input is modified
  * @param state Redux store
  */
-export function allInputsValid(state: AccountState) {
-  return _.reduce(state.form, (prev, cur) => prev && cur.valid, true);
+export function anyPasswordInputModified(state: AccountState) {
+  return _.reduce(
+    _.filter(modifiedInputs(state), (__, key) => ['current', 'new', 'confirm'].indexOf(key) !== -1)
+    , (prev, cur) => prev || cur.modified, false);
+}
+
+/**
+ * Select whether all user inputs are valid
+ * @param state Redux store
+ */
+export function allUserInputsValid(state: AccountState) {
+  return _.reduce(
+    _.filter(state.form, (__, key) => ['firstName', 'lastName', 'phone', 'employer'].indexOf(key) !== -1)
+    , (prev, cur) => prev && cur.valid, true);
+}
+
+/**
+ * Select whether all password inputs are valid
+ * @param state Redux store
+ */
+export function allPasswordInputsValid(state: AccountState) {
+  return _.reduce(
+    _.filter(state.form, (__, key) => ['current', 'new', 'confirm'].indexOf(key) !== -1)
+    , (prev, cur) => prev && cur.valid, true);
 }
 
 /**

@@ -4,7 +4,10 @@ import ReduxToastr from 'react-redux-toastr';
 
 import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
-import { allInputsValid, anyInputModified, inputProps, validProps } from './redux/selectors';
+import {
+    allPasswordInputsValid, allUserInputsValid, anyPasswordInputModified, anyUserInputModified,
+    inputProps, validProps,
+} from './redux/selectors';
 import { AccountState, ValidationState } from './redux/store';
 
 interface AccountSettingsProps {
@@ -28,8 +31,8 @@ interface AccountSettingsProps {
     confirmPassword: ValidationState;
   };
   isLocal: boolean;
-  andInputModified: boolean;
-  allInputsValid: boolean;
+  discardButtonEnabled: boolean;
+  submitButtonEnabled: boolean;
 }
 class AccountSettings extends React.Component<AccountSettingsProps & typeof AccountActionCreators> {
   public componentDidMount() {
@@ -292,14 +295,14 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderSubmissionSection() {
-    const { allInputsValid: valid } = this.props;
+    const { submitButtonEnabled } = this.props;
     return (
       <div className="form-submission-section">
         <div className="button-container button-container-update">
           {this.renderResetButton()}
           <button
             type="button"
-            className={`button-submit blue-button${valid ? '' : ' disabled'}`}
+            className={`button-submit blue-button${submitButtonEnabled ? '' : ' disabled'}`}
           >
             Update Account
           </button>
@@ -309,8 +312,8 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderResetButton() {
-    const { andInputModified: modified } = this.props;
-    return modified
+    const { discardButtonEnabled } = this.props;
+    return discardButtonEnabled
     ? (
       <button
         type="button"
@@ -328,8 +331,10 @@ function mapStateToProps(state: AccountState): AccountSettingsProps {
   return {
     inputs: inputProps(state),
     valid: validProps(state),
-    andInputModified: anyInputModified(state),
-    allInputsValid: allInputsValid(state),
+    discardButtonEnabled: anyUserInputModified(state) || anyPasswordInputModified(state),
+    submitButtonEnabled: (anyUserInputModified(state) || anyPasswordInputModified(state))
+      && (anyUserInputModified(state) ? allUserInputsValid(state) : true)
+      && (anyPasswordInputModified(state) ? allPasswordInputsValid(state) : true),
     isLocal: state.data.user.isLocal,
   };
 }
