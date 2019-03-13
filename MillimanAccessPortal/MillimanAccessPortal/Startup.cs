@@ -155,14 +155,28 @@ namespace MillimanAccessPortal
                         {
                             IServiceProvider serviceProvider = scope.ServiceProvider;
                             SignInManager<ApplicationUser> _signInManager = serviceProvider.GetService<SignInManager<ApplicationUser>>();
+                            IAuditLogger _auditLogger = serviceProvider.GetService<IAuditLogger>();
                             try
                             {
                                 ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(context.Principal.Identity.Name);
 
-                                if (_applicationUser == null || _applicationUser.IsSuspended)
+                                if (_applicationUser == null)
                                 {
-                                    // TODO Maybe we need new audit log event types to support external authentication
+                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name));
+
                                     throw new ApplicationException($"User {context.Principal.Identity.Name} suspended or not found, remote login rejected");
+                                }
+                                else if (_applicationUser.IsSuspended)
+                                {
+                                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(_applicationUser.UserName));
+
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                        Query = "This account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
                                 }
                                 else if (!_applicationUser.EmailConfirmed)
                                 {
@@ -177,6 +191,8 @@ namespace MillimanAccessPortal
                                 else
                                 {
                                     await _signInManager.SignInAsync(_applicationUser, false);
+                                    _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(), _applicationUser.UserName);
+                                    Log.Information($"Local user {_applicationUser.UserName} logged in");
                                 }
                             }
                             catch (Exception ex)

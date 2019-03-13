@@ -173,6 +173,12 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<ApplicationUser> UserPasswordExpired =
             new AuditEventType<ApplicationUser>(3011, "User password expired", (user) =>
                 new { userId = user.Id, userName = user.UserName, dateLastSetUtc = user.LastPasswordChangeDateTimeUtc });
+
+        public static readonly AuditEventType<string> LoginIsSuspended = new AuditEventType<string>(
+            3012, "Login account is suspended", (attemptedUserName) => new
+            {
+                AttemptedUsername = attemptedUserName,
+            });
         #endregion
 
         #region Content Access [4000 - 4999]

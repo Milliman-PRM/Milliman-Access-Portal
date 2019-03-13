@@ -179,14 +179,27 @@ namespace MillimanAccessPortal.Controllers
             {
                 var user = await _userManager.FindByNameAsync(model.Username);
 
-                if (user == null || user.IsSuspended)
+                if (user == null)
                 {
-                    Log.Debug($"User {model.Username} suspended or not found, local login rejected");
+                    Log.Debug($"User {model.Username} not found, local login rejected");
                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
                     Response.Headers.Add("Warning", "Invalid login attempt.");
                     return Ok();
                 }
                 
+                if (user.IsSuspended)
+                {
+                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName));
+                    Log.Debug($"User {user.UserName} suspended, local login rejected");
+
+                    UriBuilder msgUri = new UriBuilder
+                    {
+                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                        Query = "This account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
+                    };
+                    return Redirect(msgUri.Uri.PathAndQuery);
+                }
+
                 // Only notify of password expiration if the correct password was provided
                 // Redirect user to the password reset view to set a new password
                 bool passwordSuccess = await _userManager.CheckPasswordAsync(user, model.Password);
