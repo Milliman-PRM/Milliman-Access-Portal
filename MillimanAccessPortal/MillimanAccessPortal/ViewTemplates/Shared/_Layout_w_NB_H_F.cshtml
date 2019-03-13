@@ -8,7 +8,7 @@
 
 @Html.AntiForgeryToken()
 
-<div id="content-wrapper" class="navbar-offset">
+<div id="content-wrapper" class="navbar-offset @((string)ViewData["Title"] == "Content" ? "full-scroll" : "")">
     @Html.Partial("_Header")
     <div id="content-container">
         @RenderBody()
