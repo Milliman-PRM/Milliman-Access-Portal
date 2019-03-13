@@ -1198,13 +1198,21 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.UpdatePassword action");
 
-            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
             if (Model.UserName != User.Identity.Name)
             {
                 Log.Warning($"In AccountController.UpdatePassword action: user {User.Identity.Name} attempt to update password for application user {Model.UserName}, aborting");
                 Response.Headers.Add("Warning", "You may not access another user's settings.");
                 return Unauthorized();
             }
+
+            if (! await IsUserAccountLocal(Model.UserName))
+            {
+                Log.Error($"In AccountController.UpdatePassword action: user {Model.UserName} invalid attempt to update password for externally authenticated account, aborting");
+                Response.Headers.Add("Warning", "Your account authenticates to an external source. A password reset is not supported in MAP.");
+                return Unauthorized();
+            }
+
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
 
             if (ModelState.IsValid)
             {
