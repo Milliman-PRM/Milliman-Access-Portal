@@ -116,9 +116,9 @@ namespace MillimanAccessPortal.DataQueries
                 clientWith.ContentItemCount = _dbContext.RootContentItem
                     .Where(i => i.ClientId == client.Id)
                     .Count();
-                clientWith.UserCount = _dbContext.UserClaims
-                    .Where(m => m.ClaimType == ClaimNames.ClientMembership.ToString())
-                    .Where(m => m.ClaimValue == client.Id.ToString())
+                clientWith.UserCount = _dbContext.UserRoleInClient
+                    .Where(r => r.ClientId == client.Id)
+                    .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
                     .Count();
 
                 clientsWith.Add(clientWith);
