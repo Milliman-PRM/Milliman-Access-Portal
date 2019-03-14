@@ -249,6 +249,9 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     cancelReduction: false,
   }),
 });
+const pendingStatusTries = createReducer<number>(4, {
+  DECREMENT_STATUS_REFRESH_ATTEMPTS: (state) => state ? state - 1 : 0,
+});
 const pendingIsMaster = createReducer<boolean>(null, {
   SET_PENDING_IS_MASTER: (_state, action: AccessActions.SetPendingIsMaster) => action.isMaster,
   SELECT_GROUP: () => null,
@@ -597,6 +600,7 @@ const cardAttributes = combineReducers({
 });
 const pending = combineReducers({
   data: pendingData,
+  statusTries: pendingStatusTries,
   isMaster: pendingIsMaster,
   selections: pendingSelections,
   newGroupName: pendingNewGroupName,

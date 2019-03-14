@@ -97,6 +97,7 @@ export interface AccessStateCardAttributes {
  */
 export interface AccessStatePending {
   data: PendingDataState;
+  statusTries: number;
   isMaster: boolean;
   selections: Dict<{ selected: boolean }>;
   newGroupName: string;

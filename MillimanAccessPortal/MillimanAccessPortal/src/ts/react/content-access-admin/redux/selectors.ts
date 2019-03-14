@@ -580,3 +580,11 @@ export function addableUsers(state: AccessState) {
     ).map((id) => state.data.users[id])
     : [];
 }
+
+/**
+ * Select the number of status refresh attempts remaining
+ * @param state Redux store
+ */
+export function remainingStatusRefreshAttempts(state: AccessState) {
+  return state.pending.statusTries;
+}

@@ -246,6 +246,13 @@ export interface PromptGroupNameEmpty {
   type: 'PROMPT_GROUP_NAME_EMPTY';
 }
 
+/**
+ * Display a toast indicating that the status refresh polling has stopped
+ */
+export interface PromptStatusRefreshStopped {
+  type: 'PROMPT_STATUS_REFRESH_STOPPED';
+}
+
 // ~~ Server actions ~~
 
 /**
@@ -397,6 +404,13 @@ export interface FetchStatusRefreshFailed {
 export interface ScheduleStatusRefresh {
   type: 'SCHEDULE_STATUS_REFRESH';
   delay: number;
+}
+
+/**
+ * Decrement remaining status refresh attempts
+ */
+export interface DecrementStatusRefreshAttempts {
+  type: 'DECREMENT_STATUS_REFRESH_ATTEMPTS';
 }
 
 /**
@@ -590,6 +604,8 @@ export type PageAction = SelectClient
   | SetPendingGroupUserRemoved
   | PromptGroupEditing
   | PromptGroupNameEmpty
+  | PromptStatusRefreshStopped
+  | DecrementStatusRefreshAttempts
   ;
 
 /**
