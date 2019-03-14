@@ -92,6 +92,14 @@ const createModalReducer = (openActions: Array<OpenAction['type']>, closeActions
   return createReducer<ModalState>({ isOpen: false }, handlers);
 };
 
+const clientCardAttributes = createReducer<Dict<CardAttributes>>({},
+  {
+    FETCH_CLIENTS_SUCCEEDED: (__, { response }: AccessActions.FetchClientsSucceeded) => ({
+      ..._.mapValues(response.clients, () => ({ disabled: false })),
+      ..._.mapValues(response.parentClients, () => ({ disabled: true })),
+    }),
+  },
+);
 const groupCardAttributes = createReducer<Dict<CardAttributes>>({},
   {
     SET_GROUP_EDITING_ON: (state, action: AccessActions.SetGroupEditingOn) => ({
@@ -312,7 +320,10 @@ const pendingDeleteGroup = createReducer<Guid>(null, {
 const data = createReducer<AccessStateData>(_initialData, {
   FETCH_CLIENTS_SUCCEEDED: (state, action: AccessActions.FetchClientsSucceeded) => ({
     ...state,
-    clients: action.response.clients,
+    clients: {
+      ...action.response.clients,
+      ...action.response.parentClients,
+    },
     users: action.response.users,
   }),
   FETCH_ITEMS_SUCCEEDED: (state, action: AccessActions.FetchItemsSucceeded) => {
@@ -581,6 +592,7 @@ const selected = createReducer<AccessStateSelected>(
   },
 );
 const cardAttributes = combineReducers({
+  client: clientCardAttributes,
   group: groupCardAttributes,
 });
 const pending = combineReducers({

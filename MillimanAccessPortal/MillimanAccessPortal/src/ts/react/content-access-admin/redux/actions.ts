@@ -261,6 +261,7 @@ export interface FetchClientsSucceeded {
   type: 'FETCH_CLIENTS_SUCCEEDED';
   response: {
     clients: Dict<ClientWithEligibleUsers>;
+    parentClients: Dict<ClientWithStats>;
     users: Dict<User>;
   };
 }
