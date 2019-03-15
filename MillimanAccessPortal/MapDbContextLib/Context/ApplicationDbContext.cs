@@ -8,6 +8,7 @@ using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System;
 using System.Threading.Tasks;
 using System.Linq;
@@ -39,6 +40,15 @@ namespace MapDbContextLib.Context
         // Had to implement this parameterless constructor for Mocking in unit tests, I hope this doesn't cause any problem in EF
         public ApplicationDbContext() { }
 
+        static ApplicationDbContext()
+        {
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<AuthenticationType>();
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<PublicationStatus>();
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<ReductionStatusEnum>();
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<ContentTypeEnum>();
+        }
+            
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {}
@@ -49,6 +59,11 @@ namespace MapDbContextLib.Context
             // Customize the ASP.NET Identity model and override the defaults if needed.
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
+
+            builder.ForNpgsqlHasEnum<AuthenticationType>();
+            builder.ForNpgsqlHasEnum<PublicationStatus>();
+            builder.ForNpgsqlHasEnum<ReductionStatusEnum>();
+            builder.ForNpgsqlHasEnum<ContentTypeEnum>();
 
             builder.HasPostgresExtension("uuid-ossp");  // enable server extension to support uuid generation functions
             builder.HasPostgresExtension("citext");  // enable server extension to support case insensitive text field type
@@ -66,6 +81,7 @@ namespace MapDbContextLib.Context
             builder.Entity<AuthenticationScheme>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.HasAlternateKey(s => s.Name);
             });
             builder.Entity<Client>(b =>
             {

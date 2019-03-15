@@ -18,7 +18,12 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public string UserName { get; set; }
         public string Email { get; set; }
         public string Phone { get; set; }
+        public string AssignedScheme { get; set; }
 
+        /// <summary>
+        /// Type cast operator to obtain a model of this type from ApplicationUser
+        /// </summary>
+        /// <param name="user">Navigation property AuthenticationScheme should be `.Include`d</param>
         public static explicit operator UserDetail(ApplicationUser user)
         {
             if (user == null)
@@ -35,6 +40,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 UserName = user.UserName,
                 Email = user.Email,
                 Phone = user.PhoneNumber,
+                AssignedScheme = user.AuthenticationScheme?.DisplayName,
             };
         }
 

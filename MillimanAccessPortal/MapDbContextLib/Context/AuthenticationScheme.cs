@@ -20,6 +20,7 @@ namespace MapDbContextLib.Context
 {
     public enum AuthenticationType
     {
+        // Warning.  If the value set is changed, a manual update is required to the enumeration type in the database, or raw SQL added using a migration
         Default,
         WsFederation,
     }
@@ -30,6 +31,7 @@ namespace MapDbContextLib.Context
         public Guid Id { get; set; }
 
         [Required]
+        // Unique constraint is imposed using fluent API in ApplicationDbContext class
         public string Name { get; set; }
 
         [Required]

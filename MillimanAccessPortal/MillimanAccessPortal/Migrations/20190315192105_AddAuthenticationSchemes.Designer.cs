@@ -11,13 +11,17 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20190308183407_AddAuthenticationSchemes")]
+    [Migration("20190315192105_AddAuthenticationSchemes")]
     partial class AddAuthenticationSchemes
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasAnnotation("Npgsql:Enum:authentication_type", "default,ws_federation")
+                .HasAnnotation("Npgsql:Enum:content_type_enum", "unknown,qlikview,html,pdf,file_download")
+                .HasAnnotation("Npgsql:Enum:publication_status", "unknown,canceled,rejected,validating,queued,processing,post_process_ready,post_processing,processed,confirming,confirmed,replaced,error")
+                .HasAnnotation("Npgsql:Enum:reduction_status_enum", "unspecified,canceled,rejected,validating,queued,reducing,reduced,live,replaced,error")
                 .HasAnnotation("Npgsql:PostgresExtension:citext", ",,")
                 .HasAnnotation("Npgsql:PostgresExtension:uuid-ossp", ",,")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
@@ -41,9 +45,11 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("SchemeProperties")
                         .HasColumnType("jsonb");
 
-                    b.Property<int>("Type");
+                    b.Property<AuthenticationType>("Type");
 
                     b.HasKey("Id");
+
+                    b.HasAlternateKey("Name");
 
                     b.ToTable("AuthenticationScheme");
                 });
@@ -113,7 +119,7 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("ReductionRelatedFiles")
                         .HasColumnType("jsonb");
 
-                    b.Property<int>("RequestStatus");
+                    b.Property<PublicationStatus>("RequestStatus");
 
                     b.Property<string>("ResultHierarchy")
                         .HasColumnType("jsonb");
@@ -167,9 +173,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("ReducedContentHierarchy")
                         .HasColumnType("jsonb");
 
-                    b.Property<long>("ReductionStatus")
+                    b.Property<ReductionStatusEnum>("ReductionStatus")
                         .ValueGeneratedOnAdd()
-                        .HasDefaultValue(0L);
+                        .HasDefaultValue(ReductionStatusEnum.Unspecified);
 
                     b.Property<string>("ReductionStatusMessage");
 

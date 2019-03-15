@@ -192,12 +192,13 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ApplicationUser user = null;
+            Guid queryUserId = filter.UserId ?? Guid.Empty;
+            ApplicationUser user = _dbContext.ApplicationUser.Include(u => u.AuthenticationScheme).SingleOrDefault(u => u.Id == queryUserId);
+
             #region Validation
-            user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == (filter.UserId ?? Guid.Empty));
             if (user == null)
             {
-                Log.Debug($"In SystemAdminController.UserDetail action: user {User.Identity.Name} not found, aborting");
+                Log.Information($"In SystemAdminController.UserDetail action: requested user {queryUserId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -806,7 +807,6 @@ namespace MillimanAccessPortal.Controllers
             #region Authorization
             // User must have SysAdmin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
-
             if (!result.Succeeded)
             {
                 Log.Debug($"In SystemAdminController.AddNewAuthenticationScheme action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
@@ -817,7 +817,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             if (await _authentService.Schemes.GetSchemeAsync(name) != null || 
-                _dbContext.AuthenticationScheme.Any(s => s.Name.ToLower() == name.ToLower()))
+                _dbContext.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, name)))
             {
                 Log.Error($"Attempted to add external authentication scheme named {name} but a scheme with this name already exists");
                 return StatusCode(StatusCodes.Status500InternalServerError);
@@ -895,7 +895,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             if (await _authentService.Schemes.GetSchemeAsync(name) == null ||
-                _dbContext.AuthenticationScheme.All(s => s.Name.ToLower() != name.ToLower()))
+                _dbContext.AuthenticationScheme.All(s => !EF.Functions.ILike(s.Name, name)))
             {
                 Log.Error($"Attempted to update external authentication scheme named {name} but no scheme with this name exists");
                 return StatusCode(StatusCodes.Status500InternalServerError);
@@ -904,7 +904,7 @@ namespace MillimanAccessPortal.Controllers
 
             AuthenticationType authType = (AuthenticationType)type;
 
-            MapDbContextLib.Context.AuthenticationScheme schemeRecord = _dbContext.AuthenticationScheme.Single(s => s.Name.ToLower() == name.ToLower());
+            MapDbContextLib.Context.AuthenticationScheme schemeRecord = _dbContext.AuthenticationScheme.Single(s => EF.Functions.ILike(s.Name, name));
             schemeRecord.DisplayName = displayName;
             schemeRecord.DomainList = domainList;
             schemeRecord.Type = authType;
@@ -1330,6 +1330,56 @@ namespace MillimanAccessPortal.Controllers
         #endregion
 
         #region Immediate toggle actions
+        /// <summary>
+        /// Assigns a user to use the specified authentication scheme for future authentication
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="schemeName">null to specify that the username domain will be parsed to determine authentication provider</param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<ActionResult> AssignUserAuthenticationScheme(Guid userId, string schemeName)
+        {
+            Log.Verbose("Entered SystemAdminController.UserAuthenticationScheme action with {@UserId}, {@SchemeName}", userId, schemeName);
+
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In SystemAdminController.UserAuthenticationScheme action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var user = await _dbContext.ApplicationUser.SingleOrDefaultAsync(u => u.Id == userId);
+            var authenticationScheme = await _dbContext.AuthenticationScheme.SingleOrDefaultAsync(s => EF.Functions.ILike(s.Name, schemeName));
+
+            #region Validation
+            if (user == null)
+            {
+                Log.Debug($"In SystemAdminController.UserAuthenticationScheme action: user {userId} not found, aborting");
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (authenticationScheme == null)
+            {
+                Log.Debug($"In SystemAdminController.UserAuthenticationScheme action: scheme {schemeName} not found, aborting");
+                Response.Headers.Add("Warning", "The specified scheme does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            user.AuthenticationSchemeId = authenticationScheme.Id;
+            int writeCount = await _dbContext.SaveChangesAsync();
+
+            Log.Verbose("In SystemAdminController.UserAuthenticationScheme action: success");
+
+            return Json(writeCount == 1);
+        }
+
         /// <summary>
         /// Get whether a user has a particular system role or not.
         /// </summary>
