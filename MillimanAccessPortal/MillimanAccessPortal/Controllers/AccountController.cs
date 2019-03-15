@@ -1287,6 +1287,75 @@ namespace MillimanAccessPortal.Controllers
             return BadRequest();
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateAccount([FromBody] UpdateAccountModel model)
+        {
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+            if (user == null)
+            {
+                Log.Debug("In AccountController.AccountSettings POST action: "
+                       + $"user {User.Identity.Name} not found, aborting");
+                return BadRequest();
+            }
+
+            DbContext.Attach(user);
+            using (var txn = await DbContext.Database.BeginTransactionAsync())
+            {
+                if (model.User != null)
+                {
+                    user.FirstName = model.User.FirstName;
+                    user.LastName = model.User.LastName;
+                    user.PhoneNumber = model.User.Phone;
+                    user.Employer = model.User.Employer;
+                }
+                if (model.Password != null)
+                {
+                    IdentityResult result = await _userManager
+                        .ChangePasswordAsync(user, model.Password.Current, model.Password.New);
+
+                    if (!result.Succeeded)
+                    {
+                        Log.Warning("Failed to change password " +
+                                   $"for user {user.UserName}, aborting");
+                        return BadRequest();
+                    }
+
+                    // Save password hash in history
+                    user.PasswordHistoryObj = user.PasswordHistoryObj
+                        .Append(new PreviousPassword(model.Password.New)).ToList();
+                    user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
+                    var addHistoryResult = await _userManager.UpdateAsync(user);
+
+                    if (!addHistoryResult.Succeeded)
+                    {
+                        Log.Warning("Failed to save password history or update password timestamp " +
+                                   $"for user {user.UserName}, aborting");
+                        return BadRequest();
+                    }
+                }
+
+                await DbContext.SaveChangesAsync();
+                txn.Commit();
+            }
+
+            string scheme = await GetAuthenticationSchemeForUser(user.UserName);
+
+            return Json(new
+            {
+                Id = user.Id,
+                IsActivated = user.EmailConfirmed,
+                IsSuspended = user.IsSuspended,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                UserName = user.UserName,
+                Email = user.Email,
+                Phone = user.PhoneNumber,
+                Employer = user.Employer,
+                IsLocal = string.IsNullOrWhiteSpace(scheme),
+            });
+        }
+
         [HttpGet]
         [PreventAuthRefresh]
         [LogTiming]

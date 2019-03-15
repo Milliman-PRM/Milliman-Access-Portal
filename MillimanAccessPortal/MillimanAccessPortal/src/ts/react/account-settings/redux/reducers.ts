@@ -67,6 +67,13 @@ const data = createReducer<AccountStateData>(_initialData, ({
       ...response,
     },
   }),
+  UPDATE_ACCOUNT_SUCCEEDED: (state, { response }: AccountActions.UpdateAccountSucceeded) => ({
+    ...state,
+    user: {
+      ...state.user,
+      ...response,
+    },
+  }),
 }));
 const pendingInputs = createReducer<PendingInputState>(_initialPendingInputs, ({
   SET_PENDING_TEXT_INPUT_VALUE: (state, action: AccountActions.SetPendingTextInputValue) => ({
@@ -74,6 +81,7 @@ const pendingInputs = createReducer<PendingInputState>(_initialPendingInputs, ({
     [action.inputName]: action.value,
   }),
   RESET_FORM: () => _initialPendingInputs,
+  UPDATE_ACCOUNT_SUCCEEDED: () => _initialPendingInputs,
 }));
 const pendingRequests = createReducer<PendingRequestState>(_initialPendingRequests, ({
   FETCH_USER: (state) => ({
@@ -177,6 +185,7 @@ const form = createReducer<AccountStateForm>(_initialValidation, ({
     },
   }),
   RESET_FORM: () => _initialValidation,
+  UPDATE_ACCOUNT_SUCCEEDED: () => _initialValidation,
 }));
 export const accountSettings = combineReducers({
   data,

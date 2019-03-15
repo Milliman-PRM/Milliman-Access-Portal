@@ -4,9 +4,10 @@ import ReduxToastr from 'react-redux-toastr';
 
 import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
+import { UpdateAccount } from './redux/actions';
 import {
     allPasswordInputsModified, allPasswordInputsValid, allUserInputsValid, anyPasswordInputModified,
-    anyUserInputModified, inputProps, validProps,
+    anyUserInputModified, inputProps, updateProps, validProps,
 } from './redux/selectors';
 import { AccountState, ValidationState } from './redux/store';
 
@@ -30,6 +31,7 @@ interface AccountSettingsProps {
     newPassword: ValidationState;
     confirmPassword: ValidationState;
   };
+  updateData: UpdateAccount['request'];
   isLocal: boolean;
   anyPasswordInputModified: boolean;
   discardButtonEnabled: boolean;
@@ -329,6 +331,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
           <button
             type="button"
             className={`button-submit blue-button${submitButtonEnabled ? '' : ' disabled'}`}
+            onClick={() => this.props.updateAccount(this.props.updateData)}
           >
             Update Account
           </button>
@@ -357,6 +360,7 @@ function mapStateToProps(state: AccountState): AccountSettingsProps {
   return {
     inputs: inputProps(state),
     valid: validProps(state),
+    updateData: updateProps(state),
     anyPasswordInputModified: anyPasswordInputModified(state),
     discardButtonEnabled: anyUserInputModified(state) || anyPasswordInputModified(state),
     submitButtonEnabled: (anyUserInputModified(state) || anyPasswordInputModified(state))

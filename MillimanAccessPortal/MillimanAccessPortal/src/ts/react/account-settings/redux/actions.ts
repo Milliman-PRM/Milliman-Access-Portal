@@ -55,6 +55,26 @@ export interface FetchUserFailed {
 }
 
 /**
+ * POST:
+ *   update user information
+ */
+export interface UpdateAccount {
+  type: 'UPDATE_ACCOUNT';
+  request: {
+    user?: UserInputState,
+    password?: PasswordInputState,
+  };
+}
+export interface UpdateAccountSucceeded {
+  type: 'UPDATE_ACCOUNT_SUCCEEDED';
+  response: UserFull;
+}
+export interface UpdateAccountFailed {
+  type: 'UPDATE_ACCOUNT_FAILED';
+  error: TSError;
+}
+
+/**
  * Validate the user section
  */
 export interface ValidateInputUser {
@@ -112,6 +132,7 @@ export type ScheduleAccountAction =
  */
 export type RequestAccountAction =
   | FetchUser
+  | UpdateAccount
   ;
 
 /**
@@ -119,6 +140,7 @@ export type RequestAccountAction =
  */
 export type ResponseAccountAction =
   | FetchUserSucceeded
+  | UpdateAccountSucceeded
   ;
 
 /**
@@ -126,6 +148,7 @@ export type ResponseAccountAction =
  */
 export type ErrorAccountAction =
   | FetchUserFailed
+  | UpdateAccountFailed
   ;
 
 /**

@@ -35,6 +35,7 @@ const takeLatestValidation = createTakeLatestValidation<ValidationAccountAction,
 export default function* rootSaga() {
   // API requests
   yield takeLatestRequest('FETCH_USER', api.fetchUser);
+  yield takeLatestRequest('UPDATE_ACCOUNT', api.updateAccount);
 
   // Scheduled actions
   // yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessActionCreators.fetchSessionCheck({}));
@@ -43,8 +44,10 @@ export default function* rootSaga() {
   // yield takeLatest('FETCH_SESSION_CHECK_FAILED', function*() { yield window.location.reload(); });
 
   // Toasts
+  yield takeEveryToast('UPDATE_ACCOUNT_SUCCEEDED', 'Your account has been updated.');
   yield takeEveryToast<ErrorAccountAction>([
     'FETCH_USER_FAILED',
+    'UPDATE_ACCOUNT_FAILED',
   ], ({ message }) => message === 'sessionExpired'
       ? 'Your session has expired. Please refresh the page.'
       : isNaN(message)

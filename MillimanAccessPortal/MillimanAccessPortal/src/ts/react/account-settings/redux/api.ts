@@ -58,6 +58,10 @@ export const fetchUser =
   createJsonRequestor<AccountActions.FetchUser, AccountActions.FetchUserSucceeded>
   ('GET', '/Account/AccountSettings2');
 
+export const updateAccount =
+  createJsonRequestor<AccountActions.FetchUser, AccountActions.FetchUserSucceeded>
+  ('POST', '/Account/UpdateAccount');
+
 export const validateUserInput = async (value: UserInputState, inputName: string) => {
   if (inputName) {
     return await userSchema.validateAt(inputName, value);

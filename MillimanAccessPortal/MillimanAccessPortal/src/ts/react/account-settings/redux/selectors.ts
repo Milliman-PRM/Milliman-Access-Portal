@@ -116,3 +116,30 @@ export function validProps(state: AccountState) {
     confirmPassword: valid.confirm,
   };
 }
+
+/**
+ * Select an object containing what should be submitted on form submission
+ * @param state Redux store
+ */
+export function updateProps(state: AccountState) {
+  const values = pendingInputValues(state);
+  const userModified = anyUserInputModified(state);
+  const passwordModified = anyPasswordInputModified(state);
+  return {
+    user: userModified
+      ? {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        phone: values.phone,
+        employer: values.employer,
+      }
+      : null,
+    password: passwordModified
+      ? {
+        current: values.current,
+        new: values.new,
+        confirm: values.confirm,
+      }
+      : null,
+  };
+}
