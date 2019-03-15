@@ -53,6 +53,16 @@ export function anyPasswordInputModified(state: AccountState) {
 }
 
 /**
+ * Select whether all password inputs are modified
+ * @param state Redux store
+ */
+export function allPasswordInputsModified(state: AccountState) {
+  return _.reduce(
+    _.filter(modifiedInputs(state), (__, key) => ['current', 'new', 'confirm'].indexOf(key) !== -1)
+    , (prev, cur) => prev && cur.modified, true);
+}
+
+/**
  * Select whether all user inputs are valid
  * @param state Redux store
  */

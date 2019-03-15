@@ -30,16 +30,16 @@ const validatePassword = async (requestModel: { proposedPassword: string }) =>
 
 let msg: string = null;
 const userSchema = yup.object<UserInputState>({
-  firstName: yup.string().required('This field is required.'),
-  lastName: yup.string().required('This field is required.'),
+  firstName: yup.string().required('This field is required'),
+  lastName: yup.string().required('This field is required'),
   phone: yup.string(),
   employer: yup.string(),
 });
 const passwordSchema = yup.object<PasswordInputState>({
   current: yup.string()
-    .required('This field is required.'),
+    .required('This field is required'),
   new: yup.string()
-    .notOneOf([yup.ref('current')], 'New password must be different.')
+    .notOneOf([yup.ref('current')], 'Your new password must be different from your current one')
     .test('password', () => msg, (value) =>
       validatePassword({ proposedPassword: value })
         .then((response) => {
@@ -48,10 +48,10 @@ const passwordSchema = yup.object<PasswordInputState>({
             : null;
           return response.valid;
         }))
-    .required('This field is required.'),
+    .required('This field is required'),
   confirm: yup.string()
-    .oneOf([yup.ref('new')], 'Passwords must match.')
-    .required('This field is required.'),
+    .oneOf([yup.ref('new')], 'Does not match new password')
+    .required('This field is required'),
 }).notRequired();
 
 export const fetchUser =

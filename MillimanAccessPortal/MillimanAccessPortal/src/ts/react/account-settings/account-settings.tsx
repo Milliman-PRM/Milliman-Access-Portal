@@ -5,8 +5,8 @@ import ReduxToastr from 'react-redux-toastr';
 import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
 import {
-    allPasswordInputsValid, allUserInputsValid, anyPasswordInputModified, anyUserInputModified,
-    inputProps, validProps,
+    allPasswordInputsModified, allPasswordInputsValid, allUserInputsValid, anyPasswordInputModified,
+    anyUserInputModified, inputProps, validProps,
 } from './redux/selectors';
 import { AccountState, ValidationState } from './redux/store';
 
@@ -31,6 +31,7 @@ interface AccountSettingsProps {
     confirmPassword: ValidationState;
   };
   isLocal: boolean;
+  anyPasswordInputModified: boolean;
   discardButtonEnabled: boolean;
   submitButtonEnabled: boolean;
 }
@@ -242,7 +243,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                   });
                 }}
               />
-              {this.props.valid.currentPassword.valid
+              {this.props.valid.currentPassword.valid || !this.props.anyPasswordInputModified
               ? null
               : (
                 <span className="text-danger field-validation-valid">
@@ -273,7 +274,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                   });
                 }}
               />
-              {this.props.valid.newPassword.valid
+              {this.props.valid.newPassword.valid || !this.props.anyPasswordInputModified
               ? null
               : (
                 <span className="text-danger field-validation-valid">
@@ -304,7 +305,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                   });
                 }}
               />
-              {this.props.valid.confirmPassword.valid
+              {this.props.valid.confirmPassword.valid || !this.props.anyPasswordInputModified
               ? null
               : (
                 <span className="text-danger field-validation-valid">
@@ -356,10 +357,13 @@ function mapStateToProps(state: AccountState): AccountSettingsProps {
   return {
     inputs: inputProps(state),
     valid: validProps(state),
+    anyPasswordInputModified: anyPasswordInputModified(state),
     discardButtonEnabled: anyUserInputModified(state) || anyPasswordInputModified(state),
     submitButtonEnabled: (anyUserInputModified(state) || anyPasswordInputModified(state))
       && (anyUserInputModified(state) ? allUserInputsValid(state) : true)
-      && (anyPasswordInputModified(state) ? allPasswordInputsValid(state) : true),
+      && (anyPasswordInputModified(state)
+        ? allPasswordInputsModified(state) && allPasswordInputsValid(state)
+        : true),
     isLocal: state.data.user.isLocal,
   };
 }
