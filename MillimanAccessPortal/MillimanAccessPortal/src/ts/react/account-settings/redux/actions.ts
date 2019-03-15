@@ -5,14 +5,20 @@ import { PasswordInputState, UserInputState } from './api';
 
 export type TSError = any;  // any by necessity due to the nature of try/catch in TypeScript
 
-type InputName =
+type UserInputName =
   | 'firstName'
   | 'lastName'
   | 'phone'
   | 'employer'
+  ;
+type PasswordInputName =
   | 'current'
   | 'new'
   | 'confirm'
+  ;
+type InputName =
+  | UserInputName
+  | PasswordInputName
   ;
 
 /**
@@ -54,14 +60,17 @@ export interface FetchUserFailed {
 export interface ValidateInputUser {
   type: 'VALIDATE_INPUT_USER';
   value: UserInputState;
+  inputName?: UserInputName;
 }
 export interface ValidateInputUserSucceeded {
   type: 'VALIDATE_INPUT_USER_SUCCEEDED';
   result: any;
+  inputName?: UserInputName;
 }
 export interface ValidateInputUserFailed {
   type: 'VALIDATE_INPUT_USER_FAILED';
   result: ValidationError;
+  inputName?: UserInputName;
 }
 
 /**
@@ -70,14 +79,17 @@ export interface ValidateInputUserFailed {
 export interface ValidateInputPassword {
   type: 'VALIDATE_INPUT_PASSWORD';
   value: PasswordInputState;
+  inputName?: PasswordInputName;
 }
 export interface ValidateInputPasswordSucceeded {
   type: 'VALIDATE_INPUT_PASSWORD_SUCCEEDED';
   result: any;
+  inputName?: UserInputName;
 }
 export interface ValidateInputPasswordFailed {
   type: 'VALIDATE_INPUT_PASSWORD_FAILED';
   result: ValidationError;
+  inputName?: UserInputName;
 }
 
 /**

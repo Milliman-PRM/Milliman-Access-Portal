@@ -1,11 +1,10 @@
+import * as _ from 'lodash';
 import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
-import { boolean } from 'yup';
 
 import { createReducerCreator } from '../../shared-components/redux/reducers';
-import {
-    AccountAction, FetchUserSucceeded, SetPendingTextInputValue, ValidateInputUser,
-} from './actions';
+import { AccountAction } from './actions';
+import * as AccountActions from './actions';
 import {
     AccountStateData, AccountStateForm, PendingInputState, PendingRequestState,
     PendingValidationState,
@@ -61,7 +60,7 @@ const _initialPendingValidation: PendingValidationState = {
 const createReducer = createReducerCreator<AccountAction>();
 
 const data = createReducer<AccountStateData>(_initialData, ({
-  FETCH_USER_SUCCEEDED: (state, { response }: FetchUserSucceeded) => ({
+  FETCH_USER_SUCCEEDED: (state, { response }: AccountActions.FetchUserSucceeded) => ({
     ...state,
     user: {
       ...state.user,
@@ -70,7 +69,7 @@ const data = createReducer<AccountStateData>(_initialData, ({
   }),
 }));
 const pendingInputs = createReducer<PendingInputState>(_initialPendingInputs, ({
-  SET_PENDING_TEXT_INPUT_VALUE: (state, action: SetPendingTextInputValue) => ({
+  SET_PENDING_TEXT_INPUT_VALUE: (state, action: AccountActions.SetPendingTextInputValue) => ({
     ...state,
     [action.inputName]: action.value,
   }),
@@ -122,58 +121,59 @@ const pending = combineReducers({
   validation: pendingValidation,
 });
 const form = createReducer<AccountStateForm>(_initialValidation, ({
-  VALIDATE_INPUT_USER_SUCCEEDED: (state) => ({
+  VALIDATE_INPUT_USER_SUCCEEDED: (state, { inputName }: AccountActions.ValidateInputUserSucceeded) => inputName
+    ? {
+      ...state,
+      [inputName]: {
+        valid: true,
+      },
+    }
+    : {
+      ...state,
+      firstName: {
+        valid: true,
+      },
+      lastName: {
+        valid: true,
+      },
+      phone: {
+        valid: true,
+      },
+      employer: {
+        valid: true,
+      },
+    },
+  VALIDATE_INPUT_USER_FAILED: (state, action: AccountActions.ValidateInputUserFailed) => ({
     ...state,
-    firstName: {
-      valid: true,
-    },
-    lastName: {
-      valid: true,
-    },
-    phone: {
-      valid: true,
-    },
-    employer: {
-      valid: true,
+    [action.result.path]: {
+      valid: false,
+      message: action.result.message,
     },
   }),
-  VALIDATE_INPUT_USER_FAILED: (state) => ({
+  VALIDATE_INPUT_PASSWORD_SUCCEEDED: (state, { inputName }: AccountActions.ValidateInputPasswordSucceeded) => inputName
+    ? {
+      ...state,
+      [inputName]: {
+        valid: true,
+      },
+    }
+    : {
+      ...state,
+      current: {
+        valid: true,
+      },
+      new: {
+        valid: true,
+      },
+      confirm: {
+        valid: true,
+      },
+    },
+  VALIDATE_INPUT_PASSWORD_FAILED: (state, action: AccountActions.ValidateInputPasswordFailed) => ({
     ...state,
-    firstName: {
+    [action.result.path]: {
       valid: false,
-      message: '???',
-    },
-    lastName: {
-      valid: false,
-      message: '???',
-    },
-    phone: {
-      valid: false,
-      message: '???',
-    },
-    employer: {
-      valid: false,
-      message: '???',
-    },
-  }),
-  VALIDATE_INPUT_PASSWORD_SUCCEEDED: (state) => ({
-    ...state,
-    new: {
-      valid: true,
-    },
-    current: {
-      valid: true,
-    },
-  }),
-  VALIDATE_INPUT_PASSWORD_FAILED: (state) => ({
-    ...state,
-    new: {
-      valid: false,
-      message: '???',
-    },
-    current: {
-      valid: false,
-      message: '???',
+      message: action.result.message,
     },
   }),
 }));

@@ -113,6 +113,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                         ...this.props.inputs,
                         firstName: target.value,
                       },
+                      inputName: 'firstName',
                     });
                   }}
                   autoFocus={true}
@@ -143,6 +144,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                         ...this.props.inputs,
                         lastName: target.value,
                       },
+                      inputName: 'lastName',
                     });
                   }}
                 />
@@ -173,6 +175,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                         ...this.props.inputs,
                         phone: target.value,
                       },
+                      inputName: 'phone',
                     });
                   }}
                 />
@@ -196,6 +199,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                         ...this.props.inputs,
                         employer: target.value,
                       },
+                      inputName: 'employer',
                     });
                   }}
                 />
@@ -223,11 +227,28 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                 type="password"
                 name="currentPassword"
                 value={currentPassword}
-                onChange={({ target }) => this.props.setPendingTextInputValue({
-                  inputName: 'current',
-                  value: target.value,
-                })}
+                onChange={({ target }) => {
+                  this.props.setPendingTextInputValue({
+                    inputName: 'current',
+                    value: target.value,
+                  });
+                  this.props.validateInputPassword({
+                    value: {
+                      current: target.value,
+                      new: this.props.inputs.newPassword,
+                      confirm: this.props.inputs.confirmPassword,
+                    },
+                    inputName: 'current',
+                  });
+                }}
               />
+              {this.props.valid.currentPassword.valid
+              ? null
+              : (
+                <span className="text-danger field-validation-valid">
+                  {this.props.valid.currentPassword.message}
+                </span>
+              )}
             </div>
           </div>
           <div className="form-input htmlForm-input-text flex-item-12-12">
@@ -244,9 +265,11 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                   });
                   this.props.validateInputPassword({
                     value: {
-                      confirm: this.props.inputs.confirmPassword,
+                      current: this.props.inputs.currentPassword,
                       new: target.value,
+                      confirm: this.props.inputs.confirmPassword,
                     },
+                    inputName: 'new',
                   });
                 }}
               />
@@ -273,9 +296,11 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
                   });
                   this.props.validateInputPassword({
                     value: {
+                      current: this.props.inputs.currentPassword,
                       new: this.props.inputs.newPassword,
                       confirm: target.value,
                     },
+                    inputName: 'confirm',
                   });
                 }}
               />

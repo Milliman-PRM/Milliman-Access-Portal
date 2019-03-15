@@ -48,24 +48,24 @@ export function createTakeLatestValidation<TVal extends ValidationAction, TRes e
    * @param action the validation action that caused this saga to fire
    */
   function* requestSaga(
-    validation: (value: any) => TRes['result'],
+    validation: (value: any, inputName: TVal['inputName']) => TRes['result'],
     action: TVal,
   ) {
     try {
-      const response = yield call(validation, action.value);
+      const response = yield call(validation, action.value, action.inputName);
       yield put(
         createValidationResultActionCreator(`${action.type}_SUCCEEDED` as TRes['type'])
-        (response));
+        (response, action.inputName));
     } catch (error) {
       yield put(
         createValidationErrorActionCreator(`${action.type}_FAILED` as ErrorAction['type'])
-        (error));
+        (error, action.inputName));
     }
   }
 
   return (
     type: TVal['type'],
-    apiCall: (value: any) => Promise<TRes['result']>,
+    apiCall: (value: any, inputName: TVal['inputName']) => Promise<TRes['result']>,
   ) => takeLatest(type, requestSaga, apiCall);
 }
 

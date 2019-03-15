@@ -67,10 +67,11 @@ export function createErrorActionCreator<T extends ErrorAction>(type: T['type'])
  */
 export function createValidationResultActionCreator
   <T extends ValidationResultAction>(type: T['type']):
-  (result: any) => T {
-  return (result: any) => Object.assign(
+  (result: any, inputName: T['inputName']) => T {
+  return (result: any, inputName: T['inputName']) => Object.assign(
     {} as T,  // TypeScript can't infer T from its parts because it is generic
     { type },
+    { inputName },
     { result },
   );
 }
@@ -82,10 +83,11 @@ export function createValidationResultActionCreator
  */
 export function createValidationErrorActionCreator
   <T extends ValidationResultAction>(type: T['type']):
-  (result: ValidationError) => T {
-  return (result: ValidationError) => Object.assign(
+  (result: ValidationError, inputName: T['inputName']) => T {
+  return (result: ValidationError, inputName: T['inputName']) => Object.assign(
     {} as T,  // TypeScript can't infer T from its parts because it is generic
     { type },
+    { inputName },
     { result },
   );
 }

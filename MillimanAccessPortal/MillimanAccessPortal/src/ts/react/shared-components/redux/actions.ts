@@ -21,9 +21,11 @@ export interface ErrorAction extends Action {
 }
 export interface ValidationAction extends Action {
   value: any;
+  inputName?: string;
 }
 export interface ValidationResultAction extends Action {
   result: any | ValidationError;
+  inputName?: string;
 }
 
 /**

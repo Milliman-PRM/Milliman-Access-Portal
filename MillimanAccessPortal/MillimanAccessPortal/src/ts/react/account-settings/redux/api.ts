@@ -20,6 +20,7 @@ export type UserInputState = Pick<PendingInputState,
   | 'employer'
   >;
 export type PasswordInputState = Pick<PendingInputState,
+  | 'current'
   | 'new'
   | 'confirm'
   >;
@@ -27,6 +28,7 @@ export type PasswordInputState = Pick<PendingInputState,
 const validatePassword = async (requestModel: { proposedPassword: string }) =>
   await postJsonData<{ valid: boolean, messages?: string[] }>('/Account/CheckPasswordValidity2', requestModel);
 
+let msg: string = 'server error';
 const userSchema = yup.object<UserInputState>({
   firstName: yup.string().required('This field is required.'),
   lastName: yup.string().required('This field is required.'),
@@ -34,20 +36,38 @@ const userSchema = yup.object<UserInputState>({
   employer: yup.string(),
 });
 const passwordSchema = yup.object<PasswordInputState>({
-  new: yup.string().test('password', '0_0', (value) =>
-    validatePassword({ proposedPassword: value })
-      .then((response) => response.valid)),
-  confirm: yup.string().oneOf([yup.ref('new')], 'Passwords must match.').required(),
-});
+  current: yup.string()
+    .required('This field is required.'),
+  new: yup.string()
+    .notOneOf([yup.ref('current')], 'New password must be different.')
+    .test('password', () => msg, (value) =>
+      validatePassword({ proposedPassword: value })
+        .then((response) => {
+          msg = response.messages
+            ? response.messages[0]
+            : null;
+          return response.valid;
+        }))
+    .required('This field is required.'),
+  confirm: yup.string()
+    .oneOf([yup.ref('new')], 'Passwords must match.')
+    .required('This field is required.'),
+}).notRequired();
 
 export const fetchUser =
   createJsonRequestor<AccountActions.FetchUser, AccountActions.FetchUserSucceeded>
   ('GET', '/Account/AccountSettings2');
 
-export const validateUserInput = async (value: UserInputState) => {
+export const validateUserInput = async (value: UserInputState, inputName: string) => {
+  if (inputName) {
+    return await userSchema.validateAt(inputName, value);
+  }
   return await userSchema.validate(value);
 };
 
-export const validatePasswordInput = async (value: PasswordInputState) => {
+export const validatePasswordInput = async (value: PasswordInputState, inputName: string) => {
+  if (inputName) {
+    return await passwordSchema.validateAt(inputName, value);
+  }
   return await passwordSchema.validate(value);
 };
