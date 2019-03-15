@@ -32,7 +32,7 @@ import {
     ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo,
     isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
     isUserClientRoles, isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail,
-    SecondaryDetailData, UserClientRoles,
+    SecondaryDetailData, UserClientRoles, UserInfo,
 } from './interfaces';
 import { AddUserToClientModal } from './modals/add-user-to-client';
 import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
@@ -201,7 +201,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                   <>
                     <CardSectionMain>
                       <CardText
-                        text={entity.firstName + ' ' + entity.lastName}
+                        text={normalizeName(entity)}
                         subtext={entity.userName}
                       />
                       <CardSectionStats>
@@ -302,7 +302,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                                     </svg>
                                   </div>
                                   <div className="detail-item-user-name">
-                                    <h4>{u.firstName + ' ' + u.lastName}</h4>
+                                    <h4>{normalizeName(u)}</h4>
                                     <span>{u.userName}</span>
                                   </div>
                                 </span>
@@ -321,7 +321,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                 cardContents = (
                   <CardSectionMain>
                     <CardText
-                      text={entity.firstName + ' ' + entity.lastName}
+                      text={normalizeName(entity)}
                       subtext={entity.userName}
                     />
                     <CardSectionStats>
@@ -434,7 +434,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
               cardContents = (
                 <>
                   <CardText
-                    text={entity.firstName + ' ' + entity.lastName}
+                    text={normalizeName(entity)}
                     subtext={entity.userName}
                   />
                   <CardSectionStats>
@@ -1444,4 +1444,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
     return cards;
   }
+}
+
+function normalizeName({ firstName, lastName }: UserInfo) {
+  return firstName && lastName
+    ? `${firstName} ${lastName}`
+    : '(Unactivated)';
 }
