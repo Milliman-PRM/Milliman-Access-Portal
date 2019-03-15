@@ -138,7 +138,7 @@ namespace MillimanAccessPortal.Controllers
             // 2. Does the email domain match a scheme?
             string userDomain = userName.Substring(0, userName.LastIndexOf('.'))
                                         .Substring(userName.IndexOf('@') + 1);
-            var matchingScheme = DbContext.AuthenticationScheme.Where(s => s.Name == userDomain).SingleOrDefault();
+            var matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => EF.Functions.ILike(s.Name, userDomain));
             return matchingScheme?.Name;
         }
 

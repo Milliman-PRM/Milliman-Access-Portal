@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
@@ -81,7 +82,7 @@ namespace MapDbContextLib.Context
             AuthenticationService authService = (AuthenticationService)serviceProvider.GetService<IAuthenticationService>();
 
             string defaultSchemeName = (await authService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
-            if (!dbContext.AuthenticationScheme.Any(s => s.Name == defaultSchemeName))
+            if (!dbContext.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, defaultSchemeName)))
             {
                 AuthenticationScheme newScheme = new AuthenticationScheme
                 {
