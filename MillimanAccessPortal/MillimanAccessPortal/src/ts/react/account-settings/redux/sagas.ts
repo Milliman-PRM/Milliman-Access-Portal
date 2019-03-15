@@ -1,7 +1,10 @@
+import { takeLatest } from 'redux-saga/effects';
+
 import {
     createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
     createTakeLatestValidation,
 } from '../../shared-components/redux/sagas';
+import * as AccountActionCreators from './action-creators';
 import {
     AccountAction, ErrorAccountAction, RequestAccountAction, ResponseAccountAction,
     ValidationAccountAction, ValidationResultAccountAction,
@@ -35,18 +38,20 @@ const takeLatestValidation = createTakeLatestValidation<ValidationAccountAction,
 export default function* rootSaga() {
   // API requests
   yield takeLatestRequest('FETCH_USER', api.fetchUser);
+  yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);
   yield takeLatestRequest('UPDATE_ACCOUNT', api.updateAccount);
 
   // Scheduled actions
-  // yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessActionCreators.fetchSessionCheck({}));
-  // yield takeLatestSchedule('FETCH_SESSION_CHECK_SUCCEEDED',
-  //   () => AccessActionCreators.scheduleSessionCheck({ delay: 60000 }));
-  // yield takeLatest('FETCH_SESSION_CHECK_FAILED', function*() { yield window.location.reload(); });
+  yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccountActionCreators.fetchSessionCheck({}));
+  yield takeLatestSchedule('FETCH_SESSION_CHECK_SUCCEEDED',
+    () => AccountActionCreators.scheduleSessionCheck({ delay: 60000 }));
+  yield takeLatest('FETCH_SESSION_CHECK_FAILED', function*() { yield window.location.reload(); });
 
   // Toasts
   yield takeEveryToast('UPDATE_ACCOUNT_SUCCEEDED', 'Your account has been updated.');
   yield takeEveryToast<ErrorAccountAction>([
     'FETCH_USER_FAILED',
+    'FETCH_SESSION_CHECK_FAILED',
     'UPDATE_ACCOUNT_FAILED',
   ], ({ message }) => message === 'sessionExpired'
       ? 'Your session has expired. Please refresh the page.'

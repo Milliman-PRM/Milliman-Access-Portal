@@ -55,6 +55,30 @@ export interface FetchUserFailed {
 }
 
 /**
+ * GET a bodiless response that serves as a session heartbeat.
+ */
+export interface FetchSessionCheck {
+  type: 'FETCH_SESSION_CHECK';
+  request: {};
+}
+export interface FetchSessionCheckSucceeded {
+  type: 'FETCH_SESSION_CHECK_SUCCEEDED';
+  response: {};
+}
+export interface FetchSessionCheckFailed {
+  type: 'FETCH_SESSION_CHECK_FAILED';
+  error: TSError;
+}
+
+/**
+ * Fetch session check after a delay.
+ */
+export interface ScheduleSessionCheck {
+  type: 'SCHEDULE_SESSION_CHECK';
+  delay: number;
+}
+
+/**
  * POST:
  *   update user information
  */
@@ -124,7 +148,7 @@ export type PageAccountAction =
  * An action that schedules another action.
  */
 export type ScheduleAccountAction =
-  | never
+  | ScheduleSessionCheck
   ;
 
 /**
@@ -133,6 +157,7 @@ export type ScheduleAccountAction =
 export type RequestAccountAction =
   | FetchUser
   | UpdateAccount
+  | FetchSessionCheck
   ;
 
 /**
@@ -141,6 +166,7 @@ export type RequestAccountAction =
 export type ResponseAccountAction =
   | FetchUserSucceeded
   | UpdateAccountSucceeded
+  | FetchSessionCheckSucceeded
   ;
 
 /**
@@ -149,6 +175,7 @@ export type ResponseAccountAction =
 export type ErrorAccountAction =
   | FetchUserFailed
   | UpdateAccountFailed
+  | FetchSessionCheckFailed
   ;
 
 /**
@@ -174,6 +201,7 @@ export type ValidationResultAccountAction =
  */
 export type AccountAction =
   | PageAccountAction
+  | ScheduleAccountAction
   | RequestAccountAction
   | ResponseAccountAction
   | ErrorAccountAction

@@ -58,6 +58,10 @@ export const fetchUser =
   createJsonRequestor<AccountActions.FetchUser, AccountActions.FetchUserSucceeded>
   ('GET', '/Account/AccountSettings2');
 
+export const fetchSessionCheck =
+  createJsonRequestor<AccountActions.FetchSessionCheck, AccountActions.FetchSessionCheckSucceeded>
+  ('GET', '/Account/SessionStatus');
+
 export const updateAccount =
   createJsonRequestor<AccountActions.FetchUser, AccountActions.FetchUserSucceeded>
   ('POST', '/Account/UpdateAccount');

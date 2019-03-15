@@ -40,6 +40,7 @@ interface AccountSettingsProps {
 class AccountSettings extends React.Component<AccountSettingsProps & typeof AccountActionCreators> {
   public componentDidMount() {
     this.props.fetchUser({});
+    this.props.scheduleSessionCheck({ delay: 0 });
   }
 
   public render() {
