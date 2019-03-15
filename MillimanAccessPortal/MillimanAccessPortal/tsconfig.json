@@ -3,11 +3,13 @@
     "lib": [
       "dom",
       "es2015",
+      "es2015.iterable",
       "es2016",
       "es5",
       "scripthost"
     ],
-    "noImplicitAny": false,
+    "downlevelIteration": true,
+    "noImplicitAny": true,
     "noUnusedParameters": true,
     "sourceMap": true,
     "target": "es5",
@@ -17,7 +19,7 @@
     "jsx": "react"
   },
   "include": [
-    "src/ts/**/*"
+    "src/ts/**/*", "Models/EntityModels/ContentItemModels/BasicContentItemWithCardStats.cs"
   ],
   "exclude": [
     "node_modules",

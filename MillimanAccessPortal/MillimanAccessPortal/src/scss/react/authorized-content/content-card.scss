@@ -12,8 +12,8 @@
     }
 
     @include for-tablet-up() {
-        flex: 1 0 50%;
-        max-width: 50%;
+        flex: 1 0 33.3%;
+        max-width: 33.3%;
     }
 
     @include for-desktop-up() {
@@ -32,6 +32,7 @@
         border-radius: .25em;
         border: 1px solid $charcoal;
         min-height: 7.5em;
+        overflow: hidden;
 
         &:hover {
             box-shadow: rgba(0, 0, 0, .3) .2em .2em .75em;
@@ -50,30 +51,19 @@
                 line-height: 1.25em;
                 flex: 1 1 auto;
             }
-
-            .content-card-icons {
-                flex: none;
-                display: flex;
-                flex-flow: row nowrap;
-
-                .action-icon-link {
-                    z-index: 6;
-                    display: block;
-
-                    &:hover {
-                        transform: scale(1.05);
-                        transform-origin: center center;
-                    }
-                }
-
-                .action-icon-container {
-                    margin-left: 1em;
-                }
-            }
         }
 
         .content-card-body {
             flex: 1 0 auto;
+
+            &.image-only {
+                text-align: center;
+
+                .content-card-image {
+                    margin: 0;
+                    float: none;
+                }
+            }
 
             .content-card-image {
                 width: 10em;
@@ -88,6 +78,33 @@
             }
         }
 
+        .secondary-actions {
+            flex: 1 0 auto;
+            display: flex;
+            flex-flow: row nowrap;
+            border-top: 2px solid $charcoal;
+            margin: 1em -1.2em -1.2em;
+            padding: 0;
+            font-size: .9em;
+            z-index: 10;
+
+            .secondary-button {
+                flex: 1 0 auto;
+                display: block;
+                padding: 1em;
+                margin: 0;
+                background-color: $blue;
+                color: $white;
+                font-weight: bold;
+                border-right: 1px solid $charcoal;
+                text-align: center;
+
+                &:hover {
+                    background-color: darken($blue, 5%);
+                }
+            }
+        }
+
         .content-card-link {
             position: absolute;
             top: 0;
@@ -95,32 +112,6 @@
             right: 0;
             bottom: 0;
             z-index: 5;
-
-            &.content-card-download {
-                overflow: hidden;
-
-                &:hover > .content-card-download-indicator {
-                    bottom: 0;
-                    transition: .25s all linear;
-                }
-
-                .content-card-download-indicator {
-                    position: absolute;
-                    bottom: -4.5em;
-                    left: 0;
-                    right: 0;
-                    background: linear-gradient(to bottom right, rgba($charcoal, .5), rgba($charcoal, .95));
-                    padding: .5em 1em;
-                    text-align: right;
-                    transition: .25s all linear;
-
-                    .content-card-download-icon {
-                        color: $green;
-                        height: 3em;
-                        width: 3em;
-                    }
-                }
-            }
         }
     }
 }

@@ -4,8 +4,10 @@
 .action-icon-container,
 .action-icon-container-inline {
     margin-left: .5em !important;
+    cursor: pointer;
 
     .action-icon {
+        pointer-events: none;
         height: 1.5em;
         width: 1.5em;
 

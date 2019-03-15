@@ -1,5 +1,6 @@
 import 'jquery-validation';
 import 'jquery-validation-unobtrusive';
+import '../../images/expand-frame.svg';
 
 import * as $ from 'jquery';
 import { unionWith } from 'lodash';
@@ -14,21 +15,18 @@ import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import { Guid } from '../react/shared-components/interfaces';
 import {
-  collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
-  updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
+    collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
+    hideButtonSpinner, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
+    updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
 import { setUnloadAlert } from '../unload-alerts';
 import { UploadComponent } from '../upload/upload';
 import {
-  BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, isSelection,
-  PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue,
-  ReductionFieldValueSelection, RootContentItemDetail, RootContentItemList, RootContentItemSummary,
-  RootContentItemSummaryAndDetail,
+    BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, isSelection,
+    PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue, RootContentItemDetail,
+    RootContentItemList, RootContentItemSummary, RootContentItemSummaryAndDetail,
 } from '../view-models/content-publishing';
 import { PublicationStatusMonitor } from './publication-status-monitor';
-
-import '../../images/expand-frame.svg';
 
 require('tooltipster');
 
@@ -62,9 +60,9 @@ function deleteRootContentItem(
   }).done(function onDone(response: RootContentItemDetail) {
     $('#content-publishing-form').hide();
     $('#root-content-items .card-container')
-      .filter((_, card) => $(card).data().rootContentItemId === response.Id)
+      .filter((_, card) => $(card).data().rootContentItemId === response.id)
       .remove();
-    addToDocumentCount(response.ClientId, -1);
+    addToDocumentCount(response.clientId, -1);
     callback();
     toastr.success(rootContentItemName + ' was successfully deleted.');
   }).fail(function onFail(response) {
@@ -75,15 +73,15 @@ function deleteRootContentItem(
     statusMonitor.checkStatus();
   });
 }
-export function rootContentItemDeleteClickHandler(event) {
+export function rootContentItemDeleteClickHandler(event: Event) {
   const $clickedCard = $(this).closest('.card-container');
   const rootContentItemId = $clickedCard.data().rootContentItemId;
   const rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
-  new DeleteRootContentItemDialog(
+  new (DeleteRootContentItemDialog as any)(
     rootContentItemName,
     rootContentItemId,
-    (data, callback) => {
+    (data: { password: string }, callback: () => void) => {
       if (data.password) {
         showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
@@ -98,7 +96,7 @@ export function rootContentItemDeleteClickHandler(event) {
     },
   ).open();
 }
-function cancelContentPublication(data, callback) {
+function cancelContentPublication(data: { RootContentItemId: string }, callback: () => void) {
   $.ajax({
     data: {
       RootContentItemId: data.RootContentItemId,
@@ -120,12 +118,13 @@ function cancelContentPublication(data, callback) {
   });
 }
 
-export function rootContentItemCancelClickHandler(event) {
+export function rootContentItemCancelClickHandler(event: Event) {
   const $clickedCard = $(this).closest('.card-container');
   const rootContentItemId = $clickedCard.data().rootContentItemId;
   const rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
-  new CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, cancelContentPublication).open();
+  new (CancelContentPublicationRequestDialog as any)(
+    rootContentItemId, rootContentItemName, cancelContentPublication).open();
 }
 export function openNewRootContentItemForm() {
   if (formObject && formObject.submissionMode === 'new') {
@@ -133,15 +132,16 @@ export function openNewRootContentItemForm() {
   }
   const clientId = $('#client-tree [selected]').parent().data().clientId;
   renderRootContentItemForm({
-    ClientId: clientId,
-    ContentName: '',
-    ContentTypeId: '0',
-    Description: '',
-    DoesReduce: false,
-    Id: '0',
-    Notes: '',
-    RelatedFiles: [],
-    IsSuspended: false,
+    clientId,
+    contentName: '',
+    contentTypeId: '0',
+    description: '',
+    doesReduce: false,
+    id: '0',
+    notes: '',
+    contentDisclaimer: '',
+    relatedFiles: [],
+    isSuspended: false,
   });
   setFormNew();
 }
@@ -177,13 +177,14 @@ function setFormEditOrRepublish() {
 function mapRootContentItemDetail(item: RootContentItemDetail) {
   const formMap = new Map<string, string | number | boolean>();
 
-  formMap.set('Id', item.Id);
-  formMap.set('ClientId', item.ClientId);
-  formMap.set('ContentName', item.ContentName);
-  formMap.set('ContentTypeId', item.ContentTypeId);
-  formMap.set('DoesReduce',  item.DoesReduce);
-  formMap.set('Description', item.Description);
-  formMap.set('Notes', item.Notes);
+  formMap.set('Id', item.id);
+  formMap.set('ClientId', item.clientId);
+  formMap.set('ContentName', item.contentName);
+  formMap.set('ContentTypeId', item.contentTypeId);
+  formMap.set('DoesReduce',  item.doesReduce);
+  formMap.set('Description', item.description);
+  formMap.set('Notes', item.notes);
+  formMap.set('ContentDisclaimer', item.contentDisclaimer);
 
   return formMap;
 }
@@ -212,15 +213,15 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   const linkPairs: Array<{sectionName: string, link: string, node?: string}> = [
     {
       sectionName: 'master-content',
-      link: response.MasterContentLink,
-      node: response.ContentTypeName === 'FileDownload'
+      link: response.masterContentLink,
+      node: response.contentTypeName === 'FileDownload'
         ? '.content-preview-download'
-        : response.ContentTypeName === 'Html'
+        : response.contentTypeName === 'Html'
           ? '.content-preview-sandbox'
           : '.content-preview',
     },
-    { sectionName: 'user-guide', link: response.UserGuideLink },
-    { sectionName: 'release-notes', link: response.ReleaseNotesLink },
+    { sectionName: 'user-guide', link: response.userGuideLink },
+    { sectionName: 'release-notes', link: response.releaseNotesLink },
   ];
   linkPairs.forEach((pair) => {
     $(`#confirmation-section-${pair.sectionName} .content-preview-container`)
@@ -256,12 +257,12 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     $(`#confirmation-section-${pair.sectionName} .new-tab-icon`)
       .show()
       .attr('href', pair.link)
-      .filter(() => pair.link === null || response.ContentTypeName === 'FileDownload')
+      .filter(() => pair.link === null || response.contentTypeName === 'FileDownload')
       .hide();
   });
 
   // render hierarchy diff and selection group changes
-  if (!response.DoesReduce || !response.SelectionGroups) {
+  if (!response.doesReduce || !response.selectionGroups) {
     $('#confirmation-section-hierarchy-diff')
       .hide()
       .find('input[type="checkbox"].requires-confirmation')
@@ -287,46 +288,46 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     ) => {
       // assume fields match
       const $diff = $('<div></div>');
-      if (live.Fields.length === 0 && pending.Fields.length === 0) {
+      if (live.fields.length === 0 && pending.fields.length === 0) {
         return $diff;
       }
       // if one of the hierarchies has no fields, set them from the other
-      if (live.Fields.length === 0) {
+      if (live.fields.length === 0) {
         live = {
           ...pending,
-          Fields: pending.Fields.map((f) => ({
+          fields: pending.fields.map((f) => ({
             ...f,
-            Values: [],
+            values: [],
           })),
         };
       }
-      if (pending.Fields.length === 0) {
+      if (pending.fields.length === 0) {
         pending = {
           ...live,
-          Fields: live.Fields.map((f) => ({
+          fields: live.fields.map((f) => ({
             ...f,
-            Values: [],
+            values: [],
           })),
         };
       }
-      live.Fields.forEach(({ Values: liveValues, FieldName, DisplayName }) => {
-        $diff.append(`<h3 class="hierarchy-diff-field">${DisplayName}</h3>`);
-        const pendingValues = pending.Fields.filter((f) => f.FieldName === FieldName)[0].Values;
+      live.fields.forEach(({ values: liveValues, fieldName, displayName }) => {
+        $diff.append(`<h3 class="hierarchy-diff-field">${displayName}</h3>`);
+        const pendingValues = pending.fields.filter((f) => f.fieldName === fieldName)[0].values;
         const allValues = unionWith(liveValues, pendingValues,
-          (v1: TValue, v2: TValue) => v1.Value === v2.Value);
+          (v1: TValue, v2: TValue) => v1.value === v2.value);
 
         // exclude values that aren't in the live hierarchy if using selectedOnly
         const filteredValues = allValues.filter((value) => {
-          const liveData = liveValues.filter((v) => v.Value === value.Value)[0];
+          const liveData = liveValues.filter((v) => v.value === value.value)[0];
           if (selectedOnly) {
-            if (!liveData || (liveData && isSelection(liveData) && !liveData.SelectionStatus)) {
+            if (!liveData || (liveData && isSelection(liveData) && !liveData.selectionStatus)) {
               return false;
             }
           }
           return true;
         }).sort((a, b) => {
-          const aUpper = a.Value.toUpperCase();
-          const bUpper = b.Value.toUpperCase();
+          const aUpper = a.value.toUpperCase();
+          const bUpper = b.value.toUpperCase();
           if (aUpper < bUpper) {
             return -1;
           } else if (aUpper > bUpper) {
@@ -354,8 +355,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           </table>
         </div>`);
         filteredValues.forEach((value) => {
-          const liveData = liveValues.filter((v) => v.Value === value.Value)[0];
-          const pendingData = pendingValues.filter((v) => v.Value === value.Value)[0];
+          const liveData = liveValues.filter((v) => v.value === value.value)[0];
+          const pendingData = pendingValues.filter((v) => v.value === value.value)[0];
           const $row = $('<tr></tr>');
           if (selectedOnly) {
             // accounts for removal of selection as well as removal of value from new hierarchy
@@ -365,7 +366,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
               $diffSymbol.addClass('minus');
             }
             $row.append($diffSymbol);
-            $row.append($(`<td><div>${liveData.Value}</div></td>`));
+            $row.append($(`<td><div>${liveData.value}</div></td>`));
           } else {
             const $diffSymbol = $(`
               <td class="hierarchy-diff-symbol"><div>
@@ -380,7 +381,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
             }
 
             $row.append($diffSymbol);
-            $row.append($(`<td><div>${liveData ? liveData.Value : pendingData.Value}</div></td>`));
+            $row.append($(`<td><div>${liveData ? liveData.value : pendingData.value}</div></td>`));
           }
           $table.find('tbody').append($row);
         });
@@ -394,7 +395,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     $('#confirmation-section-hierarchy-diff .hierarchy-container')
       .children('div').remove();
     $('#confirmation-section-hierarchy-diff .hierarchy-container')
-      .append(renderHierarchyDiff(response.LiveHierarchy, response.NewHierarchy, false));
+      .append(renderHierarchyDiff(response.liveHierarchy, response.newHierarchy, false));
     // handlers for toggling visible unchanged selections
     $('#hide-unchanged').prop('checked', hideUnchangedValues);
     $('#hide-unchanged').change(() => {
@@ -406,27 +407,27 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     // populate hierarchy stats
     $('#confirmation-section-hierarchy-stats > div > ul').children().remove();
     const $statsList = $('#confirmation-section-hierarchy-stats > div > ul');
-    response.SelectionGroups.forEach((selectionGroup) => {
-      const duration = moment.duration(selectionGroup.Duration);
+    response.selectionGroups.forEach((selectionGroup) => {
+      const duration = moment.duration(selectionGroup.duration);
       const timeDisplay = ((hours, minutes, seconds) => (`
         ${hours ? hours + ' hour' + (hours === 1 ? ' ' : 's ') : ''}
         ${(hours || minutes) ? minutes + ' minute' + (minutes === 1 ? ' ' : 's ') : ''}
         ${seconds + ' second' + (seconds === 1 ? ' ' : 's ')}
       `))(duration.hours(), duration.minutes(), duration.seconds());
-      const liveSelectionCount = selectionGroup.IsMaster
+      const liveSelectionCount = selectionGroup.isMaster
         ? 0
-        : selectionGroup.LiveSelections.Fields
-          .map((f) => f.Values.reduce((prev, cur) => prev + (cur.SelectionStatus ? 1 : 0), 0))
+        : selectionGroup.liveSelections.fields
+          .map((f) => f.values.reduce((prev, cur) => prev + (cur.selectionStatus ? 1 : 0), 0))
           .reduce((prev, cur) => prev + cur, 0);
-      const pendingSelectionCount = selectionGroup.IsMaster
+      const pendingSelectionCount = selectionGroup.isMaster
         ? 0
-        : selectionGroup.PendingSelections && selectionGroup.PendingSelections.Fields
-          .map((f) => f.Values.reduce((prev, cur) => prev + (cur.SelectionStatus ? 1 : 0), 0))
+        : selectionGroup.pendingSelections && selectionGroup.pendingSelections.fields
+          .map((f) => f.values.reduce((prev, cur) => prev + (cur.selectionStatus ? 1 : 0), 0))
           .reduce((prev, cur) => prev + cur, 0);
-      const $selectionGroupStats = $(`<li data-id="${selectionGroup.Id}"><div class="selection-group-summary">
+      const $selectionGroupStats = $(`<li data-id="${selectionGroup.id}"><div class="selection-group-summary">
           <h5>
-            ${selectionGroup.IsMaster ? '<strong>[Master]</strong>&nbsp' : ''}
-            ${selectionGroup.Name}&nbsp
+            ${selectionGroup.isMaster ? '<strong>[Master]</strong>&nbsp' : ''}
+            ${selectionGroup.name}&nbsp
           </h5>
           <div class="selection-group-stat">
             <span class="selection-group-stat-label">Duration:</span>
@@ -434,7 +435,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           </div>
           <div class="selection-group-stat pre-live-users-stat">
             <span class="selection-group-stat-label">Users:</span>
-            <span class="selection-group-stat-value">${selectionGroup.Users.length}</span>
+            <span class="selection-group-stat-value">${selectionGroup.users.length}</span>
           </div>
           <div class="pre-live-user-list" style="display: none;">
             <ul></ul>
@@ -442,7 +443,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           <div class="selection-group-stat pre-live-selection-summary">
             <span class="selection-group-stat-label">Selections:</span>
             <span class="selection-group-stat-value">
-              ${selectionGroup.IsMaster
+              ${selectionGroup.isMaster
                 ? 'N/A'
                 : liveSelectionCount === pendingSelectionCount
                   ? `${pendingSelectionCount}`
@@ -457,16 +458,16 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           ? '<span class="pre-live-group-inactive">Inactive</span>'
           : '<span class="pre-live-group-active">Active</span>';
       }
-      const $activeStatus = selectionGroup.WasInactive === selectionGroup.IsInactive
-        ? $(`<span>[ ${activeIndicator(selectionGroup.IsInactive)} ]</span>`)
-        : $(`<span>[ ${activeIndicator(selectionGroup.WasInactive)} → `
-            + `${activeIndicator(selectionGroup.IsInactive)} ]</span>`);
+      const $activeStatus = selectionGroup.wasInactive === selectionGroup.isInactive
+        ? $(`<span>[ ${activeIndicator(selectionGroup.isInactive)} ]</span>`)
+        : $(`<span>[ ${activeIndicator(selectionGroup.wasInactive)} → `
+            + `${activeIndicator(selectionGroup.isInactive)} ]</span>`);
       $selectionGroupStats.find('h5').append($activeStatus);
-      if (selectionGroup.InactiveReason !== null) {
+      if (selectionGroup.inactiveReason !== null) {
         $selectionGroupStats.find('.selection-group-summary').append(`
           <div class="selection-group-stat">
             <span class="selection-group-stat-label">Inactive reason:</span>
-            <span class="selection-group-stat-value">${selectionGroup.InactiveReason}</span>
+            <span class="selection-group-stat-value">${selectionGroup.inactiveReason}</span>
           </div>
         `);
       }
@@ -477,7 +478,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
         const $statsListNew  = $('#confirmation-section-hierarchy-stats > div > ul');
         const $stat = $statsListNew
           .children('li')
-          .filter((_, element) => $(element).data().id === selectionGroup.Id);
+          .filter((_, element) => $(element).data().id === selectionGroup.id);
         const $userExpansionNew = $stat.find('.pre-live-list-toggle > a');
         const $userList = $stat.find('.pre-live-user-list');
         if ($userExpansionNew[0].innerHTML === 'expand') {
@@ -495,7 +496,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
         const $statsListNew  = $('#confirmation-section-hierarchy-stats > div > ul');
         const $stat = $statsListNew
           .children('li')
-          .filter((_, element) => $(element).data().id === selectionGroup.Id);
+          .filter((_, element) => $(element).data().id === selectionGroup.id);
         const $selectionsExpansionNew = $stat.find('.pre-live-selections-toggle > a');
         const $selectionsList = $stat.find('.pre-live-selections-table');
         if ($selectionsExpansionNew[0].innerHTML === 'expand') {
@@ -506,22 +507,22 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           $selectionsList.hide(100);
         }
       });
-      if (selectionGroup.Users.length > 0) {
+      if (selectionGroup.users.length > 0) {
         $selectionGroupStats.find('.pre-live-users-stat').append($userExpansion);
-        selectionGroup.Users.forEach((user) => {
+        selectionGroup.users.forEach((user) => {
           $selectionGroupStats.find('.pre-live-user-list > ul')
-            .append(`<li>${user.FirstName} ${user.LastName} (${user.UserName})</li>`);
+            .append(`<li>${user.firstName} ${user.lastName} (${user.userName})</li>`);
         });
       }
-      if (!selectionGroup.IsMaster && (!selectionGroup.IsInactive || !selectionGroup.WasInactive)) {
+      if (!selectionGroup.isMaster && (!selectionGroup.isInactive || !selectionGroup.wasInactive)) {
         $selectionGroupStats.find('.pre-live-selection-summary').append($selectionsExpansion);
         $selectionGroupStats.find('.pre-live-selections-table')
-          .append(renderHierarchyDiff(selectionGroup.LiveSelections, selectionGroup.PendingSelections, true));
+          .append(renderHierarchyDiff(selectionGroup.liveSelections, selectionGroup.pendingSelections, true));
       }
       $statsList.append($selectionGroupStats);
     });
     // add a message explaining what inactive means
-    if (response.SelectionGroups.filter((sg) => sg.IsInactive)[0]) {
+    if (response.selectionGroups.filter((sg) => sg.isInactive)[0]) {
       $statsList.prepend(`<div>
         Some selection groups will be marked <strong>inactive</strong> if this publication goes live
         due to reduction failures.
@@ -531,7 +532,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     }
   }
   // populate attestation
-  $('#confirmation-section-attestation .attestation-language').html(response.AttestationLanguage);
+  $('#confirmation-section-attestation .attestation-language').html(response.attestationLanguage);
 
   const anyEnabled = $('#report-confirmation input[type="checkbox"].requires-confirmation')
     .filter((_, element) => $(element).attr('disabled') === undefined).length;
@@ -556,17 +557,17 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       }
     });
     $rootContentItemForm.find('.file-upload').data('originalName', '');
-    if (item.RelatedFiles && !ignoreFiles) {
-      item.RelatedFiles.forEach((relatedFile) => {
-        $rootContentItemForm.find(`#${relatedFile.FilePurpose}`)
+    if (item.relatedFiles && !ignoreFiles) {
+      item.relatedFiles.forEach((relatedFile) => {
+        $rootContentItemForm.find(`#${relatedFile.filePurpose}`)
           .val('')
           .siblings('label').find('.file-upload')
-          .data('originalName', relatedFile.FileOriginalName);
+          .data('originalName', relatedFile.fileOriginalName);
       });
     }
 
     const $doesReduceToggle = $rootContentItemForm.find('#DoesReduce');
-    $doesReduceToggle.prop('checked', item.DoesReduce);
+    $doesReduceToggle.prop('checked', item.doesReduce);
   }
 
   const createContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
@@ -584,10 +585,10 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       // Add the new content item as a card and select it
       renderRootContentItem(response.summary);
       $('#root-content-items .card-container')
-        .filter((_, card) => $(card).data().rootContentItemId === response.detail.Id)
+        .filter((_, card) => $(card).data().rootContentItemId === response.detail.id)
         .children().click();
       // Update the root content item count stat on the client card
-      addToDocumentCount(response.detail.ClientId, 1);
+      addToDocumentCount(response.detail.clientId, 1);
 
       toastr.success('content item created');
     },
@@ -607,9 +608,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       renderRootContentItemForm(response.detail, true);
       // Update related root content item card
       const $card = $('#root-content-items .card-container')
-        .filter((_, card) => $(card).data().rootContentItemId === response.detail.Id);
-      $card.find('.card-body-primary-text').html(response.summary.ContentName);
-      $card.find('.card-body-secondary-text').html(response.summary.ContentTypeName);
+        .filter((_, card) => $(card).data().rootContentItemId === response.detail.id);
+      $card.find('.card-body-primary-text').html(response.summary.contentName);
+      $card.find('.card-body-secondary-text').html(response.summary.contentTypeName);
       toastr.success('content item updated');
     },
     (data) => data.indexOf('DoesReduce=') === -1
@@ -636,18 +637,18 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
         .map((file) => {
           const fileData = dataArray[file].split('~');
           return {
-            FileOriginalName: fileData[0],
-            FilePurpose: file,
-            FileUploadId: fileData[1],
+            fileOriginalName: fileData[0],
+            filePurpose: file,
+            fileUploadId: fileData[1],
           };
         });
       const publishRequest: PublishRequest = {
-        NewRelatedFiles: fileChanges
-          .filter((file) => file.FileUploadId && file.FileUploadId !== 'delete'),
-        DeleteFilePurposes: fileChanges
-          .filter((file) => file.FileUploadId && file.FileUploadId === 'delete')
-          .map((file) => file.FilePurpose),
-        RootContentItemId: dataArray.Id,
+        newRelatedFiles: fileChanges
+          .filter((file) => file.fileUploadId && file.fileUploadId !== 'delete'),
+        deleteFilePurposes: fileChanges
+          .filter((file) => file.fileUploadId && file.fileUploadId === 'delete')
+          .map((file) => file.filePurpose),
+        rootContentItemId: dataArray.Id,
       };
       return publishRequest;
     },
@@ -689,7 +690,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
   const contentType = $contentTypeDropdown
     .find(`option[value="${$contentTypeDropdown.val()}"]`)
     .data() as ContentType;
-  if (contentType && !contentType.CanReduce) {
+  if (contentType && !contentType.canReduce) {
     $('#DoesReduce').closest('.form-input-toggle').hide();
   } else {
     $('#DoesReduce').closest('.form-input-toggle').show();
@@ -697,7 +698,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
   formObject.inputSections.forEach((section) =>
     section.inputs.forEach((input) => {
       if (contentType && isFileUploadInput(input)) {
-        input.fileTypes.set(UploadComponent.Content, contentType.FileExtensions);
+        input.fileTypes.set(UploadComponent.Content, contentType.fileExtensions);
         input.configure();
       }
     }));
@@ -709,7 +710,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
 }
 
 function renderRootContentItem(item: RootContentItemSummary) {
-  const $rootContentItemCard = new RootContentItemCard(
+  const $rootContentItemCard = new (RootContentItemCard as any)(
     item,
     wrapCardCallback(get(
       'ContentPublishing/RootContentItemDetail',
@@ -739,6 +740,9 @@ function renderRootContentItem(item: RootContentItemSummary) {
     wrapCardIconCallback((card) => {
       $('#report-confirmation .admin-panel-content-container').hide();
       $('#report-confirmation .loading-wrapper').show();
+      $('.confirmation-section iframe,object')
+        .attr('src', 'about:blank')
+        .attr('data', 'about:blank');
       get(
         'ContentPublishing/PreLiveSummary',
         [
@@ -750,15 +754,15 @@ function renderRootContentItem(item: RootContentItemSummary) {
       )(card);
     }, () => formObject, {count: 1, offset: 1}, () => false),
   ).build();
-  updateCardStatus($rootContentItemCard, item.PublicationDetails);
-  updateCardStatusButtons($rootContentItemCard, item.PublicationDetails && item.PublicationDetails.StatusEnum);
-  $rootContentItemCard.data('statusEnum', item.PublicationDetails && item.PublicationDetails.StatusEnum);
+  updateCardStatus($rootContentItemCard, item.publicationDetails);
+  updateCardStatusButtons($rootContentItemCard, item.publicationDetails && item.publicationDetails.statusEnum);
+  $rootContentItemCard.data('statusEnum', item.publicationDetails && item.publicationDetails.statusEnum);
   $('#root-content-items ul.admin-panel-content').append($rootContentItemCard);
 }
 function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: string) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
-  response.SummaryList.forEach(renderRootContentItem);
+  response.summaryList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
   if (rootContentItemId !== null) {
@@ -767,10 +771,10 @@ function renderRootContentItemList(response: RootContentItemList, rootContentIte
 }
 
 function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
-  const $card = new ClientCard(
-    client.Value,
-    client.Value.EligibleUserCount,
-    client.Value.RootContentItemCount,
+  const $card = new (ClientCard as any)(
+    client.value,
+    client.value.eligibleUserCount,
+    client.value.rootContentItemCount,
     level,
     wrapCardCallback(get(
       'ContentPublishing/RootContentItems',
@@ -780,18 +784,18 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
       }),
     ), () => formObject),
   );
-  $card.disabled = !client.Value.CanManage;
+  $card.disabled = !client.value.canManage;
   $('#client-tree ul.admin-panel-content').append($card.build());
 
   // Render child nodes
-  client.Children.forEach((childNode) => {
+  client.children.forEach((childNode) => {
     renderClientNode(childNode, level + 1);
   });
 }
 function renderClientTree(response: ClientTree, clientId?: string) {
   const $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
-  response.Root.Children.forEach((rootClient) => {
+  response.root.children.forEach((rootClient) => {
     renderClientNode(rootClient);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
@@ -811,7 +815,7 @@ function populateAvailableContentTypes(contentTypes: ContentType[]) {
   $contentTypeDropdown.children(':not(option[value = "0"])').remove();
 
   contentTypes.forEach((contentType) => {
-    const option = new Option(contentType.Name, contentType.Id.toString());
+    const option = new Option(contentType.name, contentType.id.toString());
     $(option).data(contentType);
     $contentTypeDropdown.append(option);
   });
@@ -826,7 +830,7 @@ export function setup() {
     const contentType = $contentTypeDropdown
       .find(`option[value="${$contentTypeDropdown.val()}"]`)
       .data() as ContentType;
-    if (contentType && !contentType.CanReduce) {
+    if (contentType && !contentType.canReduce) {
       $doesReduceToggle.attr('disabled', '');
       $doesReduceToggle.closest('.form-input-toggle').hide();
       $doesReduceToggle.prop('checked', false);
@@ -837,7 +841,7 @@ export function setup() {
     formObject.inputSections.forEach((section) =>
       section.inputs.forEach((input) => {
         if (contentType && isFileUploadInput(input)) {
-          input.fileTypes.set(UploadComponent.Content, contentType.FileExtensions);
+          input.fileTypes.set(UploadComponent.Content, contentType.fileExtensions);
           input.configure();
         }
       }));
@@ -855,7 +859,7 @@ export function setup() {
     $('#content-publishing-form').show();
   });
   $('#root-content-items ul.admin-panel-content-action')
-    .append(new AddRootContentItemActionCard(
+    .append(new (AddRootContentItemActionCard as any)(
       wrapCardCallback(openNewRootContentItemForm, () => formObject),
     ).build());
 
@@ -892,7 +896,7 @@ export function setup() {
     showButtonSpinner($target, 'Rejecting');
     $.post({
       data: {
-        publicationRequestId: preLiveObject && preLiveObject.PublicationRequestId,
+        publicationRequestId: preLiveObject && preLiveObject.publicationRequestId,
         rootContentItemId,
       },
       headers: {
@@ -922,9 +926,9 @@ export function setup() {
     showButtonSpinner($target, 'Approving');
     $.post({
       data: {
-        publicationRequestId: preLiveObject && preLiveObject.PublicationRequestId,
+        publicationRequestId: preLiveObject && preLiveObject.publicationRequestId,
         rootContentItemId,
-        validationSummaryId: preLiveObject && preLiveObject.ValidationSummaryId,
+        validationSummaryId: preLiveObject && preLiveObject.validationSummaryId,
       },
       headers: {
         RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),

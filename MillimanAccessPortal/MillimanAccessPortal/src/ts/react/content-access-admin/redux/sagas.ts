@@ -1,0 +1,197 @@
+import { toastr } from 'react-redux-toastr';
+import { all, call, Effect, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
+
+import { ClientWithEligibleUsers, RootContentItemWithStats } from '../../models';
+import * as AccessActionCreators from './action-creators';
+import { createErrorActionCreator, createResponseActionCreator } from './action-creators';
+import * as AccessActions from './actions';
+import {
+    AccessAction, ErrorAction, isErrorAction, isScheduleAction, RequestAction, ResponseAction,
+} from './actions';
+import * as api from './api';
+import { remainingStatusRefreshAttempts, selectedClient, selectedItem } from './selectors';
+
+/**
+ * Make an asynchronous API request and await the result.
+ * @param apiCall API method to invoke
+ * @param action the request action that caused this saga to fire
+ */
+function* requestSaga(
+  apiCall: (request: RequestAction['request']) => ResponseAction['response'], action: RequestAction) {
+  try {
+    const response = yield call(apiCall, action.request);
+    yield put(createResponseActionCreator(`${action.type}_SUCCEEDED` as ResponseAction['type'])(response));
+  } catch (error) {
+    yield put(createErrorActionCreator(`${action.type}_FAILED` as ErrorAction['type'])(error));
+  }
+}
+/**
+ * Helper function for handling request actions.
+ * @param type Action type
+ * @param apiCall API method to invoke
+ */
+function takeLatestRequest<TRequest extends RequestAction>(
+  type: TRequest['type'],
+  apiCall: (request: TRequest['request']) => Promise<ResponseAction['response']>,
+) {
+  return takeLatest(type, requestSaga, apiCall);
+}
+
+/**
+ * Sleep for the specified duration; awaitable.
+ * @param duration time to sleep in milliseconds
+ */
+function sleep(duration: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, duration);
+  });
+}
+/**
+ * Schedule an action to be fired at a later time.
+ * @param nextActionCreator action creator to invoke after the scheduled duration
+ * @param action the schedule action that caused this saga to fire
+ */
+function* scheduleSaga(
+  nextActionCreator: () => (AccessAction | IterableIterator<Effect | AccessAction>),
+  action: AccessAction,
+) {
+  if (isScheduleAction(action)) {
+    yield call(sleep, action.delay);
+  }
+  const nextAction = yield nextActionCreator();
+  if (nextAction) {
+    yield put(nextAction);
+  }
+}
+/**
+ * Helper function for handling schedule actions.
+ * @param type action type
+ * @param nextActionCreator action creator to invoke after the scheduled duration
+ */
+function takeLatestSchedule<TAction extends AccessAction, TNext extends AccessAction>(
+  type: TAction['type'] | ((type: TAction) => boolean),
+  nextActionCreator: () => (TNext | IterableIterator<Effect | AccessAction>),
+) {
+  return takeLatest(type, scheduleSaga, nextActionCreator);
+}
+
+/**
+ * Display a toast.
+ * @param message message to display, or a function that builds the message from a response
+ * @param level message severity
+ * @param action the action that caused this saga to fire
+ */
+function* toastSaga(
+  message: string
+    | ((response: ResponseAction['response'] | ErrorAction['error']) => string),
+  level: 'error' | 'info' | 'message' | 'success' | 'warning',
+  action: ResponseAction | ErrorAction,
+) {
+  yield toastr[level]('', typeof message === 'string'
+    ? message
+    : isErrorAction(action)
+      ? message(action.error)
+      : message(action.response));
+}
+/**
+ * Helper function for handling actions that result in toasts.
+ * @param type action type
+ * @param message message to display, or a function that builds the message from a response
+ * @param level message severity
+ */
+function takeEveryToast<TAction extends AccessAction>(
+  type: TAction['type'] | Array<TAction['type']> | ((type: TAction) => boolean),
+  message: string | (TAction extends ResponseAction
+    ? (response: TAction['response']) => string
+    : TAction extends ErrorAction
+      ? (error: TAction['error']) => string
+      : never),
+  level: 'error' | 'info' | 'message' | 'success' | 'warning' = 'success',
+) {
+  return takeEvery(type, toastSaga, message, level);
+}
+
+/**
+ * Register all sagas for the page.
+ */
+export default function* rootSaga() {
+  // API requests
+  yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
+  yield takeLatestRequest('FETCH_ITEMS', api.fetchItems);
+  yield takeLatestRequest('FETCH_GROUPS', api.fetchGroups);
+  yield takeLatestRequest('FETCH_SELECTIONS', api.fetchSelections);
+  yield takeLatestRequest('FETCH_STATUS_REFRESH', api.fetchStatusRefresh);
+  yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);
+  yield takeLatestRequest('CREATE_GROUP', api.createGroup);
+  yield takeLatestRequest('UPDATE_GROUP', api.updateGroup);
+  yield takeLatestRequest('DELETE_GROUP', api.deleteGroup);
+  yield takeLatestRequest('SUSPEND_GROUP', api.suspendGroup);
+  yield takeLatestRequest('UPDATE_SELECTIONS', api.updateSelections);
+  yield takeLatestRequest('CANCEL_REDUCTION', api.cancelReduction);
+
+  // Scheduled actions
+  yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
+    const client: ClientWithEligibleUsers = yield select(selectedClient);
+    const item: RootContentItemWithStats = yield select(selectedItem);
+    return client
+      ? AccessActionCreators.fetchStatusRefresh({
+        clientId: client.id,
+        contentItemId: item && item.id,
+      })
+      : AccessActionCreators.scheduleStatusRefresh({ delay: 5000 });
+  });
+  yield takeLatestSchedule('FETCH_STATUS_REFRESH_SUCCEEDED',
+    () => AccessActionCreators.scheduleStatusRefresh({ delay: 5000 }));
+  yield takeLatestSchedule('FETCH_STATUS_REFRESH_FAILED',
+    () => AccessActionCreators.decrementStatusRefreshAttempts({}));
+  yield takeLatestSchedule('DECREMENT_STATUS_REFRESH_ATTEMPTS', function*() {
+    const retriesLeft: number = yield select(remainingStatusRefreshAttempts);
+    return retriesLeft
+      ? AccessActionCreators.scheduleStatusRefresh({ delay: 5000 })
+      : AccessActionCreators.promptStatusRefreshStopped({});
+  });
+  yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessActionCreators.fetchSessionCheck({}));
+  yield takeLatestSchedule('FETCH_SESSION_CHECK_SUCCEEDED',
+    () => AccessActionCreators.scheduleSessionCheck({ delay: 60000 }));
+  yield takeLatest('FETCH_SESSION_CHECK_FAILED', function*() { yield window.location.reload(); });
+
+  // Toasts
+  yield takeEveryToast('CREATE_GROUP_SUCCEEDED', 'Selection group created.');
+  yield takeEveryToast('DELETE_GROUP_SUCCEEDED', 'Selection group deleted.');
+  yield takeEveryToast('UPDATE_GROUP_SUCCEEDED', 'Selection group updated.');
+  yield takeEveryToast<AccessActions.SuspendGroupSucceeded>
+    ('SUSPEND_GROUP_SUCCEEDED', ({ isSuspended }) =>
+      `Selection group ${isSuspended ? '' : 'un'}suspended.`);
+  yield takeEveryToast<AccessActions.UpdateSelectionsSucceeded>
+    ('UPDATE_SELECTIONS_SUCCEEDED', ({ reduction, group }) =>
+      reduction && reduction.taskStatus === 10
+        ? 'Reduction queued.'
+        : group && group.isMaster
+          ? 'Unrestricted access granted.'
+          : 'Group inactivated.');
+  yield takeEveryToast('CANCEL_REDUCTION_SUCCEEDED', 'Reduction canceled.');
+  yield takeEveryToast('PROMPT_GROUP_EDITING',
+    'Please finish editing the current selection group before performing this action.', 'warning');
+  yield takeEveryToast('PROMPT_GROUP_NAME_EMPTY',
+    'Please name the selection group before saving changes.', 'warning');
+  yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',
+    'Please refresh the page to update reduction status.', 'warning');
+  yield takeEveryToast<ErrorAction>([
+    'FETCH_CLIENTS_FAILED',
+    'FETCH_ITEMS_FAILED',
+    'FETCH_GROUPS_FAILED',
+    'FETCH_SELECTIONS_FAILED',
+    'FETCH_SESSION_CHECK_FAILED',
+    'CREATE_GROUP_FAILED',
+    'UPDATE_GROUP_FAILED',
+    'DELETE_GROUP_FAILED',
+    'SUSPEND_GROUP_FAILED',
+    'UPDATE_SELECTIONS_FAILED',
+    'CANCEL_REDUCTION_FAILED',
+  ], ({ message }) => message === 'sessionExpired'
+      ? 'Your session has expired. Please refresh the page.'
+      : isNaN(message)
+        ? message
+        : 'An unexpected error has occured.',
+    'error');
+}

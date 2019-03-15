@@ -19,7 +19,7 @@ export class AddUserToClientModal
 
   private url: string = 'SystemAdmin/AddUserToClient';
 
-  public constructor(props) {
+  public constructor(props: AddUserToClientModalProps) {
     super(props);
 
     this.state = {

@@ -108,7 +108,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("Entered ContentPublishingController.Clients action");
 
             #region Authorization
-            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher));
             if (!RoleInClientResult.Succeeded)
             {
                 Log.Debug($"In ContentPublishingController.Clients action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.ContentPublisher.ToString()}");
@@ -323,11 +323,27 @@ namespace MillimanAccessPortal.Controllers
             currentRootContentItem.Notes = rootContentItem.Notes;
             currentRootContentItem.TypeSpecificDetail = rootContentItem.TypeSpecificDetail;
 
+            List<UserInSelectionGroup> usersInGroup = null;
+            if (currentRootContentItem.ContentDisclaimer != rootContentItem.ContentDisclaimer)
+            {
+                // Reset disclaimer acceptance
+                usersInGroup = DbContext.UserInSelectionGroup
+                    .Where(u => u.SelectionGroup.RootContentItemId == currentRootContentItem.Id)
+                    .ToList();
+                usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
+            }
+            currentRootContentItem.ContentDisclaimer = rootContentItem.ContentDisclaimer;
+
             DbContext.RootContentItem.Update(currentRootContentItem);
             DbContext.SaveChanges();
 
             Log.Verbose($"In ContentPublishingController.UpdateRootContentItem action: success");
             AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(rootContentItem));
+            if (usersInGroup != null)
+            {
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetTextChange
+                    .ToEvent(usersInGroup, rootContentItem.Id));
+            }
 
             RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, currentRootContentItem);
             RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, currentRootContentItem);

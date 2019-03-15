@@ -2,29 +2,40 @@
 
 ## Release Notes
 
-### v1.3.6
+### v1.4.0
+
+- Add the ability to set a custom disclaimer to content items that must be accepted before accessing the content
+- Restructured Content Access Admin to improve usability and responsiveness
+- Reconfigure the NavBar to open on click instead of hover
+- Reconfigure the Content Card layout to make accessing content more intuitive
+- Unlock locked accounts when the password is reset
+- Clear content previews when switching to go live preview for a different content item
+- Fixed an issue where existing account activation links became invalidated before 7 days had passed
+- Improved logging of user access to content
+
+#### v1.3.6
 
 - Mitigate a potential concurrency issue in email service
 
-### v1.3.5
+#### v1.3.5
 
 - Add Application Insights telemetry
 - Add further logging around middleware and action timing
 - Add diagnostic logging around reduction post-processing pipeline
 
-### v1.3.4
+#### v1.3.4
 
 - Prevent forced signout while a content item is open in the Content view
 
-### v1.3.3
+#### v1.3.3
 
 - Add audit logging for content access
 
-### v1.3.2
+#### v1.3.2
 
 - Enable the user to retry after an error occurs during content publication go-live
 
-### v1.3.1
+#### v1.3.1
 
 - Fixed an issue where an error during publication go-live left the publication stuck in going-live state and the related content inaccessible
 - Fixed an issue where new users appeared to be able to submit a password during account activation that did not meet the password requirements
@@ -55,26 +66,26 @@
 - Removed status polling for hidden pages
 - Adjusted the navigation bar size to a fixed fraction of the screen to accommodate browser magnification changes
 
-### v1.1.5
+#### v1.1.5
 
 - Fixed an error during republished content go-live, where a hierarchy field value being removed exists in more than one live hierarchy field
 
-### v1.1.4
+#### v1.1.4
 
 - Fixed an issue preventing nonreducing content from going live
 
-### v1.1.3
+#### v1.1.3
 
 - Fixed an issue where content go-live processing did not complete for large content files and/or many selection groups
 
-### v1.1.2
+#### v1.1.2
 
 - Allow hierarchy comparison values to wrap in the Go Live preview to better support long values
 - Fixed an issue with Qlikview content where a special character (e.g. ~ ' ") in a selectable value of a reduction hierarchy field would become quoted
 - Fixed an issue with upload of large content files
 - Fixed an issue where long running Qlikview reductions would fail to complete
 
-### v1.1.1
+#### v1.1.1
 
 - Fixed an issue preventing content item details to be changed without uploading a file
 
@@ -94,19 +105,18 @@
 - Added the ability to remove users from clients in System Admin
 - Unified the behavior of removing the Content Eligible role between Client Admin and System Admin
 
-### v1.0.3
+#### v1.0.3
 
 - Account enablement now occurs transactionally with error logging in case of failure
 
-### v1.0.2
+#### v1.0.2
 
 - Improved stability of publishing server
 
-### v1.0.1
+#### v1.0.1
 
 - Improved exception handing in the audit logger
 
 ### v1.0.0
 
 - Intitial Release of the Milliman Access Portal (MAP)
-

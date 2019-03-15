@@ -106,9 +106,9 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             RootContentItemId = publicationRequest.RootContentItemId
         };
 
-
-        bool ReductionIsInvolved = publicationRequest.RootContentItem.DoesReduce
-            && publicationRequest.LiveReadyFilesObj.Any(f => f.FilePurpose.ToLower() == "mastercontent");
+        bool MasterContentUploaded = publicationRequest.LiveReadyFilesObj
+            .Any(f => f.FilePurpose.ToLower() == "mastercontent");
+        bool ReductionIsInvolved = MasterContentUploaded && publicationRequest.RootContentItem.DoesReduce;
 
         var relatedReductionTasks = dbContext.ContentReductionTask
             .Include(t => t.SelectionGroup)
@@ -210,15 +210,18 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 publicationRequest.RequestStatus = PublicationStatus.Confirmed;
 
                 //1.2  ContentReductionTask.Status
-                var previousLiveTasks = dbContext.ContentReductionTask
-                    .Where(r => r.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
-                    .Where(r => r.ReductionStatus == ReductionStatusEnum.Live);
-                foreach (ContentReductionTask PreviousLiveTask in previousLiveTasks)
+                if (ReductionIsInvolved)
                 {
-                    PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
-                    dbContext.ContentReductionTask.Update(PreviousLiveTask);
+                    var previousLiveTasks = dbContext.ContentReductionTask
+                        .Where(r => r.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
+                        .Where(r => r.ReductionStatus == ReductionStatusEnum.Live);
+                    foreach (ContentReductionTask PreviousLiveTask in previousLiveTasks)
+                    {
+                        PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
+                        dbContext.ContentReductionTask.Update(PreviousLiveTask);
+                    }
+                    relatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
                 }
-                relatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
 
                 //1.3  HierarchyFieldValue due to hierarchy changes
                 //1.3.1  If this is first publication for this root content item, add the fields to db
@@ -452,8 +455,24 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         break;
                 }
 
+                // Reset disclaimer acceptance
+                List<UserInSelectionGroup> usersInGroup = null;
+                if (MasterContentUploaded)
+                {
+                    usersInGroup = dbContext.UserInSelectionGroup
+                        .Where(u => u.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
+                        .ToList();
+                    usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
+                }
+
                 dbContext.SaveChanges();
                 Txn.Commit();
+
+                if (MasterContentUploaded)
+                {
+                    auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetRepublish
+                        .ToEvent(usersInGroup, publicationRequest.RootContentItemId));
+                }
             }
         }
         catch (Exception)

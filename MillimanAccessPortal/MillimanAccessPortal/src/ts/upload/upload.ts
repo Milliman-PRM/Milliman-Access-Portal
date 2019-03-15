@@ -22,11 +22,11 @@ export enum FileUploadStatus {
 }
 
 interface FileUpload {
-  Id: string;
-  InitiatedDateTimeUtc: string;
-  ClientFileIdentifier: string;
-  Status: FileUploadStatus;
-  StatusMessage: string;
+  id: string;
+  initiatedDateTimeUtc: string;
+  clientFileIdentifier: string;
+  status: FileUploadStatus;
+  statusMessage: string;
 }
 
 interface ResumableInfo {
@@ -76,7 +76,7 @@ export class Upload {
     }
     this.scanner = new FileScanner();
 
-    this.resumable.on('fileAdded', async (resumableFile) => {
+    this.resumable.on('fileAdded', async (resumableFile: any) => {
       const file: File = resumableFile.file;
       this.setCancelable(true);
       this.onFileAdded(resumableFile);
@@ -117,7 +117,7 @@ export class Upload {
     });
 
     this.resumable.on('beforeCancel', () => {
-      this.resumable.files.forEach((file) => {
+      this.resumable.files.forEach((file: any) => {
         const cancelInfo: ResumableInfo = {
           Checksum: this.checksum,
           ChunkNumber: 0,
@@ -147,7 +147,7 @@ export class Upload {
       }
     });
 
-    this.resumable.on('fileSuccess', (file) => {
+    this.resumable.on('fileSuccess', (file: any) => {
       this.setCancelable(false);
       this.onUploadProgress(ProgressSummary.full());
       const finalizeInfo: ResumableInfo = {
@@ -172,16 +172,16 @@ export class Upload {
         this._finalizationMonitor = new StatusMonitor(
           `/FileUpload/FinalizeUpload?fileUploadId=${uploadId}`,
           (fileUpload: FileUpload) => {
-            if (fileUpload.Status === FileUploadStatus.Complete) {
+            if (fileUpload.status === FileUploadStatus.Complete) {
               this.monitor.deactivate();
               this.onUploadProgress(ProgressSummary.full());
               this.setFileGUID(uploadId);
               this.onFileSuccess(this.fileGUID);
               this.setChecksum(null);
               this._finalizationMonitor.stop();
-            } else if (fileUpload.Status === FileUploadStatus.Error) {
+            } else if (fileUpload.status === FileUploadStatus.Error) {
               this.setCancelable(true);
-              this.onError(fileUpload.StatusMessage
+              this.onError(fileUpload.statusMessage
                 || 'Something went wrong during upload. Please try again.');
               this.setChecksum(null);
               this._finalizationMonitor.stop();

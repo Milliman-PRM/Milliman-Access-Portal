@@ -302,6 +302,8 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<Guid>("ClientId");
 
+                    b.Property<string>("ContentDisclaimer");
+
                     b.Property<string>("ContentFiles")
                         .HasColumnType("jsonb");
 
@@ -363,6 +365,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<bool>("DisclaimerAccepted");
 
                     b.Property<Guid>("SelectionGroupId");
 

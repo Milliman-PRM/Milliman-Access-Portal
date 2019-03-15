@@ -1,9 +1,27 @@
 ﻿@import "../../map_modules/variables";
 @import "../../map_modules/mixins";
 
+#content-wrapper.full-scroll {
+    overflow-y: auto;
+    height: auto;
+    min-height: 100vh;
+    width: 100%;
+}
+
+#iframe-container {
+    position: relative;
+    height: 100vh;
+    width: 100%;
+
+    iframe, object {
+        height: 100vh;
+        width: 100%;
+        overflow: auto;
+        border: none;
+    }
+}
+
 #authorized-content-container {
-    display: flex;
-    flex-flow: column nowrap;
     width: 100%;
     padding: 1em;
     overflow: hidden;
@@ -12,7 +30,7 @@
         display: flex;
         flex: none;
         justify-content: flex-end;
-        padding: 1em 1em 2em;
+        padding: .5em 1em 0;
 
         .filter-container {
             align-self: flex-end;
@@ -28,7 +46,6 @@
     }
 
     #authorized-content-items {
-        flex: 1 1 auto;
         overflow: auto;
 
         .client-content-container {

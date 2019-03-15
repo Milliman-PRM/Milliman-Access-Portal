@@ -23,8 +23,93 @@ nav {
         left: -21.5vmin;
     }
 
-    &:hover {
+    &.open {
         left: 0;
+
+        #navbar-button-inner:before {
+            transform: translate3d(-1.25vmin, 0.6vmin, 0) rotate(-45deg) scaleX(.7);
+        }
+
+        #navbar-button-inner:after {
+            transform: translate3d(-1.25vmin, -0.6vmin, 0) rotate(45deg) scaleX(.7);
+        }
+    }
+
+    &.close #navbar-button:hover {
+
+        #navbar-button-inner:before {
+            transform: translate3d(1.25vmin, 0.6vmin, 0) rotate(45deg) scaleX(.7);
+        }
+
+        #navbar-button-inner:after {
+            transform: translate3d(1.25vmin, -0.6vmin, 0) rotate(-45deg) scaleX(.7);
+        }
+    }
+
+    #navbar-button {
+        position: absolute;
+        top: 2vmin;
+        right: 0;
+        display: inline-block;
+        overflow: visible;
+        margin: 0;
+        width: 6.5vmin;
+        height: 6.5vmin;
+        padding: 1.25vmin;
+        cursor: pointer;
+        transition-timing-function: ease-in-out;
+        transition-duration: .15s;
+        transition-property: opacity, filter;
+        text-transform: none;
+        border: 0;
+        background-color: transparent;
+
+        &:hover #navbar-button-box {
+
+            #navbar-button-inner,
+            #navbar-button-inner:before,
+            #navbar-button-inner:after {
+                background-color: $blue;
+            }
+        }
+
+        #navbar-button-box {
+            position: absolute;
+            display: block;
+            top: 50%;
+
+            #navbar-button-inner {
+                display: block;
+                margin-top: -2.25vmin;
+            }
+
+            #navbar-button-inner,
+            #navbar-button-inner:before,
+            #navbar-button-inner:after {
+                background-color: $white;
+                position: absolute;
+                width: 4vmin;
+                height: 3px;
+                transition-timing-function: ease-in-out;
+                transition-duration: .15s;
+                transition-property: transform;
+                border-radius: .25em;
+            }
+
+            #navbar-button-inner:before,
+            #navbar-button-inner:after {
+                display: block;
+                content: "";
+            }
+
+            #navbar-button-inner:before {
+                top: -1.5vmin;
+            }
+
+            #navbar-button-inner:after {
+                bottom: -1.5vmin;
+            }
+        }
     }
 
     a {
@@ -70,6 +155,15 @@ nav {
     }
 }
 
+#navBarModalBackground {
+    z-index: 100;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+}
 /* IE Specific overrides */
 @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
 
@@ -81,12 +175,60 @@ nav {
         left: -18.5em;
         width: 18.5em;
 
-        &.loaded {
-            left: -14.5em;
+        &.loaded.open {
+            left: 0;
+
+            #navbar-button-inner:before {
+                transform: translate3d(-1em, .5em, 0) rotate(-45deg) scaleX(.5);
+            }
+
+            #navbar-button-inner:after {
+                transform: translate3d(-1em, -.5em, 0) rotate(45deg) scaleX(.5);
+            }
         }
 
-        &:hover {
-            left: 0;
+        &.close #navbar-button:hover {
+
+            #navbar-button-inner:before {
+                transform: translate3d(1em, .5em, 0) rotate(45deg) scaleX(.5);
+            }
+
+            #navbar-button-inner:after {
+                transform: translate3d(1em, -.5em, 0) rotate(-45deg) scaleX(.5);
+            }
+        }
+
+
+        #navbar-button {
+            top: 0;
+            width: 4rem;
+            height: 4rem;
+            padding: .5em;
+
+            #navbar-button-box {
+
+                #navbar-button-inner {
+                    margin-top: 0px;
+                }
+
+                #navbar-button-inner,
+                #navbar-button-inner:before,
+                #navbar-button-inner:after {
+                    width: 3em;
+                }
+
+                #navbar-button-inner:before {
+                    top: -1em;
+                }
+
+                #navbar-button-inner:after {
+                    bottom: -1em;
+                }
+            }
+        }
+               
+        &.loaded {
+            left: -14.5em;
         }
 
         .nav-element {

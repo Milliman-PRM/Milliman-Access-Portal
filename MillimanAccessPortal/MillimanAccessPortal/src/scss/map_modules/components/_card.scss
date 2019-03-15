@@ -11,7 +11,8 @@
         box-shadow: rgba($charcoal, .42) .2em .2em .75em;
     }
 
-    &[disabled] {
+    &[disabled],
+    &.card-disabled {
 
         &.card-disabled {
             cursor: default;
@@ -62,7 +63,7 @@
         border: 2px solid $charcoal;
 
         span {
-            display: block;
+            display: inline-block;
         }
 
         .status-bot {
@@ -108,10 +109,26 @@
         border: 2px solid $charcoal;
         border-radius: .25em;
 
+        &.locked {
+            border-color: $blue;
+        }
+
+        &.suspended {
+            border-color: $red;
+        }
+
+        &.inactive {
+            border-color: $orange;
+        }
+
         &[selected],
         &.selected {
             color: $white;
             background-color: $blue;
+
+            &.locked {
+                border-color: $black;
+            }
 
             input {
                 color: $white;
@@ -121,14 +138,14 @@
                     color: $light-grey;
                 }
             }
-        }
 
-        &.suspended {
-            border-color: $red;
-        }
+            .detail-item-icon .action-icon {
+                color: $white;
+            }
 
-        &.inactive {
-            border-color: $orange;
+            .react-select {
+                color: $black;
+            }
         }
 
         .card-body-main-container {
@@ -160,15 +177,12 @@
                 .card-body-primary-text-box {
                     margin: 0;
 
-                    h2 {
-                        margin-bottom: 0;
-                        border: 1px solid transparent;
-                    }
-
                     input {
                         padding: 0;
-                        font-size: 1.5em;
+                        font-size: 1em;
                         font-weight: bold;
+                        margin-bottom: -1px;
+                        height: inherit;
                     }
 
                     &:disabled {
@@ -415,14 +429,14 @@
             width: 100%;
             border: none;
             padding: 0 .75em;
-            transition: .25s all linear;
+            transition: .25s height linear;
             cursor: default;
 
             &[maximized],
             &.maximized {
                 height: auto;
                 overflow: visible;
-                transition: .25s all linear;
+                transition: .25s height linear;
 
                 .card-button-expansion {
                     -webkit-transform: rotateX(180deg);
@@ -461,32 +475,28 @@
                     flex-flow: row nowrap;
                     align-items: center;
                     margin-bottom: .5em;
+                    cursor: pointer;
 
+                    .detail-item-icon,
                     .detail-item-user-icon {
                         display: flex;
                         flex-flow: column nowrap;
                         justify-content: center;
+                        margin: .5em .5em .5em 0;
 
-                        .card-user-icon {
-                            height: 3em;
-                            width: 3em;
+                        .card-button-background {
+                            margin: 0;
                         }
                     }
 
-                    .detail-item-user-remove {
+                    .card-button-background {
                         display: flex;
-                        flex-flow: column nowrap;
+                        align-items: center;
                         justify-content: center;
-
-                        .card-button-background {
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            width: 2em;
-                            height: 2em;
-                            margin: .5em;
-                            cursor: pointer;
-                        }
+                        width: 2em;
+                        height: 2em;
+                        margin: .5em;
+                        cursor: pointer;
                     }
 
                     .detail-item-user-name {
@@ -498,33 +508,27 @@
                             margin: 0;
                         }
                     }
-                }
-            }
 
-            .detail-item-user-create {
-                display: flex;
-                flex-flow: row nowrap;
-                justify-content: center;
-                white-space: nowrap;
-                margin-bottom: 1.25em;
+                    .react-select {
+                        width: 100%;
+                        margin-bottom: 1.5em;
 
-                .detail-item-user-add {
-                    flex: none;
+                        .react-select__control {
+                            cursor: text;
 
-                    .card-button-background {
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        width: 2em;
-                        height: 2em;
-                        margin: .5em;
-                        cursor: pointer;
+                            .react-select__indicators {
+                                cursor: pointer;
+                            }
+                        }
+
+                        .react-select__menu {
+                            margin: 1px 0 0;
+
+                            .react-select__option {
+                                cursor: pointer;
+                            }
+                        }
                     }
-                }
-
-                .detail-item-user-input {
-                    flex: 1 0 auto;
-                    padding: .5em;
                 }
             }
         }
@@ -556,4 +560,8 @@
             transform: rotate(-90deg);
         }
     }
+}
+
+.action-card-container {
+    margin-bottom: 0;
 }

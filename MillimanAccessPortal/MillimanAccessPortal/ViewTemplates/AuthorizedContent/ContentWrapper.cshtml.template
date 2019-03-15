@@ -1,0 +1,23 @@
+@model MillimanAccessPortal.Models.AuthorizedContentViewModels.ContentWrapperModel
+
+@{
+    ViewData["Title"] = "";
+    Layout = "_Layout";
+    ViewData["NavIcon"] = "";
+}
+
+@section CSS {
+  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+  <% } %>
+}
+
+<div id="content-url" style="display: none;">@Model.ContentURL</div>
+<div id="content-type" style="display: none;">@Model.ContentType</div>
+<div id="content-wrapper-inner"></div>
+
+@section Scripts {
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+}

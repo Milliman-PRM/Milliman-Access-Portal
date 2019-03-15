@@ -23,20 +23,20 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public bool IsPublishing { get; set; }
         public NestedList SelectionGroups { get; set; } = null;
 
-        public static explicit operator RootContentItemDetailForClient(RootContentItem item)
+        public static explicit operator RootContentItemDetailForClient(RootContentItem contentItem)
         {
-            if (item == null)
+            if (contentItem == null)
             {
                 return null;
             }
 
             return new RootContentItemDetailForClient
             {
-                Id = item.Id,
-                ContentName = item.ContentName,
+                Id = contentItem.Id,
+                ContentName = contentItem.ContentName,
                 ContentType = MapDbContextLib.Context.ContentType
-                    .ContentTypeString[item.ContentType?.TypeEnum ?? ContentTypeEnum.Unknown],
-                Description = item.Description,
+                    .ContentTypeString[contentItem.ContentType?.TypeEnum ?? ContentTypeEnum.Unknown],
+                Description = contentItem.Description,
                 LastUpdated = DateTime.UtcNow,
                 LastAccessed = DateTime.UtcNow,
             };

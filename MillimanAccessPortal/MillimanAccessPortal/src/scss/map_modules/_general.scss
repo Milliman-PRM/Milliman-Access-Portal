@@ -1,4 +1,7 @@
-﻿body {
+﻿@import "./variables";
+@import "./mixins/breakpoints";
+
+body {
     font-family: "Helvetica Neue", sans-serif;
     background-color: $light-grey;
     color: $charcoal;
@@ -25,4 +28,8 @@
     .hide-for-tablet-down {
         display: none;
     }
+}
+
+svg:not([id='header-logo']):not(.action-icon):not(.cancel-icon):not(.upload-icon) {
+    pointer-events: none;
 }

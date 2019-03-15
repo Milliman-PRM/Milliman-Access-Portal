@@ -1,36 +1,36 @@
 import { Guid } from '../react/shared-components/interfaces';
 
 export interface Nestable {
-  Id: Guid;
-  ParentId?: string;
+  id: Guid;
+  parentId?: string;
 }
 
 export interface BasicTree<T extends Nestable> {
-  Root: BasicNode<T>;
+  root: BasicNode<T>;
 }
 export interface BasicNode<T extends Nestable> {
-  Value: T;
-  Children: Array<BasicNode<T>>;
+  value: T;
+  children: Array<BasicNode<T>>;
 }
 
 export interface UserInfo {
-  Id: Guid;
-  LastName: string;
-  FirstName: string;
-  Email: string;
-  UserName: string;
-  IsSuspended: boolean;
+  id: Guid;
+  lastName: string;
+  firstName: string;
+  email: string;
+  userName: string;
+  isSuspended: boolean;
 }
 export interface ClientSummary extends Nestable {
-  Name: string;
-  Code: string;
+  name: string;
+  code: string;
 
-  CanManage: boolean;
-  EligibleUserCount: number;
-  RootContentItemCount: number;
+  canManage: boolean;
+  eligibleUserCount: number;
+  rootContentItemCount: number;
 }
 export interface ClientTree extends BasicTree<ClientSummary> {
-  SelectedClientId: Guid;
+  selectedClientId: Guid;
 }
 
 export enum PublicationStatus {
@@ -58,31 +58,61 @@ export enum ReductionStatus {
   Replaced = 50,
   Error = 90,
 }
+export const publicationStatusNames: { [status: number]: string; } = {
+  9: 'Virus scanning',
+  10: 'Queued',
+  20: 'Processing',
+  30: 'Processed',
+  90: 'Error',
+};
+export const reductionStatusNames: { [status: number]: string; } = {
+  10: 'Queued',
+  20: 'Reducing',
+  30: 'Reduced',
+  90: 'Error',
+};
+export function isPublicationActive(status: PublicationStatus) {
+  return [
+    PublicationStatus.Validating,
+    PublicationStatus.Queued,
+    PublicationStatus.Processing,
+    PublicationStatus.Processed,
+  ].indexOf(status) !== -1;
+}
+export function isReductionActive(status: ReductionStatus) {
+  return [
+    ReductionStatus.Validating,
+    ReductionStatus.Queued,
+    ReductionStatus.Reducing,
+    ReductionStatus.Reduced,
+  ].indexOf(status) !== -1;
+}
+
 export interface PublicationSummary {
-  User: UserInfo;
-  StatusEnum: PublicationStatus;
-  StatusName: string;
-  StatusMessage: string;
-  SelectionGroupId: Guid;
-  RootContentItemId: Guid;
-  QueuedDurationMs?: number;
-  QueuePosition?: number;
-  QueueTotal?: number;
+  user: UserInfo;
+  statusEnum: PublicationStatus;
+  statusName: string;
+  statusMessage: string;
+  selectionGroupId: Guid;
+  rootContentItemId: Guid;
+  queuedDurationMs?: number;
+  queuePosition?: number;
+  queueTotal?: number;
 }
 export interface RootContentItemSummary {
-  Id: Guid;
-  ContentName: string;
-  ContentTypeName: string;
-  GroupCount: number;
-  AssignedUserCount: number;
-  IsSuspended: boolean;
-  ReadOnly: boolean;
-  EligibleUserList: UserInfo[];
-  PublicationDetails: PublicationSummary;
+  id: Guid;
+  contentName: string;
+  contentTypeName: string;
+  groupCount: number;
+  assignedUserCount: number;
+  isSuspended: boolean;
+  readOnly: boolean;
+  eligibleUserList: UserInfo[];
+  publicationDetails: PublicationSummary;
 }
 export interface RootContentItemList {
-  SummaryList: RootContentItemSummary[];
-  SelectedRootContentItemId: Guid;
+  summaryList: RootContentItemSummary[];
+  selectedRootContentItemId: Guid;
 }
 
 export enum ContentTypeEnum {
@@ -94,24 +124,25 @@ export enum ContentTypeEnum {
 }
 
 export interface ContentType {
-  Id: Guid;
-  TypeEnum: ContentTypeEnum;
-  Name: string;
-  CanReduce: boolean;
-  DefaultIconName: string;
-  FileExtensions: string[];
+  id: Guid;
+  typeEnum: ContentTypeEnum;
+  name: string;
+  canReduce: boolean;
+  defaultIconName: string;
+  fileExtensions: string[];
 }
 
 export interface RootContentItemDetail {
-  Id: Guid;
-  ClientId: Guid;
-  ContentName: string;
-  ContentTypeId: Guid;
-  DoesReduce: boolean;
-  RelatedFiles: ContentRelatedFile[];
-  Description: string;
-  Notes: string;
-  IsSuspended: boolean;
+  id: Guid;
+  clientId: Guid;
+  contentName: string;
+  contentTypeId: Guid;
+  doesReduce: boolean;
+  relatedFiles: ContentRelatedFile[];
+  description: string;
+  notes: string;
+  contentDisclaimer: string;
+  isSuspended: boolean;
 }
 
 export interface RootContentItemSummaryAndDetail {
@@ -120,70 +151,74 @@ export interface RootContentItemSummaryAndDetail {
 }
 
 export interface RootContentItemStatus {
-  Status: PublicationSummary[];
+  status: PublicationSummary[];
 }
 
 export interface ContentRelatedFile {
-  FileOriginalName: string;
-  FilePurpose: string;
-  FileUploadId: Guid;
+  fileOriginalName: string;
+  filePurpose: string;
+  fileUploadId: Guid;
 }
 export interface PublishRequest {
-  RootContentItemId: Guid;
-  NewRelatedFiles: ContentRelatedFile[];
-  DeleteFilePurposes: string[];
+  rootContentItemId: Guid;
+  newRelatedFiles: ContentRelatedFile[];
+  deleteFilePurposes: string[];
 }
 
 export interface PreLiveContentValidationSummary {
-  ValidationSummaryId: Guid;
-  PublicationRequestId: Guid;
-  RootContentName: string;
-  ContentTypeName: string;
-  ContentDescription: string;
-  DoesReduce: boolean;
-  ClientName: string;
-  ClientCode: string;
-  AttestationLanguage: string;
-  MasterContentLink: string;
-  UserGuideLink: string;
-  ReleaseNotesLink: string;
-  ThumbnailLink: string;
-  LiveHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
-  NewHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
-  SelectionGroups: SelectionGroupSummary[];
+  validationSummaryId: Guid;
+  publicationRequestId: Guid;
+  rootContentName: string;
+  contentTypeName: string;
+  contentDescription: string;
+  doesReduce: boolean;
+  clientName: string;
+  clientCode: string;
+  attestationLanguage: string;
+  masterContentLink: string;
+  userGuideLink: string;
+  releaseNotesLink: string;
+  thumbnailLink: string;
+  liveHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
+  newHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
+  selectionGroups: SelectionGroupSummary[];
 }
 export interface SelectionGroupSummary {
-  Id: Guid;
-  Name: string;
-  IsMaster: boolean;
-  Duration: string;
-  Users: UserInfo[];
-  WasInactive: boolean;
-  IsInactive: boolean;
-  InactiveReason?: string;
-  LiveSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
-  PendingSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
+  id: Guid;
+  name: string;
+  isMaster: boolean;
+  duration: string;
+  users: UserInfo[];
+  wasInactive: boolean;
+  isInactive: boolean;
+  inactiveReason?: string;
+  liveSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
+  pendingSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
 }
 
 export interface ContentReductionHierarchy<T extends ReductionFieldValue> {
-  Fields: Array<ReductionField<T>>;
-  RootContentItemId: Guid;
+  fields: Array<ReductionField<T>>;
+  rootContentItemId: Guid;
 }
-export interface ReductionField<T extends ReductionFieldValue> {
-  Id: Guid;
-  FieldName: string;
-  DisplayName: string;
-  ValueDelimiter: string;
-  Values: T[];
+export interface ReductionFieldInfo {
+  id: Guid;
+  fieldName: string;
+  displayName: string;
+  valueDelimiter: string;
 }
-export interface ReductionFieldValue {
-  Id: Guid;
-  Value: string;
-  HasSelectionStatus: boolean;
+export interface ReductionField<T extends ReductionFieldValue> extends ReductionFieldInfo {
+  values: T[];
+}
+export interface ReductionFieldValueInfo {
+  id: Guid;
+  value: string;
+}
+export interface ReductionFieldValue extends ReductionFieldValueInfo {
+  hasSelectionStatus: boolean;
 }
 export interface ReductionFieldValueSelection extends ReductionFieldValue {
-  SelectionStatus: boolean;
+  selectionStatus: boolean;
 }
 export function isSelection(value: ReductionFieldValue): value is ReductionFieldValueSelection {
-  return value && (value as ReductionFieldValueSelection).SelectionStatus !== undefined;
+  return value && (value as ReductionFieldValueSelection).selectionStatus !== undefined;
 }

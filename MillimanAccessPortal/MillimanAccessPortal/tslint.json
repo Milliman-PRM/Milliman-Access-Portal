@@ -6,10 +6,12 @@
     ],
     "jsRules": {},
     "rules": {
+        "forin": false,
         "interface-name": [true, "never-prefix"],
         "max-classes-per-file": [true, 3],
+        "no-namespace": false,
         "jsx-no-lambda": false,
-        "no-unused-variable": true,
+        "jsx-no-multiline-js": false,
         "no-var-requires": false,
         "object-literal-sort-keys": false,
         "quotemark": [true, "single", "avoid-template", "jsx-double"],

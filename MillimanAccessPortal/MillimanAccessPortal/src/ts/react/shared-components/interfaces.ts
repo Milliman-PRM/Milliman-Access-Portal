@@ -1,4 +1,4 @@
-﻿import { ContentTypeEnum } from "../../view-models/content-publishing";
+﻿import { ContentTypeEnum } from '../../view-models/content-publishing';
 
 export interface QueryFilter {
   userId?: string;
@@ -16,11 +16,11 @@ export enum RoleEnum {
 }
 
 export interface NavBarElement {
-  Order: number;
-  Label: string;
-  URL: string;
-  View: string;
-  Icon: string;
+  order: number;
+  label: string;
+  url: string;
+  view: string;
+  icon: string;
 }
 
 export interface ContentContainerProps {

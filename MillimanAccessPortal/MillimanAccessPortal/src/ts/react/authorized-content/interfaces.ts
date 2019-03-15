@@ -1,29 +1,29 @@
-﻿import { Guid } from '../shared-components/interfaces';
-import { ContentTypeEnum } from '../../view-models/content-publishing';
+﻿import { ContentTypeEnum } from '../../view-models/content-publishing';
+import { Guid } from '../shared-components/interfaces';
 
 export interface Filterable {
   filterString: string;
 }
 
 export interface ContentItem {
-  Id: Guid;
-  Name: string;
-  Description: string;
-  ContentTypeEnum: ContentTypeEnum;
-  ContentURL: string;
-  ImageURL?: string;
-  UserguideURL?: string;
-  ReleaseNotesURL?: string;
+  id: Guid;
+  name: string;
+  description: string;
+  contentTypeEnum: ContentTypeEnum;
+  contentURL: string;
+  imageURL?: string;
+  userguideURL?: string;
+  releaseNotesURL?: string;
 }
 
 export interface ContentItemGroup {
-  Id: Guid;
-  Name: string;
-  Items: ContentItem[];
+  id: Guid;
+  name: string;
+  items: ContentItem[];
 }
 
 export interface ContentItemGroupList {
-  ItemGroups: ContentItemGroup[];
+  itemGroups: ContentItemGroup[];
   selectedContentURL: string;
   selectedContentType: ContentTypeEnum;
 }

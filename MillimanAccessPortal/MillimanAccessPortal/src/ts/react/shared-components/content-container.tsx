@@ -1,4 +1,6 @@
-﻿import '../../../scss/react/shared-components/content-container.scss';
+﻿import '../../../scss/map_modules/_form.scss';
+import '../../../scss/react/shared-components/content-container.scss';
+
 import 'tooltipster';
 import 'tooltipster/src/css/tooltipster.css';
 import '../../../images/cancel.svg';
@@ -10,17 +12,36 @@ import { ContentContainerProps } from './interfaces';
 
 export class ContentContainer extends React.Component<ContentContainerProps, {}> {
 
-  public constructor(props) {
+  public constructor(props: ContentContainerProps) {
     super(props);
   }
 
+  public closeWindow() {
+    if (window.location === window.parent.location) {
+      window.close();
+    } else {
+      window.parent.history.back();
+    }
+  }
+
   public componentDidMount() {
-    history.pushState({ content: this.props.contentURL }, null);
+    if (this.props.contentType === ContentTypeEnum.FileDownload) {
+      window.location.href = this.props.contentURL;
+    }
   }
 
   public render() {
-    let sandboxValues;
+    if (this.props.contentType === ContentTypeEnum.FileDownload) {
+      return (
+        <div id="message-container" className="form-section-container">
+          <h2 className="primary-message">Your download should begin shortly...</h2>
+          <h3 className="secondary-message">This window can be closed once your download has completed</h3>
+          <button id="download-close-button" className="blue-button" onClick={this.closeWindow}>CLOSE WINDOW</button>
+        </div>
+      );
+    }
 
+    let sandboxValues;
     switch (this.props.contentType) {
       case ContentTypeEnum.Pdf:
         sandboxValues = null;

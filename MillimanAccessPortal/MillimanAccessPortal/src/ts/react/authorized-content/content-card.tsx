@@ -1,21 +1,14 @@
-﻿import '../../../images/release-notes.svg';
-import '../../../images/userguide.svg';
-import '../../../images/download.svg';
-import '../../../scss/react/authorized-content/content-card.scss';
+﻿import '../../../scss/react/authorized-content/content-card.scss';
 
 import * as React from 'react';
 
 import { ContentTypeEnum } from '../../view-models/content-publishing';
-import { ActionIcon } from '../shared-components/action-icon';
 import { ContentCardFunctions, ContentItem } from './interfaces';
-
-require('tooltipster');
-require('tooltipster/src/css/tooltipster.css');
 
 interface ContentCardProps extends ContentItem, ContentCardFunctions { }
 export class ContentCard extends React.Component<ContentCardProps, {}> {
 
-  public constructor(props) {
+  public constructor(props: ContentCardProps) {
     super(props);
 
     this.selectContent = this.selectContent.bind(this);
@@ -24,81 +17,71 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
   }
 
   public render() {
-    const image = this.props.ImageURL && (
+    const image = this.props.imageURL && (
       <img
         className="content-card-image"
-        src={this.props.ImageURL}
-        alt={this.props.Name}
+        src={this.props.imageURL}
+        alt={this.props.name}
       />
     );
-    const releaseNotes = this.props.ReleaseNotesURL
+    const releaseNotes = this.props.releaseNotesURL
       ? (
         <a
-          href={this.props.ReleaseNotesURL}
+          href={this.props.releaseNotesURL}
           target="_blank"
-          className="action-icon-link"
+          className="secondary-button"
           onClick={this.selectReleaseNotes}
         >
-          <ActionIcon
-            action={() => false}
-            title="View Release Notes"
-            icon="release-notes"
-          />
+          Release Notes
         </a>
       )
       : null;
-    const userGuide = this.props.UserguideURL
+    const userGuide = this.props.userguideURL
       ? (
         <a
-          href={this.props.UserguideURL}
+          href={this.props.userguideURL}
           target="_blank"
-          className="action-icon-link"
+          className="secondary-button"
           onClick={this.selectUserGuide}
         >
-          <ActionIcon
-            action={() => false}
-            title="View Userguide"
-            icon="userguide"
-          />
+          User Guide
         </a>
       )
       : null;
-    const contentLink = (this.props.ContentTypeEnum === ContentTypeEnum.FileDownload)
-      ? (
-        <a
-          href={this.props.ContentURL}
-          download
-          className="content-card-link content-card-download"
-        >
-          <div className="content-card-download-indicator">
-            <svg className="content-card-download-icon">
-              <use xlinkHref="#download"/>
-            </svg>
-          </div>
-        </a>
-      ) : (
-        <a
-          href={this.props.ContentURL}
-          target="_blank"
-          className="content-card-link"
-          onClick={this.selectContent}
-        />
-        )
+    const newWindow = (
+      <a
+        href={this.props.contentURL}
+        target="_blank"
+        className="secondary-button"
+        onClick={this.props.contentTypeEnum === ContentTypeEnum.FileDownload ? this.selectContent : null}
+      >
+        {this.props.contentTypeEnum === ContentTypeEnum.FileDownload
+          ? 'Download'
+          : 'Open in New Tab'
+        }
+      </a>
+    );
+    const contentLink = (
+      <a
+        href={this.props.contentURL}
+        className="content-card-link"
+        onClick={this.selectContent}
+      />
+    );
     return (
       <div className="content-card-container">
         <div className="content-card">
           <div className="content-card-header">
-            <h2 className="content-card-title">{this.props.Name}</h2>
-            <div className="content-card-icons">
-              {releaseNotes}
-              {userGuide}
-            </div>
+            <h2 className="content-card-title">{this.props.name}</h2>
           </div>
-          <div className="content-card-body">
+          <div className={`content-card-body${this.props.description ? '' : ' image-only'}`}>
             {image}
-            <p className="content-card-description">
-              {this.props.Description}
-            </p>
+            {this.props.description && <p className="content-card-description">{this.props.description}</p>}
+          </div>
+          <div className="secondary-actions">
+            {newWindow}
+            {releaseNotes}
+            {userGuide}
           </div>
           {contentLink}
         </div>
@@ -109,18 +92,18 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
   private selectContent(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
     event.preventDefault();
-    this.props.selectContent(this.props.ContentURL, this.props.ContentTypeEnum);
+    this.props.selectContent(this.props.contentURL, this.props.contentTypeEnum);
   }
 
   private selectReleaseNotes(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
     event.preventDefault();
-    this.props.selectContent(this.props.ReleaseNotesURL, ContentTypeEnum.Pdf);
+    this.props.selectContent(this.props.releaseNotesURL, ContentTypeEnum.Pdf);
   }
 
   private selectUserGuide(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation();
     event.preventDefault();
-    this.props.selectContent(this.props.UserguideURL, ContentTypeEnum.Pdf);
+    this.props.selectContent(this.props.userguideURL, ContentTypeEnum.Pdf);
   }
 }

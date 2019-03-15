@@ -6,19 +6,19 @@ import * as toastr from 'toastr';
 
 import { DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
 import { FormBase } from './form/form-base';
-import { ReductionStatus, SelectionGroupSummary, ReductionSummary } from './view-models/content-access-admin';
-import { PublicationStatus, UserInfo, PublicationSummary } from './view-models/content-publishing';
+import { ReductionSummary, SelectionGroupSummary } from './view-models/content-access-admin';
+import { PublicationStatus, PublicationSummary, UserInfo } from './view-models/content-publishing';
 
 const SHOW_DURATION = 50;
-const ajaxStatus = [];
+const ajaxStatus: any = [];
 
 // Functions with associated event listeners
 
 // Filtering
-export function filterTree($panel, $this) {
+export function filterTree($panel: any, $this: any) {
   const $content = $panel.find('ul.admin-panel-content');
   $content.children('.hr').hide();
-  $content.find('[data-filter-string]').each((_, element) => {
+  $content.find('[data-filter-string]').each((_: any, element: any) => {
     const $element = $(element);
     if ($element.data('filter-string').indexOf($this.val().toUpperCase()) > -1) {
       $element.show();
@@ -29,12 +29,12 @@ export function filterTree($panel, $this) {
     }
   });
 }
-export function filterTreeListener(event) {
+export function filterTreeListener(event: any) {
   buildListener.call(this, filterTree).bind(this)(event);
 }
-export function filterForm($panel, $this) {
+export function filterForm($panel: any, $this: any) {
   const $content = $panel.find('form.admin-panel-content');
-  $content.find('[data-selection-value]').each((_, element) => {
+  $content.find('[data-selection-value]').each((_: any, element: any) => {
     const $element = $(element);
     if ($element.data('selection-value').indexOf($this.val().toUpperCase()) > -1) {
       $element.show();
@@ -43,7 +43,7 @@ export function filterForm($panel, $this) {
     }
   });
 }
-export function filterFormListener(event) {
+export function filterFormListener(event: any) {
   buildListener.call(this, filterForm).bind(this)(event);
 }
 
@@ -63,11 +63,11 @@ export function setExpanded($panel: JQuery<HTMLElement>, $this: JQuery<HTMLEleme
       .tooltipster('content', 'Collapse card');
   updateToolbarIcons($panel);
 }
-export function toggleExpanded($panel, $this) {
+export function toggleExpanded($panel: any, $this: any) {
   const $cardContainer = $this.closest('.card-container');
   $cardContainer
     .find('.card-expansion-container')
-    .attr('maximized', (_, attr) => {
+    .attr('maximized', (_: any, attr: any) => {
       const data = (attr === '')
         ? { text: 'Expand card', rv: null }
         : { text: 'Collapse card', rv: '' };
@@ -76,30 +76,30 @@ export function toggleExpanded($panel, $this) {
     });
   updateToolbarIcons($panel);
 }
-export function toggleExpandedListener(event) {
+export function toggleExpandedListener(event: any) {
   buildListener.call(this, toggleExpanded).bind(this)(event);
 }
-export function expandAll($panel) {
+export function expandAll($panel: any) {
   $panel.find('.card-expansion-container').attr('maximized', '');
   updateToolbarIcons($panel);
 }
-export function expandAllListener(event) {
+export function expandAllListener(event: any) {
   buildListener.call(this, expandAll).bind(this)(event);
 }
-export function collapseAll($panel) {
+export function collapseAll($panel: any) {
   $panel.find('.card-expansion-container[maximized]').removeAttr('maximized');
   updateToolbarIcons($panel);
 }
-export function collapseAllListener(event) {
+export function collapseAllListener(event: any) {
   buildListener.call(this, collapseAll).bind(this)(event);
 }
 
 // Form control
-export function resetValidation($panel) {
+export function resetValidation($panel: any) {
   $panel.find('form.admin-panel-content').validate().resetForm();
   $panel.find('.field-validation-error > span').remove();
 }
-export function clearForm($panel) {
+export function clearForm($panel: any) {
   $panel.find('.selectized').each(function() {
     this.selectize.clear();
     this.selectize.clearOptions();
@@ -111,8 +111,8 @@ export function clearForm($panel) {
   resetValidation($panel);
 }
 
-function buildListener(fn) {
-  return ((event) => {
+function buildListener(fn: any) {
+  return ((event: any) => {
     const $this = $(this);
     const $panel = $this.closest('.admin-panel-container');
     event.stopPropagation();
@@ -167,7 +167,7 @@ export function wrapCardIconCallback(
   sameCard?: ($card: JQuery<HTMLElement>) => boolean,
   always?: () => void,
 ) {
-  return function(event) {
+  return function(event: any) {
     event.stopPropagation();
 
     const $icon = $(this);
@@ -277,8 +277,8 @@ export function put<T>(url: string, successMessage: string, callbacks: Array<(re
   return set('PUT', url, successMessage, callbacks);
 }
 
-export function showButtonSpinner($buttons, text?) {
-  $buttons.each((i) => {
+export function showButtonSpinner($buttons: any, text?: any) {
+  $buttons.each((i: any) => {
     const $button = $buttons.eq(i);
     if ($buttons.find('.spinner-small').length) { return; }
     $button.data('originalText', $button.html());
@@ -287,8 +287,8 @@ export function showButtonSpinner($buttons, text?) {
   });
 }
 
-export function hideButtonSpinner($buttons) {
-  $buttons.each((i) => {
+export function hideButtonSpinner($buttons: any) {
+  $buttons.each((i: any) => {
     const $button = $buttons.eq(i);
     $button.html($button.data().originalText);
   });
@@ -306,19 +306,19 @@ export function updateMemberList(
   const eligibleList = $eligibleCard.data().eligibleList as UserInfo[];
 
   eligibleList.filter((eligible) =>
-      memberList.filter((member) => eligible.Id === member.Id).length === 0);
+      memberList.filter((member) => eligible.id === member.id).length === 0);
   memberList
     .forEach((user) => {
-      const firstLast = user.FirstName || user.LastName
-        ? `${user.FirstName || ''} ${user.LastName || ''}`
-        : user.UserName;
-      const userName = firstLast === user.UserName
+      const firstLast = user.firstName || user.lastName
+        ? `${user.firstName || ''} ${user.lastName || ''}`
+        : user.userName;
+      const userName = firstLast === user.userName
         ? ''
-        : user.UserName;
+        : user.userName;
       const $li = $([
         // If you make any changes to this component, also change the user component in card.ts
         '<li>',
-        `  <span class="detail-item-user" data-user-id="${user.Id}">`,
+        `  <span class="detail-item-user" data-user-id="${user.id}">`,
         '    <div class="detail-item-user-icon">',
         '      <svg class="card-user-icon">',
         '        <use href="#user"></use>',
@@ -346,17 +346,17 @@ export function updateMemberList(
   $memberCard.find('.card-stat-value').html(memberList.length.toString());
 }
 
-export function removeUserFromSelectionGroup(event, member: UserInfo, selectionGroup: SelectionGroupSummary) {
+export function removeUserFromSelectionGroup(event: any, member: UserInfo, selectionGroup: SelectionGroupSummary) {
   event.stopPropagation();
-  const assignment = {};
-  assignment[member.Id] = false;
-  const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.Id}"]`);
+  const assignment: any = {};
+  assignment[member.id] = false;
+  const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.id}"]`);
   put<SelectionGroupSummary>(
     'ContentAccessAdmin/UpdateSelectionGroupUserAssignments/',
-    `Removed ${member.Email} from selection group ${selectionGroup.Name}.`,
+    `Removed ${member.email} from selection group ${selectionGroup.name}.`,
     [
       (response) => {
-        $selectionGroup.data('memberList', response.MemberList);
+        $selectionGroup.data('memberList', response.memberList);
         updateMemberList(
           $selectionGroup,
           $('#root-content-items [selected]').parent(),
@@ -366,7 +366,7 @@ export function removeUserFromSelectionGroup(event, member: UserInfo, selectionG
     ],
   )(
     {
-      SelectionGroupId: selectionGroup.Id,
+      SelectionGroupId: selectionGroup.id,
       UserAssignments: assignment,
     },
     () => undefined,
@@ -374,8 +374,8 @@ export function removeUserFromSelectionGroup(event, member: UserInfo, selectionG
   );
 }
 export function addUserToSelectionGroup(selectionGroup: SelectionGroupSummary) {
-  const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.Id}"]`);
-  $selectionGroup.data('memberList', selectionGroup.MemberList);
+  const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.id}"]`);
+  $selectionGroup.data('memberList', selectionGroup.memberList);
   updateMemberList(
     $selectionGroup,
     $('#root-content-items [selected]').parent(),
@@ -390,9 +390,9 @@ export function userSubstringMatcher(users: any) {
     const regex = new RegExp(query, 'i');
 
     $.each(users, function check(_, user) {
-      if (regex.test(user.Email) ||
-          regex.test(user.UserName) ||
-          regex.test(user.FirstName + ' ' + user.LastName)) {
+      if (regex.test(user.email) ||
+          regex.test(user.userName) ||
+          regex.test(user.firstName + ' ' + user.lastName)) {
         matches.push(user);
       }
     });
@@ -407,11 +407,11 @@ export function eligibleUserMatcher(query: string, callback: (matches: any) => v
     .map((card) => $(card).data().memberList)
     .reduce((cum: UserInfo[], cur: UserInfo[]) => cum.concat(cur), []) as UserInfo[];
   const eligibleUsers = allEligibleUsers.filter((eligibleUser) =>
-    assignedUsers.filter((assignedUser) => eligibleUser.Id === assignedUser.Id).length === 0);
+    assignedUsers.filter((assignedUser) => eligibleUser.id === assignedUser.id).length === 0);
 
   const regex = new RegExp(query, 'i');
   callback(eligibleUsers.filter((user) =>
-    [user.Email, user.UserName, `${user.FirstName} ${user.LastName}`].filter((text) =>
+    [user.email, user.userName, `${user.firstName} ${user.lastName}`].filter((text) =>
       regex.test(text)).length > 0));
 }
 
@@ -432,81 +432,81 @@ function msToTimeReferenceString(timeMs: number) {
   }
 }
 
-export function updateCardStatus($card, reductionDetails: ReductionSummary | PublicationSummary) {
+export function updateCardStatus($card: any, reductionDetails: ReductionSummary | PublicationSummary) {
   const $statusContainer = $card.find('.card-status-container');
   const $statusTop = $statusContainer.find('.status-top');
   const $statusBot = $statusContainer.find('.status-bot');
   const details = {
-    User: {
-      FirstName: '',
-      LastName: '',
+    user: {
+      firstName: '',
+      lastName: '',
     },
-    StatusEnum: 0,
-    StatusName: '',
-    StatusMessage: '',
-    SelectionGroupId: 0,
-    RootContentItemId: 0,
-    QueuedDurationMs: -1,
-    QueuePosition: -1,
-    QueueTotal: -1,
+    statusEnum: 0,
+    statusName: '',
+    statusMessage: '',
+    selectionGroupId: 0,
+    rootContentItemId: 0,
+    queuedDurationMs: -1,
+    queuePosition: -1,
+    queueTotal: -1,
     ...reductionDetails,
   };
 
-  let statusTop = `<strong>${details.StatusName}</strong>`;
-  let statusBot = `Initiated by ${details.User.FirstName[0]}. ${details.User.LastName}`;
-  const durationText = details.QueuedDurationMs > 0
-    ? msToTimeReferenceString(details.QueuedDurationMs)
+  let statusTop = `<strong>${details.statusName}</strong>`;
+  let statusBot = `Initiated by ${details.user.firstName[0]}. ${details.user.lastName}`;
+  const durationText = details.queuedDurationMs > 0
+    ? msToTimeReferenceString(details.queuedDurationMs)
     : '';
-  if (!details.SelectionGroupId) {
+  if (!details.selectionGroupId) {
     // Publication status
-    if (details.StatusName === 'Queued') {
-      if (details.QueuePosition >= 0) {
-        statusTop += ` (behind ${details.QueuePosition + 1} other publication${details.QueuePosition ? 's' : ''})`;
+    if (details.statusName === 'Queued') {
+      if (details.queuePosition >= 0) {
+        statusTop += ` (behind ${details.queuePosition + 1} other publication${details.queuePosition ? 's' : ''})`;
       }
       statusBot += durationText;
-    } else if (details.StatusName === 'Processing') {
-      if (details.QueueTotal > 0) {
-        statusTop += ` (${details.QueuePosition}/${details.QueueTotal} completed)`;
+    } else if (details.statusName === 'Processing') {
+      if (details.queueTotal > 0) {
+        statusTop += ` (${details.queuePosition}/${details.queueTotal} completed)`;
       }
       statusBot += durationText;
-    } else if (details.StatusName === 'Error') {
-      if (details.StatusMessage) {
+    } else if (details.statusName === 'Error') {
+      if (details.statusMessage) {
         statusTop += ' (click for details)';
       }
-    } else if (details.StatusName === 'Processed') {
+    } else if (details.statusName === 'Processed') {
       statusBot += durationText;
     }
   } else {
     // Reduction status
-    if (details.StatusName === 'Queued') {
-      if (details.QueuePosition >= 0) {
-        statusTop += ` (behind ${details.QueuePosition + 1} other reduction${details.QueuePosition ? 's' : ''})`;
+    if (details.statusName === 'Queued') {
+      if (details.queuePosition >= 0) {
+        statusTop += ` (behind ${details.queuePosition + 1} other reduction${details.queuePosition ? 's' : ''})`;
       }
       statusBot += durationText;
-    } else if (details.StatusName === 'Error') {
-      if (details.StatusMessage) {
+    } else if (details.statusName === 'Error') {
+      if (details.statusMessage) {
         statusTop += ' (click for details)';
       }
-    } else if (details.StatusName === 'Processing' || details.StatusName === 'Processed') {
+    } else if (details.statusName === 'Processing' || details.statusName === 'Processed') {
       statusBot += durationText;
     }
   }
   $statusTop.html(statusTop);
   $statusBot.html(statusBot);
   $statusContainer
-    .removeClass((_, classString) => {
+    .removeClass((_: any, classString: any) => {
       const classNames = classString.split(' ');
       return classNames
-        .filter((className) => {
+        .filter((className: any) => {
           return className.indexOf('status-') === 0;
         })
         .join(' ');
     })
-    .addClass('status-' + details.StatusEnum);
+    .addClass('status-' + details.statusEnum);
   $statusContainer.off('click');
-  if (details.StatusName.match(/^Error/) && details.StatusMessage) {
+  if (details.statusName.match(/^Error/) && details.statusMessage) {
     $statusContainer.on('click', () => {
-      toastr.warning(details.StatusMessage);
+      toastr.warning(details.statusMessage);
     });
   }
 }
@@ -546,7 +546,7 @@ export function updateFormStatusButtons() {
 }
 
 // Dialog helpers
-export function confirmAndContinue(dialogConstructor, form?: FormBase, onContinue?) {
+export function confirmAndContinue(dialogConstructor: any, form?: FormBase, onContinue?: any) {
   if (form && form.modified) {
     new dialogConstructor(() => {
       // Assigning to access mode forces the form to reset
@@ -560,16 +560,16 @@ export function confirmAndContinue(dialogConstructor, form?: FormBase, onContinu
   }
 }
 
-export function confirmAndContinueForm(onContinue, condition = true) {
+export function confirmAndContinueForm(onContinue: any, condition = true) {
   if (condition) {
-    new ResetConfirmationDialog(onContinue).open();
+    new (ResetConfirmationDialog as any)(onContinue).open();
   } else {
     onContinue();
   }
 }
 
 // fetch helpers
-export function getData(url = '', data = {}) {
+export function getData(url = '', data: any = {}) {
   const queryParams: string[] = [];
   Object.keys(data).forEach((key) => {
     if (Object.prototype.hasOwnProperty.call(data, key)) {
@@ -586,11 +586,34 @@ export function getData(url = '', data = {}) {
     if (!response.ok) {
       throw new Error(response.headers.get('Warning') || 'Unknown error');
     }
-    return response.json();
+    return response;
   });
 }
 
-export function postData(url: string = '', data: object = {}, rawResponse: boolean = false) {
+export function getJsonData<TResponse = any>(url = '', data: any = {}) {
+  const queryParams: string[] = [];
+  Object.keys(data).forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      queryParams.push(`${key}=${data[key]}`);
+    }
+  });
+  url = `${url}?${queryParams.join('&')}`;
+  return fetch(url, {
+    method: 'GET',
+    cache: 'no-cache',
+    credentials: 'same-origin',
+  })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(response.headers.get('Warning') || `${response.status}`);
+    } else if (response.redirected && response.url.match(/\/Account\/LogIn/) !== null) {
+      throw new Error('sessionExpired');
+    }
+    return response.json() as Promise<TResponse>;
+  });
+}
+
+export function postData(url: string = '', data: any = {}, rawResponse: boolean = false) {
   const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
   const formData = Object.keys(data).map((key) => {
     if (Object.prototype.hasOwnProperty.call(data, key)) {
@@ -615,5 +638,28 @@ export function postData(url: string = '', data: object = {}, rawResponse: boole
     return rawResponse
       ? response
       : response.json();
+  });
+}
+
+export function postJsonData<TResponse = any>(url: string = '', data: object = {}) {
+  const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
+  return fetch(url, {
+    method: 'POST',
+    cache: 'no-cache',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'RequestVerificationToken': antiforgeryToken,
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(data),
+  })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(response.headers.get('Warning') || `${response.status}`);
+    } else if (response.redirected && response.url.match(/\/Account\/LogIn/) !== null) {
+      throw new Error('sessionExpired');
+    }
+    return response.json() as Promise<TResponse>;
   });
 }
