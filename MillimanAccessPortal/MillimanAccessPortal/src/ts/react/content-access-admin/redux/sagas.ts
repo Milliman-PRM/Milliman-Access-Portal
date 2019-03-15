@@ -9,7 +9,7 @@ import {
     AccessAction, ErrorAction, isErrorAction, isScheduleAction, RequestAction, ResponseAction,
 } from './actions';
 import * as api from './api';
-import { selectedClient, selectedItem } from './selectors';
+import { remainingStatusRefreshAttempts, selectedClient, selectedItem } from './selectors';
 
 /**
  * Make an asynchronous API request and await the result.
@@ -142,6 +142,14 @@ export default function* rootSaga() {
   });
   yield takeLatestSchedule('FETCH_STATUS_REFRESH_SUCCEEDED',
     () => AccessActionCreators.scheduleStatusRefresh({ delay: 5000 }));
+  yield takeLatestSchedule('FETCH_STATUS_REFRESH_FAILED',
+    () => AccessActionCreators.decrementStatusRefreshAttempts({}));
+  yield takeLatestSchedule('DECREMENT_STATUS_REFRESH_ATTEMPTS', function*() {
+    const retriesLeft: number = yield select(remainingStatusRefreshAttempts);
+    return retriesLeft
+      ? AccessActionCreators.scheduleStatusRefresh({ delay: 5000 })
+      : AccessActionCreators.promptStatusRefreshStopped({});
+  });
   yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessActionCreators.fetchSessionCheck({}));
   yield takeLatestSchedule('FETCH_SESSION_CHECK_SUCCEEDED',
     () => AccessActionCreators.scheduleSessionCheck({ delay: 60000 }));
@@ -166,12 +174,13 @@ export default function* rootSaga() {
     'Please finish editing the current selection group before performing this action.', 'warning');
   yield takeEveryToast('PROMPT_GROUP_NAME_EMPTY',
     'Please name the selection group before saving changes.', 'warning');
+  yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',
+    'Please refresh the page to update reduction status.', 'warning');
   yield takeEveryToast<ErrorAction>([
     'FETCH_CLIENTS_FAILED',
     'FETCH_ITEMS_FAILED',
     'FETCH_GROUPS_FAILED',
     'FETCH_SELECTIONS_FAILED',
-    'FETCH_STATUS_REFRESH_FAILED',
     'FETCH_SESSION_CHECK_FAILED',
     'CREATE_GROUP_FAILED',
     'UPDATE_GROUP_FAILED',

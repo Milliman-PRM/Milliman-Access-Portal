@@ -118,6 +118,8 @@ export const promptGroupEditing =
   createActionCreator<AccessActions.PromptGroupEditing>('PROMPT_GROUP_EDITING');
 export const promptGroupNameEmpty =
   createActionCreator<AccessActions.PromptGroupNameEmpty>('PROMPT_GROUP_NAME_EMPTY');
+export const promptStatusRefreshStopped =
+  createActionCreator<AccessActions.PromptStatusRefreshStopped>('PROMPT_STATUS_REFRESH_STOPPED');
 
 // Data fetches
 export const fetchClients =
@@ -150,5 +152,7 @@ export const cancelReduction =
 // Scheduled actions
 export const scheduleStatusRefresh =
   createActionCreator<AccessActions.ScheduleStatusRefresh>('SCHEDULE_STATUS_REFRESH');
+export const decrementStatusRefreshAttempts =
+  createActionCreator<AccessActions.DecrementStatusRefreshAttempts>('DECREMENT_STATUS_REFRESH_ATTEMPTS');
 export const scheduleSessionCheck =
   createActionCreator<AccessActions.ScheduleSessionCheck>('SCHEDULE_SESSION_CHECK');

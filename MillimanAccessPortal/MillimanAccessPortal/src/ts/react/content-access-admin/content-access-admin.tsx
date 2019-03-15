@@ -12,7 +12,7 @@ import {
     isPublicationActive, isReductionActive, ReductionStatus,
 } from '../../view-models/content-publishing';
 import {
-    Client, ClientWithEligibleUsers, ReductionFieldset, RootContentItem,
+    Client, ClientWithEligibleUsers, ClientWithStats, ReductionFieldset, RootContentItem,
     RootContentItemWithPublication, SelectionGroup, SelectionGroupWithStatus, User,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
@@ -44,7 +44,7 @@ import {
 } from './redux/store';
 import { SelectionsPanel } from './selections-panel';
 
-type ClientEntity = (ClientWithEligibleUsers & { indent: 1 | 2 }) | 'divider';
+type ClientEntity = (ClientWithStats & { indent: 1 | 2 }) | 'divider';
 interface RootContentItemEntity extends RootContentItemWithPublication {
   contentTypeName: string;
 }
@@ -113,17 +113,21 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters, pending } = this.props;
+    const { clients, selected, filters, pending, cardAttributes } = this.props;
     return (
       <CardPanel
         entities={clients}
         loading={pending.data.clients}
-        renderEntity={(entity, key) => entity === 'divider'
-          ? <div className="hr" key={key} />
-          : (
+        renderEntity={(entity, key) => {
+          if (entity === 'divider') {
+            return <div className="hr" key={key} />;
+          }
+          const card = cardAttributes.client[entity.id];
+          return (
             <Card
               key={key}
               selected={selected.client === entity.id}
+              disabled={card.disabled}
               onSelect={() => {
                 if (pending.group.id !== null) {
                   this.props.promptGroupEditing({});
@@ -152,7 +156,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
                 </CardSectionStats>
               </CardSectionMain>
             </Card>
-          )}
+          );
+        }}
       >
         <h3 className="admin-panel-header">Clients</h3>
         <PanelSectionToolbar>
