@@ -28,7 +28,7 @@ export type PasswordInputState = Pick<PendingInputState,
 const validatePassword = async (requestModel: { proposedPassword: string }) =>
   await postJsonData<{ valid: boolean, messages?: string[] }>('/Account/CheckPasswordValidity2', requestModel);
 
-let msg: string = 'server error';
+let msg: string = null;
 const userSchema = yup.object<UserInputState>({
   firstName: yup.string().required('This field is required.'),
   lastName: yup.string().required('This field is required.'),

@@ -176,6 +176,7 @@ const form = createReducer<AccountStateForm>(_initialValidation, ({
       message: action.result.message,
     },
   }),
+  RESET_FORM: () => _initialValidation,
 }));
 export const accountSettings = combineReducers({
   data,
