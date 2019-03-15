@@ -249,8 +249,9 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     cancelReduction: false,
   }),
 });
-const pendingStatusTries = createReducer<number>(4, {
+const pendingStatusTries = createReducer<number>(5, {
   DECREMENT_STATUS_REFRESH_ATTEMPTS: (state) => state ? state - 1 : 0,
+  FETCH_STATUS_REFRESH_SUCCEEDED: () => 5,
 });
 const pendingIsMaster = createReducer<boolean>(null, {
   SET_PENDING_IS_MASTER: (_state, action: AccessActions.SetPendingIsMaster) => action.isMaster,
