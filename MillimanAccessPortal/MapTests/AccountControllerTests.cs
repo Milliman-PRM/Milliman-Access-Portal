@@ -252,7 +252,8 @@ namespace MapTests
             // This section is required for Url.Action to execute successfully
             var actionContext = new ActionContext()
             {
-                HttpContext = controller.HttpContext
+                HttpContext = controller.HttpContext,
+                RouteData = new RouteData(),
             };
 
             Dictionary<string, string> routeValues = new Dictionary<string, string>() { { "action", "ForgotPassword" }, { "controller", "Account" } };
