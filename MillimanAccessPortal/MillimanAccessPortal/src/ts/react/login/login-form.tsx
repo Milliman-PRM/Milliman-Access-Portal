@@ -171,7 +171,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
     this.setState({ awaitingConfirmation: true }, () => {
       postData('/Account/IsLocalAccount', { username: this.state.data.username })
         .then((response) => {
-          if (response.LocalAccount) {
+          if (response.localAccount) {
             this.setState({
               userConfirmed: true,
               awaitingConfirmation: false,

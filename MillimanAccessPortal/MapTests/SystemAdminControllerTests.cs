@@ -48,7 +48,8 @@ namespace MapTests
                 _testResources.QueriesObj,
                 _testResources.AuthorizationService,
                 _testResources.ConfigurationObject,
-                _testResources.ServiceProviderObject);
+                _testResources.ServiceProviderObject,
+                null);
 
             var testController = new SystemAdminController(
                 accountController,
@@ -58,7 +59,9 @@ namespace MapTests
                 _testResources.DbContextObject,
                 _testResources.QueriesObj,
                 _testResources.RoleManagerObject,
-                _testResources.UserManagerObject);
+                _testResources.UserManagerObject,
+                _testResources.ServiceProviderObject,
+                null);
 
             try
             {

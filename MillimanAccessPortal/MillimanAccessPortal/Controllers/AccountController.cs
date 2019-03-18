@@ -11,12 +11,11 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.WsFederation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
@@ -27,6 +26,7 @@ using AuditLogLib;
 using AuditLogLib.Services;
 using AuditLogLib.Event;
 using MillimanAccessPortal.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
@@ -47,6 +47,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService AuthorizationService;
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
+        private readonly AuthenticationService _authentService;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -58,7 +59,9 @@ namespace MillimanAccessPortal.Controllers
             StandardQueries QueriesArg,
             IAuthorizationService AuthorizationServiceArg,
             IConfiguration ConfigArg,
-            IServiceProvider serviceProviderArg)
+            IServiceProvider serviceProviderArg,
+            IAuthenticationService authentService
+            )
         {
             DbContext = ContextArg;
             _userManager = userManager;
@@ -70,6 +73,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationService = AuthorizationServiceArg;
             _configuration = ConfigArg;
             _serviceProvider = serviceProviderArg;
+            _authentService = (AuthenticationService)authentService;
         }
 
         //
@@ -93,43 +97,49 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> IsLocalAccount(string userName)
         {
-            string scheme = await GetAuthenticationSchemeForUser(userName);
+            bool localAccount = await IsUserAccountLocal(userName);
+            return Json(new { localAccount });
+        }
 
-            return Json(new { LocalAccount = string.IsNullOrWhiteSpace(scheme) });
+        [NonAction]
+        internal async Task<bool> IsUserAccountLocal(string userName)
+        {
+            string scheme = await GetExternalAuthenticationSchemeAsync(userName);
+
+            bool isLocal = string.IsNullOrWhiteSpace(scheme) ||
+                           scheme == (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
+
+            return isLocal;
         }
 
         /// <summary>
-        /// Evaluates the appropriate authentication scheme for a provided username
+        /// Evaluates the appropriate external authentication scheme for a provided username
         /// </summary>
         /// <param name="userName"></param>
-        /// <returns>The scheme for the specified user, or <see langword="null"/> if no scheme is appropriate</returns>
+        /// <returns>The scheme name, or <see langword="null"/> if no external scheme is appropriate</returns>
         [NonAction]
-        private async Task<string> GetAuthenticationSchemeForUser(string userName)
+        internal async Task<string> GetExternalAuthenticationSchemeAsync(string userName)
         {
             string normalizedUserName = _userManager.NormalizeKey(userName);
-            if (!DbContext.Users.Any(u => u.NormalizedUserName == normalizedUserName))
+            var appUser = await DbContext.ApplicationUser
+                                         .Include(u => u.AuthenticationScheme)
+                                         .SingleOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName);
+            if (appUser == null || !appUser.EmailConfirmed)
             {
                 return null;
             }
 
+            // 1. Does the specified user have an assigned scheme?
+            if (appUser.AuthenticationScheme != null)
+            {
+                return appUser.AuthenticationScheme.Name;
+            }
+
+            // 2. Does the email domain match a scheme?
             string userDomain = userName.Substring(0, userName.LastIndexOf('.'))
                                         .Substring(userName.IndexOf('@') + 1);
-
-            // 1. Does the specified user have a scheme name stored?
-            if (false)
-            {
-                return "TheStoredSchemeName";
-            }
-
-            // 2. Does the email domain map to a scheme?
-            if (false)
-            {
-                return "TheMappedSchemeName";
-            }
-
-            // 3. Does the email domain match a scheme?
-            var allSchemeNames = (await _signInManager.GetExternalAuthenticationSchemesAsync()).Select(s => s.Name);
-            return allSchemeNames.SingleOrDefault(s => s.Equals(userDomain, StringComparison.OrdinalIgnoreCase));
+            var matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => EF.Functions.ILike(s.Name, userDomain));
+            return matchingScheme?.Name;
         }
 
         //
@@ -138,13 +148,14 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RemoteAuthenticate(string userName)
         {
-            string scheme = await GetAuthenticationSchemeForUser(userName);
-            var redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
-            AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
-            properties.SetString("username", userName);
+            string scheme = await GetExternalAuthenticationSchemeAsync(userName);
 
             if (!string.IsNullOrWhiteSpace(scheme))
             {
+                string redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
+                AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
+                properties.SetString("username", userName);
+
                 return Challenge(properties, scheme);
             }
             else
@@ -168,14 +179,27 @@ namespace MillimanAccessPortal.Controllers
             {
                 var user = await _userManager.FindByNameAsync(model.Username);
 
-                if (user == null || user.IsSuspended)
+                if (user == null)
                 {
-                    Log.Debug($"User {model.Username} suspended or not found, local login rejected");
+                    Log.Debug($"User {model.Username} not found, local login rejected");
                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
                     Response.Headers.Add("Warning", "Invalid login attempt.");
                     return Ok();
                 }
                 
+                if (user.IsSuspended)
+                {
+                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName));
+                    Log.Debug($"User {user.UserName} suspended, local login rejected");
+
+                    UriBuilder msgUri = new UriBuilder
+                    {
+                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                        Query = "This account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
+                    };
+                    return Redirect(msgUri.Uri.PathAndQuery);
+                }
+
                 // Only notify of password expiration if the correct password was provided
                 // Redirect user to the password reset view to set a new password
                 bool passwordSuccess = await _userManager.CheckPasswordAsync(user, model.Password);
@@ -503,7 +527,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.EnableAccount GET action with {@UserId}", userId);
 
-            if (userId == null || code == null)
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(code))
             {
                 Log.Debug("In AccountController.EnableAccount GET action: invalid argument(s), aborting");
                 return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
@@ -541,6 +565,7 @@ namespace MillimanAccessPortal.Controllers
                 Id = user.Id,
                 Code = code,
                 Username = user.UserName,
+                IsLocalAccount = await IsUserAccountLocal(user.UserName),
             };
             Log.Verbose($"In AccountController.EnableAccount GET action: complete");
             return View(model);
@@ -554,7 +579,14 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.EnableAccount POST action with {@UserName}", model.Username);
 
-            if (!ModelState.IsValid)
+            List<string> nonRequiredKeysForExternalAuthentication = new List<string> {
+                nameof(EnableAccountViewModel.NewPassword),
+                nameof(EnableAccountViewModel.ConfirmNewPassword),
+                nameof(EnableAccountViewModel.PasswordsAreValid) };
+
+            if ((model.IsLocalAccount && !ModelState.IsValid) ||
+                (!model.IsLocalAccount && ModelState.Where(v => v.Value.ValidationState == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
+                                                    .Any(v => !nonRequiredKeysForExternalAuthentication.Contains(v.Key))))
             {
                 return View(model);
             }
@@ -597,30 +629,33 @@ namespace MillimanAccessPortal.Controllers
                     }
                 }
 
-                // Set the initial password
-                IdentityResult addPasswordResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
-                if (!addPasswordResult.Succeeded)
+                if (model.IsLocalAccount)
                 {
-                    string addPasswordErrors = $"Error while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}";
-                    Response.Headers.Add("Warning", addPasswordErrors);
+                    // Set the initial password
+                    IdentityResult addPasswordResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
+                    if (!addPasswordResult.Succeeded)
+                    {
+                        string addPasswordErrors = $"Error while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}";
+                        Response.Headers.Add("Warning", addPasswordErrors);
 
-                    Log.Error($"Error for user {model.Username} while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}");
+                        Log.Error($"Error for user {model.Username} while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}");
 
-                    return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
-                }
+                        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                    }
 
-                // Save password hash in history
-                user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
-                user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
-                var addPasswordHistoryResult = await _userManager.UpdateAsync(user);
-                if (!addPasswordHistoryResult.Succeeded)
-                {
-                    string addPasswordHistoryErrors = $"Error while setting password history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}";
-                    Response.Headers.Add("Warning", addPasswordHistoryErrors);
+                    // Save password hash in history
+                    user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
+                    user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
+                    var addPasswordHistoryResult = await _userManager.UpdateAsync(user);
+                    if (!addPasswordHistoryResult.Succeeded)
+                    {
+                        string addPasswordHistoryErrors = $"Error while setting password history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}";
+                        Response.Headers.Add("Warning", addPasswordHistoryErrors);
 
-                    Log.Information($"Error for user {model.Username} while saving history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}");
+                        Log.Information($"Error for user {model.Username} while saving history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}");
 
-                    return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                    }
                 }
 
                 // Update other user account settings
@@ -1176,13 +1211,21 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.UpdatePassword action");
 
-            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
             if (Model.UserName != User.Identity.Name)
             {
                 Log.Warning($"In AccountController.UpdatePassword action: user {User.Identity.Name} attempt to update password for application user {Model.UserName}, aborting");
                 Response.Headers.Add("Warning", "You may not access another user's settings.");
                 return Unauthorized();
             }
+
+            if (! await IsUserAccountLocal(Model.UserName))
+            {
+                Log.Error($"In AccountController.UpdatePassword action: user {Model.UserName} invalid attempt to update password for externally authenticated account, aborting");
+                Response.Headers.Add("Warning", "Your account authenticates to an external source. A password reset is not supported in MAP.");
+                return Unauthorized();
+            }
+
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
 
             if (ModelState.IsValid)
             {

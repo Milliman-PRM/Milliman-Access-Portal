@@ -8,6 +8,7 @@ using AuditLogLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.DataProtection;
@@ -90,6 +91,9 @@ namespace MapTests
 
         public Mock<IPublicationPostProcessingTaskQueue> MockPublicationPostProcessingQueue { get; set; }
         public IPublicationPostProcessingTaskQueue PublicationPostProcessingQueueObject { get => MockPublicationPostProcessingQueue.Object; }
+
+        public Mock<AuthenticationService> MockAuthenticationService { get; set; }
+        public AuthenticationService AuthenticationServiceObject { get => MockAuthenticationService.Object; }
 
         public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
 
@@ -192,6 +196,7 @@ namespace MapTests
             MockServiceProvider = GenerateServiceProvider();
             MockFileSystemTasks = new Mock<FileSystemTasks>();
             MockPublicationPostProcessingQueue = new Mock<IPublicationPostProcessingTaskQueue>();
+            MockAuthenticationService = new Mock<AuthenticationService>(null, null, null);
         }
 
         /// <summary>

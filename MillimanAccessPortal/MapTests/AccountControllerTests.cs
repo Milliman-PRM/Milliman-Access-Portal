@@ -7,6 +7,7 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -53,7 +54,9 @@ namespace MapTests
                 TestResources.QueriesObj,
                 TestResources.AuthorizationService,
                 TestResources.ConfigurationObject,
-                TestResources.ServiceProviderObject);
+                TestResources.ServiceProviderObject,
+                TestResources.AuthenticationServiceObject)
+                ;
 
             // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
             if (!string.IsNullOrWhiteSpace(UserName))
@@ -159,6 +162,7 @@ namespace MapTests
                 FirstName = FirstName,
                 LastName = LastName,
                 Phone = Phone,
+                IsLocalAccount = true,
             };
             #endregion
 
@@ -252,7 +256,8 @@ namespace MapTests
             // This section is required for Url.Action to execute successfully
             var actionContext = new ActionContext()
             {
-                HttpContext = controller.HttpContext
+                HttpContext = controller.HttpContext,
+                RouteData = new Microsoft.AspNetCore.Routing.RouteData(),
             };
 
             Dictionary<string, string> routeValues = new Dictionary<string, string>() { { "action", "ForgotPassword" }, { "controller", "Account" } };
@@ -260,7 +265,6 @@ namespace MapTests
             Mock<IRouter> mockRouter = new Mock<IRouter>();
             mockRouter.Setup(m => m.GetVirtualPath(It.IsAny<VirtualPathContext>())).Returns(new VirtualPathData(mockRouter.Object, "/"));
             controller.Url = new UrlHelper(actionContext);
-            controller.Url.ActionContext.RouteData = new Microsoft.AspNetCore.Routing.RouteData();
             controller.Url.ActionContext.RouteData.PushState(mockRouter.Object, valueDictionary, null);
             
             #endregion

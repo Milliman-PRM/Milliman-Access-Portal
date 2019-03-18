@@ -10,6 +10,7 @@ using MapDbContextLib.Context;
 using Serilog;
 using System.Security.Cryptography.X509Certificates;
 using System.Linq;
+using System.Threading.Tasks;
 using MapCommonLib;
 
 namespace MillimanAccessPortal
@@ -17,7 +18,7 @@ namespace MillimanAccessPortal
     public class Program
     {
 
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var host = BuildWebHost(args);
 
@@ -41,7 +42,7 @@ namespace MillimanAccessPortal
 
                 try
                 {
-                    ApplicationDbContext.InitializeAll(serviceProvider);
+                    await ApplicationDbContext.InitializeAll(serviceProvider);
                 }
                 catch (Exception e)
                 {
@@ -62,47 +63,7 @@ namespace MillimanAccessPortal
             var webHost = 
             WebHost.CreateDefaultBuilder(args)
             .UseStartup<Startup>()
-            .ConfigureAppConfiguration((hostContext, config) =>
-                {
-                    config
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                    .AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                    .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
-                    .AddJsonFile($"qlikview.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                    .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
-                    .AddJsonFile($"smtp.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                    ;
-
-                    #region Configure Azure Key Vault for CI & Production
-                    switch (EnvironmentNameUpper)
-                    {
-                        case "AZURECI":
-                        case "PRODUCTION":
-                        case "STAGING":
-                            config.AddJsonFile($"AzureKeyVault.{EnvironmentNameUpper}.json", optional: true, reloadOnChange: true);
-
-                            var builtConfig = config.Build();
-
-                            var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
-                            store.Open(OpenFlags.ReadOnly);
-                            var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
-
-                            config.AddAzureKeyVault(
-                                builtConfig["AzureVaultName"],
-                                builtConfig["AzureClientID"],
-                                cert.OfType<X509Certificate2>().Single()
-                                );
-                            break;
-                        case "DEVELOPMENT":
-                            config.AddUserSecrets<Startup>();
-                            break;
-
-                        default: // Unsupported environment name	
-                            throw new InvalidOperationException($"Current environment name ({EnvironmentNameUpper}) is not supported in Program.cs");
-
-                    }
-                    #endregion
-                })
+            .ConfigureAppConfiguration((hostContext, config) => SetApplicationConfiguration(hostContext.HostingEnvironment.EnvironmentName, config))
             .ConfigureLogging((hostingContext, config) => config.ClearProviders())  // remove ASP default logger
             ;
 
@@ -113,6 +74,48 @@ namespace MillimanAccessPortal
             }
 
             return webHost.Build();
+        }
+
+        internal static void SetApplicationConfiguration(string environmentName, IConfigurationBuilder config)
+        {
+            config
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
+            .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"qlikview.{environmentName}.json", optional: true, reloadOnChange: true)
+            .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"smtp.{environmentName}.json", optional: true, reloadOnChange: true)
+            ;
+
+            #region Configure Azure Key Vault for CI & Production
+            switch (environmentName.ToUpper())
+            {
+                case "AZURECI":
+                case "PRODUCTION":
+                case "STAGING":
+                    config.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
+
+                    var builtConfig = config.Build();
+
+                    var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                    store.Open(OpenFlags.ReadOnly);
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
+
+                    config.AddAzureKeyVault(
+                        builtConfig["AzureVaultName"],
+                        builtConfig["AzureClientID"],
+                        cert.OfType<X509Certificate2>().Single()
+                        );
+                    break;
+                case "DEVELOPMENT":
+                    config.AddUserSecrets<Startup>();
+                    break;
+
+                default: // Unsupported environment name	
+                    throw new InvalidOperationException($"Current environment name ({environmentName}) is not supported in Program.cs");
+
+            }
+            #endregion
         }
     }
 }

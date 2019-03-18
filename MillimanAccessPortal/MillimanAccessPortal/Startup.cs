@@ -11,7 +11,10 @@ using EmailQueue;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.WsFederation;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -26,6 +29,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Authorization;
@@ -33,6 +37,8 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
+using NetEscapades.AspNetCore.SecurityHeaders;
+using Newtonsoft.Json;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -40,6 +46,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
@@ -105,33 +113,28 @@ namespace MillimanAccessPortal
                 ;
 
             #region Configure authentication services
-            var WsFederationConfigSections = Configuration.GetSection("WsFederationSources").GetChildren();
-            if (WsFederationConfigSections.Select(s => s.GetValue<string>("Scheme")).Distinct().Count() != WsFederationConfigSections.Count())
+            List<MapDbContextLib.Context.AuthenticationScheme> allSchemes = new List<MapDbContextLib.Context.AuthenticationScheme>();
+
+            // get all configured schemes from database (no injected db service is available here)
+            DbContextOptions<ApplicationDbContext> ctxOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(appConnectionString).Options;
+            ApplicationDbContext applicationDb = new ApplicationDbContext(ctxOptions);
+            allSchemes = applicationDb.AuthenticationScheme.ToList();
+
+            if (allSchemes.Select(s => s.Name).Distinct().Count() != allSchemes.Count())
             {
                 Log.Error("Multiple configured WsFederation schemes have the same name");
             }
 
             AuthenticationBuilder authenticationBuilder = services.AddAuthentication(IdentityConstants.ApplicationScheme);
 
-            foreach (ConfigurationSection section in WsFederationConfigSections)
+            foreach (MapDbContextLib.Context.AuthenticationScheme scheme in allSchemes.Where(s => s.Type == AuthenticationType.WsFederation))
             {
-                WsFederationConfig wsFederationConfig;
-                try
+                WsFederationSchemeProperties schemeProperties = (WsFederationSchemeProperties)scheme.SchemePropertiesObj;
+                authenticationBuilder = authenticationBuilder.AddWsFederation(scheme.Name, $"{scheme.DisplayName}", options =>
                 {
-                    wsFederationConfig = (WsFederationConfig)section;
-                }
-                catch (ApplicationException ex)
-                {
-                    string Msg = ex.Message;
-                    Log.Error(ex, "Unable to convert WsFederation appsettings section {@Settings} to WsFederationConfig instance", section);
-                    continue;
-                }
-
-                authenticationBuilder = authenticationBuilder.AddWsFederation(wsFederationConfig.Scheme, $"{wsFederationConfig.DisplayName}", options =>
-                {
-                    options.MetadataAddress = wsFederationConfig.MetadataAddress;
-                    options.Wtrealm = wsFederationConfig.Wtrealm;
-                    options.CallbackPath = $"{options.CallbackPath}-{wsFederationConfig.Scheme}";
+                    options.MetadataAddress = schemeProperties.MetadataAddress;
+                    options.Wtrealm = schemeProperties.Wtrealm;
+                    options.CallbackPath = $"{options.CallbackPath}-{scheme.Name}";
 
                     // Event override to add username query parameter to adfs request
                     options.Events.OnRedirectToIdentityProvider = context =>
@@ -146,22 +149,50 @@ namespace MillimanAccessPortal
                     // Event override to avoid default application signin of the externally authenticated ClaimsPrinciple
                     options.Events.OnTicketReceived = async context =>
                     {
+                        context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to forego subsequent processing
+
                         using (IServiceScope scope = context.HttpContext.RequestServices.CreateScope())
                         {
                             IServiceProvider serviceProvider = scope.ServiceProvider;
                             SignInManager<ApplicationUser> _signInManager = serviceProvider.GetService<SignInManager<ApplicationUser>>();
+                            IAuditLogger _auditLogger = serviceProvider.GetService<IAuditLogger>();
                             try
                             {
                                 ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(context.Principal.Identity.Name);
-                                var x = context.Properties.ExpiresUtc;
-                                if (_applicationUser != null && !_applicationUser.IsSuspended)
+
+                                if (_applicationUser == null)
                                 {
-                                    await _signInManager.SignInAsync(_applicationUser, false);
+                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name));
+
+                                    throw new ApplicationException($"User {context.Principal.Identity.Name} suspended or not found, remote login rejected");
+                                }
+                                else if (_applicationUser.IsSuspended)
+                                {
+                                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(_applicationUser.UserName));
+
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                        Query = "This account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
+                                }
+                                else if (!_applicationUser.EmailConfirmed)
+                                {
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller","")}/{nameof(Controllers.SharedController.Message)}",
+                                        Query = "Msg=Your MAP account has not been activated. Please look for a welcome email from support@map.com and follow instructions in that message to activate the account."
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
                                 }
                                 else
                                 {
-                                    // TODO Maybe we need new audit log event types to support external authentication
-                                    throw new ApplicationException($"User {context.Principal.Identity.Name} suspended or not found, remote login rejected");
+                                    await _signInManager.SignInAsync(_applicationUser, false);
+                                    _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(), _applicationUser.UserName);
+                                    Log.Information($"Local user {_applicationUser.UserName} logged in");
                                 }
                             }
                             catch (Exception ex)
@@ -175,7 +206,6 @@ namespace MillimanAccessPortal
                             }
                         }
 
-                        context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to abort default processing
                         context.Response.Redirect("/Account/ExternalLoginCallbackAsync");
                     };
                 });
@@ -277,6 +307,9 @@ namespace MillimanAccessPortal
             services.AddScoped<SelectionGroupQueries>();
             services.AddScoped<PublicationQueries>();
             services.AddScoped<UserQueries>();
+
+            //services.AddSingleton<IOptionsMonitorCache<WsFederationOptions>, OptionsCache<WsFederationOptions>>();
+            services.AddSingleton<IPostConfigureOptions<WsFederationOptions>, WsFederationPostConfigureOptions>();
 
             // Add application services.
             services.AddTransient<IMessageQueue, MessageQueueServices>();
