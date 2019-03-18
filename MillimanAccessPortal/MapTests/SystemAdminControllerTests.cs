@@ -60,7 +60,7 @@ namespace MapTests
                 _testResources.QueriesObj,
                 _testResources.RoleManagerObject,
                 _testResources.UserManagerObject,
-                null,
+                _testResources.ServiceProviderObject,
                 null);
 
             try

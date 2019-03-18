@@ -56,9 +56,8 @@ namespace MillimanAccessPortal.Controllers
         private readonly StandardQueries _queries;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly OptionsCache<WsFederationOptions> _wsFederationOptionsCache;
         private readonly AuthenticationService _authentService;
-        //        private readonly WsFederationPostConfigureOptions _wsFederationPostConfigureOptions;
+        private readonly IServiceProvider _serviceProvider;
 
         public SystemAdminController(
             AccountController accountController,
@@ -69,9 +68,8 @@ namespace MillimanAccessPortal.Controllers
             StandardQueries queries,
             RoleManager<ApplicationRole> roleManager,
             UserManager<ApplicationUser> userManager,
-            IOptionsMonitorCache<WsFederationOptions> wsFederationOptionsCache,
+            IServiceProvider serviceProviderArg,
             IAuthenticationService authentService
-            // ,IPostConfigureOptions<WsFederationOptions> wsFederationPostConfigureOptions
             )
         {
             _accountController = accountController;
@@ -82,9 +80,8 @@ namespace MillimanAccessPortal.Controllers
             _queries = queries;
             _roleManager = roleManager;
             _userManager = userManager;
-            _wsFederationOptionsCache = (OptionsCache<WsFederationOptions>)wsFederationOptionsCache;
+            _serviceProvider = serviceProviderArg;
             _authentService = (AuthenticationService)authentService;
-            // _wsFederationPostConfigureOptions = (WsFederationPostConfigureOptions)wsFederationPostConfigureOptions;
         }
 
         /// <summary>
@@ -859,6 +856,7 @@ namespace MillimanAccessPortal.Controllers
             switch (model.Type)
             {
                 case AuthenticationType.WsFederation:
+                    OptionsCache<WsFederationOptions> _wsFederationOptionsCache = (OptionsCache<WsFederationOptions>)_serviceProvider.GetService(typeof(IOptionsMonitorCache<WsFederationOptions>));
                     try
                     {
                         _authentService.Schemes.AddScheme(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(model.Name, model.DisplayName, typeof(WsFederationHandler)));
@@ -987,6 +985,7 @@ namespace MillimanAccessPortal.Controllers
             switch (model.Type)
             {
                 case AuthenticationType.WsFederation:
+                    OptionsCache<WsFederationOptions> _wsFederationOptionsCache = (OptionsCache<WsFederationOptions>)_serviceProvider.GetService(typeof(IOptionsMonitorCache<WsFederationOptions>));
                     try
                     {
                         WsFederationSchemeProperties schemeProperties = (WsFederationSchemeProperties)model.Properties;
