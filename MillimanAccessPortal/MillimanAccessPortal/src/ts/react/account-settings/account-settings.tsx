@@ -2,6 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
+import { Input } from '../shared-components/input';
 import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
 import { UpdateAccount } from './redux/actions';
@@ -86,12 +87,15 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
           <h4 className="form-section-title">User Information</h4>
           <div className="form-input-container" style={{ marginBottom: 0 }}>
             <div className="form-input htmlForm-input-text flex-item-12-12">
-              <label className="form-input-text-title" htmlFor="username">Username</label>
               <div>
-                <input
-                  type="text"
+                <Input
                   name="username"
+                  label="Username"
+                  type="text"
                   value={username}
+                  onChange={() => { return; }}
+                  onBlur={() => { return; }}
+                  error={null}
                   readOnly={true}
                 />
               </div>
@@ -101,114 +105,97 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
         <div className="form-section" data-section="account">
           <div className="form-input-container">
             <div className="form-input form-input-text flex-item-for-tablet-up-6-12">
-              <label className="form-input-text-title" htmlFor="firstName">First Name</label>
-              <div>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={firstName}
-                  onChange={({ target }) => {
-                    this.props.setPendingTextInputValue({
-                      inputName: 'firstName',
-                      value: target.value,
-                    });
-                    this.props.validateInputUser({
-                      value: {
-                        ...this.props.inputs,
-                        firstName: target.value,
-                      },
-                      inputName: 'firstName',
-                    });
-                  }}
-                  autoFocus={true}
-                />
-                {this.props.valid.firstName.valid
-                ? null
-                : (
-                  <span className="text-danger field-validation-valid">
-                    {this.props.valid.firstName.message}
-                  </span>
-                )}
-              </div>
+              <Input
+                name="firstName"
+                label="First"
+                type="text"
+                value={firstName}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.props.setPendingTextInputValue({
+                    inputName: 'firstName',
+                    value: target.value,
+                  });
+                  this.props.validateInputUser({
+                    value: {
+                      ...this.props.inputs,
+                      firstName: target.value,
+                    },
+                    inputName: 'firstName',
+                  });
+                }}
+                autoFocus={true}
+                onBlur={() => { return; }}
+                error={this.props.valid.firstName.valid ? null : this.props.valid.firstName.message}
+              />
             </div>
             <div className="form-input form-input-text flex-item-for-tablet-up-6-12">
-              <label className="form-input-text-title" htmlFor="lastName">Last Name</label>
-              <div>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={lastName}
-                  onChange={({ target }) => {
-                    this.props.setPendingTextInputValue({
-                      inputName: 'lastName',
-                      value: target.value,
-                    });
-                    this.props.validateInputUser({
-                      value: {
-                        ...this.props.inputs,
-                        lastName: target.value,
-                      },
-                      inputName: 'lastName',
-                    });
-                  }}
-                />
-                {this.props.valid.lastName.valid
-                ? null
-                : (
-                  <span className="text-danger field-validation-valid">
-                    {this.props.valid.lastName.message}
-                  </span>
-                )}
-              </div>
+              <Input
+                name="lastName"
+                label="Last"
+                type="text"
+                value={lastName}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.props.setPendingTextInputValue({
+                    inputName: 'lastName',
+                    value: target.value,
+                  });
+                  this.props.validateInputUser({
+                    value: {
+                      ...this.props.inputs,
+                      lastName: target.value,
+                    },
+                    inputName: 'lastName',
+                  });
+                }}
+                onBlur={() => { return; }}
+                error={this.props.valid.lastName.valid ? null : this.props.valid.lastName.message}
+              />
             </div>
             <div className="form-input form-input-text flex-item-for-tablet-up-4-12">
-              <label className="form-input-text-title" htmlFor="phone">Phone Number</label>
-              <div>
-                <input
-                  placeholder="(###) ###-####"
-                  type="tel"
-                  name="phone"
-                  value={phone}
-                  onChange={({ target }) => {
-                    this.props.setPendingTextInputValue({
-                      inputName: 'phone',
-                      value: target.value,
-                    });
-                    this.props.validateInputUser({
-                      value: {
-                        ...this.props.inputs,
-                        phone: target.value,
-                      },
-                      inputName: 'phone',
-                    });
-                  }}
-                />
-                <span className="text-danger field-validation-valid" />
-              </div>
+              <Input
+                name="phone"
+                label="Phone Number"
+                type="phone"
+                value={phone}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.props.setPendingTextInputValue({
+                    inputName: 'phone',
+                    value: target.value,
+                  });
+                  this.props.validateInputUser({
+                    value: {
+                      ...this.props.inputs,
+                      phone: target.value,
+                    },
+                    inputName: 'phone',
+                  });
+                }}
+                onBlur={() => { return; }}
+                error={this.props.valid.phone.valid ? null : this.props.valid.phone.message}
+              />
             </div>
             <div className="form-input form-input-text flex-item-for-tablet-up-8-12">
-              <label className="form-input-text-title" htmlFor="employer">Employer</label>
-              <div>
-                <input
-                  type="text"
-                  name="employer"
-                  value={employer}
-                  onChange={({ target }) => {
-                    this.props.setPendingTextInputValue({
-                      inputName: 'employer',
-                      value: target.value,
-                    });
-                    this.props.validateInputUser({
-                      value: {
-                        ...this.props.inputs,
-                        employer: target.value,
-                      },
-                      inputName: 'employer',
-                    });
-                  }}
-                />
-                <span className="text-danger field-validation-valid" />
-              </div>
+              <Input
+                name="employer"
+                label="Employer"
+                type="text"
+                value={employer}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.props.setPendingTextInputValue({
+                    inputName: 'employer',
+                    value: target.value,
+                  });
+                  this.props.validateInputUser({
+                    value: {
+                      ...this.props.inputs,
+                      employer: target.value,
+                    },
+                    inputName: 'employer',
+                  });
+                }}
+                onBlur={() => { return; }}
+                error={this.props.valid.employer.valid ? null : this.props.valid.employer.message}
+              />
             </div>
           </div>
         </div>
@@ -225,97 +212,85 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
         <h4 className="form-section-title">Update Password</h4>
         <div className="form-input-container">
           <div className="form-input htmlForm-input-text flex-item-12-12">
-            <label className="form-input-text-title" htmlFor="currentPassword">Current Password</label>
-            <div>
-              <input
-                type="password"
-                name="currentPassword"
-                value={currentPassword}
-                onChange={({ target }) => {
-                  this.props.setPendingTextInputValue({
-                    inputName: 'current',
-                    value: target.value,
-                  });
-                  this.props.validateInputPassword({
-                    value: {
-                      current: target.value,
-                      new: this.props.inputs.newPassword,
-                      confirm: this.props.inputs.confirmPassword,
-                    },
-                    inputName: 'current',
-                  });
-                }}
-              />
-              {this.props.valid.currentPassword.valid || !this.props.anyPasswordInputModified
-              ? null
-              : (
-                <span className="text-danger field-validation-valid">
-                  {this.props.valid.currentPassword.message}
-                </span>
-              )}
-            </div>
+            <Input
+              name="currentPassword"
+              label="Current Password"
+              type="password"
+              value={currentPassword}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                this.props.setPendingTextInputValue({
+                  inputName: 'current',
+                  value: target.value,
+                });
+                this.props.validateInputPassword({
+                  value: {
+                    current: target.value,
+                    new: this.props.inputs.newPassword,
+                    confirm: this.props.inputs.confirmPassword,
+                  },
+                  inputName: 'current',
+                });
+              }}
+              onBlur={() => { return; }}
+              error={this.props.valid.currentPassword.valid || !this.props.anyPasswordInputModified
+                ? null
+                : this.props.valid.currentPassword.message
+              }
+            />
           </div>
           <div className="form-input htmlForm-input-text flex-item-12-12">
-            <label className="form-input-text-title" htmlFor="newPassword">New Password</label>
-            <div>
-              <input
-                type="password"
-                name="newPassword"
-                value={newPassword}
-                onChange={({ target }) => {
-                  this.props.setPendingTextInputValue({
-                    inputName: 'new',
-                    value: target.value,
-                  });
-                  this.props.validateInputPassword({
-                    value: {
-                      current: this.props.inputs.currentPassword,
-                      new: target.value,
-                      confirm: this.props.inputs.confirmPassword,
-                    },
-                    inputName: 'new',
-                  });
-                }}
-              />
-              {this.props.valid.newPassword.valid || !this.props.anyPasswordInputModified
-              ? null
-              : (
-                <span className="text-danger field-validation-valid">
-                  {this.props.valid.newPassword.message}
-                </span>
-              )}
-            </div>
+            <Input
+              name="newPassword"
+              label="New Password"
+              type="password"
+              value={newPassword}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                this.props.setPendingTextInputValue({
+                  inputName: 'new',
+                  value: target.value,
+                });
+                this.props.validateInputPassword({
+                  value: {
+                    current: this.props.inputs.currentPassword,
+                    new: target.value,
+                    confirm: this.props.inputs.confirmPassword,
+                  },
+                  inputName: 'new',
+                });
+              }}
+              onBlur={() => { return; }}
+              error={this.props.valid.newPassword.valid || !this.props.anyPasswordInputModified
+                ? null
+                : this.props.valid.newPassword.message
+              }
+            />
           </div>
           <div className="form-input htmlForm-input-text flex-item-12-12">
-            <label className="form-input-text-title" htmlFor="confirmPassword">Confirm password</label>
-            <div>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={confirmPassword}
-                onChange={({ target }) => {
-                  this.props.setPendingTextInputValue({
-                    inputName: 'confirm',
-                    value: target.value,
-                  });
-                  this.props.validateInputPassword({
-                    value: {
-                      current: this.props.inputs.currentPassword,
-                      new: this.props.inputs.newPassword,
-                      confirm: target.value,
-                    },
-                    inputName: 'confirm',
-                  });
-                }}
-              />
-              {this.props.valid.confirmPassword.valid || !this.props.anyPasswordInputModified
-              ? null
-              : (
-                <span className="text-danger field-validation-valid">
-                  {this.props.valid.confirmPassword.message}
-                </span>
-              )}
-            </div>
+            <Input
+              name="confirmPassword"
+              label="Confirm Password"
+              type="password"
+              value={confirmPassword}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                this.props.setPendingTextInputValue({
+                  inputName: 'confirm',
+                  value: target.value,
+                });
+                this.props.validateInputPassword({
+                  value: {
+                    current: this.props.inputs.currentPassword,
+                    new: this.props.inputs.newPassword,
+                    confirm: target.value,
+                  },
+                  inputName: 'confirm',
+                });
+              }}
+              onBlur={() => { return; }}
+              error={this.props.valid.newPassword.valid || !this.props.anyPasswordInputModified
+                ? null
+                : this.props.valid.confirmPassword.message
+              }
+            />
           </div>
         </div>
       </div>
