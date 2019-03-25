@@ -101,10 +101,31 @@ namespace MillimanAccessPortal.Controllers
             return Json(new { localAccount });
         }
 
+        /// <summary>
+        /// If the caller has a local <see cref="ApplicationUser"/> instance available the <see cref="IsUserAccountLocal(ApplicationUser)"/> overload is preferred
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
         [NonAction]
         internal async Task<bool> IsUserAccountLocal(string userName)
         {
-            string scheme = await GetExternalAuthenticationSchemeAsync(userName);
+            string normalizedUserName = _userManager.NormalizeKey(userName);
+            var appUser = await DbContext.ApplicationUser
+                                         .Include(u => u.AuthenticationScheme)
+                                         .SingleOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName);
+
+            return await IsUserAccountLocal(appUser);
+        }
+
+        /// <summary>
+        /// If the caller has a local <see cref="ApplicationUser"/> instance available this overload is preferred
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [NonAction]
+        internal async Task<bool> IsUserAccountLocal(ApplicationUser user)
+        {
+            string scheme = GetExternalAuthenticationScheme(user);
 
             bool isLocal = string.IsNullOrWhiteSpace(scheme) ||
                            scheme == (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
@@ -113,7 +134,8 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// Evaluates the appropriate external authentication scheme for a provided username
+        /// Evaluates the appropriate external authentication scheme for a provided username. 
+        /// If the caller has a local <see cref="ApplicationUser"/> instance available the <see cref="GetExternalAuthenticationScheme(ApplicationUser)"/> overload is preferred
         /// </summary>
         /// <param name="userName"></param>
         /// <returns>The scheme name, or <see langword="null"/> if no external scheme is appropriate</returns>
@@ -124,20 +146,32 @@ namespace MillimanAccessPortal.Controllers
             var appUser = await DbContext.ApplicationUser
                                          .Include(u => u.AuthenticationScheme)
                                          .SingleOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName);
-            if (appUser == null || !appUser.EmailConfirmed)
+
+            return GetExternalAuthenticationScheme(appUser);
+        }
+
+        /// <summary>
+        /// If the caller has a local <see cref="ApplicationUser"/> instance available this overload is preferred
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [NonAction]
+        internal string GetExternalAuthenticationScheme(ApplicationUser user)
+        {
+            if (user == null || !user.EmailConfirmed || !DbContext.ApplicationUser.Any(u => u.Id == user.Id))
             {
                 return null;
             }
 
             // 1. Does the specified user have an assigned scheme?
-            if (appUser.AuthenticationScheme != null)
+            if (user.AuthenticationScheme != null)
             {
-                return appUser.AuthenticationScheme.Name;
+                return user.AuthenticationScheme.Name;
             }
 
             // 2. Does the email domain match a scheme?
-            string userDomain = userName.Substring(0, userName.LastIndexOf('.'))
-                                        .Substring(userName.IndexOf('@') + 1);
+            string userDomain = user.UserName.Substring(0, user.UserName.LastIndexOf('.'))
+                                        .Substring(user.UserName.IndexOf('@') + 1);
             var matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => EF.Functions.ILike(s.Name, userDomain));
             return matchingScheme?.Name;
         }
@@ -230,10 +264,7 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    SignInCommon();
-
-                    Log.Information($"Local user {model.Username} logged in");
-                    _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(), model.Username);
+                    SignInCommon(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
 
                     // The default route is /AuthorizedContent/Index as configured in startup.cs
                     if (!string.IsNullOrEmpty(returnUrl))
@@ -288,9 +319,11 @@ namespace MillimanAccessPortal.Controllers
         /// Does everything that is common to externally and internally signed in users
         /// </summary>
         [NonAction]
-        private void SignInCommon()
+        private void SignInCommon(string userName, string scheme)
         {
             HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
+            Log.Information($"User {userName} logged in with scheme {scheme}");
+            _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), userName, HttpContext.Session.Id);
         }
 
         //
@@ -411,7 +444,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/ExternalLoginCallbackAsync
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ExternalLoginCallbackAsync(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> ExternalLoginCallbackAsync(string returnUrl = null, string remoteError = null)
         {
             Log.Verbose("Entered AccountController.ExternalLoginCallback action");
 
@@ -427,7 +460,7 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            SignInCommon();
+            SignInCommon(HttpContext.User.Identity.Name, await GetExternalAuthenticationSchemeAsync(HttpContext.User.Identity.Name));
 
             returnUrl = returnUrl ?? Url.Content("~/");
             return LocalRedirect(returnUrl);
@@ -505,18 +538,38 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.SendPasswordResetEmail action with {@UserName}", RequestedUser.UserName);
 
-            string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(RequestedUser);
-            string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = RequestedUser.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
+            if (!DbContext.ApplicationUser.Any(u => u.Id == RequestedUser.Id)) {
+                Log.Information($"Password reset requested by user <{User?.Identity?.Name}> for non-existing user with email {RequestedUser.Email}");
+                return;
+            }
 
-            string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
+            if (await IsUserAccountLocal(RequestedUser))
+            {
+                string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(RequestedUser);
+                string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = RequestedUser.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
 
-            string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
-            emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
-            emailBody += $"{linkUrl}";
-            _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
+                string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
 
-            Log.Debug($"Password reset email queued to email {RequestedUser.Email}");
-            _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser));
+                string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
+                emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
+                emailBody += $"{linkUrl}";
+                _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
+
+                Log.Debug($"Password reset email queued to email {RequestedUser.Email}");
+                _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser));
+            }
+            else
+            {
+                string schemeName = GetExternalAuthenticationScheme(RequestedUser);
+                var scheme = await _authentService.Schemes.GetSchemeAsync(schemeName);
+
+                string emailBody = "A password reset was requested for your Milliman Access Portal account. " +
+                    $"Your MAP account uses login services from your organization ({scheme.DisplayName}). Please contact your IT department for password assistance.";
+                _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
+
+                Log.Debug($"Password reset requested by external user with email {RequestedUser.Email}. Information email was queued.");
+                _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser));
+            }
         }
         
 
@@ -559,7 +612,7 @@ namespace MillimanAccessPortal.Controllers
                 return View("Message", WhatHappenedMessage);
             }
 
-            // Prompt for the user's password
+            // Prompt for the user's profile data
             var model = new EnableAccountViewModel
             {
                 Id = user.Id,

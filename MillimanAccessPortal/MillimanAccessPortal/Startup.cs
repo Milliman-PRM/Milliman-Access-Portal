@@ -191,8 +191,6 @@ namespace MillimanAccessPortal
                                 else
                                 {
                                     await _signInManager.SignInAsync(_applicationUser, false);
-                                    _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(), _applicationUser.UserName);
-                                    Log.Information($"Local user {_applicationUser.UserName} logged in");
                                 }
                             }
                             catch (Exception ex)
