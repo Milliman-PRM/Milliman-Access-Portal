@@ -67,11 +67,9 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
           {/* <ColumnSpinner /> */}
           <div className="admin-panel-content-container">
             <form autoComplete="off" className="admin-panel-content">
-              <div className="form-section-container">
-                {this.renderInformationSection()}
-                {this.renderPasswordSection()}
-                {this.renderSubmissionSection()}
-              </div>
+              {this.renderInformationSection()}
+              {this.renderPasswordSection()}
+              {this.renderSubmissionSection()}
             </form>
           </div>
         </div>
@@ -84,7 +82,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
     return (
       <>
         <div className="form-section" data-section="username">
-          <h4 className="form-section-title">User Information</h4>
+          <h3 className="form-section-title">User Information</h3>
           <Input
             name="username"
             label="Username"
@@ -193,7 +191,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
     return isLocal
     ? (
       <div className="form-section">
-        <h4 className="form-section-title">Update Password</h4>
+        <h3 className="form-section-title">Update Password</h3>
         <Input
           name="currentPassword"
           label="Current Password"

@@ -1,5 +1,10 @@
 ﻿@import "../../map_modules/variables";
 
+.form-section-title {
+    margin-bottom: 1em;
+    border-bottom: 1px solid $charcoal;
+}
+
 .form-element-container {
     margin-bottom: 1.5em;
     opacity: 1;
