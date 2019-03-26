@@ -190,6 +190,9 @@ namespace MillimanAccessPortal.Controllers
                 AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
                 properties.SetString("username", userName);
 
+                // TODO Is this having any effect?
+                properties.ExpiresUtc = DateTime.UtcNow + TimeSpan.FromMinutes(2);
+
                 return Challenge(properties, scheme);
             }
             else
@@ -543,6 +546,7 @@ namespace MillimanAccessPortal.Controllers
                 return;
             }
 
+            string emailBody, appLogMsg;
             if (await IsUserAccountLocal(RequestedUser))
             {
                 string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(RequestedUser);
@@ -550,28 +554,28 @@ namespace MillimanAccessPortal.Controllers
 
                 string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
 
-                string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
+                emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
                 emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
                 emailBody += $"{linkUrl}";
-                _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
 
-                Log.Debug($"Password reset email queued to email {RequestedUser.Email}");
-                _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser));
+                appLogMsg = $"Password reset email queued to email {RequestedUser.Email}";
             }
             else
             {
                 string schemeName = GetExternalAuthenticationScheme(RequestedUser);
                 var scheme = await _authentService.Schemes.GetSchemeAsync(schemeName);
 
-                string emailBody = "A password reset was requested for your Milliman Access Portal account. " +
-                    $"Your MAP account uses login services from your organization ({scheme.DisplayName}). Please contact your IT department for password assistance.";
-                _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
+                emailBody = "A password reset was requested for your Milliman Access Portal account. " +
+                    $"Your MAP account uses login services from your organization ({scheme.DisplayName}). Please contact your IT department if you require password assistance.";
 
-                Log.Debug($"Password reset requested by external user with email {RequestedUser.Email}. Information email was queued.");
-                _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser));
+                appLogMsg = $"Password reset requested by external user with email {RequestedUser.Email}. Information email was queued.";
             }
+
+            _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
+            Log.Debug(appLogMsg);
+            _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser));
         }
-        
+
 
         // GET: /Account/EnableAccount
         [HttpGet]
