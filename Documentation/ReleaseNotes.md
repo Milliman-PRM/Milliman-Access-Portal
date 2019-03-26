@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.4.1
+
+- Allow buttons on content items to wrap for case when the screen is too small to show all available buttons on a card in a single row
+
 ### v1.4.0
 
 - Add the ability to set a custom disclaimer to content items that must be accepted before accessing the content
