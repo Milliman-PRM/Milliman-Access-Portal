@@ -18,9 +18,7 @@ namespace MillimanAccessPortal.Migrations
                 .Annotation("Npgsql:Enum:content_type_enum", "unknown,qlikview,html,pdf,file_download")
                 .Annotation("Npgsql:Enum:publication_status", "unknown,canceled,rejected,validating,queued,processing,post_process_ready,post_processing,processed,confirming,confirmed,replaced,error")
                 .Annotation("Npgsql:Enum:reduction_status_enum", "unspecified,canceled,rejected,validating,queued,reducing,reduced,live,replaced,error")
-                .Annotation("Npgsql:PostgresExtension:citext", ",,")
-                .Annotation("Npgsql:PostgresExtension:uuid-ossp", ",,")
-                .OldAnnotation("Npgsql:PostgresExtension:uuid-ossp", "'uuid-ossp', '', ''");
+                .Annotation("Npgsql:PostgresExtension:citext", ",,");
 
             migrationBuilder.Sql(
                 "ALTER TABLE \"ContentReductionTask\" " +
@@ -202,13 +200,11 @@ namespace MillimanAccessPortal.Migrations
             */
 
             migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:PostgresExtension:uuid-ossp", "'uuid-ossp', '', ''")
                 .OldAnnotation("Npgsql:Enum:authentication_type", "default,ws_federation")
                 .OldAnnotation("Npgsql:Enum:content_type_enum", "unknown,qlikview,html,pdf,file_download")
                 .OldAnnotation("Npgsql:Enum:publication_status", "unknown,canceled,rejected,validating,queued,processing,post_process_ready,post_processing,processed,confirming,confirmed,replaced,error")
                 .OldAnnotation("Npgsql:Enum:reduction_status_enum", "unspecified,canceled,rejected,validating,queued,reducing,reduced,live,replaced,error")
-                .OldAnnotation("Npgsql:PostgresExtension:citext", ",,")
-                .OldAnnotation("Npgsql:PostgresExtension:uuid-ossp", ",,");
+                .OldAnnotation("Npgsql:PostgresExtension:citext", ",,");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ContentReductionTask_ContentPublicationRequest_ContentPublicationRequestId",
