@@ -79,9 +79,9 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
             {this.props.description && <p className="content-card-description">{this.props.description}</p>}
           </div>
           <div className="secondary-actions">
-            {newWindow}
             {releaseNotes}
             {userGuide}
+            {newWindow}
           </div>
           {contentLink}
         </div>
