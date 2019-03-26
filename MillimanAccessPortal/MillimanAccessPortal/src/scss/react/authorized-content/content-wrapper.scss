@@ -2,3 +2,8 @@ body {
   margin: 0;
   overflow-y: hidden;
 }
+
+#content-wrapper-inner {
+    min-height: 100vh;
+    width: 100%;
+}

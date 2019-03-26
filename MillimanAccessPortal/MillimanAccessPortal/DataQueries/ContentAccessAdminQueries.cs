@@ -1,5 +1,6 @@
 ﻿using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries.EntityQueries;
+using MillimanAccessPortal.Models.ClientModels;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
@@ -45,6 +46,7 @@ namespace MillimanAccessPortal.DataQueries
         public ClientsResponseModel SelectClients(ApplicationUser user)
         {
             var clients = _clientQueries.SelectClientsWithEligibleUsers(user, RoleEnum.ContentAccessAdmin);
+            var parentClients = _clientQueries.SelectParentClients(clients);
             var clientIds = clients.ConvertAll(c => c.Id);
 
             var users = _userQueries.SelectUsersWhereEligibleClientIn(clientIds);
@@ -52,6 +54,7 @@ namespace MillimanAccessPortal.DataQueries
             return new ClientsResponseModel
             {
                 Clients = clients.ToDictionary(c => c.Id),
+                ParentClients = parentClients.ToDictionary(c => c.Id),
                 Users = users.ToDictionary(u => u.Id),
             };
         }
