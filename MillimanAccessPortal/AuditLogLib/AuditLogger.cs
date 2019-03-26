@@ -115,7 +115,7 @@ namespace AuditLogLib
                 }
                 catch (Exception e) // Nothing should stop this from proceding
                 {
-                    Serilog.Log.Error(e, "In AuditLogger.Log(), exception while accessing _contextAccessor.HttpContext?.User?.Identity?.Name or @_contextAccessor.HttpContext?.Session?.Id from {@HttpContext}", _contextAccessor.HttpContext);
+                    Serilog.Log.Error(e, "In AuditLogger.Log(), exception while accessing _contextAccessor.HttpContext?.User?.Identity?.Name or _contextAccessor.HttpContext?.Session?.Id");
                 }
             }
 
