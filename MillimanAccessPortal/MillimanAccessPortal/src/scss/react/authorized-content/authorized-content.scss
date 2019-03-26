@@ -1,7 +1,7 @@
 ﻿@import "../../map_modules/variables";
 @import "../../map_modules/mixins";
 
-#content-wrapper {
+#content-wrapper.full-scroll {
     overflow-y: auto;
     height: auto;
     min-height: 100vh;

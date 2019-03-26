@@ -5,7 +5,7 @@ import {
     isReductionActive, publicationStatusNames, reductionStatusNames,
 } from '../../../view-models/content-publishing';
 import {
-    ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, Guid,
+    ClientWithEligibleUsers, ClientWithStats, ContentPublicationRequest, ContentReductionTask, Guid,
     ReductionFieldset, RootContentItemWithStats, SelectionGroupWithAssignedUsers, User,
 } from '../../models';
 import { AccessState } from './store';
@@ -174,11 +174,11 @@ export function groupToDelete(state: AccessState) {
  */
 export function clientsTree(state: AccessState) {
   const clients = _.toArray(state.data.clients);
-  const parentGroups: { [id: string]: ClientWithEligibleUsers[] } = clients.reduce((groups, cur) =>
+  const parentGroups: { [id: string]: ClientWithStats[] } = clients.reduce((groups, cur) =>
     groups[cur.parentId]
       ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
       : { ...groups, [cur.parentId]: [ cur ] },
-    {} as { [id: string]: ClientWithEligibleUsers[] });
+    {} as { [id: string]: ClientWithStats[] });
   const iteratees = ['name', 'code'];
   const clientTree = _.sortBy(parentGroups.null, iteratees).map((c) => ({
     parent: c,
@@ -193,7 +193,7 @@ export function clientsTree(state: AccessState) {
  */
 export function filteredClients(state: AccessState) {
   const filterTextLower = state.filters.client.text.toLowerCase();
-  const filterFunc = (client: ClientWithEligibleUsers) => (
+  const filterFunc = (client: ClientWithStats) => (
     filterTextLower === ''
     || (client.name && client.name.toLowerCase().indexOf(filterTextLower) !== -1)
     || (client.code && client.code.toLowerCase().indexOf(filterTextLower) !== -1)
@@ -439,7 +439,7 @@ export function activeReductionFieldsets(state: AccessState): ReductionFieldset[
   return _.sortBy(activeFields, ['displayName']);
 }
 
-interface ClientWithIndent extends ClientWithEligibleUsers {
+interface ClientWithIndent extends ClientWithStats {
   indent: 1 | 2;
 }
 /**
@@ -500,7 +500,7 @@ export function groupEntities(state: AccessState) {
  */
 export function selectedClient(state: AccessState) {
   return state.selected.client
-    ? state.data.clients[state.selected.client]
+    ? state.data.clients[state.selected.client] as ClientWithEligibleUsers
     : null;
 }
 
@@ -579,4 +579,12 @@ export function addableUsers(state: AccessState) {
         .reduce((prev, cur) => [...prev, ...cur], []),
     ).map((id) => state.data.users[id])
     : [];
+}
+
+/**
+ * Select the number of status refresh attempts remaining
+ * @param state Redux store
+ */
+export function remainingStatusRefreshAttempts(state: AccessState) {
+  return state.pending.statusTries;
 }
