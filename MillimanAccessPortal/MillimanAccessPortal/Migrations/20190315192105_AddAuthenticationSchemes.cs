@@ -38,15 +38,6 @@ namespace MillimanAccessPortal.Migrations
                         "END :: reduction_status_enum, " +
                     "ALTER COLUMN \"ReductionStatus\" SET DEFAULT 'unspecified' " +
                     "; ");
-            /*
-            migrationBuilder.AlterColumn<ReductionStatusEnum>(
-                name: "ReductionStatus",
-                table: "ContentReductionTask",
-                nullable: false,
-                defaultValue: ReductionStatusEnum.Unspecified,
-                oldClrType: typeof(long),
-                oldDefaultValue: 0L);
-            */
 
             migrationBuilder.Sql(
                 "ALTER TABLE \"ContentPublicationRequest\" " +
@@ -69,13 +60,6 @@ namespace MillimanAccessPortal.Migrations
                         "END :: publication_status, " +
                     "ALTER COLUMN \"RequestStatus\" SET DEFAULT 'unknown' " +
                     "; ");
-            /*
-            migrationBuilder.AlterColumn<PublicationStatus>(
-                name: "RequestStatus",
-                table: "ContentPublicationRequest",
-                nullable: false,
-                oldClrType: typeof(int));
-            */
 
             migrationBuilder.AddColumn<Guid>(
                 name: "AuthenticationSchemeId",
@@ -160,15 +144,6 @@ namespace MillimanAccessPortal.Migrations
                     "END :: bigint, " +
                 "ALTER COLUMN \"ReductionStatus\" SET DEFAULT 0 " +
                 "; ");
-            /*
-            migrationBuilder.AlterColumn<long>(
-                name: "ReductionStatus",
-                table: "ContentReductionTask",
-                nullable: false,
-                defaultValue: 0L,
-                oldClrType: typeof(ReductionStatusEnum),
-                oldDefaultValue: ReductionStatusEnum.Unspecified);
-            */
 
             migrationBuilder.Sql(
                 "ALTER TABLE \"ContentPublicationRequest\" " +
@@ -191,13 +166,6 @@ namespace MillimanAccessPortal.Migrations
                         "END :: integer, " +
                     "ALTER COLUMN \"RequestStatus\" SET DEFAULT 0 " +
                     "; ");
-            /*
-            migrationBuilder.AlterColumn<int>(
-                name: "RequestStatus",
-                table: "ContentPublicationRequest",
-                nullable: false,
-                oldClrType: typeof(PublicationStatus));
-            */
 
             migrationBuilder.AlterDatabase()
                 .OldAnnotation("Npgsql:Enum:authentication_type", "default,ws_federation")
