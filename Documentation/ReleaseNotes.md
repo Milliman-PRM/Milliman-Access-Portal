@@ -4,7 +4,7 @@
 
 ### v1.4.1
 
-- Allow buttons on content items to wrap for case when the screen is too small to show all available buttons on a card in a single row
+- Allow buttons on content card to wrap
 
 ### v1.4.0
 
