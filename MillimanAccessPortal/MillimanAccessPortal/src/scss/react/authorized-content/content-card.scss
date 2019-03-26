@@ -81,7 +81,6 @@
         .secondary-actions {
             flex: 1 0 auto;
             display: flex;
-            border-top: 2px solid $charcoal;
             flex-flow: row wrap;
             margin: 1em -1.2em -1.2em;
             padding: 0;
@@ -97,6 +96,7 @@
                 color: $white;
                 font-weight: bold;
                 border-right: 1px solid $charcoal;
+                border-top: 1px solid $charcoal;
                 text-align: center;
 
                 &:hover {
