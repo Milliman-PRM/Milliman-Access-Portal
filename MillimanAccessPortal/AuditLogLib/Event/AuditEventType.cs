@@ -222,16 +222,61 @@ namespace AuditLogLib.Event
             {
                 ContentReductionTaskId = task.Id,
             });
-        public static readonly AuditEventType<List<UserInSelectionGroup>> ContentDisclaimerAcceptanceReset =
-            new AuditEventType<List<UserInSelectionGroup>>(
-                4101, "Content disclaimer acceptance reset", (usersInGroup) => new
+        public static readonly AuditEventType<List<UserInSelectionGroup>, Guid>
+        ContentDisclaimerAcceptanceResetTextChange =
+            new AuditEventType<List<UserInSelectionGroup>, Guid>(
+                4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItemId) => new
                 {
+                    RootContentItemId = rootContentItemId,
                     UsersInGroup = usersInGroup.Select(u => new
                     {
-                        Id = u.Id,
+                        UserInSelectionGroupId = u.Id,
                         UserId = u.UserId,
                         SelectionGroupId = u.SelectionGroupId,
                     }),
+                    Reason = "Content disclaimer text was changed",
+                });
+        public static readonly AuditEventType<List<UserInSelectionGroup>, Guid>
+        ContentDisclaimerAcceptanceResetRepublish =
+            new AuditEventType<List<UserInSelectionGroup>, Guid>(
+                4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItemId) => new
+                {
+                    RootContentItemId = rootContentItemId,
+                    UsersInGroup = usersInGroup.Select(u => new
+                    {
+                        UserInSelectionGroupId = u.Id,
+                        UserId = u.UserId,
+                        SelectionGroupId = u.SelectionGroupId,
+                    }),
+                    Reason = "Root content item was republished",
+                });
+        public static readonly AuditEventType<List<UserInSelectionGroup>, Guid>
+        ContentDisclaimerAcceptanceResetSelectionChange =
+            new AuditEventType<List<UserInSelectionGroup>, Guid>(
+                4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItemId) => new
+                {
+                    RootContentItemId = rootContentItemId,
+                    UsersInGroup = usersInGroup.Select(u => new
+                    {
+                        UserInSelectionGroupId = u.Id,
+                        UserId = u.UserId,
+                        SelectionGroupId = u.SelectionGroupId,
+                    }),
+                    Reason = "Selections were changed",
+                });
+        public static readonly AuditEventType<List<UserInSelectionGroup>, Guid>
+            ContentDisclaimerAcceptanceResetRemovedFromGroup =
+            new AuditEventType<List<UserInSelectionGroup>, Guid>(
+                4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItemId) => new
+                {
+                    RootContentItemId = rootContentItemId,
+                    UsersInGroup = usersInGroup.Select(u => new
+                    {
+                        UserInSelectionGroupId = u.Id,
+                        UserId = u.UserId,
+                        SelectionGroupId = u.SelectionGroupId,
+                    }),
+                    Reason = "User removed from selection group",
                 });
         public static readonly AuditEventType<UserInSelectionGroup, string, string> ContentDisclaimerPresented =
             new AuditEventType<UserInSelectionGroup, string, string>(4102, "Content disclaimer presented to user",
