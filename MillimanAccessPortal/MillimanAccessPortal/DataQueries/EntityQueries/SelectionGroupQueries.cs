@@ -302,8 +302,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             }
             if (usersToRemove.Any())
             {
-                _auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetRemovedFromGroup
-                    .ToEvent(usersToRemove.ToList(), group.RootContentItemId));
+                _auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersToRemove.ToList()));
             }
             #endregion
 

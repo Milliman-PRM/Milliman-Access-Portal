@@ -41,7 +41,8 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Network Security Groups** - Network-level security configuration for VMs. Applies Firewall rules to VMs which use the Security Group.
 
-* **Barracuda Web Application Firewall** - A virtual appliance which applies security filtering to inbound traffic to ensure malicious traffic doesn't reach MAP.
+* **Application Gateway** - Distribute HTTPS requests to web app or QlikView Servers, as appropriate.
+    * **Web Application Firewall** - A feature of the Application Gateway. Applies additional security filtering to ensure malicious traffic doesn't reach either endpoint.
 
 * **Azure Security Center** - Monitor our Azure infrastructure and alert security staff about possible issues.
 
@@ -106,6 +107,7 @@ In the case that the data center becomes unavailable permanently or for a signif
   * Azure Database for PostgreSQL
   * Azure Key Vault
     * Update secret values to reflect changes in the environment, if needed
+  * Application Gateway
 * Restore Virtual Machine backups
 * Restore most recent available PostgreSQL database backups
 * Verify that all applications and services are functioning normally
@@ -114,7 +116,12 @@ In the case that the data center becomes unavailable permanently or for a signif
 
 ### Web Application firewall
 
-The Web Application Firewall  guards our infrastructure against common types of attacks and vulnerabilities. All end-user traffic to MAP and QlikView Server will flow through the WAF.
+The Web Application Firewall feature of the Application Gateway guards our infrastructure against common types of attacks and vulnerabilities, as defined by the [OWASP 3.0 Core Rule Set](https://coreruleset.org/). All end-user traffic to MAP and QlikView Server will flow through the WAF/AG.
+
+Due to the unique nature of our application (particularly in uploading QlikView content) some rules may need to be disabled. At this time, the following rules have been disabled because they interfere with user-facing functionality in some way. These rules have been disabled only for the web server's gateway,  unless otherwise noted.
+
+* #942450 SQL Hex Encoding Identified
+* #942440 SQL Comment Sequence Detected
 
 ### Azure Security Center
 
@@ -146,9 +153,9 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 |----|--------|-----------|
 |Domain Controllers|10.254.4.0/24|File Servers, Web servers, QlikView Publishers, QlikView Servers, Clients|
 |File Servers|10.254.5.0/24|Domain Controllers, Web servers,  QlikView Servers, QlikView Publishers, Remote Administration|
-|QlikView Servers|10.254.10.0/24|File Servers, Domain Controllers, Web servers|
+|QlikView Servers|10.254.10.0/24|File Servers, Domain Controllers, Web servers, Application Gateways|
 |QlikView Publishers|10.254.12.0/24|File Servers, Domain Controllers|
-|Web servers|10.254.11.0/24|File Servers, Qlikview Servers, Shared Infrastructure|
+|Web servers|10.254.11.0/24|File Servers, Qlikview Servers, Application Gateways, Shared Infrastructure|
 |Remote Administration|10.254.6.0/24|All vnets|
 |VPN Gateway|10.254.0.0/22|Remote Administration|
 |Shared infrastructure|10.0.0.0/24|Web servers, Remote Administration|
@@ -157,7 +164,7 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 
 ### Network Security Groups & Windows Firewall Configuration
 
-Inbound requests from the public internet will pass through the WAF. Additionally, the operating system firewall will be enabled and properly configured on each VM.
+Inbound requests from the public internet will pass through the Application Gateway. Additionally, the operating system firewall will be enabled and properly configured on each VM.
 
 All traffic is allowed to flow between peered virtual networks, as described above.
 
@@ -166,9 +173,9 @@ The table defines rules to be applied both within Network Security Groups as wel
 |Server Type|Connections allowed from the Internet|Connections allowed from VPN|
 |-----|-----|-----|
 |Domain Controllers|---|---|
-|QlikView Server|HTTPS, through WAF|HTTPS, through WAF|
+|QlikView Server|HTTPS, through Application Gateway|HTTPS, through Application Gateway|
 |QlikView Publisher|---|---|
-|Web Server|HTTPS, through WAF|HTTPS, WAF|
+|Web Server|HTTPS, through Application Gateway|HTTPS, through Application Gateway|
 |File Server|---|---|
 |Remote Administration VMs|---|RDP|
 

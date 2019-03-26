@@ -68,34 +68,6 @@ namespace MillimanAccessPortal.DataQueries
         }
 
         /// <summary>
-        /// Select any clients that are parents to clients in the provided list.
-        /// Only clients that are not in the provided list will be included.
-        /// </summary>
-        /// <param name="clients">List of clients for which to retrieve parents</param>
-        /// <returns>List of parent clients</returns>
-        private List<BasicClient> SelectParents(List<BasicClientWithEligibleUsers> clients)
-        {
-            var clientIds = clients.Select(c => c.Id).ToList();
-            var parentIds = clients
-                .Where(c => c.ParentId.HasValue)
-                .Select(c => c.ParentId.Value)
-                .Where(id => !clientIds.Contains(id))
-                .ToList();
-
-            return _dbContext.Client
-                .Where(c => parentIds.Contains(c.Id))
-                .OrderBy(c => c.Name)
-                .Select(c => new BasicClient
-                {
-                    Id = c.Id,
-                    ParentId = c.ParentClientId,
-                    Name = c.Name,
-                    Code = c.ClientCode,
-                })
-                .ToList();
-        }
-
-        /// <summary>
         /// Add card stats for each client in a list
         /// </summary>
         /// <param name="clients">List of clients</param>
@@ -116,9 +88,9 @@ namespace MillimanAccessPortal.DataQueries
                 clientWith.ContentItemCount = _dbContext.RootContentItem
                     .Where(i => i.ClientId == client.Id)
                     .Count();
-                clientWith.UserCount = _dbContext.UserRoleInClient
-                    .Where(r => r.ClientId == client.Id)
-                    .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
+                clientWith.UserCount = _dbContext.UserClaims
+                    .Where(m => m.ClaimType == ClaimNames.ClientMembership.ToString())
+                    .Where(m => m.ClaimValue == client.Id.ToString())
                     .Count();
 
                 clientsWith.Add(clientWith);
@@ -176,24 +148,6 @@ namespace MillimanAccessPortal.DataQueries
             var clientsWithEligibleUsers = WithEligibleUsers(clientsWithStats);
 
             return clientsWithEligibleUsers;
-        }
-
-        /// <summary>
-        /// Select missing parent clients for a list of clients
-        /// </summary>
-        /// <param name="children">Clients whose parents to retrieve</param>
-        /// <returns>List of parent clients</returns>
-        internal List<BasicClientWithCardStats> SelectParentClients(List<BasicClientWithEligibleUsers> children)
-        {
-            if (children == null)
-            {
-                return new List<BasicClientWithCardStats> { };
-            }
-
-            var clients = SelectParents(children);
-            var clientsWithStats = WithCardStats(clients);
-
-            return clientsWithStats;
         }
 
         /// <summary>

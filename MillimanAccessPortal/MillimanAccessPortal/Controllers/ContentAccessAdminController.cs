@@ -601,8 +601,7 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.SaveChanges();
 
                 AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup));
-                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetSelectionChange
-                    .ToEvent(usersInGroup, selectionGroup.RootContentItemId));
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersInGroup));
             }
             else
             {

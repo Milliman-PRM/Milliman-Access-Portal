@@ -2,16 +2,11 @@
 
 ## Release Notes
 
-### v1.4.1
-
-- Allow buttons on content card to wrap
-
 ### v1.4.0
 
-- Add the ability to set a custom disclaimer to content items that must be accepted before accessing the content
-- Restructured Content Access Admin to improve usability and responsiveness
 - Reconfigure the NavBar to open on click instead of hover
 - Reconfigure the Content Card layout to make accessing content more intuitive
+- Add the ability to set a custom disclaimer to content items that must be accepted before accessing the content
 - Unlock locked accounts when the password is reset
 - Clear content previews when switching to go live preview for a different content item
 - Fixed an issue where existing account activation links became invalidated before 7 days had passed

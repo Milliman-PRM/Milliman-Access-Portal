@@ -24,6 +24,7 @@ const _initialData: AccessStateData = {
   reductions: {},
   reductionQueue: {},
 };
+const _initialCards = {};
 const _initialPendingData: PendingDataState = {
   clients: false,
   items: false,
@@ -43,26 +44,16 @@ const _initialPendingGroups: PendingGroupState = {
   users: {},
 };
 
-// An object of actions and their state transformations
+// utility functions
 type Handlers<TState, TAction extends AccessAction> = {
   [type in TAction['type']]?: (state: TState, action: TAction) => TState;
 };
-
-/**
- * Create a reducer for a subtree of the redux store
- * @param initialState Subtree of state these handlers can influence
- * @param handlers Actions and their state transformations
- */
 const createReducer =
   <TState, TAction extends AccessAction = AccessAction>
   (initialState: TState, handlers: Handlers<TState, TAction>) =>
     (state: TState = initialState, action: TAction) => action.type in handlers
       ? handlers[action.type](state, action)
       : state;
-/**
- * Create a reducer for a filter
- * @param actionType Single filter action
- */
 const createFilterReducer = (actionType: FilterAction['type']) =>
   createReducer({ text: '' }, {
     [actionType]: (state: FilterState, action: FilterAction) => ({
@@ -70,11 +61,6 @@ const createFilterReducer = (actionType: FilterAction['type']) =>
       text: action.text,
     }),
   });
-/**
- * Create a reducer for a modal
- * @param openActions Actions that cause the modal to open
- * @param closeActions Actions that cause the modal to close
- */
 const createModalReducer = (openActions: Array<OpenAction['type']>, closeActions: Array<AccessAction['type']>) => {
   const handlers: Handlers<ModalState, any> = {};
   openActions.forEach((action) => {
@@ -91,16 +77,27 @@ const createModalReducer = (openActions: Array<OpenAction['type']>, closeActions
   });
   return createReducer<ModalState>({ isOpen: false }, handlers);
 };
+function updateList<T>(list: T[], selector: (item: T) => boolean, value?: T): T[] {
+  const filtered = list.filter(selector);
+  return value === undefined
+    ? filtered
+    : [...filtered, value].sort();
+}
+// Have to cast value to object and back because TypeScript does not support spread for generics
+// (as of 3.1.4)
+function updateMap<T extends object>(map: Map<Guid, T>, key: Guid, value: Partial<T>) {
+  const clone = new Map<Guid, T>(map);
+  return clone.set(key, { ...(clone.has(key) ? clone.get(key) : {}), ...(value as object) } as T);
+}
+function updateAllMap<T extends object>(map: Map<Guid, T>, value: Partial<T>) {
+  const clone = new Map<Guid, T>(map);
+  for (const key of clone.keys()) {
+    clone.set(key, { ...(clone.has(key) ? clone.get(key) : {}), ...(value as object) } as T);
+  }
+  return clone;
+}
 
-const clientCardAttributes = createReducer<Dict<CardAttributes>>({},
-  {
-    FETCH_CLIENTS_SUCCEEDED: (__, { response }: AccessActions.FetchClientsSucceeded) => ({
-      ..._.mapValues(response.clients, () => ({ disabled: false })),
-      ..._.mapValues(response.parentClients, () => ({ disabled: true })),
-    }),
-  },
-);
-const groupCardAttributes = createReducer<Dict<CardAttributes>>({},
+const groupCardAttributes = createReducer<Dict<CardAttributes>>(_initialCards,
   {
     SET_GROUP_EDITING_ON: (state, action: AccessActions.SetGroupEditingOn) => ({
       ...state,
@@ -249,10 +246,6 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     cancelReduction: false,
   }),
 });
-const pendingStatusTries = createReducer<number>(5, {
-  DECREMENT_STATUS_REFRESH_ATTEMPTS: (state) => state ? state - 1 : 0,
-  FETCH_STATUS_REFRESH_SUCCEEDED: () => 5,
-});
 const pendingIsMaster = createReducer<boolean>(null, {
   SET_PENDING_IS_MASTER: (_state, action: AccessActions.SetPendingIsMaster) => action.isMaster,
   SELECT_GROUP: () => null,
@@ -324,10 +317,7 @@ const pendingDeleteGroup = createReducer<Guid>(null, {
 const data = createReducer<AccessStateData>(_initialData, {
   FETCH_CLIENTS_SUCCEEDED: (state, action: AccessActions.FetchClientsSucceeded) => ({
     ...state,
-    clients: {
-      ...action.response.clients,
-      ...action.response.parentClients,
-    },
+    clients: action.response.clients,
     users: action.response.users,
   }),
   FETCH_ITEMS_SUCCEEDED: (state, action: AccessActions.FetchItemsSucceeded) => {
@@ -596,12 +586,10 @@ const selected = createReducer<AccessStateSelected>(
   },
 );
 const cardAttributes = combineReducers({
-  client: clientCardAttributes,
   group: groupCardAttributes,
 });
 const pending = combineReducers({
   data: pendingData,
-  statusTries: pendingStatusTries,
   isMaster: pendingIsMaster,
   selections: pendingSelections,
   newGroupName: pendingNewGroupName,
@@ -625,8 +613,8 @@ const modals = combineReducers({
     'DELETE_GROUP_SUCCEEDED',
     'DELETE_GROUP_FAILED',
   ]),
-  invalidate: createModalReducer([ 'OPEN_INACTIVE_MODAL' ], [
-    'CLOSE_INACTIVE_MODAL',
+  invalidate: createModalReducer([ 'OPEN_INVALIDATE_MODAL' ], [
+    'CLOSE_INVALIDATE_MODAL',
     'UPDATE_SELECTIONS_SUCCEEDED',
     'UPDATE_SELECTIONS_FAILED',
   ]),
