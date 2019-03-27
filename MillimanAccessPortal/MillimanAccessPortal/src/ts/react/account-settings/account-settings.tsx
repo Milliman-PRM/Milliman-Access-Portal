@@ -1,3 +1,5 @@
+import '../../../scss/react/account-settings/account-settings.scss';
+
 import * as React from 'react';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
@@ -62,17 +64,12 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
 
   private renderAccountSettingsForm() {
     return (
-      <div id="account-settings-container">
-        <div className="admin-panel-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
-          {/* <ColumnSpinner /> */}
-          <div className="admin-panel-content-container">
-            <form autoComplete="off" className="admin-panel-content">
-              {this.renderInformationSection()}
-              {this.renderPasswordSection()}
-              {this.renderSubmissionSection()}
-            </form>
-          </div>
-        </div>
+      <div className="admin-panel-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
+        <form autoComplete="off" className="admin-panel-content">
+          {this.renderInformationSection()}
+          {this.renderPasswordSection()}
+          {this.renderSubmissionSection()}
+        </form>
       </div>
     );
   }
