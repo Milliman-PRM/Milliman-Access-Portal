@@ -190,7 +190,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
       <div className="form-section">
         <h3 className="form-section-title">Update Password</h3>
         <Input
-          name="currentPassword"
+          name="password"
           label="Current Password"
           type="password"
           value={currentPassword}
