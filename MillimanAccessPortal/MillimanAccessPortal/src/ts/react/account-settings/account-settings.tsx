@@ -279,9 +279,14 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
         <div className="button-container button-container-update">
           {this.renderResetButton()}
           <button
-            type="button"
+            type="submit"
             className={`button-submit blue-button${submitButtonEnabled ? '' : ' disabled'}`}
-            onClick={() => this.props.updateAccount(this.props.updateData)}
+            onClick={(event: React.FormEvent) => {
+              event.preventDefault();
+              if (submitButtonEnabled) {
+                this.props.updateAccount(this.props.updateData);
+              }
+            }}
           >
             Update Account
           </button>
