@@ -235,7 +235,7 @@
                             </div>
                         </div>
                         <div class="form-input form-input-textarea flex-item-12-12">
-                            <label class="form-input-textarea-title" for="ContentDisclaimer">Content Disclaimer</label>
+                            <label class="form-input-textarea-title" for="ContentDisclaimer">Custom Disclaimer Text</label>
                             <div class="form-input-textarea-contents">
                                 <textarea id="ContentDisclaimer" name="ContentDisclaimer" for="ContentDisclaimer" placeholder="There is no disclaimer for this content."></textarea>
                             </div>

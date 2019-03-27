@@ -1,6 +1,7 @@
 ﻿footer {
     display:       flex;
     flex-flow:     row wrap;
+    flex:          none;
     align-content: stretch;
     align-items:   stretch;
     width:         100%;
@@ -19,7 +20,7 @@
             display:       inline-block;
             list-style:    none;
             padding:       0;
-            margin-bottom: 1em;
+            margin-bottom: .5em;
 
             @include for-laptop-up {
                 text-align: center;
@@ -27,7 +28,7 @@
 
             & > li {
                 display: inline-block;
-                margin:  0 .75em .75em;
+                margin:  0 .75em .5em;
             }
         }
     }
@@ -35,6 +36,6 @@
     #copyright-container {
         align-self:    center;
         text-align:    right;
-        margin-bottom: 1em;
+        margin-bottom: .5em;
     }
 }

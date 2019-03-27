@@ -3,9 +3,9 @@ import { applyMiddleware, createStore } from 'redux';
 import createSagaMiddleware from 'redux-saga';
 
 import {
-    ClientWithEligibleUsers, ContentPublicationRequest, ContentReductionTask, ContentType, Guid,
-    PublicationQueueDetails, ReductionField, ReductionFieldValue, ReductionQueueDetails,
-    RootContentItemWithStats, SelectionGroupWithAssignedUsers, User,
+    ClientWithEligibleUsers, ClientWithStats, ContentPublicationRequest, ContentReductionTask,
+    ContentType, Guid, PublicationQueueDetails, ReductionField, ReductionFieldValue,
+    ReductionQueueDetails, RootContentItemWithStats, SelectionGroupWithAssignedUsers, User,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
@@ -47,7 +47,7 @@ export interface PendingGroupState {
  * Entity data returned from the server.
  */
 export interface AccessStateData {
-  clients: Dict<ClientWithEligibleUsers>;
+  clients: Dict<ClientWithEligibleUsers | ClientWithStats>;
   items: Dict<RootContentItemWithStats>;
   groups: Dict<SelectionGroupWithAssignedUsers>;
   users: Dict<User>;
@@ -71,6 +71,7 @@ export interface AccessStateSelected {
  * Card attribute collections.
  */
 export interface AccessStateCardAttributes {
+  client: Dict<CardAttributes>;
   group: Dict<CardAttributes>;
 }
 /**
@@ -78,6 +79,7 @@ export interface AccessStateCardAttributes {
  */
 export interface AccessStatePending {
   data: PendingDataState;
+  statusTries: number;
   isMaster: boolean;
   selections: Dict<{ selected: boolean }>;
   newGroupName: string;

@@ -341,7 +341,8 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(rootContentItem));
             if (usersInGroup != null)
             {
-                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersInGroup));
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetTextChange
+                    .ToEvent(usersInGroup, rootContentItem.Id));
             }
 
             RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, currentRootContentItem);
