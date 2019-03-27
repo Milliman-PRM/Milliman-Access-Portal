@@ -162,9 +162,16 @@ namespace MillimanAccessPortal
 
                                 if (_applicationUser == null)
                                 {
+                                    // External login succeeded but username is not in our Identity database
                                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name));
 
-                                    throw new ApplicationException($"User {context.Principal.Identity.Name} suspended or not found, remote login rejected");
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                        Query = "msg=Your login does not have a MAP account.  Please contact your Milliman consultant, or email map.support@milliman.com.",
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
                                 }
                                 else if (_applicationUser.IsSuspended)
                                 {
@@ -173,7 +180,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
-                                        Query = "This account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
+                                        Query = "msg=Your MAP account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
@@ -183,7 +190,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(Controllers.SharedController).Replace("Controller","")}/{nameof(Controllers.SharedController.Message)}",
-                                        Query = "Msg=Your MAP account has not been activated. Please look for a welcome email from support@map.com and follow instructions in that message to activate the account."
+                                        Query = "msg=Your MAP account has not been activated. Please look for a welcome email from support@map.com and follow instructions in that message to activate the account."
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;

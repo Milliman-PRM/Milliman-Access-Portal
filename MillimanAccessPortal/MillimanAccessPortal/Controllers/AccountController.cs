@@ -102,30 +102,14 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// If the caller has a local <see cref="ApplicationUser"/> instance available the <see cref="IsUserAccountLocal(ApplicationUser)"/> overload is preferred
+        /// [NonAction] determines whether a username should be authenticated locally from the application's Identity provider
         /// </summary>
         /// <param name="userName"></param>
         /// <returns></returns>
         [NonAction]
         internal async Task<bool> IsUserAccountLocal(string userName)
         {
-            string normalizedUserName = _userManager.NormalizeKey(userName);
-            var appUser = await DbContext.ApplicationUser
-                                         .Include(u => u.AuthenticationScheme)
-                                         .SingleOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName);
-
-            return await IsUserAccountLocal(appUser);
-        }
-
-        /// <summary>
-        /// If the caller has a local <see cref="ApplicationUser"/> instance available this overload is preferred
-        /// </summary>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        [NonAction]
-        internal async Task<bool> IsUserAccountLocal(ApplicationUser user)
-        {
-            string scheme = GetExternalAuthenticationScheme(user);
+            string scheme = await GetExternalAuthenticationSchemeAsync(userName);
 
             bool isLocal = string.IsNullOrWhiteSpace(scheme) ||
                            scheme == (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
@@ -134,46 +118,39 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// Evaluates the appropriate external authentication scheme for a provided username. 
-        /// If the caller has a local <see cref="ApplicationUser"/> instance available the <see cref="GetExternalAuthenticationScheme(ApplicationUser)"/> overload is preferred
+        /// Determines the assigned or otherwise appropriate external authentication scheme associated with a username.
         /// </summary>
         /// <param name="userName"></param>
-        /// <returns>The scheme name, or <see langword="null"/> if no external scheme is appropriate</returns>
+        /// <returns>The identified scheme name or <see langword="null"/> if none is appropriate</returns>
         [NonAction]
         internal async Task<string> GetExternalAuthenticationSchemeAsync(string userName)
         {
-            string normalizedUserName = _userManager.NormalizeKey(userName);
-            var appUser = await DbContext.ApplicationUser
-                                         .Include(u => u.AuthenticationScheme)
-                                         .SingleOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName);
+            string defaultScheme = (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
 
-            return GetExternalAuthenticationScheme(appUser);
-        }
-
-        /// <summary>
-        /// If the caller has a local <see cref="ApplicationUser"/> instance available this overload is preferred
-        /// </summary>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        [NonAction]
-        internal string GetExternalAuthenticationScheme(ApplicationUser user)
-        {
-            if (user == null || !user.EmailConfirmed || !DbContext.ApplicationUser.Any(u => u.Id == user.Id))
+            // 1. If the specified user has an assigned scheme
+            string assignedScheme = DbContext.ApplicationUser
+                                             .Include(u => u.AuthenticationScheme)
+                                             .SingleOrDefault(u => EF.Functions.ILike(u.UserName, userName))
+                                             ?.AuthenticationScheme
+                                             ?.Name;
+            if (!string.IsNullOrWhiteSpace(assignedScheme) && 
+                !defaultScheme.Equals(assignedScheme, StringComparison.InvariantCultureIgnoreCase))
             {
-                return null;
+                return assignedScheme;
             }
 
-            // 1. Does the specified user have an assigned scheme?
-            if (user.AuthenticationScheme != null)
+            // 2. If the username's secondary domain matches a scheme name
+            if (userName.Contains('.'))
             {
-                return user.AuthenticationScheme.Name;
+                // Secondary domain is the portion of userName between '@' and the last '.'
+                string userSecondaryDomain = userName.Substring(0, userName.LastIndexOf('.'))
+                                                     .Substring(userName.IndexOf('@') + 1);
+                var matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => EF.Functions.ILike(s.Name, userSecondaryDomain));
+
+                return matchingScheme?.Name;
             }
 
-            // 2. Does the email domain match a scheme?
-            string userDomain = user.UserName.Substring(0, user.UserName.LastIndexOf('.'))
-                                        .Substring(user.UserName.IndexOf('@') + 1);
-            var matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => EF.Functions.ILike(s.Name, userDomain));
-            return matchingScheme?.Name;
+            return null;
         }
 
         //
@@ -232,7 +209,7 @@ namespace MillimanAccessPortal.Controllers
                     UriBuilder msgUri = new UriBuilder
                     {
                         Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
-                        Query = "This account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
+                        Query = "msg=This account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
                     };
                     return Redirect(msgUri.Uri.PathAndQuery);
                 }
@@ -547,7 +524,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             string emailBody, appLogMsg;
-            if (await IsUserAccountLocal(RequestedUser))
+            if (await IsUserAccountLocal(RequestedUser.UserName))
             {
                 string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(RequestedUser);
                 string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = RequestedUser.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
@@ -558,17 +535,17 @@ namespace MillimanAccessPortal.Controllers
                 emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
                 emailBody += $"{linkUrl}";
 
-                appLogMsg = $"Password reset email queued to email {RequestedUser.Email}";
+                appLogMsg = $"Password reset email queued to address {RequestedUser.Email}";
             }
             else
             {
-                string schemeName = GetExternalAuthenticationScheme(RequestedUser);
+                string schemeName = await GetExternalAuthenticationSchemeAsync(RequestedUser.UserName);
                 var scheme = await _authentService.Schemes.GetSchemeAsync(schemeName);
 
                 emailBody = "A password reset was requested for your Milliman Access Portal account. " +
                     $"Your MAP account uses login services from your organization ({scheme.DisplayName}). Please contact your IT department if you require password assistance.";
 
-                appLogMsg = $"Password reset requested by external user with email {RequestedUser.Email}. Information email was queued.";
+                appLogMsg = $"Password reset was requested for an externally authenticated user with email {RequestedUser.Email}. Information email was queued. No other action taken.";
             }
 
             _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
