@@ -1,16 +1,56 @@
+/*
+* CODE OWNERS: Ben Wyatt
+* OBJECTIVE: Execute the User Stats ETL script using Azure Functions
+* DEVELOPER NOTES: 
+*/
 using System;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
+using Npgsql;
+using System.IO;
+using Microsoft.Azure.KeyVault;
 
 namespace MAP.UserStats
 {
     public static class RunStatsETL
     {
+        
         [FunctionName("RunStatsETL")]
         public static void Run([TimerTrigger("0 0 * * * *")]TimerInfo myTimer, ILogger log)
         {
-            log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+            log.LogInformation($"RunStatsETL executed at: {DateTime.Now}");
+
+            // Retrieve connection string from Azure Key Vault
+            
+
+            // Create database connection
+            using (var conn = new NpgsqlConnection(""))
+            {
+                conn.Open();
+
+                // Retrieve query text from ETL script file
+                string[] queryText = File.ReadAllLines("etl.sql");
+
+                // Execute ETL script
+                using (NpgsqlCommand query = new NpgsqlCommand(string.Join("",queryText), conn))
+                {
+                    try 
+                    {
+                        query.ExecuteNonQuery();
+                    }
+                    catch (Exception e)
+                    {
+                        // Azure Portal should be configured to send an email to PRM.Security@milliman.com if an exception occurs
+                        log.LogError($"ERROR: Exception while executing ETL: {e.Message}");
+                        throw e;
+                    }
+                    
+                    log.LogInformation($"RunStatsETL succeeded at: {DateTime.Now}");
+                }
+
+                conn.Close();
+            }
         }
     }
 }
