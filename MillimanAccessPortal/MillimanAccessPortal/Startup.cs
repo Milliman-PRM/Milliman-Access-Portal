@@ -139,6 +139,7 @@ namespace MillimanAccessPortal
                     // Event override to add username query parameter to adfs request
                     options.Events.OnRedirectToIdentityProvider = context =>
                     {
+                        context.ProtocolMessage.Wfresh = "0";  // Force domain login form every time
                         if (context.Properties.Items.ContainsKey("username"))
                         {
                             context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
@@ -190,7 +191,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(Controllers.SharedController).Replace("Controller","")}/{nameof(Controllers.SharedController.Message)}",
-                                        Query = "msg=Your MAP account has not been activated. Please look for a welcome email from support@map.com and follow instructions in that message to activate the account."
+                                        Query = "msg=Your MAP account has not been activated. Please look for a welcome email from map.support@milliman.com and follow instructions in that message to activate the account."
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;

@@ -167,9 +167,6 @@ namespace MillimanAccessPortal.Controllers
                 AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
                 properties.SetString("username", userName);
 
-                // TODO Is this having any effect?
-                properties.ExpiresUtc = DateTime.UtcNow + TimeSpan.FromMinutes(2);
-
                 return Challenge(properties, scheme);
             }
             else
@@ -208,7 +205,7 @@ namespace MillimanAccessPortal.Controllers
 
                     UriBuilder msgUri = new UriBuilder
                     {
-                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(SharedController.Message)}",
                         Query = "msg=This account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
                     };
                     return Redirect(msgUri.Uri.PathAndQuery);
