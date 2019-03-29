@@ -8,6 +8,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using Npgsql.Logging;
 using System.IO;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
@@ -20,7 +21,8 @@ namespace MAP.UserStats
         [FunctionName("RunStatsETL")]
         public static void Run([TimerTrigger("0 0 * * * *")]TimerInfo myTimer, ILogger log)
         {
-            log.LogInformation($"RunStatsETL executed at: {DateTime.Now}");
+            log.LogInformation($"RunStatsETL executed at: {DateTime.Now} UTC");
+            NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace);
 
             // Retrieve connection string from Azure Key Vault
             AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider();
@@ -28,29 +30,37 @@ namespace MAP.UserStats
             var keyVaultClient = new KeyVaultClient(
                 new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
 
-            var secret = keyVaultClient.GetSecretAsync("https://map-prod-vault.vault.azure.net/secrets/ConnectionStrings--DefaultConnection/")
+            log.LogInformation("Retrieving connection string from Key Vault");
+
+            var secret = keyVaultClient.GetSecretAsync("https://map-prod-vault.vault.azure.net/secrets/ConnectionStrings--UserStatsConnection/")
                 .Result.Value;
 
             log.LogInformation($"Retrieved connection string. Connecting to database.");
-
+            
             // Create database connection
             using (var conn = new NpgsqlConnection(secret))
             {
-                conn.Open();
-                
-                log.LogInformation($"Fetching query file");
 
-                // Retrieve query text from ETL script file
-                string[] queryText = File.ReadAllLines("etl.sql");
-                
-                log.LogInformation($"Executing query");
+                conn.Open();
+
+                // Retrieve query text from ETL script file                
+                log.LogInformation($"Fetching query file");
+                string[] queryText = File.ReadAllLines("D:\\home\\site\\wwwroot\\etl.sql");
+                string fullText = string.Join("\n",queryText);
 
                 // Execute ETL script
-                using (NpgsqlCommand query = new NpgsqlCommand(string.Join("",queryText), conn))
+                using (NpgsqlCommand query = new NpgsqlCommand(fullText, conn))
                 {
                     try 
                     {
-                        query.ExecuteNonQuery();
+                        log.LogInformation($"Executing query");
+                        int rows = query.ExecuteNonQuery();
+
+                        if (rows == -1)
+                        {
+                            log.LogWarning("No rows were affected by the ETL query. This may indicate that data was not loaded.");
+                        }
+
                     }
                     catch (Exception e)
                     {
@@ -59,7 +69,7 @@ namespace MAP.UserStats
                         throw e;
                     }
                     
-                    log.LogInformation($"RunStatsETL succeeded at: {DateTime.Now}");
+                    log.LogInformation($"RunStatsETL succeeded at: {DateTime.Now} UTC");
                 }
 
                 conn.Close();
