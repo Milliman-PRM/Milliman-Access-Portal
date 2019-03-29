@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using System.IO;
 using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.Services.AppAuthentication;
 
 namespace MAP.UserStats
 {
@@ -22,16 +23,22 @@ namespace MAP.UserStats
             log.LogInformation($"RunStatsETL executed at: {DateTime.Now}");
 
             // Retrieve connection string from Azure Key Vault
-            
+            AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider();
+
+            var keyVaultClient = new KeyVaultClient(
+                new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+
+            var secret = keyVaultClient.GetSecretAsync("https://map-prod-vault.vault.azure.net/secrets/ConnectionStrings--DefaultConnection/")
+                .Result.Value;
 
             // Create database connection
-            using (var conn = new NpgsqlConnection(""))
+            using (var conn = new NpgsqlConnection(secret))
             {
                 conn.Open();
-
+                
                 // Retrieve query text from ETL script file
                 string[] queryText = File.ReadAllLines("etl.sql");
-
+                
                 // Execute ETL script
                 using (NpgsqlCommand query = new NpgsqlCommand(string.Join("",queryText), conn))
                 {
