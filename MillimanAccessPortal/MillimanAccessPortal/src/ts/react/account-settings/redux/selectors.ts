@@ -89,7 +89,7 @@ export function allPasswordInputsValid(state: AccountState) {
 export function inputProps(state: AccountState) {
   const values = pendingInputValues(state);
   return {
-    username: state.data.user.userName,
+    userName: state.data.user.userName,
     firstName: values.firstName,
     lastName: values.lastName,
     phone: values.phone,
