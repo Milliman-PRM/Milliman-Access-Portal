@@ -16,7 +16,7 @@ import { AccountState, ValidationState } from './redux/store';
 
 interface AccountSettingsProps {
   inputs: {
-    username: string;
+    userName: string;
     firstName: string;
     lastName: string;
     phone: string;
@@ -75,16 +75,16 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderInformationSection() {
-    const { username, firstName, lastName, phone, employer } = this.props.inputs;
+    const { userName, firstName, lastName, phone, employer } = this.props.inputs;
     return (
       <>
         <div className="form-section" data-section="username">
           <h3 className="form-section-title">User Information</h3>
           <Input
-            name="username"
+            name="userName"
             label="Username"
             type="text"
-            value={username}
+            value={userName}
             onChange={() => { return; }}
             onBlur={() => { return; }}
             error={null}
