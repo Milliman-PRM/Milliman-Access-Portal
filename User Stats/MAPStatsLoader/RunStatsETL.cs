@@ -31,14 +31,20 @@ namespace MAP.UserStats
             var secret = keyVaultClient.GetSecretAsync("https://map-prod-vault.vault.azure.net/secrets/ConnectionStrings--DefaultConnection/")
                 .Result.Value;
 
+            log.LogInformation($"Retrieved connection string. Connecting to database.");
+
             // Create database connection
             using (var conn = new NpgsqlConnection(secret))
             {
                 conn.Open();
                 
+                log.LogInformation($"Fetching query file");
+
                 // Retrieve query text from ETL script file
                 string[] queryText = File.ReadAllLines("etl.sql");
                 
+                log.LogInformation($"Executing query");
+
                 // Execute ETL script
                 using (NpgsqlCommand query = new NpgsqlCommand(string.Join("",queryText), conn))
                 {
