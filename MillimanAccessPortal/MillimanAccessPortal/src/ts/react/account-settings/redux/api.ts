@@ -44,7 +44,7 @@ const passwordSchema = yup.object<PasswordInputState>({
       validatePassword({ proposedPassword: value })
         .then((response) => {
           msg = response.messages
-            ? response.messages[0]
+            ? response.messages.join('\r\n')
             : null;
           return response.valid;
         }))
