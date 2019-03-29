@@ -138,9 +138,13 @@ namespace MapTests
         /// </summary>
         /// <param name="UserAsUserName">The user to be impersonated in the ControllerContext</param>
         /// <returns></returns>
-        internal static ControllerContext GenerateControllerContext(string UserAsUserName)
+        internal static ControllerContext GenerateControllerContext(string UserAsUserName = null)
         {
-            ClaimsPrincipal TestUserClaimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, UserAsUserName) }));
+            ClaimsPrincipal TestUserClaimsPrincipal = new ClaimsPrincipal();
+            if (!string.IsNullOrWhiteSpace(UserAsUserName))
+            {
+                TestUserClaimsPrincipal.AddIdentity(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, UserAsUserName) }));
+            }
 
             return GenerateControllerContext(TestUserClaimsPrincipal);
         }
@@ -154,7 +158,7 @@ namespace MapTests
         {
             return new ControllerContext
             {
-                HttpContext = new DefaultHttpContext() { User=UserAsClaimsPrincipal },
+                HttpContext = new DefaultHttpContext() { User = UserAsClaimsPrincipal },
                 ActionDescriptor = new ControllerActionDescriptor { ActionName="Unit Test" }
             };
         }
@@ -781,6 +785,35 @@ namespace MapTests
             {
                 new ApplicationUser { Id=TestUtil.MakeTestGuid(1), UserName="user1", Email="user1@example.com", NormalizedEmail="USER1@EXAMPLE.COM", NormalizedUserName="USER1" },
                 new ApplicationUser { Id=TestUtil.MakeTestGuid(2), UserName="user2", Email="user2@example.com", NormalizedEmail="USER2@EXAMPLE.COM", NormalizedUserName="USER2", EmailConfirmed=true },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(3), UserName="user3-confirmed-defaultscheme", Email="user3@example.com", NormalizedEmail="USER3@EXAMPLE.COM", NormalizedUserName="USER3-CONFIRMED-DEFAULTSCHEME", EmailConfirmed=true, AuthenticationSchemeId = TestUtil.MakeTestGuid(1) },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(4), UserName="user4-confirmed-wsscheme", Email="user4@example.com", NormalizedEmail="USER4@EXAMPLE.COM", NormalizedUserName="USER4-CONFIRMED-WSSCHEME", EmailConfirmed=true, AuthenticationSchemeId = TestUtil.MakeTestGuid(2) },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(5), UserName="user5-notconfirmed-wsscheme", Email="user5@example.com", NormalizedEmail="USER5@EXAMPLE.COM", NormalizedUserName="USER5-CONFIRMED-WSSCHEME", EmailConfirmed=false, AuthenticationSchemeId = TestUtil.MakeTestGuid(2) },
+            });
+            #endregion
+
+            #region authentication schemes
+            DbContextObject.AuthenticationScheme.AddRange(new List<MapDbContextLib.Context.AuthenticationScheme>
+            {
+                new MapDbContextLib.Context.AuthenticationScheme
+                {
+                    Id = TestUtil.MakeTestGuid(1),
+                    Name = "schemeone",
+                    DisplayName = "Scheme One",
+                    Type = AuthenticationType.Default,
+                    SchemePropertiesObj = null
+                },
+                new MapDbContextLib.Context.AuthenticationScheme
+                {
+                    Id =TestUtil.MakeTestGuid(2),
+                    Name = "prmtest",
+                    DisplayName = "PRMTest.local Domain",
+                    Type = AuthenticationType.WsFederation,
+                    SchemePropertiesObj = new WsFederationSchemeProperties
+                    {
+                        MetadataAddress = "https://adfs.prmtest.local/FederationMetadata/2007-06/FederationMetadata.xml",
+                        Wtrealm = "https://localhost:44336"
+                    }
+                },
             });
             #endregion
         }

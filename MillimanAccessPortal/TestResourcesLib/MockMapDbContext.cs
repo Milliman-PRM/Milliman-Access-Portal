@@ -43,7 +43,8 @@ namespace TestResourcesLib
             ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
             ReturnMockContext.Object.FileUpload = MockDbSet<FileUpload>.New(new List<FileUpload>()).Object;
-            
+            ReturnMockContext.Object.AuthenticationScheme = MockDbSet<AuthenticationScheme>.New(new List<AuthenticationScheme>()).Object;
+
             List<ContentPublicationRequest> ContentPublicationRequestData = new List<ContentPublicationRequest>();
             Mock<DbSet<ContentPublicationRequest>> MockContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(ContentPublicationRequestData);
             MockContentPublicationRequest.Setup(d => d.Add(It.IsAny<ContentPublicationRequest>())).Callback<ContentPublicationRequest>(s =>
@@ -126,6 +127,15 @@ namespace TestResourcesLib
                 MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<ApplicationUser>(MockUserInSelectionGroup.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
             });
             ReturnMockContext.Object.UserInSelectionGroup = MockUserInSelectionGroup.Object;
+
+            List<ApplicationUser> ApplicationUserData = new List<ApplicationUser>();
+            Mock<DbSet<ApplicationUser>> MockApplicationUser = MockDbSet<ApplicationUser>.New(ApplicationUserData);
+            MockApplicationUser.Setup(d => d.AddRange(It.IsAny<IEnumerable<ApplicationUser>>())).Callback<IEnumerable<ApplicationUser>>(s =>
+            {
+                ApplicationUserData.AddRange(s);
+                MockDbSet<ApplicationUser>.AssignNavigationProperty<AuthenticationScheme>(MockApplicationUser.Object, "AuthenticationSchemeId", ReturnMockContext.Object.AuthenticationScheme);
+            });
+            ReturnMockContext.Object.ApplicationUser = MockApplicationUser.Object;
 
             // Mock DbContext.Database.CommitTransaction() as no ops.
             Mock<IDbContextTransaction> DbTransaction = new Mock<IDbContextTransaction>();

@@ -19,6 +19,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using TestResourcesLib;
 using Xunit;
@@ -43,7 +44,7 @@ namespace MapTests
         /// </summary>
         /// <param name="UserName"></param>
         /// <returns></returns>
-        public async Task<AccountController> GetController(string UserName = null)
+        public AccountController GetController(string UserName = null)
         {
             AccountController testController = new AccountController(TestResources.DbContextObject,
                 TestResources.UserManagerObject,
@@ -58,11 +59,8 @@ namespace MapTests
                 TestResources.AuthenticationServiceObject)
                 ;
 
-            // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
-            if (!string.IsNullOrWhiteSpace(UserName))
-            {
-                testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
-            }
+            testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: UserName);
+
             testController.HttpContext.Session = new MockSession();
             return testController;
         }
@@ -71,7 +69,7 @@ namespace MapTests
         public async Task EnableAccountGETReturnsEnableFormWhenNotEnabled()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             string TestCode = MockUserManager.GoodToken;
             string TestUserId = TestUtil.MakeTestGuid(1).ToString();
             #endregion
@@ -101,7 +99,7 @@ namespace MapTests
         public async Task EnableAccountGETReturnsLoginWhenEnabled()
         {
             #region Arrange
-            AccountController controller = await GetController("user2");
+            AccountController controller = GetController("user2");
             string TestCode = MockUserManager.GoodToken;
             string TestUserId = TestUtil.MakeTestGuid(2).ToString();
             #endregion
@@ -123,7 +121,7 @@ namespace MapTests
         public async Task EnableAccountGETReturnsMessageWhenTokenIsInvalid()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             string TestCode = MockUserManager.BadToken;
             string TestUserId = TestUtil.MakeTestGuid(1).ToString();
             #endregion
@@ -145,7 +143,7 @@ namespace MapTests
         public async Task EnableAccountPOSTUpdatesUserWhenTokenIsValid()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             string NewToken = MockUserManager.GoodToken;
             string NewPass = "TestPassword";
             string NewEmployer = "Milliman";
@@ -187,7 +185,7 @@ namespace MapTests
         public async Task EnableAccountPOSTReturnsMessageWhenTokenIsInvalid()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             string NewToken = MockUserManager.BadToken;
             string NewPass = "TestPassword";
             string NewEmployer = "Milliman";
@@ -223,7 +221,7 @@ namespace MapTests
         public async Task ForgotPasswordPOSTReturnsMessageWhenNotActivated()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var model = new ForgotPasswordViewModel
             {
                 Email = "user1@example.com"
@@ -246,7 +244,7 @@ namespace MapTests
         public async Task ForgotPasswordPOSTReturnsConfirmationWhenActivated()
         {
             #region Arrange
-            AccountController controller = await GetController("user2");
+            AccountController controller = GetController("user2");
             var model = new ForgotPasswordViewModel
             {
                 Email = "user2@example.com"
@@ -286,7 +284,7 @@ namespace MapTests
         public async Task ResetPasswordGETReturnsFormWhenTokenIsValid()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             string TestEmail = "user1@example.com";
             string TestToken = MockUserManager.GoodToken;
             #endregion
@@ -312,7 +310,7 @@ namespace MapTests
         public async Task ResetPasswordGETReturnsMessageWhenTokenIsInvalid()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             string TestEmail = "user1@example.com";
             string TestToken = MockUserManager.BadToken;
             #endregion
@@ -332,7 +330,7 @@ namespace MapTests
         public async Task ResetPasswordPOSTReturnsRightFormWhenTokenIsValid()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             ResetPasswordViewModel model = new ResetPasswordViewModel
             {
                 Email = "user1@example.com",
@@ -357,7 +355,7 @@ namespace MapTests
         public async Task ResetPasswordPOSTReturnsMessageWhenTokenIsInvalid()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             ResetPasswordViewModel model = new ResetPasswordViewModel
             {
                 Email = "user1@example.com",
@@ -385,7 +383,7 @@ namespace MapTests
         public async Task PasswordInRecentDaysNotAllowed()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
             var validator = new PasswordRecentDaysValidator<ApplicationUser>() { numberOfDays = 1 };
 
@@ -412,7 +410,7 @@ namespace MapTests
         public async Task PasswordNotInRecentDaysAllowed()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
             var validator = new PasswordRecentDaysValidator<ApplicationUser>() { numberOfDays = 1 };
 
@@ -438,7 +436,7 @@ namespace MapTests
         public async Task PasswordInRecentNumberNotAllowed()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
             var validator = new PasswordRecentNumberValidator<ApplicationUser>() { numberOfPasswords = 1 };
 
@@ -468,7 +466,7 @@ namespace MapTests
         public async Task PasswordNotInRecentNumberAllowed()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
             var validator = new PasswordRecentNumberValidator<ApplicationUser>() { numberOfPasswords = 1 };
 
@@ -501,7 +499,7 @@ namespace MapTests
         public async Task PasswordEverInHistoryNotAllowed(string inputPassword)
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
             var validator = new PasswordHistoryValidator<ApplicationUser>();
 
@@ -527,7 +525,7 @@ namespace MapTests
         public async Task EmailInPasswordNotAllowed()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
             var validator = new PasswordIsNotEmailOrUsernameValidator<ApplicationUser>();
             #endregion
@@ -545,7 +543,7 @@ namespace MapTests
         public async Task UsernameInPasswordNotAllowed()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
             var validator = new PasswordIsNotEmailOrUsernameValidator<ApplicationUser>();
             #endregion
@@ -567,7 +565,7 @@ namespace MapTests
         public async Task CommonWordInPasswordNotAllowed()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
             var validator = new PasswordContainsCommonWordsValidator<ApplicationUser>() { commonWords = { "milliman" } };
             #endregion
@@ -585,7 +583,7 @@ namespace MapTests
         public async Task AccountSettingsGETWorks()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
             #endregion
 
@@ -612,7 +610,7 @@ namespace MapTests
         public async Task AccountSettingsPOSTWorks()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
 
             string NewEmployer = "Milliman";
@@ -647,7 +645,7 @@ namespace MapTests
         public async Task UpdatePasswordPOSTWorks()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
 
             string CurrentPassword = "QWERqwer1234!@$#";
@@ -678,7 +676,7 @@ namespace MapTests
         public async Task AccountSettingsPOSTFailsForWrongUser()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
 
             string NewEmployer = "Milliman";
@@ -705,5 +703,28 @@ namespace MapTests
             #endregion
         }
 
+        [Theory]
+        [InlineData("NonUser", true)]
+        [InlineData("user2", true)]
+        [InlineData("user3", false)]
+        public async Task IsLocalAccount(string userName, bool isLocalTruth)
+        {
+            #region Arrange
+            AccountController controller = GetController();
+            #endregion
+
+            #region Act
+            var result = await controller.IsLocalAccount(userName);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(result);
+            JsonResult typedResult = result as JsonResult;
+            PropertyInfo info = typeof(JsonResult).GetProperty("localAccount");
+            Assert.NotNull(info);
+            var isLocalResult = info.GetValue(typedResult);
+            //Assert.Equal<bool>(isLocalTruth, isLocalResult);
+            #endregion
+        }
     }
 }

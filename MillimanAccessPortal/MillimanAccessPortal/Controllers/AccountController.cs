@@ -107,7 +107,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="userName"></param>
         /// <returns></returns>
         [NonAction]
-        internal async Task<bool> IsUserAccountLocal(string userName)
+        public async Task<bool> IsUserAccountLocal(string userName)
         {
             string scheme = await GetExternalAuthenticationSchemeAsync(userName);
 
@@ -123,7 +123,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="userName"></param>
         /// <returns>The identified scheme name or <see langword="null"/> if none is appropriate</returns>
         [NonAction]
-        internal async Task<string> GetExternalAuthenticationSchemeAsync(string userName)
+        public async Task<string> GetExternalAuthenticationSchemeAsync(string userName)
         {
             string defaultScheme = (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
 
