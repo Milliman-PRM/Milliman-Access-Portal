@@ -22,8 +22,12 @@ namespace MAP.UserStats
         [FunctionName("RunStatsETL")]
         public static void Run([TimerTrigger("0 0 * * * *", RunOnStartup = true)]TimerInfo myTimer, ILogger log, ExecutionContext context)
         {
+            if (NpgsqlLogManager.Provider == null)
+            {
+                NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, printLevel: true);
+            }
+
             log.LogInformation($"RunStatsETL executed at: {DateTime.Now} UTC");
-            NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace);
             
             var config = new ConfigurationBuilder()
                 .SetBasePath(context.FunctionAppDirectory)
