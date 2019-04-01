@@ -20,7 +20,7 @@ namespace MillimanAccessPortal
 
         public static async Task Main(string[] args)
         {
-            var host = BuildWebHost(args);
+            var host = RunTimeBuildWebHost(args);
 
             using (var scope = host.Services.CreateScope())
             {
@@ -56,7 +56,13 @@ namespace MillimanAccessPortal
             host.Run();
         }
 
-        public static IWebHost BuildWebHost(string[] args)
+        /// <summary>
+        /// Renamed implementation of BuildWebHost, forces execution of <see cref="ApplicationDbContextFactory.CreateDbContext"/> 
+        /// when deploying migrations, rather than running entire Startup configuration.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static IWebHost RunTimeBuildWebHost(string[] args)
         {
             string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
 
