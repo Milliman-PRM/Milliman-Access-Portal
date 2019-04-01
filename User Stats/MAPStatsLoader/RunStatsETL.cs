@@ -12,6 +12,7 @@ using Npgsql.Logging;
 using System.IO;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Configuration;
 
 namespace MAP.UserStats
 {
@@ -19,28 +20,39 @@ namespace MAP.UserStats
     {
         
         [FunctionName("RunStatsETL")]
-        public static void Run([TimerTrigger("0 0 * * * *")]TimerInfo myTimer, ILogger log)
+        public static void Run([TimerTrigger("0 0 * * * *")]TimerInfo myTimer, ILogger log, ExecutionContext context)
         {
             log.LogInformation($"RunStatsETL executed at: {DateTime.Now} UTC");
             NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace);
+            
+            var config = new ConfigurationBuilder()
+                .SetBasePath(context.FunctionAppDirectory)
+                #if DEBUG // Variable set automatically by build configuration (Debug vs. Release)
+                    .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+                    .AddJsonFile("local.secrets.json", optional: false) // This file is not in the git repo. See readme.md for details.
+                #else 
+                    .AddJsonFile("prod.settings.json", optional: false)
+                #endif
+                .AddEnvironmentVariables()
+                .Build();
 
-            // Retrieve connection string from Azure Key Vault
-            AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider();
-
-            var keyVaultClient = new KeyVaultClient(
-                new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-
-            log.LogInformation("Retrieving connection string from Key Vault");
-
-            var secret = keyVaultClient.GetSecretAsync("https://map-prod-vault.vault.azure.net/secrets/ConnectionStrings--UserStatsConnection/")
-                .Result.Value;
+            #if DEBUG
+                log.LogInformation("Retrieving locally configured connection string");
+                var secret = config.GetConnectionString("UserStatsConnection");
+            #else
+                log.LogInformation("Retrieving connection string from Key Vault");
+                AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider();
+                var keyVaultClient = new KeyVaultClient(
+                    new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+                var secret = keyVaultClient.GetSecretAsync(config["ConnectionStringVaultUrl"])
+                    .Result.Value;
+            #endif
 
             log.LogInformation($"Retrieved connection string. Connecting to database.");
             
             // Create database connection
             using (var conn = new NpgsqlConnection(secret))
             {
-
                 conn.Open();
 
                 // Retrieve query text from ETL script file                
