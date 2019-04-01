@@ -271,7 +271,7 @@ if ($LASTEXITCODE -ne 0)
     exit $LASTEXITCODE
 }
 
-dotnet publish --configuration=release
+dotnet publish --configuration=release /p:Platform=x64
 
 if ($LASTEXITCODE -ne 0)
 {
