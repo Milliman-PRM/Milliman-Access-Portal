@@ -46,7 +46,7 @@ namespace TestResourcesLib
     {
         public static Mock<AuthenticationSchemeProvider> New(ApplicationDbContext context)
         {
-            IOptions<AuthenticationOptions> options = new Microsoft.Extensions.Options.OptionsWrapper<AuthenticationOptions>(new AuthenticationOptions { });
+            IOptions<AuthenticationOptions> options = new OptionsWrapper<AuthenticationOptions>(new AuthenticationOptions { });
             Mock<AuthenticationSchemeProvider> ReturnProvider = new Mock<AuthenticationSchemeProvider>(options);
 
             ReturnProvider.Setup(s => s.AddScheme(It.IsAny<Microsoft.AspNetCore.Authentication.AuthenticationScheme>())).Callback<Microsoft.AspNetCore.Authentication.AuthenticationScheme>(scheme => 

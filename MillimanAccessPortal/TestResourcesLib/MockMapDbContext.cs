@@ -40,8 +40,6 @@ namespace TestResourcesLib
             ReturnMockContext.Object.HierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>()).Object;
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<Guid>>.New(new List<IdentityUserRole<Guid>>()).Object;
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<Guid>>.New(new List<IdentityUserClaim<Guid>>()).Object;
-            ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
-            ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
             ReturnMockContext.Object.FileUpload = MockDbSet<FileUpload>.New(new List<FileUpload>()).Object;
             ReturnMockContext.Object.AuthenticationScheme = MockDbSet<AuthenticationScheme>.New(new List<AuthenticationScheme>()).Object;
 
@@ -148,6 +146,9 @@ namespace TestResourcesLib
             {
                 ReturnMockContext = Initialize(ReturnMockContext);
             }
+
+            ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
+            ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
 
             return ReturnMockContext;
         }

@@ -437,7 +437,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("In ClientAdminController.SetUserRoleInClient action for model {@ClientUserAssociationViewModel}, {@AssignedRoleInfo}", ClientUserModel, AssignedRoleInfoArg);
 
             #region Authorization
-            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, ClientUserModel.ClientId)).Result.Succeeded)
+            if (!(await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, ClientUserModel.ClientId))).Succeeded)
             {
                 Log.Debug($"In ClientAdminController.SetUserRoleInClient action: authorization failed for user {User.Identity.Name}, role Admin, client {ClientUserModel.ClientId}");
                 Response.Headers.Add("Warning", $"You are not authorized to manage this client");
@@ -466,7 +466,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Requested user must be member of requested client
             Claim ClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientUserModel.ClientId.ToString());
-            if (!UserManager.GetUsersForClaimAsync(ClientMembershipClaim).Result.Contains(RequestedUser))
+            if (!(await UserManager.GetUsersForClaimAsync(ClientMembershipClaim)).Contains(RequestedUser))
             {
                 Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested user ID {ClientUserModel.UserId} not a member of client ID {ClientUserModel.ClientId}");
                 Response.Headers.Add("Warning", $"The requested user is not associated with the requested client");
@@ -474,7 +474,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // requested role must exist
-            ApplicationRole RequestedRole = RoleManager.FindByIdAsync(ApplicationRole.RoleIds[AssignedRoleInfoArg.RoleEnum].ToString()).Result;
+            ApplicationRole RequestedRole = (await RoleManager.FindByIdAsync(ApplicationRole.RoleIds[AssignedRoleInfoArg.RoleEnum].ToString()));
             if (RequestedRole == null)
             {
                 Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested role {AssignedRoleInfoArg.RoleEnum.ToString()} does not exist");

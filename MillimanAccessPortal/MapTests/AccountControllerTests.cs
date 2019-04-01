@@ -709,6 +709,7 @@ namespace MapTests
         [InlineData("user3-confirmed-defaultscheme", true)]
         [InlineData("user4-confirmed-wsscheme", false)]
         [InlineData("user6-confirmed@domainmatch.local", false)]
+        [InlineData("user7-confirmed@domainnomatch.local", true)]
         public async Task IsLocalAccount(string userName, bool isLocalTruth)
         {
             #region Arrange

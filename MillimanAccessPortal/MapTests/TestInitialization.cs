@@ -828,6 +828,7 @@ namespace MapTests
                 new ApplicationUser { Id=TestUtil.MakeTestGuid(4), UserName="user4-confirmed-wsscheme", Email="user4@example.com", NormalizedEmail="USER4@EXAMPLE.COM", NormalizedUserName="USER4-CONFIRMED-WSSCHEME", EmailConfirmed=true, AuthenticationSchemeId = TestUtil.MakeTestGuid(2) },
                 new ApplicationUser { Id=TestUtil.MakeTestGuid(5), UserName="user5-notconfirmed-wsscheme", Email="user5@example.com", NormalizedEmail="USER5@EXAMPLE.COM", NormalizedUserName="USER5-NOTCONFIRMED-WSSCHEME", EmailConfirmed=false, AuthenticationSchemeId = TestUtil.MakeTestGuid(2) },
                 new ApplicationUser { Id=TestUtil.MakeTestGuid(6), UserName="user6-confirmed@domainmatch.local", Email="user6@example.com", NormalizedEmail="USER6@EXAMPLE.COM", NormalizedUserName="USER6-CONFIRMED@DOMAINMATCH.LOCAL", EmailConfirmed=false },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(7), UserName="user7-confirmed@domainnomatch.local", Email="user7@example.com", NormalizedEmail="USER7@EXAMPLE.COM", NormalizedUserName="USER7-CONFIRMED@DOMAINNOMATCH.LOCAL", EmailConfirmed=false },
             });
             MockDbSet<ApplicationUser>.AssignNavigationProperty(DbContextObject.ApplicationUser, "AuthenticationSchemeId", DbContextObject.AuthenticationScheme);
             #endregion
