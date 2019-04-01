@@ -1,7 +1,7 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=mapstatsloader;AccountKey=tQktBRhFDXnyCV3qar6fKt8xBtxh+5V18gp00kmp97Erm8P8hvIbKFd7eGoM5ykGOL0++gUTNr7JPdP/31498Q==;EndpointSuffix=core.windows.net",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "APPINSIGHTS_INSTRUMENTATIONKEY": "aa78cbe0-be45-4aab-a078-46b8b2fdbc07",
     "FUNCTIONS_EXTENSION_VERSION": "~2",
