@@ -262,7 +262,7 @@ Set-Location $rootPath\UserStats\MAPStatsLoader
 
 log_statement "Building MAP User Stats loader"
 
-dotnet publish
+msbuild /t:publish /p:PublishDir="$rootPath\UserStats\MAPStatsLoader\bin\Release\netcoreapp2.1\publish" /verbosity:quiet /p:Configuration=Release
 
 if ($LASTEXITCODE -ne 0)
 {
