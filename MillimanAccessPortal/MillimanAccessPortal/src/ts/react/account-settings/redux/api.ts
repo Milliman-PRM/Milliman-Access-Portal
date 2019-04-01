@@ -63,7 +63,7 @@ export const fetchSessionCheck =
   ('GET', '/Account/SessionStatus');
 
 export const updateAccount =
-  createJsonRequestor<AccountActions.FetchUser, AccountActions.FetchUserSucceeded>
+  createJsonRequestor<AccountActions.UpdateAccount, AccountActions.UpdateAccountSucceeded>
   ('POST', '/Account/UpdateAccount');
 
 export const validateUserInput = async (value: UserInputState, inputName: string) => {
