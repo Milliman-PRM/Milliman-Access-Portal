@@ -20,7 +20,7 @@ namespace MAP.UserStats
     {
         
         [FunctionName("RunStatsETL")]
-        public static void Run([TimerTrigger("0 0 * * * *")]TimerInfo myTimer, ILogger log, ExecutionContext context)
+        public static void Run([TimerTrigger("0 0 * * * *", RunOnStartup = true)]TimerInfo myTimer, ILogger log, ExecutionContext context)
         {
             log.LogInformation($"RunStatsETL executed at: {DateTime.Now} UTC");
             NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace);
@@ -57,7 +57,7 @@ namespace MAP.UserStats
 
                 // Retrieve query text from ETL script file                
                 log.LogInformation($"Fetching query file");
-                string[] queryText = File.ReadAllLines("D:\\home\\site\\wwwroot\\etl.sql");
+                string[] queryText = File.ReadAllLines(config["EtlScriptPath"]);
                 string fullText = string.Join("\n",queryText);
 
                 // Execute ETL script
