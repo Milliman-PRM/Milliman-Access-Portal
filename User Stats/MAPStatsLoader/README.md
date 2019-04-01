@@ -4,6 +4,8 @@ The MAP User Stats loader is an [Azure Function App](https://azure.microsoft.com
 
 This guide will focus primarily on setting up developer machines, but also on ways in which this project differs from others in this repository.
 
+It is advised that you read through this entire guide and complete all configuration steps before attempting to make updates to this project.
+
 ## Production Environment
 
 Azure Function apps are an abstraction layer on top of Azure App Services. Azure Functions does strip away most capabilities to configure the runtime environment, with a few exceptions. It utilizes dependency injection to pass information into function executions, most usefully the `ExecutionContext`.
@@ -35,7 +37,9 @@ The original (default) publish task has been renamed `publish-build` and replace
 
 ### Secret Management
 
-While the project does utilize the ASP.NET Core configuration framework, it does not have a concept of User Secrets. Instead, each developer must create a file named `local.secrets.json` in their local copy of the project folder, using the following structure. This file is included in the project's `.gitignore` to make sure nobody commits their connection strings.
+While the project does utilize the ASP.NET Core configuration framework, it does not have a concept of User Secrets. Instead, each developer must create a file named `local.secrets.json` in their local copy of the project folder, using the following structure. This file is included in the project's `.gitignore` to make sure nobody commits their connection strings. The value for `AzureWebJobsStorage` is maintained in LastPass. Contact the Security Manager if you need access to this value. (It is required for local debugging.)
+
+In order to ensure that each developer's machine is correctly configured, the function will crash during startup if the secrets file is not present.
 
 ``` json
 {
@@ -49,6 +53,12 @@ While the project does utilize the ASP.NET Core configuration framework, it does
 Replace the connection string with one that is valid for your local PostgreSQL instance. The database name should be the one you create for user stats development in the next section.
 
 In production, we utilize `prod.settings.json` and Azure Key Vault to manage configuration secrets.
+
+### Azure Storage Emulator
+
+For local debugging, develoeprs need to have the Azure Storage Emulator installed and configured. More details and a download link are available at [this page](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator). The emulator is also available in the Azure SDK, but the full SDK is not required to work on this project.
+
+After installing, you only need to launch the emulator one time. It will automatically set up the default configuration the first time it runs, and that configuration is fine for debugging this project. Allow the configuration to run completely, then close the window when it's finished.
 
 ### Local Database Preparation
 
