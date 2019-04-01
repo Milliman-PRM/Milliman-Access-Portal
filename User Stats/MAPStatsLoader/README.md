@@ -37,7 +37,7 @@ The original (default) publish task has been renamed `publish-build` and replace
 
 ### Secret Management
 
-While the project does utilize the ASP.NET Core configuration framework, it does not have a concept of User Secrets. Instead, each developer must create a file named `local.secrets.json` in their local copy of the project folder, using the following structure. This file is included in the project's `.gitignore` to make sure nobody commits their connection strings. The value for `AzureWebJobsStorage` is maintained in LastPass. Contact the Security Manager if you need access to this value. (It is required for local debugging.)
+While the project does utilize the ASP.NET Core configuration framework, it does not have a concept of User Secrets. Instead, each developer must create a file named `local.secrets.json` in their local copy of the project folder, using the following structure. This file is included in the project's `.gitignore` to make sure nobody commits their connection strings.
 
 In order to ensure that each developer's machine is correctly configured, the function will crash during startup if the secrets file is not present.
 
