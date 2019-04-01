@@ -262,7 +262,16 @@ Set-Location $rootPath\UserStats\MAPStatsLoader
 
 log_statement "Building MAP User Stats loader"
 
-msbuild /t:publish /p:PublishDir="$rootPath\UserStats\MAPStatsLoader\bin\Release\netcoreapp2.1\publish" /verbosity:quiet /p:Configuration=Release
+dotnet restore
+
+if ($LASTEXITCODE -ne 0)
+{
+    log_statement "ERROR: Package restore failed for MAP User Stats Loader project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+dotnet publish --configuration=release
 
 if ($LASTEXITCODE -ne 0)
 {
@@ -457,7 +466,6 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
-
 #endregion
 
 #region Publish MAP Query Admin to a folder
