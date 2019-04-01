@@ -8,6 +8,7 @@ using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Moq;
 using System;
 using System.Linq;
@@ -18,11 +19,12 @@ using System.Text;
 
 namespace TestResourcesLib
 {
-    class MockAuthenticationService
+    public class MockAuthenticationService
     {
-        public static Mock<AuthenticationService> New(Mock<ApplicationDbContext> Context)
+        public static Mock<AuthenticationService> New(ApplicationDbContext Context)
         {
-            Mock<AuthenticationService> ReturnService = new Mock<AuthenticationService>();
+            IAuthenticationSchemeProvider schemes = MockAuthenticationSchemeProvider.New(Context).Object;
+            Mock<AuthenticationService> ReturnService = new Mock<AuthenticationService>(schemes, null, null);
 
             // Provide mocked methods required by tests
             ReturnService.Setup(s => s.AuthenticateAsync(It.IsAny<HttpContext>(), It.IsAny<string>())).ReturnsAsync<HttpContext, string, AuthenticationService, AuthenticateResult>((cxt, scheme) =>
@@ -42,9 +44,10 @@ namespace TestResourcesLib
 
     class MockAuthenticationSchemeProvider
     {
-        public static Mock<IAuthenticationSchemeProvider> New(ApplicationDbContext context)
+        public static Mock<AuthenticationSchemeProvider> New(ApplicationDbContext context)
         {
-            Mock<AuthenticationSchemeProvider> ReturnProvider = new Mock<AuthenticationSchemeProvider>();
+            IOptions<AuthenticationOptions> options = new Microsoft.Extensions.Options.OptionsWrapper<AuthenticationOptions>(new AuthenticationOptions { });
+            Mock<AuthenticationSchemeProvider> ReturnProvider = new Mock<AuthenticationSchemeProvider>(options);
 
             ReturnProvider.Setup(s => s.AddScheme(It.IsAny<Microsoft.AspNetCore.Authentication.AuthenticationScheme>())).Callback<Microsoft.AspNetCore.Authentication.AuthenticationScheme>(scheme => 
             {
@@ -59,8 +62,12 @@ namespace TestResourcesLib
                 };
                 context.AuthenticationScheme.Add(newScheme);
             });
-            ReturnProvider.Setup(s => s.GetAllSchemesAsync()).ReturnsAsync(context.AuthenticationScheme.Select(s => new Microsoft.AspNetCore.Authentication.AuthenticationScheme(s.Name, s.DisplayName, null)).AsEnumerable());
-            ReturnProvider.Setup(s => s.GetDefaultAuthenticateSchemeAsync()).ReturnsAsync(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(IdentityConstants.ApplicationScheme, IdentityConstants.ApplicationScheme, typeof(string)));
+            ReturnProvider.Setup(s => s.GetAllSchemesAsync()).ReturnsAsync(context.AuthenticationScheme.Select(s => new Microsoft.AspNetCore.Authentication.AuthenticationScheme(s.Name, s.DisplayName, typeof(Microsoft.AspNetCore.Authentication.IAuthenticationHandler))).AsEnumerable());
+            ReturnProvider.Setup(s => s.GetDefaultAuthenticateSchemeAsync()).ReturnsAsync(() => 
+            {
+                var theScheme = context.AuthenticationScheme.SingleOrDefault(s => s.Name == IdentityConstants.ApplicationScheme);
+                return new Microsoft.AspNetCore.Authentication.AuthenticationScheme(theScheme.Name, theScheme.DisplayName, typeof(Microsoft.AspNetCore.Authentication.IAuthenticationHandler));
+            });
             ReturnProvider.Setup(s => s.GetDefaultChallengeSchemeAsync()).ReturnsAsync((Microsoft.AspNetCore.Authentication.AuthenticationScheme)null);
             ReturnProvider.Setup(s => s.GetDefaultForbidSchemeAsync()).ReturnsAsync((Microsoft.AspNetCore.Authentication.AuthenticationScheme)null);
             ReturnProvider.Setup(s => s.GetDefaultSignInSchemeAsync()).ReturnsAsync((Microsoft.AspNetCore.Authentication.AuthenticationScheme)null);
@@ -71,26 +78,13 @@ namespace TestResourcesLib
                 var dbScheme = context.AuthenticationScheme.SingleOrDefault(s => s.Name == name);
                 return new Microsoft.AspNetCore.Authentication.AuthenticationScheme(dbScheme.Name, dbScheme.DisplayName, null);
             });
-            //
-            // Summary:
-            //     Returns the Microsoft.AspNetCore.Authentication.AuthenticationScheme matching
-            //     the name, or null.
-            //
-            // Parameters:
-            //   name:
-            //     The name of the authenticationScheme.
-            //
-            // Returns:
-            //     The scheme or null if not found.
-            Task<AuthenticationScheme> GetSchemeAsync(string name);
-            //
-            // Summary:
-            //     Removes a scheme, preventing it from being used by Microsoft.AspNetCore.Authentication.IAuthenticationService.
-            //
-            // Parameters:
-            //   name:
-            //     The name of the authenticationScheme being removed.
-            void RemoveScheme(string name);
+            ReturnProvider.Setup(s => s.RemoveScheme(It.IsAny<string>())).Callback<string>(name =>
+            {
+                var dbScheme = context.AuthenticationScheme.SingleOrDefault(s => s.Name == name);
+                context.AuthenticationScheme.Remove(dbScheme);
+            });
+
+            return ReturnProvider;
         }
 
     }

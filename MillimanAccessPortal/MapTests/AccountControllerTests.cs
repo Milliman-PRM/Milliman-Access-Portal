@@ -706,7 +706,9 @@ namespace MapTests
         [Theory]
         [InlineData("NonUser", true)]
         [InlineData("user2", true)]
-        [InlineData("user3", false)]
+        [InlineData("user3-confirmed-defaultscheme", true)]
+        [InlineData("user4-confirmed-wsscheme", false)]
+        [InlineData("user6-confirmed@domainmatch.local", false)]
         public async Task IsLocalAccount(string userName, bool isLocalTruth)
         {
             #region Arrange
@@ -720,10 +722,9 @@ namespace MapTests
             #region Assert
             Assert.IsType<JsonResult>(result);
             JsonResult typedResult = result as JsonResult;
-            PropertyInfo info = typeof(JsonResult).GetProperty("localAccount");
-            Assert.NotNull(info);
-            var isLocalResult = info.GetValue(typedResult);
-            //Assert.Equal<bool>(isLocalTruth, isLocalResult);
+            PropertyInfo info = typedResult.Value.GetType().GetProperty("localAccount");
+            Assert.Equal(typeof(bool), info.PropertyType);
+            Assert.Equal(isLocalTruth, (bool)info.GetValue(typedResult.Value));
             #endregion
         }
     }

@@ -200,7 +200,7 @@ namespace MapTests
             MockServiceProvider = GenerateServiceProvider();
             MockFileSystemTasks = new Mock<FileSystemTasks>();
             MockPublicationPostProcessingQueue = new Mock<IPublicationPostProcessingTaskQueue>();
-            MockAuthenticationService = new Mock<AuthenticationService>(null, null, null);
+            MockAuthenticationService = TestResourcesLib.MockAuthenticationService.New(DbContextObject);
         }
 
         /// <summary>
@@ -766,8 +766,8 @@ namespace MapTests
                     CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0),
                 },
             });
-            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty<ApplicationUser>(DbContextObject.ContentPublicationRequest, "ApplicationUserId", DbContextObject.ApplicationUser);
-            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty<RootContentItem>(DbContextObject.ContentPublicationRequest, "RootContentItemId", DbContextObject.RootContentItem);
+            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(DbContextObject.ContentPublicationRequest, "ApplicationUserId", DbContextObject.ApplicationUser);
+            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(DbContextObject.ContentPublicationRequest, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
 
             #region Initialize FileUpload
@@ -780,25 +780,14 @@ namespace MapTests
 
         private void GenerateAccountTestData()
         {
-            #region Initialize Users
-            DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
-            {
-                new ApplicationUser { Id=TestUtil.MakeTestGuid(1), UserName="user1", Email="user1@example.com", NormalizedEmail="USER1@EXAMPLE.COM", NormalizedUserName="USER1" },
-                new ApplicationUser { Id=TestUtil.MakeTestGuid(2), UserName="user2", Email="user2@example.com", NormalizedEmail="USER2@EXAMPLE.COM", NormalizedUserName="USER2", EmailConfirmed=true },
-                new ApplicationUser { Id=TestUtil.MakeTestGuid(3), UserName="user3-confirmed-defaultscheme", Email="user3@example.com", NormalizedEmail="USER3@EXAMPLE.COM", NormalizedUserName="USER3-CONFIRMED-DEFAULTSCHEME", EmailConfirmed=true, AuthenticationSchemeId = TestUtil.MakeTestGuid(1) },
-                new ApplicationUser { Id=TestUtil.MakeTestGuid(4), UserName="user4-confirmed-wsscheme", Email="user4@example.com", NormalizedEmail="USER4@EXAMPLE.COM", NormalizedUserName="USER4-CONFIRMED-WSSCHEME", EmailConfirmed=true, AuthenticationSchemeId = TestUtil.MakeTestGuid(2) },
-                new ApplicationUser { Id=TestUtil.MakeTestGuid(5), UserName="user5-notconfirmed-wsscheme", Email="user5@example.com", NormalizedEmail="USER5@EXAMPLE.COM", NormalizedUserName="USER5-CONFIRMED-WSSCHEME", EmailConfirmed=false, AuthenticationSchemeId = TestUtil.MakeTestGuid(2) },
-            });
-            #endregion
-
             #region authentication schemes
             DbContextObject.AuthenticationScheme.AddRange(new List<MapDbContextLib.Context.AuthenticationScheme>
             {
                 new MapDbContextLib.Context.AuthenticationScheme
                 {
                     Id = TestUtil.MakeTestGuid(1),
-                    Name = "schemeone",
-                    DisplayName = "Scheme One",
+                    Name = IdentityConstants.ApplicationScheme,
+                    DisplayName = "The default scheme",
                     Type = AuthenticationType.Default,
                     SchemePropertiesObj = null
                 },
@@ -814,7 +803,33 @@ namespace MapTests
                         Wtrealm = "https://localhost:44336"
                     }
                 },
+                new MapDbContextLib.Context.AuthenticationScheme
+                {
+                    Id =TestUtil.MakeTestGuid(3),
+                    Name = "domainmatch",
+                    DisplayName = "DomainMatch.local Domain",
+                    Type = AuthenticationType.WsFederation,
+                    SchemePropertiesObj = new WsFederationSchemeProperties
+                    {
+                        MetadataAddress = "https://adfs.prmtest.local/FederationMetadata/2007-06/FederationMetadata.xml",
+                        Wtrealm = "https://localhost:44336"
+                    },
+                    DomainList = { "DomainMatch.local" },
+                },
             });
+            #endregion
+
+            #region Initialize Users
+            DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
+            {
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(1), UserName="user1", Email="user1@example.com", NormalizedEmail="USER1@EXAMPLE.COM", NormalizedUserName="USER1" },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(2), UserName="user2", Email="user2@example.com", NormalizedEmail="USER2@EXAMPLE.COM", NormalizedUserName="USER2", EmailConfirmed=true },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(3), UserName="user3-confirmed-defaultscheme", Email="user3@example.com", NormalizedEmail="USER3@EXAMPLE.COM", NormalizedUserName="USER3-CONFIRMED-DEFAULTSCHEME", EmailConfirmed=true, AuthenticationSchemeId = TestUtil.MakeTestGuid(1) },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(4), UserName="user4-confirmed-wsscheme", Email="user4@example.com", NormalizedEmail="USER4@EXAMPLE.COM", NormalizedUserName="USER4-CONFIRMED-WSSCHEME", EmailConfirmed=true, AuthenticationSchemeId = TestUtil.MakeTestGuid(2) },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(5), UserName="user5-notconfirmed-wsscheme", Email="user5@example.com", NormalizedEmail="USER5@EXAMPLE.COM", NormalizedUserName="USER5-CONFIRMED-WSSCHEME", EmailConfirmed=false, AuthenticationSchemeId = TestUtil.MakeTestGuid(2) },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(6), UserName="user6-confirmed@domainmatch.local", Email="user6@example.com", NormalizedEmail="USER6@EXAMPLE.COM", NormalizedUserName="USER6-CONFIRMED@DOMAINMATCH.LOCAL", EmailConfirmed=false },
+            });
+            MockDbSet<ApplicationUser>.AssignNavigationProperty(DbContextObject.ApplicationUser, "AuthenticationSchemeId", DbContextObject.AuthenticationScheme);
             #endregion
         }
 
