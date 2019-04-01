@@ -69,8 +69,13 @@ namespace MapDbContextLib.Context
         public string DisplayName { get; set; }
 
         [Required]
-        //[Column(TypeName = "citext[]")]
+        //[Column(TypeName = "citext[]")]  TODO Use this to replace use of below method DomainListContains() when the EF provider starts to support this field type in a collection
         public List<string> DomainList { get; set; } = new List<string>();
+
+        public bool DomainListContains(string testDomain)
+        {
+            return DomainList.Any(d => EF.Functions.ILike(d, testDomain));
+        }
 
         #region Database initialization and validation
         /// <summary>

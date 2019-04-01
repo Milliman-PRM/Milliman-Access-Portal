@@ -783,7 +783,7 @@ namespace MapTests
             #region authentication schemes
             DbContextObject.AuthenticationScheme.AddRange(new List<MapDbContextLib.Context.AuthenticationScheme>
             {
-                new MapDbContextLib.Context.AuthenticationScheme
+                new MapDbContextLib.Context.AuthenticationScheme  // AuthenticationType.Default
                 {
                     Id = TestUtil.MakeTestGuid(1),
                     Name = IdentityConstants.ApplicationScheme,
@@ -791,7 +791,7 @@ namespace MapTests
                     Type = AuthenticationType.Default,
                     SchemePropertiesObj = null
                 },
-                new MapDbContextLib.Context.AuthenticationScheme
+                new MapDbContextLib.Context.AuthenticationScheme  // "prmtest", AuthenticationType.WsFederation
                 {
                     Id =TestUtil.MakeTestGuid(2),
                     Name = "prmtest",
@@ -803,7 +803,7 @@ namespace MapTests
                         Wtrealm = "https://localhost:44336"
                     }
                 },
-                new MapDbContextLib.Context.AuthenticationScheme
+                new MapDbContextLib.Context.AuthenticationScheme  // "domainmatch", AuthenticationType.WsFederation
                 {
                     Id =TestUtil.MakeTestGuid(3),
                     Name = "domainmatch",
@@ -811,7 +811,7 @@ namespace MapTests
                     Type = AuthenticationType.WsFederation,
                     SchemePropertiesObj = new WsFederationSchemeProperties
                     {
-                        MetadataAddress = "https://adfs.prmtest.local/FederationMetadata/2007-06/FederationMetadata.xml",
+                        MetadataAddress = "https://adfs.domainmatch.local/FederationMetadata/2007-06/FederationMetadata.xml",
                         Wtrealm = "https://localhost:44336"
                     },
                     DomainList = { "DomainMatch.local" },

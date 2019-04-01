@@ -139,13 +139,23 @@ namespace MillimanAccessPortal.Controllers
                 return assignedScheme;
             }
 
-            // 2. If the username's secondary domain matches a scheme name
-            if (userName.Contains('.'))
+            string userFullDomain = userName.Contains('@')
+                ? userName.Substring(userName.IndexOf('@') + 1)
+                : userName;
+
+            // 2. If the username's domain is found in a domain list of a scheme
+            MapDbContextLib.Context.AuthenticationScheme matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => s.DomainListContains(userFullDomain));
+            if (matchingScheme != null)
+            {
+                return matchingScheme.Name;
+            }
+
+            // 3. If the username's secondary domain matches a scheme name
+            if (userFullDomain.Contains('.'))
             {
                 // Secondary domain is the portion of userName between '@' and the last '.'
-                string userSecondaryDomain = userName.Substring(0, userName.LastIndexOf('.'))
-                                                     .Substring(userName.IndexOf('@') + 1);
-                var matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => EF.Functions.ILike(s.Name, userSecondaryDomain));
+                string userSecondaryDomain = userFullDomain.Substring(0, userFullDomain.LastIndexOf('.'));
+                matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => EF.Functions.ILike(s.Name, userSecondaryDomain));
 
                 return matchingScheme?.Name;
             }
