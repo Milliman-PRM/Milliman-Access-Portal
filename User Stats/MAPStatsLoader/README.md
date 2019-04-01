@@ -104,3 +104,9 @@ Finally, execute everything under the "Create tables" and "Create views" section
 After you've run these statements, you should be all set up to debug locally.
 
 > Now that you have foreign data wrappers set up to the MAP application and audit log databases, you can refer to their tables from the user stats database. Prepend application table names with the `map` schema and audit log tables with `map_log` (i.e. `map.'AspNetUsers'` and `maplog.'AuditEvent'`). These wrappers are critical to the ETL script.
+
+### Running Locally
+
+The function is configured to run immediately on startup, which means all you need to do to run it locally is press F5.
+
+Breakpoint management in VS Code is very similar to Visual Studio.
