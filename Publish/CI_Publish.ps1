@@ -262,15 +262,6 @@ Set-Location "$rootPath\User Stats\MAPStatsLoader"
 
 log_statement "Building MAP User Stats loader"
 
-dotnet restore
-
-if ($LASTEXITCODE -ne 0)
-{
-    log_statement "ERROR: Package restore failed for MAP User Stats Loader project"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
 dotnet publish --configuration=release /p:Platform=x64
 
 if ($LASTEXITCODE -ne 0)
