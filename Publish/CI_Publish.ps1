@@ -258,7 +258,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-Set-Location $rootPath\UserStats\MAPStatsLoader
+Set-Location "$rootPath\User Stats\MAPStatsLoader"
 
 log_statement "Building MAP User Stats loader"
 
@@ -456,7 +456,7 @@ if ($LASTEXITCODE -ne 0) {
 #region Package MAP User Stats Loader for nuget
 log_statement "Packaging MAP User Stats Loader"
 
-Set-Location $rootPath\UserStats\MAPStatsLoader\bin\Release\netcoreapp2.1\publish
+Set-Location "$rootPath\User Stats\MAPStatsLoader\bin\Release\netcoreapp2.1\publish"
 
 octo pack --id UserStatsLoader --version $webVersion --outfolder $nugetDestination\UserStatsLoader
 
