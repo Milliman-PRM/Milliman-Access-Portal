@@ -117,6 +117,6 @@ After you've run these statements, you should be all set up to debug locally.
 
 ### Running Locally
 
-The function is configured to run immediately on startup, which means all you need to do to run it locally is press F5.
+To run locally, press F5 in VS Code. When the app finishes launching, the HTTP trigger's URL will be printed to the Terminal. Ctrl+Click on the URL to trigger the function
 
 Breakpoint management in VS Code is very similar to Visual Studio.

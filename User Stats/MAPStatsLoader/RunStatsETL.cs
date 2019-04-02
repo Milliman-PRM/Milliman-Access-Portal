@@ -4,9 +4,11 @@
 * DEVELOPER NOTES: 
 */
 using System;
+using System.Reflection;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Npgsql;
 using Npgsql.Logging;
 using System.IO;
@@ -18,9 +20,25 @@ namespace MAP.UserStats
 {
     public static class RunStatsETL
     {
+        [FunctionName("RunStatsHttp")]
+        public static void RunHttp([HttpTrigger]ExecutionContext context)
+        {
+            #if DEBUG // Since this trigger is intended only for local debugging, don't allow it to run in production
+                ILoggerFactory loggerFactory = new LoggerFactory().AddConsole();
+                ILogger log = loggerFactory.CreateLogger("MAP Stats");
+                Run(log, context);
+            #else
+                throw new NotImplementedException();
+            #endif
+        }
+
+        [FunctionName("RunStatsTimer")]
+        public static void RunTimer([TimerTrigger("0 0 * * * *")]TimerInfo myTimer, ILogger log, ExecutionContext context)
+        {
+            Run(log, context);
+        }
         
-        [FunctionName("RunStatsETL")]
-        public static void Run([TimerTrigger("0 0 * * * *", RunOnStartup = true)]TimerInfo myTimer, ILogger log, ExecutionContext context)
+        private static void Run(ILogger log, ExecutionContext context)
         {
             if (NpgsqlLogManager.Provider == null)
             {
@@ -30,11 +48,12 @@ namespace MAP.UserStats
             log.LogInformation($"RunStatsETL executed at: {DateTime.Now} UTC");
             
             var config = new ConfigurationBuilder()
-                .SetBasePath(context.FunctionAppDirectory)
                 #if DEBUG // Variable set automatically by build configuration (Debug vs. Release)
+                    .SetBasePath(Directory.GetParent(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)).ToString())
                     .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
                     .AddJsonFile("local.secrets.json", optional: false) // This file is not in the git repo. See readme.md for details.
                 #else 
+                    .SetBasePath(context.FunctionAppDirectory)
                     .AddJsonFile("prod.settings.json", optional: false)
                 #endif
                 .AddEnvironmentVariables()
