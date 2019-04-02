@@ -33,7 +33,7 @@ namespace MAP.UserStats
         }
 
         [FunctionName("RunStatsTimer")]
-        public static void RunTimer([TimerTrigger("0 0 * * * *")]TimerInfo myTimer, ILogger log, ExecutionContext context)
+        public static void RunTimer([TimerTrigger("0 0 * * * *")] ILogger log, ExecutionContext context)
         {
             Run(log, context);
         }
@@ -61,20 +61,20 @@ namespace MAP.UserStats
 
             #if DEBUG
                 log.LogInformation("Retrieving locally configured connection string");
-                var secret = config.GetConnectionString("UserStatsConnection");
+                var connectionString = config.GetConnectionString("UserStatsConnection");
             #else
                 log.LogInformation("Retrieving connection string from Key Vault");
                 AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider();
                 var keyVaultClient = new KeyVaultClient(
                     new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-                var secret = keyVaultClient.GetSecretAsync(config["ConnectionStringVaultUrl"])
+                var connectionString = keyVaultClient.GetSecretAsync(config["ConnectionStringVaultUrl"])
                     .Result.Value;
             #endif
 
             log.LogInformation($"Retrieved connection string. Connecting to database.");
             
             // Create database connection
-            using (var conn = new NpgsqlConnection(secret))
+            using (var conn = new NpgsqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -93,7 +93,7 @@ namespace MAP.UserStats
 
                         if (rows == -1)
                         {
-                            log.LogWarning("No rows were affected by the ETL query. This may indicate that data was not loaded.");
+                            log.LogWarning($"ExecuteNonQuery() returned unexpected value {rows} rows affected. That could indicate a problem.");
                         }
 
                     }
