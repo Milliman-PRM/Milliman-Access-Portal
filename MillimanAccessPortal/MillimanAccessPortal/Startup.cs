@@ -70,21 +70,10 @@ namespace MillimanAccessPortal
                 options.Filters.Add(new RequireHttpsAttribute());
             });
 
-            #region Configure application connection string
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
-            
-            // If the database name is defined in the environment, update the connection string
-            if (Environment.GetEnvironmentVariable("APP_DATABASE_NAME") != null)
-            {
-                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(appConnectionString);
-                stringBuilder.Database = Environment.GetEnvironmentVariable("APP_DATABASE_NAME");
-                appConnectionString = stringBuilder.ConnectionString;
-            }
-
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(appConnectionString, b => b.MigrationsAssembly("MillimanAccessPortal")));
-            #endregion
 
             int passwordHistoryDays = Configuration.GetValue<int?>("PasswordHistoryValidatorDays") ?? GlobalFunctions.fallbackPasswordHistoryDays;
             List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();

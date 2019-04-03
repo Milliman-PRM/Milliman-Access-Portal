@@ -1,9 +1,11 @@
 ﻿using AuditLogLib.Event;
 using System;
 using System.Collections.Generic;
+using MapCommonLib;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
@@ -11,7 +13,6 @@ using Serilog;
 using System.Security.Cryptography.X509Certificates;
 using System.Linq;
 using System.Threading.Tasks;
-using MapCommonLib;
 
 namespace MillimanAccessPortal
 {
@@ -93,35 +94,55 @@ namespace MillimanAccessPortal
             .AddJsonFile($"smtp.{environmentName}.json", optional: true, reloadOnChange: true)
             ;
 
-            #region Configure Azure Key Vault for CI & Production
-            switch (environmentName.ToUpper())
+            #region Load environment specific additional configuration
+            if (!string.IsNullOrWhiteSpace(environmentName))
             {
-                case "AZURECI":
-                case "PRODUCTION":
-                case "STAGING":
-                    config.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
+                switch (environmentName.ToUpper())
+                {
+                    case "AZURECI":
+                    case "PRODUCTION":
+                    case "STAGING":
+                        config.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
 
-                    var builtConfig = config.Build();
+                        var builtConfig = config.Build();
 
-                    var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
-                    store.Open(OpenFlags.ReadOnly);
-                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
+                        var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                        store.Open(OpenFlags.ReadOnly);
+                        var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
-                    config.AddAzureKeyVault(
-                        builtConfig["AzureVaultName"],
-                        builtConfig["AzureClientID"],
-                        cert.OfType<X509Certificate2>().Single()
-                        );
-                    break;
-                case "DEVELOPMENT":
-                    config.AddUserSecrets<Startup>();
-                    break;
+                        config.AddAzureKeyVault(
+                            builtConfig["AzureVaultName"],
+                            builtConfig["AzureClientID"],
+                            cert.OfType<X509Certificate2>().Single()
+                            );
+                        break;
+                    case "DEVELOPMENT":
+                        config.AddUserSecrets<Startup>();
+                        break;
 
-                default: // Unsupported environment name	
-                    throw new InvalidOperationException($"Current environment name ({environmentName}) is not supported in Program.cs");
+                    default: // Unsupported environment name	
+                        throw new InvalidOperationException($"Current environment name ({environmentName}) is not supported in Program.cs");
 
+                }
             }
             #endregion
+
+            string dbNameOverride = Environment.GetEnvironmentVariable("APP_DATABASE_NAME");
+            if (!string.IsNullOrWhiteSpace(dbNameOverride))
+            {
+                var localConfig = config.Build();
+                string configuredConnectionString = localConfig.GetConnectionString("DefaultConnection");
+
+                Npgsql.NpgsqlConnectionStringBuilder connectionStringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(configuredConnectionString);
+                connectionStringBuilder.Database = dbNameOverride;
+
+                string newConnectionString = connectionStringBuilder.ConnectionString;
+
+                MemoryConfigurationSource newSource = new MemoryConfigurationSource();
+                newSource.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:DefaultConnection", newConnectionString) };
+                var newConnectionStringCfg = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSource) });
+                config.AddConfiguration(newConnectionStringCfg);
+            }
         }
     }
 }
