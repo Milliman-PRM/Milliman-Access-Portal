@@ -200,7 +200,8 @@ namespace MillimanAccessPortal.Controllers
                     Log.Information($"User {model.Username} password is expired, sent password reset email");
                     _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
                     string WhatHappenedMessage = "Your password has expired. Check your email for a link to reset your password.";
-                    return View("Message", WhatHappenedMessage);
+                    Response.Headers.Add("Warning", WhatHappenedMessage);
+                    return Ok();
                 }
 
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
@@ -211,15 +212,9 @@ namespace MillimanAccessPortal.Controllers
                     Log.Information($"Local user {model.Username} logged in");
                     _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(), model.Username);
 
-                    // The default route is /AuthorizedContent/Index as configured in startup.cs
-                    if (!string.IsNullOrEmpty(returnUrl))
-                    {
-                        return RedirectToLocal(returnUrl);
-                    }
-                    else
-                    {
-                        return RedirectToAction(nameof(AuthorizedContentController.Index), nameof(AuthorizedContentController).Replace("Controller", ""));
-                    }
+                    // Provide the location that should be navigated to (or fall back on default route)
+                    Response.Headers.Add("NavigateTo", string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
+                    return Ok();
                 }
                 else
                 {
@@ -233,7 +228,8 @@ namespace MillimanAccessPortal.Controllers
                         ModelState.AddModelError(string.Empty, "User account is locked out.");
                         Log.Information($"User {model.Username} account locked out");
                         _auditLogger.Log(AuditEventType.LoginIsLockedOut.ToEvent(), model.Username);
-                        return View("Message", lockoutMessage);
+                        Response.Headers.Add("Warning", lockoutMessage);
+                        return Ok();
                     }
                     else
                     {

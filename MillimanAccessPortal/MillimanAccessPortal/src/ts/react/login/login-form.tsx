@@ -134,22 +134,24 @@ export class LoginForm extends Form<{}, LoginFormState> {
     postData(window.location.href, this.state.data, true)
       .then((response) => {
         const loginWarning = response.headers.get('Warning');
+        const redirectUrl = response.headers.get('NavigateTo');
         if (loginWarning) {
           const data = { ...this.state.data };
           data.password = '';
           this.focusPasswordInput();
           this.setState({ data, loginWarning, awaitingLogin: false });
           return;
-        } else if (response.redirected === true || response.status === 302) {
-          window.location.replace(response.url);
-        } else if (response.status === 200) {
-          window.location.reload();
+        } else if (redirectUrl) {
+          window.location.replace(redirectUrl);
+        } else {
+          const unknownError = 'An unknown error occurred.  Please try again.';
+          this.setState({ loginWarning: unknownError, awaitingLogin: false });
         }
       });
   }
 
   protected handleUsernameClick = () => {
-    this.setState({ userConfirmed: false }, () => {
+    this.setState({ userConfirmed: false, loginWarning: null }, () => {
       this.focusUsernameInput();
     });
   }
