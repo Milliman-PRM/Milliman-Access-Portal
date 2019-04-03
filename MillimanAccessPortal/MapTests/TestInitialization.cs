@@ -95,6 +95,9 @@ namespace MapTests
         public Mock<AuthenticationService> MockAuthenticationService { get; set; }
         public AuthenticationService AuthenticationServiceObject { get => MockAuthenticationService.Object; }
 
+        public Mock<SignInManager<ApplicationUser>> MockSignInManager { get; set; }
+        public SignInManager<ApplicationUser> SignInManagerObject { get => MockSignInManager.Object; }
+
         public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
@@ -201,6 +204,7 @@ namespace MapTests
             MockFileSystemTasks = new Mock<FileSystemTasks>();
             MockPublicationPostProcessingQueue = new Mock<IPublicationPostProcessingTaskQueue>();
             MockAuthenticationService = TestResourcesLib.MockAuthenticationService.New(DbContextObject);
+            MockSignInManager = TestResourcesLib.MockSignInManager.New(UserManagerObject);
         }
 
         /// <summary>

@@ -4,18 +4,13 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Routing;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Services;
-using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,7 +44,7 @@ namespace MapTests
             AccountController testController = new AccountController(TestResources.DbContextObject,
                 TestResources.UserManagerObject,
                 TestResources.RoleManagerObject,
-                null,  // SingInManager<ApplicationUser>
+                TestResources.SignInManagerObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.AuditLoggerObject,
                 TestResources.QueriesObj,
@@ -60,7 +55,6 @@ namespace MapTests
                 ;
 
             testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: UserName);
-
             testController.HttpContext.Session = new MockSession();
             return testController;
         }
@@ -245,26 +239,12 @@ namespace MapTests
         {
             #region Arrange
             AccountController controller = GetController("user2");
+            MockRouter.AddToController(controller, new Dictionary<string, string>() { { "action", "ForgotPassword" }, { "controller", "Account" } });
+
             var model = new ForgotPasswordViewModel
             {
                 Email = "user2@example.com"
             };
-
-            // Configure controller's routing
-            // This section is required for Url.Action to execute successfully
-            var actionContext = new ActionContext()
-            {
-                HttpContext = controller.HttpContext,
-                RouteData = new Microsoft.AspNetCore.Routing.RouteData(),
-            };
-
-            Dictionary<string, string> routeValues = new Dictionary<string, string>() { { "action", "ForgotPassword" }, { "controller", "Account" } };
-            RouteValueDictionary valueDictionary = new RouteValueDictionary(routeValues);
-            Mock<IRouter> mockRouter = new Mock<IRouter>();
-            mockRouter.Setup(m => m.GetVirtualPath(It.IsAny<VirtualPathContext>())).Returns(new VirtualPathData(mockRouter.Object, "/"));
-            controller.Url = new UrlHelper(actionContext);
-            controller.Url.ActionContext.RouteData.PushState(mockRouter.Object, valueDictionary, null);
-            
             #endregion
 
             #region Act
@@ -274,7 +254,7 @@ namespace MapTests
             #region Assert
             Assert.IsType<ViewResult>(view);
             ViewResult viewAsViewResult = view as ViewResult;
-            Assert.Equal("Message", viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
+            Assert.Equal(nameof(SharedController.Message), viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
             Assert.IsType<string>(viewAsViewResult.Model);
             #endregion
         }
@@ -728,5 +708,43 @@ namespace MapTests
             Assert.Equal(isLocalTruth, (bool)info.GetValue(typedResult.Value));
             #endregion
         }
+
+        [Theory]
+        [InlineData("NonUser", typeof(RedirectToActionResult), "Login")]
+        [InlineData("user2", typeof(RedirectToActionResult), "Login")]
+        [InlineData("user3-confirmed-defaultscheme", typeof(RedirectToActionResult), "Login")]
+        [InlineData("user4-confirmed-wsscheme", typeof(ChallengeResult), "prmtest")]
+        [InlineData("user6-confirmed@domainmatch.local", typeof(ChallengeResult), "domainmatch")]
+        [InlineData("user7-confirmed@domainnomatch.local", typeof(RedirectToActionResult), "Login")]
+        public async Task RemoteAuthenticateReturnsCorrectResult(string userName, Type expectedType, string expectedString)
+        {
+            #region Arrange
+            AccountController controller = GetController();
+            MockRouter.AddToController(controller, new Dictionary<string, string>() { { "action", "RemoteAuthenticate" }, { "controller", "Account" } });
+            #endregion
+
+            #region Act
+            var result = await controller.RemoteAuthenticate(userName);
+            #endregion
+
+            #region Assert
+            Assert.IsType(expectedType, result);
+            switch (expectedType.Name)
+            {
+                case "RedirectToActionResult":
+                    RedirectToActionResult redirectToActionResult = (RedirectToActionResult)result;
+                    Assert.Equal(expectedString, redirectToActionResult.ActionName);
+                    break;
+                case "ChallengeResult":
+                    ChallengeResult challengeResult = (ChallengeResult)result;
+                    Assert.Equal(1, challengeResult.AuthenticationSchemes.Count);
+                    Assert.Equal(expectedString, challengeResult.AuthenticationSchemes.ElementAt(0), StringComparer.OrdinalIgnoreCase);
+                    break;
+                default:
+                    throw new NotImplementedException($"Unsupported return type <{expectedType.Name}> expected. This unit test needs work.");
+            }
+            #endregion
+        }
+
     }
 }
