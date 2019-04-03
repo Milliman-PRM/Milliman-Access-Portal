@@ -35,25 +35,29 @@ const userSchema = yup.object<UserInputState>({
   phone: yup.string(),
   employer: yup.string(),
 });
-const passwordSchema = yup.object<PasswordInputState>({
-  current: yup.string()
-    .required('This field is required'),
-  new: yup.string()
-    .notOneOf([yup.ref('current')], 'Your new password must be different from your current one')
-    .test('password', () => msg, (value) =>
-      validatePassword({ proposedPassword: value })
-        .then((response) => {
-          msg = response.messages
-            ? response.messages.join('\r\n')
-            : null;
-          return response.valid;
-        }))
-    .required('This field is required'),
-  confirm: yup.string()
-    .oneOf([yup.ref('new')], 'Does not match new password')
-    .required('This field is required'),
-}).notRequired();
-
+const passwordSchema = (values: PasswordInputState) => {
+  return yup.object<PasswordInputState>({
+    current: yup.string()
+      .required('This field is required'),
+    new: yup.string()
+      .test('new-password-is-valid', () => msg, (value) =>
+        validatePassword({ proposedPassword: value })
+          .then((response) => {
+            msg = response.messages
+              ? response.messages.join('\r\n')
+              : null;
+            return response.valid;
+          }))
+      .required('This field is required'),
+    confirm: yup.string()
+      .test(
+        'confirm-password-matches-new',
+        'Does not match new password',
+        () => values.confirm === values.new,
+      )
+      .required('This field is required'),
+  }).notRequired();
+};
 export const fetchUser =
   createJsonRequestor<AccountActions.FetchUser, AccountActions.FetchUserSucceeded>
   ('GET', '/Account/AccountSettings2');
@@ -75,7 +79,7 @@ export const validateUserInput = async (value: UserInputState, inputName: string
 
 export const validatePasswordInput = async (value: PasswordInputState, inputName: string) => {
   if (inputName) {
-    return await passwordSchema.validateAt(inputName, value);
+    return await passwordSchema(value).validateAt(inputName, value);
   }
-  return await passwordSchema.validate(value);
+  return await passwordSchema(value).validate(value);
 };
