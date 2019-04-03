@@ -1295,6 +1295,14 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
+            if (model.Password.New != model.Password.Confirm)
+            {
+                Log.Debug("In AccountController.AccountSettings POST action: "
+                       + $"user {User.Identity.Name} New Password != Password");
+                Response.Headers.Add("warning", "New Password and Confirm Password must match");
+                return BadRequest();
+            }
+
             DbContext.Attach(user);
             using (var txn = await DbContext.Database.BeginTransactionAsync())
             {
