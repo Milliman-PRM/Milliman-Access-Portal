@@ -1083,7 +1083,7 @@ namespace MillimanAccessPortal.Controllers
 
             string scheme = await GetAuthenticationSchemeForUser(user.UserName);
 
-            return Json(new
+            return Json(new UserFullModel
             {
                 Id = user.Id,
                 IsActivated = user.EmailConfirmed,
@@ -1169,7 +1169,7 @@ namespace MillimanAccessPortal.Controllers
             if (!passwordValidationErrors.Any())
             {
                 Log.Verbose("In AccountController.CheckPasswordValidity action: proposed password is valid");
-                return Json(new { Valid = true });
+                return Json(new PasswordValidationModel { Valid = true });
             }
             else
             {
@@ -1305,7 +1305,7 @@ namespace MillimanAccessPortal.Controllers
 
             string scheme = await GetAuthenticationSchemeForUser(user.UserName);
 
-            return Json(new
+            return Json(new UserFullModel
             {
                 Id = user.Id,
                 IsActivated = user.EmailConfirmed,
