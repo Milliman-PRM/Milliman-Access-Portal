@@ -277,7 +277,9 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
           {this.renderResetButton()}
           <button
             type="submit"
-            className={`button-submit blue-button${submitButtonEnabled ? '' : ' disabled'}`}
+            className="button-submit blue-button"
+            disabled={(submitButtonEnabled &&
+              (this.props.inputs.newPassword === this.props.inputs.confirmPassword)) ? false : true}
             onClick={(event: React.FormEvent) => {
               event.preventDefault();
               if (submitButtonEnabled) {
