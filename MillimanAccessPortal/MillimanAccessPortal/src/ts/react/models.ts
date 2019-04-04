@@ -134,3 +134,8 @@ export function isReductionTask(request: ContentPublicationRequest | ContentRedu
     : request is ContentReductionTask {
   return request && (request as ContentReductionTask).selectionGroupId !== undefined;
 }
+
+export interface PasswordValidation {
+  valid: boolean;
+  messages?: string[];
+}

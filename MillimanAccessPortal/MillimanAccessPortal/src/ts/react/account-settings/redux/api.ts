@@ -5,6 +5,7 @@ import { createJsonRequestorCreator } from '../../shared-components/redux/api';
 import { RequestAccountAction, ResponseAccountAction } from './actions';
 import * as AccountActions from './actions';
 import { PendingInputState } from './store';
+import { PasswordValidation } from '../../models';
 
 /**
  * Function for handling request actions.
@@ -26,7 +27,7 @@ export type PasswordInputState = Pick<PendingInputState,
   >;
 
 const validatePassword = async (requestModel: { proposedPassword: string }) =>
-  await postJsonData<{ valid: boolean, messages?: string[] }>('/Account/CheckPasswordValidity2', requestModel);
+  await postJsonData<PasswordValidation>('/Account/CheckPasswordValidity2', requestModel);
 
 let msg: string = null;
 const userSchema = yup.object<UserInputState>({
