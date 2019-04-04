@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: Adds mocked action routing functionality to a mocked controller to enable unit test of actions that rely on router features
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 

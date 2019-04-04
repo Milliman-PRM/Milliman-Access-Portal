@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett, 
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: The Entity Framework context class for the MAP application database
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 

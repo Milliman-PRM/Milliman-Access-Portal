@@ -203,7 +203,7 @@ namespace MillimanAccessPortal.Controllers
                 if (user == null)
                 {
                     Log.Debug($"User {model.Username} not found, local login rejected");
-                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
                     Response.Headers.Add("Warning", "Invalid login attempt.");
                     return Ok();
                 }
@@ -288,7 +288,7 @@ namespace MillimanAccessPortal.Controllers
                         else
                         {
                             Log.Information($"User {model.Username} PasswordSignInAsync did not succeed");
-                            _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
+                            _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
                         }
                         Response.Headers.Add("Warning", "Invalid login attempt.");
                         return Ok();
@@ -1259,10 +1259,12 @@ namespace MillimanAccessPortal.Controllers
                 return Unauthorized();
             }
 
-            if (! await IsUserAccountLocal(Model.UserName))
+            if (! await IsUserAccountLocal(Model.UserName))  // should not be possible, but here it is
             {
-                Log.Error($"In AccountController.UpdatePassword action: user {Model.UserName} invalid attempt to update password for externally authenticated account, aborting");
-                Response.Headers.Add("Warning", "Your account authenticates to an external source. A password reset is not supported in MAP.");
+                var scheme = await _authentService.Schemes.GetSchemeAsync(await GetExternalAuthenticationSchemeAsync(Model.UserName));
+                Log.Error($"In AccountController.UpdatePassword action: user {Model.UserName} invalid attempt to update password for externally authenticated account with scheme {scheme.Name}, aborting");
+                string msg = $"Your MAP account uses login services from your organization ({scheme.DisplayName}). Please contact your IT department if you require password assistance.";
+                Response.Headers.Add("Warning", msg);
                 return Unauthorized();
             }
 

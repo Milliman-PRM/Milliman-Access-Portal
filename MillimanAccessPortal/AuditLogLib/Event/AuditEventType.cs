@@ -23,10 +23,11 @@ namespace AuditLogLib.Event
             {
                 Scheme = scheme,
             });
-        public static readonly AuditEventType<string> LoginFailure = new AuditEventType<string>(
-            1002, "Login failure", (attemptedUsername) => new
+        public static readonly AuditEventType<string,string> LoginFailure = new AuditEventType<string,string>(
+            1002, "Login failure", (attemptedUsername, scheme) => new
             {
                 AttemptedUsername = attemptedUsername,
+                AuthenticationScheme = scheme,
             });
         public static readonly AuditEventType<RoleEnum> Unauthorized = new AuditEventType<RoleEnum>(
             1003, "Unauthorized request", (role) => new

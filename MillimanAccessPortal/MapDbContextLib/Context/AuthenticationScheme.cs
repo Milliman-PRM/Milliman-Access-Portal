@@ -1,7 +1,8 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett, 
- * OBJECTIVE: <What and WHY.>
- * DEVELOPER NOTES: <What future developers need to know.>
+ * OBJECTIVE: A database entity representing an authentication scheme that is configured and available in the system for user authentication.
+ * DEVELOPER NOTES: The default scheme is initialized if not found at application launch. Other stored records are used at launch to 
+ * initialize the in-memory AuthenticationService
  */
 
 using System;

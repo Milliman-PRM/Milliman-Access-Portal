@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: Defines a Mocked version of AuthenticationService to reduced unit test dependency on external resources
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 

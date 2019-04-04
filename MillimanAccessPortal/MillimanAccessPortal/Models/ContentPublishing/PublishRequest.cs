@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett, 
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: A database entity representing a user request for content publication
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 

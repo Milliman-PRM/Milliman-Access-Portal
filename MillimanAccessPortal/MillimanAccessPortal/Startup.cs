@@ -119,7 +119,7 @@ namespace MillimanAccessPortal
             foreach (MapDbContextLib.Context.AuthenticationScheme scheme in allSchemes.Where(s => s.Type == AuthenticationType.WsFederation))
             {
                 WsFederationSchemeProperties schemeProperties = (WsFederationSchemeProperties)scheme.SchemePropertiesObj;
-                authenticationBuilder = authenticationBuilder.AddWsFederation(scheme.Name, $"{scheme.DisplayName}", options =>
+                authenticationBuilder = authenticationBuilder.AddWsFederation(scheme.Name, scheme.DisplayName, options =>
                 {
                     options.MetadataAddress = schemeProperties.MetadataAddress;
                     options.Wtrealm = schemeProperties.Wtrealm;
@@ -153,7 +153,7 @@ namespace MillimanAccessPortal
                                 if (_applicationUser == null)
                                 {
                                     // External login succeeded but username is not in our Identity database
-                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name));
+                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
 
                                     UriBuilder msg = new UriBuilder
                                     {
@@ -194,7 +194,7 @@ namespace MillimanAccessPortal
                             {
                                 Log.Information(ex, ex.Message);
                                 IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
-                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name));
+                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
 
                                 // Make sure nobody remains signed in
                                 await _signInManager.SignOutAsync();
