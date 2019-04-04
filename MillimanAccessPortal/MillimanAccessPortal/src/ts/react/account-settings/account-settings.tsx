@@ -232,6 +232,16 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
               },
               inputName: 'new',
             });
+            if (this.props.inputs.confirmPassword) {
+              this.props.validateInputPassword({
+                value: {
+                  current: this.props.inputs.currentPassword,
+                  new: target.value,
+                  confirm: this.props.inputs.confirmPassword,
+                },
+                inputName: 'confirm',
+              });
+            }
           }}
           onBlur={() => { return; }}
           error={this.props.valid.newPassword.valid || !this.props.anyPasswordInputModified
@@ -259,7 +269,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
             });
           }}
           onBlur={() => { return; }}
-          error={this.props.valid.newPassword.valid || !this.props.anyPasswordInputModified
+          error={this.props.valid.confirmPassword.valid || !this.props.anyPasswordInputModified
             ? null
             : this.props.valid.confirmPassword.message
           }
