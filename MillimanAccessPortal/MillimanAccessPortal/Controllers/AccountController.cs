@@ -1175,7 +1175,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
             if (user == null)
             {
-                Log.Debug("In AccountController.AccountSettings POST action: "
+                Log.Debug("In AccountController.UpdateAccount POST action: "
                        + $"user {User.Identity.Name} not found, aborting");
                 return BadRequest();
             }
@@ -1195,7 +1195,7 @@ namespace MillimanAccessPortal.Controllers
                     bool currentPasswordIsCorrect = await _userManager.CheckPasswordAsync(user, model.Password.Current);
                     if (!currentPasswordIsCorrect)
                     {
-                        Log.Debug("In AccountController.AccountSettings POST action: "
+                        Log.Debug("In AccountController.UpdateAccount POST action: "
                                + $"user {User.Identity.Name} Current Password incorrect");
                         Response.Headers.Add("warning", "The Current Password provided was incorrect");
                         return BadRequest();
@@ -1203,7 +1203,7 @@ namespace MillimanAccessPortal.Controllers
 
                     if (model.Password.New != model.Password.Confirm)
                     {
-                        Log.Debug("In AccountController.AccountSettings POST action: "
+                        Log.Debug("In AccountController.UpdateAccount POST action: "
                                + $"user {User.Identity.Name} New Password != Password");
                         Response.Headers.Add("warning", "New Password and Confirm Password must match");
                         return BadRequest();
