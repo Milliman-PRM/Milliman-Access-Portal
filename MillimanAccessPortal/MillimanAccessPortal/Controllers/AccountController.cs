@@ -1061,19 +1061,9 @@ namespace MillimanAccessPortal.Controllers
                 return View("Message", $"User settings not found. Please contact support if this issue repeats.");
             }
 
-            AccountSettingsViewModel model = new AccountSettingsViewModel
-            {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                UserName = user.UserName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                Employer = user.Employer
-            };
+            Log.Verbose("In AccountController.AccountSettings GET action, returning view");
 
-            Log.Verbose($"In AccountController.AccountSettings GET action, returning model <{model}>");
-
-            return View(model);
+            return View();
         }
 
         [HttpGet]

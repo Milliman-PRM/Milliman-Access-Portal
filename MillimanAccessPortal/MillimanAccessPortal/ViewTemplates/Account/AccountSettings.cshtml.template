@@ -1,6 +1,4 @@
-﻿@model AccountSettingsViewModel;
-
-@{
+﻿@{
     /*
      * CODE OWNERS: Michael Reisz
      * OBJECTIVE: Allow the user to view and edit their account settings
