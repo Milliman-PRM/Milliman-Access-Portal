@@ -1164,7 +1164,7 @@ namespace MillimanAccessPortal.Controllers
             else
             {
                 Log.Verbose("In AccountController.CheckPasswordValidity action: proposed password not valid");
-                return Json(new { Valid = false, Messages = passwordValidationErrors });
+                return Json(new PasswordValidationModel { Valid = false, Messages = passwordValidationErrors });
             }
         }
 
