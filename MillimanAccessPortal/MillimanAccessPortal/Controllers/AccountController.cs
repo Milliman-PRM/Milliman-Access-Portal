@@ -1303,6 +1303,14 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
+            bool currentPasswordIsCorrect = await _userManager.CheckPasswordAsync(user, model.Password.Current);
+            if (!currentPasswordIsCorrect) {
+                Log.Debug("In AccountController.AccountSettings POST action: "
+                       + $"user {User.Identity.Name} Current Password incorrect");
+                Response.Headers.Add("warning", "The Current Password provided was incorrect");
+                return BadRequest();
+            }
+
             DbContext.Attach(user);
             using (var txn = await DbContext.Database.BeginTransactionAsync())
             {
