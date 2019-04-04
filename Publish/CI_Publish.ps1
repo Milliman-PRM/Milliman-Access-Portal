@@ -171,7 +171,7 @@ if ($buildType -ne "Release")
     foreach ($diff in $diffOutput)
     {
     # If both of these are true, the line being examined is likely a change to the software that needs testing
-    if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike 'User Stats/*' -and $diff -notlike '.github/*' -and $diff -notlike 'UtilityScripts/*')
+    if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike '.github/*' -and $diff -notlike 'UtilityScripts/*')
     {
         log_statement "Code change found in $diff"
         $codeChangeFound = $true
@@ -254,6 +254,19 @@ MSBuild /restore:true /verbosity:quiet /p:Configuration=$buildType
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Test build or package restore failed for content publishing server solution"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+Set-Location "$rootPath\User Stats\MAPStatsLoader"
+
+log_statement "Building MAP User Stats loader"
+
+dotnet publish --configuration=release /p:Platform=x64
+
+if ($LASTEXITCODE -ne 0)
+{
+    log_statement "ERROR: Build failed for MAP User Stats Loader project"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
@@ -431,6 +444,21 @@ if ($LASTEXITCODE -ne 0) {
 
 #endregion
 
+#region Package MAP User Stats Loader for nuget
+log_statement "Packaging MAP User Stats Loader"
+
+Set-Location "$rootPath\User Stats\MAPStatsLoader\bin\x64\release\netcoreapp2.1\publish"
+
+octo pack --id UserStatsLoader --version $webVersion --outfolder $nugetDestination\UserStatsLoader
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package user stats loader for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+#endregion
+
 #region Publish MAP Query Admin to a folder
 log_statement "Publishing MAP Query Admin to a folder"
 
@@ -472,7 +500,7 @@ log_statement "Deploying packages to Octopus"
 
 Set-Location $nugetDestination
 
-octo push --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -551,6 +579,20 @@ if ($LASTEXITCODE -eq 0) {
 else {
     $error_code = $LASTEXITCODE
     log_statement "ERROR: Failed to create Octopus release for MAP Query Admin"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+log_statement "Creating MAP User Stats Loader release"
+
+octo create-release --project "User Stats Loader" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "MAP User Stats Loader release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for MAP User Stats Loader"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
