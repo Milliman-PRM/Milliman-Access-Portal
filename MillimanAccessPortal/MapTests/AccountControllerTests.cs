@@ -735,36 +735,5 @@ namespace MapTests
             Assert.Equal(CurrentPassword + "xyz", UserRecord.PasswordHash);
             #endregion
         }
-
-        [Fact]
-        public async Task UpdatePasswordPOSTWorks()
-        {
-            #region Arrange
-            AccountController controller = await GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-
-            string CurrentPassword = "QWERqwer1234!@$#";
-            string NewPassword = "Abcd!@#$1234";
-            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, CurrentPassword);
-
-            AccountSettingsViewModel model = new AccountSettingsViewModel
-            {
-                UserName = AppUser.UserName,
-                NewPassword = NewPassword,
-                ConfirmNewPassword = NewPassword,
-                CurrentPassword = CurrentPassword,
-            };
-            #endregion
-
-            #region Act
-            var view = await controller.UpdatePassword(model);
-            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
-            #endregion
-
-            #region Assert
-            Assert.IsType<OkResult>(view);
-            Assert.Equal(NewPassword + "xyz", UserRecord.PasswordHash);
-            #endregion
-        }
     }
 }

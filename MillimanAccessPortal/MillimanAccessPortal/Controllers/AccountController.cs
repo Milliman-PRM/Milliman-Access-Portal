@@ -1170,62 +1170,6 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UpdatePassword([Bind("UserName,CurrentPassword,NewPassword,ConfirmNewPassword")]AccountSettingsViewModel Model)
-        {
-            Log.Verbose("Entered AccountController.UpdatePassword action");
-
-            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
-            if (Model.UserName != User.Identity.Name)
-            {
-                Log.Warning($"In AccountController.UpdatePassword action: user {User.Identity.Name} attempt to update password for application user {Model.UserName}, aborting");
-                Response.Headers.Add("Warning", "You may not access another user's settings.");
-                return Unauthorized();
-            }
-
-            if (ModelState.IsValid)
-            {
-                using (var Txn = DbContext.Database.BeginTransaction())
-                {
-                    IdentityResult result = await _userManager.ChangePasswordAsync(user, Model.CurrentPassword, Model.NewPassword);
-
-                    if (result.Succeeded)
-                    {
-                        // Save password hash in history
-                        user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(Model.NewPassword)).ToList<PreviousPassword>();
-                        user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
-                        var addHistoryResult = await _userManager.UpdateAsync(user);
-
-                        if (addHistoryResult.Succeeded)
-                        {
-                            Txn.Commit();
-                            Log.Verbose($"In AccountController.UpdatePassword action: success for user {user.UserName}");
-                            return Ok();
-                        }
-                        else
-                        {
-                            Log.Error($"Failed to save password history or update password timestamp for user {user.UserName}, aborting");
-                        }
-                    }
-                    else
-                    {
-                        Log.Error($"In AccountController.UpdatePassword action: Failed to update password for user {user.UserName}, aborting");
-                        string errorMessage = string.Join("<br /><br />", result.Errors.Select(x => x.Description));
-
-                        Response.Headers.Add("Warning", errorMessage);
-                    }
-                }
-            }
-            else
-            {
-                Log.Warning($"In UpdatePassword action for user {user.UserName}, ModelState errors {string.Join(", ", ModelState.SelectMany(s => s.Value.Errors).Select(e => e.ErrorMessage))}");
-                Response.Headers.Add("Warning", $"Password update failed");
-            }
-
-            return BadRequest();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateAccount([FromBody] UpdateAccountModel model)
         {
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
