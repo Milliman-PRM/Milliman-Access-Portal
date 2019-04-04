@@ -1098,55 +1098,6 @@ namespace MillimanAccessPortal.Controllers
             });
         }
 
-        // POST /Account/UpdateAccountSettings
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> AccountSettings([Bind("UserName,FirstName,LastName,PhoneNumber,Employer")]AccountSettingsViewModel Model)
-        {
-            Log.Verbose("Entered AccountController.AccountSettings POST action with model {@Model}", Model);
-
-            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
-            if (user == null)
-            {
-                Log.Debug($"In AccountController.AccountSettings POST action: user {User.Identity.Name} not found, aborting");
-                return View("Message", "Unable to assign new settings for current user");
-            }
-
-            if (Model.UserName != User.Identity.Name)
-            {
-                Log.Information($"In AccountController.AccountSettings action: user {User.Identity.Name} attempt to update settings for application user {Model.UserName}, aborting");
-                Response.Headers.Add("Warning", "You may not access another user's settings.");
-                return Unauthorized();
-            }
-
-            if (!string.IsNullOrEmpty(Model.FirstName))
-            {
-                user.FirstName = Model.FirstName;
-            }
-
-            if (!string.IsNullOrEmpty(Model.LastName))
-            {
-                user.LastName = Model.LastName;
-            }
-
-            if (!string.IsNullOrEmpty(Model.PhoneNumber))
-            {
-                user.PhoneNumber = Model.PhoneNumber;
-            }
-
-            if (!string.IsNullOrEmpty(Model.Employer))
-            {
-                user.Employer = Model.Employer;
-            }
-
-            DbContext.ApplicationUser.Update(user);
-            DbContext.SaveChanges();
-
-            Log.Verbose($"In AccountController.AccountSettings POST action: successful update for user {user.UserName}");
-
-            return Ok();
-        }
-
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
