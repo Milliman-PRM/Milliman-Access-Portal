@@ -4,13 +4,8 @@ import {
     ReductionQueueDetails, RootContentItem, RootContentItemWithStats, SelectionGroup,
     SelectionGroupWithAssignedUsers, User,
 } from '../../models';
-import { Dict } from './store';
-
-/**
- * Error type alias.
- * Aliased as any by necessity due to the nature of try/catch in TypeScript.
- */
-export type TSError = any;
+import { TSError } from '../../shared-components/redux/actions';
+import { Dict } from '../../shared-components/redux/store';
 
 // ~~ Page actions ~~
 
@@ -575,7 +570,8 @@ export interface CancelReductionFailed {
 /**
  * An action that changes the state of the page.
  */
-export type PageAction = SelectClient
+export type PageAccessAction =
+  | SelectClient
   | SelectItem
   | SelectGroup
   | SetExpandedGroup
@@ -611,12 +607,16 @@ export type PageAction = SelectClient
 /**
  * An action that schedules another action.
  */
-export type ScheduleAction = ScheduleSessionCheck | ScheduleStatusRefresh;
+export type ScheduleAccessAction =
+  | ScheduleSessionCheck
+  | ScheduleStatusRefresh
+  ;
 
 /**
  * An action that makes an Ajax request.
  */
-export type RequestAction = FetchClients
+export type RequestAccessAction =
+  | FetchClients
   | FetchItems
   | FetchGroups
   | FetchSelections
@@ -633,7 +633,8 @@ export type RequestAction = FetchClients
 /**
  * An action that marks the succesful response of an Ajax request.
  */
-export type ResponseAction = FetchClientsSucceeded
+export type ResponseAccessAction =
+  | FetchClientsSucceeded
   | FetchItemsSucceeded
   | FetchGroupsSucceeded
   | FetchSelectionsSucceeded
@@ -650,7 +651,8 @@ export type ResponseAction = FetchClientsSucceeded
 /**
  * An action that marks the errored response of an Ajax request.
  */
-export type ErrorAction = FetchClientsFailed
+export type ErrorAccessAction =
+  | FetchClientsFailed
   | FetchItemsFailed
   | FetchGroupsFailed
   | FetchSelectionsFailed
@@ -667,35 +669,38 @@ export type ErrorAction = FetchClientsFailed
 /**
  * An action available to the content access administration page.
  */
-export type AccessAction = PageAction | ScheduleAction | RequestAction | ResponseAction | ErrorAction;
+export type AccessAction =
+  | PageAccessAction
+  | ScheduleAccessAction
+  | RequestAccessAction
+  | ResponseAccessAction
+  | ErrorAccessAction
+  ;
 
 /**
  * An action that sets filter text for a card column.
  */
-export type FilterAction = SetFilterTextClient | SetFilterTextItem | SetFilterTextGroup | SetFilterTextSelections;
+export type FilterAccessAction =
+  | SetFilterTextClient
+  | SetFilterTextItem
+  | SetFilterTextGroup
+  | SetFilterTextSelections
+  ;
 
 /**
  * An action that opens a modal.
  */
-export type OpenAction = OpenAddGroupModal | OpenDeleteGroupModal | OpenInactiveModal;
+export type OpenAccessAction =
+  | OpenAddGroupModal
+  | OpenDeleteGroupModal
+  | OpenInactiveModal
+  ;
 
 /**
  * An action that closes a modal.
  */
-export type CloseAction = CloseAddGroupModal | CloseDeleteGroupModal | CloseInactiveModal;
-
-/**
- * Schedule action type guard.
- * @param action An action to inspect.
- */
-export function isScheduleAction(action: AccessAction): action is ScheduleAction {
-  return (action as ScheduleAction).delay !== undefined;
-}
-
-/**
- * Error action type guard.
- * @param action An action to inspect.
- */
-export function isErrorAction(action: AccessAction): action is ErrorAction {
-  return (action as ErrorAction).error !== undefined;
-}
+export type CloseAccessAction =
+  | CloseAddGroupModal
+  | CloseDeleteGroupModal
+  | CloseInactiveModal
+  ;
