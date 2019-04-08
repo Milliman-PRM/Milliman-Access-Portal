@@ -33,7 +33,7 @@ namespace MAP.UserStats
         }
 
         [FunctionName("RunStatsTimer")]
-        public static void RunTimer([TimerTrigger("0 0 * * * *")] ILogger log, ExecutionContext context)
+        public static void RunTimer([TimerTrigger("0 0 * * * *")] TimerInfo thisTimer, ILogger log, ExecutionContext context)
         {
             Run(log, context);
         }

@@ -35,7 +35,6 @@ obj/
 TestResults/
 node_modules/
 .vs/
-.vscode/
 wwwroot/
 ###################
 # Web publish log #
