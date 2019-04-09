@@ -176,6 +176,8 @@ namespace MapTests
             {
                 DataGenFunctionDict[Selection]();
             }
+
+            ConnectServicesToData();
         }
 
         /// <summary>
@@ -1055,44 +1057,6 @@ namespace MapTests
                     DomainList = { "DomainMatch.local" },
                 },
             });
-
-            // Build initialization data for WsFederation options provider
-            IOptionsMonitorCache<WsFederationOptions> wsfedOptionSvc = (IOptionsMonitorCache<WsFederationOptions>)ServiceProviderObject.GetService(typeof(IOptionsMonitorCache<WsFederationOptions>));
-            IOptionsMonitorCache<CookieAuthenticationOptions> cookieOptionSvc = (IOptionsMonitorCache<CookieAuthenticationOptions>)ServiceProviderObject.GetService(typeof(IOptionsMonitorCache<CookieAuthenticationOptions>));
-
-            var initData = new List<KeyValuePair<string, WsFederationOptions>>();
-            foreach (var scheme in DbContextObject.AuthenticationScheme)
-            {
-                Type handlerType = null;
-                switch (scheme.Type)
-                {
-                    case AuthenticationType.WsFederation:
-                        WsFederationSchemeProperties props = (WsFederationSchemeProperties)scheme.SchemePropertiesObj;
-                        WsFederationOptions wsOptions = new WsFederationOptions
-                        {
-                            MetadataAddress = props.MetadataAddress,
-                            Wtrealm = props.Wtrealm,
-                        };
-                        wsOptions.CallbackPath += $"-{scheme.Name}";
-                        wsfedOptionSvc.TryAdd(scheme.Name, wsOptions);
-                        handlerType = typeof(WsFederationHandler);
-                        break;
-
-                    case AuthenticationType.Default:
-                        var cookieOptions = new CookieAuthenticationOptions
-                        {
-                            LoginPath = "/Account/LogIn",
-                            LogoutPath = "/Account/LogOut",
-                            ExpireTimeSpan = TimeSpan.FromMinutes(30),
-                            SlidingExpiration = true,
-                        };
-                        handlerType = typeof(CookieAuthenticationHandler);
-                        cookieOptionSvc.TryAdd(scheme.Name, cookieOptions);
-                        break;
-                }
-
-                AuthenticationSchemeProviderObject.AddScheme(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(scheme.Name, scheme.DisplayName, handlerType));
-            }
             #endregion
 
             #region Initialize Users
@@ -1232,5 +1196,45 @@ namespace MapTests
             #endregion
         }
 
+        private void ConnectServicesToData()
+        {
+            // Build initialization data for WsFederation options provider
+            IOptionsMonitorCache<WsFederationOptions> wsfedOptionSvc = (IOptionsMonitorCache<WsFederationOptions>)ServiceProviderObject.GetService(typeof(IOptionsMonitorCache<WsFederationOptions>));
+            IOptionsMonitorCache<CookieAuthenticationOptions> cookieOptionSvc = (IOptionsMonitorCache<CookieAuthenticationOptions>)ServiceProviderObject.GetService(typeof(IOptionsMonitorCache<CookieAuthenticationOptions>));
+
+            var initData = new List<KeyValuePair<string, WsFederationOptions>>();
+            foreach (var scheme in DbContextObject.AuthenticationScheme)
+            {
+                Type handlerType = null;
+                switch (scheme.Type)
+                {
+                    case AuthenticationType.WsFederation:
+                        WsFederationSchemeProperties props = (WsFederationSchemeProperties)scheme.SchemePropertiesObj;
+                        WsFederationOptions wsOptions = new WsFederationOptions
+                        {
+                            MetadataAddress = props.MetadataAddress,
+                            Wtrealm = props.Wtrealm,
+                        };
+                        wsOptions.CallbackPath += $"-{scheme.Name}";
+                        wsfedOptionSvc.TryAdd(scheme.Name, wsOptions);
+                        handlerType = typeof(WsFederationHandler);
+                        break;
+
+                    case AuthenticationType.Default:
+                        var cookieOptions = new CookieAuthenticationOptions
+                        {
+                            LoginPath = "/Account/LogIn",
+                            LogoutPath = "/Account/LogOut",
+                            ExpireTimeSpan = TimeSpan.FromMinutes(30),
+                            SlidingExpiration = true,
+                        };
+                        handlerType = typeof(CookieAuthenticationHandler);
+                        cookieOptionSvc.TryAdd(scheme.Name, cookieOptions);
+                        break;
+                }
+
+                AuthenticationSchemeProviderObject.AddScheme(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(scheme.Name, scheme.DisplayName, handlerType));
+            }
+        }
     }
 }

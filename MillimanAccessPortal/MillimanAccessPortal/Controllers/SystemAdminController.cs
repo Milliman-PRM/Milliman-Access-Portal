@@ -876,7 +876,7 @@ namespace MillimanAccessPortal.Controllers
                         {
                             // Add new scheme to database
                             newSchemeRecord.SchemePropertiesObj = schemeProperties;
-                            await _dbContext.AuthenticationScheme.AddAsync(newSchemeRecord);
+                            _dbContext.AuthenticationScheme.Add(newSchemeRecord);
                             await _dbContext.SaveChangesAsync();
                         }
                     }
