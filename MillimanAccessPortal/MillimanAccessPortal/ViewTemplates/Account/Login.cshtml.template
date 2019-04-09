@@ -49,5 +49,5 @@
         </div>
     </section>
 
-    @Html.Partial("_Footer")
+    @await Html.PartialAsync("_Footer")
 </div>

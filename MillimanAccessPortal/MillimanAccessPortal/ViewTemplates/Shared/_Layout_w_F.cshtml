@@ -4,7 +4,7 @@
 
 <div id="content-wrapper">
     @RenderBody()
-    @Html.Partial("_Footer")
+    @await Html.PartialAsync("_Footer")
 </div>
 
 @section CSS {
