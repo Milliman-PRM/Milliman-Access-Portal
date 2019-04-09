@@ -78,6 +78,19 @@ namespace MapDbContextLib.Context
             return DomainList.Any(d => EF.Functions.ILike(d, testDomain));
         }
 
+        public AuthenticationScheme DeepCopy()
+        {
+            return new AuthenticationScheme
+            {
+                Id = Id,
+                Name = Name,
+                Type = Type,
+                DisplayName = DisplayName,
+                DomainList = DomainList,
+                SchemeProperties = SchemeProperties
+            };
+        }
+
         #region Database initialization and validation
         /// <summary>
         /// Populate the Identity database with the roles in NamedRoles. This should likely only be called from Startup.cs

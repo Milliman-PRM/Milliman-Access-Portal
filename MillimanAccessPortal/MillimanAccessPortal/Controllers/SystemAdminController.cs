@@ -820,7 +820,6 @@ namespace MillimanAccessPortal.Controllers
             return Json(user);
         }
 
-        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> AddNewAuthenticationScheme(AllAuthenticationSchemes.AuthenticationScheme model)
         {
@@ -907,6 +906,8 @@ namespace MillimanAccessPortal.Controllers
                 default:
                     throw new ApplicationException($"Request to {nameof(SystemAdminController)}.{nameof(AddNewAuthenticationScheme)} with unsupported AuthenticationType {model.Type}");
             }
+            
+            _auditLogger.Log(AuditEventType.NewAuthenticationSchemeAdded.ToEvent(newSchemeRecord));
 
             return Ok();
         }
@@ -968,7 +969,6 @@ namespace MillimanAccessPortal.Controllers
             return Json(existingRecord);
         }
 
-        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> UpdateAuthenticationScheme(AllAuthenticationSchemes.AuthenticationScheme model)
         {
@@ -1037,6 +1037,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Prepare the database record changes
             MapDbContextLib.Context.AuthenticationScheme schemeRecord = _dbContext.AuthenticationScheme.Single(s => EF.Functions.ILike(s.Name, model.Name));
+            MapDbContextLib.Context.AuthenticationScheme beforeUpdate = schemeRecord.DeepCopy();  // for logging
             schemeRecord.DisplayName = model.DisplayName;
             schemeRecord.DomainList = model.DomainList;
             schemeRecord.Type = model.Type;
@@ -1082,6 +1083,8 @@ namespace MillimanAccessPortal.Controllers
                 default:
                     throw new ApplicationException($"Request to {nameof(SystemAdminController)}.{nameof(AddNewAuthenticationScheme)} with unsupported AuthenticationType {model.Type}");
             }
+
+            _auditLogger.Log(AuditEventType.AuthenticationSchemeUpdated.ToEvent(beforeUpdate, schemeRecord));
 
             return Ok();
         }

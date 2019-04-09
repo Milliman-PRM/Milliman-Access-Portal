@@ -463,6 +463,40 @@ namespace AuditLogLib.Event
                 ProfitCenterId = profitCenter.Id,
                 UserId = user.Id,
             });
+
+        // 72xx - Authentication scheme management
+        public static readonly AuditEventType<AuthenticationScheme> NewAuthenticationSchemeAdded = new AuditEventType<AuthenticationScheme>(
+            7201, "New authentication scheme added", scheme => new
+            {
+                SchemeId = scheme.Id,
+                SchemeName = scheme.Name,
+                scheme.DomainList,
+                scheme.DisplayName,
+                Type = scheme.Type.ToString(),
+                SchemeProperties = scheme.SchemePropertiesObj,
+            });
+        public static readonly AuditEventType<AuthenticationScheme,AuthenticationScheme> AuthenticationSchemeUpdated = new AuditEventType<AuthenticationScheme,AuthenticationScheme>(
+            7202, "Authentication scheme updated", (before,after) => new
+            {
+                before = new
+                {
+                    SchemeId = before.Id,
+                    SchemeName = before.Name,
+                    before.DomainList,
+                    before.DisplayName,
+                    Type = before.Type.ToString(),
+                    SchemeProperties = before.SchemePropertiesObj,
+                },
+                after = new
+                {
+                    SchemeId = after.Id,
+                    SchemeName = after.Name,
+                    after.DomainList,
+                    after.DisplayName,
+                    Type = after.Type.ToString(),
+                    SchemeProperties = after.SchemePropertiesObj,
+                }
+            });
         #endregion
         #endregion
 
