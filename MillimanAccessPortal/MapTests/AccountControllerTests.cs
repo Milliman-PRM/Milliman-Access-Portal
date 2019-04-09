@@ -73,11 +73,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<ViewResult>(view);
-            ViewResult viewAsViewResult = view as ViewResult;
+            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
             //Assert.Equal("EnableAccount", viewAsViewResult.ViewName);  // .ViewName is null when the action is driven by xunit
-            Assert.IsType<EnableAccountViewModel>(viewAsViewResult.Model);
-            EnableAccountViewModel viewModel = viewAsViewResult.Model as EnableAccountViewModel;
+            EnableAccountViewModel viewModel = Assert.IsType<EnableAccountViewModel>(viewAsViewResult.Model);
             Assert.Equal(TestCode, viewModel.Code);
             Assert.Equal(TestUserId, viewModel.Id.ToString());
             Assert.Null(viewModel.FirstName);
@@ -164,8 +162,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<ViewResult>(view);
-            ViewResult viewAsViewResult = view as ViewResult;
+            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
             Assert.Equal("Login", viewAsViewResult.ViewName);
             Assert.Equal(NewPass + "xyz", UserRecord.PasswordHash);
             Assert.Equal(NewEmployer, UserRecord.Employer);
@@ -205,8 +202,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<ViewResult>(view);
-            ViewResult viewAsViewResult = view as ViewResult;
+            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
             Assert.Equal("Message", viewAsViewResult.ViewName);
             #endregion
         }
@@ -227,8 +223,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<ViewResult>(view);
-            ViewResult viewAsViewResult = view as ViewResult;
+            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
             Assert.Equal("Message", viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
             #endregion
 
@@ -252,8 +247,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<ViewResult>(view);
-            ViewResult viewAsViewResult = view as ViewResult;
+            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
             Assert.Equal(nameof(SharedController.Message), viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
             Assert.IsType<string>(viewAsViewResult.Model);
             #endregion
@@ -274,10 +268,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<ViewResult>(view);
-            ViewResult viewAsViewResult = view as ViewResult;
-            Assert.IsType<ResetPasswordViewModel>(viewAsViewResult.Model);
-            ResetPasswordViewModel viewModel = viewAsViewResult.Model as ResetPasswordViewModel;
+            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
+            ResetPasswordViewModel viewModel = Assert.IsType<ResetPasswordViewModel>(viewAsViewResult.Model);
             Assert.Equal(TestEmail, viewModel.Email);
             Assert.Equal(TestToken, viewModel.PasswordResetToken);
             Assert.Equal(string.Empty, viewModel.Message);
@@ -300,8 +292,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<ViewResult>(view);
-            ViewResult viewAsViewResult = view as ViewResult;
+            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
             Assert.Equal("Message", viewAsViewResult.ViewName);
             #endregion
         }
@@ -573,10 +564,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<ViewResult>(view);
-            ViewResult viewAsViewResult = view as ViewResult;
-            Assert.IsType<AccountSettingsViewModel>(viewAsViewResult.Model);
-            AccountSettingsViewModel viewModel = viewAsViewResult.Model as AccountSettingsViewModel;
+            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
+            AccountSettingsViewModel viewModel = Assert.IsType<AccountSettingsViewModel>(viewAsViewResult.Model);
             Assert.Equal(AppUser.Email, viewModel.Email);
             Assert.Equal(AppUser.FirstName, viewModel.FirstName);
             Assert.Equal(AppUser.LastName, viewModel.LastName);
@@ -701,8 +690,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(result);
-            JsonResult typedResult = result as JsonResult;
+            JsonResult typedResult = Assert.IsType<JsonResult>(result);
             PropertyInfo info = typedResult.Value.GetType().GetProperty("localAccount");
             Assert.Equal(typeof(bool), info.PropertyType);
             Assert.Equal(isLocalTruth, (bool)info.GetValue(typedResult.Value));

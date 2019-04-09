@@ -126,8 +126,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedUsers, ((json as JsonResult).Value as List<UserInfo>).Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            List<UserInfo> users = Assert.IsType<List<UserInfo>>(result.Value);
+            Assert.Equal(expectedUsers, users.Count);
             #endregion
         }
         [Theory]
@@ -148,8 +149,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedUsers, ((json as JsonResult).Value as List<UserInfo>).Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            List<UserInfo> userInfoList = Assert.IsType<List<UserInfo>>(result.Value);
+            Assert.Equal(expectedUsers, userInfoList.Count);
             #endregion
         }
         [Theory]
@@ -170,8 +172,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedUsers, ((json as JsonResult).Value as List<UserInfo>).Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            List<UserInfo> userInfoList = Assert.IsType<List<UserInfo>>(result.Value);
+            Assert.Equal(expectedUsers, userInfoList.Count);
             #endregion
         }
 
@@ -214,8 +217,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<UserDetail>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<UserDetail>(result.Value);
             #endregion
         }
         [Theory]
@@ -236,8 +239,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<UserDetailForClient>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<UserDetailForClient>(result.Value);
             #endregion
         }
         [Theory]
@@ -258,8 +261,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<UserDetailForProfitCenter>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<UserDetailForProfitCenter>(result.Value);
             #endregion
         }
         #endregion
@@ -279,8 +282,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedClients, ((json as JsonResult).Value as BasicTree<ClientInfo>).Root.Children.Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            BasicTree<ClientInfo> clientInfoTree = Assert.IsType<BasicTree<ClientInfo>>(result.Value);
+            Assert.Equal(expectedClients, clientInfoTree.Root.Children.Count);
             #endregion
         }
         [Theory]
@@ -301,8 +305,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedClients, ((json as JsonResult).Value as BasicTree<ClientInfo>).Root.Children.Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            BasicTree<ClientInfo> clientInfoTree = Assert.IsType<BasicTree<ClientInfo>>(result.Value);
+            Assert.Equal(expectedClients, clientInfoTree.Root.Children.Count);
             #endregion
         }
         [Theory]
@@ -323,8 +328,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedClients, ((json as JsonResult).Value as BasicTree<ClientInfo>).Root.Children.Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            BasicTree<ClientInfo> clientInfoTree = Assert.IsType<BasicTree<ClientInfo>>(result.Value);
+            Assert.Equal(expectedClients, clientInfoTree.Root.Children.Count);
             #endregion
         }
 
@@ -367,8 +373,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<ClientDetail>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<ClientDetail>(result.Value);
             #endregion
         }
         [Theory]
@@ -389,8 +395,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<ClientDetailForUser>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<ClientDetailForUser>(result.Value);
             #endregion
         }
         [Theory]
@@ -411,8 +417,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<ClientDetailForProfitCenter>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<ClientDetailForProfitCenter>(result.Value);
             #endregion
         }
         #endregion
@@ -432,7 +438,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            List<ProfitCenterInfo> profitCenterInfoList = Assert.IsType<List<ProfitCenterInfo>>(result.Value);
             Assert.Equal(expectedProfitCenters, ((json as JsonResult).Value as List<ProfitCenterInfo>).Count);
             #endregion
         }
@@ -476,8 +483,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<ProfitCenterDetail>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<ProfitCenterDetail>(result.Value);
             #endregion
         }
         #endregion
@@ -501,8 +508,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedRootContentItems, ((json as JsonResult).Value as List<RootContentItemInfo>).Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            List<RootContentItemInfo> rootContentItemInfoList = Assert.IsType<List<RootContentItemInfo>>(result.Value);
+            Assert.Equal(expectedRootContentItems, rootContentItemInfoList.Count);
             #endregion
         }
         [Theory]
@@ -523,8 +531,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedRootContentItems, ((json as JsonResult).Value as List<RootContentItemInfo>).Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            List<RootContentItemInfo> rootContentItemInfoList = Assert.IsType<List<RootContentItemInfo>>(result.Value);
+            Assert.Equal(expectedRootContentItems, rootContentItemInfoList.Count);
             #endregion
         }
 
@@ -568,8 +577,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<RootContentItemDetailForUser>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<RootContentItemDetailForUser>(result.Value);
             #endregion
         }
         [Theory]
@@ -590,8 +599,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<RootContentItemDetailForClient>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<RootContentItemDetailForClient>(result.Value);
             #endregion
         }
         #endregion
@@ -852,7 +861,9 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<OkResult>(result1);
-            Assert.IsType<StatusCodeResult>(result2);
+
+            var typedResult2 = Assert.IsType<StatusCodeResult>(result2);
+            Assert.Equal(500, typedResult2.StatusCode);
             var allDbSchemes = _testResources.DbContextObject.AuthenticationScheme.Where(c => c.Name == model1.Name).ToList();
             Assert.Single(allDbSchemes);
             Assert.Equal(model1.Name, allDbSchemes.First().Name);
@@ -959,8 +970,7 @@ namespace MapTests
             Assert.Equal(model.DisplayName, afterUpdatedScheme.DisplayName);
 
             // Assert database updated correctly
-            Assert.Single(dbUpdatedSchemeList);
-            var dbUpdatedScheme = dbUpdatedSchemeList.Single();
+            var dbUpdatedScheme = Assert.Single(dbUpdatedSchemeList);
             Assert.IsType<WsFederationSchemeProperties>(dbUpdatedScheme.SchemePropertiesObj);
             WsFederationSchemeProperties typedDbProperties = (WsFederationSchemeProperties)model.Properties;
             Assert.Equal(modelProperties.MetadataAddress, typedDbProperties.MetadataAddress);
@@ -1175,10 +1185,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json1);
-            Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
-            Assert.IsType<JsonResult>(json2);
-            Assert.Equal(!expectedValue, (bool)(json2 as JsonResult).Value);
+            JsonResult result1 = Assert.IsType<JsonResult>(json1);
+            Assert.Equal(expectedValue, (bool)result1.Value);
+            JsonResult result2 = Assert.IsType<JsonResult>(json2);
+            Assert.Equal(!expectedValue, (bool)result2.Value);
             #endregion
         }
 
@@ -1214,10 +1224,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json1);
-            Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
-            Assert.IsType<JsonResult>(json2);
-            Assert.Equal(!expectedValue, (bool)(json2 as JsonResult).Value);
+            JsonResult result1 = Assert.IsType<JsonResult>(json1);
+            Assert.Equal(expectedValue, (bool)result1.Value);
+            JsonResult result2 = Assert.IsType<JsonResult>(json2);
+            Assert.Equal(!expectedValue, (bool)result2.Value);
             #endregion
         }
 
@@ -1257,10 +1267,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json1);
-            Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
-            Assert.IsType<JsonResult>(json2);
-            Assert.Equal(!expectedValue, (bool)(json2 as JsonResult).Value);
+            JsonResult result1 = Assert.IsType<JsonResult>(json1);
+            Assert.Equal(expectedValue, (bool)result1.Value);
+            JsonResult result2 = Assert.IsType<JsonResult>(json2);
+            Assert.Equal(!expectedValue, (bool)result2.Value);
             #endregion
         }
 
@@ -1295,10 +1305,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json1);
-            Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
-            Assert.IsType<JsonResult>(json2);
-            Assert.Equal(!expectedValue, (bool)(json2 as JsonResult).Value);
+            JsonResult result1 = Assert.IsType<JsonResult>(json1);
+            Assert.Equal(expectedValue, (bool)result1.Value);
+            JsonResult result2 = Assert.IsType<JsonResult>(json2);
+            Assert.Equal(!expectedValue, (bool)result2.Value);
             #endregion
         }
         #endregion
