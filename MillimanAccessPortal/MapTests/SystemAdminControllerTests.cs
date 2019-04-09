@@ -7,6 +7,7 @@
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
@@ -61,7 +62,7 @@ namespace MapTests
                 _testResources.RoleManagerObject,
                 _testResources.UserManagerObject,
                 _testResources.ServiceProviderObject,
-                null);
+                _testResources.AuthenticationSchemeProviderObject);
 
             try
             {
@@ -596,7 +597,7 @@ namespace MapTests
         #endregion
         #endregion
 
-        #region create action queries
+        #region create action tests
         [Theory]
         [InlineData("invalid_email_address")]
         [InlineData("sysAdmin1@site.domain")]
@@ -795,6 +796,70 @@ namespace MapTests
             Assert.Equal(preCount, postCount);
             #endregion
         }
+
+        [Fact]
+        public async Task AddNewAuthenticationScheme_Success()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var model = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = "testscheme1",
+                DisplayName = "Display Name 1",
+                Properties = new MapDbContextLib.Models.WsFederationSchemeProperties {Wtrealm = "realm1", MetadataAddress = "address1" },
+                Type = AuthenticationType.WsFederation,
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.AddNewAuthenticationScheme(model);
+            #endregion
+
+            #region Assert
+            Assert.IsType<OkResult>(result);
+            var dbScheme = _testResources.DbContextObject.AuthenticationScheme.Where(c => c.Name == model.Name).ToList();
+            Assert.Single(dbScheme);
+            Assert.Equal(model.Name, dbScheme.First().Name);
+            Assert.Equal(model.DisplayName, dbScheme.First().DisplayName);
+            #endregion
+        }
+
+        [Fact]
+        public async Task AddNewAuthenticationScheme_FailsOnAddingSameName()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var model1 = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = "testscheme1",
+                DisplayName = "Display Name 1",
+                Properties = new MapDbContextLib.Models.WsFederationSchemeProperties { Wtrealm = "realm1", MetadataAddress = "address1" },
+                Type = AuthenticationType.WsFederation,
+            };
+            var model2 = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = "testscheme1",
+                DisplayName = "Display Name 2",
+                Properties = new MapDbContextLib.Models.WsFederationSchemeProperties { Wtrealm = "realm2", MetadataAddress = "address2" },
+                Type = AuthenticationType.WsFederation,
+            };
+            #endregion
+
+            #region Act
+            var result1 = await controller.AddNewAuthenticationScheme(model1);
+            var result2 = await controller.AddNewAuthenticationScheme(model2);
+            #endregion
+
+            #region Assert
+            Assert.IsType<OkResult>(result1);
+            Assert.IsType<StatusCodeResult>(result2);
+            var allDbSchemes = _testResources.DbContextObject.AuthenticationScheme.Where(c => c.Name == model1.Name).ToList();
+            Assert.Single(allDbSchemes);
+            Assert.Equal(model1.Name, allDbSchemes.First().Name);
+            Assert.Equal(model1.DisplayName, allDbSchemes.First().DisplayName);
+            #endregion
+        }
+
         #endregion
 
         #region update action tests
@@ -849,6 +914,61 @@ namespace MapTests
             Assert.Equal(preCount, postCount);
             #endregion
         }
+
+        [Fact]
+        public async Task UpdateAuthenticationScheme_Success()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+
+            WsFederationSchemeProperties modelProperties = new WsFederationSchemeProperties
+            {
+                Wtrealm = "new realm",
+                MetadataAddress = "https://newmetadata/",
+            };
+            var model = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = "prmtest",
+                DisplayName = "New display name",
+                Properties = modelProperties,
+                Type = AuthenticationType.WsFederation,
+                DomainList = new List<string> { "newDomain1.com", "newDomain2.com" },
+            };
+
+            var beforeAllSchemes = await _testResources.AuthenticationSchemeProviderObject.GetAllSchemesAsync();
+            #endregion
+
+            #region Act
+            var result = await controller.UpdateAuthenticationScheme(model);
+
+            var afterAllSchemes = await _testResources.AuthenticationSchemeProviderObject.GetAllSchemesAsync();
+            Microsoft.AspNetCore.Authentication.AuthenticationScheme afterUpdatedScheme = afterAllSchemes.Single(s => s.Name == model.Name);
+
+            var dbUpdatedSchemeList = _testResources.DbContextObject.AuthenticationScheme.Where(s => s.Name == model.Name).ToList();
+            #endregion
+
+            #region Assert
+            Assert.IsType<OkResult>(result);
+            Assert.Equal(beforeAllSchemes.Count(), afterAllSchemes.Count());
+
+            Assert.Equal(model.DisplayName, afterUpdatedScheme.DisplayName);
+
+            WsFederationSchemeProperties typedProperties = (WsFederationSchemeProperties)model.Properties;
+            Assert.Equal(modelProperties.MetadataAddress, typedProperties.MetadataAddress);
+            Assert.Equal(modelProperties.Wtrealm, typedProperties.Wtrealm);
+            Assert.Equal(model.DisplayName, afterUpdatedScheme.DisplayName);
+
+            // Assert database updated correctly
+            Assert.Single(dbUpdatedSchemeList);
+            var dbUpdatedScheme = dbUpdatedSchemeList.Single();
+            Assert.IsType<WsFederationSchemeProperties>(dbUpdatedScheme.SchemePropertiesObj);
+            WsFederationSchemeProperties typedDbProperties = (WsFederationSchemeProperties)model.Properties;
+            Assert.Equal(modelProperties.MetadataAddress, typedDbProperties.MetadataAddress);
+            Assert.Equal(modelProperties.Wtrealm, typedDbProperties.Wtrealm);
+            Assert.True(model.DomainList.ToHashSet().SetEquals(dbUpdatedScheme.DomainList.ToHashSet()));
+            #endregion
+        }
+
         #endregion
 
         #region Remove/delete action tests

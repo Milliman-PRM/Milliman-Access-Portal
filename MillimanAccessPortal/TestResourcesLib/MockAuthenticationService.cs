@@ -6,6 +6,8 @@
 
 using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.WsFederation;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -46,42 +48,31 @@ namespace TestResourcesLib
     {
         public static Mock<AuthenticationSchemeProvider> New(ApplicationDbContext context)
         {
+            List<Microsoft.AspNetCore.Authentication.AuthenticationScheme> Store = new List<Microsoft.AspNetCore.Authentication.AuthenticationScheme>();
+
             IOptions<AuthenticationOptions> options = new OptionsWrapper<AuthenticationOptions>(new AuthenticationOptions { });
             Mock<AuthenticationSchemeProvider> ReturnProvider = new Mock<AuthenticationSchemeProvider>(options);
 
-            ReturnProvider.Setup(s => s.AddScheme(It.IsAny<Microsoft.AspNetCore.Authentication.AuthenticationScheme>())).Callback<Microsoft.AspNetCore.Authentication.AuthenticationScheme>(scheme => 
-            {
-                MapDbContextLib.Context.AuthenticationScheme newScheme = new MapDbContextLib.Context.AuthenticationScheme
-                {
-                    Name = scheme.Name,
-                    DisplayName = scheme.DisplayName,
-                    Id = Guid.NewGuid(),
-                    Type = AuthenticationType.Default,
-                    //SchemePropertiesObj = ?,
-                    //DomainList = new string[0],
-                };
-                context.AuthenticationScheme.Add(newScheme);
-            });
-            ReturnProvider.Setup(s => s.GetAllSchemesAsync()).ReturnsAsync(context.AuthenticationScheme.Select(s => new Microsoft.AspNetCore.Authentication.AuthenticationScheme(s.Name, s.DisplayName, typeof(Microsoft.AspNetCore.Authentication.IAuthenticationHandler))).AsEnumerable());
+            ReturnProvider.Setup(s => s.AddScheme(It.IsAny<Microsoft.AspNetCore.Authentication.AuthenticationScheme>())).Callback<Microsoft.AspNetCore.Authentication.AuthenticationScheme>(scheme => Store.Add(scheme));
+            ReturnProvider.Setup(s => s.GetAllSchemesAsync()).ReturnsAsync(Store.AsEnumerable());
             ReturnProvider.Setup(s => s.GetDefaultAuthenticateSchemeAsync()).ReturnsAsync(() => 
             {
-                var theScheme = context.AuthenticationScheme.SingleOrDefault(s => s.Name == IdentityConstants.ApplicationScheme);
-                return new Microsoft.AspNetCore.Authentication.AuthenticationScheme(theScheme.Name, theScheme.DisplayName, typeof(Microsoft.AspNetCore.Authentication.IAuthenticationHandler));
+                Microsoft.AspNetCore.Authentication.AuthenticationScheme theScheme = Store.SingleOrDefault(s => s.HandlerType == typeof(CookieAuthenticationHandler));
+                return theScheme;
             });
             ReturnProvider.Setup(s => s.GetDefaultChallengeSchemeAsync()).ReturnsAsync((Microsoft.AspNetCore.Authentication.AuthenticationScheme)null);
             ReturnProvider.Setup(s => s.GetDefaultForbidSchemeAsync()).ReturnsAsync((Microsoft.AspNetCore.Authentication.AuthenticationScheme)null);
             ReturnProvider.Setup(s => s.GetDefaultSignInSchemeAsync()).ReturnsAsync((Microsoft.AspNetCore.Authentication.AuthenticationScheme)null);
             ReturnProvider.Setup(s => s.GetDefaultSignOutSchemeAsync()).ReturnsAsync((Microsoft.AspNetCore.Authentication.AuthenticationScheme)null);
-            ReturnProvider.Setup(s => s.GetRequestHandlerSchemesAsync()).ReturnsAsync(context.AuthenticationScheme.Select(s => new Microsoft.AspNetCore.Authentication.AuthenticationScheme(s.Name, s.DisplayName, null)).AsEnumerable());
+            ReturnProvider.Setup(s => s.GetRequestHandlerSchemesAsync()).ReturnsAsync(Store);
             ReturnProvider.Setup(s => s.GetSchemeAsync(It.IsAny<string>())).ReturnsAsync<string, AuthenticationSchemeProvider, Microsoft.AspNetCore.Authentication.AuthenticationScheme>(name => 
             {
-                var dbScheme = context.AuthenticationScheme.SingleOrDefault(s => s.Name == name);
-                return new Microsoft.AspNetCore.Authentication.AuthenticationScheme(dbScheme.Name, dbScheme.DisplayName, null);
+                return Store.SingleOrDefault(s => s.Name == name);
             });
             ReturnProvider.Setup(s => s.RemoveScheme(It.IsAny<string>())).Callback<string>(name =>
             {
-                var dbScheme = context.AuthenticationScheme.SingleOrDefault(s => s.Name == name);
-                context.AuthenticationScheme.Remove(dbScheme);
+                var itemToRemove = Store.SingleOrDefault(s => s.Name == name);
+                Store.Remove(itemToRemove);
             });
 
             return ReturnProvider;

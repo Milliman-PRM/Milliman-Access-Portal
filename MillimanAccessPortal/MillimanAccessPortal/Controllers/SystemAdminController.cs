@@ -56,7 +56,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly StandardQueries _queries;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly AuthenticationService _authentService;
+        private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IServiceProvider _serviceProvider;
 
         public SystemAdminController(
@@ -69,7 +69,7 @@ namespace MillimanAccessPortal.Controllers
             RoleManager<ApplicationRole> roleManager,
             UserManager<ApplicationUser> userManager,
             IServiceProvider serviceProviderArg,
-            IAuthenticationService authentService
+            IAuthenticationSchemeProvider schemeProvider
             )
         {
             _accountController = accountController;
@@ -81,7 +81,7 @@ namespace MillimanAccessPortal.Controllers
             _roleManager = roleManager;
             _userManager = userManager;
             _serviceProvider = serviceProviderArg;
-            _authentService = (AuthenticationService)authentService;
+            _schemeProvider = schemeProvider;
         }
 
         /// <summary>
@@ -837,10 +837,18 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            if (await _authentService.Schemes.GetSchemeAsync(model.Name) != null || 
+            // 1. There should not be an existing scheme with the requested name
+            if (await _schemeProvider.GetSchemeAsync(model.Name) != null || 
                 _dbContext.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, model.Name)))
             {
-                Log.Error($"Attempted to add external authentication scheme named {model.Name} but a scheme with this name already exists in the database");
+                Log.Error($"Attempted to add authentication scheme named {model.Name} but a scheme with this name already exists");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            // 2. The requested scheme type should not be default
+            if (model.Type == AuthenticationType.Default)
+            {
+                Log.Warning($"Attempted to add authentication scheme named {model.Name} with the default scheme type, not permitted");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
             #endregion
@@ -859,26 +867,27 @@ namespace MillimanAccessPortal.Controllers
                     OptionsCache<WsFederationOptions> _wsFederationOptionsCache = (OptionsCache<WsFederationOptions>)_serviceProvider.GetService(typeof(IOptionsMonitorCache<WsFederationOptions>));
                     try
                     {
-                        _authentService.Schemes.AddScheme(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(model.Name, model.DisplayName, typeof(WsFederationHandler)));
+                        // Add new scheme to DI AuthenticationSchemeProvider
+                        _schemeProvider.AddScheme(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(model.Name, model.DisplayName, typeof(WsFederationHandler)));
 
-                        // Add new scheme to DI AuthenticationService
                         WsFederationSchemeProperties schemeProperties = (WsFederationSchemeProperties)model.Properties;
                         WsFederationOptions newOptions = new WsFederationOptions { Wtrealm = schemeProperties.Wtrealm, MetadataAddress = schemeProperties.MetadataAddress, CallbackPath = $"/signin-wsfed-{model.Name}" };
-                        _wsFederationOptionsCache.TryAdd(model.Name, newOptions);
-
-                        // Add new scheme to database
-                        newSchemeRecord.SchemePropertiesObj = schemeProperties;
-                        await _dbContext.AuthenticationScheme.AddAsync(newSchemeRecord);
-                        await _dbContext.SaveChangesAsync();
+                        if (_wsFederationOptionsCache.TryAdd(model.Name, newOptions))
+                        {
+                            // Add new scheme to database
+                            newSchemeRecord.SchemePropertiesObj = schemeProperties;
+                            await _dbContext.AuthenticationScheme.AddAsync(newSchemeRecord);
+                            await _dbContext.SaveChangesAsync();
+                        }
                     }
                     catch (Exception ex)
                     {
                         Log.Warning(ex, "Failed to add new authentication scheme using model {{@Model}}, aborting", model);
 
                         _wsFederationOptionsCache.TryRemove(model.Name);
-                        if (await _authentService.Schemes.GetSchemeAsync(model.Name) != null)
+                        if (await _schemeProvider.GetSchemeAsync(model.Name) != null)
                         {
-                            _authentService.Schemes.RemoveScheme(model.Name);
+                            _schemeProvider.RemoveScheme(model.Name);
                         }
                         _dbContext.AuthenticationScheme.Remove(newSchemeRecord);
 
@@ -969,14 +978,47 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            if (await _authentService.Schemes.GetSchemeAsync(model.Name) == null ||
-                _dbContext.AuthenticationScheme.All(s => !EF.Functions.ILike(s.Name, model.Name)))
+            List<string> errMessages = new List<string>();
+
+            // 1. The default type should never be updated
+            if (model.Type == AuthenticationType.Default)
             {
-                Log.Error($"Attempted to update external authentication scheme named {model.Name} but no scheme with this name exists");
+                errMessages.Add($"Error, attempted to update the default authentication scheme");
+            }
+
+            // 2. The requested scheme name must already exist in the database with the same type conveyed in the request model
+            if (_dbContext.AuthenticationScheme.All(s => !EF.Functions.ILike(s.Name, model.Name)) ||
+                _dbContext.AuthenticationScheme.Single(s => EF.Functions.ILike(s.Name, model.Name)).Type != model.Type)
+            {
+                errMessages.Add($"Attempted to update external authentication scheme named {model.Name} but no scheme with this name and of the requested authentication type {model.Type.ToString()} exists in the database");
+            }
+
+            // 3. The existing scheme must already be configured in the AuthenticationService with the same type conveyed in the request model
+            var ExistingScheme = await _schemeProvider.GetSchemeAsync(model.Name);
+            string expectedHandlerName;
+            switch (model.Type)
+            {
+                case AuthenticationType.WsFederation:
+                    expectedHandlerName = "WsFederationHandler";
+                    break;
+                default:
+                    string msg = $"Requested authentication type {model.Type.ToString()} is not handled in AuthenticationService validation";
+                    Log.Error(msg);
+                    throw new ApplicationException(msg);
+            }
+            if (ExistingScheme == null || ExistingScheme.HandlerType.Name != expectedHandlerName)
+            {
+                errMessages.Add($"Attempted to update external authentication scheme named {model.Name} but no scheme with this name and of the requested authentication type {model.Type.ToString()} is configured in the AuthenticationService");
+            }
+
+            if (errMessages.Any())
+            {
+                errMessages.ForEach(m => Log.Error(m));
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
             #endregion
 
+            // Prepare the database record changes
             MapDbContextLib.Context.AuthenticationScheme schemeRecord = _dbContext.AuthenticationScheme.Single(s => EF.Functions.ILike(s.Name, model.Name));
             schemeRecord.DisplayName = model.DisplayName;
             schemeRecord.DomainList = model.DomainList;
@@ -989,30 +1031,35 @@ namespace MillimanAccessPortal.Controllers
                     try
                     {
                         WsFederationSchemeProperties schemeProperties = (WsFederationSchemeProperties)model.Properties;
-                        WsFederationOptions newOptions = new WsFederationOptions { Wtrealm = schemeProperties.Wtrealm, MetadataAddress = schemeProperties.MetadataAddress, CallbackPath = $"/signin-wsfed-{model.Name}" };
                         schemeRecord.SchemePropertiesObj = schemeProperties;
 
-                        _wsFederationOptionsCache.TryRemove(model.Name);
-                        // not needed? _wsFederationPostConfigureOptions.PostConfigure(name, newOptions);
-                        _wsFederationOptionsCache.TryAdd(model.Name, newOptions);
+                        // start with a copy of the existing options
+                        WsFederationOptions newOptions = _wsFederationOptionsCache.GetOrAdd(model.Name, () => { return new WsFederationOptions(); });
+                        newOptions.Wtrealm = schemeProperties.Wtrealm;
+                        newOptions.MetadataAddress = schemeProperties.MetadataAddress;
 
-                        await _dbContext.SaveChangesAsync();
+                        if (_wsFederationOptionsCache.TryRemove(model.Name) &&
+                            _wsFederationOptionsCache.TryAdd(model.Name, newOptions))
+                        {
+                            if (ExistingScheme.DisplayName != model.DisplayName)
+                            {
+                                var newScheme = new Microsoft.AspNetCore.Authentication.AuthenticationScheme(ExistingScheme.Name, model.DisplayName, ExistingScheme.HandlerType);
+                                _schemeProvider.RemoveScheme(ExistingScheme.Name);
+                                _schemeProvider.AddScheme(newScheme);
+                            }
+
+                            await _dbContext.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            throw new ApplicationException($"Failed to update authentication scheme <{model.Name}> in _wsFederationOptionsCache");
+                        }
                     }
                     catch (Exception ex)
                     {
-                        Log.Error(ex, "Failed to update authentication scheme using model {@Model}, removing scheme from the system", model);
-
-                        _wsFederationOptionsCache.TryRemove(model.Name);
-                        if (await _authentService.Schemes.GetSchemeAsync(model.Name) != null)
-                        {
-                            _authentService.Schemes.RemoveScheme(model.Name);
-                        }
-
-                        _dbContext.AuthenticationScheme.Remove(schemeRecord);
-
+                        Log.Error(ex, "Failed to update authentication scheme using {@Model}", model);
                         return StatusCode(StatusCodes.Status500InternalServerError);
                     }
-
                     break;
 
                 default:

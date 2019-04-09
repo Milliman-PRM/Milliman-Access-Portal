@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using MillimanAccessPortal.Binders;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
     public class AllAuthenticationSchemes
     {
+        [ModelBinder(BinderType = typeof(AuthenticationSchemeBinder))]
         public class AuthenticationScheme
         {
             public string Name { get; set; }
