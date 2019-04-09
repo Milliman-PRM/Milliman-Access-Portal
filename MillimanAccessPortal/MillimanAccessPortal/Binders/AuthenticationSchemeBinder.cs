@@ -29,6 +29,10 @@ namespace MillimanAccessPortal.Binders
                 model.Type = type;
                 bindingContext.ModelState.MarkFieldValid("Type");
             }
+            else
+            {
+                bindingContext.ModelState.AddModelError("Type", $"Scheme type was missing or the value {valueProviderResult.FirstValue} could not be mapped to the enumeration type");
+            }
 
             valueProviderResult = bindingContext.ValueProvider.GetValue("Name");
             bindingContext.ModelState.SetModelValue("Name", valueProviderResult);
@@ -36,6 +40,10 @@ namespace MillimanAccessPortal.Binders
             {
                 model.Name = valueProviderResult.FirstValue;
                 bindingContext.ModelState.MarkFieldValid("Name");
+            }
+            else
+            {
+                bindingContext.ModelState.AddModelError("Name", $"Scheme name could not be bound to the model");
             }
 
             valueProviderResult = bindingContext.ValueProvider.GetValue("DisplayName");
@@ -45,6 +53,10 @@ namespace MillimanAccessPortal.Binders
                 model.DisplayName = valueProviderResult.FirstValue;
                 bindingContext.ModelState.MarkFieldValid("DisplayName");
             }
+            else
+            {
+                bindingContext.ModelState.AddModelError("DisplayName", $"Scheme DisplayName could not be bound to the model");
+            }
 
             valueProviderResult = bindingContext.ValueProvider.GetValue("DomainList");
             bindingContext.ModelState.SetModelValue("DomainList", valueProviderResult);
@@ -52,6 +64,10 @@ namespace MillimanAccessPortal.Binders
             {
                 model.DomainList = new List<string>(valueProviderResult.Values);
                 bindingContext.ModelState.MarkFieldValid("DomainList");
+            }
+            else
+            {
+                bindingContext.ModelState.AddModelError("DomainList", $"Scheme DomainList could not be bound to the model");
             }
             #endregion
 
@@ -68,6 +84,10 @@ namespace MillimanAccessPortal.Binders
                         properties.Wtrealm = valueProviderResult.FirstValue;
                         bindingContext.ModelState.MarkFieldValid("Properties.Wtrealm");
                     }
+                    else
+                    {
+                        bindingContext.ModelState.AddModelError("Properties.Wtrealm", $"WsFederation property Properties.Wtrealm could not be bound to the model");
+                    }
 
                     valueProviderResult = bindingContext.ValueProvider.GetValue("metadataAddress");
                     bindingContext.ModelState.SetModelValue("Properties.MetadataAddress", valueProviderResult);
@@ -75,6 +95,10 @@ namespace MillimanAccessPortal.Binders
                     {
                         properties.MetadataAddress = valueProviderResult.FirstValue;
                         bindingContext.ModelState.MarkFieldValid("Properties.MetadataAddress");
+                    }
+                    else
+                    {
+                        bindingContext.ModelState.AddModelError("Properties.MetadataAddress", $"WsFederation property Properties.MetadataAddress could not be bound to the model");
                     }
 
                     model.Properties = properties;

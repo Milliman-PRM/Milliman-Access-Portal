@@ -820,6 +820,7 @@ namespace MillimanAccessPortal.Controllers
             return Json(user);
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> AddNewAuthenticationScheme(AllAuthenticationSchemes.AuthenticationScheme model)
         {
@@ -838,6 +839,13 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // 1. There should not be an existing scheme with the requested name
+            if (!ModelState.IsValid)
+            {
+                Log.Error($"ModelState not valid: {string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            // 2. There should not be an existing scheme with the requested name
             if (await _schemeProvider.GetSchemeAsync(model.Name) != null || 
                 _dbContext.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, model.Name)))
             {
@@ -845,7 +853,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            // 2. The requested scheme type should not be default
+            // 3. The requested scheme type should not be default
             if (model.Type == AuthenticationType.Default)
             {
                 Log.Warning($"Attempted to add authentication scheme named {model.Name} with the default scheme type, not permitted");
@@ -960,15 +968,17 @@ namespace MillimanAccessPortal.Controllers
             return Json(existingRecord);
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> UpdateAuthenticationScheme(AllAuthenticationSchemes.AuthenticationScheme model)
         {
+            Microsoft.AspNetCore.Authentication.AuthenticationScheme ExistingScheme = null;
+
             Log.Verbose("Entered SystemAdminController.UpdateAuthenticationScheme action with {@Scheme}", model);
 
             #region Authorization
             // User must have SysAdmin role
             AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
-
             if (!result.Succeeded)
             {
                 Log.Debug($"In SystemAdminController.UpdateAuthenticationScheme action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
@@ -980,32 +990,42 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             List<string> errMessages = new List<string>();
 
-            // 1. The requested scheme name must already exist in the database with the same type conveyed in the request model
-            if (_dbContext.AuthenticationScheme.All(s => !EF.Functions.ILike(s.Name, model.Name)) ||
+            // 1. ModelState must be valid
+            if (!ModelState.IsValid)
+            {
+                errMessages.Add($"ModelState not valid: {string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}");
+            }
+
+            // 2. The requested scheme name must already exist in the database with the same type conveyed in the request model
+            else if (_dbContext.AuthenticationScheme.All(s => !EF.Functions.ILike(s.Name, model.Name)) ||
                 _dbContext.AuthenticationScheme.Single(s => EF.Functions.ILike(s.Name, model.Name)).Type != model.Type)
             {
                 errMessages.Add($"In SystemAdminController.UpdateAuthenticationScheme action: Attempted to update external authentication scheme named {model.Name} but no scheme with this name and of the requested authentication type {model.Type.ToString()} exists in the database");
             }
 
-            var ExistingScheme = await _schemeProvider.GetSchemeAsync(model.Name);
-            string expectedHandlerName = null;
-            switch (model.Type)
+            // 3. The existing scheme must already be configured in the AuthenticationService with the same type conveyed in the request model
+            else
             {
-                case AuthenticationType.Default:
-                    // The default type should never be updated
-                    errMessages.Add($"In SystemAdminController.UpdateAuthenticationScheme action: Error, attempted to update the default authentication scheme");
-                    break;
-                case AuthenticationType.WsFederation:
-                    expectedHandlerName = "WsFederationHandler";
-                    break;
-                default:
-                    errMessages.Add($"In SystemAdminController.UpdateAuthenticationScheme action: Requested authentication type {model.Type.ToString()} is not supported, code maintenance is required");
-                    break;
-            }
-            // 2. The existing scheme must already be configured in the AuthenticationService with the same type conveyed in the request model
-            if (!string.IsNullOrEmpty(expectedHandlerName) && (ExistingScheme == null || ExistingScheme.HandlerType.Name != expectedHandlerName))
-            {
-                errMessages.Add($"Attempted to update external authentication scheme named {model.Name} but no scheme with this name and of the requested authentication type {model.Type.ToString()} is configured in the AuthenticationService");
+                ExistingScheme = await _schemeProvider.GetSchemeAsync(model.Name);
+                string expectedHandlerName = null;
+                switch (model.Type)
+                {
+                    case AuthenticationType.Default:
+                        // The default type should never be updated
+                        errMessages.Add($"In SystemAdminController.UpdateAuthenticationScheme action: Error, attempted to update the default authentication scheme");
+                        break;
+                    case AuthenticationType.WsFederation:
+                        expectedHandlerName = "WsFederationHandler";
+                        break;
+                    default:
+                        errMessages.Add($"In SystemAdminController.UpdateAuthenticationScheme action: Requested authentication type {model.Type.ToString()} is not supported, code maintenance is required");
+                        break;
+                }
+
+                if (!string.IsNullOrEmpty(expectedHandlerName) && (ExistingScheme == null || ExistingScheme.HandlerType.Name != expectedHandlerName))
+                {
+                    errMessages.Add($"Attempted to update external authentication scheme named {model.Name} but no scheme with this name and of the requested authentication type {model.Type.ToString()} is configured in the AuthenticationService");
+                }
             }
 
             if (errMessages.Any())
