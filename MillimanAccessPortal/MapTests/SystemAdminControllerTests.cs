@@ -871,6 +871,30 @@ namespace MapTests
             #endregion
         }
 
+        [Fact]
+        public async Task AddNewAuthenticationScheme_FailsOnDefaultSchemeType()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var model = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = IdentityConstants.ApplicationScheme,
+                DisplayName = "Default scheme",
+                Properties = new AuthenticationSchemeProperties(),
+                Type = AuthenticationType.Default,
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.AddNewAuthenticationScheme(model);
+            #endregion
+
+            #region Assert
+            StatusCodeResult typedResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, typedResult.StatusCode);
+            #endregion
+        }
+
         #endregion
 
         #region update action tests
@@ -976,6 +1000,92 @@ namespace MapTests
             Assert.Equal(modelProperties.MetadataAddress, typedDbProperties.MetadataAddress);
             Assert.Equal(modelProperties.Wtrealm, typedDbProperties.Wtrealm);
             Assert.True(model.DomainList.ToHashSet().SetEquals(dbUpdatedScheme.DomainList.ToHashSet()));
+            #endregion
+        }
+
+        [Fact]
+        public async Task UpdateAuthenticationScheme_FailOnDefaultScheme()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var model = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = IdentityConstants.ApplicationScheme,
+                DisplayName = "Default scheme",
+                Properties = new AuthenticationSchemeProperties(),
+                Type = AuthenticationType.Default,
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.UpdateAuthenticationScheme(model);
+            #endregion
+
+            #region Assert
+            StatusCodeResult typedResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, typedResult.StatusCode);
+            #endregion
+        }
+
+        [Fact]
+        public async Task UpdateAuthenticationScheme_FailOnNonExistingSchemeName()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+
+            WsFederationSchemeProperties modelProperties = new WsFederationSchemeProperties
+            {
+                Wtrealm = "new realm",
+                MetadataAddress = "https://newmetadata/",
+            };
+            var model = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = "NonExistingSchemeName",
+                DisplayName = "New display name",
+                Properties = modelProperties,
+                Type = AuthenticationType.WsFederation,
+                DomainList = new List<string> { "newDomain1.com", "newDomain2.com" },
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.UpdateAuthenticationScheme(model);
+            #endregion
+
+            #region Assert
+            StatusCodeResult typedResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, typedResult.StatusCode);
+            #endregion
+        }
+
+        [Fact]
+        public async Task UpdateAuthenticationScheme_FailOnSchemeTypeMismatch()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+
+            WsFederationSchemeProperties modelProperties = new WsFederationSchemeProperties
+            {
+                Wtrealm = "new realm",
+                MetadataAddress = "https://newmetadata/",
+            };
+            var model = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = "prmtest",
+                DisplayName = "New display name",
+                Properties = modelProperties,
+                Type = (AuthenticationType)999,
+                DomainList = new List<string> { "newDomain1.com", "newDomain2.com" },
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.UpdateAuthenticationScheme(model);
+            #endregion
+
+            #region Assert
+            StatusCodeResult typedResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, typedResult.StatusCode);
             #endregion
         }
 

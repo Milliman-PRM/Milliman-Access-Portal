@@ -23,7 +23,8 @@ namespace MillimanAccessPortal.Binders
             var valueProviderResult = bindingContext.ValueProvider.GetValue("Type");
             bindingContext.ModelState.SetModelValue("Type", valueProviderResult);
             if (valueProviderResult != ValueProviderResult.None && 
-                Enum.TryParse(valueProviderResult.FirstValue, out AuthenticationType type))
+                Enum.TryParse(valueProviderResult.FirstValue, out AuthenticationType type) &&
+                Enum.IsDefined(typeof(AuthenticationType), type))
             {
                 model.Type = type;
                 bindingContext.ModelState.MarkFieldValid("Type");
