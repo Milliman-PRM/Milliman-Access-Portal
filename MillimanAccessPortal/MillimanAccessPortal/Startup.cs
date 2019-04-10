@@ -177,6 +177,10 @@ namespace MillimanAccessPortal
                                 }
                                 else if (!_applicationUser.EmailConfirmed)
                                 {
+                                    Controllers.AccountController accountController = serviceProvider.GetService<Controllers.AccountController>();
+                                    IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
+                                    await accountController.SendNewAccountWelcomeEmail(_applicationUser, context.Request, appConfig["Global:DefaultNewUserWelcomeText"]);
+
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(Controllers.SharedController).Replace("Controller","")}/{nameof(Controllers.SharedController.Message)}",
@@ -485,8 +489,10 @@ namespace MillimanAccessPortal
             // If the database name is defined in the environment, update the connection string
             if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
             {
-                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
-                stringBuilder.Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME");
+                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString)
+                {
+                    Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
+                };
                 auditLogConnectionString = stringBuilder.ConnectionString;
             }
 

@@ -371,7 +371,7 @@ namespace MillimanAccessPortal.Controllers
 
                         // Send the confirmation message
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                        await SendNewAccountWelcomeEmail(newUser, Url, welcomeText);
+                        await SendNewAccountWelcomeEmail(newUser, Request, welcomeText);
 
                         return RedirectToLocal(returnUrl);
                     }
@@ -490,18 +490,26 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        public async Task SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, IUrlHelper Url, string SettableEmailText = null)
+        public async Task SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, HttpRequest request, string SettableEmailText = null)
         {
             Log.Verbose("Entered AccountController.SendNewAccountWelcomeEmail action with {@UserName}", RequestedUser.UserName);
 
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
-            var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
 
-            UriBuilder baseSiteUrl = new UriBuilder
+            UriBuilder emailLink = new UriBuilder
             {
-                Host = Url.ActionContext.HttpContext.Request.Host.Host,
-                Scheme = Url.ActionContext.HttpContext.Request.Scheme,
-                Port = Url.ActionContext.HttpContext.Request.Host.Port ?? -1
+                Scheme = request.Scheme,
+                Host = request.Host.Host,
+                Port = request.Host.Port ?? -1,
+                Path = $"/{nameof(AccountController).Replace("Controller","")}/{nameof(AccountController.EnableAccount)}",
+                Query = $"userId={RequestedUser.Id}&code={emailConfirmationToken}"
+            };
+
+            UriBuilder rootSiteUrl = new UriBuilder
+            {
+                Host = request.Host.Host,
+                Scheme = request.Scheme,
+                Port = request.Host.Port ?? -1
             };
 
             // Configurable portion of email body
@@ -512,12 +520,17 @@ namespace MillimanAccessPortal.Controllers
             string accountActivationDays = _configuration["AccountActivationTokenTimespanDays"] ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays.ToString();
 
             // Non-configurable portion of email body
-            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}{callbackUrl}{Environment.NewLine}{Environment.NewLine}This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}Once you have activated your account, MAP can be accessed at {baseSiteUrl.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}If you have any questions regarding this email, please contact map.support@milliman.com";
+            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}" + 
+                $"Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}" +
+                $"{emailLink.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}" +
+                $"This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}" +
+                $"Once you have activated your account, MAP can be accessed at {rootSiteUrl.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}" +
+                $"If you have any questions regarding this email, please contact map.support@milliman.com";
             string emailSubject = "Welcome to Milliman Access Portal!";
-            // Send welcome email
+
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
 
-            Log.Debug($"Welcome email queued to email address {RequestedUser.Email}");
+            Log.Information($"Welcome email queued to email address {RequestedUser.Email}");
         }
 
         [NonAction]
@@ -593,7 +606,7 @@ namespace MillimanAccessPortal.Controllers
             if (!tokenIsValid)
             {
                 string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
+                Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request, WelcomeText));
 
                 string WhatHappenedMessage = "Your previous account activation link is invalid or may have expired. A new welcome email has been sent, which contains a new account activation link.";
                 Log.Information($"In AccountController.EnableAccount GET action: confirmation token is invalid for user name {user.UserName}, may be expired, new welcome email sent, aborting");
@@ -653,7 +666,7 @@ namespace MillimanAccessPortal.Controllers
                     if (confirmEmailResult.Errors.Any(e => e.Code == "InvalidToken"))  // Happens when token is expired. I don't know whether it could indicate anything else
                     {
                         string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
+                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request, WelcomeText));
 
                         Log.Information($"EnableAccount failed for user {model.Username} with code 'InvalidToken', it is likely that the token is expired, new welcome email sent");
                         string WhatHappenedMessage = "Your previous Milliman Access Portal account activation link is invalid and may have expired.  A new link has been emailed to you.";
@@ -760,7 +773,7 @@ namespace MillimanAccessPortal.Controllers
                     else
                     {
                         string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
-                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
+                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request, EmailBodyText));
                         Log.Debug($"In AccountController.ForgotPassword post action: unconfirmed user email address <{model.Email}> requested, welcome email sent.");
                     }
                 }
@@ -808,7 +821,7 @@ namespace MillimanAccessPortal.Controllers
                 else
                 {
                     string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
-                    Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
+                    Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request, EmailBodyText));
 
                     Log.Debug($"ResetPassword GET action requested for user {user.UserName} with expired password reset token, new password reset email sent");
                     UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
@@ -900,7 +913,7 @@ namespace MillimanAccessPortal.Controllers
                     else
                     {
                         string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
-                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
+                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request, EmailBodyText));
 
                         Log.Debug($"In AccountController.ResetPassword POST action: for user {user.UserName}, the account is not enabled, new welcome email sent, aborting");
                         UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
