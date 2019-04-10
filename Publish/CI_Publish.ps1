@@ -514,7 +514,7 @@ log_statement "Creating web app release"
 # Determine appropriate release channel (applies only at the time the release is created)
 if ($BranchName.ToLower() -like "*pre-release*" -or $BranchName.ToLower() -like "*hotfix*")
 {
-    $channelName = "Staging"
+    $channelName = "Pre-Release"
 }
 else
 {
