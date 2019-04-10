@@ -30,10 +30,10 @@ namespace MillimanAccessPortal
                 #region Initialize global resources
                 IConfiguration Configuration = serviceProvider.GetService<IConfiguration>();
 
-                GlobalFunctions.domainValRegex = Configuration.GetValue("Global:DomainValidationRegex", GlobalFunctions.domainValRegex);
-                GlobalFunctions.emailValRegex = Configuration.GetValue("Global:EmailValidationRegex", GlobalFunctions.emailValRegex);
-                GlobalFunctions.maxFileUploadSize = Configuration.GetValue("Global:MaxFileUploadSize", GlobalFunctions.maxFileUploadSize);
-                GlobalFunctions.virusScanWindowSeconds = Configuration.GetValue("Global:VirusScanWindowSeconds", GlobalFunctions.virusScanWindowSeconds);
+                GlobalFunctions.DomainValRegex = Configuration.GetValue("Global:DomainValidationRegex", GlobalFunctions.DomainValRegex);
+                GlobalFunctions.EmailValRegex = Configuration.GetValue("Global:EmailValidationRegex", GlobalFunctions.EmailValRegex);
+                GlobalFunctions.MaxFileUploadSize = Configuration.GetValue("Global:MaxFileUploadSize", GlobalFunctions.MaxFileUploadSize);
+                GlobalFunctions.VirusScanWindowSeconds = Configuration.GetValue("Global:VirusScanWindowSeconds", GlobalFunctions.VirusScanWindowSeconds);
 
                 // Initialize Serilog
                 Log.Logger = new LoggerConfiguration()
