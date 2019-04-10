@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett, 
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: The Entity Framework context class for the MAP application database
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
@@ -8,7 +8,9 @@ using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System;
+using System.Threading.Tasks;
 using System.Linq;
 
 namespace MapDbContextLib.Context
@@ -29,6 +31,7 @@ namespace MapDbContextLib.Context
         public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
         public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
         public DbSet<FileUpload> FileUpload { get; set; }
+        public DbSet<AuthenticationScheme> AuthenticationScheme { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
@@ -36,6 +39,15 @@ namespace MapDbContextLib.Context
 
         // Had to implement this parameterless constructor for Mocking in unit tests, I hope this doesn't cause any problem in EF
         public ApplicationDbContext() { }
+
+        static ApplicationDbContext()
+        {
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<AuthenticationType>();
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<PublicationStatus>();
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<ReductionStatusEnum>();
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<ContentTypeEnum>();
+        }
+            
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -48,7 +60,13 @@ namespace MapDbContextLib.Context
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
 
+            builder.ForNpgsqlHasEnum<AuthenticationType>();
+            builder.ForNpgsqlHasEnum<PublicationStatus>();
+            builder.ForNpgsqlHasEnum<ReductionStatusEnum>();
+            builder.ForNpgsqlHasEnum<ContentTypeEnum>();
+
             builder.HasPostgresExtension("uuid-ossp");  // enable server extension to support uuid generation functions
+            builder.HasPostgresExtension("citext");  // enable server extension to support case insensitive text field type
 
             builder.Entity<ApplicationUser>(b =>
             {
@@ -60,6 +78,11 @@ namespace MapDbContextLib.Context
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
             });
 
+            builder.Entity<AuthenticationScheme>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.HasAlternateKey(s => s.Name);
+            });
             builder.Entity<Client>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
@@ -135,10 +158,11 @@ namespace MapDbContextLib.Context
             return ProfitCenter.Any(pc => pc.Id == id);
         }
 
-        public static void InitializeAll(IServiceProvider serviceProvider)
+        public static async Task InitializeAll(IServiceProvider serviceProvider)
         {
-            Identity.ApplicationRole.SeedRoles(serviceProvider).Wait();
+            await Identity.ApplicationRole.SeedRoles(serviceProvider);
             Context.ContentType.InitializeContentTypes(serviceProvider);
+            await Context.AuthenticationScheme.SeedSchemes(serviceProvider);
         }
     }
 }

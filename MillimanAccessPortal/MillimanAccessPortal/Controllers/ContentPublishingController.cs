@@ -353,7 +353,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId, string password)
+        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId)
         {
             Log.Verbose($"Entered ContentPublishingController.DeleteRootContentItem action with root content item id {rootContentItemId} and password");
 
@@ -363,13 +363,6 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault(x => x.Id == rootContentItemId);
 
             #region Preliminary Validation
-            if (!await UserManager.CheckPasswordAsync(await Queries.GetCurrentApplicationUser(User), password))
-            {
-                Log.Debug($"In ContentPublishingController.DeleteRootContentItem action: user password incorrect, aborting");
-                Response.Headers.Add("Warning", "Incorrect password");
-                return Unauthorized();
-            }
-
             if (rootContentItem == null)
             {
                 Log.Debug($"In ContentPublishingController.DeleteRootContentItem action: content item {rootContentItemId} not found, aborting");
@@ -696,7 +689,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PreLiveContentValidationSummary ReturnObj = await PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig, HttpContext, QlikviewConfig);
+            PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig, HttpContext, QlikviewConfig);
 
             Log.Verbose($"In ContentPublishingController.PreLiveSummary action: success, returning summary {ReturnObj.ValidationSummaryId}");
             var preGoLiveSummaryLog = new

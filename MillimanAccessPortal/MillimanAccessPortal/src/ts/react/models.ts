@@ -11,6 +11,11 @@ export interface User {
   userName: string;
   email: string;
 }
+export interface UserFull extends User {
+  isLocal: boolean;
+  phone: string;
+  employer: string;
+}
 export interface ProfitCenter {
   id: Guid;
   name: string;
@@ -128,4 +133,9 @@ export function isPublicationRequest(request: ContentPublicationRequest | Conten
 export function isReductionTask(request: ContentPublicationRequest | ContentReductionTask)
     : request is ContentReductionTask {
   return request && (request as ContentReductionTask).selectionGroupId !== undefined;
+}
+
+export interface PasswordValidation {
+  valid: boolean;
+  messages?: string[];
 }

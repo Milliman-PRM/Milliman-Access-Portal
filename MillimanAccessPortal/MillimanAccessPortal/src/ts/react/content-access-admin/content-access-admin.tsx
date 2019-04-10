@@ -1,5 +1,5 @@
-import '../../../images/add.svg';
-import '../../../images/user.svg';
+import '../../../images/icons/add.svg';
+import '../../../images/icons/user.svg';
 
 import * as React from 'react';
 import * as Modal from 'react-modal';
@@ -562,7 +562,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
               >
                 Add
                 {this.props.pending.data.createGroup
-                  ? <ButtonSpinner />
+                  ? <ButtonSpinner version="circle" />
                   : null
                 }
               </button>
@@ -593,7 +593,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             >
               Delete
               {this.props.pending.data.deleteGroup
-                ? <ButtonSpinner />
+                ? <ButtonSpinner version="circle" />
                 : null
               }
             </button>
@@ -693,7 +693,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             >
               Proceed
               {this.props.pending.data.updateSelections
-                ? <ButtonSpinner />
+                ? <ButtonSpinner version="circle" />
                 : null
               }
             </button>

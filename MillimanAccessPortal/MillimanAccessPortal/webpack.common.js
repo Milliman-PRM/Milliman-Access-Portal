@@ -6,7 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: {
-    'account-settings': './src/ts/account-settings.tsx',
+    'account-settings': './src/ts/react/account-settings/index.tsx',
     'authorized-content': './src/ts/react/authorized-content/index.tsx',
     'client-admin': './src/ts/client-admin.tsx',
     'content-access-admin': './src/ts/react/content-access-admin/index.tsx',
@@ -16,7 +16,7 @@ module.exports = {
     'create-initial-user': './src/ts/create-initial-user.ts',
     'enable-account': './src/ts/enable-account.ts',
     'forgot-password': './src/ts/forgot-password.ts',
-    'login': './src/ts/login.ts',
+    'login': './src/ts/react/login/index.tsx',
     'message': './src/ts/message.ts',
     'reset-password': './src/ts/reset-password.ts',
     'system-admin': './src/ts/react/system-admin/index.tsx',
@@ -82,6 +82,14 @@ module.exports = {
         from: 'src/images/default_content_images/',
         to: 'images/',
         flatten: true,
+      },
+      {
+        from: 'src/images/login-hero.jpg',
+        to: 'images/login-hero.jpg',
+      },
+      {
+        from: 'src/js/polyfills.min.js',
+        to: 'js/polyfills.min.js',
       },
       {
         from: 'src/html/Error/502.html',
@@ -202,5 +210,8 @@ module.exports = {
       '.ts',
     ],
     symlinks: false,
+  },
+  node: {
+    net: 'mock',
   },
 };

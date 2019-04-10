@@ -8,7 +8,7 @@
 *.pdb
 *.dll.config
 *.cache
-**/js/**/*.js
+**/ts-compiled/**/*.js
 *.map
 *.suo
 .sass-cache
@@ -67,7 +67,6 @@ wwwroot/
 ######################
 .DS_Store?
 ehthumbs.db
-Icon?
 Thumbs.db
 [Bb]in
 [Oo]bj

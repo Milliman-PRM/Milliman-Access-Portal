@@ -8,6 +8,9 @@ using AuditLogLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.WsFederation;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.DataProtection;
@@ -91,6 +94,14 @@ namespace MapTests
         public Mock<IPublicationPostProcessingTaskQueue> MockPublicationPostProcessingQueue { get; set; }
         public IPublicationPostProcessingTaskQueue PublicationPostProcessingQueueObject { get => MockPublicationPostProcessingQueue.Object; }
 
+        public Mock<AuthenticationService> MockAuthenticationService { get; set; }
+        public AuthenticationService AuthenticationServiceObject { get => MockAuthenticationService.Object; }
+
+        public IAuthenticationSchemeProvider AuthenticationSchemeProviderObject { get; private set; }
+
+        public Mock<SignInManager<ApplicationUser>> MockSignInManager { get; set; }
+        public SignInManager<ApplicationUser> SignInManagerObject { get => MockSignInManager.Object; }
+
         public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
@@ -134,9 +145,13 @@ namespace MapTests
         /// </summary>
         /// <param name="UserAsUserName">The user to be impersonated in the ControllerContext</param>
         /// <returns></returns>
-        internal static ControllerContext GenerateControllerContext(string UserAsUserName)
+        internal static ControllerContext GenerateControllerContext(string UserAsUserName = null)
         {
-            ClaimsPrincipal TestUserClaimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, UserAsUserName) }));
+            ClaimsPrincipal TestUserClaimsPrincipal = new ClaimsPrincipal();
+            if (!string.IsNullOrWhiteSpace(UserAsUserName))
+            {
+                TestUserClaimsPrincipal.AddIdentity(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, UserAsUserName) }));
+            }
 
             return GenerateControllerContext(TestUserClaimsPrincipal);
         }
@@ -150,7 +165,7 @@ namespace MapTests
         {
             return new ControllerContext
             {
-                HttpContext = new DefaultHttpContext() { User=UserAsClaimsPrincipal },
+                HttpContext = new DefaultHttpContext() { User = UserAsClaimsPrincipal },
                 ActionDescriptor = new ControllerActionDescriptor { ActionName="Unit Test" }
             };
         }
@@ -161,6 +176,8 @@ namespace MapTests
             {
                 DataGenFunctionDict[Selection]();
             }
+
+            ConnectServicesToData();
         }
 
         /// <summary>
@@ -192,11 +209,14 @@ namespace MapTests
             MockServiceProvider = GenerateServiceProvider();
             MockFileSystemTasks = new Mock<FileSystemTasks>();
             MockPublicationPostProcessingQueue = new Mock<IPublicationPostProcessingTaskQueue>();
+            MockAuthenticationService = TestResourcesLib.MockAuthenticationService.New(DbContextObject);
+            AuthenticationSchemeProviderObject = AuthenticationServiceObject.Schemes;
+            MockSignInManager = TestResourcesLib.MockSignInManager.New(UserManagerObject);
         }
 
         /// <summary>
         /// Prepare a mock IServiceProvider to fake security token validation
-        /// We don't actually need to test this, since it's framework code, so returning true for ever validation should be okay.
+        /// We don't actually need to test this, since it's framework code, so returning true for every validation should be okay.
         /// </summary>
         /// <returns></returns>
         private Mock<IServiceProvider> GenerateServiceProvider()
@@ -212,8 +232,19 @@ namespace MapTests
                 .Returns(Task.Run(() => true));
             newTokenProvider.Setup(m => m.ValidateAsync(It.IsAny<string>(), TestResourcesLib.MockUserManager.BadToken, It.IsAny<UserManager<ApplicationUser>>(), It.IsAny<ApplicationUser>()))
                 .Returns(Task.Run(() => false));
+            newServiceProvider.Setup(m => m.GetService(It.Is<Type>(t => t == typeof(DataProtectorTokenProvider<ApplicationUser>)))).Returns(newTokenProvider.Object);
 
-            newServiceProvider.Setup(m => m.GetService(It.IsAny<Type>())).Returns(newTokenProvider.Object);
+            OptionsCache<WsFederationOptions> newWsOptionsProvider = MockOptionsCache<WsFederationOptions>.New();
+            newServiceProvider.Setup(m => m.GetService(It.Is<Type>(t => t == typeof(IOptionsMonitorCache<WsFederationOptions>)))).Returns<Type>(t => 
+            {
+                return newWsOptionsProvider;
+            });
+
+            OptionsCache<CookieAuthenticationOptions> newCookieOptionsProvider = MockOptionsCache<CookieAuthenticationOptions>.New();
+            newServiceProvider.Setup(m => m.GetService(It.Is<Type>(t => t == typeof(IOptionsMonitorCache<CookieAuthenticationOptions>)))).Returns<Type>(t =>
+            {
+                return newCookieOptionsProvider;
+            });
 
             return newServiceProvider;
         }
@@ -757,8 +788,8 @@ namespace MapTests
                     CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0),
                 },
             });
-            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty<ApplicationUser>(DbContextObject.ContentPublicationRequest, "ApplicationUserId", DbContextObject.ApplicationUser);
-            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty<RootContentItem>(DbContextObject.ContentPublicationRequest, "RootContentItemId", DbContextObject.RootContentItem);
+            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(DbContextObject.ContentPublicationRequest, "ApplicationUserId", DbContextObject.ApplicationUser);
+            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(DbContextObject.ContentPublicationRequest, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
 
             #region Initialize FileUpload
@@ -771,12 +802,57 @@ namespace MapTests
 
         private void GenerateAccountTestData()
         {
+            #region authentication schemes
+            DbContextObject.AuthenticationScheme.AddRange(new List<MapDbContextLib.Context.AuthenticationScheme>
+            {
+                new MapDbContextLib.Context.AuthenticationScheme  // AuthenticationType.Default
+                {
+                    Id = TestUtil.MakeTestGuid(1),
+                    Name = IdentityConstants.ApplicationScheme,
+                    DisplayName = "The default scheme",
+                    Type = AuthenticationType.Default,
+                    SchemePropertiesObj = null
+                },
+                new MapDbContextLib.Context.AuthenticationScheme  // "prmtest", AuthenticationType.WsFederation
+                {
+                    Id =TestUtil.MakeTestGuid(2),
+                    Name = "prmtest",
+                    DisplayName = "PRMTest.local Domain",
+                    Type = AuthenticationType.WsFederation,
+                    SchemePropertiesObj = new WsFederationSchemeProperties
+                    {
+                        MetadataAddress = "https://adfs.prmtest.local/FederationMetadata/2007-06/FederationMetadata.xml",
+                        Wtrealm = "https://localhost:44336"
+                    }
+                },
+                new MapDbContextLib.Context.AuthenticationScheme  // "domainmatch", AuthenticationType.WsFederation
+                {
+                    Id =TestUtil.MakeTestGuid(3),
+                    Name = "domainmatch",
+                    DisplayName = "DomainMatch.local Domain",
+                    Type = AuthenticationType.WsFederation,
+                    SchemePropertiesObj = new WsFederationSchemeProperties
+                    {
+                        MetadataAddress = "https://adfs.domainmatch.local/FederationMetadata/2007-06/FederationMetadata.xml",
+                        Wtrealm = "https://localhost:44336"
+                    },
+                    DomainList = { "DomainMatch.local" },
+                },
+            });
+            #endregion
+
             #region Initialize Users
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
             {
                 new ApplicationUser { Id=TestUtil.MakeTestGuid(1), UserName="user1", Email="user1@example.com", NormalizedEmail="USER1@EXAMPLE.COM", NormalizedUserName="USER1" },
                 new ApplicationUser { Id=TestUtil.MakeTestGuid(2), UserName="user2", Email="user2@example.com", NormalizedEmail="USER2@EXAMPLE.COM", NormalizedUserName="USER2", EmailConfirmed=true },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(3), UserName="user3-confirmed-defaultscheme", Email="user3@example.com", NormalizedEmail="USER3@EXAMPLE.COM", NormalizedUserName="USER3-CONFIRMED-DEFAULTSCHEME", EmailConfirmed=true, AuthenticationSchemeId = TestUtil.MakeTestGuid(1) },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(4), UserName="user4-confirmed-wsscheme", Email="user4@example.com", NormalizedEmail="USER4@EXAMPLE.COM", NormalizedUserName="USER4-CONFIRMED-WSSCHEME", EmailConfirmed=true, AuthenticationSchemeId = TestUtil.MakeTestGuid(2) },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(5), UserName="user5-notconfirmed-wsscheme", Email="user5@example.com", NormalizedEmail="USER5@EXAMPLE.COM", NormalizedUserName="USER5-NOTCONFIRMED-WSSCHEME", EmailConfirmed=false, AuthenticationSchemeId = TestUtil.MakeTestGuid(2) },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(6), UserName="user6-confirmed@domainmatch.local", Email="user6@example.com", NormalizedEmail="USER6@EXAMPLE.COM", NormalizedUserName="USER6-CONFIRMED@DOMAINMATCH.LOCAL", EmailConfirmed=false },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(7), UserName="user7-confirmed@domainnomatch.local", Email="user7@example.com", NormalizedEmail="USER7@EXAMPLE.COM", NormalizedUserName="USER7-CONFIRMED@DOMAINNOMATCH.LOCAL", EmailConfirmed=false },
             });
+            MockDbSet<ApplicationUser>.AssignNavigationProperty(DbContextObject.ApplicationUser, "AuthenticationSchemeId", DbContextObject.AuthenticationScheme);
             #endregion
         }
 
@@ -944,6 +1020,45 @@ namespace MapTests
 
         private void GenerateSystemAdminTestData()
         {
+            #region authentication schemes
+            DbContextObject.AuthenticationScheme.AddRange(new List<MapDbContextLib.Context.AuthenticationScheme>
+            {
+                new MapDbContextLib.Context.AuthenticationScheme  // AuthenticationType.Default
+                {
+                    Id = TestUtil.MakeTestGuid(1),
+                    Name = IdentityConstants.ApplicationScheme,
+                    DisplayName = "The default scheme",
+                    Type = AuthenticationType.Default,
+                    SchemePropertiesObj = null
+                },
+                new MapDbContextLib.Context.AuthenticationScheme  // "prmtest", AuthenticationType.WsFederation
+                {
+                    Id =TestUtil.MakeTestGuid(2),
+                    Name = "prmtest",
+                    DisplayName = "PRMTest.local Domain",
+                    Type = AuthenticationType.WsFederation,
+                    SchemePropertiesObj = new WsFederationSchemeProperties
+                    {
+                        MetadataAddress = "https://adfs.prmtest.local/FederationMetadata/2007-06/FederationMetadata.xml",
+                        Wtrealm = "https://localhost:44336"
+                    }
+                },
+                new MapDbContextLib.Context.AuthenticationScheme  // "domainmatch", AuthenticationType.WsFederation
+                {
+                    Id =TestUtil.MakeTestGuid(3),
+                    Name = "domainmatch",
+                    DisplayName = "DomainMatch.local Domain",
+                    Type = AuthenticationType.WsFederation,
+                    SchemePropertiesObj = new WsFederationSchemeProperties
+                    {
+                        MetadataAddress = "https://adfs.domainmatch.local/FederationMetadata/2007-06/FederationMetadata.xml",
+                        Wtrealm = "https://localhost:44336"
+                    },
+                    DomainList = { "DomainMatch.local" },
+                },
+            });
+            #endregion
+
             #region Initialize Users
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
             {
@@ -952,6 +1067,7 @@ namespace MapTests
                     new ApplicationUser { Id = TestUtil.MakeTestGuid(11), UserName = "sysUser1",  Email = "sysUser1@site.domain",  },
                     new ApplicationUser { Id = TestUtil.MakeTestGuid(12), UserName = "sysUser2",  Email = "sysUser2@site.domain",  },
             });
+            MockDbSet<ApplicationUser>.AssignNavigationProperty(DbContextObject.ApplicationUser, "AuthenticationSchemeId", DbContextObject.AuthenticationScheme);
             #endregion
 
             #region Initialize ContentType
@@ -1080,5 +1196,45 @@ namespace MapTests
             #endregion
         }
 
+        private void ConnectServicesToData()
+        {
+            // Build initialization data for WsFederation options provider
+            IOptionsMonitorCache<WsFederationOptions> wsfedOptionSvc = (IOptionsMonitorCache<WsFederationOptions>)ServiceProviderObject.GetService(typeof(IOptionsMonitorCache<WsFederationOptions>));
+            IOptionsMonitorCache<CookieAuthenticationOptions> cookieOptionSvc = (IOptionsMonitorCache<CookieAuthenticationOptions>)ServiceProviderObject.GetService(typeof(IOptionsMonitorCache<CookieAuthenticationOptions>));
+
+            var initData = new List<KeyValuePair<string, WsFederationOptions>>();
+            foreach (var scheme in DbContextObject.AuthenticationScheme)
+            {
+                Type handlerType = null;
+                switch (scheme.Type)
+                {
+                    case AuthenticationType.WsFederation:
+                        WsFederationSchemeProperties props = (WsFederationSchemeProperties)scheme.SchemePropertiesObj;
+                        WsFederationOptions wsOptions = new WsFederationOptions
+                        {
+                            MetadataAddress = props.MetadataAddress,
+                            Wtrealm = props.Wtrealm,
+                        };
+                        wsOptions.CallbackPath += $"-{scheme.Name}";
+                        wsfedOptionSvc.TryAdd(scheme.Name, wsOptions);
+                        handlerType = typeof(WsFederationHandler);
+                        break;
+
+                    case AuthenticationType.Default:
+                        var cookieOptions = new CookieAuthenticationOptions
+                        {
+                            LoginPath = "/Account/LogIn",
+                            LogoutPath = "/Account/LogOut",
+                            ExpireTimeSpan = TimeSpan.FromMinutes(30),
+                            SlidingExpiration = true,
+                        };
+                        handlerType = typeof(CookieAuthenticationHandler);
+                        cookieOptionSvc.TryAdd(scheme.Name, cookieOptions);
+                        break;
+                }
+
+                AuthenticationSchemeProviderObject.AddScheme(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(scheme.Name, scheme.DisplayName, handlerType));
+            }
+        }
     }
 }

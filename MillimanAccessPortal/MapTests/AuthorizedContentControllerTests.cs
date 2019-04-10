@@ -98,14 +98,13 @@ namespace MapTests
             sut.HttpContext.Session = new MockSession();
             #endregion
 
-
             #region Act
             var view = await sut.WebHostedContent(TestUtil.MakeTestGuid(3)); // User "test1" is not authorized to RootContentItem for SelectionGroup w/ ID 3
             #endregion
 
             #region Assert
-            // Test that a 500 error was returned instead of the content
-            Assert.IsType<ViewResult>(view);
+            ViewResult typedResult = Assert.IsType<ViewResult>(view);
+            Assert.Equal("ContentMessage", typedResult.ViewName);
             #endregion
         }
 
@@ -159,10 +158,9 @@ namespace MapTests
 
             #region Assert
             // Test that a content view was returned
-            Assert.IsType<RedirectResult>(actionResult);
+            RedirectResult viewResult = Assert.IsType<RedirectResult>(actionResult);
 
             // Test that the expected URI was returned
-            RedirectResult viewResult = actionResult as RedirectResult;
             UriBuilder Uri = new UriBuilder(viewResult.Url);
             Assert.Equal("https", Uri.Scheme);
             Assert.Equal(@"/qvajaxzfc/Authenticate.aspx", Uri.Path);
@@ -223,10 +221,9 @@ namespace MapTests
 
             #region Assert
             // Test that a ViewResult was returned instead of a RedirectResult
-            Assert.IsType<ViewResult>(result);
+            ViewResult viewResult = Assert.IsType<ViewResult>(result);
 
             // Test that the Message view was returned
-            ViewResult viewResult = result as ViewResult;
             Assert.Equal("ContentMessage", viewResult.ViewName);
             #endregion
         }
@@ -264,13 +261,12 @@ namespace MapTests
             #endregion
 
             #region Act
-            // Attempt to load the content view for authorized content
             var actionResult = await sut.WebHostedContent(TestUtil.MakeTestGuid(999));
             #endregion
 
             #region Assert
-            // Test that a content view was returned
-            Assert.IsType<ViewResult>(actionResult);
+            ViewResult typedResult = Assert.IsType<ViewResult>(actionResult);
+            Assert.Equal("ContentMessage", typedResult.ViewName);
             #endregion
         }
 
@@ -312,8 +308,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            // Test that a content view was returned
-            Assert.IsType<ViewResult>(actionResult);
+            ViewResult typedResult = Assert.IsType<ViewResult>(actionResult);
+            Assert.Equal("ContentMessage", typedResult.ViewName);
             #endregion
         }
 
@@ -369,8 +365,7 @@ namespace MapTests
             try
             {
                 // Test that a content view was returned
-                Assert.IsType<PhysicalFileResult>(result);
-                PhysicalFileResult fileResult = result as PhysicalFileResult;
+                PhysicalFileResult fileResult = Assert.IsType<PhysicalFileResult>(result);
                 Assert.Equal(UserGuideTestPath, fileResult.FileName);
             }
             finally
@@ -432,8 +427,7 @@ namespace MapTests
             try
             {
                 // Test that a content view was not returned
-                Assert.IsType<ViewResult>(result);
-                ViewResult viewResult = result as ViewResult;
+                ViewResult viewResult = Assert.IsType<ViewResult>(result);
                 Assert.Equal("ContentMessage", viewResult.ViewName);
             }
             finally
@@ -493,9 +487,7 @@ namespace MapTests
             #region Assert
             try
             {
-                // Test that a content view was returned
-                Assert.IsType<ObjectResult>(result);
-                ObjectResult objectResult = result as ObjectResult;
+                ObjectResult objectResult = Assert.IsType<ObjectResult>(result);
                 Assert.Equal(500, objectResult.StatusCode);
             }
             finally

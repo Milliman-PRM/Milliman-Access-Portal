@@ -15,6 +15,10 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string Code { get; set; }
 
         [Required]
+        [HiddenInput]
+        public bool IsLocalAccount { get; set; }
+
+        [Required]
         public string Username { get; set; }
 
         [Required]
