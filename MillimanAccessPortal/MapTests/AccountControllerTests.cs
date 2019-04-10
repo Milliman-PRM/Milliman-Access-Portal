@@ -564,14 +564,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            AccountSettingsViewModel viewModel = Assert.IsType<AccountSettingsViewModel>(viewAsViewResult.Model);
-            Assert.Equal(AppUser.Email, viewModel.Email);
-            Assert.Equal(AppUser.FirstName, viewModel.FirstName);
-            Assert.Equal(AppUser.LastName, viewModel.LastName);
-            Assert.Equal(AppUser.UserName, viewModel.UserName);
-            Assert.Equal(AppUser.PhoneNumber, viewModel.PhoneNumber);
-            Assert.Equal(AppUser.Employer, viewModel.Employer);
+            Assert.IsType<ViewResult>(view);
             #endregion
         }
 
