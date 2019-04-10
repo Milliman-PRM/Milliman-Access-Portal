@@ -11,12 +11,11 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.WsFederation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
@@ -27,6 +26,7 @@ using AuditLogLib;
 using AuditLogLib.Services;
 using AuditLogLib.Event;
 using MillimanAccessPortal.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
@@ -47,6 +47,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService AuthorizationService;
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
+        private readonly AuthenticationService _authentService;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -58,7 +59,9 @@ namespace MillimanAccessPortal.Controllers
             StandardQueries QueriesArg,
             IAuthorizationService AuthorizationServiceArg,
             IConfiguration ConfigArg,
-            IServiceProvider serviceProviderArg)
+            IServiceProvider serviceProviderArg,
+            IAuthenticationService authentService
+            )
         {
             DbContext = ContextArg;
             _userManager = userManager;
@@ -70,6 +73,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationService = AuthorizationServiceArg;
             _configuration = ConfigArg;
             _serviceProvider = serviceProviderArg;
+            _authentService = (AuthenticationService)authentService;
         }
 
         //
@@ -93,43 +97,70 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> IsLocalAccount(string userName)
         {
-            string scheme = await GetAuthenticationSchemeForUser(userName);
-
-            return Json(new { LocalAccount = string.IsNullOrWhiteSpace(scheme) });
+            bool localAccount = await IsUserAccountLocal(userName);
+            return Json(new { localAccount });
         }
 
         /// <summary>
-        /// Evaluates the appropriate authentication scheme for a provided username
+        /// [NonAction] determines whether a username should be authenticated locally from the application's Identity provider
         /// </summary>
         /// <param name="userName"></param>
-        /// <returns>The scheme for the specified user, or <see langword="null"/> if no scheme is appropriate</returns>
+        /// <returns></returns>
         [NonAction]
-        private async Task<string> GetAuthenticationSchemeForUser(string userName)
+        public async Task<bool> IsUserAccountLocal(string userName)
         {
-            string normalizedUserName = _userManager.NormalizeKey(userName);
-            if (!DbContext.Users.Any(u => u.NormalizedUserName == normalizedUserName))
+            string scheme = await GetExternalAuthenticationSchemeAsync(userName);
+
+            bool isLocal = string.IsNullOrWhiteSpace(scheme) ||
+                           scheme == (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
+
+            return isLocal;
+        }
+
+        /// <summary>
+        /// Determines the assigned or otherwise appropriate external authentication scheme associated with a username.
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns>The identified scheme name or <see langword="null"/> if none is appropriate</returns>
+        [NonAction]
+        public async Task<string> GetExternalAuthenticationSchemeAsync(string userName)
+        {
+            string defaultScheme = (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
+
+            // 1. If the specified user has an assigned scheme
+            string assignedScheme = DbContext.ApplicationUser
+                                             .Include(u => u.AuthenticationScheme)
+                                             .SingleOrDefault(u => EF.Functions.ILike(u.UserName, userName))
+                                             ?.AuthenticationScheme
+                                             ?.Name;
+            if (!string.IsNullOrWhiteSpace(assignedScheme) && 
+                !defaultScheme.Equals(assignedScheme, StringComparison.InvariantCultureIgnoreCase))
             {
-                return null;
+                return assignedScheme;
             }
 
-            string userDomain = userName.Substring(0, userName.LastIndexOf('.'))
-                                        .Substring(userName.IndexOf('@') + 1);
+            string userFullDomain = userName.Contains('@')
+                ? userName.Substring(userName.IndexOf('@') + 1)
+                : userName;
 
-            // 1. Does the specified user have a scheme name stored?
-            if (false)
+            // 2. If the username's domain is found in a domain list of a scheme
+            MapDbContextLib.Context.AuthenticationScheme matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => s.DomainListContains(userFullDomain));
+            if (matchingScheme != null)
             {
-                return "TheStoredSchemeName";
+                return matchingScheme.Name;
             }
 
-            // 2. Does the email domain map to a scheme?
-            if (false)
+            // 3. If the username's secondary domain matches a scheme name
+            if (userFullDomain.Contains('.'))
             {
-                return "TheMappedSchemeName";
+                // Secondary domain is the portion of userName between '@' and the last '.'
+                string userSecondaryDomain = userFullDomain.Substring(0, userFullDomain.LastIndexOf('.'));
+                matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => EF.Functions.ILike(s.Name, userSecondaryDomain));
+
+                return matchingScheme?.Name;
             }
 
-            // 3. Does the email domain match a scheme?
-            var allSchemeNames = (await _signInManager.GetExternalAuthenticationSchemesAsync()).Select(s => s.Name);
-            return allSchemeNames.SingleOrDefault(s => s.Equals(userDomain, StringComparison.OrdinalIgnoreCase));
+            return null;
         }
 
         //
@@ -138,13 +169,14 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RemoteAuthenticate(string userName)
         {
-            string scheme = await GetAuthenticationSchemeForUser(userName);
-            var redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
-            AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
-            properties.SetString("username", userName);
+            string scheme = await GetExternalAuthenticationSchemeAsync(userName);
 
             if (!string.IsNullOrWhiteSpace(scheme))
             {
+                string redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
+                AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
+                properties.SetString("username", userName);
+
                 return Challenge(properties, scheme);
             }
             else
@@ -168,14 +200,23 @@ namespace MillimanAccessPortal.Controllers
             {
                 var user = await _userManager.FindByNameAsync(model.Username);
 
-                if (user == null || user.IsSuspended)
+                if (user == null)
                 {
-                    Log.Debug($"User {model.Username} suspended or not found, local login rejected");
-                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
+                    Log.Debug($"User {model.Username} not found, local login rejected");
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
                     Response.Headers.Add("Warning", "Invalid login attempt.");
                     return Ok();
                 }
                 
+                if (user.IsSuspended)
+                {
+                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName));
+                    Log.Debug($"User {user.UserName} suspended, local login rejected");
+
+                    Response.Headers.Add("Warning", "This account is currently suspended.  Please contact your Milliman consultant, or email map.support@milliman.com");
+                    return Ok();
+                }
+
                 // Only notify of password expiration if the correct password was provided
                 // Redirect user to the password reset view to set a new password
                 bool passwordSuccess = await _userManager.CheckPasswordAsync(user, model.Password);
@@ -207,10 +248,7 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    SignInCommon();
-
-                    Log.Information($"Local user {model.Username} logged in");
-                    _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(), model.Username);
+                    SignInCommon(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
 
                     // Provide the location that should be navigated to (or fall back on default route)
                     Response.Headers.Add("NavigateTo", string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
@@ -242,7 +280,7 @@ namespace MillimanAccessPortal.Controllers
                         else
                         {
                             Log.Information($"User {model.Username} PasswordSignInAsync did not succeed");
-                            _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
+                            _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
                         }
                         Response.Headers.Add("Warning", "Invalid login attempt.");
                         return Ok();
@@ -260,9 +298,11 @@ namespace MillimanAccessPortal.Controllers
         /// Does everything that is common to externally and internally signed in users
         /// </summary>
         [NonAction]
-        private void SignInCommon()
+        private void SignInCommon(string userName, string scheme)
         {
             HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
+            Log.Information($"User {userName} logged in with scheme {scheme}");
+            _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), userName, HttpContext.Session.Id);
         }
 
         //
@@ -323,7 +363,7 @@ namespace MillimanAccessPortal.Controllers
 
                         // Send the confirmation message
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                        await SendNewAccountWelcomeEmail(newUser, Url, welcomeText);
+                        await SendNewAccountWelcomeEmail(newUser, Request, welcomeText);
 
                         return RedirectToLocal(returnUrl);
                     }
@@ -383,7 +423,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/ExternalLoginCallbackAsync
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ExternalLoginCallbackAsync(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> ExternalLoginCallbackAsync(string returnUrl = null, string remoteError = null)
         {
             Log.Verbose("Entered AccountController.ExternalLoginCallback action");
 
@@ -399,7 +439,7 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            SignInCommon();
+            SignInCommon(HttpContext.User.Identity.Name, await GetExternalAuthenticationSchemeAsync(HttpContext.User.Identity.Name));
 
             returnUrl = returnUrl ?? Url.Content("~/");
             return LocalRedirect(returnUrl);
@@ -442,18 +482,26 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        public async Task SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, IUrlHelper Url, string SettableEmailText = null)
+        public async Task SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, HttpRequest request, string SettableEmailText = null)
         {
             Log.Verbose("Entered AccountController.SendNewAccountWelcomeEmail action with {@UserName}", RequestedUser.UserName);
 
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
-            var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
 
-            UriBuilder baseSiteUrl = new UriBuilder
+            UriBuilder emailLink = new UriBuilder
             {
-                Host = Url.ActionContext.HttpContext.Request.Host.Host,
-                Scheme = Url.ActionContext.HttpContext.Request.Scheme,
-                Port = Url.ActionContext.HttpContext.Request.Host.Port ?? -1
+                Scheme = request.Scheme,
+                Host = request.Host.Host,
+                Port = request.Host.Port ?? -1,
+                Path = $"/{nameof(AccountController).Replace("Controller","")}/{nameof(AccountController.EnableAccount)}",
+                Query = $"userId={RequestedUser.Id}&code={emailConfirmationToken}"
+            };
+
+            UriBuilder rootSiteUrl = new UriBuilder
+            {
+                Host = request.Host.Host,
+                Scheme = request.Scheme,
+                Port = request.Host.Port ?? -1
             };
 
             // Configurable portion of email body
@@ -464,12 +512,17 @@ namespace MillimanAccessPortal.Controllers
             string accountActivationDays = _configuration["AccountActivationTokenTimespanDays"] ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays.ToString();
 
             // Non-configurable portion of email body
-            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}{callbackUrl}{Environment.NewLine}{Environment.NewLine}This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}Once you have activated your account, MAP can be accessed at {baseSiteUrl.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}If you have any questions regarding this email, please contact map.support@milliman.com";
+            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}" + 
+                $"Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}" +
+                $"{emailLink.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}" +
+                $"This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}" +
+                $"Once you have activated your account, MAP can be accessed at {rootSiteUrl.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}" +
+                $"If you have any questions regarding this email, please contact map.support@milliman.com";
             string emailSubject = "Welcome to Milliman Access Portal!";
-            // Send welcome email
+
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
 
-            Log.Debug($"Welcome email queued to email address {RequestedUser.Email}");
+            Log.Information($"Welcome email queued to email address {RequestedUser.Email}");
         }
 
         [NonAction]
@@ -477,20 +530,41 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.SendPasswordResetEmail action with {@UserName}", RequestedUser.UserName);
 
-            string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(RequestedUser);
-            string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = RequestedUser.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
+            if (!DbContext.ApplicationUser.Any(u => u.Id == RequestedUser.Id)) {
+                Log.Information($"Password reset requested by user <{User?.Identity?.Name}> for non-existing user with email {RequestedUser.Email}");
+                return;
+            }
 
-            string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
+            string emailBody, appLogMsg;
+            if (await IsUserAccountLocal(RequestedUser.UserName))
+            {
+                string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(RequestedUser);
+                string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = RequestedUser.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
 
-            string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
-            emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
-            emailBody += $"{linkUrl}";
+                string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
+
+                emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
+                emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
+                emailBody += $"{linkUrl}";
+
+                appLogMsg = $"Password reset email queued to address {RequestedUser.Email}";
+            }
+            else
+            {
+                string schemeName = await GetExternalAuthenticationSchemeAsync(RequestedUser.UserName);
+                var scheme = await _authentService.Schemes.GetSchemeAsync(schemeName);
+
+                emailBody = "A password reset was requested for your Milliman Access Portal account. " +
+                    $"Your MAP account uses login services from your organization ({scheme.DisplayName}). Please contact your IT department if you require password assistance.";
+
+                appLogMsg = $"Password reset was requested for an externally authenticated user with email {RequestedUser.Email}. Information email was queued. No other action taken.";
+            }
+
             _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
-
-            Log.Debug($"Password reset email queued to email {RequestedUser.Email}");
+            Log.Debug(appLogMsg);
             _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser));
         }
-        
+
 
         // GET: /Account/EnableAccount
         [HttpGet]
@@ -499,7 +573,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.EnableAccount GET action with {@UserId}", userId);
 
-            if (userId == null || code == null)
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(code))
             {
                 Log.Debug("In AccountController.EnableAccount GET action: invalid argument(s), aborting");
                 return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
@@ -524,19 +598,20 @@ namespace MillimanAccessPortal.Controllers
             if (!tokenIsValid)
             {
                 string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
+                Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request, WelcomeText));
 
                 string WhatHappenedMessage = "Your previous account activation link is invalid or may have expired. A new welcome email has been sent, which contains a new account activation link.";
                 Log.Information($"In AccountController.EnableAccount GET action: confirmation token is invalid for user name {user.UserName}, may be expired, new welcome email sent, aborting");
                 return View("Message", WhatHappenedMessage);
             }
 
-            // Prompt for the user's password
+            // Prompt for the user's profile data
             var model = new EnableAccountViewModel
             {
                 Id = user.Id,
                 Code = code,
                 Username = user.UserName,
+                IsLocalAccount = await IsUserAccountLocal(user.UserName),
             };
             Log.Verbose($"In AccountController.EnableAccount GET action: complete");
             return View(model);
@@ -550,7 +625,14 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.EnableAccount POST action with {@UserName}", model.Username);
 
-            if (!ModelState.IsValid)
+            List<string> nonRequiredKeysForExternalAuthentication = new List<string> {
+                nameof(EnableAccountViewModel.NewPassword),
+                nameof(EnableAccountViewModel.ConfirmNewPassword),
+                nameof(EnableAccountViewModel.PasswordsAreValid) };
+
+            if ((model.IsLocalAccount && !ModelState.IsValid) ||
+                (!model.IsLocalAccount && ModelState.Where(v => v.Value.ValidationState == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
+                                                    .Any(v => !nonRequiredKeysForExternalAuthentication.Contains(v.Key))))
             {
                 return View(model);
             }
@@ -576,7 +658,7 @@ namespace MillimanAccessPortal.Controllers
                     if (confirmEmailResult.Errors.Any(e => e.Code == "InvalidToken"))  // Happens when token is expired. I don't know whether it could indicate anything else
                     {
                         string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
+                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request, WelcomeText));
 
                         Log.Information($"EnableAccount failed for user {model.Username} with code 'InvalidToken', it is likely that the token is expired, new welcome email sent");
                         string WhatHappenedMessage = "Your previous Milliman Access Portal account activation link is invalid and may have expired.  A new link has been emailed to you.";
@@ -593,30 +675,33 @@ namespace MillimanAccessPortal.Controllers
                     }
                 }
 
-                // Set the initial password
-                IdentityResult addPasswordResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
-                if (!addPasswordResult.Succeeded)
+                if (model.IsLocalAccount)
                 {
-                    string addPasswordErrors = $"Error while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}";
-                    Response.Headers.Add("Warning", addPasswordErrors);
+                    // Set the initial password
+                    IdentityResult addPasswordResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
+                    if (!addPasswordResult.Succeeded)
+                    {
+                        string addPasswordErrors = $"Error while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}";
+                        Response.Headers.Add("Warning", addPasswordErrors);
 
-                    Log.Error($"Error for user {model.Username} while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}");
+                        Log.Error($"Error for user {model.Username} while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}");
 
-                    return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
-                }
+                        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                    }
 
-                // Save password hash in history
-                user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
-                user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
-                var addPasswordHistoryResult = await _userManager.UpdateAsync(user);
-                if (!addPasswordHistoryResult.Succeeded)
-                {
-                    string addPasswordHistoryErrors = $"Error while setting password history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}";
-                    Response.Headers.Add("Warning", addPasswordHistoryErrors);
+                    // Save password hash in history
+                    user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
+                    user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
+                    var addPasswordHistoryResult = await _userManager.UpdateAsync(user);
+                    if (!addPasswordHistoryResult.Succeeded)
+                    {
+                        string addPasswordHistoryErrors = $"Error while setting password history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}";
+                        Response.Headers.Add("Warning", addPasswordHistoryErrors);
 
-                    Log.Information($"Error for user {model.Username} while saving history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}");
+                        Log.Information($"Error for user {model.Username} while saving history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}");
 
-                    return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                    }
                 }
 
                 // Update other user account settings
@@ -680,7 +765,7 @@ namespace MillimanAccessPortal.Controllers
                     else
                     {
                         string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
-                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
+                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request, EmailBodyText));
                         Log.Debug($"In AccountController.ForgotPassword post action: unconfirmed user email address <{model.Email}> requested, welcome email sent.");
                     }
                 }
@@ -728,7 +813,7 @@ namespace MillimanAccessPortal.Controllers
                 else
                 {
                     string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
-                    Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
+                    Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request, EmailBodyText));
 
                     Log.Debug($"ResetPassword GET action requested for user {user.UserName} with expired password reset token, new password reset email sent");
                     UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
@@ -820,7 +905,7 @@ namespace MillimanAccessPortal.Controllers
                     else
                     {
                         string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
-                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
+                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request, EmailBodyText));
 
                         Log.Debug($"In AccountController.ResetPassword POST action: for user {user.UserName}, the account is not enabled, new welcome email sent, aborting");
                         UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
@@ -1071,8 +1156,6 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
 
-            string scheme = await GetAuthenticationSchemeForUser(user.UserName);
-
             return Json(new UserFullModel
             {
                 Id = user.Id,
@@ -1084,7 +1167,7 @@ namespace MillimanAccessPortal.Controllers
                 Email = user.Email,
                 Phone = user.PhoneNumber,
                 Employer = user.Employer,
-                IsLocal = string.IsNullOrWhiteSpace(scheme),
+                IsLocal = await IsUserAccountLocal(user.UserName),
             });
         }
 
@@ -1237,8 +1320,6 @@ namespace MillimanAccessPortal.Controllers
                 txn.Commit();
             }
 
-            string scheme = await GetAuthenticationSchemeForUser(user.UserName);
-
             return Json(new UserFullModel
             {
                 Id = user.Id,
@@ -1250,7 +1331,7 @@ namespace MillimanAccessPortal.Controllers
                 Email = user.Email,
                 Phone = user.PhoneNumber,
                 Employer = user.Employer,
-                IsLocal = string.IsNullOrWhiteSpace(scheme),
+                IsLocal = await IsUserAccountLocal(user.UserName),
             });
         }
 

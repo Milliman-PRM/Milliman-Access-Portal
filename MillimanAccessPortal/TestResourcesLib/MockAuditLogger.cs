@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett, 
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: Mocked version of AuditLogger class enabling unit tests with no dependency on a real audit logging database.
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 

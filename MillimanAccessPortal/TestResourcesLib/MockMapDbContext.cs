@@ -41,10 +41,9 @@ namespace TestResourcesLib
             ReturnMockContext.Object.HierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>()).Object;
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<Guid>>.New(new List<IdentityUserRole<Guid>>()).Object;
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<Guid>>.New(new List<IdentityUserClaim<Guid>>()).Object;
-            ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
-            ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
             ReturnMockContext.Object.FileUpload = MockDbSet<FileUpload>.New(new List<FileUpload>()).Object;
-            
+            ReturnMockContext.Object.AuthenticationScheme = MockDbSet<AuthenticationScheme>.New(new List<AuthenticationScheme>()).Object;
+
             List<ContentPublicationRequest> ContentPublicationRequestData = new List<ContentPublicationRequest>();
             Mock<DbSet<ContentPublicationRequest>> MockContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(ContentPublicationRequestData);
             MockContentPublicationRequest.Setup(d => d.Add(It.IsAny<ContentPublicationRequest>())).Callback<ContentPublicationRequest>(s =>
@@ -128,6 +127,15 @@ namespace TestResourcesLib
             });
             ReturnMockContext.Object.UserInSelectionGroup = MockUserInSelectionGroup.Object;
 
+            List<ApplicationUser> ApplicationUserData = new List<ApplicationUser>();
+            Mock<DbSet<ApplicationUser>> MockApplicationUser = MockDbSet<ApplicationUser>.New(ApplicationUserData);
+            MockApplicationUser.Setup(d => d.AddRange(It.IsAny<IEnumerable<ApplicationUser>>())).Callback<IEnumerable<ApplicationUser>>(s =>
+            {
+                ApplicationUserData.AddRange(s);
+                MockDbSet<ApplicationUser>.AssignNavigationProperty<AuthenticationScheme>(MockApplicationUser.Object, "AuthenticationSchemeId", ReturnMockContext.Object.AuthenticationScheme);
+            });
+            ReturnMockContext.Object.ApplicationUser = MockApplicationUser.Object;
+
             // Mock DbContext.Database.CommitTransaction() as no ops.
             Mock<IDbContextTransaction> DbTransaction = new Mock<IDbContextTransaction>();
 
@@ -140,6 +148,9 @@ namespace TestResourcesLib
             {
                 ReturnMockContext = Initialize(ReturnMockContext);
             }
+
+            ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
+            ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
 
             return ReturnMockContext;
         }

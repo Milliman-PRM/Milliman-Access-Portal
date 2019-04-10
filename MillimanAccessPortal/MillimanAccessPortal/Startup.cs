@@ -11,7 +11,10 @@ using EmailQueue;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.WsFederation;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -26,6 +29,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Authorization;
@@ -33,6 +37,8 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
+using NetEscapades.AspNetCore.SecurityHeaders;
+using Newtonsoft.Json;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -40,6 +46,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
@@ -62,21 +70,10 @@ namespace MillimanAccessPortal
                 options.Filters.Add(new RequireHttpsAttribute());
             });
 
-            #region Configure application connection string
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
-            
-            // If the database name is defined in the environment, update the connection string
-            if (Environment.GetEnvironmentVariable("APP_DATABASE_NAME") != null)
-            {
-                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(appConnectionString);
-                stringBuilder.Database = Environment.GetEnvironmentVariable("APP_DATABASE_NAME");
-                appConnectionString = stringBuilder.ConnectionString;
-            }
-
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(appConnectionString, b => b.MigrationsAssembly("MillimanAccessPortal")));
-            #endregion
 
             int passwordHistoryDays = Configuration.GetValue<int?>("PasswordHistoryValidatorDays") ?? GlobalFunctions.fallbackPasswordHistoryDays;
             List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();
@@ -105,37 +102,33 @@ namespace MillimanAccessPortal
                 ;
 
             #region Configure authentication services
-            var WsFederationConfigSections = Configuration.GetSection("WsFederationSources").GetChildren();
-            if (WsFederationConfigSections.Select(s => s.GetValue<string>("Scheme")).Distinct().Count() != WsFederationConfigSections.Count())
+            List<MapDbContextLib.Context.AuthenticationScheme> allSchemes = new List<MapDbContextLib.Context.AuthenticationScheme>();
+
+            // get all configured schemes from database (no injected db service is available here)
+            DbContextOptions<ApplicationDbContext> ctxOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(appConnectionString).Options;
+            ApplicationDbContext applicationDb = new ApplicationDbContext(ctxOptions);
+            allSchemes = applicationDb.AuthenticationScheme.ToList();
+
+            if (allSchemes.Select(s => s.Name).Distinct().Count() != allSchemes.Count())
             {
                 Log.Error("Multiple configured WsFederation schemes have the same name");
             }
 
             AuthenticationBuilder authenticationBuilder = services.AddAuthentication(IdentityConstants.ApplicationScheme);
 
-            foreach (ConfigurationSection section in WsFederationConfigSections)
+            foreach (MapDbContextLib.Context.AuthenticationScheme scheme in allSchemes.Where(s => s.Type == AuthenticationType.WsFederation))
             {
-                WsFederationConfig wsFederationConfig;
-                try
+                WsFederationSchemeProperties schemeProperties = (WsFederationSchemeProperties)scheme.SchemePropertiesObj;
+                authenticationBuilder = authenticationBuilder.AddWsFederation(scheme.Name, scheme.DisplayName, options =>
                 {
-                    wsFederationConfig = (WsFederationConfig)section;
-                }
-                catch (ApplicationException ex)
-                {
-                    string Msg = ex.Message;
-                    Log.Error(ex, "Unable to convert WsFederation appsettings section {@Settings} to WsFederationConfig instance", section);
-                    continue;
-                }
-
-                authenticationBuilder = authenticationBuilder.AddWsFederation(wsFederationConfig.Scheme, $"{wsFederationConfig.DisplayName}", options =>
-                {
-                    options.MetadataAddress = wsFederationConfig.MetadataAddress;
-                    options.Wtrealm = wsFederationConfig.Wtrealm;
-                    options.CallbackPath = $"{options.CallbackPath}-{wsFederationConfig.Scheme}";
+                    options.MetadataAddress = schemeProperties.MetadataAddress;
+                    options.Wtrealm = schemeProperties.Wtrealm;
+                    options.CallbackPath = $"{options.CallbackPath}-{scheme.Name}";
 
                     // Event override to add username query parameter to adfs request
                     options.Events.OnRedirectToIdentityProvider = context =>
                     {
+                        context.ProtocolMessage.Wfresh = "0";  // Force domain login form every time
                         if (context.Properties.Items.ContainsKey("username"))
                         {
                             context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
@@ -146,36 +139,72 @@ namespace MillimanAccessPortal
                     // Event override to avoid default application signin of the externally authenticated ClaimsPrinciple
                     options.Events.OnTicketReceived = async context =>
                     {
+                        context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to forego subsequent processing
+
                         using (IServiceScope scope = context.HttpContext.RequestServices.CreateScope())
                         {
                             IServiceProvider serviceProvider = scope.ServiceProvider;
                             SignInManager<ApplicationUser> _signInManager = serviceProvider.GetService<SignInManager<ApplicationUser>>();
+                            IAuditLogger _auditLogger = serviceProvider.GetService<IAuditLogger>();
                             try
                             {
                                 ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(context.Principal.Identity.Name);
-                                var x = context.Properties.ExpiresUtc;
-                                if (_applicationUser != null && !_applicationUser.IsSuspended)
+
+                                if (_applicationUser == null)
                                 {
-                                    await _signInManager.SignInAsync(_applicationUser, false);
+                                    // External login succeeded but username is not in our Identity database
+                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
+
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                        Query = "msg=Your login does not have a MAP account.  Please contact your Milliman consultant, or email map.support@milliman.com.",
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
+                                }
+                                else if (_applicationUser.IsSuspended)
+                                {
+                                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(_applicationUser.UserName));
+
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                        Query = "msg=Your MAP account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
+                                }
+                                else if (!_applicationUser.EmailConfirmed)
+                                {
+                                    Controllers.AccountController accountController = serviceProvider.GetService<Controllers.AccountController>();
+                                    IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
+                                    await accountController.SendNewAccountWelcomeEmail(_applicationUser, context.Request, appConfig["Global:DefaultNewUserWelcomeText"]);
+
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller","")}/{nameof(Controllers.SharedController.Message)}",
+                                        Query = "msg=Your MAP account has not been activated. Please look for a welcome email from map.support@milliman.com and follow instructions in that message to activate the account."
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
                                 }
                                 else
                                 {
-                                    // TODO Maybe we need new audit log event types to support external authentication
-                                    throw new ApplicationException($"User {context.Principal.Identity.Name} suspended or not found, remote login rejected");
+                                    await _signInManager.SignInAsync(_applicationUser, false);
                                 }
                             }
                             catch (Exception ex)
                             {
                                 Log.Information(ex, ex.Message);
                                 IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
-                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name));
+                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
 
                                 // Make sure nobody remains signed in
                                 await _signInManager.SignOutAsync();
                             }
                         }
 
-                        context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to abort default processing
                         context.Response.Redirect("/Account/ExternalLoginCallbackAsync");
                     };
                 });
@@ -277,6 +306,9 @@ namespace MillimanAccessPortal
             services.AddScoped<SelectionGroupQueries>();
             services.AddScoped<PublicationQueries>();
             services.AddScoped<UserQueries>();
+
+            //services.AddSingleton<IOptionsMonitorCache<WsFederationOptions>, OptionsCache<WsFederationOptions>>();
+            services.AddSingleton<IPostConfigureOptions<WsFederationOptions>, WsFederationPostConfigureOptions>();
 
             // Add application services.
             services.AddTransient<IMessageQueue, MessageQueueServices>();
@@ -457,8 +489,10 @@ namespace MillimanAccessPortal
             // If the database name is defined in the environment, update the connection string
             if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
             {
-                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
-                stringBuilder.Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME");
+                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString)
+                {
+                    Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
+                };
                 auditLogConnectionString = stringBuilder.ConnectionString;
             }
 

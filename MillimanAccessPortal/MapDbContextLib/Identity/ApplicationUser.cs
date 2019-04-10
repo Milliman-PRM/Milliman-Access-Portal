@@ -12,6 +12,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json;
 using MapDbContextLib.Models;
+using MapDbContextLib.Context;
 
 namespace MapDbContextLib.Identity
 {
@@ -76,5 +77,9 @@ namespace MapDbContextLib.Identity
         // Summary:
         //     Gets or sets the user's IsSuspended status.
         public virtual bool IsSuspended { get; set; }
+
+        [ForeignKey("AuthenticationScheme")]
+        public Guid? AuthenticationSchemeId { get; set; }
+        public AuthenticationScheme AuthenticationScheme { get; set; }
     }
 }

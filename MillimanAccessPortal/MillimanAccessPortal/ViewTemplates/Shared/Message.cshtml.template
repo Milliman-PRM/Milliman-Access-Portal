@@ -22,3 +22,9 @@
         @Html.Raw(@Model)
     </h3>
 </div>
+
+<div id="message-container">
+    <h3>
+        @Html.ActionLink("OK", "Index", "AuthorizedContent")
+    </h3>
+</div>

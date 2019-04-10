@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett, Ben Wyatt
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: The Entity Framework context class that wraps audit log database access.
  * DEVELOPER NOTES: This project manages its own migrations and database updates.  
  *                  The dotnet command must be run from this project folder.
  */

@@ -11,7 +11,7 @@ namespace MillimanAccessPortal.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:PostgresExtension:uuid-ossp", "'uuid-ossp', '', ''");
+                .Annotation("Npgsql:PostgresExtension:uuid-ossp", ",,");
 
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",

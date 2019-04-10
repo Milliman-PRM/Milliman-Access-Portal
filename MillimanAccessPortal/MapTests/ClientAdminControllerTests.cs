@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TestResourcesLib;
@@ -145,7 +146,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult typedResult = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientAdminIndexViewModel>(typedResult.Value);
             #endregion
         }
 
@@ -206,7 +208,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientDetailViewModel>(result.Value);
             #endregion
         }
 
@@ -277,7 +280,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientDetailViewModel>(result.Value);
             Assert.Equal(preActionCount, afterActionCount);
             #endregion
         }
@@ -325,7 +329,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientDetailViewModel>(result.Value);
             Assert.Equal(beforeCount + 1, afterActionCount);
             #endregion
         }
@@ -428,8 +433,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(viewAdd);
-            Assert.IsType<JsonResult>(viewRemove);
+            var addResult = Assert.IsType<JsonResult>(viewAdd);
+            Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
+            var removeResult = Assert.IsType<JsonResult>(viewRemove);
+            Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
             Assert.Equal(preAddCount + 1, postAddCount);
             Assert.Equal(preRemoveCount - 1, postRemoveCount);
             #endregion
@@ -469,8 +476,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(viewAdd);
-            Assert.IsType<JsonResult>(viewRemove);
+            var addResult = Assert.IsType<JsonResult>(viewAdd);
+            Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
+            var removeResult = Assert.IsType<JsonResult>(viewRemove);
+            Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
             Assert.Equal(preAddCount + 2, postAddCount);
             Assert.Equal(preRemoveCount - 2, postRemoveCount);
             #endregion
@@ -517,8 +526,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(viewAdd);
-            Assert.IsType<JsonResult>(viewRemove);
+            var addResult = Assert.IsType<JsonResult>(viewAdd);
+            Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
+            var removeResult = Assert.IsType<JsonResult>(viewRemove);
+            Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
             Assert.Equal(preAddCount_Client + 1, postAddCount_Client);
             Assert.Equal(preRemoveCount_Client - 1, postRemoveCount_Client);
             Assert.Equal(preAddCount_Content + relatedRootContentItemCount, postAddCount_Content);
@@ -590,7 +601,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientDetailViewModel>(result.Value);
 
             // Capture the number of users assigned to the client after the call to RemoveUserFromClient
             int afterActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
@@ -728,7 +740,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientAdminIndexViewModel>(result.Value);
 
             int afterCount = TestResources.DbContextObject.Client.Count();
             Assert.Equal<int>(expectedAfterCount, afterCount);
@@ -918,7 +931,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientAdminIndexViewModel>(result.Value);
 
             #region Check that all updated data now matches
             Client resultClient = TestResources.DbContextObject.Client.Single(c => c.Id == testClient.Id);
@@ -1018,7 +1032,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientAdminIndexViewModel>(result.Value);
 
             int clientPostCount = TestResources.DbContextObject.Client.Count();
             int claimsPostCount = TestResources.DbContextObject.UserClaims.Count();
