@@ -90,7 +90,7 @@ namespace MapDbContextLib.Identity
                 else if (RecordFromDb.DisplayName != RoleDisplayNames[Role])
                 {
                     RecordFromDb.DisplayName = RoleDisplayNames[Role];
-                    roleManager.UpdateAsync(RecordFromDb).Wait();
+                    await roleManager.UpdateAsync(RecordFromDb);
                 }
 
                 RoleIds[Role] = RecordFromDb.Id;

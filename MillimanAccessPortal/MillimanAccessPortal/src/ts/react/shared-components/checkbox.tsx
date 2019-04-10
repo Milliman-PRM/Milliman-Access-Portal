@@ -1,5 +1,5 @@
-import '../../../images/add-circle.svg';
-import '../../../images/remove-circle.svg';
+import '../../../images/icons/add-circle.svg';
+import '../../../images/icons/remove-circle.svg';
 
 import * as React from 'react';
 

@@ -110,7 +110,7 @@ if ($Action.ToLower() -eq 'closed') {
 #region Configure environment properties
 $BranchName = $env:git_branch_name # Will be used in the version string of the octopus package & appended to database names
 
-$buildType = if($BranchName -eq 'develop' -or $BranchName -eq 'master' -or $BranchName.ToLower() -like 'pre-release*') {"Release"} Else {"Debug"}
+$buildType = if($BranchName -eq 'develop' -or $BranchName -eq 'master' -or $BranchName.ToLower() -like 'pre-release*' -or $BranchName.ToLower() -like "*hotfix*") {"Release"} Else {"Debug"}
 log_statement "Building configuration: $buildType"
 
 $gitExePath = "git"
@@ -511,7 +511,17 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Creating web app release"
 
-octo create-release --project "Milliman Access Portal" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+# Determine appropriate release channel (applies only at the time the release is created)
+if ($BranchName.ToLower() -like "*pre-release*" -or $BranchName.ToLower() -like "*hotfix*")
+{
+    $channelName = "Pre-Release"
+}
+else
+{
+    $channelName = "Development"
+}
+
+octo create-release --project "Milliman Access Portal" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
@@ -528,13 +538,18 @@ $projects = (invoke-restmethod $octopusURL/api/projects?apikey=$octopusAPIKey).i
 $MAPProject = $projects | where {$_.Name -eq "Milliman Access Portal"}
 $releases = (invoke-restmethod "$octopusURL/api/projects/$($mapProject.Id)/releases?apikey=$octopusAPIKey").items
 $BranchRelease = $releases | where {$_.Version -eq "$webVersion"}
-$channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey)
+$channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey) # Retrieve the actual current channel of the release
 $channelName = $channel.Name
+if ([string]::IsNullOrEmpty($channelName))
+{
+    log_statement "ERROR: Failed to determine current channel name"
+    exit -42
+}
 $lifecycle = (Invoke-RestMethod $octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$octopusAPIKey).phases
 $targetEnvId = if ($lifecycle.AutomaticDeploymentTargets) {$lifecycle.AutomaticDeploymentTargets | select-object -first 1} else {$lifecycle.OptionalDeploymentTargets | select-object -first 1}
 $targetEnv = if ($lifecycle.AutomaticDeploymentTargets -or $lifecycle.optionalDeploymentTargets) { (Invoke-RestMethod $octopusURL/api/environments/$($TargetEnvId)?apikey=$octopusAPIKey).name} else {"Development"}
 if ($targetEnv){
-    log_statement "Deploying to $targetEnv"
+    log_statement "Deploying to $targetEnv in the $channelName channel"
 }
 else {
     log_statement "ERROR: Failed to determine deployment environment"

@@ -18,11 +18,16 @@ namespace AuditLogLib.Event
         #endregion
 
         #region User activity [1000 - 1999]
-        public static readonly AuditEventType LoginSuccess = new AuditEventType(1001, "Login success");
-        public static readonly AuditEventType<string> LoginFailure = new AuditEventType<string>(
-            1002, "Login failure", (attemptedUsername) => new
+        public static readonly AuditEventType<string> LoginSuccess = new AuditEventType<string>(
+            1001, "Login success", (scheme) => new
+            {
+                Scheme = scheme,
+            });
+        public static readonly AuditEventType<string,string> LoginFailure = new AuditEventType<string,string>(
+            1002, "Login failure", (attemptedUsername, scheme) => new
             {
                 AttemptedUsername = attemptedUsername,
+                AuthenticationScheme = scheme,
             });
         public static readonly AuditEventType<RoleEnum> Unauthorized = new AuditEventType<RoleEnum>(
             1003, "Unauthorized request", (role) => new
@@ -173,6 +178,12 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<ApplicationUser> UserPasswordExpired =
             new AuditEventType<ApplicationUser>(3011, "User password expired", (user) =>
                 new { userId = user.Id, userName = user.UserName, dateLastSetUtc = user.LastPasswordChangeDateTimeUtc });
+
+        public static readonly AuditEventType<string> LoginIsSuspended = new AuditEventType<string>(
+            3012, "Login account is suspended", (attemptedUserName) => new
+            {
+                AttemptedUsername = attemptedUserName,
+            });
         #endregion
 
         #region Content Access [4000 - 4999]
@@ -451,6 +462,40 @@ namespace AuditLogLib.Event
             {
                 ProfitCenterId = profitCenter.Id,
                 UserId = user.Id,
+            });
+
+        // 72xx - Authentication scheme management
+        public static readonly AuditEventType<AuthenticationScheme> NewAuthenticationSchemeAdded = new AuditEventType<AuthenticationScheme>(
+            7201, "New authentication scheme added", scheme => new
+            {
+                SchemeId = scheme.Id,
+                SchemeName = scheme.Name,
+                scheme.DomainList,
+                scheme.DisplayName,
+                Type = scheme.Type.ToString(),
+                SchemeProperties = scheme.SchemePropertiesObj,
+            });
+        public static readonly AuditEventType<AuthenticationScheme,AuthenticationScheme> AuthenticationSchemeUpdated = new AuditEventType<AuthenticationScheme,AuthenticationScheme>(
+            7202, "Authentication scheme updated", (before,after) => new
+            {
+                before = new
+                {
+                    SchemeId = before.Id,
+                    SchemeName = before.Name,
+                    before.DomainList,
+                    before.DisplayName,
+                    Type = before.Type.ToString(),
+                    SchemeProperties = before.SchemePropertiesObj,
+                },
+                after = new
+                {
+                    SchemeId = after.Id,
+                    SchemeName = after.Name,
+                    after.DomainList,
+                    after.DisplayName,
+                    Type = after.Type.ToString(),
+                    SchemeProperties = after.SchemePropertiesObj,
+                }
             });
         #endregion
         #endregion

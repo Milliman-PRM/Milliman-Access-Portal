@@ -1,11 +1,11 @@
-import '../../../../images/add.svg';
-import '../../../../images/cancel.svg';
-import '../../../../images/checkmark.svg';
-import '../../../../images/delete.svg';
-import '../../../../images/edit.svg';
-import '../../../../images/email.svg';
-import '../../../../images/expand-card.svg';
-import '../../../../images/remove-circle.svg';
+import '../../../../images/icons/add.svg';
+import '../../../../images/icons/cancel.svg';
+import '../../../../images/icons/checkmark.svg';
+import '../../../../images/icons/delete.svg';
+import '../../../../images/icons/edit.svg';
+import '../../../../images/icons/email.svg';
+import '../../../../images/icons/expand-card.svg';
+import '../../../../images/icons/remove-circle.svg';
 
 import * as React from 'react';
 

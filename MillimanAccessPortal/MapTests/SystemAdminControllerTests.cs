@@ -7,6 +7,7 @@
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
@@ -48,7 +49,8 @@ namespace MapTests
                 _testResources.QueriesObj,
                 _testResources.AuthorizationService,
                 _testResources.ConfigurationObject,
-                _testResources.ServiceProviderObject);
+                _testResources.ServiceProviderObject,
+                null);
 
             var testController = new SystemAdminController(
                 accountController,
@@ -58,7 +60,9 @@ namespace MapTests
                 _testResources.DbContextObject,
                 _testResources.QueriesObj,
                 _testResources.RoleManagerObject,
-                _testResources.UserManagerObject);
+                _testResources.UserManagerObject,
+                _testResources.ServiceProviderObject,
+                _testResources.AuthenticationSchemeProviderObject);
 
             try
             {
@@ -122,8 +126,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedUsers, ((json as JsonResult).Value as List<UserInfo>).Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            List<UserInfo> users = Assert.IsType<List<UserInfo>>(result.Value);
+            Assert.Equal(expectedUsers, users.Count);
             #endregion
         }
         [Theory]
@@ -144,8 +149,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedUsers, ((json as JsonResult).Value as List<UserInfo>).Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            List<UserInfo> userInfoList = Assert.IsType<List<UserInfo>>(result.Value);
+            Assert.Equal(expectedUsers, userInfoList.Count);
             #endregion
         }
         [Theory]
@@ -166,8 +172,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedUsers, ((json as JsonResult).Value as List<UserInfo>).Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            List<UserInfo> userInfoList = Assert.IsType<List<UserInfo>>(result.Value);
+            Assert.Equal(expectedUsers, userInfoList.Count);
             #endregion
         }
 
@@ -210,8 +217,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<UserDetail>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<UserDetail>(result.Value);
             #endregion
         }
         [Theory]
@@ -232,8 +239,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<UserDetailForClient>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<UserDetailForClient>(result.Value);
             #endregion
         }
         [Theory]
@@ -254,8 +261,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<UserDetailForProfitCenter>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<UserDetailForProfitCenter>(result.Value);
             #endregion
         }
         #endregion
@@ -275,8 +282,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedClients, ((json as JsonResult).Value as BasicTree<ClientInfo>).Root.Children.Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            BasicTree<ClientInfo> clientInfoTree = Assert.IsType<BasicTree<ClientInfo>>(result.Value);
+            Assert.Equal(expectedClients, clientInfoTree.Root.Children.Count);
             #endregion
         }
         [Theory]
@@ -297,8 +305,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedClients, ((json as JsonResult).Value as BasicTree<ClientInfo>).Root.Children.Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            BasicTree<ClientInfo> clientInfoTree = Assert.IsType<BasicTree<ClientInfo>>(result.Value);
+            Assert.Equal(expectedClients, clientInfoTree.Root.Children.Count);
             #endregion
         }
         [Theory]
@@ -319,8 +328,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedClients, ((json as JsonResult).Value as BasicTree<ClientInfo>).Root.Children.Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            BasicTree<ClientInfo> clientInfoTree = Assert.IsType<BasicTree<ClientInfo>>(result.Value);
+            Assert.Equal(expectedClients, clientInfoTree.Root.Children.Count);
             #endregion
         }
 
@@ -363,8 +373,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<ClientDetail>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<ClientDetail>(result.Value);
             #endregion
         }
         [Theory]
@@ -385,8 +395,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<ClientDetailForUser>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<ClientDetailForUser>(result.Value);
             #endregion
         }
         [Theory]
@@ -407,8 +417,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<ClientDetailForProfitCenter>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<ClientDetailForProfitCenter>(result.Value);
             #endregion
         }
         #endregion
@@ -428,7 +438,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            List<ProfitCenterInfo> profitCenterInfoList = Assert.IsType<List<ProfitCenterInfo>>(result.Value);
             Assert.Equal(expectedProfitCenters, ((json as JsonResult).Value as List<ProfitCenterInfo>).Count);
             #endregion
         }
@@ -472,8 +483,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<ProfitCenterDetail>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<ProfitCenterDetail>(result.Value);
             #endregion
         }
         #endregion
@@ -497,8 +508,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedRootContentItems, ((json as JsonResult).Value as List<RootContentItemInfo>).Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            List<RootContentItemInfo> rootContentItemInfoList = Assert.IsType<List<RootContentItemInfo>>(result.Value);
+            Assert.Equal(expectedRootContentItems, rootContentItemInfoList.Count);
             #endregion
         }
         [Theory]
@@ -519,8 +531,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.Equal(expectedRootContentItems, ((json as JsonResult).Value as List<RootContentItemInfo>).Count);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            List<RootContentItemInfo> rootContentItemInfoList = Assert.IsType<List<RootContentItemInfo>>(result.Value);
+            Assert.Equal(expectedRootContentItems, rootContentItemInfoList.Count);
             #endregion
         }
 
@@ -564,8 +577,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<RootContentItemDetailForUser>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<RootContentItemDetailForUser>(result.Value);
             #endregion
         }
         [Theory]
@@ -586,14 +599,14 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json);
-            Assert.IsType<RootContentItemDetailForClient>((json as JsonResult).Value);
+            JsonResult result = Assert.IsType<JsonResult>(json);
+            Assert.IsType<RootContentItemDetailForClient>(result.Value);
             #endregion
         }
         #endregion
         #endregion
 
-        #region create action queries
+        #region create action tests
         [Theory]
         [InlineData("invalid_email_address")]
         [InlineData("sysAdmin1@site.domain")]
@@ -792,6 +805,96 @@ namespace MapTests
             Assert.Equal(preCount, postCount);
             #endregion
         }
+
+        [Fact]
+        public async Task AddNewAuthenticationScheme_Success()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var model = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = "testscheme1",
+                DisplayName = "Display Name 1",
+                Properties = new MapDbContextLib.Models.WsFederationSchemeProperties {Wtrealm = "realm1", MetadataAddress = "address1" },
+                Type = AuthenticationType.WsFederation,
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.AddNewAuthenticationScheme(model);
+            #endregion
+
+            #region Assert
+            Assert.IsType<OkResult>(result);
+            var dbScheme = _testResources.DbContextObject.AuthenticationScheme.Where(c => c.Name == model.Name).ToList();
+            Assert.Single(dbScheme);
+            Assert.Equal(model.Name, dbScheme.First().Name);
+            Assert.Equal(model.DisplayName, dbScheme.First().DisplayName);
+            #endregion
+        }
+
+        [Fact]
+        public async Task AddNewAuthenticationScheme_FailsOnAddingSameName()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var model1 = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = "testscheme1",
+                DisplayName = "Display Name 1",
+                Properties = new MapDbContextLib.Models.WsFederationSchemeProperties { Wtrealm = "realm1", MetadataAddress = "address1" },
+                Type = AuthenticationType.WsFederation,
+            };
+            var model2 = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = "testscheme1",
+                DisplayName = "Display Name 2",
+                Properties = new MapDbContextLib.Models.WsFederationSchemeProperties { Wtrealm = "realm2", MetadataAddress = "address2" },
+                Type = AuthenticationType.WsFederation,
+            };
+            #endregion
+
+            #region Act
+            var result1 = await controller.AddNewAuthenticationScheme(model1);
+            var result2 = await controller.AddNewAuthenticationScheme(model2);
+            #endregion
+
+            #region Assert
+            Assert.IsType<OkResult>(result1);
+
+            var typedResult2 = Assert.IsType<StatusCodeResult>(result2);
+            Assert.Equal(500, typedResult2.StatusCode);
+            var allDbSchemes = _testResources.DbContextObject.AuthenticationScheme.Where(c => c.Name == model1.Name).ToList();
+            Assert.Single(allDbSchemes);
+            Assert.Equal(model1.Name, allDbSchemes.First().Name);
+            Assert.Equal(model1.DisplayName, allDbSchemes.First().DisplayName);
+            #endregion
+        }
+
+        [Fact]
+        public async Task AddNewAuthenticationScheme_FailsOnDefaultSchemeType()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var model = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = IdentityConstants.ApplicationScheme,
+                DisplayName = "Default scheme",
+                Properties = new AuthenticationSchemeProperties(),
+                Type = AuthenticationType.Default,
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.AddNewAuthenticationScheme(model);
+            #endregion
+
+            #region Assert
+            StatusCodeResult typedResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, typedResult.StatusCode);
+            #endregion
+        }
+
         #endregion
 
         #region update action tests
@@ -846,6 +949,146 @@ namespace MapTests
             Assert.Equal(preCount, postCount);
             #endregion
         }
+
+        [Fact]
+        public async Task UpdateAuthenticationScheme_Success()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+
+            WsFederationSchemeProperties modelProperties = new WsFederationSchemeProperties
+            {
+                Wtrealm = "new realm",
+                MetadataAddress = "https://newmetadata/",
+            };
+            var model = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = "prmtest",
+                DisplayName = "New display name",
+                Properties = modelProperties,
+                Type = AuthenticationType.WsFederation,
+                DomainList = new List<string> { "newDomain1.com", "newDomain2.com" },
+            };
+
+            var beforeAllSchemes = await _testResources.AuthenticationSchemeProviderObject.GetAllSchemesAsync();
+            #endregion
+
+            #region Act
+            var result = await controller.UpdateAuthenticationScheme(model);
+
+            var afterAllSchemes = await _testResources.AuthenticationSchemeProviderObject.GetAllSchemesAsync();
+            Microsoft.AspNetCore.Authentication.AuthenticationScheme afterUpdatedScheme = afterAllSchemes.Single(s => s.Name == model.Name);
+
+            var dbUpdatedSchemeList = _testResources.DbContextObject.AuthenticationScheme.Where(s => s.Name == model.Name).ToList();
+            #endregion
+
+            #region Assert
+            Assert.IsType<OkResult>(result);
+            Assert.Equal(beforeAllSchemes.Count(), afterAllSchemes.Count());
+
+            Assert.Equal(model.DisplayName, afterUpdatedScheme.DisplayName);
+
+            WsFederationSchemeProperties typedProperties = (WsFederationSchemeProperties)model.Properties;
+            Assert.Equal(modelProperties.MetadataAddress, typedProperties.MetadataAddress);
+            Assert.Equal(modelProperties.Wtrealm, typedProperties.Wtrealm);
+            Assert.Equal(model.DisplayName, afterUpdatedScheme.DisplayName);
+
+            // Assert database updated correctly
+            var dbUpdatedScheme = Assert.Single(dbUpdatedSchemeList);
+            Assert.IsType<WsFederationSchemeProperties>(dbUpdatedScheme.SchemePropertiesObj);
+            WsFederationSchemeProperties typedDbProperties = (WsFederationSchemeProperties)model.Properties;
+            Assert.Equal(modelProperties.MetadataAddress, typedDbProperties.MetadataAddress);
+            Assert.Equal(modelProperties.Wtrealm, typedDbProperties.Wtrealm);
+            Assert.True(model.DomainList.ToHashSet().SetEquals(dbUpdatedScheme.DomainList.ToHashSet()));
+            #endregion
+        }
+
+        [Fact]
+        public async Task UpdateAuthenticationScheme_FailOnDefaultScheme()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var model = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = IdentityConstants.ApplicationScheme,
+                DisplayName = "Default scheme",
+                Properties = new AuthenticationSchemeProperties(),
+                Type = AuthenticationType.Default,
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.UpdateAuthenticationScheme(model);
+            #endregion
+
+            #region Assert
+            StatusCodeResult typedResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, typedResult.StatusCode);
+            #endregion
+        }
+
+        [Fact]
+        public async Task UpdateAuthenticationScheme_FailOnNonExistingSchemeName()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+
+            WsFederationSchemeProperties modelProperties = new WsFederationSchemeProperties
+            {
+                Wtrealm = "new realm",
+                MetadataAddress = "https://newmetadata/",
+            };
+            var model = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = "NonExistingSchemeName",
+                DisplayName = "New display name",
+                Properties = modelProperties,
+                Type = AuthenticationType.WsFederation,
+                DomainList = new List<string> { "newDomain1.com", "newDomain2.com" },
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.UpdateAuthenticationScheme(model);
+            #endregion
+
+            #region Assert
+            StatusCodeResult typedResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, typedResult.StatusCode);
+            #endregion
+        }
+
+        [Fact]
+        public async Task UpdateAuthenticationScheme_FailOnSchemeTypeMismatch()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+
+            WsFederationSchemeProperties modelProperties = new WsFederationSchemeProperties
+            {
+                Wtrealm = "new realm",
+                MetadataAddress = "https://newmetadata/",
+            };
+            var model = new AllAuthenticationSchemes.AuthenticationScheme
+            {
+                Name = "prmtest",
+                DisplayName = "New display name",
+                Properties = modelProperties,
+                Type = (AuthenticationType)999,
+                DomainList = new List<string> { "newDomain1.com", "newDomain2.com" },
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.UpdateAuthenticationScheme(model);
+            #endregion
+
+            #region Assert
+            StatusCodeResult typedResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, typedResult.StatusCode);
+            #endregion
+        }
+
         #endregion
 
         #region Remove/delete action tests
@@ -1052,10 +1295,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json1);
-            Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
-            Assert.IsType<JsonResult>(json2);
-            Assert.Equal(!expectedValue, (bool)(json2 as JsonResult).Value);
+            JsonResult result1 = Assert.IsType<JsonResult>(json1);
+            Assert.Equal(expectedValue, (bool)result1.Value);
+            JsonResult result2 = Assert.IsType<JsonResult>(json2);
+            Assert.Equal(!expectedValue, (bool)result2.Value);
             #endregion
         }
 
@@ -1091,10 +1334,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json1);
-            Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
-            Assert.IsType<JsonResult>(json2);
-            Assert.Equal(!expectedValue, (bool)(json2 as JsonResult).Value);
+            JsonResult result1 = Assert.IsType<JsonResult>(json1);
+            Assert.Equal(expectedValue, (bool)result1.Value);
+            JsonResult result2 = Assert.IsType<JsonResult>(json2);
+            Assert.Equal(!expectedValue, (bool)result2.Value);
             #endregion
         }
 
@@ -1134,10 +1377,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json1);
-            Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
-            Assert.IsType<JsonResult>(json2);
-            Assert.Equal(!expectedValue, (bool)(json2 as JsonResult).Value);
+            JsonResult result1 = Assert.IsType<JsonResult>(json1);
+            Assert.Equal(expectedValue, (bool)result1.Value);
+            JsonResult result2 = Assert.IsType<JsonResult>(json2);
+            Assert.Equal(!expectedValue, (bool)result2.Value);
             #endregion
         }
 
@@ -1172,10 +1415,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(json1);
-            Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
-            Assert.IsType<JsonResult>(json2);
-            Assert.Equal(!expectedValue, (bool)(json2 as JsonResult).Value);
+            JsonResult result1 = Assert.IsType<JsonResult>(json1);
+            Assert.Equal(expectedValue, (bool)result1.Value);
+            JsonResult result2 = Assert.IsType<JsonResult>(json2);
+            Assert.Equal(!expectedValue, (bool)result2.Value);
             #endregion
         }
         #endregion

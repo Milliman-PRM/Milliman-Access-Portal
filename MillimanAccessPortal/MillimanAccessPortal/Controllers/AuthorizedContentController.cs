@@ -172,7 +172,7 @@ namespace MillimanAccessPortal.Controllers
                 Scheme = Request.Scheme,
                 Port = Request.Host.Port ?? -1,
                 Path = "/AuthorizedContent/WebHostedContent",
-                Query = $"selectionGroupId=",
+                Query = "selectionGroupId=",
             };
 
             return View("ContentWrapper", new ContentWrapperModel

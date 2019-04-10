@@ -1,12 +1,12 @@
-﻿import '../../../images/client.svg';
-import '../../../images/content-access.svg';
-import '../../../images/content-grid.svg';
-import '../../../images/content-publishing.svg';
-import '../../../images/email.svg';
-import '../../../images/logout.svg';
-import '../../../images/system-admin.svg';
-import '../../../images/user-settings.svg';
-import '../../../images/userguide.svg';
+import '../../../images/icons/client.svg';
+import '../../../images/icons/content-access.svg';
+import '../../../images/icons/content-grid.svg';
+import '../../../images/icons/content-publishing.svg';
+import '../../../images/icons/email.svg';
+import '../../../images/icons/logout.svg';
+import '../../../images/icons/system-admin.svg';
+import '../../../images/icons/user-settings.svg';
+import '../../../images/icons/userguide.svg';
 import '../../../scss/react/shared-components/navbar.scss';
 
 import * as React from 'react';

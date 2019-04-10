@@ -1,8 +1,8 @@
-import '../images/add.svg';
-import '../images/cancel.svg';
-import '../images/collapse-cards.svg';
-import '../images/edit.svg';
-import '../images/expand-cards.svg';
+import '../images/icons/add.svg';
+import '../images/icons/cancel.svg';
+import '../images/icons/collapse-cards.svg';
+import '../images/icons/edit.svg';
+import '../images/icons/expand-cards.svg';
 import '../images/map-logo.svg';
 
 import * as React from 'react';
@@ -387,15 +387,13 @@ function clientCardDeleteClickHandler(event: any) {
     clientName,
     clientId,
     (data: any, callback: any) => {
-      if (data.password) {
+      if (data.confirmDeletion.toUpperCase() === 'DELETE') {
         shared.showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
-        deleteClient(clientId, clientName, data.password, callback);
-      } else if (data.password === '') {
-        toastr.warning('Please enter your password to proceed');
-        return false;
+        deleteClient(clientId, clientName, callback);
       } else {
-        toastr.info('Deletion was canceled');
+        toastr.warning('Please type <strong>DELETE</strong> to proceed with deletion');
+        return false;
       }
       return true;
     },
@@ -572,11 +570,10 @@ function renderClientTree(clientTreeList: any, clientId: any) {
   }
 }
 
-function deleteClient(clientId: any, clientName: any, password: any, callback: any) {
+function deleteClient(clientId: any, clientName: any, callback: any) {
   $.ajax({
     data: {
       Id: clientId,
-      Password: password,
     },
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),

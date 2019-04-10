@@ -1,9 +1,9 @@
-﻿import '../../../images/add.svg';
-import '../../../images/collapse-cards.svg';
-import '../../../images/expand-cards.svg';
-import '../../../images/release-notes.svg';
-import '../../../images/user.svg';
-import '../../../images/userguide.svg';
+﻿import '../../../images/icons/add.svg';
+import '../../../images/icons/collapse-cards.svg';
+import '../../../images/icons/expand-cards.svg';
+import '../../../images/icons/release-notes.svg';
+import '../../../images/icons/user.svg';
+import '../../../images/icons/userguide.svg';
 
 import 'tooltipster';
 import 'tooltipster/src/css/tooltipster.css';
