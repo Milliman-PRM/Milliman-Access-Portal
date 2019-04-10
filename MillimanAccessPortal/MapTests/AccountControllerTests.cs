@@ -576,42 +576,45 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task AccountSettingsPOSTWorks()
+        public async Task UpdateAccountPOSTWorksForUserInformation()
         {
             #region Arrange
             AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
 
             string NewEmployer = "Milliman";
-            string FirstName = "MyFirstName";
-            string LastName = "MyLastName";
-            string Phone = "3173171212";
-            AccountSettingsViewModel model = new AccountSettingsViewModel
+            string NewFirstName = "MyFirstName";
+            string NewLastName = "MyLastName";
+            string NewPhone = "3173171212";
+            UpdateAccountModel model = new UpdateAccountModel
             {
-                UserName = AppUser.UserName,
-                Employer = NewEmployer,
-                FirstName = FirstName,
-                LastName = LastName,
-                PhoneNumber = Phone,
+                User = new UpdateAccountModel.UserModel
+                {
+                    FirstName = NewFirstName,
+                    Employer = NewEmployer,
+                    LastName = NewLastName,
+                    Phone = NewPhone,
+                },
+                Password = null,
             };
             #endregion
 
             #region Act
-            var view = await controller.AccountSettings(model);
+            var view = await controller.UpdateAccount(model);
             var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
             #endregion
 
             #region Assert
-            Assert.IsType<OkResult>(view);
+            Assert.IsType<JsonResult>(view);
             Assert.Equal(NewEmployer, UserRecord.Employer);
-            Assert.Equal(FirstName, UserRecord.FirstName);
-            Assert.Equal(LastName, UserRecord.LastName);
-            Assert.Equal(Phone, UserRecord.PhoneNumber);
+            Assert.Equal(NewFirstName, UserRecord.FirstName);
+            Assert.Equal(NewLastName, UserRecord.LastName);
+            Assert.Equal(NewPhone, UserRecord.PhoneNumber);
             #endregion
         }
 
         [Fact]
-        public async Task UpdatePasswordPOSTWorks()
+        public async Task UpdateAccountPOSTWorksForPasswordChange()
         {
             #region Arrange
             AccountController controller = GetController("user1");
@@ -621,54 +624,59 @@ namespace MapTests
             string NewPassword = "Abcd!@#$1234";
             await TestResources.UserManagerObject.AddPasswordAsync(AppUser, CurrentPassword);
 
-            AccountSettingsViewModel model = new AccountSettingsViewModel
+            UpdateAccountModel model = new UpdateAccountModel
             {
-                UserName = AppUser.UserName,
-                NewPassword = NewPassword,
-                ConfirmNewPassword = NewPassword+"X",
-                CurrentPassword = CurrentPassword,
+                User = null,
+                Password = new UpdateAccountModel.PasswordModel
+                {
+                    New = NewPassword,
+                    Confirm = NewPassword,
+                    Current = CurrentPassword,
+                }
             };
             #endregion
 
             #region Act
-            var view = await controller.UpdatePassword(model);
+            var view = await controller.UpdateAccount(model);
             var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
             #endregion
 
             #region Assert
-            Assert.IsType<OkResult>(view);
+            Assert.IsType<JsonResult>(view);
             Assert.Equal(NewPassword + "xyz", UserRecord.PasswordHash);
             #endregion
         }
 
         [Fact]
-        public async Task AccountSettingsPOSTFailsForWrongUser()
+        public async Task UpdateAccountPOSTFailsForWrongCurrentPassword()
         {
             #region Arrange
             AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
 
-            string NewEmployer = "Milliman";
-            string FirstName = "MyFirstName";
-            string LastName = "MyLastName";
-            string Phone = "3173171212";
-            AccountSettingsViewModel model = new AccountSettingsViewModel
+            string CurrentPassword = "QWERqwer1234!@$#";
+            string NewPassword = "Abcd!@#$1234";
+            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, CurrentPassword);
+
+            UpdateAccountModel model = new UpdateAccountModel
             {
-                UserName = "SomeNobody",
-                Employer = NewEmployer,
-                FirstName = FirstName,
-                LastName = LastName,
-                PhoneNumber = Phone,
+                User = null,
+                Password = new UpdateAccountModel.PasswordModel
+                {
+                    New = NewPassword,
+                    Confirm = NewPassword,
+                    Current = CurrentPassword + "X",
+                }
             };
             #endregion
 
             #region Act
-            var view = await controller.AccountSettings(model);
+            var view = await controller.UpdateAccount(model);
             var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
             #endregion
 
             #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
+            Assert.IsType<BadRequestResult>(view);
             #endregion
         }
 
@@ -734,5 +742,38 @@ namespace MapTests
             #endregion
         }
 
+        [Fact]
+        public async Task UpdateAccountPOSTFailsForWrongMismatchedPassword()
+        {
+            #region Arrange
+            AccountController controller = GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+
+            string CurrentPassword = "QWERqwer1234!@$#";
+            string NewPassword = "Abcd!@#$1234";
+            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, CurrentPassword);
+
+            UpdateAccountModel model = new UpdateAccountModel
+            {
+                User = null,
+                Password = new UpdateAccountModel.PasswordModel
+                {
+                    New = NewPassword,
+                    Confirm = NewPassword + "X",
+                    Current = CurrentPassword,
+                }
+            };
+            #endregion
+
+            #region Act
+            var view = await controller.UpdateAccount(model);
+            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestResult>(view);
+            Assert.Equal(CurrentPassword + "xyz", UserRecord.PasswordHash);
+            #endregion
+        }
     }
 }

@@ -5,6 +5,13 @@
     width: 100vw;
     overflow: hidden;
 
+    &.full-scroll {
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
+        width: 100%;
+    }
+
     @include for-tablet-down() {
         overflow: auto !important;
     }
@@ -27,4 +34,14 @@
     .hide-on-tablet-down {
         display: none !important;
     }
+}
+
+#create-initial-user-container,
+#enable-account-container,
+#reset-password-container,
+#message-container {
+    display: flex;
+    flex: 1 0 auto;
+    justify-content: center;
+    align-items: center;
 }

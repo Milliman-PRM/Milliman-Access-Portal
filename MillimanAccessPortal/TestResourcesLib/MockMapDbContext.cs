@@ -13,6 +13,7 @@ using Moq;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Threading;
 
 namespace TestResourcesLib
 {
@@ -140,6 +141,7 @@ namespace TestResourcesLib
 
             Mock<DatabaseFacade> MockDatabaseFacade = new Mock<DatabaseFacade>(ReturnMockContext.Object);
             MockDatabaseFacade.Setup(x => x.BeginTransaction()).Returns(DbTransaction.Object);
+            MockDatabaseFacade.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(DbTransaction.Object);
             ReturnMockContext.SetupGet(x => x.Database).Returns(MockDatabaseFacade.Object);
 
             if (Initialize != null)

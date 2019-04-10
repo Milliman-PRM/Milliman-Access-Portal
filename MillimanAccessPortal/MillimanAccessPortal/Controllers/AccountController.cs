@@ -213,12 +213,8 @@ namespace MillimanAccessPortal.Controllers
                     _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName));
                     Log.Debug($"User {user.UserName} suspended, local login rejected");
 
-                    UriBuilder msgUri = new UriBuilder
-                    {
-                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(SharedController.Message)}",
-                        Query = "msg=This account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
-                    };
-                    return Redirect(msgUri.Uri.PathAndQuery);
+                    Response.Headers.Add("Warning", "This account is currently suspended.  Please contact your Milliman consultant, or email map.support@milliman.com");
+                    return Ok();
                 }
 
                 // Only notify of password expiration if the correct password was provided
@@ -245,7 +241,8 @@ namespace MillimanAccessPortal.Controllers
                     Log.Information($"User {model.Username} password is expired, sent password reset email");
                     _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
                     string WhatHappenedMessage = "Your password has expired. Check your email for a link to reset your password.";
-                    return View("Message", WhatHappenedMessage);
+                    Response.Headers.Add("Warning", WhatHappenedMessage);
+                    return Ok();
                 }
 
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
@@ -253,15 +250,9 @@ namespace MillimanAccessPortal.Controllers
                 {
                     SignInCommon(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
 
-                    // The default route is /AuthorizedContent/Index as configured in startup.cs
-                    if (!string.IsNullOrEmpty(returnUrl))
-                    {
-                        return RedirectToLocal(returnUrl);
-                    }
-                    else
-                    {
-                        return RedirectToAction(nameof(AuthorizedContentController.Index), nameof(AuthorizedContentController).Replace("Controller", ""));
-                    }
+                    // Provide the location that should be navigated to (or fall back on default route)
+                    Response.Headers.Add("NavigateTo", string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
+                    return Ok();
                 }
                 else
                 {
@@ -275,7 +266,8 @@ namespace MillimanAccessPortal.Controllers
                         ModelState.AddModelError(string.Empty, "User account is locked out.");
                         Log.Information($"User {model.Username} account locked out");
                         _auditLogger.Log(AuditEventType.LoginIsLockedOut.ToEvent(), model.Username);
-                        return View("Message", lockoutMessage);
+                        Response.Headers.Add("Warning", lockoutMessage);
+                        return Ok();
                     }
                     else
                     {
@@ -1154,68 +1146,29 @@ namespace MillimanAccessPortal.Controllers
                 return View("Message", $"User settings not found. Please contact support if this issue repeats.");
             }
 
-            AccountSettingsViewModel model = new AccountSettingsViewModel
+            Log.Verbose("In AccountController.AccountSettings GET action, returning view");
+
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> AccountSettings2()
+        {
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+
+            return Json(new UserFullModel
             {
+                Id = user.Id,
+                IsActivated = user.EmailConfirmed,
+                IsSuspended = user.IsSuspended,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 UserName = user.UserName,
                 Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                Employer = user.Employer
-            };
-
-            Log.Verbose($"In AccountController.AccountSettings GET action, returning model <{model}>");
-
-            return View(model);
-        }
-
-        // POST /Account/UpdateAccountSettings
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> AccountSettings([Bind("UserName,FirstName,LastName,PhoneNumber,Employer")]AccountSettingsViewModel Model)
-        {
-            Log.Verbose("Entered AccountController.AccountSettings POST action with model {@Model}", Model);
-
-            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
-            if (user == null)
-            {
-                Log.Debug($"In AccountController.AccountSettings POST action: user {User.Identity.Name} not found, aborting");
-                return View("Message", "Unable to assign new settings for current user");
-            }
-
-            if (Model.UserName != User.Identity.Name)
-            {
-                Log.Information($"In AccountController.AccountSettings action: user {User.Identity.Name} attempt to update settings for application user {Model.UserName}, aborting");
-                Response.Headers.Add("Warning", "You may not access another user's settings.");
-                return Unauthorized();
-            }
-
-            if (!string.IsNullOrEmpty(Model.FirstName))
-            {
-                user.FirstName = Model.FirstName;
-            }
-
-            if (!string.IsNullOrEmpty(Model.LastName))
-            {
-                user.LastName = Model.LastName;
-            }
-
-            if (!string.IsNullOrEmpty(Model.PhoneNumber))
-            {
-                user.PhoneNumber = Model.PhoneNumber;
-            }
-
-            if (!string.IsNullOrEmpty(Model.Employer))
-            {
-                user.Employer = Model.Employer;
-            }
-
-            DbContext.ApplicationUser.Update(user);
-            DbContext.SaveChanges();
-
-            Log.Verbose($"In AccountController.AccountSettings POST action: successful update for user {user.UserName}");
-
-            return Ok();
+                Phone = user.PhoneNumber,
+                Employer = user.Employer,
+                IsLocal = await IsUserAccountLocal(user.UserName),
+            });
         }
 
         [HttpPost]
@@ -1260,69 +1213,126 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UpdatePassword([Bind("UserName,CurrentPassword,NewPassword,ConfirmNewPassword")]AccountSettingsViewModel Model)
+        public async Task<ActionResult> CheckPasswordValidity2([FromBody] CheckPasswordViewModel Model)
         {
-            Log.Verbose("Entered AccountController.UpdatePassword action");
+            Log.Verbose("Entered AccountController.CheckPasswordValidity2 action");
 
-            if (Model.UserName != User.Identity.Name)
-            {
-                Log.Warning($"In AccountController.UpdatePassword action: user {User.Identity.Name} attempt to update password for application user {Model.UserName}, aborting");
-                Response.Headers.Add("Warning", "You may not access another user's settings.");
-                return Unauthorized();
-            }
-
-            if (! await IsUserAccountLocal(Model.UserName))  // should not be possible, but here it is
-            {
-                var scheme = await _authentService.Schemes.GetSchemeAsync(await GetExternalAuthenticationSchemeAsync(Model.UserName));
-                Log.Error($"In AccountController.UpdatePassword action: user {Model.UserName} invalid attempt to update password for externally authenticated account with scheme {scheme.Name}, aborting");
-                string msg = $"Your MAP account uses login services from your organization ({scheme.DisplayName}). Please contact your IT department if you require password assistance.";
-                Response.Headers.Add("Warning", msg);
-                return Unauthorized();
-            }
-
-            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+            var passwordValidationErrors = new List<string>();
 
             if (ModelState.IsValid)
             {
-                using (var Txn = DbContext.Database.BeginTransaction())
+                ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+
+                foreach (IPasswordValidator<ApplicationUser> passwordValidator in _userManager.PasswordValidators)
                 {
-                    IdentityResult result = await _userManager.ChangePasswordAsync(user, Model.CurrentPassword, Model.NewPassword);
+                    IdentityResult result = await passwordValidator.ValidateAsync(_userManager, user, Model.ProposedPassword);
 
-                    if (result.Succeeded)
+                    if (!result.Succeeded)
                     {
-                        // Save password hash in history
-                        user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(Model.NewPassword)).ToList<PreviousPassword>();
-                        user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
-                        var addHistoryResult = await _userManager.UpdateAsync(user);
-
-                        if (addHistoryResult.Succeeded)
+                        foreach (var errorResult in result.Errors)
                         {
-                            Txn.Commit();
-                            Log.Verbose($"In AccountController.UpdatePassword action: success for user {user.UserName}");
-                            return Ok();
+                            passwordValidationErrors.Add(errorResult.Description);
                         }
-                        else
-                        {
-                            Log.Error($"Failed to save password history or update password timestamp for user {user.UserName}, aborting");
-                        }
-                    }
-                    else
-                    {
-                        Log.Error($"In AccountController.UpdatePassword action: Failed to update password for user {user.UserName}, aborting");
-                        string errorMessage = string.Join("<br /><br />", result.Errors.Select(x => x.Description));
-
-                        Response.Headers.Add("Warning", errorMessage);
                     }
                 }
             }
+            
+            if (!passwordValidationErrors.Any())
+            {
+                Log.Verbose("In AccountController.CheckPasswordValidity action: proposed password is valid");
+                return Json(new PasswordValidationModel { Valid = true });
+            }
             else
             {
-                Log.Warning($"In UpdatePassword action for user {user.UserName}, ModelState errors {string.Join(", ", ModelState.SelectMany(s => s.Value.Errors).Select(e => e.ErrorMessage))}");
-                Response.Headers.Add("Warning", $"Password update failed");
+                Log.Verbose("In AccountController.CheckPasswordValidity action: proposed password not valid");
+                return Json(new PasswordValidationModel { Valid = false, Messages = passwordValidationErrors });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateAccount([FromBody] UpdateAccountModel model)
+        {
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+            if (user == null)
+            {
+                Log.Debug("In AccountController.UpdateAccount POST action: "
+                       + $"user {User.Identity.Name} not found, aborting");
+                return BadRequest();
             }
 
-            return BadRequest();
+            DbContext.Attach(user);
+            using (var txn = await DbContext.Database.BeginTransactionAsync())
+            {
+                if (model.User != null)
+                {
+                    user.FirstName = model.User.FirstName;
+                    user.LastName = model.User.LastName;
+                    user.PhoneNumber = model.User.Phone;
+                    user.Employer = model.User.Employer;
+                }
+                if (model.Password != null)
+                {
+                    bool currentPasswordIsCorrect = await _userManager.CheckPasswordAsync(user, model.Password.Current);
+                    if (!currentPasswordIsCorrect)
+                    {
+                        Log.Debug("In AccountController.UpdateAccount POST action: "
+                               + $"user {User.Identity.Name} Current Password incorrect");
+                        Response.Headers.Add("warning", "The Current Password provided was incorrect");
+                        return BadRequest();
+                    }
+
+                    if (model.Password.New != model.Password.Confirm)
+                    {
+                        Log.Debug("In AccountController.UpdateAccount POST action: "
+                               + $"user {User.Identity.Name} New Password != Password");
+                        Response.Headers.Add("warning", "New Password and Confirm Password must match");
+                        return BadRequest();
+                    }
+
+                    IdentityResult result = await _userManager
+                        .ChangePasswordAsync(user, model.Password.Current, model.Password.New);
+
+                    if (!result.Succeeded)
+                    {
+                        Log.Warning("Failed to change password " +
+                                   $"for user {user.UserName}, aborting");
+                        return BadRequest();
+                    }
+
+                    // Save password hash in history
+                    user.PasswordHistoryObj = user.PasswordHistoryObj
+                        .Append(new PreviousPassword(model.Password.New)).ToList();
+                    user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
+                    var addHistoryResult = await _userManager.UpdateAsync(user);
+
+                    if (!addHistoryResult.Succeeded)
+                    {
+                        Log.Warning("Failed to save password history or update password timestamp " +
+                                   $"for user {user.UserName}, aborting");
+                        return BadRequest();
+                    }
+                }
+
+                await DbContext.SaveChangesAsync();
+                txn.Commit();
+            }
+
+            return Json(new UserFullModel
+            {
+                Id = user.Id,
+                IsActivated = user.EmailConfirmed,
+                IsSuspended = user.IsSuspended,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                UserName = user.UserName,
+                Email = user.Email,
+                Phone = user.PhoneNumber,
+                Employer = user.Employer,
+                IsLocal = await IsUserAccountLocal(user.UserName),
+            });
         }
 
         [HttpGet]

@@ -6,7 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: {
-    'account-settings': './src/ts/account-settings.tsx',
+    'account-settings': './src/ts/react/account-settings/index.tsx',
     'authorized-content': './src/ts/react/authorized-content/index.tsx',
     'client-admin': './src/ts/client-admin.tsx',
     'content-access-admin': './src/ts/react/content-access-admin/index.tsx',
