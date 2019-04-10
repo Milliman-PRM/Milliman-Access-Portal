@@ -110,7 +110,7 @@ if ($Action.ToLower() -eq 'closed') {
 #region Configure environment properties
 $BranchName = $env:git_branch_name # Will be used in the version string of the octopus package & appended to database names
 
-$buildType = if($BranchName -eq 'develop' -or $BranchName -eq 'master' -or $BranchName.ToLower() -like 'pre-release*') {"Release"} Else {"Debug"}
+$buildType = if($BranchName -eq 'develop' -or $BranchName -eq 'master' -or $BranchName.ToLower() -like 'pre-release*' -or $BranchName.ToLower() -like "*hotfix*") {"Release"} Else {"Debug"}
 log_statement "Building configuration: $buildType"
 
 $gitExePath = "git"
@@ -512,7 +512,7 @@ if ($LASTEXITCODE -ne 0) {
 log_statement "Creating web app release"
 
 # Determine appropriate release channel (applies only at the time the release is created)
-if ($BranchName -like "%pre-release%")
+if ($BranchName.ToLower() -like "*pre-release*" -or $BranchName.ToLower() -like "*hotfix*")
 {
     $channelName = "Staging"
 }
