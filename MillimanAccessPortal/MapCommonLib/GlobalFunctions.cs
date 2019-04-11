@@ -1,4 +1,10 @@
-﻿using Serilog;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Provides access to values that are globally accessible, usually with default values. 
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
@@ -15,11 +21,11 @@ namespace MapCommonLib
 {
     public static class GlobalFunctions
     {
-
         public static string EmailValRegex { get; set; } = @"^(([^<>()[\]\\.,;:\s@']+(\.[^<>()[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$";
         public static string DomainValRegex { get; set; } = @"^((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$";
         public static ulong MaxFileUploadSize { get; set; } = 5368709120;
         public static ulong VirusScanWindowSeconds { get; set; } = 30;
+        public static int DefaultDomainCountLimit { get; set; } = 3;
 
         public static readonly int fallbackPasswordHistoryDays = 30;
         public static readonly int fallbackPasswordHashingIterations= 100_000;

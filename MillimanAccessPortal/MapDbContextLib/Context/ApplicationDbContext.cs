@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapCommonLib;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -86,6 +87,7 @@ namespace MapDbContextLib.Context
             builder.Entity<Client>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.Property(x => x.DomainListCountLimit).HasDefaultValue(GlobalFunctions.DefaultDomainCountLimit).ValueGeneratedOnAdd();
             });
             builder.Entity<UserRoleInClient>(b =>
             {

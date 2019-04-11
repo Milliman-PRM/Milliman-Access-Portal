@@ -60,6 +60,10 @@ namespace MapDbContextLib.Context
         public string[] AcceptedEmailDomainList { get; set; }
 
         [Required]
+        [HiddenInput]
+        public int DomainListCountLimit { get; set; }
+
+        [Required]
         [Display(Name = "Approved Email Address Exception List")]
         public string[] AcceptedEmailAddressExceptionList { get; set; }
 
