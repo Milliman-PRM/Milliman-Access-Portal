@@ -2,7 +2,15 @@
 
 ## Release Notes
 
-### v1.4.1
+### v1.5.0
+
+- Add support for Federated Authentication through external authentication providers
+- Redesigned the login page to support externally authenticated users
+- Redesigned the account settings page to better support externally authenticated users
+- Redesigned the account authorization workflow to support externally authenticated users
+- Fixed a issue that allowed users to be added to the same selection group multiple times
+
+#### v1.4.1
 
 - Allow buttons on content card to wrap
 
