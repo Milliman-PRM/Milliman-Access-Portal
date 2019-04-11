@@ -74,4 +74,19 @@ namespace MapDbContextLib.Context
         }
 
     }
+
+    public class SelectionGroupSameRecordIdComparer : IEqualityComparer<SelectionGroup>
+    {
+        public bool Equals(SelectionGroup l, SelectionGroup r)
+        {
+            if (ReferenceEquals(l, r)) return true;
+            if (l is null || r is null) return false;
+            return l.Id.Equals(r.Id);
+        }
+
+        public int GetHashCode(SelectionGroup obj)
+        {
+            return obj.Id.GetHashCode();
+        }
+    }
 }
