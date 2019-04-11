@@ -24,6 +24,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 .Where(usg => usg.SelectionGroup.ContentInstanceUrl != null)
                 .Where(usg => !usg.SelectionGroup.IsSuspended)
                 .Where(usg => !usg.SelectionGroup.RootContentItem.IsSuspended)
+                .Distinct(new UserInSelectionGroupEqualityComparer())
                 .Select(usg => usg.SelectionGroup)
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rc => rc.Client)

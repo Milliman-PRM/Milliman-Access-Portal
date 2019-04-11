@@ -236,15 +236,16 @@ namespace MillimanAccessPortal.DataQueries
         public UpdateGroupResponseModel UpdateGroup(Guid selectionGroupId, string name, List<Guid> users)
         {
             _selectionGroupQueries.UpdateSelectionGroupName(selectionGroupId, name);
-            var group = _selectionGroupQueries.UpdateSelectionGroupUsers(selectionGroupId, users);
 
-            var groupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
-            var contentItemStats = _contentItemQueries.SelectContentItemWithCardStats(group.RootContentItemId);
+            var updatedGroup = _selectionGroupQueries.UpdateSelectionGroupUsers(selectionGroupId, users);
+
+            BasicSelectionGroupWithAssignedUsers selectionGroupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(updatedGroup.Id);
+            BasicContentItemWithCardStats contentItemWithStats = _contentItemQueries.SelectContentItemWithCardStats(updatedGroup.RootContentItemId);
 
             return new UpdateGroupResponseModel
             {
-                Group = groupWithUsers,
-                ContentItemStats = contentItemStats,
+                Group = selectionGroupWithUsers,
+                ContentItemStats = contentItemWithStats,
             };
         }
 

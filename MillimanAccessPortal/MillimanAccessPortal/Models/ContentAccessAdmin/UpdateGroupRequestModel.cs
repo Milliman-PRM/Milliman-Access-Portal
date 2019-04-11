@@ -19,7 +19,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public string Name { get; set; }
 
         /// <summary>
-        /// List of users to assign to the selection group.
+        /// List of all users to be assigned to the selection group after processing.
         /// </summary>
         [EmitBeforeAfterLog]
         public List<Guid> Users { get; set; }

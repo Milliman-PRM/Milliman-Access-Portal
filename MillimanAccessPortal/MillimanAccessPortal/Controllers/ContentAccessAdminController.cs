@@ -259,6 +259,7 @@ namespace MillimanAccessPortal.Controllers
             return Json(selectionGroups);
         }
 
+        private static object updateGroupLockObj = new object();
         /// <summary>
         /// POST an update to a selection group
         /// </summary>
@@ -286,44 +287,45 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Validation
-            var existsCount = DbContext.ApplicationUser
-                .Where(u => model.Users.Contains(u.Id))
-                .Count();
-            if (existsCount < model.Users.Count)
+            lock (updateGroupLockObj)
             {
-                Response.Headers.Add("Warning", "One or more requested users do not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                #region Validation
+                int accountsExistCount = DbContext.ApplicationUser.Count(u => model.Users.Contains(u.Id));
+                if (accountsExistCount < model.Users.Count)
+                {
+                    Response.Headers.Add("Warning", "One or more requested users do not exist in the system.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+
+                int hasClientContentRoleCount = DbContext.UserRoleInClient
+                    .Where(r => model.Users.Contains(r.UserId))
+                    .Where(r => r.ClientId == clientId)
+                    .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
+                    .Count();
+                if (hasClientContentRoleCount < model.Users.Count)
+                {
+                    Response.Headers.Add("Warning",
+                        "One or more requested users do not have permission to view content of this client.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+
+                bool anyAlreadyInAnotherGroup = DbContext.UserInSelectionGroup
+                    .Where(u => model.Users.Contains(u.UserId))
+                    .Where(u => u.SelectionGroup.RootContentItemId == contentItemId)
+                    .Where(u => u.SelectionGroupId != model.GroupId)
+                    .Any();
+                if (anyAlreadyInAnotherGroup)
+                {
+                    Response.Headers.Add("Warning",
+                        "One or more requested users are curently in a different selection group for the same content.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+                #endregion
+
+                var group = _queries.UpdateGroup(model.GroupId, model.Name, model.Users);
+
+                return Json(group);
             }
-
-            var hasRoleCount = DbContext.UserRoleInClient
-                .Where(r => model.Users.Contains(r.UserId))
-                .Where(r => r.ClientId == clientId)
-                .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
-                .Count();
-            if (hasRoleCount < model.Users.Count)
-            {
-                Response.Headers.Add("Warning",
-                    "One or more requested users do not have permission to use this content.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-
-            var anyInOtherGroup = DbContext.UserInSelectionGroup
-                .Where(u => model.Users.Contains(u.UserId))
-                .Where(u => u.SelectionGroup.RootContentItemId == contentItemId)
-                .Where(u => u.SelectionGroupId != model.GroupId)
-                .Any();
-            if (anyInOtherGroup)
-            {
-                Response.Headers.Add("Warning",
-                    "One or more requested users are already in a different selection group.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            var group = _queries.UpdateGroup(model.GroupId, model.Name, model.Users.ToList());
-
-            return Json(group);
         }
 
         /// <summary>
