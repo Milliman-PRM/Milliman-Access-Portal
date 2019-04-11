@@ -63,6 +63,52 @@ namespace MapTests
         }
 
         /// <summary>
+        /// Test that the Index returns a view containing a list of content items the test user can access.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public void Content_DeduplicatesAssignedSelectionGroups()
+        {
+            #region Arrange
+            // initialize dependencies
+            TestInitialization TestResources = new TestInitialization();
+
+            // initialize data
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+
+            // Create the system under test (sut)
+            AuthorizedContentController sut = new AuthorizedContentController(
+                TestResources.AuditLoggerObject,
+                TestResources.AuthorizationService,
+                TestResources.DbContextObject,
+                TestResources.MessageQueueServicesObject,
+                TestResources.QvConfig,
+                TestResources.QueriesObj,
+                TestResources.UserManagerObject,
+                TestResources.ConfigurationObject);
+
+            // For illustration only, the same result comes from either of the following techniques:
+            // This one should never throw even if the user name is not in the context data
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            #endregion
+
+            #region Act
+            // invoke the controller action to be tested
+            var view = sut.Content();
+            #endregion
+
+            #region Assert
+            Assert.Equal(2, TestResources.DbContextObject.UserInSelectionGroup.Where(usg => usg.UserId == TestUtil.MakeTestGuid(1) && usg.SelectionGroupId == TestUtil.MakeTestGuid(1)).Count());
+            JsonResult returnModel = Assert.IsType<JsonResult>(view);
+            AuthorizedContentViewModel typedModel = Assert.IsType<AuthorizedContentViewModel>(returnModel.Value);
+            Assert.Single(typedModel.ItemGroups);
+            Assert.Single(typedModel.ItemGroups[0].Items);
+            #endregion
+        }
+
+        /// <summary>
         /// Test that WebHostedContent(id) results in an error page when the user is not authorized to the content
         /// </summary>
         /// <returns></returns>
