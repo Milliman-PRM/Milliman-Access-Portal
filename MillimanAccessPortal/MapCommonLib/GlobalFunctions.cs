@@ -26,11 +26,11 @@ namespace MapCommonLib
         public static ulong MaxFileUploadSize { get; set; } = 5368709120;
         public static ulong VirusScanWindowSeconds { get; set; } = 30;
         public static int DefaultDomainCountLimit { get; set; } = 3;
-
-        public static readonly int fallbackPasswordHistoryDays = 30;
-        public static readonly int fallbackPasswordHashingIterations= 100_000;
-        public static readonly int fallbackAccountActivationTokenTimespanDays = 7;
-        public static readonly int fallbackPasswordResetTokenTimespanHours = 4;
+        public static int AccountActivationTokenTimespanDays { get; set; } = 7;
+        public static int PasswordResetTokenTimespanHours { get; set; } = 2;
+        public static int PasswordHistoryDays { get; set; } = 90;
+        public static int PasswordHashingIterations { get; set; } = 100_000;
+        public static int PasswordExpirationDays { get; set; } = 30;
 
         private static readonly string _DefaultErrorLogPath = ".";
 

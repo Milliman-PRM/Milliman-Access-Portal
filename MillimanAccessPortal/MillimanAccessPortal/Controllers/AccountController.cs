@@ -221,20 +221,7 @@ namespace MillimanAccessPortal.Controllers
                 // Redirect user to the password reset view to set a new password
                 bool passwordSuccess = await _userManager.CheckPasswordAsync(user, model.Password);
 
-                // Set a default value in case the configuration isn't found or isn't an int
-                int defaultExpirationDays = 30;
-                int expirationDays = defaultExpirationDays;
-                try
-                {
-                    expirationDays = _configuration.GetValue<int>("PasswordExpirationDays");
-                }
-                catch
-                {
-                    expirationDays = defaultExpirationDays;
-                    Log.Warning($"PasswordExpirationDays value not found in configuration, or cannot be cast to an integer. The default value of {expirationDays} will be used");
-                }
-                                
-                if (passwordSuccess && user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow)
+                if (passwordSuccess && user.LastPasswordChangeDateTimeUtc.AddDays(GlobalFunctions.PasswordExpirationDays) < DateTime.UtcNow)
                 {
                     await SendPasswordResetEmail(user, Url);
 
@@ -509,7 +496,7 @@ namespace MillimanAccessPortal.Controllers
                 ? string.Empty
                 : SettableEmailText + $"{Environment.NewLine}{Environment.NewLine}";
 
-            string accountActivationDays = _configuration["AccountActivationTokenTimespanDays"] ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays.ToString();
+            string accountActivationDays = GlobalFunctions.AccountActivationTokenTimespanDays.ToString();
 
             // Non-configurable portion of email body
             emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}" + 
@@ -541,9 +528,7 @@ namespace MillimanAccessPortal.Controllers
                 string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(RequestedUser);
                 string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = RequestedUser.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
 
-                string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
-
-                emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
+                emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {GlobalFunctions.PasswordResetTokenTimespanHours} hours. {Environment.NewLine}";
                 emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
                 emailBody += $"{linkUrl}";
 

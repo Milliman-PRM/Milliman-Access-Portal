@@ -35,6 +35,11 @@ namespace MillimanAccessPortal
                 GlobalFunctions.MaxFileUploadSize = Configuration.GetValue("Global:MaxFileUploadSize", GlobalFunctions.MaxFileUploadSize);
                 GlobalFunctions.VirusScanWindowSeconds = Configuration.GetValue("Global:VirusScanWindowSeconds", GlobalFunctions.VirusScanWindowSeconds);
                 GlobalFunctions.DefaultDomainCountLimit = Configuration.GetValue("Global:DefaultDomainCountLimit", GlobalFunctions.DefaultDomainCountLimit);
+                GlobalFunctions.AccountActivationTokenTimespanDays = Configuration.GetValue("Global:AccountActivationTokenTimespanDays", GlobalFunctions.AccountActivationTokenTimespanDays);
+                GlobalFunctions.PasswordResetTokenTimespanHours = Configuration.GetValue("Global:PasswordResetTokenTimespanHours", GlobalFunctions.PasswordResetTokenTimespanHours);
+                GlobalFunctions.PasswordHistoryDays = Configuration.GetValue("Global:PasswordHistoryValidatorDays", GlobalFunctions.PasswordHistoryDays);
+                GlobalFunctions.PasswordHashingIterations = Configuration.GetValue("Global:PasswordHashingIterations", GlobalFunctions.PasswordHashingIterations);
+                GlobalFunctions.PasswordExpirationDays = Configuration.GetValue("Global:PasswordExpirationDays", GlobalFunctions.PasswordExpirationDays);
 
                 // Initialize Serilog
                 Log.Logger = new LoggerConfiguration()

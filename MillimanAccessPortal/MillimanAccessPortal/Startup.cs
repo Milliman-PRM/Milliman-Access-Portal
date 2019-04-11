@@ -75,11 +75,7 @@ namespace MillimanAccessPortal
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(appConnectionString, b => b.MigrationsAssembly("MillimanAccessPortal")));
 
-            int passwordHistoryDays = Configuration.GetValue<int?>("PasswordHistoryValidatorDays") ?? GlobalFunctions.fallbackPasswordHistoryDays;
-            List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();
-            int passwordHashingIterations = Configuration.GetValue<int?>("PasswordHashingIterations") ?? GlobalFunctions.fallbackPasswordHashingIterations; 
-            int accountActivationTokenTimespanDays = Configuration.GetValue<int?>("AccountActivationTokenTimespanDays") ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays;
-            int passwordResetTokenTimespanHours = Configuration.GetValue<int?>("PasswordResetTokenTimespanHours") ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours;
+            List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList();
 
             string tokenProviderName = "MAPResetToken";
 
@@ -95,7 +91,7 @@ namespace MillimanAccessPortal
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
                 .AddTop100000PasswordValidator<ApplicationUser>()
-                .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
+                .AddRecentPasswordInDaysValidator<ApplicationUser>(GlobalFunctions.PasswordHistoryDays)
                 .AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
                 .AddCommonWordsValidator<ApplicationUser>(commonWords)
                 .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName)
@@ -213,7 +209,7 @@ namespace MillimanAccessPortal
 
             #endregion
 
-            services.Configure<PasswordHasherOptions>(options => options.IterationCount = passwordHashingIterations);
+            services.Configure<PasswordHasherOptions>(options => options.IterationCount = GlobalFunctions.PasswordHashingIterations);
 
             services.Configure<IdentityOptions>(options =>
             {
@@ -240,13 +236,13 @@ namespace MillimanAccessPortal
             // Configure custom security token provider
             services.Configure<PasswordResetSecurityTokenProviderOptions>(options =>
             {
-                options.TokenLifespan = TimeSpan.FromHours(passwordResetTokenTimespanHours);
+                options.TokenLifespan = TimeSpan.FromHours(GlobalFunctions.PasswordResetTokenTimespanHours);
             });
 
             // Configure the default token provider used for account activation
             services.Configure<DataProtectionTokenProviderOptions>(options =>
             {
-                options.TokenLifespan = TimeSpan.FromDays(accountActivationTokenTimespanDays);
+                options.TokenLifespan = TimeSpan.FromDays(GlobalFunctions.AccountActivationTokenTimespanDays);
             });
 
             // Cookie settings
