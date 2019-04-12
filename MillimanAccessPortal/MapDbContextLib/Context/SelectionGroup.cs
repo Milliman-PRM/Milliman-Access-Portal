@@ -7,7 +7,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Collections.Generic;
 using System.IO;
 
 namespace MapDbContextLib.Context
@@ -41,7 +40,7 @@ namespace MapDbContextLib.Context
         public bool IsSuspended { get; set; }
 
         [NotMapped]
-        public bool IsInactive { get => ContentInstanceUrl == null; }
+        public bool IsInactive { get => string.IsNullOrWhiteSpace(ContentInstanceUrl); }
 
         public string ReducedContentChecksum { get; set; }
 

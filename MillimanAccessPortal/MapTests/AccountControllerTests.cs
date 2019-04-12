@@ -54,7 +54,7 @@ namespace MapTests
                 TestResources.AuthenticationServiceObject)
                 ;
 
-            testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: UserName);
+            testController.ControllerContext = TestInitialization.GenerateControllerContext(userName: UserName);
             testController.HttpContext.Session = new MockSession();
             return testController;
         }
