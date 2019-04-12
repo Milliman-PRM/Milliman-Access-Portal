@@ -281,9 +281,12 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 .Select(uid => new UserInSelectionGroup { UserId = uid, SelectionGroupId = selectionGroupId });
             _dbContext.UserInSelectionGroup.AddRange(recordsToAdd);
 
-            var usersToRemove = allCurrentUserIds.Except(newListOfUserIds)
-                .Select(uid => new UserInSelectionGroup { UserId = uid, SelectionGroupId = selectionGroupId });
-            _dbContext.UserInSelectionGroup.RemoveRange(usersToRemove);
+            var userGuidsToRemove = allCurrentUserIds.Except(newListOfUserIds);
+            var recordsToRemove = _dbContext.UserInSelectionGroup
+                .Where(usg => userGuidsToRemove.Contains(usg.UserId))
+                .Where(usg => usg.SelectionGroupId == selectionGroupId)
+                .ToList();
+            _dbContext.UserInSelectionGroup.RemoveRange(recordsToRemove);
 
             _dbContext.SaveChanges();
 
@@ -292,14 +295,14 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             {
                 _auditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(requestedGroup, userInGroup.UserId));
             }
-            foreach (var userInGroup in usersToRemove)
+            foreach (var userInGroup in userGuidsToRemove.Distinct())
             {
-                _auditLogger.Log(AuditEventType.SelectionGroupUserRemoved.ToEvent(requestedGroup, userInGroup.UserId));
+                _auditLogger.Log(AuditEventType.SelectionGroupUserRemoved.ToEvent(requestedGroup, userInGroup));
             }
-            if (usersToRemove.Any())
+            if (userGuidsToRemove.Any())
             {
                 _auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetRemovedFromGroup
-                    .ToEvent(usersToRemove.ToList(), requestedGroup.RootContentItemId));
+                    .ToEvent(recordsToRemove, requestedGroup.RootContentItemId));
             }
 
             return requestedGroup;
