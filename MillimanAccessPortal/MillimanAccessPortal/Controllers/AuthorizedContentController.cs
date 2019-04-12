@@ -171,7 +171,7 @@ namespace MillimanAccessPortal.Controllers
                 Host = Request.Host.Host,
                 Scheme = Request.Scheme,
                 Port = Request.Host.Port ?? -1,
-                Path = "/AuthorizedContent/WebHostedContent",
+                Path = $"/AuthorizedContent/{nameof(WebHostedContent)}",
                 Query = "selectionGroupId=",
             };
 
@@ -271,7 +271,7 @@ namespace MillimanAccessPortal.Controllers
             var masterContentRelatedFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
             var requestedContentFile = selectionGroup.IsMaster
                 ? masterContentRelatedFile
-                : selectionGroup.ContentInstanceUrl == null
+                : selectionGroup.IsInactive
                     ? null
                     : new ContentRelatedFile
                     {

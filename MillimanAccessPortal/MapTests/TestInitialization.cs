@@ -15,12 +15,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.DataQueries.EntityQueries;
@@ -143,17 +145,17 @@ namespace MapTests
         /// <summary>
         /// Initializes a ControllerContext based on a user name. 
         /// </summary>
-        /// <param name="UserAsUserName">The user to be impersonated in the ControllerContext</param>
+        /// <param name="userName">The user to be impersonated in the ControllerContext</param>
         /// <returns></returns>
-        internal static ControllerContext GenerateControllerContext(string UserAsUserName = null)
+        internal static ControllerContext GenerateControllerContext(string userName = null, UriBuilder requestUriBuilder = null)
         {
             ClaimsPrincipal TestUserClaimsPrincipal = new ClaimsPrincipal();
-            if (!string.IsNullOrWhiteSpace(UserAsUserName))
+            if (!string.IsNullOrWhiteSpace(userName))
             {
-                TestUserClaimsPrincipal.AddIdentity(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, UserAsUserName) }));
+                TestUserClaimsPrincipal.AddIdentity(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, userName) }));
             }
 
-            return GenerateControllerContext(TestUserClaimsPrincipal);
+            return GenerateControllerContext(TestUserClaimsPrincipal, requestUriBuilder);
         }
 
         /// <summary>
@@ -161,13 +163,32 @@ namespace MapTests
         /// </summary>
         /// <param name="UserAsClaimsPrincipal">The user to be impersonated in the ControllerContext</param>
         /// <returns></returns>
-        internal static ControllerContext GenerateControllerContext(ClaimsPrincipal UserAsClaimsPrincipal)
+        internal static ControllerContext GenerateControllerContext(ClaimsPrincipal UserAsClaimsPrincipal, UriBuilder requestUriBuilder = null)
         {
-            return new ControllerContext
+            ControllerContext returnVal = new ControllerContext
             {
-                HttpContext = new DefaultHttpContext() { User = UserAsClaimsPrincipal },
+                HttpContext = new DefaultHttpContext() { User = UserAsClaimsPrincipal, },
                 ActionDescriptor = new ControllerActionDescriptor { ActionName="Unit Test" }
             };
+
+            if (requestUriBuilder != null)
+            {
+                var listOfQueries = requestUriBuilder.Query.Substring(1).Split('&', StringSplitOptions.RemoveEmptyEntries).ToList();
+                Dictionary<string, StringValues> dict = new Dictionary<string, StringValues>();
+                foreach (string query in listOfQueries)
+                {
+                    var keyAndValue = query.Split('=', 2, StringSplitOptions.RemoveEmptyEntries);
+                    dict.Add(keyAndValue[0], keyAndValue[1]);
+                }
+
+                returnVal.HttpContext.Request.Scheme = requestUriBuilder.Scheme;
+                returnVal.HttpContext.Request.Host = requestUriBuilder.Port > 0 
+                    ? new HostString(requestUriBuilder.Host, requestUriBuilder.Port) 
+                    : new HostString(requestUriBuilder.Host);
+                returnVal.HttpContext.Request.Path = requestUriBuilder.Path;
+                returnVal.HttpContext.Request.Query = new QueryCollection(dict);
+            }
+            return returnVal;
         }
 
         public void GenerateTestData(IEnumerable<DataSelection> DataSelections)

@@ -10,8 +10,10 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Reflection;
 
 namespace MapDbContextLib.Context
 {
@@ -163,6 +165,31 @@ namespace MapDbContextLib.Context
             await Identity.ApplicationRole.SeedRoles(serviceProvider);
             Context.ContentType.InitializeContentTypes(serviceProvider);
             await Context.AuthenticationScheme.SeedSchemes(serviceProvider);
+        }
+    }
+
+    public class IdPropertyComparer<T> : IEqualityComparer<T> where T: class 
+    {
+        public bool Equals(T l, T r)
+        {
+            if (l.GetType() != r.GetType()) return false;
+            if (ReferenceEquals(l, r)) return true;
+            if (l is null || r is null) return false;
+
+            Type t = typeof(T);
+            PropertyInfo propInfo = t.GetProperty("Id");
+
+            var lValue = propInfo.GetValue(l);
+            var rValue = propInfo.GetValue(r);
+
+            return lValue.Equals(rValue);
+        }
+
+        public int GetHashCode(T obj)
+        {
+            PropertyInfo p = typeof(T).GetProperty("Id");
+            var idVal = p.GetValue(obj);
+            return idVal.GetHashCode();
         }
     }
 }

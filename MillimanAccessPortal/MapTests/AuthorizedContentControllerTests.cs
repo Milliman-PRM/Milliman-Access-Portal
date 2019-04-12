@@ -47,9 +47,9 @@ namespace MapTests
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName=="test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName=="test1").First().UserName);
             #endregion
 
             #region Act
@@ -67,7 +67,7 @@ namespace MapTests
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public void Content_DeduplicatesAssignedSelectionGroups()
+        public async Task Content_DeduplicatesAssignedSelectionGroups()
         {
             #region Arrange
             // initialize dependencies
@@ -89,14 +89,14 @@ namespace MapTests
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext("test1", new UriBuilder { Scheme="https", Host = "www.test.com", Path = "/", Query="p1=abc&p2=def&p3=ghi" });
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            //sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
             #endregion
 
             #region Act
             // invoke the controller action to be tested
-            var view = sut.Content();
+            var view = await sut.Content();
             #endregion
 
             #region Assert
@@ -136,9 +136,9 @@ namespace MapTests
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
             sut.ControllerContext.ActionDescriptor = new Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor { ActionName = "WebHostedContent" };
             sut.HttpContext.Session = new MockSession();
@@ -181,9 +181,9 @@ namespace MapTests
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
             // Add a file to the root content item and a content url to the selection group
             string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
@@ -244,9 +244,9 @@ namespace MapTests
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
             // Add a file to the root content item and a content url to the selection group
             string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
@@ -301,9 +301,9 @@ namespace MapTests
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
             #endregion
 
             #region Act
@@ -343,9 +343,9 @@ namespace MapTests
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
             #endregion
 
             #region Act
@@ -388,9 +388,9 @@ namespace MapTests
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
             string UserGuideSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", "IHopeSo.pdf");
             string UserGuideTestPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", purpose + ".pdf");
@@ -450,9 +450,9 @@ namespace MapTests
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
             string purpose = "UserGuide";
             string UserGuideSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", "IHopeSo.pdf");
             string UserGuideTestPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", purpose + ".pdf");
@@ -510,9 +510,9 @@ namespace MapTests
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
             string purpose = "UserGuide";
             string UserGuideSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", "IHopeSo.pdf");
@@ -570,9 +570,9 @@ namespace MapTests
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
             string purpose = "UserGuide";
             string UserGuideSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", "IHopeSo.pdf");

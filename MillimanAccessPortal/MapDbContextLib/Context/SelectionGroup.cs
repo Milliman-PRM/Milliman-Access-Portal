@@ -7,7 +7,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Collections.Generic;
 using System.IO;
 
 namespace MapDbContextLib.Context
@@ -41,7 +40,7 @@ namespace MapDbContextLib.Context
         public bool IsSuspended { get; set; }
 
         [NotMapped]
-        public bool IsInactive { get => ContentInstanceUrl == null; }
+        public bool IsInactive { get => string.IsNullOrWhiteSpace(ContentInstanceUrl); }
 
         public string ReducedContentChecksum { get; set; }
 
@@ -73,20 +72,5 @@ namespace MapDbContextLib.Context
             }
         }
 
-    }
-
-    public class SelectionGroupSameRecordIdComparer : IEqualityComparer<SelectionGroup>
-    {
-        public bool Equals(SelectionGroup l, SelectionGroup r)
-        {
-            if (ReferenceEquals(l, r)) return true;
-            if (l is null || r is null) return false;
-            return l.Id.Equals(r.Id);
-        }
-
-        public int GetHashCode(SelectionGroup obj)
-        {
-            return obj.Id.GetHashCode();
-        }
     }
 }

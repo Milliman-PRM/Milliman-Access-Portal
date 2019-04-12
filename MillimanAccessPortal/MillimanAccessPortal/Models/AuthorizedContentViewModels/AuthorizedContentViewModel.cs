@@ -18,11 +18,12 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
     {
         public static AuthorizedContentViewModel Build(ApplicationDbContext dbContext, ApplicationUser user, HttpContext Context)
         {
-            // npgsql does not support Distinct(IEqualityComparer<T>) so this needs to be submitted to pgsql before deduplicating
+            // npgsql does not support `.Distinct(IEqualityComparer<T>)` so this needs to be submitted to pgsql before deduplicating
             var allMatchingSelectionGroupRecords = dbContext.UserInSelectionGroup
                 .Where(usg => usg.UserId == user.Id)
                 .Where(usg => usg.SelectionGroup.ContentInstanceUrl != null)
                 .Where(usg => !usg.SelectionGroup.IsSuspended)
+                .Where(usg => !usg.SelectionGroup.IsInactive)
                 .Where(usg => !usg.SelectionGroup.RootContentItem.IsSuspended)
                 .Select(usg => usg.SelectionGroup)
                 .Include(sg => sg.RootContentItem)
@@ -31,32 +32,14 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                     .ThenInclude(rc => rc.ContentType)
                 .ToList();
 
-            // Distinct selection groups of which user is a member
+            // Deduplicate the above result
             var distinctSelectionGroups = allMatchingSelectionGroupRecords
-                .Distinct(new SelectionGroupSameRecordIdComparer())
+                .Distinct(new IdPropertyComparer<SelectionGroup>())
                 .ToList();
-
-            var notActive = new List<SelectionGroup>();
-            foreach (var selectionGroup in distinctSelectionGroups)
-            {
-                var masterContentFile = selectionGroup.RootContentItem.ContentFilesList.FirstOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
-                if (masterContentFile == null || string.IsNullOrWhiteSpace(selectionGroup.ContentInstanceUrl))
-                {
-                    notActive.Add(selectionGroup);
-                    continue;
-                }
-                var fileName = Path.GetFileName(selectionGroup.ContentInstanceUrl);
-                var filePath = Path.Combine(Path.GetDirectoryName(masterContentFile.FullPath), fileName);
-                if (!File.Exists(filePath))
-                {
-                    notActive.Add(selectionGroup);
-                }
-            }
-            distinctSelectionGroups.RemoveAll(sg => notActive.Contains(sg));
 
             var clients = distinctSelectionGroups
                 .Select(sg => sg.RootContentItem.Client)
-                .ToHashSet();
+                .ToHashSet(new IdPropertyComparer<Client>());
 
             UriBuilder contentUrlBuilder = new UriBuilder
             {
