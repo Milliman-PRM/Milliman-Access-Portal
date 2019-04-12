@@ -146,16 +146,14 @@
             }
         }
     }
+}
 
-    .error-message {
-        display: block;
-        font-style: italic;
-        font-size: .75rem;
-        color: $red;
-        padding: .25rem;
-        margin: .25rem;
-        white-space: pre;
-    }
+.error-message {
+    display: block;
+    font-style: italic;
+    color: $red;
+    margin: .25rem;
+    white-space: pre;
 }
 
 .button-container {
