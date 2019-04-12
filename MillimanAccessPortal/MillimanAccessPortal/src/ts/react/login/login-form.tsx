@@ -102,7 +102,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
           inputIcon="password"
           hidden={!userConfirmed}
         />
-        {loginWarning && <div className="login-warning">{loginWarning}</div>}
+        {loginWarning && <div className="error-message">{loginWarning}</div>}
         <div className={'button-container' + (userConfirmed ? ' visible' : ' hidden')}>
           <a href="/Account/ForgotPassword" className="link-button">Forgot Password</a>
           <button
