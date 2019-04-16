@@ -101,10 +101,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            ViewResult viewAsViewResult = view as ViewResult;
-
-            Assert.IsType<ViewResult>(view);
-            Assert.Equal("Login", viewAsViewResult.ViewName);
+            var typedResult = Assert.IsType<RedirectToActionResult>(view);
+            Assert.Equal("Login", typedResult.ActionName);
             
             #endregion
         }
@@ -153,6 +151,7 @@ namespace MapTests
                 LastName = LastName,
                 Phone = Phone,
                 IsLocalAccount = true,
+                Username = controller.HttpContext.User.Identity.Name,
             };
             #endregion
 
@@ -162,8 +161,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("Login", viewAsViewResult.ViewName);
+            RedirectToActionResult typedResult = Assert.IsType<RedirectToActionResult>(view);
+            Assert.Equal("Login", typedResult.ActionName);
             Assert.Equal(NewPass + "xyz", UserRecord.PasswordHash);
             Assert.Equal(NewEmployer, UserRecord.Employer);
             Assert.Equal(FirstName, UserRecord.FirstName);
