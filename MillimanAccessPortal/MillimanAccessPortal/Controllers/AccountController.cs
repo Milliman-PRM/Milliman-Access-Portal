@@ -133,7 +133,7 @@ namespace MillimanAccessPortal.Controllers
                                              .SingleOrDefault(u => EF.Functions.ILike(u.UserName, userName))
                                              ?.AuthenticationScheme
                                              ?.Name;
-            if (!string.IsNullOrWhiteSpace(assignedScheme) && 
+            if (!string.IsNullOrWhiteSpace(assignedScheme) &&
                 !defaultScheme.Equals(assignedScheme, StringComparison.InvariantCultureIgnoreCase))
             {
                 return assignedScheme;
@@ -207,7 +207,7 @@ namespace MillimanAccessPortal.Controllers
                     Response.Headers.Add("Warning", "Invalid login attempt.");
                     return Ok();
                 }
-                
+
                 if (user.IsSuspended)
                 {
                     _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName));
@@ -233,7 +233,7 @@ namespace MillimanAccessPortal.Controllers
                     expirationDays = defaultExpirationDays;
                     Log.Warning($"PasswordExpirationDays value not found in configuration, or cannot be cast to an integer. The default value of {expirationDays} will be used");
                 }
-                                
+
                 if (passwordSuccess && user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow)
                 {
                     await SendPasswordResetEmail(user, Url);
@@ -427,7 +427,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.ExternalLoginCallback action");
 
-            if (string.IsNullOrWhiteSpace(HttpContext.User.Identity.Name) || 
+            if (string.IsNullOrWhiteSpace(HttpContext.User.Identity.Name) ||
                 !HttpContext.User.Identity.IsAuthenticated)
             {
                 return RedirectToAction(nameof(Login));
@@ -493,8 +493,8 @@ namespace MillimanAccessPortal.Controllers
                 Scheme = request.Scheme,
                 Host = request.Host.Host,
                 Port = request.Host.Port ?? -1,
-                Path = $"/{nameof(AccountController).Replace("Controller","")}/{nameof(AccountController.EnableAccount)}",
-                Query = $"userId={RequestedUser.Id}&code={emailConfirmationToken}"
+                Path = $"/{nameof(AccountController).Replace("Controller", "")}/{nameof(AccountController.EnableAccount)}",
+                Query = $"userId={RequestedUser.Id}&code={Uri.EscapeDataString(emailConfirmationToken)}"
             };
 
             UriBuilder rootSiteUrl = new UriBuilder
@@ -512,7 +512,7 @@ namespace MillimanAccessPortal.Controllers
             string accountActivationDays = _configuration["AccountActivationTokenTimespanDays"] ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays.ToString();
 
             // Non-configurable portion of email body
-            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}" + 
+            emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}" +
                 $"Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}" +
                 $"{emailLink.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}" +
                 $"This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}" +
@@ -530,7 +530,8 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.SendPasswordResetEmail action with {@UserName}", RequestedUser.UserName);
 
-            if (!DbContext.ApplicationUser.Any(u => u.Id == RequestedUser.Id)) {
+            if (!DbContext.ApplicationUser.Any(u => u.Id == RequestedUser.Id))
+            {
                 Log.Information($"Password reset requested by user <{User?.Identity?.Name}> for non-existing user with email {RequestedUser.Email}");
                 return;
             }
@@ -588,7 +589,7 @@ namespace MillimanAccessPortal.Controllers
             if (user.EmailConfirmed)  // Account is already activated
             {
                 Log.Debug($"In AccountController.EnableAccount GET action: user {userId} account is already enabled, aborting");
-                return View(nameof(Login));
+                return RedirectToAction(nameof(Login));
             }
 
             // If the code is not valid (likely expired), re-send the welcome email and notify the user
@@ -646,7 +647,7 @@ namespace MillimanAccessPortal.Controllers
             if (user.EmailConfirmed)  // Account is already activated
             {
                 Log.Debug($"In AccountController.EnableAccount POST action: user {model.Id} account is already activated, aborting");
-                return View(nameof(Login));
+                return RedirectToAction(nameof(Login));
             }
 
             using (var Txn = DbContext.Database.BeginTransaction())
@@ -725,7 +726,7 @@ namespace MillimanAccessPortal.Controllers
                 Log.Verbose($"User {model.Username} account enabled and profile saved");
                 _auditLogger.Log(AuditEventType.UserAccountEnabled.ToEvent(user));
 
-                return View(nameof(Login));
+                return RedirectToAction(nameof(Login));
             }
         }
 
@@ -922,7 +923,8 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/NavBar
         [HttpGet]
         [Authorize]
-        public async Task<JsonResult> NavBarElements() {
+        public async Task<JsonResult> NavBarElements()
+        {
             Log.Verbose("Entered AccountController.NavBarElements action, user {@User}", User.Identity.Name);
 
             List<NavBarElementModel> NavBarElements = new List<NavBarElementModel> { };
@@ -1197,7 +1199,7 @@ namespace MillimanAccessPortal.Controllers
                     }
                 }
             }
-            
+
             if (!passwordValidationErrors.Any())
             {
                 Log.Verbose("In AccountController.CheckPasswordValidity action: proposed password is valid");
@@ -1238,7 +1240,7 @@ namespace MillimanAccessPortal.Controllers
                     }
                 }
             }
-            
+
             if (!passwordValidationErrors.Any())
             {
                 Log.Verbose("In AccountController.CheckPasswordValidity action: proposed password is valid");
