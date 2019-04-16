@@ -676,7 +676,7 @@ namespace MillimanAccessPortal.Controllers
                     }
                 }
 
-                if (model.IsLocalAccount)
+                if (await IsUserAccountLocal(model.Username))
                 {
                     // Set the initial password
                     IdentityResult addPasswordResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
