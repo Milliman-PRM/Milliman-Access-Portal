@@ -129,6 +129,7 @@ namespace MillimanAccessPortal
                     options.Events.OnRedirectToIdentityProvider = context =>
                     {
                         context.ProtocolMessage.Wfresh = "0";  // Force domain login form every time
+                        context.ProtocolMessage.Wauth = "urn:oasis:names:tc:SAML:1.0:am:password";
                         if (context.Properties.Items.ContainsKey("username"))
                         {
                             context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
