@@ -129,7 +129,7 @@ namespace MillimanAccessPortal
                     options.Events.OnRedirectToIdentityProvider = context =>
                     {
                         context.ProtocolMessage.Wfresh = "0";  // Force domain login form every time
-                        context.ProtocolMessage.Wauth = "urn:oasis:names:tc:SAML:1.0:am:password";
+                        //context.ProtocolMessage.Wauth = "urn:oasis:names:tc:SAML:1.0:am:password";
                         if (context.Properties.Items.ContainsKey("username"))
                         {
                             context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
@@ -142,6 +142,21 @@ namespace MillimanAccessPortal
                     {
                         context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to forego subsequent processing
 
+                        ClaimsIdentity identity = context?.Principal?.Identity as ClaimsIdentity;
+
+                        string authenticatedUserName = identity?.Name ?? identity?.Claims?.SingleOrDefault(c => c.Type.EndsWith("nameidentifier"))?.Value;
+                        if (string.IsNullOrWhiteSpace(authenticatedUserName))
+                        {
+                            Log.Error($"External authentication token received, but no authenticated user name was included in claim <{ClaimTypes.Name}> or <{ClaimTypes.NameIdentifier}>");
+                            UriBuilder msg = new UriBuilder
+                            {
+                                Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                Query = "msg=The authenticating domain did not return your user name. Please email us at map.support@milliman.com and provide this error message and your user name.",
+                            };
+                            context.Response.Redirect(msg.Uri.PathAndQuery);
+                            return;
+                        }
+
                         using (IServiceScope scope = context.HttpContext.RequestServices.CreateScope())
                         {
                             IServiceProvider serviceProvider = scope.ServiceProvider;
@@ -149,14 +164,12 @@ namespace MillimanAccessPortal
                             IAuditLogger _auditLogger = serviceProvider.GetService<IAuditLogger>();
                             try
                             {
-                                Log.Information("External token handler invoked with user context {@contextPrincipal}", context.Principal);
-
-                                ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(context.Principal.Identity.Name);
+                                ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserId);
 
                                 if (_applicationUser == null)
                                 {
-                                    Log.Warning($"External login succeeded but username {context.Principal.Identity.Name} is not in our Identity database");
-                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
+                                    Log.Warning($"External login succeeded but username {identity.Name} is not in our Identity database");
+                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name));
 
                                     UriBuilder msg = new UriBuilder
                                     {
