@@ -427,7 +427,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.ExternalLoginCallback action");
 
-            if (string.IsNullOrWhiteSpace(HttpContext.User.Identity.Name) ||
+            if (string.IsNullOrWhiteSpace(HttpContext.User?.Identity?.Name) ||
                 !HttpContext.User.Identity.IsAuthenticated)
             {
                 Log.Warning("AccountController.ExternalLoginCallback action invoked with {@HttpContext.User}", HttpContext.User);
