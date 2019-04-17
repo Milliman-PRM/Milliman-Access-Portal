@@ -149,11 +149,13 @@ namespace MillimanAccessPortal
                             IAuditLogger _auditLogger = serviceProvider.GetService<IAuditLogger>();
                             try
                             {
+                                Log.Information("External token handler invoked with user context {@contextPrincipal}", context.Principal);
+
                                 ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(context.Principal.Identity.Name);
 
                                 if (_applicationUser == null)
                                 {
-                                    // External login succeeded but username is not in our Identity database
+                                    Log.Warning($"External login succeeded but username {context.Principal.Identity.Name} is not in our Identity database");
                                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
 
                                     UriBuilder msg = new UriBuilder

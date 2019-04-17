@@ -430,6 +430,7 @@ namespace MillimanAccessPortal.Controllers
             if (string.IsNullOrWhiteSpace(HttpContext.User.Identity.Name) ||
                 !HttpContext.User.Identity.IsAuthenticated)
             {
+                Log.Warning("AccountController.ExternalLoginCallback action invoked with {@HttpContext.User}", HttpContext.User);
                 return RedirectToAction(nameof(Login));
             }
 
