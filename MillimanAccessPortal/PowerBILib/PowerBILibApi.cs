@@ -254,7 +254,9 @@ namespace PowerBILib
 
                 while (uploadInProgress)
                 {
-                    var importStatus = $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId}/imports/{importJobId}"
+                    Thread.Sleep(5000);
+
+                    var importStatus = await $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId}/imports/{importJobId}"
                         .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
                         .GetJsonAsync<dynamic>().Result;
 
