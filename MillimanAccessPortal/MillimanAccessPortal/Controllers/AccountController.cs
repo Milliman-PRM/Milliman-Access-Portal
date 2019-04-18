@@ -109,7 +109,7 @@ namespace MillimanAccessPortal.Controllers
         [NonAction]
         public async Task<bool> IsUserAccountLocal(string userName)
         {
-            MapDbContextLib.Context.AuthenticationScheme scheme = await GetExternalAuthenticationSchemeAsync(userName);
+            MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationSchemeAsync(userName);
 
             bool isLocal = scheme == null ||
                            scheme.Name == (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
@@ -123,17 +123,14 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="userName"></param>
         /// <returns>The identified scheme name or <see langword="null"/> if none is appropriate</returns>
         [NonAction]
-        public async Task<MapDbContextLib.Context.AuthenticationScheme> GetExternalAuthenticationSchemeAsync(string userName)
+        public MapDbContextLib.Context.AuthenticationScheme GetExternalAuthenticationSchemeAsync(string userName)
         {
-            string defaultScheme = (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
-
             // 1. If the specified user has an assigned scheme
             MapDbContextLib.Context.AuthenticationScheme assignedScheme = DbContext.ApplicationUser
                                                                                    .Include(u => u.AuthenticationScheme)
                                                                                    .SingleOrDefault(u => EF.Functions.ILike(u.UserName, userName))
                                                                                    ?.AuthenticationScheme;
-            if (assignedScheme != null &&
-                !defaultScheme.Equals(assignedScheme.Name, StringComparison.InvariantCultureIgnoreCase))
+            if (assignedScheme != null)
             {
                 return assignedScheme;
             }
@@ -166,9 +163,9 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/RemoteAuthenticate
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> RemoteAuthenticate(string userName)
+        public IActionResult RemoteAuthenticate(string userName)
         {
-            MapDbContextLib.Context.AuthenticationScheme scheme = await GetExternalAuthenticationSchemeAsync(userName);
+            MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationSchemeAsync(userName);
 
             if (scheme != null)
             {
@@ -449,7 +446,7 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            SignInCommon(HttpContext.User.Identity.Name, (await GetExternalAuthenticationSchemeAsync(HttpContext.User.Identity.Name)).Name);
+            SignInCommon(HttpContext.User.Identity.Name, GetExternalAuthenticationSchemeAsync(HttpContext.User.Identity.Name)?.Name);
 
             returnUrl = returnUrl ?? Url.Content("~/");
             return LocalRedirect(returnUrl);
@@ -562,7 +559,7 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                MapDbContextLib.Context.AuthenticationScheme scheme = await GetExternalAuthenticationSchemeAsync(RequestedUser.UserName);
+                MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationSchemeAsync(RequestedUser.UserName);
 
                 emailBody = "A password reset was requested for your Milliman Access Portal account. " +
                     $"Your MAP account uses login services from your organization ({scheme.DisplayName}). Please contact your IT department if you require password assistance.";
