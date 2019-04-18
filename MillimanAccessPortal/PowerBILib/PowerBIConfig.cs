@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Ben Wyatt
+ * OBJECTIVE: Configuration values utilized by PowerBILibApi
+ * DEVELOPER NOTES:
+ */
+using System;
 using System.Collections.Generic;
 using System.Text;
 

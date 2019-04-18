@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Ben Wyatt
+ * OBJECTIVE: An API wrapper which simplifies interacting with Power BI Embedded services
+ * DEVELOPER NOTES:
+ */
+ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -308,7 +313,7 @@ namespace PowerBILib
     }
 
     /// <summary>
-    /// A single PowerBI Workspace (APIs also call these "groups")
+    /// A PowerBI Workspace (APIs also call these "groups")
     /// </summary>
     public class PowerBIWorkspace
     {
