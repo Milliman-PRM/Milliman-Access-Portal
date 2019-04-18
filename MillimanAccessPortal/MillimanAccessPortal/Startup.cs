@@ -164,7 +164,7 @@ namespace MillimanAccessPortal
                             IAuditLogger _auditLogger = serviceProvider.GetService<IAuditLogger>();
                             try
                             {
-                                ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserId);
+                                ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserName);
 
                                 if (_applicationUser == null)
                                 {
