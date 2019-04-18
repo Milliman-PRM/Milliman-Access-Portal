@@ -712,7 +712,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var result = await controller.RemoteAuthenticate(userName);
+            var result = controller.RemoteAuthenticate(userName);
             #endregion
 
             #region Assert
