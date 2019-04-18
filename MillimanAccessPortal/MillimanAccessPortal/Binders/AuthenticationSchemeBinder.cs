@@ -101,6 +101,18 @@ namespace MillimanAccessPortal.Binders
                         bindingContext.ModelState.AddModelError("Properties.MetadataAddress", $"WsFederation property Properties.MetadataAddress could not be bound to the model");
                     }
 
+                    valueProviderResult = bindingContext.ValueProvider.GetValue("wauth");
+                    bindingContext.ModelState.SetModelValue("Properties.Wauth", valueProviderResult);
+                    if (valueProviderResult != ValueProviderResult.None)
+                    {
+                        properties.Wauth = valueProviderResult.FirstValue;
+                        bindingContext.ModelState.MarkFieldValid("Properties.Wauth");
+                    }
+                    else
+                    {
+                        bindingContext.ModelState.AddModelError("Properties.Wauth", $"WsFederation property Properties.Wauth could not be bound to the model");
+                    }
+
                     model.Properties = properties;
                     break;
 
