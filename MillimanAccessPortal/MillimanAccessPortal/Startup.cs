@@ -128,8 +128,12 @@ namespace MillimanAccessPortal
                     // Event override to add username query parameter to adfs request
                     options.Events.OnRedirectToIdentityProvider = context =>
                     {
-                        context.ProtocolMessage.Wfresh = "0";  // Force domain login form every time
+                        // maximum age in minutes of the authentication token; 0 requires authentication on every request
+                        context.ProtocolMessage.Wfresh = "0";
+
+                        // The following requests the domain's login form instead of the default Windows Integrated Authentication (WIA, a.k.a. SSO)
                         //context.ProtocolMessage.Wauth = "urn:oasis:names:tc:SAML:1.0:am:password";
+
                         if (context.Properties.Items.ContainsKey("username"))
                         {
                             context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
