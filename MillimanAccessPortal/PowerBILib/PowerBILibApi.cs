@@ -9,6 +9,7 @@ using Flurl.Http;
 using System.Net.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.IO;
 
 namespace PowerBILib
 {
@@ -156,6 +157,132 @@ namespace PowerBILib
                 // TODO: Do some real logging here
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Get details of a specific report using its ID
+        /// </summary>
+        /// <param name="reportId">The ID property of the report to be located</param>
+        /// <returns>Returns the located PowerBIReport, or null if it is not found</returns>
+        public PowerBIReport GetReportById(string reportId)
+        {
+            if (string.IsNullOrEmpty(reportId))
+            {
+                // log an error and return null 
+
+                return null;
+            }
+
+            // Query the API for a specific report and return it
+            try
+            {
+                var result = $"https://api.powerbi.com/v1.0/myorg/reports/{reportId}"
+                            .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
+                                    .GetJsonAsync<dynamic>()
+                                    .Result
+                                    .ToObject<PowerBIReport>();
+
+
+                return result;
+            }
+            catch (FlurlHttpTimeoutException ex)
+            {
+                return null;
+            }
+            catch (FlurlHttpException ex)
+            {
+                return null;
+
+            }
+            catch (Exception ex)
+            {
+                // TODO: Do some real logging here
+                return null;
+            }
+            
+
+
+            // If no report was found and returned above, return null
+            return null;
+        }
+
+        /// <summary>
+        /// Publish a PBIX as a new report within a specified workspace
+        /// </summary>
+        /// <param name="path">The fully-qualified path to the PBIX file to be uploaded</param>
+        /// <param name="workspaceId">The ID property of the workspace where the report should be published</param>
+        /// <returns>Returns the published PowerBIReport if successful, null if not successful</returns>
+        public PowerBIReport PublishPbix(string path, string workspaceId)
+        {
+            #region Validation
+            if (string.IsNullOrEmpty(workspaceId) || string.IsNullOrEmpty(path))
+            {
+                // log an error and return null 
+
+                return null;
+            }
+
+            // Test that the path is valid
+            if (!File.Exists(path))
+            {
+                // Do something because the path that was provided is invalid
+
+            }
+            #endregion
+
+            string fileName = Path.GetFileName(path);
+            string reportId = "";
+
+            // Perform the publish action
+            try
+            {
+                // First, initiate the file upload
+                var importJobId = $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId}/imports/?datasetDisplayName={fileName}&nameConflict=Abort"
+                        .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
+                        .PostMultipartAsync(mp => mp.AddFile(fileName, new FileStream(path, FileMode.Open), fileName))
+                        .ReceiveJson<dynamic>().Result.id;
+
+                // Next, query the import job to determine when it is finished
+
+                bool uploadInProgress = true;
+
+                while (uploadInProgress)
+                {
+                    var importStatus = $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId}/imports/{importJobId}"
+                        .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
+                        .GetJsonAsync<dynamic>().Result;
+
+                    if (importStatus.importState == "Succeeded")
+                    {
+                        reportId = importStatus.reports[0].id;
+                        uploadInProgress = false;
+                    }
+                    else if (importStatus.importState != "Publishing")
+                    {
+                        // TODO: An error has occurred and needs to be handled
+                        uploadInProgress = false;
+                        return null;
+                    }
+                }
+
+                // Finally, retrieve and return the published report
+                return GetReportById(reportId);
+            }
+            catch (FlurlHttpTimeoutException ex)
+            {
+                return null;
+            }
+            catch (FlurlHttpException ex)
+            {
+                return null;
+
+            }
+            catch (Exception ex)
+            {
+                // TODO: Do some real logging here
+                return null;
+            }
+            
         }
 
         public override Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfo, HttpRequest thisHttpRequest)
