@@ -119,8 +119,12 @@ namespace PowerBILib
             }
         }
 
-
-        public PowerBIReport[] GetReportsInWorkspace(PowerBIWorkspace workspace)
+        /// <summary>
+        /// Returns a list of all reports in a specified workspace
+        /// </summary>
+        /// <param name="workspace"></param>
+        /// <returns></returns>
+        public PowerBIReport[] GetReportsInWorkspace(string workspaceID)
         {
             if (authToken == null)
             {
@@ -129,7 +133,7 @@ namespace PowerBILib
 
             try
             {
-                var response = $"https://api.powerbi.com/v1.0/myorg/groups/{workspace.id}/reports/"
+                var response = $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceID}/reports/"
                                     .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
                                     .GetJsonAsync<dynamic>()
                                     .Result
