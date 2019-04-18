@@ -81,7 +81,10 @@ namespace PowerBILib
             return true;                        
         }
 
-        public void GetWorkspaces()
+        /// <summary>
+        /// Return a list of all workspaces in the organization
+        /// </summary>
+        public PowerBIWorkspace[] GetWorkspaces()
         {
             if (authToken == null)
             {
@@ -90,25 +93,64 @@ namespace PowerBILib
 
             try
             {
-                var response = "https://api.powerbi.com/v1.0/myorg/groups/"
+                PowerBIWorkspace[] response = "https://api.powerbi.com/v1.0/myorg/groups/"
                                     .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
-                                    .GetJsonAsync<dynamic>().Result;
+                                    .GetJsonAsync<dynamic>()
+                                    .Result
+                                    .value
+                                    .ToObject<PowerBIWorkspace[]>();
 
-                Console.WriteLine("Response: " + response.value.ToString());
+                return response;
 
             }
             catch (FlurlHttpTimeoutException ex)
             {
-                return;
+                return null;
             }
             catch (FlurlHttpException ex)
             {
-                return;
+                return null;
+
             }
             catch (Exception ex)
             {
                 // TODO: Do some real logging here
-                return;
+                return null;
+            }
+        }
+
+
+        public PowerBIReport[] GetReportsInWorkspace(PowerBIWorkspace workspace)
+        {
+            if (authToken == null)
+            {
+                bool gotToken = GetAccessTokenAsync().Result;
+            }
+
+            try
+            {
+                var response = $"https://api.powerbi.com/v1.0/myorg/groups/{workspace.id}/reports/"
+                                    .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
+                                    .GetJsonAsync<dynamic>()
+                                    .Result
+                                    .value
+                                    .ToObject<PowerBIReport[]>();
+                return response;
+
+            }
+            catch (FlurlHttpTimeoutException ex)
+            {
+                return null;
+            }
+            catch (FlurlHttpException ex)
+            {
+                return null;
+
+            }
+            catch (Exception ex)
+            {
+                // TODO: Do some real logging here
+                return null;
             }
         }
 
@@ -132,5 +174,38 @@ namespace PowerBILib
         public int ext_expires_in { get; set; }
 
         public string access_token { get; set; }
+    }
+
+    /// <summary>
+    /// A single PowerBI Workspace (APIs also call these "groups")
+    /// </summary>
+    public class PowerBIWorkspace
+    {
+        public string id { get; set;  }
+
+        public bool isReadOnly { get; set; }
+
+        public bool isOnDedicatedCapacity { get; set; }
+
+        public string capacityId { get; set; }
+
+        public string name { get; set; }
+    }
+    
+    public class PowerBIReport
+    {
+        public string id { get; set; }
+
+        public string name { get; set; }
+
+        public string webUrl { get; set; }
+
+        public string embedUrl { get; set; }
+
+        public bool isFromPbix { get; set; }
+
+        public bool isOwnedByMe { get; set; }
+
+        public string datasetId { get; set; }
     }
 }
