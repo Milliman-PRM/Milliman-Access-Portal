@@ -15,6 +15,7 @@ using System.Net.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using System.Threading;
 
 namespace PowerBILib
 {
@@ -47,14 +48,14 @@ namespace PowerBILib
         {
             try
             {
-                var response = await config.pbiTokenEndpoint
+                var response = await config.PbiTokenEndpoint
                         .PostMultipartAsync(mp => 
-                            mp.AddString("grant_type", config.pbiGrantType)
-                                .AddString("scope", config.pbiAuthenticationScope)
-                                .AddString("client_id", config.pbiAzureADClientId)
-                                .AddString("client_secret", config.pbiAzureADClientSecret)
-                                .AddString("username", config.pbiAzureADUsername)
-                                .AddString("password", config.pbiAzureADPassword)
+                            mp.AddString("grant_type", config.PbiGrantType)
+                                .AddString("scope", config.PbiAuthenticationScope)
+                                .AddString("client_id", config.PbiAzureADClientId)
+                                .AddString("client_secret", config.PbiAzureADClientSecret)
+                                .AddString("username", config.PbiAzureADUsername)
+                                .AddString("password", config.PbiAzureADPassword)
                             )
                         .ReceiveJson<MicrosoftAuthenticationResponse>();
 
@@ -296,6 +297,8 @@ namespace PowerBILib
         }
     }
 
+    #region Data structure classes
+
     /// <summary>
     /// POCO class to simplify de-serializing the response in GetAccessTokenAsync()
     /// </summary>
@@ -328,6 +331,9 @@ namespace PowerBILib
         public string name { get; set; }
     }
     
+    /// <summary>
+    /// A PowerBI report object
+    /// </summary>
     public class PowerBIReport
     {
         public string id { get; set; }
@@ -344,4 +350,6 @@ namespace PowerBILib
 
         public string datasetId { get; set; }
     }
+
+    #endregion
 }

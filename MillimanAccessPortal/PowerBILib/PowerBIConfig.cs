@@ -11,20 +11,20 @@ namespace PowerBILib
 {
     public class PowerBIConfig
     {
-        public string pbiGrantType { get; set; }
+        public string PbiGrantType { get; set; }
 
-        public string pbiAuthenticationScope { get; set; }
+        public string PbiAuthenticationScope { get; set; }
 
-        public string pbiAzureADClientId { get; set; }
+        public string PbiAzureADClientId { get; set; }
 
-        public string pbiAzureADClientSecret { get; set; }
+        public string PbiAzureADClientSecret { get; set; }
 
-        public string pbiAzureADUsername { get; set; }
+        public string PbiAzureADUsername { get; set; }
 
-        public string pbiAzureADPassword { get; set; }
+        public string PbiAzureADPassword { get; set; }
 
-        public string pbiTenantId { get; set; }
+        public string PbiTenantId { get; set; }
 
-        public string pbiTokenEndpoint { get; set; }
+        public string PbiTokenEndpoint { get; set; }
     }
 }
