@@ -131,7 +131,7 @@ namespace MillimanAccessPortal.Controllers
             MapDbContextLib.Context.AuthenticationScheme assignedScheme = DbContext.ApplicationUser
                                                                                    .Include(u => u.AuthenticationScheme)
                                                                                    .SingleOrDefault(u => EF.Functions.ILike(u.UserName, userName))
-                                                                                   .AuthenticationScheme;
+                                                                                   ?.AuthenticationScheme;
             if (assignedScheme != null &&
                 !defaultScheme.Equals(assignedScheme.Name, StringComparison.InvariantCultureIgnoreCase))
             {
