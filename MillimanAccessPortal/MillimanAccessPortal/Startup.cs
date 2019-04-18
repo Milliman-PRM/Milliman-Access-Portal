@@ -131,9 +131,13 @@ namespace MillimanAccessPortal
                         // maximum age in minutes of the authentication token; 0 requires authentication on every request
                         context.ProtocolMessage.Wfresh = "0";
 
-                        // The following requests the domain's login form instead of the default Windows Integrated Authentication (WIA, a.k.a. SSO)
-                        //context.ProtocolMessage.Wauth = "urn:oasis:names:tc:SAML:1.0:am:password";
+                        // requested authentication method
+                        if (context.Properties.Items.ContainsKey("wauth"))
+                        {
+                            context.ProtocolMessage.Wauth = context.Properties.Items["wauth"];
+                        }
 
+                        // to pre-populate the user name in the federated login form (forms based authentication only)
                         if (context.Properties.Items.ContainsKey("username"))
                         {
                             context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
