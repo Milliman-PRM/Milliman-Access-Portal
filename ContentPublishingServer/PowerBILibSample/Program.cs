@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using MapCommonLib;
@@ -11,19 +12,24 @@ namespace SamplePowerBILib
     class Program
     {
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             #region Setup
 
-            // Substitute the path to your config file and PBIX file below
-            string configPath = @"C:\Users\ben.wyatt\Desktop\pbiConfig.json";
-            string pbixPath = @"C:\users\ben.wyatt\desktop\more_pokemon.pbix";
+            string env_UserProfile = Environment.GetEnvironmentVariable("USERPROFILE");
+            if (string.IsNullOrWhiteSpace(env_UserProfile))
+            {
+                throw new ApplicationException("No USERPROFILE environment Variable");
+            }
+
+            string configPath = Path.Combine(env_UserProfile, @"Desktop\pbiConfig.json");
+            string pbixPath = Path.Combine(env_UserProfile, @"Desktop\more_pokemon.pbix");
             
             PowerBIConfig config = JsonConvert.DeserializeObject<PowerBIConfig>(File.ReadAllText(configPath));
 
             var client = new PowerBILibApi(config);
 
-            bool gotToken = client.GetAccessTokenAsync().Result;
+            bool gotToken = await client.GetAccessTokenAsync();
 
             if (gotToken)
             {
@@ -38,13 +44,13 @@ namespace SamplePowerBILib
             #endregion
 
             #region Sample API calls
-            PowerBIWorkspace[] workspaces = client.GetWorkspaces();
+            List<PowerBIWorkspace> workspaces = await client.GetWorkspacesAsync();
 
-            PowerBIReport[] reports = client.GetReportsInWorkspace(workspaces[0].id);
+            List<PowerBIReport> reports = await client.GetReportsInWorkspaceAsync(workspaces[0].id);
 
-            PowerBIReport oneReport = client.GetReportById(reports[0].id);
+            PowerBIReport oneReport = await client.GetReportByIdAsync(reports[0].id);
 
-            PowerBIReport publishedReport = client.PublishPbix(pbixPath, workspaces[0].id);
+            PowerBIReport publishedReport = await client.PublishPbixAsync(pbixPath, workspaces[0].id);
             #endregion
             // Always keep a breakpoint here to examine output before exiting
             return;

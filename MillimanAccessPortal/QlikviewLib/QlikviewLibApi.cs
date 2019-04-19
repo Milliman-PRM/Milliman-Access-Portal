@@ -109,7 +109,7 @@ namespace QlikviewLib
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
-            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+            IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
             (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
             if (QvsUserDocFolder == null)
@@ -223,7 +223,7 @@ namespace QlikviewLib
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
-            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+            IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
             (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
             if (QvsUserDocFolder == null)
@@ -268,7 +268,7 @@ namespace QlikviewLib
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
-            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+            IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
             (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
             if (QvsUserDocFolder == null)
@@ -325,7 +325,7 @@ namespace QlikviewLib
         /// <returns></returns>
         public async Task AuthorizeUserDocumentsInFolder(string ContentPathRelativeToNamedUserDocFolder, QlikviewConfig ConfigInfo, string SpecificFileName = null)
         {
-            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+            IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
             ServiceInfo[] QvsServicesArrray = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
             ServiceInfo QvsServiceInfo = QvsServicesArrray[0];

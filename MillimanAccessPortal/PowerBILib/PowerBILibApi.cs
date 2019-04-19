@@ -91,7 +91,7 @@ namespace PowerBILib
         /// <summary>
         /// Return a list of all workspaces in the organization
         /// </summary>
-        public PowerBIWorkspace[] GetWorkspaces()
+        public async Task<List<PowerBIWorkspace>> GetWorkspacesAsync()
         {
             if (authToken == null)
             {
@@ -100,30 +100,28 @@ namespace PowerBILib
 
             try
             {
-                PowerBIWorkspace[] response = "https://api.powerbi.com/v1.0/myorg/groups/"
-                                    .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
-                                    .GetJsonAsync<dynamic>()
-                                    .Result
-                                    .value
-                                    .ToObject<PowerBIWorkspace[]>();
+                dynamic receivedObject = await "https://api.powerbi.com/v1.0/myorg/groups/"
+                                            .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
+                                            .GetJsonAsync<dynamic>();
 
-                return response;
-
+                if (receivedObject is JObject && receivedObject.value is JArray)
+                {
+                    var response = receivedObject.value.ToObject<List<PowerBIWorkspace>>();
+                    return response;
+                }
             }
             catch (FlurlHttpTimeoutException ex)
             {
-                return null;
             }
             catch (FlurlHttpException ex)
             {
-                return null;
-
             }
             catch (Exception ex)
             {
                 // TODO: Do some real logging here
-                return null;
             }
+
+            return null;
         }
 
         /// <summary>
@@ -131,7 +129,7 @@ namespace PowerBILib
         /// </summary>
         /// <param name="workspace"></param>
         /// <returns></returns>
-        public PowerBIReport[] GetReportsInWorkspace(string workspaceID)
+        public async Task<List<PowerBIReport>> GetReportsInWorkspaceAsync(string workspaceID)
         {
             if (authToken == null)
             {
@@ -140,29 +138,27 @@ namespace PowerBILib
 
             try
             {
-                var response = $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceID}/reports/"
-                                    .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
-                                    .GetJsonAsync<dynamic>()
-                                    .Result
-                                    .value
-                                    .ToObject<PowerBIReport[]>();
-                return response;
-
+                dynamic receivedObject = await $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceID}/reports/"
+                                        .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
+                                        .GetJsonAsync<dynamic>();
+                if (receivedObject is JObject && receivedObject.value is JArray)
+                {
+                    var response = receivedObject.value.ToObject<List<PowerBIReport>>();
+                    return response;
+                }
             }
             catch (FlurlHttpTimeoutException ex)
             {
-                return null;
             }
             catch (FlurlHttpException ex)
             {
-                return null;
-
             }
             catch (Exception ex)
             {
                 // TODO: Do some real logging here
-                return null;
             }
+
+            return null;
         }
 
         /// <summary>
@@ -170,7 +166,7 @@ namespace PowerBILib
         /// </summary>
         /// <param name="reportId">The ID property of the report to be located</param>
         /// <returns>Returns the located PowerBIReport, or null if it is not found</returns>
-        public PowerBIReport GetReportById(string reportId)
+        public async Task<PowerBIReport> GetReportByIdAsync(string reportId)
         {
             if (string.IsNullOrEmpty(reportId))
             {
@@ -182,31 +178,25 @@ namespace PowerBILib
             // Query the API for a specific report and return it
             try
             {
-                var result = $"https://api.powerbi.com/v1.0/myorg/reports/{reportId}"
+                dynamic receivedObject = await $"https://api.powerbi.com/v1.0/myorg/reports/{reportId}"
                             .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
-                                    .GetJsonAsync<dynamic>()
-                                    .Result
-                                    .ToObject<PowerBIReport>();
-
-
-                return result;
+                            .GetJsonAsync<dynamic>();
+                if (receivedObject is JObject)
+                {
+                    PowerBIReport result = receivedObject.ToObject<PowerBIReport>();
+                    return result;
+                }
             }
             catch (FlurlHttpTimeoutException ex)
             {
-                return null;
             }
             catch (FlurlHttpException ex)
             {
-                return null;
-
             }
             catch (Exception ex)
             {
                 // TODO: Do some real logging here
-                return null;
             }
-            
-
 
             // If no report was found and returned above, return null
             return null;
@@ -218,13 +208,12 @@ namespace PowerBILib
         /// <param name="path">The fully-qualified path to the PBIX file to be uploaded</param>
         /// <param name="workspaceId">The ID property of the workspace where the report should be published</param>
         /// <returns>Returns the published PowerBIReport if successful, null if not successful</returns>
-        public PowerBIReport PublishPbix(string path, string workspaceId)
+        public async Task<PowerBIReport> PublishPbixAsync(string path, string workspaceId)
         {
             #region Validation
             if (string.IsNullOrEmpty(workspaceId) || string.IsNullOrEmpty(path))
             {
                 // log an error and return null 
-
                 return null;
             }
 
@@ -232,65 +221,73 @@ namespace PowerBILib
             if (!File.Exists(path))
             {
                 // Do something because the path that was provided is invalid
-
             }
             #endregion
 
             string fileName = Path.GetFileName(path);
-            string reportId = "";
+            DateTime now = DateTime.UtcNow;
+            string remoteFileName = Path.GetFileNameWithoutExtension(fileName) + $"_{now.ToString("yyyyMMdd\\ZHHmmss")}{Path.GetExtension(fileName)}";
 
             // Perform the publish action
             try
             {
                 // First, initiate the file upload
-                var importJobId = $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId}/imports/?datasetDisplayName={fileName}&nameConflict=Abort"
+                dynamic receivedObject = await $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId}/imports/?datasetDisplayName={remoteFileName}&nameConflict=Abort"
                         .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
-                        .PostMultipartAsync(mp => mp.AddFile(fileName, new FileStream(path, FileMode.Open), fileName))
-                        .ReceiveJson<dynamic>().Result.id;
-
-                // Next, query the import job to determine when it is finished
-
-                bool uploadInProgress = true;
-
-                while (uploadInProgress)
+                        .PostMultipartAsync(mp => mp.AddFile(remoteFileName, new FileStream(path, FileMode.Open), remoteFileName))
+                        .ReceiveJson<dynamic>();
+                if (receivedObject is JObject && (receivedObject as JObject).ContainsKey("id"))
                 {
-                    Thread.Sleep(5000);
+                    var importJobId = receivedObject.id;
 
-                    var importStatus = $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId}/imports/{importJobId}"
-                        .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
-                        .GetJsonAsync<dynamic>().Result;
+                    string reportId;
+                    bool uploadInProgress;
+                    for (uploadInProgress = true, reportId = ""; uploadInProgress; Thread.Sleep(1000))
+                    {
+                        dynamic importStatus = await $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId}/imports/{importJobId}"
+                            .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
+                            .GetJsonAsync<dynamic>();
 
-                    if (importStatus.importState == "Succeeded")
-                    {
-                        reportId = importStatus.reports[0].id;
-                        uploadInProgress = false;
+                        if (!(importStatus is JObject) || 
+                            !(importStatus as JObject).ContainsKey("importState") || 
+                            !(importStatus as JObject).ContainsKey("reports"))
+                        {
+                            throw new ApplicationException();
+                        }
+
+                        if (importStatus.importState == "Succeeded")
+                        {
+                            reportId = importStatus.reports[0].id;
+                            uploadInProgress = false;
+                        }
+                        else if (importStatus.importState != "Publishing")
+                        {
+                            // TODO: An error has occurred and needs to be handled
+                            uploadInProgress = false;
+                            return null;
+                        }
                     }
-                    else if (importStatus.importState != "Publishing")
-                    {
-                        // TODO: An error has occurred and needs to be handled
-                        uploadInProgress = false;
-                        return null;
-                    }
+
+                    // Finally, retrieve and return the published report
+                    return await GetReportByIdAsync(reportId);
                 }
-
-                // Finally, retrieve and return the published report
-                return GetReportById(reportId);
+                else
+                {
+                    string msg = "The wrong thing was returned from `imports` api";
+                }
             }
             catch (FlurlHttpTimeoutException ex)
             {
-                return null;
             }
             catch (FlurlHttpException ex)
             {
-                return null;
-
             }
             catch (Exception ex)
             {
                 // TODO: Do some real logging here
-                return null;
             }
-            
+
+            return null;
         }
 
         public override Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfo, HttpRequest thisHttpRequest)
