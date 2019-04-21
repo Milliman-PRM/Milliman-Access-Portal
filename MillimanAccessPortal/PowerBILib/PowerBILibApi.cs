@@ -59,7 +59,7 @@ namespace PowerBILib
                             )
                         .ReceiveJson<MicrosoftAuthenticationResponse>();
 
-                if (response.expires_in > 0 && response.ext_expires_in > 0)
+                if (response.ExpiresIn > 0 && response.ExtExpiresIn > 0)
                 {
                     authToken = response;
                 }
@@ -95,13 +95,13 @@ namespace PowerBILib
         {
             if (authToken == null)
             {
-                bool gotToken = GetAccessTokenAsync().Result;
+                bool gotToken = await GetAccessTokenAsync();
             }
 
             try
             {
                 dynamic receivedObject = await "https://api.powerbi.com/v1.0/myorg/groups/"
-                                            .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
+                                            .WithHeader("Authorization", $"{authToken.TokenType} {authToken.AccessToken}")
                                             .GetJsonAsync<dynamic>();
 
                 if (receivedObject is JObject && receivedObject.value is JArray)
@@ -133,13 +133,13 @@ namespace PowerBILib
         {
             if (authToken == null)
             {
-                bool gotToken = GetAccessTokenAsync().Result;
+                bool gotToken = await GetAccessTokenAsync();
             }
 
             try
             {
                 dynamic receivedObject = await $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceID}/reports/"
-                                        .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
+                                        .WithHeader("Authorization", $"{authToken.TokenType} {authToken.AccessToken}")
                                         .GetJsonAsync<dynamic>();
                 if (receivedObject is JObject && receivedObject.value is JArray)
                 {
@@ -179,7 +179,7 @@ namespace PowerBILib
             try
             {
                 dynamic receivedObject = await $"https://api.powerbi.com/v1.0/myorg/reports/{reportId}"
-                            .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
+                            .WithHeader("Authorization", $"{authToken.TokenType} {authToken.AccessToken}")
                             .GetJsonAsync<dynamic>();
                 if (receivedObject is JObject)
                 {
@@ -233,7 +233,7 @@ namespace PowerBILib
             {
                 // First, initiate the file upload
                 dynamic receivedObject = await $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId}/imports/?datasetDisplayName={remoteFileName}&nameConflict=Abort"
-                        .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
+                        .WithHeader("Authorization", $"{authToken.TokenType} {authToken.AccessToken}")
                         .PostMultipartAsync(mp => mp.AddFile(remoteFileName, new FileStream(path, FileMode.Open), remoteFileName))
                         .ReceiveJson<dynamic>();
                 if (receivedObject is JObject && (receivedObject as JObject).ContainsKey("id"))
@@ -245,7 +245,7 @@ namespace PowerBILib
                     for (uploadInProgress = true, reportId = ""; uploadInProgress; Thread.Sleep(1000))
                     {
                         dynamic importStatus = await $"https://api.powerbi.com/v1.0/myorg/groups/{workspaceId}/imports/{importJobId}"
-                            .WithHeader("Authorization", $"{authToken.token_type} {authToken.access_token}")
+                            .WithHeader("Authorization", $"{authToken.TokenType} {authToken.AccessToken}")
                             .GetJsonAsync<dynamic>();
 
                         if (!(importStatus is JObject) || 
@@ -303,15 +303,20 @@ namespace PowerBILib
     /// </summary>
     public class MicrosoftAuthenticationResponse
     {
-        public string token_type { get; set; }
+        [JsonProperty(PropertyName = "token_type")]
+        public string TokenType { get; set; }
 
-        public string scope { get; set; }
+        [JsonProperty(PropertyName = "scope")]
+        public string Scope { get; set; }
 
-        public int expires_in { get; set; }
+        [JsonProperty(PropertyName = "expires_in")]
+        public int ExpiresIn { get; set; }
 
-        public int ext_expires_in { get; set; }
+        [JsonProperty(PropertyName = "ext_expires_in")]
+        public int ExtExpiresIn { get; set; }
 
-        public string access_token { get; set; }
+        [JsonProperty(PropertyName = "access_token")]
+        public string AccessToken { get; set; }
     }
 
     /// <summary>

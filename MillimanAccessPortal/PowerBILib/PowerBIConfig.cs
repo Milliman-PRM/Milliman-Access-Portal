@@ -25,6 +25,9 @@ namespace PowerBILib
 
         public string PbiTenantId { get; set; }
 
-        public string PbiTokenEndpoint { get; set; }
+        public string PbiTokenEndpoint
+        {
+            get => $"https://login.microsoftonline.com/{PbiTenantId}/oauth2/v2.0/token";
+        }
     }
 }
