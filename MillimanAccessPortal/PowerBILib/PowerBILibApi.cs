@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PowerBiLib
@@ -45,34 +46,44 @@ namespace PowerBiLib
             // Create a Power BI Client object. it's used to call Power BI APIs.
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                //var features = client.AvailableFeatures.GetAvailableFeatures();
-                //var a = client.BaseUri;  // returns "https://api.powerbi.com/"
-                //var c = await client.Capacities.GetCapacitiesAsync();  // returns collection of one, with name "mapbidev"
-                //var d = client.Datasets.GetDatasets();  // returns none
-                //var e = await client.Gateways.GetGatewaysAsync();  // returns none
-                // These empty returns only happen when no Group ID is provided.
-                // Is there any meaning to datasets/gateways without a group id?
+                var features = client.AvailableFeatures.GetAvailableFeatures();
+                var baseUri = client.BaseUri;  // returns "https://api.powerbi.com/"
+                var capacities = await client.Capacities.GetCapacitiesAsync();  // returns collection of one, with name "mapbidev"
 
-                // group stuff
+                ODataResponseListGroup allGroupsAtStart = client.Groups.GetGroups();  // This works too
+                Console.WriteLine($"Before add {allGroupsAtStart.Value.Count} group names are: {string.Join(",", allGroupsAtStart.Value.Select(g=>g.Name))}");
+
+                Capacity capacity = capacities.Value.Single();
+                Group newGroup = await client.Groups.CreateGroupAsync(new GroupCreationRequest("My new group name"), true);
+                var assignReturnObj = await client.Groups.AssignToCapacityAsync(newGroup.Id, new AssignToCapacityRequest(capacity.Id));
+
+                ODataResponseListGroup allGroupsAfterCreateNew = await client.Groups.GetGroupsAsync();
+                Console.WriteLine($"After add, {allGroupsAfterCreateNew.Value.Count} group names are: {string.Join(",", allGroupsAfterCreateNew.Value.Select(g => g.Name))}");
+
+                var deleteReturnObj = await client.Groups.DeleteGroupAsync(newGroup.Id);
+
+                ODataResponseListGroup allGroupsAfterDelete = await client.Groups.GetGroupsAsync();
+                Console.WriteLine($"After del, {allGroupsAfterDelete.Value.Count} group names are: {string.Join(",", allGroupsAfterDelete.Value.Select(g => g.Name))}");
+
+                // group/workspace stuff
                 ODataResponseListGroup filteredGroups = client.Groups.GetGroups("contains(name,'MAP Dev')");
-                ODataResponseListGroup allGroups = await client.Groups.GetGroupsAsync();
-                //ODataResponseListGroup allGroups = client.Groups.GetGroups();  // This works too
-                Group lyncCanBeUsed = allGroups.Value.SingleOrDefault(g => g.Name == "MAP Dev");
-                ODataResponseListReport allReports = client.Reports.GetReports();  // returns none
+                Group lyncCanBeUsed = allGroupsAfterDelete.Value.SingleOrDefault(g => g.Name == "MAP Dev");
 
-                // report stuff
+                // report/dataset stuff
                 Report oneReport = default;
                 Group oneGroup = default;
-                foreach (var group in allGroups.Value)
+                foreach (var group in allGroupsAfterDelete.Value)
                 {
-                    var datasets = client.Datasets.GetDatasets(group.Id);  // none
+                    var datasetsOfOneGroup = client.Datasets.GetDatasets(group.Id);  // none
                     var reportsOfOneGroup = client.Reports.GetReports(group.Id);
                     if (group.Name == "MAP Dev")
                     {
                         oneReport = reportsOfOneGroup.Value[0];
                         oneGroup = group;
                     }
-                    Console.WriteLine($"For group <{group.Name}>, found {reportsOfOneGroup.Value.Count} reports with names {string.Join(",", reportsOfOneGroup.Value.Select(r=>r.Name))}");
+                    Console.WriteLine($"For group <{group.Name}>:{Environment.NewLine}" +
+                        $"\tfound {reportsOfOneGroup.Value.Count}  reports with names {string.Join(",", reportsOfOneGroup.Value.Select(r=>r.Name))},{Environment.NewLine}" +
+                        $"\tfound {datasetsOfOneGroup.Value.Count} datasets with names {string.Join(",", datasetsOfOneGroup.Value.Select(r => r.Name))}");
                 }
 
                 var reportByReportId = client.Reports.GetReport(oneReport.Id);
@@ -82,27 +93,28 @@ namespace PowerBiLib
                 string fileName = Path.GetFileName(pbixPath);
                 DateTime now = DateTime.UtcNow;
                 string remoteFileName = Path.GetFileNameWithoutExtension(fileName) + $"_{now.ToString("yyyyMMdd\\ZHHmmss")}{Path.GetExtension(fileName)}";
-                //Import import = await client.Imports.PostImportWithFileAsyncInGroup(
-                //    oneGroup.Id, 
-                //    new FileStream(pbixPath, FileMode.Open), 
-                //    remoteFileName);
-                //while (import.ImportState != "Succeeded" && import.ImportState != "Failed")
-                //{
-                //    Console.WriteLine("Waiting for import completion, last import object is {0}", JsonConvert.SerializeObject(import));
-                //    Thread.Sleep(500);
-                //    import = await client.Imports.GetImportByIdAsync(import.Id);
-                //}
+                Import import = await client.Imports.PostImportWithFileAsyncInGroup(
+                    oneGroup.Id, 
+                    new FileStream(pbixPath, FileMode.Open), 
+                    remoteFileName);
+                while (import.ImportState != "Succeeded" && import.ImportState != "Failed")
+                {
+                    Console.WriteLine("Waiting for import completion, last import object is {0}", JsonConvert.SerializeObject(import));
+                    Thread.Sleep(500);
+                    import = await client.Imports.GetImportByIdAsync(import.Id);
+                }
 
-                // TODO: implement embedded viewing
+                // embedded viewing
                 // Read in detail: https://docs.microsoft.com/en-us/power-bi/developer/embed-sample-for-customers
                 //  in particular: https://docs.microsoft.com/en-us/power-bi/developer/embed-sample-for-customers#load-an-item-using-javascript
                 var tokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
                 EmbedToken tokenResponse = client.Reports.GenerateTokenInGroup(oneGroup.Id, oneReport.Id, tokenRequestParameters);
+                // TODO: Generate embed model for Razor view
 
-                // Generate Embed Configuration.
-                EmbedToken embedToken = tokenResponse;
-                var EmbedUrl = oneReport.EmbedUrl;
-                var reportId = oneReport.Id;
+                // Delete report/dataset
+                await client.Reports.DeleteReportInGroupAsync(oneGroup.Id, import.Reports[0].Id);
+                await client.Datasets.DeleteDatasetByIdInGroupAsync(oneGroup.Id, import.Datasets[0].Id);
+                // Note that deleting the dataset while the report exists causes both to be deleted. 
             }
         }
 
@@ -155,22 +167,22 @@ namespace PowerBiLib
             return false;
         }
 
-        private class MicrosoftAuthenticationResponse
+        public class MicrosoftAuthenticationResponse
         {
             [JsonProperty(PropertyName = "token_type")]
-            public string TokenType { get; set; }
+            public string TokenType { set; internal get; }
 
             [JsonProperty(PropertyName = "scope")]
-            public string Scope { get; set; }
+            public string Scope { set; internal get; }
 
             [JsonProperty(PropertyName = "expires_in")]
-            public int ExpiresIn { get; set; }
+            public int ExpiresIn { set; internal get; }
 
             [JsonProperty(PropertyName = "ext_expires_in")]
-            public int ExtExpiresIn { get; set; }
+            public int ExtExpiresIn { set; internal get; }
 
             [JsonProperty(PropertyName = "access_token")]
-            public string AccessToken { get; set; }
+            public string AccessToken { set; internal get; }
         }
     }
 }
