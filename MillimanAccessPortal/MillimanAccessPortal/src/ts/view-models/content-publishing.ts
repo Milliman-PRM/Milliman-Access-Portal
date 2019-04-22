@@ -121,6 +121,7 @@ export enum ContentTypeEnum {
   Html = 2,
   Pdf = 3,
   FileDownload = 4,
+  PowerBI = 5,
 }
 
 export interface ContentType {
