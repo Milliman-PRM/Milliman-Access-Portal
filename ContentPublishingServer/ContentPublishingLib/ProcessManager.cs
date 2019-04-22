@@ -94,14 +94,16 @@ namespace ContentPublishingLib
         public void Start()
         {
             ManualResetEvent MapDbPublishQueueServicedEvent = new ManualResetEvent(false);
-            Mutex QueueMutex = new Mutex(false);
+            //Mutex QueueMutex = new Mutex(false);
+            Semaphore QueueSemaphore = new Semaphore(1, 1);
 
             JobMonitorDict.Add(0, new JobMonitorInfo
             {
                 Monitor = new MapDbReductionJobMonitor
                 {
                     ConfiguredConnectionStringParamName = "DefaultConnection",
-                    QueueMutex = QueueMutex,
+                    //QueueMutex = QueueMutex,
+                    QueueSemaphore = QueueSemaphore,
                 },
                 TokenSource = new CancellationTokenSource(),
                 AwaitableTask = null
@@ -112,7 +114,8 @@ namespace ContentPublishingLib
                 Monitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.NonReducingPublications)
                 {
                     ConfiguredConnectionStringParamName = "DefaultConnection",
-                    QueueMutex = QueueMutex,
+                    //QueueMutex = QueueMutex,
+                    QueueSemaphore = QueueSemaphore,
                 },
                 TokenSource = new CancellationTokenSource(),
                 AwaitableTask = null
@@ -123,7 +126,8 @@ namespace ContentPublishingLib
                 Monitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
                 {
                     ConfiguredConnectionStringParamName = "DefaultConnection",
-                    QueueMutex = QueueMutex,
+                    //QueueMutex = QueueMutex,
+                    QueueSemaphore = QueueSemaphore,
                 },
                 TokenSource = new CancellationTokenSource(),
                 AwaitableTask = null
