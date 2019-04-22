@@ -24,7 +24,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QlikviewLib", "QlikviewLib\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapQueryAdminWeb", "MapQueryAdminWeb\MapQueryAdminWeb.csproj", "{E9DD181F-7C57-467F-938B-7AB106B8BE28}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PowerBILib", "PowerBILib\PowerBILib.csproj", "{77C842DD-BD59-4A16-AF0B-75C45901D510}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PowerBiLib", "PowerBILib\PowerBiLib.csproj", "{77C842DD-BD59-4A16-AF0B-75C45901D510}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PowerBILibSample", "..\ContentPublishingServer\PowerBILibSample\PowerBILibSample.csproj", "{8C0F04C6-8441-40D6-85EA-C5EB9398A5AE}"
 EndProject

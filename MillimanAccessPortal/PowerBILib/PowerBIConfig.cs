@@ -1,15 +1,15 @@
 ﻿/*
  * CODE OWNERS: Ben Wyatt
- * OBJECTIVE: Configuration values utilized by PowerBILibApi
+ * OBJECTIVE: Configuration values utilized by PowerBiLibApi
  * DEVELOPER NOTES:
  */
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace PowerBILib
+namespace PowerBiLib
 {
-    public class PowerBIConfig
+    public class PowerBiConfig
     {
         public string PbiGrantType { get; set; }
 

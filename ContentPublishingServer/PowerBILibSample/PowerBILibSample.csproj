@@ -7,11 +7,12 @@
     <Company>Milliman Inc.</Company>
     <Version>1.5.0</Version>
     <LangVersion>latest</LangVersion>
+    <RootNamespace>PowerBiLibSample</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\MillimanAccessPortal\MapCommonLib\MapCommonLib.csproj" />
-    <ProjectReference Include="..\..\MillimanAccessPortal\PowerBILib\PowerBILib.csproj" />
+    <ProjectReference Include="..\..\MillimanAccessPortal\PowerBILib\PowerBiLib.csproj" />
   </ItemGroup>
 
 </Project>
