@@ -109,10 +109,10 @@ namespace MillimanAccessPortal.Controllers
         [NonAction]
         public async Task<bool> IsUserAccountLocal(string userName)
         {
-            string scheme = await GetExternalAuthenticationSchemeAsync(userName);
+            MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationSchemeAsync(userName);
 
-            bool isLocal = string.IsNullOrWhiteSpace(scheme) ||
-                           scheme == (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
+            bool isLocal = scheme == null ||
+                           scheme.Name == (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
 
             return isLocal;
         }
@@ -123,18 +123,14 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="userName"></param>
         /// <returns>The identified scheme name or <see langword="null"/> if none is appropriate</returns>
         [NonAction]
-        public async Task<string> GetExternalAuthenticationSchemeAsync(string userName)
+        public MapDbContextLib.Context.AuthenticationScheme GetExternalAuthenticationSchemeAsync(string userName)
         {
-            string defaultScheme = (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
-
             // 1. If the specified user has an assigned scheme
-            string assignedScheme = DbContext.ApplicationUser
-                                             .Include(u => u.AuthenticationScheme)
-                                             .SingleOrDefault(u => EF.Functions.ILike(u.UserName, userName))
-                                             ?.AuthenticationScheme
-                                             ?.Name;
-            if (!string.IsNullOrWhiteSpace(assignedScheme) &&
-                !defaultScheme.Equals(assignedScheme, StringComparison.InvariantCultureIgnoreCase))
+            MapDbContextLib.Context.AuthenticationScheme assignedScheme = DbContext.ApplicationUser
+                                                                                   .Include(u => u.AuthenticationScheme)
+                                                                                   .SingleOrDefault(u => EF.Functions.ILike(u.UserName, userName))
+                                                                                   ?.AuthenticationScheme;
+            if (assignedScheme != null)
             {
                 return assignedScheme;
             }
@@ -147,7 +143,7 @@ namespace MillimanAccessPortal.Controllers
             MapDbContextLib.Context.AuthenticationScheme matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => s.DomainListContains(userFullDomain));
             if (matchingScheme != null)
             {
-                return matchingScheme.Name;
+                return matchingScheme;
             }
 
             // 3. If the username's secondary domain matches a scheme name
@@ -157,7 +153,7 @@ namespace MillimanAccessPortal.Controllers
                 string userSecondaryDomain = userFullDomain.Substring(0, userFullDomain.LastIndexOf('.'));
                 matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => EF.Functions.ILike(s.Name, userSecondaryDomain));
 
-                return matchingScheme?.Name;
+                return matchingScheme;
             }
 
             return null;
@@ -169,15 +165,25 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RemoteAuthenticate(string userName)
         {
-            string scheme = await GetExternalAuthenticationSchemeAsync(userName);
+            MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationSchemeAsync(userName);
 
-            if (!string.IsNullOrWhiteSpace(scheme))
+            if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
             {
                 string redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
-                AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme, redirectUrl);
+                AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme.Name, redirectUrl);
                 properties.SetString("username", userName);
+                switch (scheme.Type)
+                {
+                    case AuthenticationType.WsFederation:
+                        string wauthValue = (scheme.SchemePropertiesObj as WsFederationSchemeProperties)?.Wauth;
+                        if (!string.IsNullOrWhiteSpace(wauthValue))
+                        {
+                            properties.SetString("wauth", wauthValue);
+                        }
+                        break;
+                }
 
-                return Challenge(properties, scheme);
+                return Challenge(properties, scheme.Name);
             }
             else
             {
@@ -427,9 +433,10 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered AccountController.ExternalLoginCallback action");
 
-            if (string.IsNullOrWhiteSpace(HttpContext.User.Identity.Name) ||
+            if (string.IsNullOrWhiteSpace(HttpContext.User?.Identity?.Name) ||
                 !HttpContext.User.Identity.IsAuthenticated)
             {
+                Log.Warning("AccountController.ExternalLoginCallback action invoked with {@HttpContext.User}", HttpContext.User);
                 return RedirectToAction(nameof(Login));
             }
 
@@ -439,7 +446,7 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            SignInCommon(HttpContext.User.Identity.Name, await GetExternalAuthenticationSchemeAsync(HttpContext.User.Identity.Name));
+            SignInCommon(HttpContext.User.Identity.Name, GetExternalAuthenticationSchemeAsync(HttpContext.User.Identity.Name)?.Name);
 
             returnUrl = returnUrl ?? Url.Content("~/");
             return LocalRedirect(returnUrl);
@@ -552,8 +559,7 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                string schemeName = await GetExternalAuthenticationSchemeAsync(RequestedUser.UserName);
-                var scheme = await _authentService.Schemes.GetSchemeAsync(schemeName);
+                MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationSchemeAsync(RequestedUser.UserName);
 
                 emailBody = "A password reset was requested for your Milliman Access Portal account. " +
                     $"Your MAP account uses login services from your organization ({scheme.DisplayName}). Please contact your IT department if you require password assistance.";

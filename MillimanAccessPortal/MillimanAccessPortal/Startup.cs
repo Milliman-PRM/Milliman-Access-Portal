@@ -128,7 +128,16 @@ namespace MillimanAccessPortal
                     // Event override to add username query parameter to adfs request
                     options.Events.OnRedirectToIdentityProvider = context =>
                     {
-                        context.ProtocolMessage.Wfresh = "0";  // Force domain login form every time
+                        // maximum age in minutes of the authentication token; 0 requires authentication on every request
+                        context.ProtocolMessage.Wfresh = "0";
+
+                        // requested authentication method
+                        if (context.Properties.Items.ContainsKey("wauth"))
+                        {
+                            context.ProtocolMessage.Wauth = context.Properties.Items["wauth"];
+                        }
+
+                        // to pre-populate the user name in the federated login form (forms based authentication only)
                         if (context.Properties.Items.ContainsKey("username"))
                         {
                             context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
@@ -141,6 +150,21 @@ namespace MillimanAccessPortal
                     {
                         context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to forego subsequent processing
 
+                        ClaimsIdentity identity = context?.Principal?.Identity as ClaimsIdentity;
+
+                        string authenticatedUserName = identity?.Name ?? identity?.Claims?.SingleOrDefault(c => c.Type.EndsWith("nameidentifier"))?.Value;
+                        if (string.IsNullOrWhiteSpace(authenticatedUserName))
+                        {
+                            Log.Error($"External authentication token received, but no authenticated user name was included in claim <{ClaimTypes.Name}> or <{ClaimTypes.NameIdentifier}>");
+                            UriBuilder msg = new UriBuilder
+                            {
+                                Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                Query = "msg=The authenticating domain did not return your user name. Please email us at map.support@milliman.com and provide this error message and your user name.",
+                            };
+                            context.Response.Redirect(msg.Uri.PathAndQuery);
+                            return;
+                        }
+
                         using (IServiceScope scope = context.HttpContext.RequestServices.CreateScope())
                         {
                             IServiceProvider serviceProvider = scope.ServiceProvider;
@@ -148,12 +172,12 @@ namespace MillimanAccessPortal
                             IAuditLogger _auditLogger = serviceProvider.GetService<IAuditLogger>();
                             try
                             {
-                                ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(context.Principal.Identity.Name);
+                                ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserName);
 
                                 if (_applicationUser == null)
                                 {
-                                    // External login succeeded but username is not in our Identity database
-                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
+                                    Log.Warning($"External login succeeded but username {identity.Name} is not in our Identity database");
+                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name));
 
                                     UriBuilder msg = new UriBuilder
                                     {
