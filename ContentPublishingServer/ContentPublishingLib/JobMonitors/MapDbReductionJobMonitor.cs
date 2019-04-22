@@ -89,7 +89,7 @@ namespace ContentPublishingLib.JobMonitors
         /// It is necessary to pass the cancellation token both here and in Task.Run().  See: https://github.com/dotnet/docs/issues/5085
         /// </summary>
         /// <param name="Token"></param>
-        public async override Task JobMonitorThreadMain(CancellationToken Token)
+        public async override void JobMonitorThreadMain(CancellationToken Token)
         {
             MethodBase Method = MethodBase.GetCurrentMethod();
             while (!Token.IsCancellationRequested)

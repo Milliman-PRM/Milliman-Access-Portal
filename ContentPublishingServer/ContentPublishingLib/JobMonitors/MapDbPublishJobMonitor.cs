@@ -119,7 +119,7 @@ namespace ContentPublishingLib.JobMonitors
             return Task.Run(() => JobMonitorThreadMain(Token), Token);
         }
 
-        public override Task JobMonitorThreadMain(CancellationToken Token)
+        public override void JobMonitorThreadMain(CancellationToken Token)
         {
             MethodBase Method = MethodBase.GetCurrentMethod();
 
@@ -221,8 +221,6 @@ namespace ContentPublishingLib.JobMonitors
 
             Token.ThrowIfCancellationRequested();
             GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} returning");
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
