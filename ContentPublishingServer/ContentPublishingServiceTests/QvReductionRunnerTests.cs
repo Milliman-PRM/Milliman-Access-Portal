@@ -42,10 +42,11 @@ namespace ContentPublishingServiceTests
             DbTask.MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B";
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
 
-            QvReductionRunner TestRunner = new QvReductionRunner
+            QvReductionRunner TestRunner = await new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
-            };
+            }
+            .InitializeSourceDocFolder();
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -71,7 +72,7 @@ namespace ContentPublishingServiceTests
                 {
                     System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
                 }
-                Assert.Equal(ReductionJobDetail.JobStatusEnum.Success, MonitorTask.Result.Status);
+                Assert.Equal(ReductionJobDetail.JobStatusEnum.Success, JobDetail.Status);
 
                 Assert.NotNull(TaskResult.MasterContentHierarchy);
                 Assert.Equal(3, TaskResult.MasterContentHierarchy.Fields.Count);
@@ -100,10 +101,11 @@ namespace ContentPublishingServiceTests
             ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(4));
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
 
-            QvReductionRunner TestRunner = new QvReductionRunner
+            QvReductionRunner TestRunner = await new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
-            };
+            }
+            .InitializeSourceDocFolder();
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -124,7 +126,7 @@ namespace ContentPublishingServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
-            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, MonitorTask.Result.Status);
+            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, JobDetail.Status);
 
             Assert.NotNull(TaskResult.MasterContentHierarchy);
             Assert.Equal(3, TaskResult.MasterContentHierarchy.Fields.Count);
@@ -151,10 +153,11 @@ namespace ContentPublishingServiceTests
             ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(2));
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
 
-            QvReductionRunner TestRunner = new QvReductionRunner
+            QvReductionRunner TestRunner = await new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
-            };
+            }
+            .InitializeSourceDocFolder();
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -175,7 +178,7 @@ namespace ContentPublishingServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
-            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, MonitorTask.Result.Status);
+            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, JobDetail.Status);
 
             Assert.NotNull(TaskResult.MasterContentHierarchy);
             Assert.Equal(3, TaskResult.MasterContentHierarchy.Fields.Count);
@@ -199,10 +202,11 @@ namespace ContentPublishingServiceTests
             ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(3));
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
 
-            QvReductionRunner TestRunner = new QvReductionRunner
+            QvReductionRunner TestRunner = await new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
-            };
+            }
+            .InitializeSourceDocFolder();
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -227,7 +231,7 @@ namespace ContentPublishingServiceTests
             {
                 System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
             }
-            Assert.Equal(ReductionJobDetail.JobStatusEnum.Success, MonitorTask.Result.Status);
+            Assert.Equal(ReductionJobDetail.JobStatusEnum.Success, JobDetail.Status);
 
             Assert.NotNull(TaskResult.MasterContentHierarchy);
             Assert.Equal(3, TaskResult.MasterContentHierarchy.Fields.Count);
@@ -258,10 +262,11 @@ namespace ContentPublishingServiceTests
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
             DbTask.MasterFilePath = Path.ChangeExtension(DbTask.MasterFilePath, "xyz");
 
-            QvReductionRunner TestRunner = new QvReductionRunner
+            QvReductionRunner TestRunner = await new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
-            };
+            }
+            .InitializeSourceDocFolder();
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -282,7 +287,7 @@ namespace ContentPublishingServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
-            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, MonitorTask.Result.Status);
+            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, JobDetail.Status);
             Assert.Null(TaskResult.MasterContentHierarchy);
             Assert.Null(TaskResult.ReducedContentHierarchy);
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));

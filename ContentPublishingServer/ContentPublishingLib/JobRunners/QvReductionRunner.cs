@@ -30,29 +30,27 @@ namespace ContentPublishingLib.JobRunners
         {
             // Initialize members
             QmsUrl = Configuration.ApplicationConfiguration["QdsQmsApiUrl"];
+        }
 
-            IQMS Client = QmsClientCreator.New(QmsUrl);
-            QdsServiceInfo = Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService).Result[0];
+        public async Task<QvReductionRunner> InitializeSourceDocFolder()
+        {
+            IQMS Client = await QmsClientCreator.New(QmsUrl);
+            ServiceInfo[] services = await Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
+            QdsServiceInfo = services[0];
 
             // Qv can have 0 or more configured source document folders, need to find the right one. 
-            var GetDocFolderTask = Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
-            while (!GetDocFolderTask.IsCompleted)  // instead of using await in a constructor (that feels wrong)
-            {
-                Thread.Sleep(20);
-            }
-            foreach (DocumentFolder DocFolder in GetDocFolderTask.Result)
+            var GetDocFolderTask = await Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
+            foreach (DocumentFolder DocFolder in GetDocFolderTask)
             {
                 // eliminate any trailing slash issue
                 if (Path.GetFullPath(Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]) == Path.GetFullPath(DocFolder.General.Path))
                 {
                     SourceDocFolder = DocFolder;
-                    return;
+                    return this;
                 }
             }
-            if (SourceDocFolder == null)
-            {
-                throw new ApplicationException($"Qlikview Source Document folder {Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]} not found by Qlikview server");
-            }
+
+            throw new ApplicationException($"Qlikview Source Document folder {Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]} not found by Qlikview server");
         }
 
         #region Member properties
@@ -537,7 +535,7 @@ namespace ContentPublishingLib.JobRunners
         {
             DocumentNode DocNode = null;
 
-            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+            IQMS QmsClient = await QmsClientCreator.New(QmsUrl);
 
             DocumentNode[] AllDocNodes = new DocumentNode[0];
             DateTime Start = DateTime.Now;
@@ -736,7 +734,7 @@ namespace ContentPublishingLib.JobRunners
 
             // Save the task to Qlikview server
             DateTime SaveStartTime = DateTime.Now;
-            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+            IQMS QmsClient = await QmsClientCreator.New(QmsUrl);
             await QmsClient.SaveDocumentTaskAsync(DocTask);
             TaskInfo TInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName);
             Guid TaskIdGuid = TInfo.ID;
@@ -754,7 +752,7 @@ namespace ContentPublishingLib.JobRunners
                         throw new System.Exception($"Qlikview publisher failed to start task {TaskIdGuid.ToString("D")} before timeout");
                     }
 
-                    QmsClient = QmsClientCreator.New(QmsUrl);
+                    QmsClient = await QmsClientCreator.New(QmsUrl);
                     await QmsClient.RunTaskAsync(TaskIdGuid);
                     Thread.Sleep(PublisherPollingIntervalMs);
 
@@ -774,7 +772,7 @@ namespace ContentPublishingLib.JobRunners
 
                     Thread.Sleep(PublisherPollingIntervalMs);
 
-                    QmsClient = QmsClientCreator.New(QmsUrl);
+                    QmsClient = await QmsClientCreator.New(QmsUrl);
                     Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
                 } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
                 GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} finished running after {DateTime.Now - RunningStartTime}");
@@ -803,7 +801,7 @@ namespace ContentPublishingLib.JobRunners
             finally
             {
                 // Clean up
-                QmsClient = QmsClientCreator.New(QmsUrl);
+                QmsClient = await QmsClientCreator.New(QmsUrl);
                 Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
 
                 // null would indicate that the task doesn't exist

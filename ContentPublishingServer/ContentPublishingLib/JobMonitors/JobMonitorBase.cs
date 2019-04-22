@@ -29,7 +29,7 @@ namespace ContentPublishingLib.JobMonitors
         protected static int JobMonitorInstanceCounter = 0;
 
         public abstract Task Start(CancellationToken Token);
-        public abstract void JobMonitorThreadMain(CancellationToken Token);
+        public abstract Task JobMonitorThreadMain(CancellationToken Token);
 
         internal abstract string MaxConcurrentRunnersConfigKey { get; }
 

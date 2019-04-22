@@ -89,7 +89,7 @@ namespace ContentPublishingLib.JobMonitors
         /// It is necessary to pass the cancellation token both here and in Task.Run().  See: https://github.com/dotnet/docs/issues/5085
         /// </summary>
         /// <param name="Token"></param>
-        public override void JobMonitorThreadMain(CancellationToken Token)
+        public async override Task JobMonitorThreadMain(CancellationToken Token)
         {
             MethodBase Method = MethodBase.GetCurrentMethod();
             while (!Token.IsCancellationRequested)
@@ -139,10 +139,11 @@ namespace ContentPublishingLib.JobMonitors
                             switch (type)
                             {
                                 case ContentTypeEnum.Qlikview:
-                                    QvReductionRunner Runner = new QvReductionRunner
+                                    QvReductionRunner Runner = await new QvReductionRunner()
                                     {
                                         JobDetail = (ReductionJobDetail)DbTask,
-                                    };
+                                    }
+                                    .InitializeSourceDocFolder();
                                     if (IsTestMode)
                                     {
                                         Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
