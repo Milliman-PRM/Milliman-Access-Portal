@@ -273,7 +273,8 @@ namespace ContentPublishingServiceTests
             MapDbReductionJobMonitor ReductionMonitor = new MapDbReductionJobMonitor
             {
                 MockContext = MockContext,
-                QueueMutex = new Mutex(false),
+                QueueSemaphore = new Semaphore(1,1),
+                //QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
