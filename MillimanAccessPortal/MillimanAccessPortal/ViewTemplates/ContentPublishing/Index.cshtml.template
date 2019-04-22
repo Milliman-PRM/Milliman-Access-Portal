@@ -129,6 +129,35 @@
                         </div>
                     </div>
                 </div>
+                <div class="form-section" data-section="content-display-settings" style="display: none;">
+                    <h4 class="form-section-title">Content Display Settings</h4>
+                    <div class="form-input-container">
+                        <div class="form-input form-input-toggle">
+                            <div class="switch-container">
+                                <div class="toggle-switch">
+                                    <input type="checkbox" class="toggle-switch-checkbox" name="FilterPaneEnabled" id="FilterPaneEnabled" value="true">
+                                    <label class="toggle-switch-label" for="FilterPaneEnabled">
+                                        <span class="toggle-switch-inner"></span>
+                                        <span class="toggle-switch-switch"></span>
+                                    </label>
+                                </div>
+                                <label class="switch-label" for="FilterPaneEnabled">Show Filter Pane</label>
+                            </div>
+                        </div>
+                        <div class="form-input form-input-toggle">
+                            <div class="switch-container">
+                                <div class="toggle-switch">
+                                    <input type="checkbox" class="toggle-switch-checkbox" name="NavContentPaneEnabled" id="NavContentPaneEnabled" value="true">
+                                    <label class="toggle-switch-label" for="NavContentPaneEnabled">
+                                        <span class="toggle-switch-inner"></span>
+                                        <span class="toggle-switch-switch"></span>
+                                    </label>
+                                </div>
+                                <label class="switch-label" for="NavContentPaneEnabled">Show Navigation Pane</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="form-section form-section-valid-files" data-section="publication-files">
                     <h4 class="form-section-title">Files</h4>
                     <div class="form-input-container">
