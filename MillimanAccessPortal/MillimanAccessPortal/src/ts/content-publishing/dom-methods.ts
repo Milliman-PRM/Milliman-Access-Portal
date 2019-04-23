@@ -854,6 +854,20 @@ export function setup() {
       $doesReduceToggle.removeAttr('disabled');
       $doesReduceToggle.closest('.form-input-toggle').show();
     }
+    const $contentDisplaySettings = $('.form-section[data-section="root-content-item-display-settings"]');
+    if (contentType && contentType.typeEnum === ContentTypeEnum.PowerBI) {
+      $contentDisplaySettings.show();
+      $('#FilterPaneEnabled').removeAttr('disabled');
+      $('#NavigationPaneEnabled').removeAttr('disabled');
+    } else {
+      $contentDisplaySettings.hide();
+      $('#FilterPaneEnabled')
+        .prop('checked', false)
+        .attr('disabled', '');
+      $('#NavigationPaneEnabled')
+        .prop('checked', false)
+        .attr('disabled', '');
+    }
     formObject.inputSections.forEach((section) =>
       section.inputs.forEach((input) => {
         if (contentType && isFileUploadInput(input)) {
