@@ -11,6 +11,6 @@ namespace MapDbContextLib.Models
     {
         public bool FilterPaneEnabled { get; set; }
 
-        public bool navContentPaneEnabled { get; set; }
+        public bool NavigationPaneEnabled { get; set; }
     }
 }

@@ -132,17 +132,17 @@ namespace MillimanAccessPortal.Binders
                             bindingContext.ModelState.AddModelError("TypeSpecificDetailObject.FilterPaneEnabled", $"TypeSpecificDetailObject.FilterPaneEnabled property not found or value <{valueProviderResult.FirstValue}> could not be parsed as a bool");
                         }
 
-                        valueProviderResult = bindingContext.ValueProvider.GetValue("navContentPaneEnabled");
-                        bindingContext.ModelState.SetModelValue("TypeSpecificDetailObject.NavContentPaneEnabled", valueProviderResult);
+                        valueProviderResult = bindingContext.ValueProvider.GetValue("NavigationPaneEnabled");
+                        bindingContext.ModelState.SetModelValue("TypeSpecificDetailObject.NavigationPaneEnabled", valueProviderResult);
                         if (valueProviderResult != ValueProviderResult.None &&
                             bool.TryParse(valueProviderResult.FirstValue, out bool navContentPaneEnabledVal))
                         {
                             properties.FilterPaneEnabled = navContentPaneEnabledVal;
-                            bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.NavContentPaneEnabled");
+                            bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.NavigationPaneEnabled");
                         }
                         else
                         {
-                            bindingContext.ModelState.AddModelError("TypeSpecificDetailObject.NavContentPaneEnabled", $"TypeSpecificDetailObject.NavContentPaneEnabled property not found or value <{valueProviderResult.FirstValue}> could not be parsed as a bool");
+                            bindingContext.ModelState.AddModelError("TypeSpecificDetailObject.NavigationPaneEnabled", $"TypeSpecificDetailObject.NavigationPaneEnabled property not found or value <{valueProviderResult.FirstValue}> could not be parsed as a bool");
                         }
 
                         model.TypeSpecificDetail = JsonConvert.SerializeObject(properties);
