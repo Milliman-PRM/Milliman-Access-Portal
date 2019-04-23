@@ -18,8 +18,8 @@ module.exports = {
     'forgot-password': './src/ts/react/forgot-password/index.tsx',
     'login': './src/ts/react/login/index.tsx',
     'message': './src/ts/message.ts',
-    'system-admin': './src/ts/react/system-admin/index.tsx',
     'reset-password': './src/ts/reset-password.ts',
+    'system-admin': './src/ts/react/system-admin/index.tsx',
   },
   output: {
     path: path.resolve(__dirname, 'wwwroot'),
