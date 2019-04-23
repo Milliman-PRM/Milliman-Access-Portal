@@ -20,6 +20,7 @@ namespace MapDbContextLib.Context
         Html,
         Pdf,
         FileDownload,
+        PowerBI,
     }
 
     public class ContentType
@@ -32,6 +33,7 @@ namespace MapDbContextLib.Context
             { ContentTypeEnum.Html, "HTML" },
             { ContentTypeEnum.Pdf, "PDF" },
             { ContentTypeEnum.FileDownload, "File Download" },
+            { ContentTypeEnum.PowerBI, "Power BI" }
         };
 
         [Key]
@@ -108,6 +110,12 @@ namespace MapDbContextLib.Context
                     CanReduce = false,
                     DefaultIconName = "FileDownload_Icon.png",
                     FileExtensions = new string[] { },
+                },
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.PowerBI,
+                    CanReduce = false,
+                    DefaultIconName = "PowerBI_Icon.png",
+                    FileExtensions = new string[] { "pbix" },
                 },
             };
 
