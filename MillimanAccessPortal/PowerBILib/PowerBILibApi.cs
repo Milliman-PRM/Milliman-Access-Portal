@@ -5,6 +5,8 @@
  */
 
 using Flurl.Http;
+using MapCommonLib.ContentTypeSpecific;
+using Microsoft.AspNetCore.Http;
 using Microsoft.PowerBI.Api.V2;
 using Microsoft.PowerBI.Api.V2.Models;
 using Microsoft.Rest;
@@ -17,10 +19,16 @@ using System.Threading.Tasks;
 
 namespace PowerBiLib
 {
-    public class PowerBiLibApi
+    public class PowerBiLibApi : ContentTypeSpecificApiBase
     {
         private PowerBiConfig _config { get; set; }
         private TokenCredentials _tokenCredentials { get; set; }
+
+        public async override Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfo, HttpRequest thisHttpRequest)
+        {
+            await Task.Yield();
+            throw new NotImplementedException();
+        }
 
         public PowerBiLibApi(PowerBiConfig configArg = null)
         {
