@@ -129,7 +129,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-section" data-section="content-display-settings" style="display: none;">
+                <div class="form-section" data-section="root-content-item-display-settings" style="display: none;">
                     <h4 class="form-section-title">Content Display Settings</h4>
                     <div class="form-input-container">
                         <div class="form-input form-input-toggle">
@@ -147,13 +147,13 @@
                         <div class="form-input form-input-toggle">
                             <div class="switch-container">
                                 <div class="toggle-switch">
-                                    <input type="checkbox" class="toggle-switch-checkbox" name="NavContentPaneEnabled" id="NavContentPaneEnabled" value="true">
-                                    <label class="toggle-switch-label" for="NavContentPaneEnabled">
+                                    <input type="checkbox" class="toggle-switch-checkbox" name="NavigationPaneEnabled" id="NavigationPaneEnabled" value="true">
+                                    <label class="toggle-switch-label" for="NavigationPaneEnabled">
                                         <span class="toggle-switch-inner"></span>
                                         <span class="toggle-switch-switch"></span>
                                     </label>
                                 </div>
-                                <label class="switch-label" for="NavContentPaneEnabled">Show Navigation Pane</label>
+                                <label class="switch-label" for="NavigationPaneEnabled">Show Navigation Pane</label>
                             </div>
                         </div>
                     </div>

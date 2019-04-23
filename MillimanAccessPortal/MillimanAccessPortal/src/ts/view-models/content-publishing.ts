@@ -139,6 +139,8 @@ export interface RootContentItemDetail {
   contentName: string;
   contentTypeId: Guid;
   doesReduce: boolean;
+  filterPaneEnabled?: boolean;
+  navigationPaneEnabled?: boolean;
   relatedFiles: ContentRelatedFile[];
   description: string;
   notes: string;

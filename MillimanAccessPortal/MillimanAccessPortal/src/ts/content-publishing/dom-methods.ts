@@ -23,7 +23,7 @@ import {
 import { setUnloadAlert } from '../unload-alerts';
 import { UploadComponent } from '../upload/upload';
 import {
-    BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, isSelection,
+  BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, ContentTypeEnum, isSelection,
     PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue, RootContentItemDetail,
     RootContentItemList, RootContentItemSummary, RootContentItemSummaryAndDetail,
 } from '../view-models/content-publishing';
@@ -178,7 +178,12 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
   formMap.set('ClientId', item.clientId);
   formMap.set('ContentName', item.contentName);
   formMap.set('ContentTypeId', item.contentTypeId);
-  formMap.set('DoesReduce',  item.doesReduce);
+  formMap.set('DoesReduce', item.doesReduce);
+  if (item.contentTypeId === ContentTypeInfo.filter((ct) =>
+    ct.typeEnum === ContentTypeEnum.PowerBI)[0].id) {
+    formMap.set('FilterPaneEnabled', item.filterPaneEnabled);
+    formMap.set('NavigationPaneEnabled', item.navigationPaneEnabled);
+  }
   formMap.set('Description', item.description);
   formMap.set('Notes', item.notes);
   formMap.set('ContentDisclaimer', item.contentDisclaimer);
@@ -549,7 +554,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
   if (item) {
     const formMap = mapRootContentItemDetail(item);
     formMap.forEach((value, key) => {
-      if (key !== 'DoesReduce') {  // because DoesReduce is a checkbox
+      if (key !== 'DoesReduce'
+        && key !== 'FilterPaneEnabled'
+        && key !== 'NavigationPaneEnabled') {  // because these are checkboxes
         $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
       }
     });
@@ -565,6 +572,14 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
 
     const $doesReduceToggle = $rootContentItemForm.find('#DoesReduce');
     $doesReduceToggle.prop('checked', item.doesReduce);
+
+    if (item.contentTypeId === ContentTypeInfo.filter((ct) =>
+      ct.typeEnum === ContentTypeEnum.PowerBI)[0].id) {
+      const $filterPaneToggle = $rootContentItemForm.find('#FilterPaneEnabled');
+      $filterPaneToggle.prop('checked', item.filterPaneEnabled);
+      const $navigationPaneToggle = $rootContentItemForm.find('#NavigationPaneEnabled');
+      $filterPaneToggle.prop('checked', item.navigationPaneEnabled);
+    }
   }
 
   const createContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
@@ -572,6 +587,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       'common',
       'root-content-item-info',
       'root-content-item-content-type',
+      'root-content-item-display-settings',
       'root-content-item-description',
     ],
     'ContentPublishing/CreateRootContentItem',
@@ -597,6 +613,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     [
       'common',
       'root-content-item-info',
+      'root-content-item-display-settings',
       'root-content-item-description',
     ],
     'ContentPublishing/UpdateRootContentItem',
@@ -804,9 +821,11 @@ function renderClientTree(response: ClientTree, clientId?: string) {
   }
 }
 
+let ContentTypeInfo: ContentType[] = [];
 function populateAvailableContentTypes(contentTypes: ContentType[]) {
   const $panel = $('#content-publishing-form');
   const $rootContentItemForm = $panel.find('form.admin-panel-content');
+  ContentTypeInfo = contentTypes;
 
   const $contentTypeDropdown = $rootContentItemForm.find('#ContentTypeId');
   $contentTypeDropdown.children(':not(option[value = "0"])').remove();
