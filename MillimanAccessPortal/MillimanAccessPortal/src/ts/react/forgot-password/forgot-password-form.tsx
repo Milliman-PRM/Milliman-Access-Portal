@@ -43,7 +43,7 @@ export class ForgotPasswordForm extends Form<{}, BaseFormState> {
         <div className='button-container'>
           <button
             type='submit'
-            disabled={formIsValid}
+            disabled={!formIsValid}
             className="blue-button"
           >
             Reset Password
