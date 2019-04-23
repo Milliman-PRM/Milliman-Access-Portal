@@ -49,6 +49,14 @@ namespace QlikviewLib
             return (SvcInfo, QvsUserDocFolder);
         }
 
+        /// <summary>
+        /// Qlikview specific implementation of abstract base class method declaration
+        /// </summary>
+        /// <param name="FilePathRelativeToContentRoot"></param>
+        /// <param name="UserName"></param>
+        /// <param name="ConfigInfoArg"></param>
+        /// <param name="thisHttpRequest"></param>
+        /// <returns></returns>
         public override async Task<UriBuilder> GetContentUri(string FilePathRelativeToContentRoot, string UserName, object ConfigInfoArg, HttpRequest thisHttpRequest)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
@@ -63,12 +71,8 @@ namespace QlikviewLib
             UriBuilder backUriBuilder = new UriBuilder
             {
                 Scheme = QvServerUriScheme,
-                Host = thisHttpRequest.Host.HasValue
-                    ? thisHttpRequest.Host.Host
-                    : $"localhost",  // result is probably error in production but won't crash
-                Port = thisHttpRequest.Host.Port.HasValue
-                    ? thisHttpRequest.Host.Port.Value
-                    : -1,
+                Host = thisHttpRequest.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
+                Port = thisHttpRequest.Host.Port ?? -1,
                 Path = $"/Shared/Message",
                 Query = "Msg=An error occurred while loading this content. Please contact MAP support if this problem persists",
             };
@@ -109,7 +113,7 @@ namespace QlikviewLib
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
-            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+            IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
             (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
             if (QvsUserDocFolder == null)
@@ -223,7 +227,7 @@ namespace QlikviewLib
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
-            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+            IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
             (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
             if (QvsUserDocFolder == null)
@@ -268,7 +272,7 @@ namespace QlikviewLib
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
-            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+            IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
             (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
             if (QvsUserDocFolder == null)
@@ -325,7 +329,7 @@ namespace QlikviewLib
         /// <returns></returns>
         public async Task AuthorizeUserDocumentsInFolder(string ContentPathRelativeToNamedUserDocFolder, QlikviewConfig ConfigInfo, string SpecificFileName = null)
         {
-            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+            IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
             ServiceInfo[] QvsServicesArrray = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
             ServiceInfo QvsServiceInfo = QvsServicesArrray[0];

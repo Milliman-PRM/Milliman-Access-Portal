@@ -216,6 +216,7 @@ namespace ContentPublishingServiceTests
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
             var QueueMutex = new Mutex(false);
+
             MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
             {
                 MockContext = MockContext,
