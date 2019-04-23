@@ -30,27 +30,30 @@ namespace ContentPublishingLib.JobRunners
         {
             // Initialize members
             QmsUrl = Configuration.ApplicationConfiguration["QdsQmsApiUrl"];
-        }
 
-        public async Task<QvReductionRunner> InitializeSourceDocFolder()
-        {
-            IQMS Client = await QmsClientCreator.New(QmsUrl);
-            ServiceInfo[] services = await Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
-            QdsServiceInfo = services[0];
-
-            // Qv can have 0 or more configured source document folders, need to find the right one. 
-            var GetDocFolderTask = await Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
-            foreach (DocumentFolder DocFolder in GetDocFolderTask)
+            Task initTask = Task.Run(async () =>
             {
-                // eliminate any trailing slash issue
-                if (Path.GetFullPath(Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]) == Path.GetFullPath(DocFolder.General.Path))
-                {
-                    SourceDocFolder = DocFolder;
-                    return this;
-                }
-            }
+                IQMS Client = await QmsClientCreator.New(QmsUrl);
+                ServiceInfo[] services = await Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
+                QdsServiceInfo = services[0];
 
-            throw new ApplicationException($"Qlikview Source Document folder {Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]} not found by Qlikview server");
+                // Qv can have 0 or more configured source document folders, need to find the right one. 
+                var GetDocFolderTask = await Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
+                foreach (DocumentFolder DocFolder in GetDocFolderTask)
+                {
+                    // eliminate any trailing slash issue
+                    if (Path.GetFullPath(Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]) == Path.GetFullPath(DocFolder.General.Path))
+                    {
+                        SourceDocFolder = DocFolder;
+                    }
+                }
+
+                throw new ApplicationException($"Qlikview Source Document folder {Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]} not found by Qlikview server");
+            });
+            while (!initTask.IsCompleted)
+            {
+                Thread.Sleep(10);
+            }
         }
 
         #region Member properties

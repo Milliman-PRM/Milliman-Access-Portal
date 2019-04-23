@@ -35,8 +35,7 @@ namespace ContentPublishingLib.JobMonitors
 
         override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxParallelTasks";
 
-        //public Mutex QueueMutex { private get; set; }
-        public Semaphore QueueSemaphore = new Semaphore(1, 1);
+        public Mutex QueueMutex { private get; set; }
 
         public TimeSpan MapDbPublishQueueServicedEventTimeout { private get; set;  } = new TimeSpan(0, 0, 20);
 
@@ -90,7 +89,7 @@ namespace ContentPublishingLib.JobMonitors
         /// It is necessary to pass the cancellation token both here and in Task.Run().  See: https://github.com/dotnet/docs/issues/5085
         /// </summary>
         /// <param name="Token"></param>
-        public async override void JobMonitorThreadMain(CancellationToken Token)
+        public override void JobMonitorThreadMain(CancellationToken Token)
         {
             MethodBase Method = MethodBase.GetCurrentMethod();
             while (!Token.IsCancellationRequested)
@@ -122,8 +121,7 @@ namespace ContentPublishingLib.JobMonitors
                 // Start more tasks if there is room in the RunningTasks collection. 
                 if (ActiveReductionRunnerItems.Count < MaxConcurrentRunners)
                 {
-                    //if (QueueMutex.WaitOne(MapDbPublishQueueServicedEventTimeout))
-                    if (QueueSemaphore.WaitOne(MapDbPublishQueueServicedEventTimeout))
+                    if (QueueMutex.WaitOne(MapDbPublishQueueServicedEventTimeout))
                     {
                         List<ContentReductionTask> Responses = GetReadyTasks(MaxConcurrentRunners - ActiveReductionRunnerItems.Count);
 
@@ -141,11 +139,10 @@ namespace ContentPublishingLib.JobMonitors
                             switch (type)
                             {
                                 case ContentTypeEnum.Qlikview:
-                                    QvReductionRunner Runner = await new QvReductionRunner()
+                                    QvReductionRunner Runner = new QvReductionRunner()
                                     {
                                         JobDetail = (ReductionJobDetail)DbTask,
-                                    }
-                                    .InitializeSourceDocFolder();
+                                    };
                                     if (IsTestMode)
                                     {
                                         Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
@@ -166,7 +163,7 @@ namespace ContentPublishingLib.JobMonitors
                             }
                         }
 
-                        QueueSemaphore.Release();
+                        QueueMutex.ReleaseMutex();
                         Thread.Sleep(500 * (1 + JobMonitorInstanceCounter));  // Allow time for any new runner(s) to start executing
                     }
                     else

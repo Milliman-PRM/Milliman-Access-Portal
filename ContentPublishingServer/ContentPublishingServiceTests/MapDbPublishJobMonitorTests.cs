@@ -31,8 +31,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
             {
                 MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
-                QueueSemaphore = new Semaphore(1, 1),
-                //QueueMutex = new Mutex(false),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -115,8 +114,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.NonReducingPublications)
             {
                 MockContext = MockContext,
-                QueueSemaphore = new Semaphore(1, 1),
-                //QueueMutex = new Mutex(false),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -217,20 +215,17 @@ namespace ContentPublishingServiceTests
             };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
-            //var QueueMutex = new Mutex(false);
-            var QueueSemaphore = new Semaphore(1, 1);
+            var QueueMutex = new Mutex(false);
 
             MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
             {
                 MockContext = MockContext,
-                QueueSemaphore = QueueSemaphore,
-                //QueueMutex = QueueMutex,
+                QueueMutex = QueueMutex,
             };
             MapDbReductionJobMonitor ReductionJobMonitor = new MapDbReductionJobMonitor
             {
                 MockContext = MockContext,
-                QueueSemaphore = QueueSemaphore,
-                //QueueMutex = QueueMutex,
+                QueueMutex = QueueMutex,
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -302,8 +297,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
             {
                 MockContext = MockContext,
-                QueueSemaphore = new Semaphore(1, 1),
-                //QueueMutex = new Mutex(false),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -352,8 +346,7 @@ namespace ContentPublishingServiceTests
             MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
             {
                 MockContext = MockContext,
-                QueueSemaphore = new Semaphore(1, 1),
-                //QueueMutex = new Mutex(false),
+                QueueMutex = new Mutex(false),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();

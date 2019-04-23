@@ -50,8 +50,7 @@ namespace ContentPublishingLib.JobMonitors
 
         private MapDbPublishJobMonitorType JobMonitorType { get; set; }
 
-        //public Mutex QueueMutex { private get; set; }
-        public Semaphore QueueSemaphore { private get; set; }
+        public Mutex QueueMutex { private get; set; }
 
         private bool IsTestMode { get { return MockContext != null; } }
 
@@ -139,7 +138,7 @@ namespace ContentPublishingLib.JobMonitors
                 // Start more tasks if there is room in the RunningTasks collection. 
                 if (ActivePublicationRunnerItems.Count < MaxConcurrentRunners)
                 {
-                    if (QueueSemaphore.WaitOne(new TimeSpan(0, 0, 20)))
+                    if (QueueMutex.WaitOne(new TimeSpan(0, 0, 20)))
                     {
                         List<ContentPublicationRequest> Responses = GetReadyRequests(MaxConcurrentRunners - ActivePublicationRunnerItems.Count);
 
@@ -177,7 +176,7 @@ namespace ContentPublishingLib.JobMonitors
                             }
                         }
 
-                        QueueSemaphore.Release();
+                        QueueMutex.ReleaseMutex();
                         Thread.Sleep(500 * (1 + JobMonitorInstanceCounter));  // Allow time for any new runner(s) to start executing
                     }
                     else

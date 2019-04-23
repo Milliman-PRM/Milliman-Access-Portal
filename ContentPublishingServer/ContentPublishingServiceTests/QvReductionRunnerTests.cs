@@ -42,11 +42,10 @@ namespace ContentPublishingServiceTests
             DbTask.MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B";
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
 
-            QvReductionRunner TestRunner = await new QvReductionRunner
+            QvReductionRunner TestRunner = new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
-            }
-            .InitializeSourceDocFolder();
+            };
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -101,11 +100,10 @@ namespace ContentPublishingServiceTests
             ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(4));
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
 
-            QvReductionRunner TestRunner = await new QvReductionRunner
+            QvReductionRunner TestRunner = new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
-            }
-            .InitializeSourceDocFolder();
+            };
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -153,11 +151,10 @@ namespace ContentPublishingServiceTests
             ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(2));
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
 
-            QvReductionRunner TestRunner = await new QvReductionRunner
+            QvReductionRunner TestRunner = new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
-            }
-            .InitializeSourceDocFolder();
+            };
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -202,11 +199,10 @@ namespace ContentPublishingServiceTests
             ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(3));
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
 
-            QvReductionRunner TestRunner = await new QvReductionRunner
+            QvReductionRunner TestRunner = new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
-            }
-            .InitializeSourceDocFolder();
+            };
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -262,11 +258,10 @@ namespace ContentPublishingServiceTests
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
             DbTask.MasterFilePath = Path.ChangeExtension(DbTask.MasterFilePath, "xyz");
 
-            QvReductionRunner TestRunner = await new QvReductionRunner
+            QvReductionRunner TestRunner = new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
-            }
-            .InitializeSourceDocFolder();
+            };
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
