@@ -33,7 +33,7 @@ export class ForgotPasswordForm extends Form<{}, BaseFormState> {
       <form onSubmit={this.handleSubmit}>
         <Input
           name="username"
-          label="Username"
+          label="Email"
           type="text"
           value={data.username}
           onChange={this.handleChange}
@@ -42,9 +42,9 @@ export class ForgotPasswordForm extends Form<{}, BaseFormState> {
           autoFocus={true}
           inputIcon="user"
         />
-        <div className='button-container'>
+        <div className="button-container">
           <button
-            type='submit'
+            type="submit"
             disabled={!formIsValid}
             className="blue-button"
           >
@@ -53,5 +53,5 @@ export class ForgotPasswordForm extends Form<{}, BaseFormState> {
         </div>
       </form>
     );
-  };
-};
+  }
+}
