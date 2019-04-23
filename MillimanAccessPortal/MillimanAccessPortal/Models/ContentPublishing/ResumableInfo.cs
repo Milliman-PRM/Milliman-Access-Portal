@@ -97,6 +97,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                     expectedInitialBytes.Add(new byte[] { 0x47, 0x49, 0x46, 0x38, 0x37, 0x61 });
                     expectedInitialBytes.Add(new byte[] { 0x47, 0x49, 0x46, 0x38, 0x39, 0x61 });
                     break;
+                case ".pbix":
+                    expectedInitialBytes.Add(new byte[] { 0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x00, 0x00, 0x08, 0x00 });
+                    break;
                 case ".pdf":
                     expectedInitialBytes.Add(new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D });
                     break;
