@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export class ResetPasswordForm extends React.Component {
+export class ForgotPasswordForm extends React.Component {
   public render() {
     return <></>;
   }
