@@ -8,14 +8,10 @@ import * as ReactDOM from 'react-dom';
 
 import { ResetPasswordForm as Root } from './reset-password-form';
 
-let ResetPasswordForm: typeof Root = require('./reset-password-form')
-  .ResetPasswordForm;
+let ResetPasswordForm: typeof Root = require('./reset-password-form').ResetPasswordForm;
 
 document.addEventListener('DOMContentLoaded', () => {
-  ReactDOM.render(
-    <ResetPasswordForm />,
-    document.getElementById('content-container')
-  );
+  ReactDOM.render(<ResetPasswordForm />, document.getElementById('content-container'));
 });
 
 if (module.hot) {
