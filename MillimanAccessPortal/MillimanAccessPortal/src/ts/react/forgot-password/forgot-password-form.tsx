@@ -1,3 +1,5 @@
+import '../../../scss/react/shared-components/form-elements.scss';
+
 import '../../../images/icons/user.svg';
 
 import * as React from 'react';
