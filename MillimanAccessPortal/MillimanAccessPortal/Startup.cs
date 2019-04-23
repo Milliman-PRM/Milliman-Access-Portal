@@ -302,7 +302,8 @@ namespace MillimanAccessPortal
             .AddControllersAsServices()
             .AddJsonOptions(opt =>
             {
-                opt.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
+                opt.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
+                opt.SerializerSettings.NullValueHandling = NullValueHandling.Include;
             });
 
             services.AddApplicationInsightsTelemetry(Configuration);

@@ -36,6 +36,43 @@ namespace MapDbContextLib.Context
         // [Required] This causes a problem with migration database update
         public string TypeSpecificDetail { get; set; }
 
+        /// <summary>
+        /// Requires that this object has a populated ContentType navigation property
+        /// </summary>
+        [NotMapped]
+        public TypeSpecificContentItemProperties TypeSpecificDetailObject
+        {
+            get
+            {
+                switch (ContentType.TypeEnum)
+                {
+                    case ContentTypeEnum.PowerBi:
+                        return JsonConvert.DeserializeObject<PowerBiContentItemProperties>(TypeSpecificDetail, new JsonSerializerSettings {NullValueHandling = NullValueHandling.Include });
+                    case ContentTypeEnum.Qlikview:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.FileDownload:
+                    default:
+                        return null;
+                }
+            }
+            set
+            {
+                switch (ContentType.TypeEnum)
+                {
+                    case ContentTypeEnum.PowerBi:
+                        TypeSpecificDetail = JsonConvert.SerializeObject(value as PowerBiContentItemProperties);
+                        break;
+                    case ContentTypeEnum.Qlikview:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.FileDownload:
+                    default:
+                        break;
+                }
+            }
+        }
+
         public string Description { get; set; }
 
         public string Notes { get; set; }

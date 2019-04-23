@@ -143,6 +143,7 @@ namespace MapDbContextLib.Models
                     case ContentTypeEnum.Html:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.FileDownload:
+                    case ContentTypeEnum.PowerBi:
                     default:
                         // Should never get here because RelatedHierarchyFields should be empty for non-reducible types
                         ReductionField = null;
@@ -201,6 +202,7 @@ namespace MapDbContextLib.Models
                         case ContentTypeEnum.Html:
                         case ContentTypeEnum.Pdf:
                         case ContentTypeEnum.FileDownload:
+                        case ContentTypeEnum.PowerBi:
                         default:
                             // Should never get here because no hierarchy fields should exist for non-reducible types
                             break;

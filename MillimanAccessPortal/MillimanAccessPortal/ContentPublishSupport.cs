@@ -111,6 +111,8 @@ namespace MillimanAccessPortal
                     .Single();
                 switch (rootContentItem.ContentType.TypeEnum)
                 {
+                    case ContentTypeEnum.PowerBi:
+                        // TODO: Figure out what is involved here
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Html:
                     case ContentTypeEnum.Pdf:
@@ -207,6 +209,8 @@ namespace MillimanAccessPortal
                 string DestinationFileName = QlikviewLibApi.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath));
                 switch (contentType)
                 {  // This is where any dependence on ContentType would be incorporated to override base behavior
+                    case ContentTypeEnum.PowerBi:
+                        // TODO Figure out if anything is needed here.
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Html:
                     case ContentTypeEnum.Pdf:

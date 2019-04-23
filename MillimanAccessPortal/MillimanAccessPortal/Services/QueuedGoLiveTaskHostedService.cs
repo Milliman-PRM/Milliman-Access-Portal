@@ -442,6 +442,8 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 // Perform any content type dependent follow up processing
                 switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
                 {
+                    case ContentTypeEnum.PowerBi:
+                        // TODO Implement this
                     case ContentTypeEnum.Qlikview:
                         await new QlikviewLibApi()
                             .AuthorizeUserDocumentsInFolder(

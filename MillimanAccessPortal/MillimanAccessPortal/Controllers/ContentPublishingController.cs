@@ -417,6 +417,9 @@ namespace MillimanAccessPortal.Controllers
                     }
                     break;
 
+                case ContentTypeEnum.PowerBi:
+                    // TODO Remove all artifacts of this content item from Azure
+
                 case ContentTypeEnum.Html:
                 case ContentTypeEnum.Pdf:
                 case ContentTypeEnum.FileDownload:

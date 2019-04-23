@@ -62,6 +62,7 @@
     <ProjectReference Include="..\EmailQueue\EmailQueue.csproj" />
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
     <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />
+    <ProjectReference Include="..\PowerBILib\PowerBiLib.csproj" />
     <ProjectReference Include="..\QlikviewLib\QlikviewLib.csproj" />
   </ItemGroup>
   <ItemGroup>

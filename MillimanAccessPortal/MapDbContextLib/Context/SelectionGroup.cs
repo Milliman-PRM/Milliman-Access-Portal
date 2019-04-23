@@ -66,6 +66,10 @@ namespace MapDbContextLib.Context
                     ContentInstanceUrl = Path.Combine($"{RootContentItem.Id}", fileName);
                     return;
 
+                case ContentTypeEnum.PowerBi:
+                    // TODO What to do?
+                    return;
+
                 default:
                     ContentInstanceUrl = null;
                     throw new ApplicationException($"SelectionGroup.SetContentUrl called with unsupported ContentType {RootContentItem.ContentType.TypeEnum.ToString()}");

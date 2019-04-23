@@ -166,6 +166,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                     case "mastercontent":
                         switch (PubRequest.RootContentItem.ContentType.TypeEnum)
                         {
+                            case ContentTypeEnum.PowerBi:
+                                // TODO Figure out what is needed here
                             case ContentTypeEnum.Qlikview:
                                 UriBuilder qvwUrlBuilder = new UriBuilder
                                 {

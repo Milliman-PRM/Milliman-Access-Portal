@@ -186,6 +186,7 @@ namespace MillimanAccessPortal
                     await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(reductionTask.SelectionGroup.RootContentItemId.ToString(), QvConfig);
                     break;
 
+                case ContentTypeEnum.PowerBi:
                 case ContentTypeEnum.Html:
                 case ContentTypeEnum.Pdf:
                 case ContentTypeEnum.FileDownload:

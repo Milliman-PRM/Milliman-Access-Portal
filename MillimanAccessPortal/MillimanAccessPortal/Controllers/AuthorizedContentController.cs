@@ -24,6 +24,7 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AuthorizedContentViewModels;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
+using PowerBiLib;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -43,6 +44,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext DataContext;
         private readonly IMessageQueue MessageQueue;
+        private readonly PowerBiConfig _powerBiConfig;
         private readonly QlikviewConfig QlikviewConfig;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
@@ -67,12 +69,14 @@ namespace MillimanAccessPortal.Controllers
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             StandardQueries QueryArg,
             UserManager<ApplicationUser> UserManagerArg,
-            IConfiguration AppConfigurationArg)
+            IConfiguration AppConfigurationArg,
+            IOptions<PowerBiConfig> powerBiConfigArg)
         {
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DataContext = DataContextArg;
             MessageQueue = MessageQueueArg;
+            _powerBiConfig = powerBiConfigArg.Value;
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             Queries = QueryArg;
             UserManager = UserManagerArg;
@@ -329,9 +333,9 @@ namespace MillimanAccessPortal.Controllers
                 {   // Never break out of this switch without a valid ContentSpecificHandler object
                     case ContentTypeEnum.Qlikview:
                         ContentSpecificHandler = new QlikviewLibApi();
-                        UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig, HttpContext.Request);
-                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning Qlikview URI {ContentUri}");
-                        return Redirect(ContentUri.Uri.AbsoluteUri);
+                        UriBuilder QvContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig, HttpContext.Request);
+                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning Qlikview URI {QvContentUri}");
+                        return Redirect(QvContentUri.Uri.AbsoluteUri);
 
                     case ContentTypeEnum.FileDownload:
                         Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning file {requestedContentFile.FullPath}");
@@ -350,6 +354,12 @@ namespace MillimanAccessPortal.Controllers
                     case ContentTypeEnum.Html:
                         Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning file {requestedContentFile.FullPath}");
                         return PhysicalFile(requestedContentFile.FullPath, "text/html");
+
+                    case ContentTypeEnum.PowerBi:
+                        ContentSpecificHandler = new PowerBiLibApi();
+                        UriBuilder pbiContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, _powerBiConfig, HttpContext.Request);
+                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning PowerBI URI {pbiContentUri}");
+                        return Redirect(pbiContentUri.Uri.AbsoluteUri);
 
                     default:
                         Log.Error($"In AuthorizedContentController.WebHostedContent action, unsupported content type <{selectionGroup.RootContentItem.ContentType.Name}>, aborting");

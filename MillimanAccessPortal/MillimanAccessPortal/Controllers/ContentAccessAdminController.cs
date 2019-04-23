@@ -443,6 +443,7 @@ namespace MillimanAccessPortal.Controllers
                 case ContentTypeEnum.Html:
                 case ContentTypeEnum.Pdf:
                 case ContentTypeEnum.FileDownload:
+                case ContentTypeEnum.PowerBi:
                 default:
                     // for all non-reducible content types, do nothing.
                     break;
@@ -683,6 +684,7 @@ namespace MillimanAccessPortal.Controllers
                         case ContentTypeEnum.Html:
                         case ContentTypeEnum.Pdf:
                         case ContentTypeEnum.FileDownload:
+                        case ContentTypeEnum.PowerBi:
                         default:
                             // should never get here because non-reducible content types are blocked in validation above
                             break;
