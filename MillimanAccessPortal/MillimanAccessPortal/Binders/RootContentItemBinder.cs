@@ -101,9 +101,81 @@ namespace MillimanAccessPortal.Binders
                 bindingContext.ModelState.AddModelError("DoesReduce", $"DoesReduce not found or value <{valueProviderResult.FirstValue}> could not be parsed as a bool");
             }
             #endregion
+
+            #region Description field
+            valueProviderResult = bindingContext.ValueProvider.GetValue("Description");
+            bindingContext.ModelState.SetModelValue("Description", valueProviderResult);
+            if (valueProviderResult != ValueProviderResult.None)
+            {
+                model.Description = valueProviderResult.FirstValue;
+                bindingContext.ModelState.MarkFieldValid("Description");
+            }
+            else
+            {
+                bindingContext.ModelState.AddModelError("Description", $"Description could not be bound");
+            }
             #endregion
 
-            // Find the corresponding content type enumeration value
+            #region Notes field
+            valueProviderResult = bindingContext.ValueProvider.GetValue("Notes");
+            bindingContext.ModelState.SetModelValue("Notes", valueProviderResult);
+            if (valueProviderResult != ValueProviderResult.None)
+            {
+                model.Notes = valueProviderResult.FirstValue;
+                bindingContext.ModelState.MarkFieldValid("Notes");
+            }
+            else
+            {
+                bindingContext.ModelState.AddModelError("Notes", $"Notes could not be bound");
+            }
+            #endregion
+
+            #region IsSuspended field
+            // Not expected in Create action
+            valueProviderResult = bindingContext.ValueProvider.GetValue("IsSuspended");
+            bindingContext.ModelState.SetModelValue("IsSuspended", valueProviderResult);
+            if (valueProviderResult != ValueProviderResult.None &&
+                bool.TryParse(valueProviderResult.FirstValue, out bool IsSuspendedVal))
+            {
+                model.IsSuspended = IsSuspendedVal;
+                bindingContext.ModelState.MarkFieldValid("IsSuspended");
+            }
+            else
+            {
+                bindingContext.ModelState.MarkFieldSkipped("IsSuspended");
+            }
+            #endregion
+
+            #region ContentDisclaimer field
+            valueProviderResult = bindingContext.ValueProvider.GetValue("ContentDisclaimer");
+            bindingContext.ModelState.SetModelValue("ContentDisclaimer", valueProviderResult);
+            if (valueProviderResult != ValueProviderResult.None)
+            {
+                model.ContentDisclaimer = valueProviderResult.FirstValue;
+                bindingContext.ModelState.MarkFieldValid("ContentDisclaimer");
+            }
+            else
+            {
+                bindingContext.ModelState.AddModelError("ContentDisclaimer", $"ContentDisclaimer could not be bound");
+            }
+            #endregion
+
+            #region ContentFiles field
+            valueProviderResult = bindingContext.ValueProvider.GetValue("ContentFilesList");
+            bindingContext.ModelState.SetModelValue("ContentFilesList", valueProviderResult);
+            if (valueProviderResult != ValueProviderResult.None)
+            {
+               // model.ContentFilesList = valueProviderResult.FirstValue;
+                bindingContext.ModelState.MarkFieldValid("ContentFilesList");
+            }
+            else
+            {
+                bindingContext.ModelState.AddModelError("ContentFilesList", $"ContentFilesList could not be bound");
+            }
+            #endregion
+            #endregion
+
+            // Find the content type enum value corresponding to the supplied Guid
             ContentType contentType = default;
             using (IServiceScope scope = bindingContext.HttpContext.RequestServices.CreateScope())
             {
