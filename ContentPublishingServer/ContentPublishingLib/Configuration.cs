@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using MapCommonLib;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography.X509Certificates;
 
@@ -20,6 +21,9 @@ namespace ContentPublishingLib
         {
             string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToUpper();
 
+            // Temporary
+            GlobalFunctions.TraceWriteLine($"In LoadConfiguration, using ASPNETCORE_ENVIRONMENT value <{EnvironmentName}>");
+
             IConfigurationBuilder CfgBuilder = new ConfigurationBuilder()
                 .AddJsonFile("contentPublicationLibSettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile("appSettings.json", optional: true, reloadOnChange: true)
@@ -33,6 +37,9 @@ namespace ContentPublishingLib
                 case "AZURECI":
                 case "PRODUCTION":
                 case "STAGING":
+                    // Temporary
+                    GlobalFunctions.TraceWriteLine($"In LoadConfiguration, code path is CI, AZURECI, PRODUCTION, STAGING");
+
                     // get (environment dependent) settings from Azure key vault if any exist
                     IConfigurationRoot vaultConfig = new ConfigurationBuilder()
                         .AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true)
@@ -55,10 +62,16 @@ namespace ContentPublishingLib
 
                 case null:  // for framework GUI project
                 case "DEVELOPMENT":
+                    // Temporary
+                    GlobalFunctions.TraceWriteLine($"In LoadConfiguration, code path is null, DEVELOPMENT");
+
                     CfgBuilder.AddUserSecrets<ProcessManager>();
                     break;
 
                 default: // Unsupported environment name	
+                    // Temporary
+                    GlobalFunctions.TraceWriteLine($"In LoadConfiguration, unsupported default code path");
+
                     throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Configuration.cs");
 
             }

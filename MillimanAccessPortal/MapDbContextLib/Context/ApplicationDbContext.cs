@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapCommonLib;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -40,10 +41,17 @@ namespace MapDbContextLib.Context
         public DbSet<ApplicationRole> ApplicationRole { get; set; }
 
         // Had to implement this parameterless constructor for Mocking in unit tests, I hope this doesn't cause any problem in EF
-        public ApplicationDbContext() { }
+        public ApplicationDbContext()
+        {
+            // Temporary
+            GlobalFunctions.TraceWriteLine($"In ApplicationDbContext parameterless constructor");
+        }
 
         static ApplicationDbContext()
         {
+            // Temporary
+            GlobalFunctions.TraceWriteLine($"In ApplicationDbContext static constructor");
+
             NpgsqlConnection.GlobalTypeMapper.MapEnum<AuthenticationType>();
             NpgsqlConnection.GlobalTypeMapper.MapEnum<PublicationStatus>();
             NpgsqlConnection.GlobalTypeMapper.MapEnum<ReductionStatusEnum>();
@@ -53,7 +61,10 @@ namespace MapDbContextLib.Context
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
-        {}
+        {
+            // Temporary
+            GlobalFunctions.TraceWriteLine($"In ApplicationDbContext constructor with options");
+        }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
