@@ -216,17 +216,21 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var contentType = DbContext.ContentType
-                .Where(c => c.Id == rootContentItem.ContentTypeId)
-                .SingleOrDefault();
-            if (contentType == null)
+            if (!DbContext.ContentType.Any(c => c.Id == rootContentItem.ContentTypeId))
             {
                 Log.Debug($"In ContentPublishingController.CreateRootContentItem action: content type for content item {rootContentItem.Id} not found, aborting");
                 Response.Headers.Add("Warning", "The associated content type does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            if (rootContentItem.ContentName == null)
+            if (!DbContext.Client.Any(c => c.Id == rootContentItem.ClientId))
+            {
+                Log.Debug($"In ContentPublishingController.CreateRootContentItem action: client for content item {rootContentItem.Id} not found, aborting");
+                Response.Headers.Add("Warning", "The associated client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (string.IsNullOrWhiteSpace(rootContentItem.ContentName))
             {
                 Log.Debug($"In ContentPublishingController.CreateRootContentItem action: content name is required and not provided, aborting");
                 Response.Headers.Add("Warning", "You must supply a name for the content item.");
