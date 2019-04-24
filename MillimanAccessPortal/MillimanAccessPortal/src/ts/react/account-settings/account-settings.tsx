@@ -1,4 +1,4 @@
-import '../../../scss/react/shared-components/form-container.scss';
+import '../../../scss/react/shared-components/form-elements.scss';
 
 import * as React from 'react';
 import { connect } from 'react-redux';
