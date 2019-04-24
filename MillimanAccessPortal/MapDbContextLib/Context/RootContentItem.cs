@@ -44,10 +44,14 @@ namespace MapDbContextLib.Context
         {
             get
             {
+                if (ContentType == null)
+                {
+                    return null;
+                }
                 switch (ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.PowerBi:
-                        return JsonConvert.DeserializeObject<PowerBiContentItemProperties>(TypeSpecificDetail, new JsonSerializerSettings {NullValueHandling = NullValueHandling.Include });
+                        return JsonConvert.DeserializeObject<PowerBiContentItemProperties>(TypeSpecificDetail, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Include });
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.Html:

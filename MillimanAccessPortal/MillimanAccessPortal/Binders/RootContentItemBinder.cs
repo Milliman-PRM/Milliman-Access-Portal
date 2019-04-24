@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Binders
 {
-    public class RootContentItemBinder
+    public class RootContentItemBinder : IModelBinder
     {
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
@@ -156,6 +156,7 @@ namespace MillimanAccessPortal.Binders
                         break;
                 }
             }
+            #endregion
 
             if (bindingContext.ModelState.IsValid)
             {

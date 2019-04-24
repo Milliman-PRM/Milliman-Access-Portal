@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.Binders;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
@@ -187,7 +188,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateRootContentItem(RootContentItem rootContentItem)
+        public async Task<IActionResult> CreateRootContentItem([ModelBinder(BinderType = typeof(RootContentItemBinder))] RootContentItem rootContentItem)
         {
             Log.Verbose($"Entered ContentPublishingController.CreateRootContentItem action with root content item {{@RootContentItem}}", rootContentItem);
 

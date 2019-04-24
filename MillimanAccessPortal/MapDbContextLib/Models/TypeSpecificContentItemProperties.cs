@@ -1,6 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: A family of model classes representing root content item properties that are particular to the associated content type
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
 
 namespace MapDbContextLib.Models
 {
