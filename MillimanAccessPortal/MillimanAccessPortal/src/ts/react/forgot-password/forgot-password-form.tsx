@@ -30,28 +30,33 @@ export class ForgotPasswordForm extends Form<{}, BaseFormState> {
     const { data, errors, formIsValid } = this.state;
 
     return (
-      <form onSubmit={this.handleSubmit}>
-        <Input
-          name="username"
-          label="Email"
-          type="text"
-          value={data.username}
-          onChange={this.handleChange}
-          onBlur={this.handleBlur}
-          error={errors.username}
-          autoFocus={true}
-          inputIcon="user"
-        />
-        <div className="button-container">
-          <button
-            type="submit"
-            disabled={!formIsValid}
-            className="blue-button"
-          >
-            Reset Password
-          </button>
+      <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
+        <div className="form-section">
+          <form onSubmit={this.handleSubmit}>
+          <h3 className="form-section-title">Enter your Email Address</h3>
+            <Input
+              name="username"
+              label="Email"
+              type="text"
+              value={data.username}
+              onChange={this.handleChange}
+              onBlur={this.handleBlur}
+              error={errors.username}
+              autoFocus={true}
+              inputIcon="user"
+            />
+            <div className="button-container">
+              <button
+                type="submit"
+                disabled={!formIsValid}
+                className="blue-button"
+              >
+                Reset Password
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     );
   }
 }
