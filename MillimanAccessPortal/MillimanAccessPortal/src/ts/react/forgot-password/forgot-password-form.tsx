@@ -7,6 +7,7 @@ import * as Yup from 'yup';
 
 import { BaseFormState, Form } from '../shared-components/form';
 import { Input } from '../shared-components/input';
+import { postData } from '../../shared';
 
 export class ForgotPasswordForm extends Form<{}, BaseFormState> {
   protected schema = Yup.object({
@@ -26,13 +27,17 @@ export class ForgotPasswordForm extends Form<{}, BaseFormState> {
     };
   }
 
+  submit() {
+    postData('/Account/ForgotPassword', this.state.data, true)
+  }
+
   public render() {
     const { data, errors, formIsValid } = this.state;
 
     return (
       <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
         <div className="form-section">
-          <form action="/Account/ForgotPassword" method="post">
+          <form onSubmit={ this.submit } >
           <h3 className="form-section-title">Enter your Email Address</h3>
             <Input
               name="email"
