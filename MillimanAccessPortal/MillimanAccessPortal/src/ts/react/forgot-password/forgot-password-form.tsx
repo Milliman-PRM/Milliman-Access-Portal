@@ -10,7 +10,7 @@ import { Input } from '../shared-components/input';
 
 export class ForgotPasswordForm extends Form<{}, BaseFormState> {
   protected schema = Yup.object({
-    username: Yup.string()
+    email: Yup.string()
       .email()
       .required()
       .label('Email'),
@@ -20,7 +20,7 @@ export class ForgotPasswordForm extends Form<{}, BaseFormState> {
     super(props);
 
     this.state = {
-      data: { username: '' },
+      data: { email: '' },
       errors: {},
       formIsValid: false,
     };
@@ -32,16 +32,16 @@ export class ForgotPasswordForm extends Form<{}, BaseFormState> {
     return (
       <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
         <div className="form-section">
-          <form onSubmit={this.handleSubmit}>
+          <form action="/Account/ForgotPassword" method="post">
           <h3 className="form-section-title">Enter your Email Address</h3>
             <Input
-              name="username"
+              name="email"
               label="Email"
               type="text"
-              value={data.username}
+              value={data.email}
               onChange={this.handleChange}
               onBlur={this.handleBlur}
-              error={errors.username}
+              error={errors.email}
               autoFocus={true}
               inputIcon="user"
             />
