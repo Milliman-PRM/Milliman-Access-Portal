@@ -170,7 +170,8 @@ namespace MillimanAccessPortal.Binders
             }
             else
             {
-                bindingContext.ModelState.AddModelError("ContentFilesList", $"ContentFilesList could not be bound");
+                bindingContext.ModelState.MarkFieldSkipped("ContentFilesList");
+                //bindingContext.ModelState.AddModelError("ContentFilesList", $"ContentFilesList could not be bound");
             }
             #endregion
             #endregion

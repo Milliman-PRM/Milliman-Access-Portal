@@ -454,7 +454,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Publish([ModelBinder(BinderType = typeof(RootContentItemBinder))] PublishRequest request)
+        public async Task<IActionResult> Publish(PublishRequest request)
         {
             Log.Verbose($"Entered ContentPublishingController.Publish action with {{@PublishRequest}}", request);
 
