@@ -43,7 +43,8 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -85,7 +86,8 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -132,7 +134,8 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -177,7 +180,8 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -240,7 +244,8 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -297,7 +302,8 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -339,7 +345,8 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -384,7 +391,8 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -446,7 +454,8 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -506,7 +515,8 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -566,7 +576,8 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data

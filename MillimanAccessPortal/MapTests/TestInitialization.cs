@@ -30,6 +30,7 @@ using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
 using Moq;
+using PowerBiLib;
 using QlikviewLib;
 using System;
 using System.Collections.Generic;
@@ -105,6 +106,7 @@ namespace MapTests
         public SignInManager<ApplicationUser> SignInManagerObject { get => MockSignInManager.Object; }
 
         public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
+        public IOptions<PowerBiConfig> PowerBiConfig { get { return BuildPbiConfig(); } }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
 
@@ -313,6 +315,52 @@ namespace MapTests
                 QvServerContentUriSubfolder = configuration["QvServerContentUriSubfolder"],
                 QdsQmsApiUrl = configuration["QdsQmsApiUrl"],
                 QvsQmsApiUrl = configuration["QvsQmsApiUrl"]
+            });
+        }
+
+        private IOptions<PowerBiConfig> BuildPbiConfig()
+        {
+            var configurationBuilder = new ConfigurationBuilder();
+            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            // Determine location to fetch the configuration
+            switch (environmentName)
+            {
+                case "CI":
+                case "Production": // Get configuration from Azure Key Vault for Production
+                    configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
+
+                    var built = configurationBuilder.Build();
+                    configurationBuilder = new ConfigurationBuilder();
+
+                    var store = new X509Store(StoreLocation.LocalMachine);
+                    store.Open(OpenFlags.ReadOnly);
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+
+                    configurationBuilder.AddJsonFile($"appsettings.{environmentName}.json");
+
+                    configurationBuilder.AddAzureKeyVault(
+                        built["AzureVaultName"],
+                        built["AzureClientID"],
+                        cert.OfType<X509Certificate2>().Single());
+                    break;
+
+                default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
+                    configurationBuilder.AddUserSecrets<TestInitialization>();
+                    break;
+            }
+
+            var configuration = configurationBuilder.Build();
+
+            return Options.Create(new PowerBiConfig
+            {
+                PbiAuthenticationScope = configuration["QvServerHost"],
+                PbiAzureADClientId = configuration["QvServerHost"],
+                PbiAzureADClientSecret = configuration["QvServerHost"],
+                PbiAzureADPassword = configuration["QvServerHost"],
+                PbiAzureADUsername = configuration["QvServerHost"],
+                PbiGrantType = configuration["QvServerHost"],
+                PbiTenantId = configuration["QvServerHost"],
             });
         }
 

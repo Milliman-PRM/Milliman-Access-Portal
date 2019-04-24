@@ -98,7 +98,7 @@ namespace MapTests
             };
             if (useContentName)
             {
-                validRootContentItem.ContentName = "";
+                validRootContentItem.ContentName = "CreateRootContentItem_ErrorInvalid";
             }
             #endregion
 
@@ -153,7 +153,7 @@ namespace MapTests
             {
                 ClientId = TestUtil.MakeTestGuid(1),
                 ContentTypeId = TestUtil.MakeTestGuid(1),
-                ContentName = "",
+                ContentName = "CreateRootContentItem_ReturnsJson",
                 DoesReduce = false,
             };
             #endregion
@@ -181,7 +181,7 @@ namespace MapTests
             {
                 ClientId = TestUtil.MakeTestGuid(1),
                 ContentTypeId = TestUtil.MakeTestGuid(1),
-                ContentName = "",
+                ContentName = "CreateRootContentItem_Success",
                 DoesReduce = false,
             };
             #endregion

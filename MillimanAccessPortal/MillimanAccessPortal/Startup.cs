@@ -39,6 +39,7 @@ using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
 using NetEscapades.AspNetCore.SecurityHeaders;
 using Newtonsoft.Json;
+using PowerBiLib;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -283,6 +284,7 @@ namespace MillimanAccessPortal
             });
 
             services.Configure<QlikviewConfig>(Configuration);
+            services.Configure<PowerBiConfig>(Configuration);
             services.Configure<AuditLoggerConfiguration>(Configuration);
             services.Configure<SmtpConfig>(Configuration);
 
