@@ -27,8 +27,8 @@ export class ForgotPasswordForm extends Form<{}, BaseFormState> {
     };
   }
 
-  private submit() {
-    postData('/Account/ForgotPassword', this.state.data, true);
+  public submit() {
+    return postData('/Account/ForgotPassword', this.state.data, true);
   }
 
   public render() {
