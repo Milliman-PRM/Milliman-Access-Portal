@@ -770,7 +770,8 @@ namespace MapTests
                 ReductionStatus = ReductionStatusEnum.Queued,
                 ContentPublicationRequestId = null,
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
-                ApplicationUserId = TestUtil.MakeTestGuid(1)
+                ApplicationUserId = TestUtil.MakeTestGuid(1),
+                SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>(),
             });
             #endregion
 
@@ -805,6 +806,7 @@ namespace MapTests
                     ContentPublicationRequestId = null,
                     SelectionGroupId = TestUtil.MakeTestGuid(SelectionGroupId),
                     ApplicationUserId = TestUtil.MakeTestGuid(UserId),
+                    SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>(),
                 });
             }
             #endregion
