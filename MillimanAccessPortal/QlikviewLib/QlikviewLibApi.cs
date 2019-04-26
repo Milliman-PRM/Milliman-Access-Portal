@@ -327,7 +327,7 @@ namespace QlikviewLib
         /// <param name="ConfigInfo"></param>
         /// <param name="SpecificFileName">If provided, authorizes only the named file in the designated path</param>
         /// <returns></returns>
-        public async Task AuthorizeUserDocumentsInFolder(string ContentPathRelativeToNamedUserDocFolder, QlikviewConfig ConfigInfo, string SpecificFileName = null)
+        public async Task AuthorizeUserDocumentsInFolderAsync(string ContentPathRelativeToNamedUserDocFolder, QlikviewConfig ConfigInfo, string SpecificFileName = null)
         {
             IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
@@ -340,7 +340,7 @@ namespace QlikviewLib
             await Client.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList);  // Is this really needed?
 
             DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToNamedUserDocFolder);
-            foreach (DocumentNode DocNode in AllDocNodesInRequestedFolder)
+            foreach (DocumentNode DocNode in AllDocNodesInRequestedFolder.Where(n => !n.IsSubFolder))
             {
                 if (!string.IsNullOrEmpty(SpecificFileName) && DocNode.Name != SpecificFileName)
                     continue;

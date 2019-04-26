@@ -432,7 +432,7 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 string Link = Path.GetRelativePath(ContentRootPath, FullFilePath);
-                await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(
+                await new QlikviewLibApi().AuthorizeUserDocumentsInFolderAsync(
                         Path.GetDirectoryName(Link), QlikviewConfig, Path.GetFileName(Link));
 
                 UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(

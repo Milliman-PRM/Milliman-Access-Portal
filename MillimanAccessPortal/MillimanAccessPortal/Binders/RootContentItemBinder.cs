@@ -202,7 +202,8 @@ namespace MillimanAccessPortal.Binders
                         }
                         else
                         {
-                            bindingContext.ModelState.AddModelError("TypeSpecificDetailObject.FilterPaneEnabled", $"TypeSpecificDetailObject.FilterPaneEnabled property not found or value <{valueProviderResult.FirstValue}> could not be parsed as a bool");
+                            properties.FilterPaneEnabled = false;
+                            bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.FilterPaneEnabled");
                         }
 
                         valueProviderResult = bindingContext.ValueProvider.GetValue("NavigationPaneEnabled");
@@ -215,7 +216,8 @@ namespace MillimanAccessPortal.Binders
                         }
                         else
                         {
-                            bindingContext.ModelState.AddModelError("TypeSpecificDetailObject.NavigationPaneEnabled", $"TypeSpecificDetailObject.NavigationPaneEnabled property not found or value <{valueProviderResult.FirstValue}> could not be parsed as a bool");
+                            properties.FilterPaneEnabled = false;
+                            bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.NavigationPaneEnabled");
                         }
 
                         model.TypeSpecificDetail = JsonConvert.SerializeObject(properties);

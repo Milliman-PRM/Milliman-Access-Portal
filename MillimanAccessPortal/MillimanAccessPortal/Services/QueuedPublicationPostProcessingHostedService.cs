@@ -123,6 +123,11 @@ namespace MillimanAccessPortal.Services
                 return;
             }
 
+            ContentTypeEnum thisContentType = dbContext.RootContentItem
+                                                   .Where(i => i.Id == thisPubRequest.RootContentItemId)
+                                                   .Select(i => i.ContentType.TypeEnum)
+                                                   .Single();
+
             // Prepare useful lists of reduction tasks for use below
             List<ContentReductionTask> AllRelatedReductionTasks = dbContext.ContentReductionTask
                 .Where(t => t.ContentPublicationRequestId == thisPubRequest.Id)
@@ -230,8 +235,18 @@ namespace MillimanAccessPortal.Services
             }
             dbContext.SaveChanges();
 
-            await new QlikviewLibApi()
-                .AuthorizeUserDocumentsInFolder(thisPubRequest.RootContentItemId.ToString(), qvConfig);
+            switch (thisContentType)
+            {
+                case ContentTypeEnum.Qlikview:
+                    await new QlikviewLibApi().AuthorizeUserDocumentsInFolderAsync(thisPubRequest.RootContentItemId.ToString(), qvConfig);
+                    break;
+                case ContentTypeEnum.PowerBi:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.FileDownload:
+                default:
+                    break;
+            }
 
             // Delete source folder(s)
             bool RetainFailedReductionFolders = false;  // this variable is for debugging use

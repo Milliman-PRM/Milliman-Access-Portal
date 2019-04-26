@@ -446,7 +446,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         // TODO Implement this
                     case ContentTypeEnum.Qlikview:
                         await new QlikviewLibApi()
-                            .AuthorizeUserDocumentsInFolder(
+                            .AuthorizeUserDocumentsInFolderAsync(
                                 goLiveViewModel.RootContentItemId.ToString(), qlikviewConfig);
                         break;
 
