@@ -1,4 +1,10 @@
-﻿using MapCommonLib;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapCommonLib;
 
 namespace MapDbContextLib.Models
 {

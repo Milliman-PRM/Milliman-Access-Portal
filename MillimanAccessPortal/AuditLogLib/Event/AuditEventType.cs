@@ -1,4 +1,11 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: Joseph Sweeney, Tom Puckett
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Models;
+using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using System;
 using System.Collections.Generic;
@@ -23,7 +30,7 @@ namespace AuditLogLib.Event
             {
                 Scheme = scheme,
             });
-        public static readonly AuditEventType<string,string> LoginFailure = new AuditEventType<string,string>(
+        public static readonly AuditEventType<string, string> LoginFailure = new AuditEventType<string, string>(
             1002, "Login failure", (attemptedUsername, scheme) => new
             {
                 AttemptedUsername = attemptedUsername,
@@ -212,14 +219,26 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<SelectionGroup, ContentReductionTask> SelectionChangeReductionQueued = new AuditEventType<SelectionGroup, ContentReductionTask>(
             4005, "Selection change reduction task queued", (selectionGroup, reductionTask) => new
             {
+                SelectionGroupId = selectionGroup.Id,
+                RootContentItemId = selectionGroup.RootContentItemId,
+                Action = reductionTask.TaskAction.ToString(),
+                SelectedValues = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList(),
+                SelectedValueIds = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Id)).ToList(),
             });
         public static readonly AuditEventType<SelectionGroup, ContentReductionTask> SelectionChangeReductionCanceled = new AuditEventType<SelectionGroup, ContentReductionTask>(
             4006, "Selection change reduction task canceled", (selectionGroup, reductionTask) => new
             {
+                SelectionGroupId = selectionGroup.Id,
+                RootContentItemId = selectionGroup.RootContentItemId,
+                Action = reductionTask.TaskAction.ToString(),
+                SelectedValues = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList(),
+                SelectedValueIds = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Id)).ToList(),
             });
         public static readonly AuditEventType<SelectionGroup> SelectionChangeMasterAccessGranted = new AuditEventType<SelectionGroup>(
             4007, "Selection group given master access", (selectionGroup) => new
             {
+                SelectionGroupId = selectionGroup.Id,
+                RootContentItemId = selectionGroup.RootContentItemId,
             });
         public static readonly AuditEventType<SelectionGroup, bool, string> SelectionGroupSuspensionUpdate = new AuditEventType<SelectionGroup, bool, string>(
             4008, "Selection group suspension status updated", (selectionGroup, isSuspended, reason) => new
@@ -331,13 +350,13 @@ namespace AuditLogLib.Event
             5103, "Content file reduction completed", (logObject) => logObject);
         public static readonly AuditEventType<object> ContentFileReductionFailed = new AuditEventType<object>(
             5104, "Content file reduction failed", (logObject) => logObject);
-        
+
         // 52xx - Reduction task aggregate outcome events
         public static readonly AuditEventType<object> ContentReductionTaskCanceled = new AuditEventType<object>(
             5201, "Content reduction task canceled", (logObject) => logObject);
         public static readonly AuditEventType<object> PublicationRequestProcessingSuccess = new AuditEventType<object>(
             5202, "Content publication request success", (logObject) => logObject);
-        
+
         // 53xx - Publication request aggregate outcome events
         public static readonly AuditEventType<object> ContentPublicationRequestCanceled = new AuditEventType<object>(
             5301, "Content publication request canceled", (logObject) => logObject);
@@ -347,19 +366,25 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<RootContentItem> RootContentItemCreated = new AuditEventType<RootContentItem>(
             6001, "Root content item created", (rootContentItem) => new
             {
+                RootContentItemId = rootContentItem.Id,
+                ContentTypeId = rootContentItem.ContentTypeId,
+                ClientId = rootContentItem.ClientId,
             });
         public static readonly AuditEventType<RootContentItem> RootContentItemDeleted = new AuditEventType<RootContentItem>(
             6002, "Root content item deleted", (rootContentItem) => new
             {
+                RootContentItemId = rootContentItem.Id,
+                ContentTypeId = rootContentItem.ContentTypeId,
+                ClientId = rootContentItem.ClientId,
             });
         public static readonly AuditEventType<RootContentItem> RootContentItemUpdated = new AuditEventType<RootContentItem>(
             6003, "Root content item updated", (rootContentItem) => new
             {
-                Id = rootContentItem.Id,
-                ContentName = rootContentItem.ContentName,
-                Description = rootContentItem.Description,
-                Notes = rootContentItem.Notes,
-                ContentDisclaimer = rootContentItem.ContentDisclaimer,
+                RootContentItemId = rootContentItem.Id,
+                RootContentName = rootContentItem.ContentName,
+                RootContentDescription = rootContentItem.Description,
+                RootContentNotes = rootContentItem.Notes,
+                RootContentDisclaimer = rootContentItem.ContentDisclaimer,
             });
         public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> PublicationRequestInitiated = new AuditEventType<RootContentItem, ContentPublicationRequest>(
             6101, "Publication request initiated", (rootContentItem, publicationRequest) => new
@@ -379,8 +404,18 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> GoLiveValidationFailed = new AuditEventType<RootContentItem, ContentPublicationRequest>(
             6103, "GoLive Validation Failed", (rootContentItem, publicationRequest) => new
             {
+                PublicationRequestId = publicationRequest.Id,
+                RootContentItemId = rootContentItem.Id,
             });
-        public static readonly AuditEventType ChecksumInvalid = new AuditEventType(6104, "Checksum Invalid");
+        public static readonly AuditEventType<SelectionGroup, ContentRelatedFile,string> ChecksumInvalid = new AuditEventType<SelectionGroup, ContentRelatedFile,string>(
+            6104, "Checksum Invalid", (selectionGroup, contentRelatedFile, sourceAction) => new
+            {
+                SelectionGroupId = selectionGroup.Id,
+                RootContentItemId = selectionGroup.RootContentItemId,
+                FilePath = contentRelatedFile.FullPath,
+                FilePurpose = contentRelatedFile.FilePurpose,
+                Action = sourceAction,
+            });
         public static readonly AuditEventType<RootContentItem, ContentPublicationRequest, string> ContentPublicationGoLive = new AuditEventType<RootContentItem, ContentPublicationRequest, string>(
             6105, "Content publication golive", (rootContentItem, publicationRequest, summaryGUID) => new
             {
@@ -404,6 +439,8 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> ContentPublicationRejected = new AuditEventType<RootContentItem, ContentPublicationRequest>(
             6107, "Content publication rejected", (rootContentItem, publicationRequest) => new
             {
+                PublicationRequestId = publicationRequest.Id,
+                RootContentItemId = rootContentItem.Id,
             });
         #endregion
 

@@ -1260,7 +1260,7 @@ namespace MapTests
             #region Initialize ContentReductionTask
             DbContextObject.ContentReductionTask.AddRange(new List<ContentReductionTask>
             {
-                new ContentReductionTask { Id = TestUtil.MakeTestGuid(1), SelectionGroupId = TestUtil.MakeTestGuid(1), ReductionStatus = ReductionStatusEnum.Reducing }
+                new ContentReductionTask { Id = TestUtil.MakeTestGuid(1), SelectionGroupId = TestUtil.MakeTestGuid(1), ReductionStatus = ReductionStatusEnum.Reducing, SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>() }
             });
             MockDbSet<ContentReductionTask>.AssignNavigationProperty(DbContextObject.ContentReductionTask, "SelectionGroupId", DbContextObject.SelectionGroup);
             #endregion
