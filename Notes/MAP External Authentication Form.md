@@ -1,6 +1,12 @@
-Milliman Access Portal (MAP) supports user authentication by external systems using Ws-Federation.  This enables systems such as Microsoft ADFS to be used for account management.  
+# Background
 
-The following is a guide for a successful configuration of ADFS for integration with MAP.  
+The following instructions should be provided to external clients who wish to configure their authentication servers to work MAP. 
+
+These instructions should only be shared with clients by, or with the approval of, the Infrastructure and Security team.
+
+# Instructions for client (ADFS/WS-Federation)
+
+Milliman Access Portal (MAP) supports authentication with ADFS/WS-Federation as a Relying Party. Configure your relying parties using the following configuration. Please note that this should be configured for WS-Federation Passive, not SAML or SAML 2.
 
 - Relying party idententifier: 
    - https://map.milliman.com - Production
@@ -10,7 +16,7 @@ The following is a guide for a successful configuration of ADFS for integration 
 
 	|LDAP Attribute|Outgoing Claim Type|Notes|
 	|:---------------------|:-----------------------|:-------------------------------------------------------------------|
-	|User-Principle-Name|Name ID|Mandatory - value to be encoded as an email address|
+	|User-Principle-Name|Name|Mandatory - value to be encoded as an email address|
 	|Surname|Surname|Optional|
 	|Given-Name|Given Name|Optional|
 	|Company|Employer|Optional|
