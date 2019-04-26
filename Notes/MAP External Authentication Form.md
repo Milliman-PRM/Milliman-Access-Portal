@@ -8,7 +8,7 @@ These instructions should only be shared with clients by, or with the approval o
 
 Milliman Access Portal (MAP) supports authentication with ADFS/WS-Federation as a Relying Party. Configure your relying parties using the following configuration. Please note that this should be configured for WS-Federation Passive, not SAML or SAML 2.
 
-- Relying party idententifier: 
+- Relying party identifier: 
    - https://map.milliman.com - Production
    - https://map.milliman.com:44300 - Staging
  
