@@ -18,10 +18,10 @@
 }
 
 <div id="message-container">
-    <h3 class="primary-message">
+    <h3 class="message">
         @Html.Raw(@Model)
     </h3>
-    <h3 class="secondary-message">
+    <h3 class="message">
         @Html.ActionLink("OK", "Index", "AuthorizedContent")
     </h3>
 </div>

@@ -48,8 +48,7 @@
 #message-container {
     flex-flow: column nowrap;
 
-    .primary-message,
-    .secondary-message {
+    .message {
         width: 100%;
         text-align: center;
         padding: 1em 0;
