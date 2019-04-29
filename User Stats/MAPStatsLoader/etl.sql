@@ -60,7 +60,31 @@ INSERT INTO public."ClientInProfitCenter"
 	ON CONFLICT ON CONSTRAINT "UNIQUE_Client_ProfitCenter_Current" DO NOTHING;
 
 /*
-	SECTION 3: Audit Events
+	Section 3: User-SelectionGroup relationships
+*/
+
+-- Update existing records that are no longer applicable
+UPDATE public."UserInSelectionGroup"
+SET "EndDate" = (current_timestamp AT TIME ZONE 'UTC') - interval '1 day'
+WHERE ctid IN
+    (
+        SELECT usg.ctid
+        FROM public."UserInSelectionGroup" usg 
+            LEFT JOIN map."UserInSelectionGroup" musg ON usg."UserId" = musg."UserId" AND usg."SelectionGroupId" = musg."SelectionGroupId"
+        WHERE musg."Id" IS NULL
+    );
+
+-- Insert currently applicable records
+INSERT INTO public."UserInSelectionGroup"
+("UserId", "SelectionGroupId", "StartDate")
+(
+    SELECT "UserId", "SelectionGroupId", (current_timestamp AT TIME ZONE 'UTC')
+    FROM map."UserInSelectionGroup"
+)
+ON CONFLICT ON CONSTRAINT "UNIQUE_User_SelectionGroup_Current" DO NOTHING;
+
+/*
+	SECTION 4: Audit Events
 
 	Similar to Section 1, but sourced from a different database
 */
