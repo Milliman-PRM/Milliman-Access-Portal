@@ -255,7 +255,17 @@ namespace MillimanAccessPortal.Services
                     await new QlikviewLibApi().AuthorizeUserDocumentsInFolderAsync(thisPubRequest.RootContentItemId.ToString(), typeSpecificConfig as QlikviewConfig);
                     break;
                 case ContentTypeEnum.PowerBi:
-                    var api = new PowerBiLibApi(typeSpecificConfig as PowerBiConfig);
+                    var newMasterFile = thisPubRequest.LiveReadyFilesObj.SingleOrDefault(f => f.FilePurpose.Equals("MasterContent", StringComparison.OrdinalIgnoreCase));
+                    if (newMasterFile != null)
+                    {
+                        var api = await new PowerBiLibApi(typeSpecificConfig as PowerBiConfig).InitializeAsync();
+                        var result = await api.ImportPbixAsync(newMasterFile.FullPath, "group name");  // optional 3rd arg is capacity id
+
+                        var model = new PowerBiContentItemProperties
+                        {
+                            //PreviewGroupId =
+                        };
+                    }
                     break;
                 case ContentTypeEnum.Pdf:
                 case ContentTypeEnum.Html:

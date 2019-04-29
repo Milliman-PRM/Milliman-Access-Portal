@@ -27,7 +27,7 @@ namespace SamplePowerBiLib
             PowerBiConfig config = JsonConvert.DeserializeObject<PowerBiConfig>(File.ReadAllText(configPath));
             #endregion
 
-            PowerBiLibApi lib = await new PowerBiLibApi(config).Initialize();
+            PowerBiLibApi lib = await new PowerBiLibApi(config).InitializeAsync();
             await lib.Demonstrate(pbixPath);
 
         }

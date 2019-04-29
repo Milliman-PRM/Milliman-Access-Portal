@@ -24,10 +24,27 @@ namespace PowerBiLib
         private PowerBiConfig _config { get; set; }
         private TokenCredentials _tokenCredentials { get; set; }
 
-        public async override Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfo, HttpRequest thisHttpRequest)
+        public async override Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfoArg, HttpRequest thisHttpRequest)
         {
+            PowerBiConfig ConfigInfo = (PowerBiConfig)ConfigInfoArg;
+
             await Task.Yield();
-            throw new NotImplementedException();
+
+            string[] QueryStringItems = new string[]
+            {
+                $"item={rootContentItemId?}",
+            };
+
+            UriBuilder powerBiContentUri = new UriBuilder
+            {
+                Scheme = "https",
+                Host = thisHttpRequest.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
+                Port = thisHttpRequest.Host.Port ?? -1,
+                Path = "/AuthorizedContent/PowerBi",
+                Query = string.Join("&", QueryStringItems),
+            };
+
+            return powerBiContentUri;
         }
 
         public PowerBiLibApi(PowerBiConfig configArg = null)
@@ -42,11 +59,50 @@ namespace PowerBiLib
         /// Chainable
         /// </summary>
         /// <returns></returns>
-        public async Task<PowerBiLibApi> Initialize()
+        public async Task<PowerBiLibApi> InitializeAsync()
         {
             await GetAccessTokenAsync();
 
             return this;
+        }
+
+        public async Task<Import> ImportPbixAsync(string pbixFullPath, string groupName, string capacityId = null)
+        {
+            using (var client = new PowerBIClient(_tokenCredentials))
+            {
+                ODataResponseListCapacity allCapacities = await client.Capacities.GetCapacitiesAsync();
+                Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == capacityId) ?? allCapacities.Value.Single();
+
+                Group group = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
+                if (group == null)
+                {
+                    group = await client.Groups.CreateGroupAsync(new GroupCreationRequest(groupName), true);
+                    if (group == null)
+                    {
+                        string msg = $"Requested group <{groupName}> not found and could not be created";
+                        throw new ApplicationException(msg);
+                    }
+                    object assignResultObj = await client.Groups.AssignToCapacityAsync(group.Id, new AssignToCapacityRequest(capacityId: capacity.Id));
+                    // TODO check success?
+                }
+
+                string pbixFileName = Path.GetFileName(pbixFullPath);
+                DateTime now = DateTime.UtcNow;
+                string remoteFileName = Path.GetFileNameWithoutExtension(pbixFileName) + $"_{now.ToString("yyyyMMdd\\ZHHmmss")}{Path.GetExtension(pbixFileName)}";
+
+                Import import = await client.Imports.PostImportWithFileAsyncInGroup(
+                    group.Id,
+                    new FileStream(pbixFullPath, FileMode.Open),
+                    remoteFileName);
+                while (import.ImportState != "Succeeded" && import.ImportState != "Failed")
+                {
+                    Console.WriteLine("Waiting for import completion, last import object is {0}", JsonConvert.SerializeObject(import));
+                    Thread.Sleep(500);
+                    import = await client.Imports.GetImportByIdAsync(import.Id);
+                }
+
+                return import;
+            }
         }
 
         public async Task Demonstrate(string pbixPath)
