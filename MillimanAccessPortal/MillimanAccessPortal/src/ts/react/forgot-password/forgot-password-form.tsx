@@ -5,7 +5,6 @@ import '../../../images/icons/user.svg';
 import * as React from 'react';
 import * as Yup from 'yup';
 
-import { postData } from '../../shared';
 import { BaseFormState, Form } from '../shared-components/form';
 import { Input } from '../shared-components/input';
 
