@@ -9,7 +9,11 @@ import { postData } from '../../shared';
 import { BaseFormState, Form } from '../shared-components/form';
 import { Input } from '../shared-components/input';
 
-export class ForgotPasswordForm extends Form<{}, BaseFormState> {
+interface ForgotPasswordState extends BaseFormState {
+  requestVerificationToken: string;
+}
+
+export class ForgotPasswordForm extends Form<{}, ForgotPasswordState> {
   protected schema = Yup.object({
     email: Yup.string()
       .email()
@@ -24,11 +28,15 @@ export class ForgotPasswordForm extends Form<{}, BaseFormState> {
       data: { email: '' },
       errors: {},
       formIsValid: false,
+      requestVerificationToken: '',
     };
   }
 
-  public submit() {
-    return postData('/Account/ForgotPassword', this.state.data, true);
+  public componentDidMount() {
+    const antiforgeryToken = document
+      .querySelector('input[name="__RequestVerificationToken"]')
+      .getAttribute('value');
+    this.setState({ requestVerificationToken: antiforgeryToken });
   }
 
   public render() {
@@ -37,7 +45,7 @@ export class ForgotPasswordForm extends Form<{}, BaseFormState> {
     return (
       <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
         <div className="form-section">
-          <form onSubmit={this.submit} >
+          <form action="/Account/ForgotPassword" method="POST">
           <h3 className="form-section-title">Enter your Email Address</h3>
             <Input
               name="email"
@@ -49,6 +57,12 @@ export class ForgotPasswordForm extends Form<{}, BaseFormState> {
               error={errors.email}
               autoFocus={true}
               inputIcon="user"
+            />
+            <input
+              readOnly={true}
+              name="__RequestVerificationToken"
+              value={this.state.requestVerificationToken}
+              style={{display: 'none'}}
             />
             <div className="button-container">
               <button
