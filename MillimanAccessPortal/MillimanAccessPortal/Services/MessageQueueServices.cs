@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using EmailQueue;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace MillimanAccessPortal.Services
@@ -21,14 +22,19 @@ namespace MillimanAccessPortal.Services
     {
         private ILogger _logger { get; }
         private MailSender _sender { get; set; }
+        private readonly IConfiguration ApplicationConfig;
 
         /// <summary>
         /// Constructor. Consumes ILoggerFactory from application.
         /// </summary>
         /// <param name="loggerFactory"></param>
-        public MessageQueueServices(ILoggerFactory loggerFactory)
+        public MessageQueueServices(
+            ILoggerFactory loggerFactory,
+            IConfiguration AppConfigurationArg)
         {
             _logger = loggerFactory.CreateLogger<MessageQueueServices>();
+            ApplicationConfig = AppConfigurationArg;
+
             _sender = new MailSender(_logger);
         }
 
@@ -41,9 +47,9 @@ namespace MillimanAccessPortal.Services
         /// <param name="senderAddress">Optional</param>
         /// <param name="senderName">Optional</param>
         /// <returns></returns>
-        public bool QueueEmail(string recipient, string subject, string message, string senderAddress = null, string senderName = null)
+        public bool QueueEmail(string recipient, string subject, string message, string senderAddress = null, string senderName = null, bool addGlobalDisclaimer = true)
         {
-            return QueueEmail(new string[] { recipient }, subject, message, senderAddress, senderName);
+            return QueueEmail(new string[] { recipient }, subject, message, senderAddress, senderName, addGlobalDisclaimer);
         }
 
         /// <summary>
@@ -55,8 +61,17 @@ namespace MillimanAccessPortal.Services
         /// <param name="senderAddress">Optional</param>
         /// <param name="senderName">Optional</param>
         /// <returns></returns>
-        public bool QueueEmail(IEnumerable<string> recipients, string subject, string message, string senderAddress = null, string senderName = null)
+        public bool QueueEmail(IEnumerable<string> recipients, string subject, string message, string senderAddress = null, string senderName = null, bool addGlobalDisclaimer = true)
         {
+            if (addGlobalDisclaimer)
+            {
+                string disclaimer = ApplicationConfig.GetValue<string>("Global:EmailDisclaimer");
+                if (!string.IsNullOrWhiteSpace(disclaimer))
+                {
+                    message += $"{Environment.NewLine}{Environment.NewLine}{disclaimer}";
+                }
+            }
+
             return _sender.QueueMessage(recipients, subject, message, senderAddress, senderName);
         }
 
