@@ -134,6 +134,8 @@ export function openNewRootContentItemForm() {
     contentTypeId: '0',
     description: '',
     doesReduce: false,
+    filterPaneEnabled: false,
+    navigationPaneEnabled: false,
     id: '0',
     notes: '',
     contentDisclaimer: '',
@@ -181,8 +183,10 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
   formMap.set('DoesReduce', item.doesReduce);
   if (item.contentTypeId === ContentTypeInfo.filter((ct) =>
     ct.typeEnum === ContentTypeEnum.PowerBI)[0].id) {
-    formMap.set('FilterPaneEnabled', item.filterPaneEnabled);
-    formMap.set('NavigationPaneEnabled', item.navigationPaneEnabled);
+    formMap.set('FilterPaneEnabled',
+      item.typeSpecificDetailObject.filterPaneEnabled || item.filterPaneEnabled);
+    formMap.set('NavigationPaneEnabled',
+      item.typeSpecificDetailObject.navigationPaneEnabled || item.navigationPaneEnabled);
   }
   formMap.set('Description', item.description);
   formMap.set('Notes', item.notes);
@@ -201,7 +205,7 @@ function addToDocumentCount(clientId: Guid, offset: number) {
 function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   // Show and clear all confirmation checkboxes
   $('#report-confirmation .loading-wrapper').hide();
-  $('#report-confirmation .admin-panel-content-container')
+  $('#report-confirmation .form-content-container')
     .show()[0].scrollTop = 0;
   $('#report-confirmation label')
     .show()
@@ -576,9 +580,11 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     if (item.contentTypeId === ContentTypeInfo.filter((ct) =>
       ct.typeEnum === ContentTypeEnum.PowerBI)[0].id) {
       const $filterPaneToggle = $rootContentItemForm.find('#FilterPaneEnabled');
-      $filterPaneToggle.prop('checked', item.filterPaneEnabled);
+      $filterPaneToggle.prop('checked',
+        item.typeSpecificDetailObject.filterPaneEnabled || item.filterPaneEnabled);
       const $navigationPaneToggle = $rootContentItemForm.find('#NavigationPaneEnabled');
-      $filterPaneToggle.prop('checked', item.navigationPaneEnabled);
+      $navigationPaneToggle.prop('checked',
+        item.typeSpecificDetailObject.navigationPaneEnabled || item.navigationPaneEnabled);
     }
   }
 
@@ -709,6 +715,12 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
   } else {
     $('#DoesReduce').closest('.form-input-toggle').show();
   }
+  const $contentDisplaySettings = $('.form-section[data-section="root-content-item-display-settings"]');
+  if (contentType.typeEnum === ContentTypeEnum.PowerBI) {
+    $contentDisplaySettings.show();
+  } else {
+    $contentDisplaySettings.hide();
+  }
   formObject.inputSections.forEach((section) =>
     section.inputs.forEach((input) => {
       if (contentType && isFileUploadInput(input)) {
@@ -752,7 +764,7 @@ function renderRootContentItem(item: RootContentItemSummary) {
     rootContentItemDeleteClickHandler,
     rootContentItemCancelClickHandler,
     wrapCardIconCallback((card) => {
-      $('#report-confirmation .admin-panel-content-container').hide();
+      $('#report-confirmation .form-content-container').hide();
       $('#report-confirmation .loading-wrapper').show();
       $('.confirmation-section iframe,object')
         .attr('src', 'about:blank')
