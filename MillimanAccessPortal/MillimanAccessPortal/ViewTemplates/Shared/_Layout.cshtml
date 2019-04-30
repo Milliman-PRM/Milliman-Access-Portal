@@ -11,7 +11,12 @@
 
     @RenderSection("CSS", required: false)
 
-    @*    @Html.Raw(JavaScriptSnippet.FullScript) *@
+    <script type="text/javascript">
+        if (!("fetch" in window && "Promise" in window && "Map" in window && "Set" in window)) {
+            document.write('<script src="/js/polyfills.min.js"><\/script>');
+        }
+    </script>
+    
     @RenderSection("Scripts", required: false)
     @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
@@ -20,9 +25,9 @@
     @RenderBody()
 
     <div id="global-settings"
-         data-domain-validation-regex="@Html.Raw(MapCommonLib.GlobalFunctions.domainValRegex)"
-         data-email-validation-regex="@Html.Raw(MapCommonLib.GlobalFunctions.emailValRegex)"
-         data-max-file-upload-size="@Html.Raw(MapCommonLib.GlobalFunctions.maxFileUploadSize)"
+         data-domain-validation-regex="@Html.Raw(MapCommonLib.GlobalFunctions.DomainValRegex)"
+         data-email-validation-regex="@Html.Raw(MapCommonLib.GlobalFunctions.EmailValRegex)"
+         data-max-file-upload-size="@Html.Raw(MapCommonLib.GlobalFunctions.MaxFileUploadSize)"
          style="display: none;"></div>
 
 </body>

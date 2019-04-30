@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TestResourcesLib;
@@ -42,7 +43,7 @@ namespace MapTests
                 null);   // AccountController
 
         // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
-        testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
+        testController.ControllerContext = TestInitialization.GenerateControllerContext(userName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
             testController.HttpContext.Session = new MockSession();
 
             return testController;
@@ -145,7 +146,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult typedResult = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientAdminIndexViewModel>(typedResult.Value);
             #endregion
         }
 
@@ -206,7 +208,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientDetailViewModel>(result.Value);
             #endregion
         }
 
@@ -277,7 +280,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientDetailViewModel>(result.Value);
             Assert.Equal(preActionCount, afterActionCount);
             #endregion
         }
@@ -325,7 +329,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientDetailViewModel>(result.Value);
             Assert.Equal(beforeCount + 1, afterActionCount);
             #endregion
         }
@@ -428,8 +433,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(viewAdd);
-            Assert.IsType<JsonResult>(viewRemove);
+            var addResult = Assert.IsType<JsonResult>(viewAdd);
+            Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
+            var removeResult = Assert.IsType<JsonResult>(viewRemove);
+            Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
             Assert.Equal(preAddCount + 1, postAddCount);
             Assert.Equal(preRemoveCount - 1, postRemoveCount);
             #endregion
@@ -469,8 +476,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(viewAdd);
-            Assert.IsType<JsonResult>(viewRemove);
+            var addResult = Assert.IsType<JsonResult>(viewAdd);
+            Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
+            var removeResult = Assert.IsType<JsonResult>(viewRemove);
+            Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
             Assert.Equal(preAddCount + 2, postAddCount);
             Assert.Equal(preRemoveCount - 2, postRemoveCount);
             #endregion
@@ -517,8 +526,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(viewAdd);
-            Assert.IsType<JsonResult>(viewRemove);
+            var addResult = Assert.IsType<JsonResult>(viewAdd);
+            Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
+            var removeResult = Assert.IsType<JsonResult>(viewRemove);
+            Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
             Assert.Equal(preAddCount_Client + 1, postAddCount_Client);
             Assert.Equal(preRemoveCount_Client - 1, postRemoveCount_Client);
             Assert.Equal(preAddCount_Content + relatedRootContentItemCount, postAddCount_Content);
@@ -590,7 +601,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientDetailViewModel>(result.Value);
 
             // Capture the number of users assigned to the client after the call to RemoveUserFromClient
             int afterActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
@@ -728,7 +740,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientAdminIndexViewModel>(result.Value);
 
             int afterCount = TestResources.DbContextObject.Client.Count();
             Assert.Equal<int>(expectedAfterCount, afterCount);
@@ -918,7 +931,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientAdminIndexViewModel>(result.Value);
 
             #region Check that all updated data now matches
             Client resultClient = TestResources.DbContextObject.Client.Single(c => c.Id == testClient.Id);
@@ -949,33 +963,11 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(424242), "password");
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(424242));
             #endregion
 
             #region Assert
             Assert.IsType<BadRequestResult>(view);
-            #endregion
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Theory]
-        [InlineData(6, null)]// Password check fails
-        [InlineData(3, "password")]// User is not authorized as Admin of the client
-        [InlineData(4, "password")]// User is not authorized as Admin of the client's profit center
-        public async Task DeleteClient_ErrorWhenUnauthorized(int clientIdArg, string passwordArg)
-        {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            #endregion
-
-            #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(clientIdArg), passwordArg);
-            #endregion
-
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
             #endregion
         }
 
@@ -988,11 +980,10 @@ namespace MapTests
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
-            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(7), "password");
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(7));
             #endregion
 
             #region Assert
@@ -1010,11 +1001,10 @@ namespace MapTests
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
-            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(8), "password");
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(8));
             #endregion
 
             #region Assert
@@ -1032,18 +1022,18 @@ namespace MapTests
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
-            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
 
             int clientPreCount = TestResources.DbContextObject.Client.Count();
             int claimsPreCount = TestResources.DbContextObject.UserClaims.Count();
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(6), "password");
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(6));
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientAdminIndexViewModel>(result.Value);
 
             int clientPostCount = TestResources.DbContextObject.Client.Count();
             int claimsPostCount = TestResources.DbContextObject.UserClaims.Count();

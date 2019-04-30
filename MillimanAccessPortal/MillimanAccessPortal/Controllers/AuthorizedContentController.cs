@@ -171,8 +171,8 @@ namespace MillimanAccessPortal.Controllers
                 Host = Request.Host.Host,
                 Scheme = Request.Scheme,
                 Port = Request.Host.Port ?? -1,
-                Path = "/AuthorizedContent/WebHostedContent",
-                Query = $"selectionGroupId=",
+                Path = $"/AuthorizedContent/{nameof(WebHostedContent)}",
+                Query = "selectionGroupId=",
             };
 
             return View("ContentWrapper", new ContentWrapperModel
@@ -271,7 +271,7 @@ namespace MillimanAccessPortal.Controllers
             var masterContentRelatedFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
             var requestedContentFile = selectionGroup.IsMaster
                 ? masterContentRelatedFile
-                : selectionGroup.ContentInstanceUrl == null
+                : selectionGroup.IsInactive
                     ? null
                     : new ContentRelatedFile
                     {
@@ -309,7 +309,7 @@ namespace MillimanAccessPortal.Controllers
 
                 notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
                 Log.Warning("In AuthorizedContentController.WebHostedContent action: checksum failure for ContentFile {@ContentFile}, aborting", requestedContentFile);
-                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
+                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, requestedContentFile, "AuthorizedContentController.WebHostedContent"));
                 return View("ContentMessage", ErrMsg);
             }
             #endregion
@@ -619,7 +619,7 @@ namespace MillimanAccessPortal.Controllers
 
                 notifier.sendSupportMail(MailMsg, $"Checksum verification ({purpose})");
                 Log.Error("In AuthorizedContentController.RelatedPdf action: file checksum failure, ContentRelatedFile {@ContentRelatedFile}, aborting", contentRelatedPdf);
-                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
+                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, contentRelatedPdf, "AuthorizedContentController.RelatedPdf"));
                 return View("ContentMessage", ErrMsg);
             }
             #endregion

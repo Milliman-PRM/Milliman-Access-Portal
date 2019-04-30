@@ -1,6 +1,3 @@
-import 'promise-polyfill/dist/polyfill';
-import 'whatwg-fetch';
-
 import '../../scss/react/shared-components/modal.scss';
 
 import * as React from 'react';

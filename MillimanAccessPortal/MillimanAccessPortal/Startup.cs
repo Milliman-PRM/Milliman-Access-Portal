@@ -1,19 +1,23 @@
 ﻿/*
- * CODE OWNERS: Ben Wyatt, Michael Reisz
+ * CODE OWNERS: Ben Wyatt, Michael Reisz, Tom Puckett
  * OBJECTIVE: Configure application runtime environment at startup
  * DEVELOPER NOTES: 
  */
 
 using AuditLogLib;
+using AuditLogLib.Event;
 using AuditLogLib.Services;
 using EmailQueue;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.WsFederation;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.AzureKeyVault;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -25,6 +29,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Authorization;
@@ -33,6 +38,7 @@ using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
 using NetEscapades.AspNetCore.SecurityHeaders;
+using Newtonsoft.Json;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -40,6 +46,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
@@ -62,22 +70,10 @@ namespace MillimanAccessPortal
                 options.Filters.Add(new RequireHttpsAttribute());
             });
 
-            #region Configure application connection string
-
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
-            
-            // If the database name is defined in the environment, update the connection string
-            if (Environment.GetEnvironmentVariable("APP_DATABASE_NAME") != null)
-            {
-                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(appConnectionString);
-                stringBuilder.Database = Environment.GetEnvironmentVariable("APP_DATABASE_NAME");
-                appConnectionString = stringBuilder.ConnectionString;
-            }
-
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(appConnectionString, b => b.MigrationsAssembly("MillimanAccessPortal")));
-            #endregion
 
             int passwordHistoryDays = Configuration.GetValue<int?>("PasswordHistoryValidatorDays") ?? GlobalFunctions.fallbackPasswordHistoryDays;
             List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();
@@ -89,18 +85,158 @@ namespace MillimanAccessPortal
 
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
-            services.AddIdentity<ApplicationUser, ApplicationRole>(config =>
+            services.AddIdentityCore<ApplicationUser>(config =>
                 {
                     config.SignIn.RequireConfirmedEmail = true;
+                    // TODO Does this work instead of the below?  config.Tokens.PasswordResetTokenProvider = tokenProviderName;
                 })
+                .AddRoles<ApplicationRole>()
+                .AddSignInManager()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
                 .AddTop100000PasswordValidator<ApplicationUser>()
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
                 .AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
                 .AddCommonWordsValidator<ApplicationUser>(commonWords)
-                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName);
-            
+                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName)
+                ;
+
+            #region Configure authentication services
+            List<MapDbContextLib.Context.AuthenticationScheme> allSchemes = new List<MapDbContextLib.Context.AuthenticationScheme>();
+
+            // get all configured schemes from database (no injected db service is available here)
+            DbContextOptions<ApplicationDbContext> ctxOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(appConnectionString).Options;
+            ApplicationDbContext applicationDb = new ApplicationDbContext(ctxOptions);
+            allSchemes = applicationDb.AuthenticationScheme.ToList();
+
+            if (allSchemes.Select(s => s.Name).Distinct().Count() != allSchemes.Count())
+            {
+                Log.Error("Multiple configured WsFederation schemes have the same name");
+            }
+
+            AuthenticationBuilder authenticationBuilder = services.AddAuthentication(IdentityConstants.ApplicationScheme);
+
+            foreach (MapDbContextLib.Context.AuthenticationScheme scheme in allSchemes.Where(s => s.Type == AuthenticationType.WsFederation))
+            {
+                WsFederationSchemeProperties schemeProperties = (WsFederationSchemeProperties)scheme.SchemePropertiesObj;
+                authenticationBuilder = authenticationBuilder.AddWsFederation(scheme.Name, scheme.DisplayName, options =>
+                {
+                    options.MetadataAddress = schemeProperties.MetadataAddress;
+                    options.Wtrealm = schemeProperties.Wtrealm;
+                    options.CallbackPath = $"{options.CallbackPath}-{scheme.Name}";
+
+                    // Event override to add username query parameter to adfs request
+                    options.Events.OnRedirectToIdentityProvider = context =>
+                    {
+                        // maximum age in minutes of the authentication token; 0 requires authentication on every request
+                        context.ProtocolMessage.Wfresh = "0";
+
+                        // requested authentication method
+                        if (context.Properties.Items.ContainsKey("wauth"))
+                        {
+                            context.ProtocolMessage.Wauth = context.Properties.Items["wauth"];
+                        }
+
+                        // to pre-populate the user name in the federated login form (forms based authentication only)
+                        if (context.Properties.Items.ContainsKey("username"))
+                        {
+                            context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
+                        }
+                        return Task.CompletedTask;
+                    };
+
+                    // Event override to avoid default application signin of the externally authenticated ClaimsPrinciple
+                    options.Events.OnTicketReceived = async context =>
+                    {
+                        context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to forego subsequent processing
+
+                        ClaimsIdentity identity = context?.Principal?.Identity as ClaimsIdentity;
+
+                        string authenticatedUserName = identity?.Name ?? identity?.Claims?.SingleOrDefault(c => c.Type.EndsWith("nameidentifier"))?.Value;
+                        if (string.IsNullOrWhiteSpace(authenticatedUserName))
+                        {
+                            Log.Error($"External authentication token received, but no authenticated user name was included in claim <{ClaimTypes.Name}> or <{ClaimTypes.NameIdentifier}>");
+                            UriBuilder msg = new UriBuilder
+                            {
+                                Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                Query = "msg=The authenticating domain did not return your user name. Please email us at map.support@milliman.com and provide this error message and your user name.",
+                            };
+                            context.Response.Redirect(msg.Uri.PathAndQuery);
+                            return;
+                        }
+
+                        using (IServiceScope scope = context.HttpContext.RequestServices.CreateScope())
+                        {
+                            IServiceProvider serviceProvider = scope.ServiceProvider;
+                            SignInManager<ApplicationUser> _signInManager = serviceProvider.GetService<SignInManager<ApplicationUser>>();
+                            IAuditLogger _auditLogger = serviceProvider.GetService<IAuditLogger>();
+                            try
+                            {
+                                ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserName);
+
+                                if (_applicationUser == null)
+                                {
+                                    Log.Warning($"External login succeeded but username {identity.Name} is not in our Identity database");
+                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name));
+
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                        Query = "msg=Your login does not have a MAP account.  Please contact your Milliman consultant, or email map.support@milliman.com.",
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
+                                }
+                                else if (_applicationUser.IsSuspended)
+                                {
+                                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(_applicationUser.UserName));
+
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                        Query = "msg=Your MAP account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
+                                }
+                                else if (!_applicationUser.EmailConfirmed)
+                                {
+                                    Controllers.AccountController accountController = serviceProvider.GetService<Controllers.AccountController>();
+                                    IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
+                                    await accountController.SendNewAccountWelcomeEmail(_applicationUser, context.Request, appConfig["Global:DefaultNewUserWelcomeText"]);
+
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller","")}/{nameof(Controllers.SharedController.Message)}",
+                                        Query = "msg=Your MAP account has not been activated. Please look for a welcome email from map.support@milliman.com and follow instructions in that message to activate the account."
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
+                                }
+                                else
+                                {
+                                    await _signInManager.SignInAsync(_applicationUser, false);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Information(ex, ex.Message);
+                                IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
+                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
+
+                                // Make sure nobody remains signed in
+                                await _signInManager.SignOutAsync();
+                            }
+                        }
+
+                        context.Response.Redirect("/Account/ExternalLoginCallbackAsync");
+                    };
+                });
+            }
+            authenticationBuilder.AddIdentityCookies();
+
+            #endregion
+
             services.Configure<PasswordHasherOptions>(options => options.IterationCount = passwordHashingIterations);
 
             services.Configure<IdentityOptions>(options =>
@@ -133,20 +269,18 @@ namespace MillimanAccessPortal
 
             // Configure the default token provider used for account activation
             services.Configure<DataProtectionTokenProviderOptions>(options =>
-                {
-                    options.TokenLifespan = TimeSpan.FromDays(accountActivationTokenTimespanDays);
-                }
-            );
+            {
+                options.TokenLifespan = TimeSpan.FromDays(accountActivationTokenTimespanDays);
+            });
 
             // Cookie settings
             services.ConfigureApplicationCookie(options =>
-                {
-                    options.LoginPath = "/Account/LogIn";
-                    options.LogoutPath = "/Account/LogOut";
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-                    options.SlidingExpiration = true;
-                }
-            );
+            {
+                options.LoginPath = "/Account/LogIn";
+                options.LogoutPath = "/Account/LogOut";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.SlidingExpiration = true;
+            });
 
             services.Configure<QlikviewConfig>(Configuration);
             services.Configure<AuditLoggerConfiguration>(Configuration);
@@ -164,6 +298,7 @@ namespace MillimanAccessPortal
                              .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
             })
+            .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
             .AddControllersAsServices()
             .AddJsonOptions(opt =>
             {
@@ -195,6 +330,9 @@ namespace MillimanAccessPortal
             services.AddScoped<SelectionGroupQueries>();
             services.AddScoped<PublicationQueries>();
             services.AddScoped<UserQueries>();
+
+            //services.AddSingleton<IOptionsMonitorCache<WsFederationOptions>, OptionsCache<WsFederationOptions>>();
+            services.AddSingleton<IPostConfigureOptions<WsFederationOptions>, WsFederationPostConfigureOptions>();
 
             // Add application services.
             services.AddTransient<IMessageQueue, MessageQueueServices>();
@@ -312,12 +450,12 @@ namespace MillimanAccessPortal
                 .AddCustomHeader("X-UA-Compatible", "IE=Edge");
             app.UseSecurityHeaders(policyCollection);
 
-            // Conditionally omit auth cookie
+            // Conditionally omit authentication cookie, intended for status calls that should not extend the user session
             app.Use(next => context =>
             {
                 context.Response.OnStarting(state =>
                 {
-                    if (context.Items.ContainsKey("PreventAuthRefresh"))
+                    if (context.Items.ContainsKey("PreventAuthRefresh"))  // if the action was invoked with [PreventAuthRefreshAttribute]
                     {
                         var response = (HttpResponse) state;
 
@@ -333,6 +471,7 @@ namespace MillimanAccessPortal
             });
 
             app.UseAuthentication();
+            //Todo: read this: https://github.com/aspnet/Security/issues/1310
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
 
@@ -374,8 +513,10 @@ namespace MillimanAccessPortal
             // If the database name is defined in the environment, update the connection string
             if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
             {
-                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
-                stringBuilder.Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME");
+                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString)
+                {
+                    Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
+                };
                 auditLogConnectionString = stringBuilder.ConnectionString;
             }
 

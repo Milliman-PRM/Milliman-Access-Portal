@@ -1,7 +1,7 @@
-import '../../../../images/client.svg';
-import '../../../../images/group.svg';
-import '../../../../images/reports.svg';
-import '../../../../images/user.svg';
+import '../../../../images/icons/client.svg';
+import '../../../../images/icons/group.svg';
+import '../../../../images/icons/reports.svg';
+import '../../../../images/icons/user.svg';
 
 import * as React from 'react';
 

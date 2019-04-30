@@ -8,6 +8,7 @@
 using System;
 using System.IO;
 using System.Diagnostics;
+using System.Reflection;
 using System.ServiceProcess;
 using System.Threading;
 using ContentPublishingLib;
@@ -38,6 +39,14 @@ namespace ContentPublishingService
                 }
 
                 InitiateTraceLogging();
+
+                Assembly processAssembly = Assembly.GetAssembly(typeof(ContentPublishingService));
+                FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
+                GlobalFunctions.TraceWriteLine($"Process launched:{Environment.NewLine}" +
+                                               $"\tassembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" + 
+                                               $"\tassembly location <{processAssembly.Location}>{Environment.NewLine}" +
+                                               $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");
+
                 GlobalFunctions.TraceWriteLine($"Service OnStart() called");
 
                 if (Manager == null || !Manager.AnyMonitorThreadRunning)

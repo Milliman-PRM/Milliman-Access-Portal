@@ -18,11 +18,12 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
     {
         public static AuthorizedContentViewModel Build(ApplicationDbContext dbContext, ApplicationUser user, HttpContext Context)
         {
-            // All selection groups of which user is a member
-            var selectionGroups = dbContext.UserInSelectionGroup
+            // npgsql does not support `.Distinct(IEqualityComparer<T>)` so this needs to be submitted to pgsql before deduplicating
+            var allMatchingSelectionGroupRecords = dbContext.UserInSelectionGroup
                 .Where(usg => usg.UserId == user.Id)
                 .Where(usg => usg.SelectionGroup.ContentInstanceUrl != null)
                 .Where(usg => !usg.SelectionGroup.IsSuspended)
+                .Where(usg => !usg.SelectionGroup.IsInactive)
                 .Where(usg => !usg.SelectionGroup.RootContentItem.IsSuspended)
                 .Select(usg => usg.SelectionGroup)
                 .Include(sg => sg.RootContentItem)
@@ -31,27 +32,14 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                     .ThenInclude(rc => rc.ContentType)
                 .ToList();
 
-            var notActive = new List<SelectionGroup>();
-            foreach (var selectionGroup in selectionGroups)
-            {
-                var masterContentFile = selectionGroup.RootContentItem.ContentFilesList.FirstOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
-                if (masterContentFile == null || string.IsNullOrWhiteSpace(selectionGroup.ContentInstanceUrl))
-                {
-                    notActive.Add(selectionGroup);
-                    continue;
-                }
-                var fileName = Path.GetFileName(selectionGroup.ContentInstanceUrl);
-                var filePath = Path.Combine(Path.GetDirectoryName(masterContentFile.FullPath), fileName);
-                if (!File.Exists(filePath))
-                {
-                    notActive.Add(selectionGroup);
-                }
-            }
-            selectionGroups.RemoveAll(sg => notActive.Contains(sg));
+            // Deduplicate the above result
+            var distinctSelectionGroups = allMatchingSelectionGroupRecords
+                .Distinct(new IdPropertyComparer<SelectionGroup>())
+                .ToList();
 
-            var clients = selectionGroups
+            var clients = distinctSelectionGroups
                 .Select(sg => sg.RootContentItem.Client)
-                .ToHashSet();
+                .ToHashSet(new IdPropertyComparer<Client>());
 
             UriBuilder contentUrlBuilder = new UriBuilder
             {
@@ -95,7 +83,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    Items = selectionGroups.Where(sg => sg.RootContentItem.ClientId == c.Id).Select(sg => new ContentItem
+                    Items = distinctSelectionGroups.Where(sg => sg.RootContentItem.ClientId == c.Id).Select(sg => new ContentItem
                     {
                         Id = sg.Id,
                         Name = sg.RootContentItem.ContentName,

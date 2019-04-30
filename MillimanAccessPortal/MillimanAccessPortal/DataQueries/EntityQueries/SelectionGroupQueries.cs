@@ -53,11 +53,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <summary>
         /// Add a list of assigned users for a single selection group
         /// </summary>
-        /// <param name="group">Selection group</param>
-        /// <returns>Selection group with assigned users</returns>
+        /// <param name="group">BasicSelectionGroup instance from which the return object is built</param>
+        /// <returns>Selection group model instance including assigned users</returns>
         private BasicSelectionGroupWithAssignedUsers WithAssignedUsers(BasicSelectionGroup group)
         {
-            var groupWith = new BasicSelectionGroupWithAssignedUsers
+            BasicSelectionGroupWithAssignedUsers groupWith = new BasicSelectionGroupWithAssignedUsers
             {
                 Id = group.Id,
                 RootContentItemId = group.RootContentItemId,
@@ -65,13 +65,12 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 IsInactive = group.IsInactive,
                 IsMaster = group.IsMaster,
                 Name = group.Name,
+                AssignedUsers = _dbContext.UserInSelectionGroup
+                                          .Where(u => u.SelectionGroupId == group.Id)
+                                          .Select(u => u.UserId)
+                                          .Distinct()
+                                          .ToList(),
             };
-
-            groupWith.AssignedUsers = _dbContext.UserInSelectionGroup
-                .Where(u => u.SelectionGroupId == group.Id)
-                .Select(u => u.UserId)
-                .Distinct()
-                .ToList();
 
             return groupWith;
         }
@@ -253,9 +252,12 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         internal SelectionGroup UpdateSelectionGroupName(Guid selectionGroupId, string name)
         {
             var group = _dbContext.SelectionGroup.Find(selectionGroupId);
-            group.GroupName = name;
 
-            _dbContext.SaveChanges();
+            if (group.GroupName != name)
+            {
+                group.GroupName = name;
+                _dbContext.SaveChanges();
+            }
 
             return group;
         }
@@ -264,50 +266,46 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// Update the assigned users of a selection group
         /// </summary>
         /// <param name="selectionGroupId">Selection group ID</param>
-        /// <param name="users">Selection group users</param>
+        /// <param name="newListOfUserIds">Selection group users</param>
         /// <returns>Selection group</returns>
-        internal SelectionGroup UpdateSelectionGroupUsers(Guid selectionGroupId, List<Guid> users)
+        internal SelectionGroup UpdateSelectionGroupUsers(Guid selectionGroupId, List<Guid> newListOfUserIds)
         {
-            var group = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var requestedGroup = _dbContext.SelectionGroup.Find(selectionGroupId);
 
-            #region update
-            var currentUsers = _dbContext.UserInSelectionGroup
-                .Where(u => u.SelectionGroupId == selectionGroupId)
+            List<Guid> allCurrentUserIds = _dbContext.UserInSelectionGroup
+                .Where(uisg => uisg.SelectionGroupId == selectionGroupId)
+                .Select(uisg => uisg.UserId)
                 .ToList();
 
-            var usersToKeep = currentUsers
-                .Where(u => users.Contains(u.UserId))
-                .Select(u => u.UserId);
-            var usersToAdd = users.Except(usersToKeep).Select(uid => new UserInSelectionGroup
-            {
-                UserId = uid,
-                SelectionGroupId = selectionGroupId,
-            });
-            _dbContext.UserInSelectionGroup.AddRange(usersToAdd);
+            var recordsToAdd = newListOfUserIds.Except(allCurrentUserIds)
+                .Select(uid => new UserInSelectionGroup { UserId = uid, SelectionGroupId = selectionGroupId });
+            _dbContext.UserInSelectionGroup.AddRange(recordsToAdd);
 
-            var usersToRemove = currentUsers
-                .Where(u => !users.Contains(u.UserId));
-            _dbContext.UserInSelectionGroup.RemoveRange(usersToRemove);
-            #endregion
+            var userGuidsToRemove = allCurrentUserIds.Except(newListOfUserIds);
+            var recordsToRemove = _dbContext.UserInSelectionGroup
+                .Where(usg => userGuidsToRemove.Contains(usg.UserId))
+                .Where(usg => usg.SelectionGroupId == selectionGroupId)
+                .ToList();
+            _dbContext.UserInSelectionGroup.RemoveRange(recordsToRemove);
 
-            #region commit and log
             _dbContext.SaveChanges();
-            foreach (var userInGroup in usersToAdd)
+
+            // audit logging
+            foreach (var userInGroup in recordsToAdd)
             {
-                _auditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(group, userInGroup.UserId));
+                _auditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(requestedGroup, userInGroup.UserId));
             }
-            foreach (var userInGroup in usersToRemove)
+            foreach (var userInGroup in userGuidsToRemove.Distinct())
             {
-                _auditLogger.Log(AuditEventType.SelectionGroupUserRemoved.ToEvent(group, userInGroup.UserId));
+                _auditLogger.Log(AuditEventType.SelectionGroupUserRemoved.ToEvent(requestedGroup, userInGroup));
             }
-            if (usersToRemove.Any())
+            if (userGuidsToRemove.Any())
             {
                 _auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetRemovedFromGroup
-                    .ToEvent(usersToRemove.ToList(), group.RootContentItemId));
+                    .ToEvent(recordsToRemove, requestedGroup.RootContentItemId));
             }
-            #endregion
 
-            return group;
+            return requestedGroup;
         }
 
         /// <summary>

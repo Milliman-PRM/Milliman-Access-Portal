@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett, Ben Wyatt
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: The Entity Framework context class that wraps audit log database access.
  * DEVELOPER NOTES: This project manages its own migrations and database updates.  
  *                  The dotnet command must be run from this project folder.
  */
@@ -60,11 +60,11 @@ namespace AuditLogLib
 
         protected override void OnConfiguring(DbContextOptionsBuilder Builder)
         {
-            if (Builder.Options.Extensions.Any(e => e.GetType() == typeof(Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension)))
+            if (Builder.Options.Extensions.Any(e => e.GetType() == typeof(Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension)))
             {
                 // This block supports the use of a connection string provided through dependency injection
-                Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension Extension =
-                    Builder.Options.Extensions.First(x => x.GetType() == typeof(Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension)) as Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension;
+                Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension Extension =
+                    Builder.Options.Extensions.First(x => x.GetType() == typeof(Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension)) as Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension;
                 Builder.UseNpgsql(Extension.ConnectionString);
             }
             else

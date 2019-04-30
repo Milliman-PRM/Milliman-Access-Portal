@@ -35,7 +35,20 @@ namespace MillimanAccessPortal.Authorization
         /// <returns></returns>
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext Context, MapAuthorizationRequirementBase Requirement)
         {
-            ApplicationUser User = await UserManager.GetUserAsync(Context.User);
+            ApplicationUser User = null;
+            try
+            {
+                User = await UserManager.FindByNameAsync(Context.User.Identity.Name);
+                if (User == null)
+                {
+                    throw new ApplicationException();
+                }
+            }
+            catch (Exception)
+            {
+                Context.Fail();
+                return;
+            }
 
             switch (Requirement.EvaluateRequirement(User, DataContext))
             {

@@ -7,9 +7,9 @@
 }
 
 <div id="content-wrapper">
-    @Html.Partial("_Header")
+    @await Html.PartialAsync("_Header")
     @RenderBody()
-    @Html.Partial("_Footer")
+    @await Html.PartialAsync("_Footer")
 </div>
 
 @section Scripts {

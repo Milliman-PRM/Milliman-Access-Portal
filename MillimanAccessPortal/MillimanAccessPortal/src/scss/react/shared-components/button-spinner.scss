@@ -1,5 +1,43 @@
 @import "../../map_modules/variables";
 
+.loading-spinner {
+    height: 100%;
+    width: 100%;
+    color: $white;
+    animation: loading-spinner 1s steps(12, end) infinite;
+}
+
+button {
+
+    &.blue-button[disabled] .loading-spinner {
+        color: rgba($blue, .5);
+    }
+
+    .loading-spinner {
+        height: 1.5em;
+        width: 1.5em;
+        margin-left: .5em;
+    }
+}
+
+#loading-spinner_hand {
+    opacity: 1;
+}
+
+#loading-spinner_circle {
+    opacity: .42;
+}
+
+@keyframes loading-spinner {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 .spinner-small-r {
     border-radius: 50%;
     width: 1.2em;

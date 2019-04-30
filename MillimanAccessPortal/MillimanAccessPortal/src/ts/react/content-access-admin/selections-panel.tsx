@@ -129,7 +129,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
             >
               Submit
               {this.props.submitting
-                ? <ButtonSpinner />
+                ? <ButtonSpinner version="circle" />
                 : null
               }
             </button>
@@ -145,7 +145,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
           >
             Cancel
             {this.props.submitting
-              ? <ButtonSpinner />
+              ? <ButtonSpinner version="circle" />
               : null
             }
           </button>
