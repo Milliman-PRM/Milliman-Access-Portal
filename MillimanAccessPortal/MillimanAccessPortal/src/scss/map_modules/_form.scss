@@ -417,7 +417,7 @@ label.input-with-upload {
 }
 
 span.field-validation-error,
-span.form-validation-error,
+.form-validation-error,
 .validation-summary-errors {
     display: block;
     font-size: .83rem;
@@ -426,7 +426,7 @@ span.form-validation-error,
     white-space: pre-line;
 }
 
-span.form-validation-error {
+.form-validation-error {
     margin-left: 1em;
 }
 

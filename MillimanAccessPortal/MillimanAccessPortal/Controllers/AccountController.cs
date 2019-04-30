@@ -921,7 +921,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 AddErrors(result);
             }
-            model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
+            model.Message = string.Join("\r\n", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
             return View(model);
         }
 
