@@ -146,6 +146,10 @@ export interface RootContentItemDetail {
   notes: string;
   contentDisclaimer: string;
   isSuspended: boolean;
+  typeSpecificDetailObject?: {
+    filterPaneEnabled?: boolean;
+    navigationPaneEnabled?: boolean;
+  };
 }
 
 export interface RootContentItemSummaryAndDetail {
