@@ -1,5 +1,14 @@
 ﻿@import "../../map_modules/variables";
 
+.form-content-container {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: stretch;
+    align-content: stretch;
+    align-self: center;
+    margin: 2em auto;
+}
+
 .form-section-title {
     margin-bottom: 1em;
     border-bottom: 1px solid $charcoal;
