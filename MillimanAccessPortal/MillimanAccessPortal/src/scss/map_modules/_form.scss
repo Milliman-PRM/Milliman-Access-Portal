@@ -419,10 +419,11 @@ label.input-with-upload {
 span.field-validation-error,
 span.form-validation-error,
 .validation-summary-errors {
+    display: block;
+    font-size: .83rem;
     color: $red;
-    font-weight: bold;
-    font-style: italic;
-    font-size: .75em;
+    margin: .25rem;
+    white-space: pre-line;
 }
 
 span.form-validation-error {
