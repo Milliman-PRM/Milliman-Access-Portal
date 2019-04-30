@@ -443,11 +443,9 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.PowerBi:
-                        // TODO Implement this
+                        // TODO Implement anything?
                     case ContentTypeEnum.Qlikview:
-                        await new QlikviewLibApi()
-                            .AuthorizeUserDocumentsInFolderAsync(
-                                goLiveViewModel.RootContentItemId.ToString(), qlikviewConfig);
+                        await new QlikviewLibApi(qlikviewConfig).AuthorizeUserDocumentsInFolderAsync(goLiveViewModel.RootContentItemId.ToString());
                         break;
 
                     case ContentTypeEnum.Html:

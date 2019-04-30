@@ -121,6 +121,9 @@ namespace MillimanAccessPortal.Services
         protected async Task PostProcess(ContentPublicationRequest thisPubRequest, ApplicationDbContext dbContext, IConfiguration configuration, object typeSpecificConfig)
         {
             List<PublicationStatus> WaitStatusList = new List<PublicationStatus> { PublicationStatus.Queued, PublicationStatus.Processing };
+
+            RootContentItem contentItem = thisPubRequest.RootContentItem;
+
             // While the request is processing, wait and requery
             while (WaitStatusList.Contains(thisPubRequest.RequestStatus))
             {
@@ -252,19 +255,21 @@ namespace MillimanAccessPortal.Services
             switch (thisContentType)
             {
                 case ContentTypeEnum.Qlikview:
-                    await new QlikviewLibApi().AuthorizeUserDocumentsInFolderAsync(thisPubRequest.RootContentItemId.ToString(), typeSpecificConfig as QlikviewConfig);
+                    await new QlikviewLibApi(typeSpecificConfig as QlikviewConfig).AuthorizeUserDocumentsInFolderAsync(thisPubRequest.RootContentItemId.ToString());
                     break;
                 case ContentTypeEnum.PowerBi:
                     var newMasterFile = thisPubRequest.LiveReadyFilesObj.SingleOrDefault(f => f.FilePurpose.Equals("MasterContent", StringComparison.OrdinalIgnoreCase));
                     if (newMasterFile != null)
                     {
-                        var api = await new PowerBiLibApi(typeSpecificConfig as PowerBiConfig).InitializeAsync();
-                        var result = await api.ImportPbixAsync(newMasterFile.FullPath, "group name");  // optional 3rd arg is capacity id
+                        PowerBiLibApi api = await new PowerBiLibApi(typeSpecificConfig as PowerBiConfig).InitializeAsync();
+                        PowerBiEmbedModel embedProperties = await api.ImportPbixAsync(newMasterFile.FullPath, 
+                                                                                      contentItem.ClientId.ToString(), // The related client ID is used as group name
+                                                                                      contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties);
 
-                        var model = new PowerBiContentItemProperties
-                        {
-                            //PreviewGroupId =
-                        };
+                        PowerBiContentItemProperties contentItemProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+                        contentItemProperties.PreviewEmbedProperties = embedProperties;
+                        contentItem.TypeSpecificDetailObject = contentItemProperties;
+                        dbContext.SaveChanges();
                     }
                     break;
                 case ContentTypeEnum.Pdf:

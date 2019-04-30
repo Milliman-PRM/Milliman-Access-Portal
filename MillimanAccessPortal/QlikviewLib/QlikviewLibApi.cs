@@ -20,6 +20,13 @@ namespace QlikviewLib
 {
     public class QlikviewLibApi : ContentTypeSpecificApiBase
     {
+        QlikviewConfig _config;
+
+        public QlikviewLibApi (QlikviewConfig configArg)
+        {
+            _config = configArg;
+        }
+
         public async Task<ServiceInfo> SafeGetServiceInfo(IQMS Client, ServiceTypes Type, int Index = 0)
         {
             ServiceInfo ServiceInfo = null;
@@ -34,14 +41,14 @@ namespace QlikviewLib
             return ServiceInfo;
         }
 
-        public async Task<(ServiceInfo, DocumentFolder)> SafeGetUserDocFolder(IQMS Client, QlikviewConfig Cfg, int ServiceIndex = 0)
+        public async Task<(ServiceInfo, DocumentFolder)> SafeGetUserDocFolder(IQMS Client, int ServiceIndex = 0)
         {
             ServiceInfo SvcInfo = await SafeGetServiceInfo(Client, ServiceTypes.QlikViewServer, ServiceIndex);
             DocumentFolder QvsUserDocFolder = null;
             try
             {
                 DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(SvcInfo.ID, DocumentFolderScope.General);
-                QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == Cfg.QvServerContentUriSubfolder);
+                QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == _config.QvServerContentUriSubfolder);
             }
             catch (System.Exception)
             {}
@@ -57,16 +64,15 @@ namespace QlikviewLib
         /// <param name="ConfigInfoArg"></param>
         /// <param name="thisHttpRequest"></param>
         /// <returns></returns>
-        public override async Task<UriBuilder> GetContentUri(string FilePathRelativeToContentRoot, string UserName, object ConfigInfoArg, HttpRequest thisHttpRequest)
+        public override async Task<UriBuilder> GetContentUri(string FilePathRelativeToContentRoot, string UserName, HttpRequest thisHttpRequest)
         {
-            QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
-            string ContentUrl = string.IsNullOrWhiteSpace(ConfigInfo.QvServerContentUriSubfolder) 
+            string ContentUrl = string.IsNullOrWhiteSpace(_config.QvServerContentUriSubfolder) 
                 ? FilePathRelativeToContentRoot 
-                : Path.Combine(ConfigInfo.QvServerContentUriSubfolder, FilePathRelativeToContentRoot);
+                : Path.Combine(_config.QvServerContentUriSubfolder, FilePathRelativeToContentRoot);
 
             string QvServerUriScheme = "https";  // Scheme of the iframe should match scheme of the top page
 
-            string QlikviewWebTicket = await QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ UserName, ConfigInfo as QlikviewConfig);
+            string QlikviewWebTicket = await QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ UserName, _config);
 
             UriBuilder backUriBuilder = new UriBuilder
             {
@@ -86,12 +92,12 @@ namespace QlikviewLib
             UriBuilder QvServerUri = new UriBuilder
             {
                 Scheme = QvServerUriScheme,
-                Host = ConfigInfo.QvServerHost,
+                Host = _config.QvServerHost,
                 Path = "/qvajaxzfc/Authenticate.aspx",
                 Query = string.Join("&", QueryStringItems),
             };
 
-            await AssignDocumentUserLicense(FilePathRelativeToContentRoot, UserName, ConfigInfo);
+            await AssignDocumentUserLicense(FilePathRelativeToContentRoot, UserName);
 
             return QvServerUri;
         }
@@ -103,7 +109,7 @@ namespace QlikviewLib
         /// <param name="UserName"></param>
         /// <param name="ConfigInfo"></param>
         /// <returns>true if user has a CAL for the document, false otherwise</returns>
-        public async Task<bool> AssignDocumentUserLicense(string DocumentFilePathRelativeToStorageContentRoot, string UserName, QlikviewConfig ConfigInfo)
+        public async Task<bool> AssignDocumentUserLicense(string DocumentFilePathRelativeToStorageContentRoot, string UserName)
         {
             if (string.IsNullOrWhiteSpace(DocumentFilePathRelativeToStorageContentRoot))
             {
@@ -113,9 +119,9 @@ namespace QlikviewLib
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
-            IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+            IQMS Client = await QmsClientCreator.New(_config.QvsQmsApiUrl);
 
-            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
+            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, 0);
             if (QvsUserDocFolder == null)
             {
                 return false;
@@ -134,8 +140,8 @@ namespace QlikviewLib
             AssignedNamedCAL NewCal = new AssignedNamedCAL { UserName = UserName };
 
             // Decide whether the username qualifies for a named user CAL
-            List<string> DomainList = ConfigInfo.QvNamedCalDomainList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
-            List<string> UsernameList = ConfigInfo.QvNamedCalUsernameList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
+            List<string> DomainList = _config.QvNamedCalDomainList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
+            List<string> UsernameList = _config.QvNamedCalUsernameList?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
 
             if (GlobalFunctions.DoesEmailSatisfyClientWhitelists(UserName.Trim(), DomainList, UsernameList))
             {
@@ -217,7 +223,7 @@ namespace QlikviewLib
             return true;
         }
 
-        public async Task<bool> ReclaimAllDocCalsForFile(string DocumentFilePathRelativeToStorageContentRoot, QlikviewConfig ConfigInfo)
+        public async Task<bool> ReclaimAllDocCalsForFile(string DocumentFilePathRelativeToStorageContentRoot)
         {
             if (string.IsNullOrWhiteSpace(DocumentFilePathRelativeToStorageContentRoot))
             {
@@ -227,9 +233,9 @@ namespace QlikviewLib
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
-            IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+            IQMS Client = await QmsClientCreator.New(_config.QvsQmsApiUrl);
 
-            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
+            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, 0);
             if (QvsUserDocFolder == null)
             {
                 return false;
@@ -260,7 +266,7 @@ namespace QlikviewLib
             return true;
         }
 
-        public async Task<bool> ReclaimUserDocCalForFile(string DocumentFilePathRelativeToStorageContentRoot, string UserName, QlikviewConfig ConfigInfo)
+        public async Task<bool> ReclaimUserDocCalForFile(string DocumentFilePathRelativeToStorageContentRoot, string UserName)
         {
             if (string.IsNullOrWhiteSpace(DocumentFilePathRelativeToStorageContentRoot))
             {
@@ -272,9 +278,9 @@ namespace QlikviewLib
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
-            IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+            IQMS Client = await QmsClientCreator.New(_config.QvsQmsApiUrl);
 
-            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, ConfigInfo, 0);
+            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, 0);
             if (QvsUserDocFolder == null)
             {
                 return false;
@@ -327,15 +333,15 @@ namespace QlikviewLib
         /// <param name="ConfigInfo"></param>
         /// <param name="SpecificFileName">If provided, authorizes only the named file in the designated path</param>
         /// <returns></returns>
-        public async Task AuthorizeUserDocumentsInFolderAsync(string ContentPathRelativeToNamedUserDocFolder, QlikviewConfig ConfigInfo, string SpecificFileName = null)
+        public async Task AuthorizeUserDocumentsInFolderAsync(string ContentPathRelativeToNamedUserDocFolder, string SpecificFileName = null)
         {
-            IQMS Client = await QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
+            IQMS Client = await QmsClientCreator.New(_config.QvsQmsApiUrl);
 
             ServiceInfo[] QvsServicesArrray = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
             ServiceInfo QvsServiceInfo = QvsServicesArrray[0];
 
             DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
-            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
+            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == _config.QvServerContentUriSubfolder);
 
             await Client.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList);  // Is this really needed?
 

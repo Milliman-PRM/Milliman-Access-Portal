@@ -168,6 +168,23 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         {
                             case ContentTypeEnum.PowerBi:
                                 // TODO Figure out what is needed here
+                                string[] QueryStringItems = new string[]
+                                {
+                                    $"request={PubRequest.Id}",
+                                };
+
+                                UriBuilder powerBiContentUri = new UriBuilder
+                                {
+                                    Scheme = Context.Request.Scheme,
+                                    Host = Context.Request.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = $"/AuthorizedContent/PowerBi",
+                                    Query = string.Join("&", QueryStringItems),
+                                };
+
+                                ReturnObj.MasterContentLink = powerBiContentUri.Uri.AbsoluteUri;
+                                break;
+
                             case ContentTypeEnum.Qlikview:
                                 UriBuilder qvwUrlBuilder = new UriBuilder
                                 {

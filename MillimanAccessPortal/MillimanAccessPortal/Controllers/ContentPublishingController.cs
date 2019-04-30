@@ -417,7 +417,7 @@ namespace MillimanAccessPortal.Controllers
                         {
                             string FileFullPath = Path.Combine(ContentFolderFullPath, f);
                             string FileRelativePath = Path.GetRelativePath(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), FileFullPath);
-                            await new QlikviewLibApi().ReclaimAllDocCalsForFile(FileRelativePath, QlikviewConfig);
+                            await new QlikviewLibApi(QlikviewConfig).ReclaimAllDocCalsForFile(FileRelativePath);
                         });
                     }
                     break;
@@ -942,7 +942,7 @@ namespace MillimanAccessPortal.Controllers
                             string qvwFileRelativePath = Path.GetRelativePath(configuredContentRootFolder, PreliveFile.FullPath);
                             try
                             {
-                                await new QlikviewLibApi().ReclaimAllDocCalsForFile(qvwFileRelativePath, QlikviewConfig);
+                                await new QlikviewLibApi(QlikviewConfig).ReclaimAllDocCalsForFile(qvwFileRelativePath);
                             }
                             catch (Exception ex)
                             {

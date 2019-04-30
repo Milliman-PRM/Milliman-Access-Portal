@@ -211,12 +211,12 @@ namespace MillimanAccessPortal.Binders
                         if (valueProviderResult != ValueProviderResult.None &&
                             bool.TryParse(valueProviderResult.FirstValue, out bool navContentPaneEnabledVal))
                         {
-                            properties.FilterPaneEnabled = navContentPaneEnabledVal;
+                            properties.NavigationPaneEnabled = navContentPaneEnabledVal;
                             bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.NavigationPaneEnabled");
                         }
                         else
                         {
-                            properties.FilterPaneEnabled = false;
+                            properties.NavigationPaneEnabled = false;
                             bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.NavigationPaneEnabled");
                         }
 

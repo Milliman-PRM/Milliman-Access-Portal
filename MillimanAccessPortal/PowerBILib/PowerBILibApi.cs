@@ -6,6 +6,7 @@
 
 using Flurl.Http;
 using MapCommonLib.ContentTypeSpecific;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.PowerBI.Api.V2;
 using Microsoft.PowerBI.Api.V2.Models;
@@ -24,23 +25,21 @@ namespace PowerBiLib
         private PowerBiConfig _config { get; set; }
         private TokenCredentials _tokenCredentials { get; set; }
 
-        public async override Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfoArg, HttpRequest thisHttpRequest)
+        public async override Task<UriBuilder> GetContentUri(string selectionGroupId, string UserName, HttpRequest thisHttpRequest)
         {
-            PowerBiConfig ConfigInfo = (PowerBiConfig)ConfigInfoArg;
-
             await Task.Yield();
 
             string[] QueryStringItems = new string[]
             {
-                $"item={rootContentItemId?}",
+                $"group={selectionGroupId}",
             };
 
             UriBuilder powerBiContentUri = new UriBuilder
             {
-                Scheme = "https",
+                Scheme = thisHttpRequest.Scheme,
                 Host = thisHttpRequest.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
                 Port = thisHttpRequest.Host.Port ?? -1,
-                Path = "/AuthorizedContent/PowerBi",
+                Path = $"/AuthorizedContent/PowerBi",
                 Query = string.Join("&", QueryStringItems),
             };
 
@@ -66,16 +65,16 @@ namespace PowerBiLib
             return this;
         }
 
-        public async Task<Import> ImportPbixAsync(string pbixFullPath, string groupName, string capacityId = null)
+        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName, PowerBiContentItemProperties contentItemProperties, string capacityId = null)
         {
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                ODataResponseListCapacity allCapacities = await client.Capacities.GetCapacitiesAsync();
-                Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == capacityId) ?? allCapacities.Value.Single();
-
                 Group group = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
                 if (group == null)
                 {
+                    ODataResponseListCapacity allCapacities = await client.Capacities.GetCapacitiesAsync();
+                    Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == capacityId) ?? allCapacities.Value.Single();
+
                     group = await client.Groups.CreateGroupAsync(new GroupCreationRequest(groupName), true);
                     if (group == null)
                     {
@@ -101,7 +100,13 @@ namespace PowerBiLib
                     import = await client.Imports.GetImportByIdAsync(import.Id);
                 }
 
-                return import;
+                PowerBiEmbedModel previewProperties = new PowerBiEmbedModel
+                {
+                    ReportId = import.Reports.ElementAt(0).Id,
+                    EmbedUrl = import.Reports.ElementAt(0).EmbedUrl,
+                };
+
+                return previewProperties;
             }
         }
 

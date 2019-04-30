@@ -15,16 +15,18 @@ namespace MapDbContextLib.Models
 
         public bool NavigationPaneEnabled { get; set; }
 
-        public string LiveReportId { get; set; }
+        public PowerBiEmbedModel LiveEmbedProperties { get; set; }
 
-        public string LiveEmbedToken { get; set; }
+        public PowerBiEmbedModel PreviewEmbedProperties { get; set; }
 
-        public string LiveEmbedUrl { get; set; }
+    }
 
-        public string PreviewReportId { get; set; }
+    public class PowerBiEmbedModel
+    {
+        public string ReportId { get; set; }
 
-        public string PreviewEmbedToken { get; set; }
+        public string EmbedToken { get; set; }
 
-        public string PreviewEmbedUrl { get; set; }
+        public string EmbedUrl { get; set; }
     }
 }

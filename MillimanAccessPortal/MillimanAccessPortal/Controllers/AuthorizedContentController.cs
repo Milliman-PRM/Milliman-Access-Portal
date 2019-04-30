@@ -332,9 +332,9 @@ namespace MillimanAccessPortal.Controllers
                 switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
                 {   // Never break out of this switch without a valid ContentSpecificHandler object
                     case ContentTypeEnum.Qlikview:
-                        ContentSpecificHandler = new QlikviewLibApi();
-                        UriBuilder QvContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig, HttpContext.Request);
-                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning Qlikview URI {QvContentUri}");
+                        ContentSpecificHandler = new QlikviewLibApi(QlikviewConfig);
+                        UriBuilder QvContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, HttpContext.Request);
+                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning Qlikview URI {QvContentUri.Uri.AbsoluteUri}");
                         return Redirect(QvContentUri.Uri.AbsoluteUri);
 
                     case ContentTypeEnum.FileDownload:
@@ -356,9 +356,9 @@ namespace MillimanAccessPortal.Controllers
                         return PhysicalFile(requestedContentFile.FullPath, "text/html");
 
                     case ContentTypeEnum.PowerBi:
-                        ContentSpecificHandler = new PowerBiLibApi();
-                        UriBuilder pbiContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, _powerBiConfig, HttpContext.Request);
-                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning PowerBI URI {pbiContentUri}");
+                        ContentSpecificHandler = new PowerBiLibApi(_powerBiConfig);
+                        UriBuilder pbiContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.Id.ToString(), HttpContext.User.Identity.Name, HttpContext.Request);
+                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning PowerBI URI {pbiContentUri.Uri.AbsoluteUri}");
                         return Redirect(pbiContentUri.Uri.AbsoluteUri);
 
                     default:
@@ -378,6 +378,42 @@ namespace MillimanAccessPortal.Controllers
                 TempData["ReturnToAction"] = "Index";
                 return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
             }
+        }
+
+        /// <summary>
+        /// Only one of the arguments should be provided
+        /// </summary>
+        /// <param name="request">A PublicationRequest Id, used to preview pre-approved content</param>
+        /// <param name="group">A selection group ID, used to access live content</param>
+        /// <returns></returns>
+        public IActionResult PowerBi(Guid request, Guid group)
+        {
+            #region Authorization
+            // TODO
+            #endregion
+
+            RootContentItem contentItem = default;
+
+            if (request != Guid.Empty)
+            {
+                contentItem = DataContext.ContentPublicationRequest
+                                         .Where(r => r.Id == request)
+                                         .Select(r => r.RootContentItem)
+                                         .Include(i => i.ContentType)
+                                         .SingleOrDefault();
+            }
+            else if (group != Guid.Empty)
+            {
+                contentItem = DataContext.SelectionGroup
+                                         .Where(r => r.Id == request)
+                                         .Select(r => r.RootContentItem)
+                                         .Include(i => i.ContentType)
+                                         .SingleOrDefault();
+            }
+
+            PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+
+            return View(embedProperties);
         }
 
         /// <summary>
@@ -432,11 +468,11 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 string Link = Path.GetRelativePath(ContentRootPath, FullFilePath);
-                await new QlikviewLibApi().AuthorizeUserDocumentsInFolderAsync(
-                        Path.GetDirectoryName(Link), QlikviewConfig, Path.GetFileName(Link));
+                await new QlikviewLibApi(QlikviewConfig).AuthorizeUserDocumentsInFolderAsync(
+                        Path.GetDirectoryName(Link), Path.GetFileName(Link));
 
-                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(
-                    Link, User.Identity.Name, QlikviewConfig, Request);
+                UriBuilder QvwUri = await new QlikviewLibApi(QlikviewConfig).GetContentUri(
+                    Link, User.Identity.Name, Request);
 
                 Log.Verbose("In AuthorizedContentController.QvwPreview action: success, redirecting");
 

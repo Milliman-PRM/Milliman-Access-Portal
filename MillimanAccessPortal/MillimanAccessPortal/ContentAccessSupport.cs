@@ -183,7 +183,7 @@ namespace MillimanAccessPortal
             {
                 case ContentTypeEnum.Qlikview:
                     QlikviewConfig QvConfig = (QlikviewConfig)ContentTypeConfig;
-                    await new QlikviewLibApi().AuthorizeUserDocumentsInFolderAsync(reductionTask.SelectionGroup.RootContentItemId.ToString(), QvConfig);
+                    await new QlikviewLibApi(QvConfig).AuthorizeUserDocumentsInFolderAsync(reductionTask.SelectionGroup.RootContentItemId.ToString());
                     break;
 
                 case ContentTypeEnum.PowerBi:

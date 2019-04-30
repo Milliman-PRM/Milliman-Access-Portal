@@ -423,7 +423,7 @@ namespace MillimanAccessPortal.Controllers
                             ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"),
                             selectionGroup.ContentInstanceUrl);
 
-                        await new QlikviewLibApi().ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl, QvConfig);
+                        await new QlikviewLibApi(QvConfig).ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl);
 
                         if (System.IO.File.Exists(ContentFileFullPath))
                         {
