@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v1.6.0
+- Converted the Forgot Password page to use React
+
 ### v1.5.0
 
 - Add support for Federated Authentication through external authentication providers

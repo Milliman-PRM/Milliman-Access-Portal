@@ -201,7 +201,7 @@ function addToDocumentCount(clientId: Guid, offset: number) {
 function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   // Show and clear all confirmation checkboxes
   $('#report-confirmation .loading-wrapper').hide();
-  $('#report-confirmation .admin-panel-content-container')
+  $('#report-confirmation .form-content-container')
     .show()[0].scrollTop = 0;
   $('#report-confirmation label')
     .show()
@@ -752,7 +752,7 @@ function renderRootContentItem(item: RootContentItemSummary) {
     rootContentItemDeleteClickHandler,
     rootContentItemCancelClickHandler,
     wrapCardIconCallback((card) => {
-      $('#report-confirmation .admin-panel-content-container').hide();
+      $('#report-confirmation .form-content-container').hide();
       $('#report-confirmation .loading-wrapper').show();
       $('.confirmation-section iframe,object')
         .attr('src', 'about:blank')
