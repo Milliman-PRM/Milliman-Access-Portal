@@ -46,7 +46,7 @@ INSERT INTO public."ProfitCenter"
 
 -- Update existing records that are no longer applicable
 UPDATE public."ClientInProfitCenter"
-SET "EndDate" = (current_timestamp AT TIME ZONE 'UTC') - interval '1 day'
+SET "EndDate" = (current_timestamp AT TIME ZONE 'UTC')
 WHERE ctid IN
 	(SELECT cpc.ctid
 		FROM public."ClientInProfitCenter" cpc
@@ -65,7 +65,7 @@ INSERT INTO public."ClientInProfitCenter"
 
 -- Update existing records that are no longer applicable
 UPDATE public."UserInSelectionGroup"
-SET "EndDate" = (current_timestamp AT TIME ZONE 'UTC') - interval '1 day'
+SET "EndDate" = (current_timestamp AT TIME ZONE 'UTC')
 WHERE ctid IN
     (
         SELECT usg.ctid
