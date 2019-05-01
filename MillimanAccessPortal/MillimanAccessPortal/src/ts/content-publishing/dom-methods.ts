@@ -134,8 +134,10 @@ export function openNewRootContentItemForm() {
     contentTypeId: '0',
     description: '',
     doesReduce: false,
-    filterPaneEnabled: false,
-    navigationPaneEnabled: false,
+    typeSpecificDetailObject: {
+      filterPaneEnabled: false,
+      navigationPaneEnabled: false,
+    },
     id: '0',
     notes: '',
     contentDisclaimer: '',
@@ -184,9 +186,9 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
   if (item.contentTypeId === ContentTypeInfo.filter((ct) =>
     ct.typeEnum === ContentTypeEnum.PowerBI)[0].id) {
     formMap.set('FilterPaneEnabled',
-      item.typeSpecificDetailObject.filterPaneEnabled || item.filterPaneEnabled);
+      item.typeSpecificDetailObject.filterPaneEnabled || false);
     formMap.set('NavigationPaneEnabled',
-      item.typeSpecificDetailObject.navigationPaneEnabled || item.navigationPaneEnabled);
+      item.typeSpecificDetailObject.navigationPaneEnabled || false);
   }
   formMap.set('Description', item.description);
   formMap.set('Notes', item.notes);
@@ -577,14 +579,14 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     const $doesReduceToggle = $rootContentItemForm.find('#DoesReduce');
     $doesReduceToggle.prop('checked', item.doesReduce);
 
-    if (item.contentTypeId === ContentTypeInfo.filter((ct) =>
+    if (item.contentTypeId === '0' || item.contentTypeId === ContentTypeInfo.filter((ct) =>
       ct.typeEnum === ContentTypeEnum.PowerBI)[0].id) {
       const $filterPaneToggle = $rootContentItemForm.find('#FilterPaneEnabled');
       $filterPaneToggle.prop('checked',
-        item.typeSpecificDetailObject.filterPaneEnabled || item.filterPaneEnabled);
+        item.typeSpecificDetailObject.filterPaneEnabled || false);
       const $navigationPaneToggle = $rootContentItemForm.find('#NavigationPaneEnabled');
       $navigationPaneToggle.prop('checked',
-        item.typeSpecificDetailObject.navigationPaneEnabled || item.navigationPaneEnabled);
+        item.typeSpecificDetailObject.navigationPaneEnabled || false);
     }
   }
 
