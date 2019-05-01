@@ -332,10 +332,8 @@ namespace MillimanAccessPortal.Controllers
                 case ContentTypeEnum.PowerBi:
                     PowerBiContentItemProperties newProps = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
                     PowerBiContentItemProperties currentProps = currentRootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-
                     currentProps.FilterPaneEnabled = newProps.FilterPaneEnabled;
                     currentProps.NavigationPaneEnabled = newProps.NavigationPaneEnabled;
-
                     currentRootContentItem.TypeSpecificDetailObject = currentProps;
                     break;
             }

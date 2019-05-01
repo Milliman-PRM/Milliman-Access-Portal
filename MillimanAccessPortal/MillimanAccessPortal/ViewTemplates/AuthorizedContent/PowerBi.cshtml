@@ -1,0 +1,40 @@
+﻿@model PowerBiLib.PowerBiEmbedModel
+
+@{
+	Layout = null;
+}
+
+<html>
+    <body>
+        <div id="reportContainer"></div>
+
+        <script src="https://cdn.jsdelivr.net/npm/powerbi-client@2.7.2/dist/powerbi.min.js"></script>
+        <script>
+	    // Get models. models contains enums that can be used.
+	    var models = window['powerbi-client'].models;
+
+	    // Embed configuration used to describe what and how to embed.
+	    // This object is used when calling powerbi.embed.
+	    // This also includes settings and options such as filters.
+	    // You can find more information at https://github.com/Microsoft/PowerBI-JavaScript/wiki/Embed-Configuration-Details.
+	    var config = {
+		    type: 'report',
+		    tokenType: models.TokenType.Embed,
+		    accessToken: "@Model.EmbedToken",
+		    embedUrl: "@Html.Raw(Model.EmbedUrl)",
+		    id: "@Model.ReportId",
+		    permissions: models.Permissions.All,
+		    settings: {
+			    filterPaneEnabled: @Json.Serialize(Model.FilterPaneEnabled),
+			    navContentPaneEnabled: @Json.Serialize(Model.NavigationPaneEnabled)
+		    }
+	    };
+
+	    // Get a reference to the embedded report HTML element
+	    var reportContainer = document.getElementById('reportContainer');
+
+	    // Embed the report and display it within the div container.
+	    var report = powerbi.embed(reportContainer, config);
+        </script>
+    </body>
+</html>

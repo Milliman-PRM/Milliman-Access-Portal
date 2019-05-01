@@ -208,7 +208,6 @@ namespace MillimanAccessPortal
                 switch (contentType)
                 {  // This is where any dependence on ContentType would be incorporated to override base behavior
                     case ContentTypeEnum.PowerBi:
-                        // TODO Figure out if anything is needed here.
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Html:
                     case ContentTypeEnum.Pdf:

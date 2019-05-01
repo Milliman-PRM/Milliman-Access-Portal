@@ -12,6 +12,7 @@ using Microsoft.PowerBI.Api.V2;
 using Microsoft.PowerBI.Api.V2.Models;
 using Microsoft.Rest;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.IO;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace PowerBiLib
     public class PowerBiLibApi : ContentTypeSpecificApiBase
     {
         private PowerBiConfig _config { get; set; }
-        private TokenCredentials _tokenCredentials { get; set; }
+        private TokenCredentials _tokenCredentials { get; set; } = null;
 
         public async override Task<UriBuilder> GetContentUri(string selectionGroupId, string UserName, HttpRequest thisHttpRequest)
         {
@@ -46,16 +47,13 @@ namespace PowerBiLib
             return powerBiContentUri;
         }
 
-        public PowerBiLibApi(PowerBiConfig configArg = null)
+        public PowerBiLibApi(PowerBiConfig configArg)
         {
-            if (configArg != null)
-            {
-                _config = configArg;
-            }
+            _config = configArg;
         }
 
         /// <summary>
-        /// Chainable
+        /// Asynchronous initializer, chainable with the constructor
         /// </summary>
         /// <returns></returns>
         public async Task<PowerBiLibApi> InitializeAsync()
@@ -65,7 +63,14 @@ namespace PowerBiLib
             return this;
         }
 
-        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName, PowerBiContentItemProperties contentItemProperties, string capacityId = null)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pbixFullPath"></param>
+        /// <param name="groupName"></param>
+        /// <param name="capacityId">Required only if the named group does not exist and more than one capacity exists for the authenticated account</param>
+        /// <returns></returns>
+        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName, string capacityId = null)
         {
             using (var client = new PowerBIClient(_tokenCredentials))
             {
@@ -89,24 +94,32 @@ namespace PowerBiLib
                 DateTime now = DateTime.UtcNow;
                 string remoteFileName = Path.GetFileNameWithoutExtension(pbixFileName) + $"_{now.ToString("yyyyMMdd\\ZHHmmss")}{Path.GetExtension(pbixFileName)}";
 
-                Import import = await client.Imports.PostImportWithFileAsyncInGroup(
-                    group.Id,
-                    new FileStream(pbixFullPath, FileMode.Open),
-                    remoteFileName);
+                // Initiate pbix upload and poll for completion
+                Import import = await client.Imports.PostImportWithFileAsyncInGroup(group.Id, new FileStream(pbixFullPath, FileMode.Open), remoteFileName);
                 while (import.ImportState != "Succeeded" && import.ImportState != "Failed")
                 {
-                    Console.WriteLine("Waiting for import completion, last import object is {0}", JsonConvert.SerializeObject(import));
                     Thread.Sleep(500);
                     import = await client.Imports.GetImportByIdAsync(import.Id);
                 }
 
-                PowerBiEmbedModel previewProperties = new PowerBiEmbedModel
-                {
-                    ReportId = import.Reports.ElementAt(0).Id,
-                    EmbedUrl = import.Reports.ElementAt(0).EmbedUrl,
-                };
+                PowerBiEmbedModel embedProperties = (import.ImportState == "Succeeded" && import.Reports.Count == 1)
+                    ? new PowerBiEmbedModel { WorkspaceId = group.Id,
+                                              ReportId = import.Reports.ElementAt(0).Id,
+                                              EmbedUrl = import.Reports.ElementAt(0).EmbedUrl }
+                    : null;
 
-                return previewProperties;
+                return embedProperties;
+            }
+        }
+
+        public async Task<string> GetEmbedTokenAsync(string groupId, string reportId)
+        {
+            // Create a Power BI Client object. it's used to call Power BI APIs.
+            using (var client = new PowerBIClient(_tokenCredentials))
+            {
+                var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                EmbedToken tokenResponse = await client.Reports.GenerateTokenInGroupAsync(groupId, reportId, generateTokenRequestParameters);
+                return tokenResponse.Token;
             }
         }
 
@@ -178,7 +191,6 @@ namespace PowerBiLib
                 //  in particular: https://docs.microsoft.com/en-us/power-bi/developer/embed-sample-for-customers#load-an-item-using-javascript
                 var tokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
                 EmbedToken tokenResponse = client.Reports.GenerateTokenInGroup(oneGroup.Id, oneReport.Id, tokenRequestParameters);
-                // TODO: Generate embed model for Razor view
 
                 // Delete report/dataset
                 await client.Reports.DeleteReportInGroupAsync(oneGroup.Id, import.Reports[0].Id);
@@ -194,7 +206,6 @@ namespace PowerBiLib
         public async Task<bool> GetAccessTokenAsync()
         {
             // It may be possible to replace this with something that uses package:  Microsoft.IdentityModel.Clients.ActiveDirectory
-            // Microsoft has deprecated the class 
             try
             {
                 var response = await _config.PbiTokenEndpoint
@@ -215,21 +226,14 @@ namespace PowerBiLib
                 }
                 else
                 {
-                    // The response was converted to a MicrosoftAuthenticationResponse, but seems to be invalid
-                    // TODO: Do some real logging here
+                    Log.Warning("Invalid response when authenticating to PowerBI, response object is {@response}", response);
                     response = null;
                 }
             }
             #region exception handling
-            catch (FlurlHttpTimeoutException ex)
-            {
-            }
-            catch (FlurlHttpException ex)
-            {
-            }
             catch (Exception ex)
             {
-                // TODO: Do some real logging here
+                Log.Warning(ex, "Exception attempting to get PowerBI access token");
             }
             #endregion
 

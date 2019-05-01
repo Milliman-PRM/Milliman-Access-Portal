@@ -176,12 +176,6 @@ module.exports = {
       inject: false,
       chunks: [ 'commons', 'content-wrapper' ],
     }),
-      new HtmlWebpackPlugin({
-          filename: path.resolve(__dirname, 'Views', 'AuthorizedContent', 'PowerBi.cshtml'),
-          template: path.resolve(__dirname, 'ViewTemplates', 'AuthorizedContent', 'PowerBi.cshtml.template'),
-          inject: false,
-          chunks: ['commons', 'content-wrapper'],
-      }),
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'Shared', 'Message.cshtml'),
       template: path.resolve(__dirname, 'ViewTemplates', 'Shared', 'Message.cshtml.template'),

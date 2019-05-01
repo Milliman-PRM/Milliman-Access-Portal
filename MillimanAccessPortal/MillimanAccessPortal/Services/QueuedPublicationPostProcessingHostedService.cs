@@ -262,16 +262,18 @@ namespace MillimanAccessPortal.Services
                     if (newMasterFile != null)
                     {
                         PowerBiLibApi api = await new PowerBiLibApi(typeSpecificConfig as PowerBiConfig).InitializeAsync();
-                        PowerBiEmbedModel embedProperties = await api.ImportPbixAsync(newMasterFile.FullPath, 
-                                                                                      contentItem.ClientId.ToString(), // The related client ID is used as group name
-                                                                                      contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties);
+                        PowerBiEmbedModel embedProperties = await api.ImportPbixAsync(newMasterFile.FullPath, contentItem.ClientId.ToString()); // The related client ID is used as group name
 
                         PowerBiContentItemProperties contentItemProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-                        contentItemProperties.PreviewEmbedProperties = embedProperties;
+                        contentItemProperties.PreviewWorkspaceId = embedProperties.WorkspaceId;
+                        contentItemProperties.PreviewEmbedUrl = embedProperties.EmbedUrl;
+                        contentItemProperties.PreviewReportId = embedProperties.ReportId;
+
                         contentItem.TypeSpecificDetailObject = contentItemProperties;
                         dbContext.SaveChanges();
                     }
                     break;
+
                 case ContentTypeEnum.Pdf:
                 case ContentTypeEnum.Html:
                 case ContentTypeEnum.FileDownload:

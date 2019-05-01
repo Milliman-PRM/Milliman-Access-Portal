@@ -58,6 +58,9 @@
     <None Include="wwwroot\**" />
   </ItemGroup>
   <ItemGroup>
+    <Content Remove="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
     <ProjectReference Include="..\EmailQueue\EmailQueue.csproj" />
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
@@ -70,6 +73,9 @@
     <Folder Include="Properties\PublishProfiles\" />
     <Folder Include="Views\" />
     <Folder Include="wwwroot\" /> 
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="appsettings.AzureCI.json">

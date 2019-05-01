@@ -381,39 +381,57 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// Only one of the arguments should be provided
+        /// Display the preview report for the identified publication request
         /// </summary>
-        /// <param name="request">A PublicationRequest Id, used to preview pre-approved content</param>
-        /// <param name="group">A selection group ID, used to access live content</param>
+        /// <param name="request">A ContentPublicationRequest Id, used to display pre-approved content</param>
         /// <returns></returns>
-        public IActionResult PowerBi(Guid request, Guid group)
+        public async Task<IActionResult> PowerBiPreview(Guid request)
         {
             #region Authorization
-            // TODO
+            var PubRequest = DataContext.ContentPublicationRequest
+                                        .FirstOrDefault(r => r.Id == request);
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
+                User, null, new RoleInRootContentItemRequirement(
+                    RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
+            if (!Result1.Succeeded)
+            {
+                Log.Verbose("In AuthorizedContentController.PowerBiPreview action: "
+                    + $"authorization failed for user {User.Identity.Name}, "
+                    + $"content item {PubRequest.RootContentItemId}, "
+                    + $"role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
             #endregion
 
-            RootContentItem contentItem = default;
+            #region Validation
+            if (request == Guid.Empty)
+            {
+                Log.Error("Invalid model in request to AuthorizedContentController.PowerBi.");
+            }
+            #endregion
 
-            if (request != Guid.Empty)
-            {
-                contentItem = DataContext.ContentPublicationRequest
-                                         .Where(r => r.Id == request)
-                                         .Select(r => r.RootContentItem)
-                                         .Include(i => i.ContentType)
-                                         .SingleOrDefault();
-            }
-            else if (group != Guid.Empty)
-            {
-                contentItem = DataContext.SelectionGroup
-                                         .Where(r => r.Id == request)
-                                         .Select(r => r.RootContentItem)
-                                         .Include(i => i.ContentType)
-                                         .SingleOrDefault();
-            }
+            RootContentItem contentItem = DataContext.ContentPublicationRequest
+                                                     .Where(r => r.Id == request)
+                                                     .Select(r => r.RootContentItem)
+                                                     .Include(i => i.ContentType)
+                                                     .SingleOrDefault();
 
             PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
-            return View(embedProperties);
+            PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+            PowerBiEmbedModel embedModel = new PowerBiEmbedModel
+                {
+                    EmbedUrl = embedProperties.PreviewEmbedUrl,
+                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId, embedProperties.PreviewReportId),
+                    ReportId = embedProperties.PreviewReportId,
+                    FilterPaneEnabled = embedProperties.FilterPaneEnabled,
+                    NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
+                };
+
+            return View("PowerBi", embedModel);
         }
 
         /// <summary>

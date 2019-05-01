@@ -10,6 +10,7 @@ using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
 using Serilog;
 using System;
@@ -38,7 +39,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; }
 
-        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context, object ContentTypeConfig)
+        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
         {
             ContentPublicationRequest PubRequest = Db.ContentPublicationRequest
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.ContentType)
@@ -170,7 +171,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         switch (PubRequest.RootContentItem.ContentType.TypeEnum)
                         {
                             case ContentTypeEnum.PowerBi:
-                                // TODO Figure out what is needed here
                                 string[] QueryStringItems = new string[]
                                 {
                                     $"request={PubRequest.Id}",
@@ -181,7 +181,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                     Scheme = Context.Request.Scheme,
                                     Host = Context.Request.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
                                     Port = Context.Request.Host.Port ?? -1,
-                                    Path = $"/AuthorizedContent/PowerBi",
+                                    Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}",
                                     Query = string.Join("&", QueryStringItems),
                                 };
 
