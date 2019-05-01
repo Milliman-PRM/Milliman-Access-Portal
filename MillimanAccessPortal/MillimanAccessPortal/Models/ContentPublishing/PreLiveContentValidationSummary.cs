@@ -1,18 +1,21 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: View model for the content preview/approval form
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using AuditLogLib.Models;
 using MapDbContextLib.Models;
 using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using QlikviewLib;
 using MillimanAccessPortal.Models.AccountViewModels;
 using Serilog;
+using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -278,6 +281,23 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
 
             return ReturnObj;
+        }
+
+        public static explicit operator PreLiveContentValidationSummaryLogModel(PreLiveContentValidationSummary source)
+        {
+            return new PreLiveContentValidationSummaryLogModel
+            {
+                ValidationSummaryId = source.ValidationSummaryId,
+                PublicationRequestId = source.PublicationRequestId,
+                AttestationLanguage = source.AttestationLanguage,
+                ContentDescription = source.ContentDescription,
+                RootContentName = source.RootContentName,
+                ContentTypeName = source.ContentTypeName,
+                LiveHierarchy = source.LiveHierarchy,
+                NewHierarchy = source.NewHierarchy,
+                DoesReduce = source.DoesReduce,
+                ClientName = source.ClientName,
+            };
         }
     }
 

@@ -5,6 +5,7 @@
  */
 
 using AuditLogLib.Event;
+using AuditLogLib.Models;
 using AuditLogLib.Services;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
@@ -700,20 +701,7 @@ namespace MillimanAccessPortal.Controllers
             PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig, HttpContext, QlikviewConfig);
 
             Log.Verbose($"In ContentPublishingController.PreLiveSummary action: success, returning summary {ReturnObj.ValidationSummaryId}");
-            var preGoLiveSummaryLog = new
-            {
-                ReturnObj.ValidationSummaryId,
-                ReturnObj.PublicationRequestId,
-                ReturnObj.AttestationLanguage,
-                ReturnObj.ContentDescription,
-                ReturnObj.RootContentName,
-                ReturnObj.ContentTypeName,
-                ReturnObj.LiveHierarchy,
-                ReturnObj.NewHierarchy,
-                ReturnObj.DoesReduce,
-                ReturnObj.ClientName,
-            };
-            AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent(preGoLiveSummaryLog));
+            AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent((PreLiveContentValidationSummaryLogModel)ReturnObj));
 
             return new JsonResult(ReturnObj);
         }
