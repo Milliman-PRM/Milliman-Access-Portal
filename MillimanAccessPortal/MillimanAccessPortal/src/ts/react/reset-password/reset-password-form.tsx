@@ -20,7 +20,10 @@ export class ResetPasswordForm extends Form<{}, BaseFormState> {
     super(props);
 
     this.state = {
-      data: { newPassword: '' },
+      data: {
+        newPassword: '',
+        confirmPassword: '',
+      },
       errors: {},
       formIsValid: false,
     };
@@ -60,6 +63,6 @@ export class ResetPasswordForm extends Form<{}, BaseFormState> {
           error={errors.confirmPassword}
         />
       </div>
-    )
+    );
   }
 }
