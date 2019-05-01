@@ -44,7 +44,7 @@ export class ResetPasswordForm extends Form<{}, BaseFormState> {
         <Input
           name="newPassword"
           label="New Password"
-          type="newPassword"
+          type="password"
           value={data.newPassword}
           onChange={this.handleChange}
           onBlur={this.handleBlur}
