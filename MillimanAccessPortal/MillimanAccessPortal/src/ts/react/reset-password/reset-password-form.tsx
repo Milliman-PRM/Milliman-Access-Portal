@@ -6,7 +6,11 @@ import * as Yup from 'yup';
 import { BaseFormState, Form } from '../shared-components/form';
 import { Input } from '../shared-components/input';
 
-export class ResetPasswordForm extends Form<{}, BaseFormState> {
+interface ResetPasswordState extends BaseFormState {
+  requestVerificationToken: string;
+}
+
+export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
   protected schema = Yup.object({
     newPassword: Yup.string()
       .required()
@@ -26,7 +30,15 @@ export class ResetPasswordForm extends Form<{}, BaseFormState> {
       },
       errors: {},
       formIsValid: false,
+      requestVerificationToken: '',
     };
+  }
+
+  public componentDidMount() {
+    const antiforgeryToken = document
+      .querySelector('input[name="__RequestVerificationToken"]')
+      .getAttribute('value');
+    this.setState({ requestVerificationToken: antiforgeryToken });
   }
 
   public render() {
@@ -37,6 +49,12 @@ export class ResetPasswordForm extends Form<{}, BaseFormState> {
         <form autoComplete="off" action="/Account/ResetPassword" method="POST">
           <div className="form-section">
             <h3 className="form-section-title">Reset your Password</h3>
+            <input
+              readOnly={true}
+              name="__RequestVerificationToken"
+              value={this.state.requestVerificationToken}
+              style={{display: 'none'}}
+            />
             <Input
               name="newPassword"
               label="New Password"
