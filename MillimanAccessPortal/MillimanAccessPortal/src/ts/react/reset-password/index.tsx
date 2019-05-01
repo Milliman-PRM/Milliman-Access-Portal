@@ -14,7 +14,7 @@ let ResetPasswordForm: typeof Root = require('./reset-password-form')
 document.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
     <ResetPasswordForm />,
-    document.getElementById('content-container')
+    document.getElementById('content-container'),
   );
 });
 
