@@ -45,24 +45,30 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
         while (!cancellationToken.IsCancellationRequested)
         {
             // Retrieve the relevant data to finalize the goLive
-            var goLiveViewModel = await TaskQueue.DequeueAsync(cancellationToken);
+            GoLiveViewModel goLiveViewModel = await TaskQueue.DequeueAsync(cancellationToken);
 
             using (var scope = Services.CreateScope())
             {
                 var auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
                 var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                // Other content types may require their own services
-                var qlikviewConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
+                ContentTypeEnum contentType = dbContext.RootContentItem
+                                                       .Where(c => c.Id == goLiveViewModel.RootContentItemId)
+                                                       .Select(c => c.ContentType.TypeEnum)
+                                                       .Single();
+
+                object typeSpecificConfig = default;
+                switch (contentType)
+                {
+                    // For each ContentType that requires its configuration, it should be instantiated here
+                    case ContentTypeEnum.Qlikview:
+                        typeSpecificConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
+                        break;
+                }
 
                 try
                 {
-                    await ProcessGoLive(
-                        goLiveViewModel,
-                        dbContext,
-                        auditLogger,
-                        configuration,
-                        qlikviewConfig);
+                    await ProcessGoLive(goLiveViewModel, dbContext, auditLogger, configuration, typeSpecificConfig);
                 }
                 catch (Exception e)
                 {
@@ -74,9 +80,8 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
     private async Task ProcessGoLive(
         GoLiveViewModel goLiveViewModel, ApplicationDbContext dbContext, IAuditLogger auditLogger,
-        IConfiguration configuration, QlikviewConfig qlikviewConfig)
+        IConfiguration configuration, object typeSpecificConfig)
     {
-        #region Checksum verification
         var publicationRequest = goLiveViewModel == null
             ? null
             : dbContext.ContentPublicationRequest
@@ -87,6 +92,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 .Where(r => r.RootContentItemId == goLiveViewModel.RootContentItemId)
                 .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Confirming);
 
+        #region Validation
         if (publicationRequest?.RootContentItem == null || publicationRequest?.ApplicationUser == null)
         {
             Log.Error(
@@ -96,6 +102,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 $"or related content item {publicationRequest?.RootContentItemId} not found");
             return;
         }
+        #endregion
 
         var LiveHierarchy = new ContentReductionHierarchy<ReductionFieldValue>
         {
@@ -138,8 +145,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     Log.Error($"" +
                         "In QueueGoLiveTaskHostedService.ExecuteAsync action: " +
                         "expected one reduction task for each non-master selection group, " +
-                        $"failed for selection group {relatedSelectionGroup.Id}, " +
-                        "aborting");
+                        $"failed for selection group {relatedSelectionGroup.Id}, aborting");
                     await FailGoLive(dbContext, publicationRequest,
                         $"Expected 1 reduction task related to SelectionGroup {relatedSelectionGroup.Id}, " +
                         "cannot complete this go-live request.");
@@ -154,14 +160,12 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     if (currentChecksum != ThisTask.ReducedContentChecksum.ToLower())
                     {
                         Log.Error($"In QueueGoLiveTaskHostedService.ExecuteAsync action: " +
-                            "for selection group {relatedSelectionGroup.Id}, " +
-                            "reduced content file {ThisTask.ResultFilePath} failed checksum validation, " +
-                            "aborting");
+                            $"for selection group {relatedSelectionGroup.Id}, " +
+                            $"reduced content file {ThisTask.ResultFilePath} failed checksum validation, aborting");
                         auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
                             publicationRequest.RootContentItem, publicationRequest));
                         await FailGoLive(dbContext, publicationRequest,
-                            $"Reduced content file failed integrity check, " +
-                            "cannot complete the go-live request.");
+                            $"Reduced content file failed integrity check, cannot complete the go-live request.");
                         return;
                     }
                 }
@@ -187,7 +191,6 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 return;
             }
         }
-        #endregion
 
         #region Go live
         List<Action> successActionList = new List<Action>();
@@ -205,7 +208,6 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 foreach (ContentPublicationRequest PreviousLiveRequest in previousLiveRequests)
                 {
                     PreviousLiveRequest.RequestStatus = PublicationStatus.Replaced;
-                    dbContext.ContentPublicationRequest.Update(PreviousLiveRequest);
                 }
                 publicationRequest.RequestStatus = PublicationStatus.Confirmed;
 
@@ -218,16 +220,14 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     foreach (ContentReductionTask PreviousLiveTask in previousLiveTasks)
                     {
                         PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
-                        dbContext.ContentReductionTask.Update(PreviousLiveTask);
                     }
                     relatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
                 }
 
                 //1.3  HierarchyFieldValue due to hierarchy changes
-                //1.3.1  If this is first publication for this root content item, add the fields to db
-                //       and to LiveHierarchy to help identify all values as new
+                //1.3.1  If this is first publication for this RootContentItem add the fields to db and to LiveHierarchy (not values to LiveHierarchy)
                 if (LiveHierarchy.Fields.Count == 0)
-                {  // This must be first time publication, need to insert the fields.  Values are handled below
+                {  // This must be first time publication, need to insert the fields.  Field values are handled later
                     NewHierarchy.Fields.ForEach(f =>
                     {
                         HierarchyField NewField = new HierarchyField
@@ -239,7 +239,6 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             StructureType = f.StructureType,
                         };
                         dbContext.HierarchyField.Add(NewField);
-                        dbContext.SaveChanges();
 
                         LiveHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
                         {
@@ -252,6 +251,8 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         });
                     });
                 }
+                dbContext.SaveChanges();
+
                 //1.3.2  Add/Remove field values based on value list differences between new/old
                 foreach (var NewHierarchyField in NewHierarchy.Fields)
                 {
@@ -301,54 +302,79 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 List<ContentRelatedFile> UpdatedContentFilesList = publicationRequest.RootContentItem.ContentFilesList;
                 foreach (ContentRelatedFile Crf in publicationRequest.LiveReadyFilesObj)
                 {
-                    // This assignment defines the live file name
                     string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
                         Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId);
-                    string TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
-                                                         goLiveViewModel.RootContentItemId.ToString(),
-                                                         TargetFileName);
 
-                    // Move any existing live file of this name to backed up name
-                    if (File.Exists(TargetFilePath))
+                    // special treatment for powerbi content file (no live content file persists in MAP)
+                    if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase) && 
+                        publicationRequest.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
                     {
-                        string BackupFilePath = TargetFilePath + ".bak";
-                        if (File.Exists(BackupFilePath))
-                        {
-                            File.Delete(BackupFilePath);
-                        }
-                        File.Move(TargetFilePath, BackupFilePath);
+                        PowerBiContentItemProperties typeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
-                        successActionList.Add(new Action(() => {
-                            File.Delete(BackupFilePath);
-                        }));
                         failureRecoveryActionList.Add(new Action(() => {
-                            if (File.Exists(TargetFilePath))
-                            {
-                                File.Delete(TargetFilePath);
-                            }
-                            File.Move(BackupFilePath, TargetFilePath);
+                            publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
+                            dbContext.SaveChanges();
                         }));
+
+                        typeSpecificProperties.LiveEmbedUrl = typeSpecificProperties.PreviewEmbedUrl;
+                        typeSpecificProperties.LiveReportId = typeSpecificProperties.PreviewReportId;
+                        typeSpecificProperties.LiveWorkspaceId = typeSpecificProperties.PreviewWorkspaceId;
+                        typeSpecificProperties.PreviewEmbedUrl = null;
+                        typeSpecificProperties.PreviewReportId = null; ;
+                        typeSpecificProperties.PreviewWorkspaceId = null; ;
+
+                        publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
+
                     }
-
-                    // Can move since files are on the same volume
-                    File.Move(Crf.FullPath, TargetFilePath);
-
-                    failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
-                        if (File.Exists(Crf.FullPath))
-                        {
-                            File.Delete(Crf.FullPath);
-                        }
-                        File.Move(TargetFilePath, Crf.FullPath);
-                    }));
-
-                    UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
-                    UpdatedContentFilesList.Add(new ContentRelatedFile
+                    else
                     {
-                        FilePurpose = Crf.FilePurpose,
-                        FullPath = TargetFilePath,
-                        Checksum = Crf.Checksum,
-                        FileOriginalName = Crf.FileOriginalName,
-                    });
+                        // This assignment defines the live file name
+                        string TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
+                                                             goLiveViewModel.RootContentItemId.ToString(),
+                                                             TargetFileName);
+
+                        // Move any existing live file of this name to backed up name
+                        if (File.Exists(TargetFilePath))
+                        {
+                            string BackupFilePath = TargetFilePath + ".bak";
+                            if (File.Exists(BackupFilePath))
+                            {
+                                File.Delete(BackupFilePath);
+                            }
+                            File.Move(TargetFilePath, BackupFilePath);
+
+                            successActionList.Add(new Action(() => {
+                                File.Delete(BackupFilePath);
+                            }));
+                            failureRecoveryActionList.Add(new Action(() => {
+                                if (File.Exists(TargetFilePath))
+                                {
+                                    File.Delete(TargetFilePath);
+                                }
+                                File.Move(BackupFilePath, TargetFilePath);
+                            }));
+                        }
+
+                        // Can move since files are on the same volume
+                        File.Move(Crf.FullPath, TargetFilePath);
+
+                        failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
+                            if (File.Exists(Crf.FullPath))
+                            {
+                                File.Delete(Crf.FullPath);
+                            }
+                            File.Move(TargetFilePath, Crf.FullPath);
+                        }));
+
+                        UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
+                        UpdatedContentFilesList.Add(new ContentRelatedFile
+                        {
+                            FilePurpose = Crf.FilePurpose,
+                            FullPath = TargetFilePath,
+                            Checksum = Crf.Checksum,
+                            FileOriginalName = Crf.FileOriginalName,
+                        });
+                    }
 
                     // Set content URL in each master SelectionGroup
                     if (Crf.FilePurpose.ToLower() == "mastercontent")
@@ -442,12 +468,11 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 // Perform any content type dependent follow up processing
                 switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
                 {
-                    case ContentTypeEnum.PowerBi:
-                        // TODO Implement anything?
                     case ContentTypeEnum.Qlikview:
-                        await new QlikviewLibApi(qlikviewConfig).AuthorizeUserDocumentsInFolderAsync(goLiveViewModel.RootContentItemId.ToString());
+                        await new QlikviewLibApi(typeSpecificConfig as QlikviewConfig).AuthorizeUserDocumentsInFolderAsync(goLiveViewModel.RootContentItemId.ToString());
                         break;
 
+                    case ContentTypeEnum.PowerBi:
                     case ContentTypeEnum.Html:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.FileDownload:
