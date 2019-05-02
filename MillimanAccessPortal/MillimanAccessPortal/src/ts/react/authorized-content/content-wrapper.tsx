@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Qlikview: ContentTypeEnum.Qlikview,
     Html: ContentTypeEnum.Html,
     Pdf: ContentTypeEnum.Pdf,
+    PowerBI: ContentTypeEnum.PowerBI,
     FileDownload: ContentTypeEnum.FileDownload,
   };
   ReactDOM.render(
