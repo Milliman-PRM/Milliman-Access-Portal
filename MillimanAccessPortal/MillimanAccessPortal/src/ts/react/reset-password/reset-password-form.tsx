@@ -6,25 +6,46 @@ import * as Yup from 'yup';
 import { BaseFormState, Form } from '../shared-components/form';
 import { Input } from '../shared-components/input';
 
+import { PasswordValidation } from '../../../ts/react/models';
+import { postJsonData } from '../../../ts/shared';
+
 interface ResetPasswordState extends BaseFormState {
   requestVerificationToken: string;
 }
 
+const validatePassword = async (requestModel: { proposedPassword: string }) =>
+  await postJsonData<PasswordValidation>('/Account/CheckPasswordValidity2', requestModel);
+
+let msg: string = null;
+
 export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
   protected schema = Yup.object({
     newPassword: Yup.string()
-      .required()
-      .label('New Password'),
+      .required('This field is required')
+      .label('New Password')
+      .test('new-password-is-valid', () => msg, (value) =>
+        validatePassword({ proposedPassword: value })
+          .then((response) => {
+            msg = response.messages
+              ? response.messages.join('\r\n')
+              : null;
+            return response.valid;
+          })),
     confirmPassword: Yup.string()
-      .required()
-      .label('Confirm Password'),
+      .required('This field is required')
+      .label('Confirm Password')
+      .test(
+        'confirm-password-matches-new',
+        'Does not match new password',
+        () => this.state.data.confirmPassword === this.state.data.newPassword,
+      ),
     email: Yup.string()
       .required(),
     passwordResetToken: Yup.string()
       .required(),
     requestVerificationToken: Yup.string()
       .required(),
-  });
+  }).notRequired();
 
   public constructor(props: {}) {
     super(props);
