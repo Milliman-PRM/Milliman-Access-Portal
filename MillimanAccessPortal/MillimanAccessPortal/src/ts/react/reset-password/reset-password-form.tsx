@@ -18,6 +18,12 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
     confirmPassword: Yup.string()
       .required()
       .label('Confirm Password'),
+    email: Yup.string()
+      .required(),
+    passwordResetToken: Yup.string()
+      .required(),
+    requestVerificationToken: Yup.string()
+      .required(),
   });
 
   public constructor(props: {}) {
@@ -27,6 +33,8 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
       data: {
         newPassword: '',
         confirmPassword: '',
+        email: '',
+        passwordResetToken: '',
       },
       errors: {},
       formIsValid: false,
