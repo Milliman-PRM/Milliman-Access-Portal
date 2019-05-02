@@ -54,7 +54,7 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
 
     return (
       <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
-        <form autoComplete="off" action="/Account/ResetPassword" method="POST">
+        <form autoComplete="off" action="ResetPassword" method="POST">
           <div className="form-section">
             <h3 className="form-section-title">Reset your Password</h3>
             <input
