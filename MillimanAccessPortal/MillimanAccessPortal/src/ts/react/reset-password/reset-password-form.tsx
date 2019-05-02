@@ -63,6 +63,16 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
               value={this.state.requestVerificationToken}
               style={{display: 'none'}}
             />
+            <input
+              readOnly={true}
+              value={this.state.data.email}
+              style={{display: 'none'}}
+            />
+            <input
+              readOnly={true}
+              value={this.state.data.passwordResetToken}
+              style={{display: 'none'}}
+            />
             <Input
               name="newPassword"
               label="New Password"
