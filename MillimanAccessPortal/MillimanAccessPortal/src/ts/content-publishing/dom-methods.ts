@@ -724,7 +724,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     $('#DoesReduce').closest('.form-input-toggle').show();
   }
   const $contentDisplaySettings = $('.form-section[data-section="root-content-item-display-settings"]');
-  if (contentType.typeEnum === ContentTypeEnum.PowerBI) {
+  if (contentType.typeEnum === ContentTypeEnum.PowerBi) {
     $contentDisplaySettings.show();
   } else {
     $contentDisplaySettings.hide();
@@ -873,7 +873,7 @@ export function setup() {
       $doesReduceToggle.closest('.form-input-toggle').show();
     }
     const $contentDisplaySettings = $('.form-section[data-section="root-content-item-display-settings"]');
-    if (contentType && contentType.typeEnum === ContentTypeEnum.PowerBI) {
+    if (contentType && contentType.typeEnum === ContentTypeEnum.PowerBi) {
       $contentDisplaySettings.show();
       $('#FilterPaneEnabled').removeAttr('disabled');
       $('#NavigationPaneEnabled').removeAttr('disabled');

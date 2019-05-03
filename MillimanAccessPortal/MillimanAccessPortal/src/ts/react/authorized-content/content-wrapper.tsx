@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Html: ContentTypeEnum.Html,
     Pdf: ContentTypeEnum.Pdf,
     FileDownload: ContentTypeEnum.FileDownload,
-    PowerBi: ContentTypeEnum.PowerBI,
+    PowerBi: ContentTypeEnum.PowerBi,
   };
   ReactDOM.render(
     <ContentContainer
