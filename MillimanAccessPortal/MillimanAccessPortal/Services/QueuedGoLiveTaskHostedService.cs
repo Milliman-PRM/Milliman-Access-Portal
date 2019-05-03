@@ -18,6 +18,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
+using PowerBiLib;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -62,9 +63,11 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     object typeSpecificConfig = default;
                     switch (contentType)
                     {
-                        // For each ContentType that requires its configuration, it should be instantiated here
                         case ContentTypeEnum.Qlikview:
                             typeSpecificConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
+                            break;
+                        case ContentTypeEnum.PowerBi:
+                            typeSpecificConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
                             break;
                     }
 
@@ -311,17 +314,22 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     {
                         PowerBiContentItemProperties typeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
-                        failureRecoveryActionList.Add(new Action(() => {
+                        failureRecoveryActionList.Add(() => {
                             publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
                             dbContext.SaveChanges();
-                        }));
+                        });
+                        string reportIdToBeDeleted = typeSpecificProperties.LiveReportId;
+                        successActionList.Add(async () => {
+                            PowerBiLibApi powerBiApi = await new PowerBiLibApi(typeSpecificConfig as PowerBiConfig).InitializeAsync();
+                            await powerBiApi.DeleteReportAsync(reportIdToBeDeleted);
+                        });
 
                         typeSpecificProperties.LiveEmbedUrl = typeSpecificProperties.PreviewEmbedUrl;
                         typeSpecificProperties.LiveReportId = typeSpecificProperties.PreviewReportId;
                         typeSpecificProperties.LiveWorkspaceId = typeSpecificProperties.PreviewWorkspaceId;
                         typeSpecificProperties.PreviewEmbedUrl = null;
                         typeSpecificProperties.PreviewReportId = null; ;
-                        typeSpecificProperties.PreviewWorkspaceId = null; ;
+                        typeSpecificProperties.PreviewWorkspaceId = null;
 
                         publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
 
