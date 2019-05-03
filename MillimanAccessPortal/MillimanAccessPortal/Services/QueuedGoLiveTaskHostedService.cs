@@ -44,43 +44,46 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            // Retrieve the relevant data to finalize the goLive
-            GoLiveViewModel goLiveViewModel = await TaskQueue.DequeueAsync(cancellationToken);
-
-            using (var scope = Services.CreateScope())
+            try
             {
-                var auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
-                var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                ContentTypeEnum contentType = dbContext.RootContentItem
-                                                       .Where(c => c.Id == goLiveViewModel.RootContentItemId)
-                                                       .Select(c => c.ContentType.TypeEnum)
-                                                       .Single();
+                // Retrieve the relevant data to finalize the goLive
+                GoLiveViewModel goLiveViewModel = await TaskQueue.DequeueAsync(cancellationToken);
 
-                object typeSpecificConfig = default;
-                switch (contentType)
+                using (var scope = Services.CreateScope())
                 {
-                    // For each ContentType that requires its configuration, it should be instantiated here
-                    case ContentTypeEnum.Qlikview:
-                        typeSpecificConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
-                        break;
-                }
+                    var auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
+                    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    ContentTypeEnum contentType = dbContext.RootContentItem
+                                                           .Where(c => c.Id == goLiveViewModel.RootContentItemId)
+                                                           .Select(c => c.ContentType.TypeEnum)
+                                                           .Single();
 
-                try
-                {
+                    object typeSpecificConfig = default;
+                    switch (contentType)
+                    {
+                        // For each ContentType that requires its configuration, it should be instantiated here
+                        case ContentTypeEnum.Qlikview:
+                            typeSpecificConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
+                            break;
+                    }
+
                     await ProcessGoLive(goLiveViewModel, dbContext, auditLogger, configuration, typeSpecificConfig);
                 }
-                catch (Exception e)
-                {
-                    Log.Error(e, "In QueueGoLiveTaskHostedService.ExecuteAsync");
-                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "In QueueGoLiveTaskHostedService.ExecuteAsync");
             }
         }
     }
 
     private async Task ProcessGoLive(
-        GoLiveViewModel goLiveViewModel, ApplicationDbContext dbContext, IAuditLogger auditLogger,
-        IConfiguration configuration, object typeSpecificConfig)
+        GoLiveViewModel goLiveViewModel, 
+        ApplicationDbContext dbContext, 
+        IAuditLogger auditLogger,
+        IConfiguration configuration, 
+        object typeSpecificConfig)
     {
         var publicationRequest = goLiveViewModel == null
             ? null
@@ -143,12 +146,9 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 catch (InvalidOperationException)
                 {
                     Log.Error($"" +
-                        "In QueueGoLiveTaskHostedService.ExecuteAsync action: " +
-                        "expected one reduction task for each non-master selection group, " +
+                        "In QueueGoLiveTaskHostedService.ExecuteAsync action: expected `Single` reduction task for each non-master selection group, " +
                         $"failed for selection group {relatedSelectionGroup.Id}, aborting");
-                    await FailGoLive(dbContext, publicationRequest,
-                        $"Expected 1 reduction task related to SelectionGroup {relatedSelectionGroup.Id}, " +
-                        "cannot complete this go-live request.");
+                    await FailGoLiveAsync(dbContext, publicationRequest, $"Expected 1 reduction task related to SelectionGroup {relatedSelectionGroup.Id}, cannot complete this go-live request.");
                     return;
                 }
 
@@ -164,7 +164,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             $"reduced content file {ThisTask.ResultFilePath} failed checksum validation, aborting");
                         auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
                             publicationRequest.RootContentItem, publicationRequest));
-                        await FailGoLive(dbContext, publicationRequest,
+                        await FailGoLiveAsync(dbContext, publicationRequest,
                             $"Reduced content file failed integrity check, cannot complete the go-live request.");
                         return;
                     }
@@ -187,7 +187,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     "aborting");
                 auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
                     publicationRequest.RootContentItem, publicationRequest));
-                await FailGoLive(dbContext, publicationRequest, "File integrity validation failed");
+                await FailGoLiveAsync(dbContext, publicationRequest, "File integrity validation failed");
                 return;
             }
         }
@@ -543,7 +543,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
         #endregion
     }
 
-    private async Task FailGoLive(
+    private async Task FailGoLiveAsync(
         ApplicationDbContext dbContext, ContentPublicationRequest publicationRequest, string reason)
     {
         publicationRequest.RequestStatus = PublicationStatus.Error;
