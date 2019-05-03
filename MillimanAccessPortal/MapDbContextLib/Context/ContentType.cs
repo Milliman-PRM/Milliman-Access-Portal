@@ -23,6 +23,14 @@ namespace MapDbContextLib.Context
         PowerBi,
     }
 
+    public static class EnumExtensions
+    {
+        public static bool LiveContentFileStoredInMap(this ContentTypeEnum type)
+        {
+            return type != ContentTypeEnum.PowerBi;
+        }
+    }
+
     public class ContentType
     {
         [NotMapped]

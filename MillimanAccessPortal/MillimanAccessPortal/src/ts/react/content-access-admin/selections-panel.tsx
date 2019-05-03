@@ -42,7 +42,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
       ? <ColumnSpinner />
       : (
         <div className="admin-panel-form" style={{ display: 'flex', flex: 'auto' }}>
-          <div className="admin-panel-content-container">
+          <div className="form-content-container">
             <form
               className="admin-panel-content"
               style={{

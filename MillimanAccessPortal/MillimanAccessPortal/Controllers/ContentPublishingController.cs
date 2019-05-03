@@ -5,6 +5,7 @@
  */
 
 using AuditLogLib.Event;
+using AuditLogLib.Models;
 using AuditLogLib.Services;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
@@ -326,7 +327,18 @@ namespace MillimanAccessPortal.Controllers
             currentRootContentItem.ContentName = rootContentItem.ContentName;
             currentRootContentItem.Description = rootContentItem.Description;
             currentRootContentItem.Notes = rootContentItem.Notes;
-            currentRootContentItem.TypeSpecificDetail = rootContentItem.TypeSpecificDetail;
+            switch (currentRootContentItem.ContentType.TypeEnum)
+            {
+                case ContentTypeEnum.PowerBi:
+                    PowerBiContentItemProperties newProps = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+                    PowerBiContentItemProperties currentProps = currentRootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+
+                    currentProps.FilterPaneEnabled = newProps.FilterPaneEnabled;
+                    currentProps.NavigationPaneEnabled = newProps.NavigationPaneEnabled;
+
+                    currentRootContentItem.TypeSpecificDetailObject = currentProps;
+                    break;
+            }
 
             List<UserInSelectionGroup> usersInGroup = null;
             if (currentRootContentItem.ContentDisclaimer != rootContentItem.ContentDisclaimer)
@@ -417,7 +429,7 @@ namespace MillimanAccessPortal.Controllers
                         {
                             string FileFullPath = Path.Combine(ContentFolderFullPath, f);
                             string FileRelativePath = Path.GetRelativePath(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), FileFullPath);
-                            await new QlikviewLibApi().ReclaimAllDocCalsForFile(FileRelativePath, QlikviewConfig);
+                            await new QlikviewLibApi(QlikviewConfig).ReclaimAllDocCalsForFile(FileRelativePath);
                         });
                     }
                     break;
@@ -697,23 +709,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig, HttpContext, QlikviewConfig);
+            PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig, HttpContext);
 
             Log.Verbose($"In ContentPublishingController.PreLiveSummary action: success, returning summary {ReturnObj.ValidationSummaryId}");
-            var preGoLiveSummaryLog = new
-            {
-                ReturnObj.ValidationSummaryId,
-                ReturnObj.PublicationRequestId,
-                ReturnObj.AttestationLanguage,
-                ReturnObj.ContentDescription,
-                ReturnObj.RootContentName,
-                ReturnObj.ContentTypeName,
-                ReturnObj.LiveHierarchy,
-                ReturnObj.NewHierarchy,
-                ReturnObj.DoesReduce,
-                ReturnObj.ClientName,
-            };
-            AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent(preGoLiveSummaryLog));
+            AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent((PreLiveContentValidationSummaryLogModel)ReturnObj));
 
             return new JsonResult(ReturnObj);
         }
@@ -942,7 +941,7 @@ namespace MillimanAccessPortal.Controllers
                             string qvwFileRelativePath = Path.GetRelativePath(configuredContentRootFolder, PreliveFile.FullPath);
                             try
                             {
-                                await new QlikviewLibApi().ReclaimAllDocCalsForFile(qvwFileRelativePath, QlikviewConfig);
+                                await new QlikviewLibApi(QlikviewConfig).ReclaimAllDocCalsForFile(qvwFileRelativePath);
                             }
                             catch (Exception ex)
                             {

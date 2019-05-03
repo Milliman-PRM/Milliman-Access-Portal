@@ -14,5 +14,17 @@ namespace MapDbContextLib.Models
         public bool FilterPaneEnabled { get; set; }
 
         public bool NavigationPaneEnabled { get; set; }
+
+        public string PreviewWorkspaceId { get; set; }
+
+        public string PreviewReportId { get; set; }
+
+        public string PreviewEmbedUrl { get; set; }
+
+        public string LiveWorkspaceId { get; set; }
+
+        public string LiveReportId { get; set; }
+
+        public string LiveEmbedUrl { get; set; }
     }
 }

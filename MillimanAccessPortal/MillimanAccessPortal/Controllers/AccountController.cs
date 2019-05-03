@@ -169,7 +169,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
             {
-                string redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
+                string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { ReturnUrl = "/AuthorizedContent/Index" });
                 AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme.Name, redirectUrl);
                 properties.SetString("username", userName);
                 switch (scheme.Type)
@@ -420,7 +420,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("Entered AccountController.ExternalLogin action with {@Provider}", provider);
 
             // Request a redirect to the external login provider.
-            var redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), "Account", new { ReturnUrl = returnUrl });
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { ReturnUrl = returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return Challenge(properties, provider);
         }
@@ -429,14 +429,14 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/ExternalLoginCallbackAsync
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> ExternalLoginCallbackAsync(string returnUrl = null, string remoteError = null)
+        public IActionResult ExternalLoginCallback(string returnUrl = null, string remoteError = null)
         {
             Log.Verbose("Entered AccountController.ExternalLoginCallback action");
 
             if (string.IsNullOrWhiteSpace(HttpContext.User?.Identity?.Name) ||
                 !HttpContext.User.Identity.IsAuthenticated)
             {
-                Log.Warning("AccountController.ExternalLoginCallback action invoked with {@HttpContext.User}", HttpContext.User);
+                Log.Warning("AccountController.ExternalLoginCallback action invoked with {@HttpContextUser}", HttpContext.User);
                 return RedirectToAction(nameof(Login));
             }
 

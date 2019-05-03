@@ -141,7 +141,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(selectionGroupId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.WebHostedContent action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
+                Log.Verbose($"In AuthorizedContentController.ContentWrapper action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
                 var ErrMsg = new List<string>
@@ -272,49 +272,53 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region File Verification 
-            var masterContentRelatedFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
-            var requestedContentFile = selectionGroup.IsMaster
-                ? masterContentRelatedFile
-                : selectionGroup.IsInactive
-                    ? null
-                    : new ContentRelatedFile
-                    {
-                        FullPath = Path.Combine(
-                            ApplicationConfig["Storage:ContentItemRootPath"],
-                            selectionGroup.ContentInstanceUrl),
-                        Checksum = selectionGroup.ReducedContentChecksum,
-                        FileOriginalName = masterContentRelatedFile.FileOriginalName,
-                    };
-
-            if (requestedContentFile == null)
+            ContentRelatedFile requestedContentFile = default;
+            if (selectionGroup.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
             {
-                Log.Error("In AuthorizedContentController.WebHostedContent action: content file path not found " +
-                    $"for {(selectionGroup.IsMaster ? "master" : "reduced")} " +
-                    $"selection group {selectionGroupId}, aborting");
-                var ErrMsg = new List<string>
+                var masterContentRelatedFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
+                requestedContentFile = selectionGroup.IsMaster
+                    ? masterContentRelatedFile
+                    : selectionGroup.IsInactive
+                        ? null
+                        : new ContentRelatedFile
+                        {
+                            FullPath = Path.Combine(
+                                ApplicationConfig["Storage:ContentItemRootPath"],
+                                selectionGroup.ContentInstanceUrl),
+                            Checksum = selectionGroup.ReducedContentChecksum,
+                            FileOriginalName = masterContentRelatedFile.FileOriginalName,
+                        };
+
+                if (requestedContentFile == null)
+                {
+                    Log.Error("In AuthorizedContentController.WebHostedContent action: content file path not found " +
+                        $"for {(selectionGroup.IsMaster ? "master" : "reduced")} " +
+                        $"selection group {selectionGroupId}, aborting");
+                    var ErrMsg = new List<string>
                 {
                     "This content file path could not be found.",
                     "Please refresh this web page (F5) in a few minutes, " +
                     "and contact MAP Support if this error continues.",
                 };
-                return View("ContentMessage", ErrMsg);
-            }
+                    return View("ContentMessage", ErrMsg);
+                }
 
-            // Make sure the checksum currently matches the value stored at the time the file went live
-            if (!requestedContentFile.ValidateChecksum())
-            {
-                var ErrMsg = new List<string>
+                // Make sure the checksum currently matches the value stored at the time the file went live
+                if (!requestedContentFile.ValidateChecksum())
+                {
+                    var ErrMsg = new List<string>
                 {
                     $"The system could not validate the file for content item {selectionGroup.RootContentItem.ContentName}, selection group {selectionGroup.GroupName}.",
                     $"Please contact MAP Support if this error continues.",
                 };
-                string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Content item: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
-                var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
+                    string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Content item: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
+                    var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
-                notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
-                Log.Warning("In AuthorizedContentController.WebHostedContent action: checksum failure for ContentFile {@ContentFile}, aborting", requestedContentFile);
-                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, requestedContentFile, "AuthorizedContentController.WebHostedContent"));
-                return View("ContentMessage", ErrMsg);
+                    notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
+                    Log.Warning("In AuthorizedContentController.WebHostedContent action: checksum failure for ContentFile {@ContentFile}, aborting", requestedContentFile);
+                    AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, requestedContentFile, "AuthorizedContentController.WebHostedContent"));
+                    return View("ContentMessage", ErrMsg);
+                }
             }
             #endregion
 
@@ -332,9 +336,9 @@ namespace MillimanAccessPortal.Controllers
                 switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
                 {   // Never break out of this switch without a valid ContentSpecificHandler object
                     case ContentTypeEnum.Qlikview:
-                        ContentSpecificHandler = new QlikviewLibApi();
-                        UriBuilder QvContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig, HttpContext.Request);
-                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning Qlikview URI {QvContentUri}");
+                        ContentSpecificHandler = new QlikviewLibApi(QlikviewConfig);
+                        UriBuilder QvContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, HttpContext.Request);
+                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning Qlikview URI {QvContentUri.Uri.AbsoluteUri}");
                         return Redirect(QvContentUri.Uri.AbsoluteUri);
 
                     case ContentTypeEnum.FileDownload:
@@ -356,9 +360,9 @@ namespace MillimanAccessPortal.Controllers
                         return PhysicalFile(requestedContentFile.FullPath, "text/html");
 
                     case ContentTypeEnum.PowerBi:
-                        ContentSpecificHandler = new PowerBiLibApi();
-                        UriBuilder pbiContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, _powerBiConfig, HttpContext.Request);
-                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning PowerBI URI {pbiContentUri}");
+                        ContentSpecificHandler = new PowerBiLibApi(_powerBiConfig);
+                        UriBuilder pbiContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.Id.ToString(), HttpContext.User.Identity.Name, HttpContext.Request);
+                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning PowerBI URI {pbiContentUri.Uri.AbsoluteUri}");
                         return Redirect(pbiContentUri.Uri.AbsoluteUri);
 
                     default:
@@ -378,6 +382,93 @@ namespace MillimanAccessPortal.Controllers
                 TempData["ReturnToAction"] = "Index";
                 return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
             }
+        }
+
+        /// <summary>
+        /// Display the preview report for the identified publication request
+        /// </summary>
+        /// <param name="request">A ContentPublicationRequest Id, used to display pre-approved content</param>
+        /// <returns></returns>
+        public async Task<IActionResult> PowerBiPreview(Guid request)
+        {
+            #region Authorization
+            var PubRequest = DataContext.ContentPublicationRequest
+                                        .FirstOrDefault(r => r.Id == request);
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
+                User, null, new RoleInRootContentItemRequirement(
+                    RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
+            if (!Result1.Succeeded)
+            {
+                Log.Verbose("In AuthorizedContentController.PowerBiPreview action: "
+                    + $"authorization failed for user {User.Identity.Name}, "
+                    + $"content item {PubRequest.RootContentItemId}, "
+                    + $"role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            RootContentItem contentItem = DataContext.ContentPublicationRequest
+                                                     .Where(r => r.Id == request)
+                                                     .Select(r => r.RootContentItem)
+                                                     .Include(i => i.ContentType)
+                                                     .SingleOrDefault();
+
+            PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+
+            PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+            PowerBiEmbedModel embedModel = new PowerBiEmbedModel
+                {
+                    EmbedUrl = embedProperties.PreviewEmbedUrl,
+                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId, embedProperties.PreviewReportId),
+                    ReportId = embedProperties.PreviewReportId,
+                    FilterPaneEnabled = embedProperties.FilterPaneEnabled,
+                    NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
+                };
+
+            return View("PowerBi", embedModel);
+        }
+
+        /// <summary>
+        /// Display the live report for the identified SelectionGroup
+        /// </summary>
+        /// <param name="request">A SelectionGroup Id, used to display content</param>
+        /// <returns></returns>
+        public async Task<IActionResult> PowerBi(Guid group)
+        {
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(group));
+            if (!Result1.Succeeded)
+            {
+                Log.Verbose($"In AuthorizedContentController.PowerBi action: authorization failed for user {User.Identity.Name}, selection group {group}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            RootContentItem contentItem = DataContext.SelectionGroup
+                                                     .Where(g => g.Id == group)
+                                                     .Select(g => g.RootContentItem)
+                                                     .Include(i => i.ContentType)
+                                                     .SingleOrDefault();
+
+            PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+
+            PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+            PowerBiEmbedModel embedModel = new PowerBiEmbedModel
+            {
+                EmbedUrl = embedProperties.LiveEmbedUrl,
+                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId),
+                ReportId = embedProperties.LiveReportId,
+                FilterPaneEnabled = embedProperties.FilterPaneEnabled,
+                NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
+            };
+
+            return View("PowerBi", embedModel);
         }
 
         /// <summary>
@@ -432,11 +523,11 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 string Link = Path.GetRelativePath(ContentRootPath, FullFilePath);
-                await new QlikviewLibApi().AuthorizeUserDocumentsInFolderAsync(
-                        Path.GetDirectoryName(Link), QlikviewConfig, Path.GetFileName(Link));
+                await new QlikviewLibApi(QlikviewConfig).AuthorizeUserDocumentsInFolderAsync(
+                        Path.GetDirectoryName(Link), Path.GetFileName(Link));
 
-                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(
-                    Link, User.Identity.Name, QlikviewConfig, Request);
+                UriBuilder QvwUri = await new QlikviewLibApi(QlikviewConfig).GetContentUri(
+                    Link, User.Identity.Name, Request);
 
                 Log.Verbose("In AuthorizedContentController.QvwPreview action: success, redirecting");
 
@@ -611,7 +702,6 @@ namespace MillimanAccessPortal.Controllers
                 return Unauthorized();
             }
             #endregion
-
 
             ContentRelatedFile contentRelatedPdf = selectionGroup.RootContentItem.ContentFilesList.Single(cf => cf.FilePurpose.ToLower() == purpose.ToLower());
 

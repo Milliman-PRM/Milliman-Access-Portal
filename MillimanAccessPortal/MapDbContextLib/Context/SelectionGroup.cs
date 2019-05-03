@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using MapDbContextLib.Models;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -67,7 +68,8 @@ namespace MapDbContextLib.Context
                     return;
 
                 case ContentTypeEnum.PowerBi:
-                    // TODO What to do?
+                    PowerBiContentItemProperties props = RootContentItem?.TypeSpecificDetailObject as PowerBiContentItemProperties;
+                    ContentInstanceUrl = props?.LiveReportId ?? Guid.Empty.ToString();  // TODO Is this ok?
                     return;
 
                 default:
