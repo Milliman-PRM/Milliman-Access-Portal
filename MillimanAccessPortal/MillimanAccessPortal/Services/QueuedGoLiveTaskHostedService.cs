@@ -321,7 +321,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         string reportIdToBeDeleted = typeSpecificProperties.LiveReportId;
                         successActionList.Add(async () => {
                             PowerBiLibApi powerBiApi = await new PowerBiLibApi(typeSpecificConfig as PowerBiConfig).InitializeAsync();
-                            await powerBiApi.DeleteReportAsync(reportIdToBeDeleted);
+                            bool deleteSucceeded = await powerBiApi.DeleteReportAsync(reportIdToBeDeleted);
                         });
 
                         typeSpecificProperties.LiveEmbedUrl = typeSpecificProperties.PreviewEmbedUrl;
