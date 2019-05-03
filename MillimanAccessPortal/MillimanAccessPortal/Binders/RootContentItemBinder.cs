@@ -6,10 +6,13 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.DependencyInjection;
+using MillimanAccessPortal.Controllers;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Binders
@@ -22,6 +25,7 @@ namespace MillimanAccessPortal.Binders
             {
                 throw new ArgumentNullException(nameof(bindingContext));
             }
+            ControllerActionDescriptor actionDescriptor = bindingContext.ActionContext.ActionDescriptor as ControllerActionDescriptor;
 
             ValueProviderResult valueProviderResult = default;
             var model = new RootContentItem();
@@ -68,7 +72,30 @@ namespace MillimanAccessPortal.Binders
             }
             else
             {
-                bindingContext.ModelState.AddModelError("ContentTypeId", $"ContentTypeId not found or value <{valueProviderResult.FirstValue}> could not be parsed as a Guid");
+                // TODO it would be better if the front end always provides the ContentTypeId so that this ugly logic is not needed.
+                if (actionDescriptor.ActionName.Equals(nameof(ContentPublishingController.UpdateRootContentItem)))
+                {
+                    using (IServiceScope scope = bindingContext.HttpContext.RequestServices.CreateScope())
+                    {
+                        var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                        Guid contentTypeIdFromDb = dbContext.RootContentItem.FirstOrDefault(c => c.Id == model.Id)?.ContentTypeId ?? Guid.Empty;
+                        if (contentTypeIdFromDb == Guid.Empty)
+                        {
+                            bindingContext.ModelState.MarkFieldSkipped("ContentTypeId");
+                        }
+                        else
+                        {
+                            model.ContentTypeId = contentTypeIdFromDb;
+                            bindingContext.ModelState.MarkFieldValid("ContentTypeId");
+
+                            model.ContentType = dbContext.ContentType.Find(model.ContentTypeId);
+                        }
+                    }
+                }
+                else
+                {
+                    bindingContext.ModelState.AddModelError("ContentTypeId", $"ContentTypeId not found or value <{valueProviderResult.FirstValue}> could not be parsed as a Guid");
+                }
             }
             #endregion
 

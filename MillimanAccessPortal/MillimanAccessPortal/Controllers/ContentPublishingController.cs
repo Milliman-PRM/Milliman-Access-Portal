@@ -282,7 +282,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateRootContentItem(RootContentItem rootContentItem)
+        public async Task<IActionResult> UpdateRootContentItem([ModelBinder(BinderType = typeof(RootContentItemBinder))] RootContentItem rootContentItem)
         {
             Log.Verbose($"Entered ContentPublishingController.UpdateRootContentItem action with root content item {{@RootContentItem}}", rootContentItem);
 
