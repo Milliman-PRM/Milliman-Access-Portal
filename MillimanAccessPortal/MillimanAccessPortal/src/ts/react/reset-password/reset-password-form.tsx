@@ -93,16 +93,19 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
               name="__RequestVerificationToken"
               value={requestVerificationToken}
               style={{display: 'none'}}
+              data-lpignore="true"
             />
             <input
               readOnly={true}
               value={data.email}
               style={{display: 'none'}}
+              data-lpignore="true"
             />
             <input
               readOnly={true}
               value={data.passwordResetToken}
               style={{display: 'none'}}
+              data-lpignore="true"
             />
             <Input
               name="newPassword"
