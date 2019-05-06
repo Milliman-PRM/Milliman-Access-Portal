@@ -126,7 +126,11 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
           <div className="button-container">
             <button
               type="submit"
-              disabled={!formIsValid}
+              disabled={(
+                data.newPassword === '' ||
+                errors.newPassword ||
+                errors.confirmPassword ||
+                data.newPassword !== data.confirmPassword) ? true : false}
               className="blue-button"
             >
               Reset Password
