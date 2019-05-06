@@ -73,13 +73,6 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
     const email = document
       .querySelector('input[name="Email"]')
       .getAttribute('value');
-    this.setState({
-      requestVerificationToken: antiforgeryToken,
-      data: {
-        email,
-        passwordResetToken,
-      },
-    });
   }
 
   public render() {
