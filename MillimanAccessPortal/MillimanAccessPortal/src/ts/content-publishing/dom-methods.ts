@@ -627,6 +627,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     [
       'common',
       'root-content-item-info',
+      'root-content-item-content-type',
       'root-content-item-display-settings',
       'root-content-item-description',
     ],
