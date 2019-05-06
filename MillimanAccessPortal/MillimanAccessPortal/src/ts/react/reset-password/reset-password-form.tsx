@@ -57,10 +57,15 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
         email: '',
         passwordResetToken: '',
       },
-      errors: {},
+      errors: {
+        newPassword: '',
+        confirmPassword: '',
+      },
       formIsValid: false,
       requestVerificationToken: '',
     };
+
+    this.handleChange = this.handleChange.bind(this);
   }
 
   public componentDidMount() {
@@ -76,7 +81,7 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
   }
 
   public render() {
-    const { data, errors, formIsValid } = this.state;
+    const { data, errors, formIsValid, requestVerificationToken } = this.state;
 
     return (
       <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
@@ -86,17 +91,17 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
             <input
               readOnly={true}
               name="__RequestVerificationToken"
-              value={this.state.requestVerificationToken}
+              value={requestVerificationToken}
               style={{display: 'none'}}
             />
             <input
               readOnly={true}
-              value={this.state.data.email}
+              value={data.email}
               style={{display: 'none'}}
             />
             <input
               readOnly={true}
-              value={this.state.data.passwordResetToken}
+              value={data.passwordResetToken}
               style={{display: 'none'}}
             />
             <Input
@@ -119,14 +124,14 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
             />
           </div>
           <div className="button-container">
-              <button
-                type="submit"
-                disabled={!formIsValid}
-                className="blue-button"
-              >
-                Reset Password
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={!formIsValid}
+              className="blue-button"
+            >
+              Reset Password
+            </button>
+          </div>
         </form>
       </div>
     );
