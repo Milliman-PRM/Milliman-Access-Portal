@@ -46,6 +46,7 @@ namespace MapTests
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig,
                 TestResources.QvConfig,
                 TestResources.PublicationPostProcessingQueueObject
                 );
