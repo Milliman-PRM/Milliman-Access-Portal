@@ -119,9 +119,11 @@ namespace PowerBiLib
         /// <returns></returns>
         public async Task<bool> DeleteReportAsync(string reportId)
         {
-            using (var client = new PowerBIClient(_tokenCredentials))
+            try
             {
-                try
+                Guid.Parse(reportId);  // throw if null or malformed
+
+                using (var client = new PowerBIClient(_tokenCredentials))
                 {
                     Report foundReport = await client.Reports.GetReportAsync(reportId);
                     if (foundReport == null || !Guid.TryParse(foundReport.DatasetId, out _))
@@ -132,10 +134,11 @@ namespace PowerBiLib
                     // Deleting the associated dataset deletes **all** reports linked to the dataset
                     object datasetDeleteResultObj = await client.Datasets.DeleteDatasetByIdAsync(foundReport.DatasetId);
                 }
-                catch (Exception)
-                {
-                    return false;
-                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"From PowerBiLibApi.DeleteReport, exception:");
+                return false;
             }
             return true;
         }
