@@ -33,6 +33,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Services;
@@ -230,7 +231,7 @@ namespace MillimanAccessPortal
                             }
                         }
 
-                        context.Response.Redirect("/Account/ExternalLoginCallback");
+                        context.Response.Redirect($"/Account/{nameof(AccountController.ExternalLoginCallback)}");
                     };
                 });
             }
