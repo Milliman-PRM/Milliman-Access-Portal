@@ -62,6 +62,7 @@ namespace MillimanAccessPortal.Binders
             #endregion
 
             #region ContentTypeId field
+            ContentTypeEnum requestedContentType = ContentTypeEnum.Unknown;
             valueProviderResult = bindingContext.ValueProvider.GetValue("ContentTypeId");
             bindingContext.ModelState.SetModelValue("ContentTypeId", valueProviderResult);
             if (valueProviderResult != ValueProviderResult.None &&
@@ -73,7 +74,7 @@ namespace MillimanAccessPortal.Binders
                 using (IServiceScope scope = bindingContext.HttpContext.RequestServices.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-                    model.ContentType = dbContext.ContentType.Find(model.ContentTypeId);
+                    requestedContentType = dbContext.ContentType.SingleOrDefault(ct => ct.Id == model.ContentTypeId)?.TypeEnum ?? ContentTypeEnum.Unknown;
                 }
             }
             else
@@ -186,53 +187,50 @@ namespace MillimanAccessPortal.Binders
             #endregion
             #endregion
 
-            if (model.ContentType != null)
             #region Fetch the values of type specific properties
+            switch (requestedContentType)
             {
-                switch (model.ContentType.TypeEnum)
-                {
-                    case ContentTypeEnum.PowerBi:
-                        var properties = new PowerBiContentItemProperties();
+                case ContentTypeEnum.PowerBi:
+                    var properties = new PowerBiContentItemProperties();
 
-                        valueProviderResult = bindingContext.ValueProvider.GetValue("FilterPaneEnabled");
-                        bindingContext.ModelState.SetModelValue("TypeSpecificDetailObject.FilterPaneEnabled", valueProviderResult);
-                        if (valueProviderResult != ValueProviderResult.None &&
-                            bool.TryParse(valueProviderResult.FirstValue, out bool filterPaneEnabledVal))
-                        {
-                            properties.FilterPaneEnabled = filterPaneEnabledVal;
-                            bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.FilterPaneEnabled");
-                        }
-                        else
-                        {
-                            properties.FilterPaneEnabled = false;
-                            bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.FilterPaneEnabled");
-                        }
+                    valueProviderResult = bindingContext.ValueProvider.GetValue("FilterPaneEnabled");
+                    bindingContext.ModelState.SetModelValue("TypeSpecificDetailObject.FilterPaneEnabled", valueProviderResult);
+                    if (valueProviderResult != ValueProviderResult.None &&
+                        bool.TryParse(valueProviderResult.FirstValue, out bool filterPaneEnabledVal))
+                    {
+                        properties.FilterPaneEnabled = filterPaneEnabledVal;
+                        bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.FilterPaneEnabled");
+                    }
+                    else
+                    {
+                        properties.FilterPaneEnabled = false;
+                        bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.FilterPaneEnabled");
+                    }
 
-                        valueProviderResult = bindingContext.ValueProvider.GetValue("NavigationPaneEnabled");
-                        bindingContext.ModelState.SetModelValue("TypeSpecificDetailObject.NavigationPaneEnabled", valueProviderResult);
-                        if (valueProviderResult != ValueProviderResult.None &&
-                            bool.TryParse(valueProviderResult.FirstValue, out bool navContentPaneEnabledVal))
-                        {
-                            properties.NavigationPaneEnabled = navContentPaneEnabledVal;
-                            bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.NavigationPaneEnabled");
-                        }
-                        else
-                        {
-                            properties.NavigationPaneEnabled = false;
-                            bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.NavigationPaneEnabled");
-                        }
+                    valueProviderResult = bindingContext.ValueProvider.GetValue("NavigationPaneEnabled");
+                    bindingContext.ModelState.SetModelValue("TypeSpecificDetailObject.NavigationPaneEnabled", valueProviderResult);
+                    if (valueProviderResult != ValueProviderResult.None &&
+                        bool.TryParse(valueProviderResult.FirstValue, out bool navContentPaneEnabledVal))
+                    {
+                        properties.NavigationPaneEnabled = navContentPaneEnabledVal;
+                        bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.NavigationPaneEnabled");
+                    }
+                    else
+                    {
+                        properties.NavigationPaneEnabled = false;
+                        bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.NavigationPaneEnabled");
+                    }
 
-                        model.TypeSpecificDetail = JsonConvert.SerializeObject(properties);
-                        break;
+                    model.TypeSpecificDetail = JsonConvert.SerializeObject(properties);
+                    break;
 
-                    case ContentTypeEnum.Qlikview:
-                    case ContentTypeEnum.Pdf:
-                    case ContentTypeEnum.Html:
-                    case ContentTypeEnum.FileDownload:
-                    default:
-                        break;
-                }
-            }
+                case ContentTypeEnum.Qlikview:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.FileDownload:
+                default:
+                    break;
+        }
             #endregion
 
             if (bindingContext.ModelState.IsValid)
