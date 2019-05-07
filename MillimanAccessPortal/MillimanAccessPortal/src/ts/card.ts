@@ -144,6 +144,7 @@ const components: any = Object.assign(
         return function(properties: any) {
           this.add(component);
           this.html(component, properties.text);
+          this.tooltip(component, properties.text);
         };
       },
     },
