@@ -4,6 +4,7 @@
 
 ### v1.6.0
 - Converted the Forgot Password page to use React
+- Trim whitespace on username inputs
 
 ### v1.5.0
 
