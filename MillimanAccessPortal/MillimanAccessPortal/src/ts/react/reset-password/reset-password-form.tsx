@@ -31,13 +31,13 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
               : null;
             return response.valid;
           })),
-    confirmPassword: Yup.string()
+    confirmNewPassword: Yup.string()
       .required('This field is required')
       .label('Confirm Password')
       .test(
         'confirm-password-matches-new',
         'Does not match new password',
-        () => this.state.data.confirmPassword === this.state.data.newPassword,
+      () => this.state.data.confirmNewPassword === this.state.data.newPassword,
       ),
     email: Yup.string()
       .required(),
@@ -52,15 +52,12 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
 
     this.state = {
       data: {
-        newPassword: '',
-        confirmPassword: '',
         email: '',
         passwordResetToken: '',
-      },
-      errors: {
         newPassword: '',
-        confirmPassword: '',
+        confirmNewPassword: '',
       },
+      errors: {},
       formIsValid: false,
       requestVerificationToken: '',
     };
@@ -69,16 +66,41 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
   }
 
   public componentDidMount() {
-    const antiforgeryToken = document
+    const requestVerificationToken = document
       .querySelector('input[name="__RequestVerificationToken"]')
       .getAttribute('value');
     const passwordResetToken = document
-      .querySelector('input[name="PasswordResetToken"]')
+      .querySelector('input[name="__PasswordResetToken"]')
       .getAttribute('value');
     const email = document
-      .querySelector('input[name="Email"]')
+      .querySelector('input[name="__Email"]')
       .getAttribute('value');
+    this.setState({
+      requestVerificationToken,
+      data: {
+        email,
+        passwordResetToken,
+        newPassword: this.state.data.newPassword,
+        confirmNewPassword: this.state.data.confirmNewPassword,
+      },
+    });
   }
+
+  public handlePasswordChange = async ({ currentTarget: input }: React.FormEvent<HTMLInputElement>) => {
+    const errorMessage = await this.validateProperty(input);
+    const { data, errors } = Object.assign({}, this.state);
+    
+    if (!errorMessage) {
+      delete errors[input.name];
+    } else {
+      errors[input.name] = errorMessage.messages;
+    }
+
+    data[input.name] = input.value;
+    
+    this.setState({ data, errors });
+  }
+
 
   public render() {
     const { data, errors, formIsValid, requestVerificationToken } = this.state;
@@ -97,33 +119,33 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
             />
             <input
               readOnly={true}
+              name="email"
               value={data.email}
               style={{display: 'none'}}
-              data-lpignore="true"
             />
             <input
               readOnly={true}
+              name="passwordResetToken"
               value={data.passwordResetToken}
               style={{display: 'none'}}
-              data-lpignore="true"
             />
             <Input
               name="newPassword"
               label="New Password"
               type="password"
               value={data.newPassword}
-              onChange={this.handleChange}
+              onChange={this.handlePasswordChange}
               onBlur={this.handleBlur}
               error={errors.newPassword}
             />
             <Input
-              name="confirmPassword"
+              name="confirmNewPassword"
               label="Confirm Password"
               type="password"
-              value={data.confirmPassword}
+              value={data.confirmNewPassword}
               onChange={this.handleChange}
               onBlur={this.handleBlur}
-              error={errors.confirmPassword}
+              error={errors.confirmNewPassword}
             />
           </div>
           <div className="button-container">
@@ -132,8 +154,8 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
               disabled={(
                 data.newPassword === '' ||
                 errors.newPassword ||
-                errors.confirmPassword ||
-                data.newPassword !== data.confirmPassword) ? true : false}
+                errors.confirmNewPassword ||
+                data.newPassword !== data.confirmNewPassword) ? true : false}
               className="blue-button"
             >
               Reset Password
