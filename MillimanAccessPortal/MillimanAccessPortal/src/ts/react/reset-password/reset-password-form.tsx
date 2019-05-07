@@ -89,7 +89,7 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
   public handlePasswordChange = async ({ currentTarget: input }: React.FormEvent<HTMLInputElement>) => {
     const errorMessage = await this.validateProperty(input);
     const { data, errors } = Object.assign({}, this.state);
-    
+
     if (!errorMessage) {
       delete errors[input.name];
     } else {
@@ -97,10 +97,9 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
     }
 
     data[input.name] = input.value;
-    
+
     this.setState({ data, errors });
   }
-
 
   public render() {
     const { data, errors, formIsValid, requestVerificationToken } = this.state;
@@ -122,12 +121,14 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
               name="email"
               value={data.email}
               style={{display: 'none'}}
+              data-lpignore="true"
             />
             <input
               readOnly={true}
               name="passwordResetToken"
               value={data.passwordResetToken}
               style={{display: 'none'}}
+              data-lpignore="true"
             />
             <Input
               name="newPassword"
