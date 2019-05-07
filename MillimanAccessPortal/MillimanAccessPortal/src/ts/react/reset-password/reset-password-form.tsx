@@ -87,13 +87,12 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
   }
 
   public handlePasswordChange = async ({ currentTarget: input }: React.FormEvent<HTMLInputElement>) => {
-    const errorMessage = await this.validateProperty(input);
+    const errorMessage = this.validateProperty(input);
     const { data, errors } = Object.assign({}, this.state);
+    this.validate();
 
     if (!errorMessage) {
       delete errors[input.name];
-    } else {
-      errors[input.name] = errorMessage.messages;
     }
 
     data[input.name] = input.value;
