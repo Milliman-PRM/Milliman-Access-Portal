@@ -86,8 +86,7 @@ namespace PowerBiLib
                         string msg = $"Requested group <{groupName}> not found and could not be created";
                         throw new ApplicationException(msg);
                     }
-                    object assignResultObj = await client.Groups.AssignToCapacityAsync(group.Id, new AssignToCapacityRequest(capacityId: capacity.Id));
-                    // TODO check success?
+                    await client.Groups.AssignToCapacityAsync(group.Id, new AssignToCapacityRequest(capacityId: capacity.Id));
                 }
 
                 string pbixFileName = Path.GetFileName(pbixFullPath);

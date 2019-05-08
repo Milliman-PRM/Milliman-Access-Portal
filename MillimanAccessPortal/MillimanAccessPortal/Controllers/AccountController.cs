@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
@@ -28,6 +29,7 @@ using AuditLogLib.Event;
 using MillimanAccessPortal.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using Serilog;
@@ -404,7 +406,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In AccountController.Logout action: user {appUser?.UserName ?? "<unknown>"} logged out.");
             _auditLogger.Log(AuditEventType.Logout.ToEvent(), appUser?.UserName);
 
-            Response.Cookies.Delete(".AspNetCore.Session");  // TODO get the cookie name from the authentication middleware, don't hard code
+            Response.Cookies.Delete(SessionDefaults.CookieName);
             HttpContext.Session.Clear();
 
             return Ok();

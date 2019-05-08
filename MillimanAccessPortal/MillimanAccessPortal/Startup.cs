@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Rewrite;
+using Microsoft.AspNetCore.Session;
 using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -90,7 +91,6 @@ namespace MillimanAccessPortal
             services.AddIdentityCore<ApplicationUser>(config =>
                 {
                     config.SignIn.RequireConfirmedEmail = true;
-                    // TODO Does this work instead of the below?  config.Tokens.PasswordResetTokenProvider = tokenProviderName;
                 })
                 .AddRoles<ApplicationRole>()
                 .AddSignInManager()
@@ -282,6 +282,7 @@ namespace MillimanAccessPortal
                 options.LogoutPath = "/Account/LogOut";
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                 options.SlidingExpiration = true;
+                options.Cookie.Name = SessionDefaults.CookieName;
             });
 
             services.Configure<QlikviewConfig>(Configuration);
