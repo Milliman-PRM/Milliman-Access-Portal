@@ -134,8 +134,10 @@ export function openNewRootContentItemForm() {
     contentTypeId: '0',
     description: '',
     doesReduce: false,
-    filterPaneEnabled: false,
-    navigationPaneEnabled: false,
+    typeSpecificDetailObject: {
+      filterPaneEnabled: false,
+      navigationPaneEnabled: false,
+    },
     id: '0',
     notes: '',
     contentDisclaimer: '',
@@ -181,12 +183,15 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
   formMap.set('ContentName', item.contentName);
   formMap.set('ContentTypeId', item.contentTypeId);
   formMap.set('DoesReduce', item.doesReduce);
-  if (item.contentTypeId === ContentTypeInfo.filter((ct) =>
-    ct.typeEnum === ContentTypeEnum.PowerBI)[0].id) {
+  if (item.typeSpecificDetailObject) {
     formMap.set('FilterPaneEnabled',
-      item.typeSpecificDetailObject.filterPaneEnabled || item.filterPaneEnabled);
+      (item.typeSpecificDetailObject.hasOwnProperty('filterPaneEnabled')
+        ? item.typeSpecificDetailObject.filterPaneEnabled
+        : false));
     formMap.set('NavigationPaneEnabled',
-      item.typeSpecificDetailObject.navigationPaneEnabled || item.navigationPaneEnabled);
+      (item.typeSpecificDetailObject.hasOwnProperty('navigationPaneEnabled')
+        ? item.typeSpecificDetailObject.navigationPaneEnabled
+        : false));
   }
   formMap.set('Description', item.description);
   formMap.set('Notes', item.notes);
@@ -577,14 +582,17 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     const $doesReduceToggle = $rootContentItemForm.find('#DoesReduce');
     $doesReduceToggle.prop('checked', item.doesReduce);
 
-    if (item.contentTypeId === ContentTypeInfo.filter((ct) =>
-      ct.typeEnum === ContentTypeEnum.PowerBI)[0].id) {
+    if (item.typeSpecificDetailObject) {
       const $filterPaneToggle = $rootContentItemForm.find('#FilterPaneEnabled');
       $filterPaneToggle.prop('checked',
-        item.typeSpecificDetailObject.filterPaneEnabled || item.filterPaneEnabled);
+        (item.typeSpecificDetailObject.hasOwnProperty('filterPaneEnabled')
+          ? item.typeSpecificDetailObject.filterPaneEnabled
+          : false));
       const $navigationPaneToggle = $rootContentItemForm.find('#NavigationPaneEnabled');
       $navigationPaneToggle.prop('checked',
-        item.typeSpecificDetailObject.navigationPaneEnabled || item.navigationPaneEnabled);
+        (item.typeSpecificDetailObject.hasOwnProperty('navigationPaneEnabled')
+          ? item.typeSpecificDetailObject.navigationPaneEnabled
+          : false));
     }
   }
 
@@ -619,6 +627,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     [
       'common',
       'root-content-item-info',
+      'root-content-item-content-type',
       'root-content-item-display-settings',
       'root-content-item-description',
     ],
@@ -716,7 +725,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     $('#DoesReduce').closest('.form-input-toggle').show();
   }
   const $contentDisplaySettings = $('.form-section[data-section="root-content-item-display-settings"]');
-  if (contentType.typeEnum === ContentTypeEnum.PowerBI) {
+  if (contentType.typeEnum === ContentTypeEnum.PowerBi) {
     $contentDisplaySettings.show();
   } else {
     $contentDisplaySettings.hide();
@@ -833,11 +842,9 @@ function renderClientTree(response: ClientTree, clientId?: string) {
   }
 }
 
-let ContentTypeInfo: ContentType[] = [];
 function populateAvailableContentTypes(contentTypes: ContentType[]) {
   const $panel = $('#content-publishing-form');
   const $rootContentItemForm = $panel.find('form.admin-panel-content');
-  ContentTypeInfo = contentTypes;
 
   const $contentTypeDropdown = $rootContentItemForm.find('#ContentTypeId');
   $contentTypeDropdown.children(':not(option[value = "0"])').remove();
@@ -867,7 +874,7 @@ export function setup() {
       $doesReduceToggle.closest('.form-input-toggle').show();
     }
     const $contentDisplaySettings = $('.form-section[data-section="root-content-item-display-settings"]');
-    if (contentType && contentType.typeEnum === ContentTypeEnum.PowerBI) {
+    if (contentType && contentType.typeEnum === ContentTypeEnum.PowerBi) {
       $contentDisplaySettings.show();
       $('#FilterPaneEnabled').removeAttr('disabled');
       $('#NavigationPaneEnabled').removeAttr('disabled');

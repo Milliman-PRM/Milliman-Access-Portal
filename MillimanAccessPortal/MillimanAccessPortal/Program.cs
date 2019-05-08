@@ -88,6 +88,8 @@ namespace MillimanAccessPortal
             config
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
+            .AddJsonFile("powerbi.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"powerbi.{environmentName}.json", optional: true, reloadOnChange: true)
             .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"qlikview.{environmentName}.json", optional: true, reloadOnChange: true)
             .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)

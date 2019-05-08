@@ -426,7 +426,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // GET: /Account/ExternalLoginCallbackAsync
+        // GET: /Account/ExternalLoginCallback
         [HttpGet]
         [AllowAnonymous]
         public IActionResult ExternalLoginCallback(string returnUrl = null, string remoteError = null)
@@ -436,7 +436,7 @@ namespace MillimanAccessPortal.Controllers
             if (string.IsNullOrWhiteSpace(HttpContext.User?.Identity?.Name) ||
                 !HttpContext.User.Identity.IsAuthenticated)
             {
-                Log.Warning("AccountController.ExternalLoginCallback action invoked with {@HttpContext.User}", HttpContext.User);
+                Log.Warning("AccountController.ExternalLoginCallback action invoked with {@HttpContextUser}", HttpContext.User);
                 return RedirectToAction(nameof(Login));
             }
 

@@ -286,7 +286,7 @@ namespace ContentPublishingLib.JobMonitors
                         Db.ContentPublicationRequest.UpdateRange(TopItems);
                         Db.SaveChanges();
                         Transaction.Commit();
-                }
+                    }
 
                     return TopItems;
                 }

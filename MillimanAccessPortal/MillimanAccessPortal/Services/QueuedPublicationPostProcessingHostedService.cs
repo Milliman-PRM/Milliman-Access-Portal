@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using PowerBiLib;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -54,19 +55,41 @@ namespace MillimanAccessPortal.Services
                     {
                         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
                         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                        var qlikConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
+
+                        ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest
+                                                                            .Include(r => r.RootContentItem)
+                                                                            .ThenInclude(c => c.ContentType)
+                                                                            .SingleOrDefault(r => r.Id == publicationRequestId);
 
                         try
                         {
-                            await PostProcess(publicationRequestId, dbContext, configuration, qlikConfig);
+                            if (thisPubRequest == null)
+                            {
+                                string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), no publication request record found with ID {publicationRequestId}";
+                                throw new ApplicationException(Msg);
+                            }
+                            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.ExecuteAsync: found the publication request record, request object is: {{@thisPubRequest}}", Serilog.Events.LogEventLevel.Information, thisPubRequest);
+
+                            object typeSpecificConfig = null;
+                            switch (thisPubRequest?.RootContentItem?.ContentType?.TypeEnum)
+                            {
+                                case ContentTypeEnum.Qlikview:
+                                    typeSpecificConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
+                                    break;
+                                case ContentTypeEnum.PowerBi:
+                                    typeSpecificConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
+                                    break;
+                            }
+
+                            await PostProcess(thisPubRequest, dbContext, configuration, typeSpecificConfig);
                             GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.ExecuteAsync: PostProcess() returned with no exception");
                         }
                         catch (Exception e)
                         {
                             try
                             {
-                                Log.Error(e, "QueuedPublicationPostProcessingHostedService.ExecuteAsync, Exception thrown from QueuedPublicationPostProcessingHostedService.PostProcess");
-                                ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
+                                Log.Error(e, "QueuedPublicationPostProcessingHostedService.ExecuteAsync, Exception thrown during QueuedPublicationPostProcessingHostedService processing");
+
                                 thisPubRequest.RequestStatus = PublicationStatus.Error;
                                 thisPubRequest.StatusMessage = e.Message;
                                 foreach (var reduction in dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == thisPubRequest.Id))
@@ -95,33 +118,32 @@ namespace MillimanAccessPortal.Services
         /// </summary>
         /// <param name="publicationRequestId"></param>
         /// <param name="scopedServiceProvider"></param>
-        protected async Task PostProcess(Guid publicationRequestId, ApplicationDbContext dbContext, IConfiguration configuration, QlikviewConfig qvConfig)
+        protected async Task PostProcess(ContentPublicationRequest thisPubRequest, ApplicationDbContext dbContext, IConfiguration configuration, object typeSpecificConfig)
         {
-            // Validate that a request record exists with the provided Id
-            ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
-            if (thisPubRequest == null)
-            {
-                string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), no publication request record found with ID {publicationRequestId}";
-                throw new ApplicationException(Msg);
-            }
-            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.PostProcess: found the request object, request object is: {{@thisPubRequest}}", Serilog.Events.LogEventLevel.Information, thisPubRequest);
-
             List<PublicationStatus> WaitStatusList = new List<PublicationStatus> { PublicationStatus.Queued, PublicationStatus.Processing };
+
+            RootContentItem contentItem = thisPubRequest.RootContentItem;
+
             // While the request is processing, wait and requery
             while (WaitStatusList.Contains(thisPubRequest.RequestStatus))
             {
                 Thread.Sleep(2000);
                 dbContext.Entry(thisPubRequest).State = EntityState.Detached;  // force update from db
-                thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
+                thisPubRequest = dbContext.ContentPublicationRequest.Find(thisPubRequest.Id);
             }
             GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.PostProcess: after polling loop completed, request object is: {{@thisPubRequest}}", Serilog.Events.LogEventLevel.Information, thisPubRequest);
             // Ensure that the request is ready for post-processing
             if (thisPubRequest.RequestStatus != PublicationStatus.PostProcessReady)
             {
-                string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), unexpected request status {thisPubRequest.RequestStatus.ToString()} for publication request ID {publicationRequestId}";
+                string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), unexpected request status {thisPubRequest.RequestStatus.ToString()} for publication request ID {thisPubRequest.Id}";
                 Log.Warning(Msg);
                 return;
             }
+
+            ContentTypeEnum thisContentType = dbContext.RootContentItem
+                                                   .Where(i => i.Id == thisPubRequest.RootContentItemId)
+                                                   .Select(i => i.ContentType.TypeEnum)
+                                                   .Single();
 
             // Prepare useful lists of reduction tasks for use below
             List<ContentReductionTask> AllRelatedReductionTasks = dbContext.ContentReductionTask
@@ -166,14 +188,14 @@ namespace MillimanAccessPortal.Services
                     throw new ApplicationException(Msg);
                 }
             }
-            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.PostProcess: validation block completed for request Id <{publicationRequestId}>");
+            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.PostProcess: validation block completed for request Id <{thisPubRequest.Id}>");
             #endregion
 
             // update pub status to PostProcessing
             thisPubRequest.RequestStatus = PublicationStatus.PostProcessing;
             dbContext.SaveChanges();
 
-            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.PostProcess: status updated to `PostProcessing` for request Id <{publicationRequestId}>");
+            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.PostProcess: status updated to `PostProcessing` for request Id <{thisPubRequest.Id}>");
 
             string tempContentDestinationFolder = Path.Combine(configuration.GetValue<string>("Storage:ContentItemRootPath"),
                                                                thisPubRequest.RootContentItemId.ToString(),
@@ -230,8 +252,34 @@ namespace MillimanAccessPortal.Services
             }
             dbContext.SaveChanges();
 
-            await new QlikviewLibApi()
-                .AuthorizeUserDocumentsInFolder(thisPubRequest.RootContentItemId.ToString(), qvConfig);
+            switch (thisContentType)
+            {
+                case ContentTypeEnum.Qlikview:
+                    await new QlikviewLibApi(typeSpecificConfig as QlikviewConfig).AuthorizeUserDocumentsInFolderAsync(thisPubRequest.RootContentItemId.ToString());
+                    break;
+                case ContentTypeEnum.PowerBi:
+                    var newMasterFile = thisPubRequest.LiveReadyFilesObj.SingleOrDefault(f => f.FilePurpose.Equals("MasterContent", StringComparison.OrdinalIgnoreCase));
+                    if (newMasterFile != null)
+                    {
+                        PowerBiLibApi api = await new PowerBiLibApi(typeSpecificConfig as PowerBiConfig).InitializeAsync();
+                        PowerBiEmbedModel embedProperties = await api.ImportPbixAsync(newMasterFile.FullPath, contentItem.ClientId.ToString()); // The related client ID is used as group name
+
+                        PowerBiContentItemProperties contentItemProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+                        contentItemProperties.PreviewWorkspaceId = embedProperties.WorkspaceId;
+                        contentItemProperties.PreviewEmbedUrl = embedProperties.EmbedUrl;
+                        contentItemProperties.PreviewReportId = embedProperties.ReportId;
+
+                        contentItem.TypeSpecificDetailObject = contentItemProperties;
+                        dbContext.SaveChanges();
+                    }
+                    break;
+
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.FileDownload:
+                default:
+                    break;
+            }
 
             // Delete source folder(s)
             bool RetainFailedReductionFolders = false;  // this variable is for debugging use

@@ -1,18 +1,22 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: View model for the content preview/approval form
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using AuditLogLib.Models;
 using MapDbContextLib.Models;
 using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using QlikviewLib;
+using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
 using Serilog;
+using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -35,7 +39,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; }
 
-        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context, object ContentTypeConfig)
+        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
         {
             ContentPublicationRequest PubRequest = Db.ContentPublicationRequest
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.ContentType)
@@ -167,7 +171,23 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         switch (PubRequest.RootContentItem.ContentType.TypeEnum)
                         {
                             case ContentTypeEnum.PowerBi:
-                                // TODO Figure out what is needed here
+                                string[] QueryStringItems = new string[]
+                                {
+                                    $"request={PubRequest.Id}",
+                                };
+
+                                UriBuilder powerBiContentUri = new UriBuilder
+                                {
+                                    Scheme = Context.Request.Scheme,
+                                    Host = Context.Request.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}",
+                                    Query = string.Join("&", QueryStringItems),
+                                };
+
+                                ReturnObj.MasterContentLink = powerBiContentUri.Uri.AbsoluteUri;
+                                break;
+
                             case ContentTypeEnum.Qlikview:
                                 UriBuilder qvwUrlBuilder = new UriBuilder
                                 {
@@ -261,6 +281,23 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
 
             return ReturnObj;
+        }
+
+        public static explicit operator PreLiveContentValidationSummaryLogModel(PreLiveContentValidationSummary source)
+        {
+            return new PreLiveContentValidationSummaryLogModel
+            {
+                ValidationSummaryId = source.ValidationSummaryId,
+                PublicationRequestId = source.PublicationRequestId,
+                AttestationLanguage = source.AttestationLanguage,
+                ContentDescription = source.ContentDescription,
+                RootContentName = source.RootContentName,
+                ContentTypeName = source.ContentTypeName,
+                LiveHierarchy = source.LiveHierarchy,
+                NewHierarchy = source.NewHierarchy,
+                DoesReduce = source.DoesReduce,
+                ClientName = source.ClientName,
+            };
         }
     }
 

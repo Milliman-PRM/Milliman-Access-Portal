@@ -112,7 +112,6 @@ namespace MillimanAccessPortal
                 switch (rootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.PowerBi:
-                        // TODO: Figure out what is involved here
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Html:
                     case ContentTypeEnum.Pdf:
@@ -149,7 +148,6 @@ namespace MillimanAccessPortal
                 publicationRequest.RequestStatus = PublicationStatus.Queued;
 
                 // Update the request record with file info and Queued status
-                Db.ContentPublicationRequest.Update(publicationRequest);
                 try
                 {
                     Db.SaveChanges();
@@ -210,7 +208,6 @@ namespace MillimanAccessPortal
                 switch (contentType)
                 {  // This is where any dependence on ContentType would be incorporated to override base behavior
                     case ContentTypeEnum.PowerBi:
-                        // TODO Figure out if anything is needed here.
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Html:
                     case ContentTypeEnum.Pdf:

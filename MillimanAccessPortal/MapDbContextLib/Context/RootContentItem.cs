@@ -44,7 +44,7 @@ namespace MapDbContextLib.Context
         {
             get
             {
-                if (ContentType == null)
+                if (ContentType == null || string.IsNullOrWhiteSpace(TypeSpecificDetail))
                 {
                     return null;
                 }
