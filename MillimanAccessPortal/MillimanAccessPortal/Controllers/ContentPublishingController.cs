@@ -311,6 +311,13 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            if (currentRootContentItem.ContentTypeId != rootContentItem.ContentTypeId)
+            {
+                Log.Debug($"In ContentPublishingController.UpdateRootContentItem action: change of content type was requested, aborting");
+                Response.Headers.Add("Warning", "The content type can not be modified.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             if (currentRootContentItem.ContentType == null)
             {
                 Log.Debug($"In ContentPublishingController.UpdateRootContentItem action: content type not found for content item {rootContentItem.Id}, aborting");
@@ -327,13 +334,13 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             // Update the current item so that it can be updated
-            // See ClientAdminController.cs
             currentRootContentItem.ContentName = rootContentItem.ContentName;
             currentRootContentItem.Description = rootContentItem.Description;
             currentRootContentItem.Notes = rootContentItem.Notes;
             switch (currentRootContentItem.ContentType.TypeEnum)
             {
                 case ContentTypeEnum.PowerBi:
+                    rootContentItem.ContentType = DbContext.ContentType.Find(rootContentItem.ContentTypeId);
                     PowerBiContentItemProperties newProps = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
                     PowerBiContentItemProperties currentProps = currentRootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
@@ -355,7 +362,6 @@ namespace MillimanAccessPortal.Controllers
             }
             currentRootContentItem.ContentDisclaimer = rootContentItem.ContentDisclaimer;
 
-            DbContext.RootContentItem.Update(currentRootContentItem);
             DbContext.SaveChanges();
 
             Log.Verbose($"In ContentPublishingController.UpdateRootContentItem action: success");
