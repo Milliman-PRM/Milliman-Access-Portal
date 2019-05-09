@@ -282,7 +282,6 @@ namespace MillimanAccessPortal
                 options.LogoutPath = "/Account/LogOut";
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                 options.SlidingExpiration = true;
-                options.Cookie.Name = SessionDefaults.CookieName;
             });
 
             services.Configure<QlikviewConfig>(Configuration);
