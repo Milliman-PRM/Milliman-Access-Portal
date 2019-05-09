@@ -69,7 +69,7 @@ namespace MapDbContextLib.Context
 
                 case ContentTypeEnum.PowerBi:
                     PowerBiContentItemProperties props = RootContentItem?.TypeSpecificDetailObject as PowerBiContentItemProperties;
-                    ContentInstanceUrl = props?.LiveReportId ?? Guid.Empty.ToString();  // TODO Is this ok?
+                    ContentInstanceUrl = props?.LiveReportId ?? Guid.Empty.ToString();
                     return;
 
                 default:
