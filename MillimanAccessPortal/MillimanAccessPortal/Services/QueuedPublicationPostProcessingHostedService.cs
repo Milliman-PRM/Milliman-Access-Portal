@@ -20,6 +20,7 @@ using PowerBiLib;
 using QlikviewLib;
 using Serilog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace MillimanAccessPortal.Services
 {
     public class QueuedPublicationPostProcessingHostedService : BackgroundService
     {
-        protected Dictionary<Guid,Task> _runningTasks = new Dictionary<Guid, Task>();
+        protected ConcurrentDictionary<Guid,Task> _runningTasks = new ConcurrentDictionary<Guid, Task>();
 
         public QueuedPublicationPostProcessingHostedService(
             IServiceProvider services,
@@ -52,23 +53,23 @@ namespace MillimanAccessPortal.Services
 
                 if (publicationRequestId != Guid.Empty)
                 {
-                    _runningTasks.Add(publicationRequestId, PostProcessAsync(publicationRequestId));
+                    _runningTasks.TryAdd(publicationRequestId, PostProcessAsync(publicationRequestId));
                 }
 
                 // Log any ContentPublicatioRequest that threw an exception, and update database with error status
-                foreach (var taskWithException in _runningTasks.Where(t => t.Value.IsFaulted))
+                foreach (var kvpWithException in _runningTasks.Where(t => t.Value.IsFaulted))
                 {
                     try
                     {
-                        Log.Error(taskWithException.Value.Exception, "QueuedPublicationPostProcessingHostedService.ExecuteAsync, Exception thrown during QueuedPublicationPostProcessingHostedService processing");
+                        Log.Error(kvpWithException.Value.Exception, "QueuedPublicationPostProcessingHostedService.ExecuteAsync, Exception thrown during QueuedPublicationPostProcessingHostedService processing");
 
                         using (var scope = Services.CreateScope())
                         {
                             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                            ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == taskWithException.Key);
+                            ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == kvpWithException.Key);
 
                             thisPubRequest.RequestStatus = PublicationStatus.Error;
-                            thisPubRequest.StatusMessage = taskWithException.Value.Exception.Message;
+                            thisPubRequest.StatusMessage = kvpWithException.Value.Exception.Message;
                             foreach (var reduction in dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == thisPubRequest.Id))
                             {
                                 reduction.ReductionStatus = ReductionStatusEnum.Error;
@@ -83,9 +84,9 @@ namespace MillimanAccessPortal.Services
                 }
 
                 // Stop tracking completed items
-                foreach (var completedTask in _runningTasks.Where(t => t.Value.IsCompleted))
+                foreach (var completedKvp in _runningTasks.Where(t => t.Value.IsCompleted))
                 {
-                    _runningTasks.Remove(completedTask.Key);
+                    _runningTasks.Remove(completedKvp.Key, out _);
                 }
             }
         }
