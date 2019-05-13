@@ -21,6 +21,7 @@ namespace MapCommonLib
         public static ulong MaxFileUploadSize { get; set; } = 5368709120;
         public static ulong VirusScanWindowSeconds { get; set; } = 30;
         public static int ClientDomainListCountLimit { get; set; } = 3;
+        public static List<string> NonLimitedDomains { get; set; } = new List<string> { "milliman.com" };
 
         public static readonly int fallbackPasswordHistoryDays = 30;
         public static readonly int fallbackPasswordHashingIterations= 100_000;

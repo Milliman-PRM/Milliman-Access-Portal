@@ -767,8 +767,8 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // Convert delimited strings bound from the browser to a proper array
-            Model.AcceptedEmailDomainList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailDomainList, true);
-            Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailAddressExceptionList, false);
+            Model.AcceptedEmailDomainList = GetCleanClientEmailWhitelistList(Model.AcceptedEmailDomainList, true);
+            Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelistList(Model.AcceptedEmailAddressExceptionList, false);
 
             // Valid domain(s) in whitelist
             foreach (string WhiteListedDomain in Model.AcceptedEmailDomainList)
@@ -949,10 +949,18 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
-            // Convert delimited strings bound from the browser to a proper array
-            Model.AcceptedEmailDomainList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailDomainList, true);
-            Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailAddressExceptionList, false);
+            // Convert delimited strings bound from the browser to a proper List
+            Model.AcceptedEmailDomainList = GetCleanClientEmailWhitelistList(Model.AcceptedEmailDomainList, true);
+            Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelistList(Model.AcceptedEmailAddressExceptionList, false);
             
+            // Apply domain limit
+            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains).Count() > ExistingClientRecord.DomainListCountLimit)
+            {
+                Log.Debug($"In ClientAdminController.EditClient action: number of requested domains {{@WhiteListedDomains}} exceeds the configured limit of {ExistingClientRecord.DomainListCountLimit}, aborting", Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains));
+                Response.Headers.Add("Warning", $"The domain list exceeds the configured limit");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             // Valid domains in domain whitelist
             foreach (string WhiteListedDomain in Model.AcceptedEmailDomainList)
             {
@@ -1173,7 +1181,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="cleanDomain">If true, strip characters up through '@' from each found element</param>
         /// <returns></returns>
         [NonAction]
-        private List<string> GetCleanClientEmailWhitelistArray(List<string> inList, bool cleanDomain)
+        private List<string> GetCleanClientEmailWhitelistList(List<string> inList, bool cleanDomain)
         {
             char[] stringDelimiters = new char[] { ',', ';', ' ' };
 

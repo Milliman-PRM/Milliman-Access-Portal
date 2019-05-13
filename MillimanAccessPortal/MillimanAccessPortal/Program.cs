@@ -35,6 +35,13 @@ namespace MillimanAccessPortal
                 GlobalFunctions.MaxFileUploadSize = Configuration.GetValue("Global:MaxFileUploadSize", GlobalFunctions.MaxFileUploadSize);
                 GlobalFunctions.VirusScanWindowSeconds = Configuration.GetValue("Global:VirusScanWindowSeconds", GlobalFunctions.VirusScanWindowSeconds);
                 GlobalFunctions.ClientDomainListCountLimit = Configuration.GetValue("Global:ClientDomainListCountLimit", GlobalFunctions.ClientDomainListCountLimit);
+                GlobalFunctions.NonLimitedDomains = 
+                    (
+                        Configuration.GetValue<string>("Global:NonLimitedDomains", null)
+                        ?.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                        ?.Select(d => d.Trim())
+                        ?? GlobalFunctions.NonLimitedDomains
+                    ).ToList();
 
                 // Initialize Serilog
                 Log.Logger = new LoggerConfiguration()
