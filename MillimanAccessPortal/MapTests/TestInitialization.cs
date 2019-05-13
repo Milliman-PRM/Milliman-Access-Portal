@@ -546,14 +546,14 @@ namespace MapTests
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
                 { 
-                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Name1", ClientCode="ClientCode1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
-                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Name2", ClientCode="ClientCode2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(1),    AcceptedEmailDomainList=new string[] { "example.com" }  },
-                    new Client { Id=TestUtil.MakeTestGuid(3), Name="Name3", ClientCode="ClientCode3", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
-                    new Client { Id=TestUtil.MakeTestGuid(4), Name="Name4", ClientCode="ClientCode4", ProfitCenterId=TestUtil.MakeTestGuid(2), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
-                    new Client { Id=TestUtil.MakeTestGuid(5), Name="Name5", ClientCode="ClientCode5", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
-                    new Client { Id=TestUtil.MakeTestGuid(6), Name="Name6", ClientCode="ClientCode6", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(1),    AcceptedEmailDomainList=new string[] { "example2.com" } },
-                    new Client { Id=TestUtil.MakeTestGuid(7), Name="Name7", ClientCode="ClientCode7", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" } },
-                    new Client { Id=TestUtil.MakeTestGuid(8), Name="Name8", ClientCode="ClientCode8", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(7),    AcceptedEmailDomainList=new string[] { "example.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Name1", ClientCode="ClientCode1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Name2", ClientCode="ClientCode2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(1),    AcceptedEmailDomainList=new List<string> { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(3), Name="Name3", ClientCode="ClientCode3", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example2.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(4), Name="Name4", ClientCode="ClientCode4", ProfitCenterId=TestUtil.MakeTestGuid(2), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example2.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(5), Name="Name5", ClientCode="ClientCode5", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example2.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(6), Name="Name6", ClientCode="ClientCode6", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(1),    AcceptedEmailDomainList=new List<string> { "example2.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(7), Name="Name7", ClientCode="ClientCode7", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(8), Name="Name8", ClientCode="ClientCode8", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(7),    AcceptedEmailDomainList=new List<string> { "example.com" } },
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -717,8 +717,8 @@ namespace MapTests
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
                 {
-                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
-                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" }  },
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -957,8 +957,8 @@ namespace MapTests
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
                 {
-                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
-                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" }  },
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion

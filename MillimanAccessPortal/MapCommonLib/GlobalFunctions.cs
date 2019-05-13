@@ -20,6 +20,7 @@ namespace MapCommonLib
         public static string DomainValRegex { get; set; } = @"^((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$";
         public static ulong MaxFileUploadSize { get; set; } = 5368709120;
         public static ulong VirusScanWindowSeconds { get; set; } = 30;
+        public static int ClientDomainListCountLimit { get; set; } = 3;
 
         public static readonly int fallbackPasswordHistoryDays = 30;
         public static readonly int fallbackPasswordHashingIterations= 100_000;
