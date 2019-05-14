@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.5.1
+
+- Add diagnostic logging to investigate reports of login issues
+
 ### v1.5.0
 
 - Add support for Federated Authentication through external authentication providers
