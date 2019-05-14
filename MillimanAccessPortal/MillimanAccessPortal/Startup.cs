@@ -387,20 +387,22 @@ namespace MillimanAccessPortal
                 var stopwatch = new Stopwatch();
 
                 stopwatch.Start();
-                try  // TODO This entire try/catch treatment is temporary.  To be removed, change back to simply: `await next();`
+                #region TODO This entire try/catch treatment is temporary.  To remove change back to simply: `await next();`
+                try
                 {
                     await next();
                 }
                 catch (AntiforgeryValidationException e)
                 {
-                    Log.Warning(e, $"AntiforgeryValidationException, Request path: {{@path}},{Environment.NewLine}, Request headers: {{@Headers}},{Environment.NewLine}Request cookies: {{@Cookies}},{Environment.NewLine}User is {{@User}}", context.Request.Path, context.Request.Headers, context.Request.Cookies, context.User);
+                    Log.Warning(e, $"Diagnostic AntiforgeryValidationException logging, Request path: {{@path}},{Environment.NewLine}, Request headers: {{@Headers}},{Environment.NewLine}Request cookies: {{@Cookies}},{Environment.NewLine}User is {{@User}}", context.Request.Path, context.Request.Headers, context.Request.Cookies, context.User);
                     throw;
                 }
                 catch (Exception e)
                 {
-                    Log.Warning(e, $"Exception in middleware or action, Request path: {{@path}},{Environment.NewLine}, Request headers: {{@Headers}},{Environment.NewLine}Request cookies: {{@Cookies}},{Environment.NewLine}User is {{@User}}", context.Request.Path, context.Request.Headers, context.Request.Cookies, context.User);
+                    Log.Warning(e, $"Diagnostic exception logging in middleware or action, Request path: {{@path}},{Environment.NewLine}, Request headers: {{@Headers}},{Environment.NewLine}Request cookies: {{@Cookies}},{Environment.NewLine}User is {{@User}}", context.Request.Path, context.Request.Headers, context.Request.Cookies, context.User);
                     throw;
                 }
+                #endregion
                 stopwatch.Stop();
 
                 Log.Information("Middleware pipeline took {elapsed}ms", stopwatch.Elapsed.TotalMilliseconds);
