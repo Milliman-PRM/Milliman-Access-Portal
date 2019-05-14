@@ -12,6 +12,7 @@ using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.WsFederation;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -386,7 +387,20 @@ namespace MillimanAccessPortal
                 var stopwatch = new Stopwatch();
 
                 stopwatch.Start();
-                await next();
+                try  // TODO This entire try/catch treatment is temporary.  To be removed, change back to simply: `await next();`
+                {
+                    await next();
+                }
+                catch (AntiforgeryValidationException e)
+                {
+                    Log.Warning(e, $"AntiforgeryValidationException, Request path: {{@path}},{Environment.NewLine}, Request headers: {{@Headers}},{Environment.NewLine}Request cookies: {{@Cookies}},{Environment.NewLine}User is {{@User}}", context.Request.Path, context.Request.Headers, context.Request.Cookies, context.User);
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    Log.Warning(e, $"Exception in middleware or action, Request path: {{@path}},{Environment.NewLine}, Request headers: {{@Headers}},{Environment.NewLine}Request cookies: {{@Cookies}},{Environment.NewLine}User is {{@User}}", context.Request.Path, context.Request.Headers, context.Request.Cookies, context.User);
+                    throw;
+                }
                 stopwatch.Stop();
 
                 Log.Information("Middleware pipeline took {elapsed}ms", stopwatch.Elapsed.TotalMilliseconds);
