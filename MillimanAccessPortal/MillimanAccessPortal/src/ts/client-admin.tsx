@@ -1,3 +1,5 @@
+// tslint:disable:no-console
+
 import '../images/icons/add.svg';
 import '../images/icons/cancel.svg';
 import '../images/icons/collapse-cards.svg';
@@ -41,6 +43,9 @@ let eligibleUsers: any;
 let formObject: FormBase;
 let defaultWelcomeText: string;
 let statusMonitor: StatusMonitor<null>;
+let clientDomainLimit: number;
+// To Do: Get this information from server
+const nonLimitedDomains: string[] = ['MILLIMAN.COM', 'yahoo.com'].map((x) => x.toLowerCase());
 
 document.addEventListener('DOMContentLoaded', () => {
   const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');
@@ -113,6 +118,9 @@ function populateClientForm(response: any) {
         const cb = field.parent().parent().find('input');
         cb.prop('checked', value !== null);
         field.val(value);
+      } else if (keyU === 'DomainListCountLimit') {
+        clientDomainLimit = value;
+        console.log(clientDomainLimit);
       } else {
         field.val(value);
       }
@@ -120,6 +128,8 @@ function populateClientForm(response: any) {
       field.change();
     }
   }
+  const rawApprovedDomains = getRawApprovedDomains();
+  updateDomainLimitUsage(rawApprovedDomains.length);
   bindForm();
 }
 function populateProfitCenterDropDown(profitCenterList: any) {
@@ -611,6 +621,23 @@ function getClientTree(clientId?: any) {
   });
 }
 
+function updateDomainLimitUsage(usedDomains: number) {
+  console.log(`${usedDomains} of ${clientDomainLimit} domains used`);
+  for (const domain of nonLimitedDomains) {
+    $(`div[data-value="${domain}"]`).addClass('non-limited');
+  }
+}
+
+function getRawApprovedDomains() {
+  const rawDomains: string[] = $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0]
+    .selectize
+    .getValue()
+    .split(',')
+    .map((x: string) => x.toLowerCase())
+    .filter((x: string) => x !== '');
+  return rawDomains;
+}
+
 $(function onReady() {
   getClientTree();
 
@@ -633,21 +660,50 @@ $(function onReady() {
   $('.tooltip').tooltipster();
 
   $('#client-info form.admin-panel-content #AcceptedEmailDomainList').selectize({
-    create: function onCreate(input: any) {
-      if (input.match(domainRegex())) {
-        return {
-          text: input,
-          value: input,
-        };
+    allowEmptyOption: false,
+    create: function onCreate(input: string) {
+      const rawApprovedDomains: string[] = getRawApprovedDomains();
+
+      if (rawApprovedDomains.includes(input.toLowerCase())) {
+        $('#AcceptedEmailDomainList-selectized').val('');
+        toastr.warning('That domain has already exists');
+        return false;
       }
 
-      toastr.warning('Please enter a valid domain name (e.g. domain.com)');
+      const newApprovedDomains = [...rawApprovedDomains, input];
 
-      $('#AcceptedEmailDomainList-selectized').val(input);
-      $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.unlock();
-      $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.focus();
+      const numberOfDomains: number = newApprovedDomains.filter((x) => {
+        return !nonLimitedDomains.includes(x.toLowerCase()) && x !== '';
+      }).length;
 
-      return {};
+      if (!input.match(domainRegex())) {
+        toastr.warning('Please enter a valid domain name (e.g. domain.com)');
+        $('#AcceptedEmailDomainList-selectized').val(input);
+        $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.unlock();
+        $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.focus();
+        return false;
+      }
+
+      if (numberOfDomains > clientDomainLimit) {
+        $('#AcceptedEmailDomainList-selectized').val('');
+        toastr.warning(`You have reached the allowed domain limit.\r\n\r\n
+          Please contact MAP.Support@milliman.com to request an increase to this limit.`);
+        return false;
+      }
+
+      updateDomainLimitUsage(numberOfDomains);
+      return {
+        text: input,
+        value: input,
+      };
+    },
+    onItemRemove: () => {
+      const domains: string[] = getRawApprovedDomains();
+      const numberOfDomains: number = domains.filter((x) => {
+        return !nonLimitedDomains.includes(x.toLowerCase());
+      }).length;
+
+      updateDomainLimitUsage(numberOfDomains);
     },
     persist: false,
     plugins: ['remove_button'],
