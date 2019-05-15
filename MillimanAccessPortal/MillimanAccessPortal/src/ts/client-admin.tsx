@@ -669,7 +669,7 @@ $(function onReady() {
 
       if (rawApprovedDomains.includes(input.toLowerCase())) {
         $('#AcceptedEmailDomainList-selectized').val('');
-        toastr.warning('That domain has already exists');
+        toastr.warning('That domain already exists');
         return false;
       }
 
