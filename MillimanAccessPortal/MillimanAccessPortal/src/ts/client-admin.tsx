@@ -128,8 +128,7 @@ function populateClientForm(response: any) {
       field.change();
     }
   }
-  const rawApprovedDomains = getRawApprovedDomains();
-  updateDomainLimitUsage(rawApprovedDomains.length);
+  updateDomainLimitUsage(getCleanedApprovedDomains().length);
   bindForm();
 }
 function populateProfitCenterDropDown(profitCenterList: any) {
@@ -624,6 +623,12 @@ function getClientTree(clientId?: any) {
 function updateDomainLimitUsage(usedDomains: number) {
   $('#email-domain-limit-label').text(` (${usedDomains} of ${clientDomainLimit} domains used)`);
 }
+
+function getCleanedApprovedDomains() {
+  const rawDomains = getRawApprovedDomains();
+  return rawDomains.filter((x) => {
+    return !nonLimitedDomains.includes(x.toLowerCase());
+  });
 }
 
 function getRawApprovedDomains() {
