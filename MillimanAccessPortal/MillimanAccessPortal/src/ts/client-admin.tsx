@@ -691,7 +691,7 @@ $(function onReady() {
       updateDomainLimitUsage(numberOfDomains);
       return {
         text: input,
-        value: input,
+        value: input.toLowerCase(),
       };
     },
     onItemAdd: () => {
