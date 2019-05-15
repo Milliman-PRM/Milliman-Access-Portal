@@ -45,7 +45,7 @@ let defaultWelcomeText: string;
 let statusMonitor: StatusMonitor<null>;
 let clientDomainLimit: number;
 // To Do: Get this information from server
-const nonLimitedDomains: string[] = ['MILLIMAN.COM', 'yahoo.com'].map((x) => x.toLowerCase());
+let nonLimitedDomains: string[];
 
 document.addEventListener('DOMContentLoaded', () => {
   const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');
@@ -613,6 +613,7 @@ function getClientTree(clientId?: any) {
     renderClientTree(response.clientTreeList, clientId || response.relevantClientId);
     defaultWelcomeText = response.systemDefaultWelcomeEmailText;
     $('#client-tree .loading-wrapper').hide();
+    nonLimitedDomains = response.nonLimitedDomains.map((x: string) => x.toLowerCase());
   }).fail(function onFail(response) {
     $('#client-tree .loading-wrapper').hide();
     toastr.warning(response.getResponseHeader('Warning')
