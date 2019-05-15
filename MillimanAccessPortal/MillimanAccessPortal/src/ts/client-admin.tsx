@@ -622,7 +622,8 @@ function getClientTree(clientId?: any) {
 }
 
 function updateDomainLimitUsage(usedDomains: number) {
-  console.log(`${usedDomains} of ${clientDomainLimit} domains used`);
+  $('#email-domain-limit-label').text(` (${usedDomains} of ${clientDomainLimit} domains used)`);
+}
 }
 
 function getRawApprovedDomains() {
