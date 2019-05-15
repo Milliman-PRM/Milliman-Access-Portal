@@ -20,6 +20,15 @@ namespace MapDbContextLib.Context
         Html,
         Pdf,
         FileDownload,
+        PowerBi,
+    }
+
+    public static class EnumExtensions
+    {
+        public static bool LiveContentFileStoredInMap(this ContentTypeEnum type)
+        {
+            return type != ContentTypeEnum.PowerBi;
+        }
     }
 
     public class ContentType
@@ -32,6 +41,7 @@ namespace MapDbContextLib.Context
             { ContentTypeEnum.Html, "HTML" },
             { ContentTypeEnum.Pdf, "PDF" },
             { ContentTypeEnum.FileDownload, "File Download" },
+            { ContentTypeEnum.PowerBi, "Power BI" }
         };
 
         [Key]
@@ -108,6 +118,12 @@ namespace MapDbContextLib.Context
                     CanReduce = false,
                     DefaultIconName = "FileDownload_Icon.png",
                     FileExtensions = new string[] { },
+                },
+                new ContentType {
+                    TypeEnum = ContentTypeEnum.PowerBi,
+                    CanReduce = false,
+                    DefaultIconName = "PowerBI_Icon.png",
+                    FileExtensions = new string[] { "pbix" },
                 },
             };
 

@@ -111,6 +111,7 @@ namespace MillimanAccessPortal
                     .Single();
                 switch (rootContentItem.ContentType.TypeEnum)
                 {
+                    case ContentTypeEnum.PowerBi:
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Html:
                     case ContentTypeEnum.Pdf:
@@ -147,7 +148,6 @@ namespace MillimanAccessPortal
                 publicationRequest.RequestStatus = PublicationStatus.Queued;
 
                 // Update the request record with file info and Queued status
-                Db.ContentPublicationRequest.Update(publicationRequest);
                 try
                 {
                     Db.SaveChanges();
@@ -207,6 +207,7 @@ namespace MillimanAccessPortal
                 string DestinationFileName = QlikviewLibApi.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath));
                 switch (contentType)
                 {  // This is where any dependence on ContentType would be incorporated to override base behavior
+                    case ContentTypeEnum.PowerBi:
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Html:
                     case ContentTypeEnum.Pdf:

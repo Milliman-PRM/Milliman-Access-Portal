@@ -12,7 +12,7 @@ namespace MapCommonLib.ContentTypeSpecific
 {
     public abstract class ContentTypeSpecificApiBase
     {
-        public abstract Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfo, HttpRequest thisHttpRequest);
+        public abstract Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest);
 
         /// <summary>
         /// Returns a standardized file name for a non-reduced content or related file
