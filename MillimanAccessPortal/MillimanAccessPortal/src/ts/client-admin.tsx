@@ -623,9 +623,6 @@ function getClientTree(clientId?: any) {
 
 function updateDomainLimitUsage(usedDomains: number) {
   console.log(`${usedDomains} of ${clientDomainLimit} domains used`);
-  for (const domain of nonLimitedDomains) {
-    $(`div[data-value="${domain}"]`).addClass('non-limited');
-  }
 }
 
 function getRawApprovedDomains() {
@@ -696,6 +693,11 @@ $(function onReady() {
         text: input,
         value: input,
       };
+    },
+    onItemAdd: () => {
+      for (const domain of nonLimitedDomains) {
+        $(`div[data-value="${domain}"]`).addClass('non-limited');
+      }
     },
     onItemRemove: () => {
       const domains: string[] = getRawApprovedDomains();
