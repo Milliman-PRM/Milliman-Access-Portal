@@ -18,8 +18,8 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public string ClientContactEmail { get; set; }
         public string ClientContactPhone { get; set; }
         public int DomainListCountLimit { get; set; }
-        public string DomainList { get; set; }
-        public string EmailExceptionList { get; set; }
+        public list DomainList { get; set; }
+        public list EmailExceptionList { get; set; }
         public string ProfitCenter { get; set; }
         public string Office { get; set; }
         public string ConsultantName { get; set; }
@@ -41,8 +41,8 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 ClientContactEmail = client.ContactEmail,
                 ClientContactPhone = client.ContactPhone,
                 DomainListCountLimit = client.DomainListCountLimit,
-                DomainList = client.AcceptedEmailDomainList.ToString(),
-                EmailExceptionList = client.AcceptedEmailAddressExceptionList.ToString(),
+                DomainList = client.AcceptedEmailDomainList,
+                EmailExceptionList = client.AcceptedEmailAddressExceptionList,
                 ProfitCenter = client.ProfitCenter?.Name,
                 Office = client.ConsultantOffice,
                 ConsultantName = client.ConsultantName,
