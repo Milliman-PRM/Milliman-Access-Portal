@@ -118,15 +118,15 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Email Domain(s)</span>
-                      <span className="detail-value">{clientDetail.AcceptedEmailDomainList}</span>
+                      <span className="detail-value">{clientDetail.acceptedEmailDomainList}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Email Exception(s)</span>
-                      <span className="detail-value">{clientDetail.AcceptedEmailAddressExceptionList}</span>
+                      <span className="detail-value">{clientDetail.acceptedEmailAddressExceptionList}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Domain Limit</span>
-                      <span className="detail-value">{clientDetail.DomainListCountLimit}</span>
+                      <span className="detail-value">{clientDetail.domainListCountLimit}</span>
                     </div>
                     <div className="detail-container">
                       <button>Change Domain Limit</button>
