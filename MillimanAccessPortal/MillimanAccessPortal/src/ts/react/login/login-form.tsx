@@ -185,7 +185,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
           }
         })
         .catch(() => {
-          errors.username = 'An error occured.';
+          errors.username = 'An error occurred.';
           this.setState({
             errors,
             userConfirmed: false,
