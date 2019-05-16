@@ -134,10 +134,12 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Domain Limit</span>
-                      <span className="detail-value">{clientDetail.domainListCountLimit}</span>
-                    </div>
-                    <div className="detail-container">
-                      <button>Change Domain Limit</button>
+                      <span className="detail-value">
+                        {clientDetail.domainListCountLimit}
+                        <button className="link-button inline-link-button">
+                          Change Domain Limit
+                        </button>
+                      </span>
                     </div>
                   </div>
                 </div>
