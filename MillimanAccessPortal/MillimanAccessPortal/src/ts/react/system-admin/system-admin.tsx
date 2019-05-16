@@ -39,6 +39,7 @@ import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
 import { CardModal } from './modals/card-modal';
 import { CreateProfitCenterModal } from './modals/create-profit-center';
 import { CreateUserModal } from './modals/create-user';
+import { SetDomainLimitClientModal } from './modals/set-domain-limit';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
@@ -66,6 +67,9 @@ export interface SystemAdminState {
   };
   primaryPanel: ContentPanelAttributes;
   secondaryPanel: ContentPanelAttributes;
+  createDomainLimitModal: {
+    open: boolean;
+  };
 }
 
 export enum SystemAdminColumn {
@@ -114,6 +118,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         createModal: {
           open: false,
         },
+      },
+      createDomainLimitModal: {
+        open: false,
       },
     };
   }
@@ -417,6 +424,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             className="modal"
             overlayClassName="modal-overlay"
             profitCenterId={this.state.primaryPanel.selected.card}
+          />
+          <SetDomainLimitClientModal
+            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
+              && this.state.createDomainLimitModal.open}
+            onRequestClose={this.handleSecondaryModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+            clientId={this.state.primaryPanel.selected.card}
           />
         </CardPanel>
       )
@@ -848,6 +864,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             open: false,
           },
         },
+        createDomainLimitModal: {
+          open: false,
+        },
       };
     });
   }
@@ -876,6 +895,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           createModal: {
             open: false,
           },
+        },
+        createDomainLimitModal: {
+          open: false,
         },
       };
     });
