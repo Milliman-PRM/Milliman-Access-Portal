@@ -230,7 +230,7 @@ namespace MillimanAccessPortal
                             }
                         }
 
-                        context.Response.Redirect("/Account/ExternalLoginCallbackAsync");
+                        context.Response.Redirect("/Account/ExternalLoginCallback");
                     };
                 });
             }

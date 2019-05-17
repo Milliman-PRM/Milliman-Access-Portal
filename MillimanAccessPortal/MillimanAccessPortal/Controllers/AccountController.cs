@@ -426,7 +426,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // GET: /Account/ExternalLoginCallbackAsync
+        // GET: /Account/ExternalLoginCallback
         [HttpGet]
         [AllowAnonymous]
         public IActionResult ExternalLoginCallback(string returnUrl = null, string remoteError = null)
