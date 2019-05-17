@@ -116,6 +116,9 @@ export interface ClientDetail {
   clientContactName: string;
   clientContactEmail: string;
   clientContactPhone: string;
+  domainListCountLimit: number;
+  acceptedEmailDomainList: string[];
+  acceptedEmailAddressExceptionList: string[];
   profitCenter: string;
   office: string;
   consultantName: string;
