@@ -1027,7 +1027,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            if (updatedClient.DomainLimitChange.NewDomainLimit != existingRecord.DomainListCountLimit)
+            if (updatedClient.DomainLimitChange.NewDomainLimit != previousDomainLimit)
             {
                 existingRecord.DomainListCountLimit = updatedClient.DomainLimitChange.NewDomainLimit;
             }
@@ -1035,7 +1035,7 @@ namespace MillimanAccessPortal.Controllers
             _dbContext.SaveChanges();
 
             #region Audit logging (may depend on what is updated)
-            if (updatedClient.DomainLimitChange.NewDomainLimit != existingRecord.DomainListCountLimit)
+            if (updatedClient.DomainLimitChange.NewDomainLimit != previousDomainLimit)
             {
                 _auditLogger.Log(AuditEventType.ClientDomainLimitUpdated.ToEvent(updatedClient.BuildAuditLogEventData(previousDomainLimit)));
             }
