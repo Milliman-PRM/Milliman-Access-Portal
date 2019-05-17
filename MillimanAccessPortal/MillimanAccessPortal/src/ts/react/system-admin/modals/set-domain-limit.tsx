@@ -11,19 +11,23 @@ export interface SetDomainLimitClientModalProps extends Modal.Props {
 }
 
 interface SetDomainLimitClientModalState {
-  userText: string;
+  newDomainLimit: number;
+  domainLimitReason: string;
+  domainLimitRequestedByPersonName: string;
 }
 
 export class SetDomainLimitClientModal
     extends React.Component<SetDomainLimitClientModalProps, SetDomainLimitClientModalState> {
 
-  private url: string = 'SystemAdmin/AddUserToClient';
+  private url: string = 'SystemAdmin/UpdateClient';
 
   public constructor(props: SetDomainLimitClientModalProps) {
     super(props);
 
     this.state = {
-      userText: '',
+      newDomainLimit: null,
+      domainLimitReason: '',
+      domainLimitRequestedByPersonName: '',
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -87,15 +91,19 @@ export class SetDomainLimitClientModal
 
   private handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     this.setState({
-      userText: event.target.value,
+      newDomainLimit: event.target.valueAsNumber,
+      domainLimitReason: event.target.value,
+      domainLimitRequestedByPersonName: event.target.value,
     });
   }
 
   private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     postData(this.url, {
-      domainLimit: this.state.userText,
       clientId: this.props.clientId,
+      newDomainLimit: this.state.newDomainLimit,
+      domainLimitReason: this.state.domainLimitReason,
+      domainLimitRequestedByPersonName : this.state.domainLimitRequestedByPersonName,
     })
     .then(() => {
       alert('Domain limit updated.');
