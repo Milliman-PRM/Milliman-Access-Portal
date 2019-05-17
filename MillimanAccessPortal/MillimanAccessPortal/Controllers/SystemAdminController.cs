@@ -19,6 +19,7 @@
 
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using AuditLogLib.Models;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -965,6 +966,84 @@ namespace MillimanAccessPortal.Controllers
 
             Log.Verbose($"In SystemAdminController.UpdateProfitCenter action: success");
             _auditLogger.Log(AuditEventType.ProfitCenterUpdated.ToEvent(profitCenter));
+
+            return Json(existingRecord);
+        }
+
+        /// <summary>
+        /// Update a Client
+        /// </summary>
+        /// <param name="updatedClient">ClientUpdate model</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> UpdateClient(ClientUpdate updatedClient)
+        {
+            Log.Verbose("Entered SystemAdminController.UpdateClient action with model {@ClientUpdate}", updatedClient);
+
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In SystemAdminController.UpdateClient action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (!ModelState.IsValid)
+            {
+                Log.Debug($"In SystemAdminController.UpdateClient action: ModelState invalid, errors <{string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}>, aborting");
+                Response.Headers.Add("Warning", ModelState.Values.First(v => v.Errors.Any()).Errors.ToString());
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var existingRecord = _dbContext.Client.Find(updatedClient.ClientId);
+            if (existingRecord == null)
+            {
+                Log.Debug($"In SystemAdminController.UpdateClient action: requested client {updatedClient.ClientId} not found, aborting");
+                Response.Headers.Add("Warning", "The specified client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            #region Save values for later logging
+            int previousDomainLimit = existingRecord.DomainListCountLimit;
+            #endregion
+
+            if (updatedClient.DomainLimitChange.NewDomainLimit < existingRecord.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains).Count())
+            {
+                Log.Debug($"In SystemAdminController.UpdateClient action: attempted to set domain limit less than existing domain count, aborting");
+                Response.Headers.Add("Warning", "There are currently more domains than the requested limit.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (updatedClient.DomainLimitChange.NewDomainLimit != existingRecord.DomainListCountLimit && string.IsNullOrWhiteSpace(updatedClient.DomainLimitChange.DomainLimitReason))
+            {
+                Log.Debug($"In SystemAdminController.UpdateClient action: attempted to change domain limit but no reason provided, aborting");
+                Response.Headers.Add("Warning", "A reason is required when updating the client's domain count limit.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            if (updatedClient.DomainLimitChange.NewDomainLimit != previousDomainLimit)
+            {
+                existingRecord.DomainListCountLimit = updatedClient.DomainLimitChange.NewDomainLimit;
+            }
+
+            _dbContext.SaveChanges();
+
+            #region Audit logging (may depend on what is updated)
+            if (updatedClient.DomainLimitChange.NewDomainLimit != previousDomainLimit)
+            {
+                _auditLogger.Log(AuditEventType.ClientDomainLimitUpdated.ToEvent(updatedClient.BuildAuditLogEventData(previousDomainLimit)));
+            }
+
+            // Log other auditable things here
+            #endregion
+
+            Log.Verbose($"In SystemAdminController.UpdateClient action: success");
 
             return Json(existingRecord);
         }
