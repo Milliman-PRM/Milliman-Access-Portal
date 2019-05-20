@@ -976,7 +976,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="updatedClient">ClientUpdate model</param>
         /// <returns>Json</returns>
         [HttpPost]
-        public async Task<ActionResult> UpdateClient(ClientUpdate updatedClient)
+        public async Task<ActionResult> UpdateClient([FromBody] ClientUpdate updatedClient)
         {
             Log.Verbose("Entered SystemAdminController.UpdateClient action with model {@ClientUpdate}", updatedClient);
 
