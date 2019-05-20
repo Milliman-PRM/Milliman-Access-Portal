@@ -16,6 +16,7 @@ interface PrimaryDetailPanelProps {
   checkedSystemAdmin: boolean;
   onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSuspended: boolean;
+  doDomainLimitOpen: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps> {
@@ -136,7 +137,10 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                       <span className="detail-label">Domain Limit</span>
                       <span className="detail-value">
                         {clientDetail.domainListCountLimit}
-                        <button className="link-button inline-link-button">
+                        <button
+                          className="link-button inline-link-button"
+                          onClick={this.props.doDomainLimitOpen}
+                        >
                           Change Domain Limit
                         </button>
                       </span>

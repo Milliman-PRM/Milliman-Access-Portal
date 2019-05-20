@@ -67,7 +67,7 @@ export interface SystemAdminState {
   };
   primaryPanel: ContentPanelAttributes;
   secondaryPanel: ContentPanelAttributes;
-  createDomainLimitModal: {
+  domainLimitModal: {
     open: boolean;
   };
 }
@@ -119,7 +119,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           open: false,
         },
       },
-      createDomainLimitModal: {
+      domainLimitModal: {
         open: false,
       },
     };
@@ -426,9 +426,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             profitCenterId={this.state.primaryPanel.selected.card}
           />
           <SetDomainLimitClientModal
-            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
-              && this.state.createDomainLimitModal.open}
-            onRequestClose={this.handleSecondaryModalClose}
+            isOpen={this.state.domainLimitModal.open}
+            onRequestClose={this.handleDomainLimitClose}
             ariaHideApp={false}
             className="modal"
             overlayClassName="modal-overlay"
@@ -616,6 +615,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             checkedSystemAdmin={isUserDetail(primaryDetail) && primaryDetail.isSystemAdmin}
             onPushSuspend={this.pushSuspendUser}
             checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.isSuspended}
+            doDomainLimitOpen={this.handleDomainLimitOpen}
           />
           <SecondaryDetailPanel
             selectedCard={secondaryCard}
@@ -864,7 +864,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             open: false,
           },
         },
-        createDomainLimitModal: {
+        domainLimitModal: {
           open: false,
         },
       };
@@ -896,7 +896,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             open: false,
           },
         },
-        createDomainLimitModal: {
+        domainLimitModal: {
           open: false,
         },
       };
@@ -1314,6 +1314,24 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         createModal: {
           open: false,
         },
+      },
+    }));
+  }
+
+  private handleDomainLimitOpen = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      domainLimitModal: {
+          open: true,
+      },
+    }));
+  }
+
+  private handleDomainLimitClose = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      domainLimitModal: {
+        open: false,
       },
     }));
   }
