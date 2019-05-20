@@ -13,8 +13,8 @@ export interface SetDomainLimitClientModalProps extends Modal.Props {
 
 interface SetDomainLimitClientModalState {
   newDomainLimit: number;
-  domainLimitReason: string;
   domainLimitRequestedByPersonName: string;
+  domainLimitReason: string;
 }
 
 export class SetDomainLimitClientModal
@@ -27,8 +27,8 @@ export class SetDomainLimitClientModal
 
     this.state = {
       newDomainLimit: this.props.existingDomainLimit,
-      domainLimitReason: '',
       domainLimitRequestedByPersonName: '',
+      domainLimitReason: '',
     };
 
     this.handleDomainLimitChange = this.handleDomainLimitChange.bind(this);
@@ -47,22 +47,21 @@ export class SetDomainLimitClientModal
         overlayClassName="modal-overlay"
       >
         <h3 className="title blue">Set Domain Limits</h3>
-        <span className="modal-text">Domain limit:</span>
         <form>
           <input
             readOnly={true}
             name="clientId"
+            value={this.props.clientId}
             style={{display: 'none'}}
           />
-          <label>Domain Limit</label>
+          <label className="modal-text">New Domain Limit:</label>
           <input
             type="number"
             name="newDomainLimit"
             value={this.state.newDomainLimit}
-            placeholder="Domain limit"
             onChange={this.handleDomainLimitChange}
           />
-          <label>Who Requested the Change?</label>
+          <label className="modal-text">Who Requested the Change?</label>
           <input
             type="text"
             name="domainLimitRequestedByPersonName"
@@ -70,11 +69,11 @@ export class SetDomainLimitClientModal
             placeholder="Name"
             onChange={this.handleRequestorChange}
           />
-          <label>Reason for Changing</label>
+          <label className="modal-text">Reason for Changing the Domain Limit:</label>
           <textarea
             name="domainLimitReason"
             value={this.state.domainLimitReason}
-            placeholder="Reason..."
+            placeholder="Reason for changing domain limit..."
             onChange={this.handleReasonChange}
           />
           <div className="button-container">
