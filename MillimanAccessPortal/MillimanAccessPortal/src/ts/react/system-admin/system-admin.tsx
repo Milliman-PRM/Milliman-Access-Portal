@@ -432,7 +432,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             className="modal"
             overlayClassName="modal-overlay"
             clientId={primaryDetail.id}
-            existingDomainLimit={(isClientDetail(primaryDetail) ? primaryDetail.domainListCountLimit : null}
+            existingDomainLimit={isClientDetail(primaryDetail) && primaryDetail.domainListCountLimit}
           />
         }
         </CardPanel>
