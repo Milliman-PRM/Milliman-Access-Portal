@@ -426,12 +426,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             profitCenterId={this.state.primaryPanel.selected.card}
           />
           <SetDomainLimitClientModal
-            isOpen={this.state.domainLimitModal.open}
+            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
+              && this.state.domainLimitModal.open}
             onRequestClose={this.handleDomainLimitClose}
             ariaHideApp={false}
             className="modal"
             overlayClassName="modal-overlay"
-            clientId={primaryDetail.id}
+            clientId={this.state.primaryPanel.selected.card}
             existingDomainLimit={isClientDetail(primaryDetail) && primaryDetail.domainListCountLimit}
           />
         }
