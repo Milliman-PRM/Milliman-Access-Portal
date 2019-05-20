@@ -3,7 +3,7 @@ import '../../../../scss/react/shared-components/modal.scss';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
-import { postData } from '../../../shared';
+import { postJsonData } from '../../../shared';
 import { Guid } from '../../shared-components/interfaces';
 
 export interface SetDomainLimitClientModalProps extends Modal.Props {
@@ -118,7 +118,7 @@ export class SetDomainLimitClientModal
 
   private handleSubmit(event: React.FormEvent<HTMLButtonElement>) {
     event.preventDefault();
-    postData(this.url, {
+    postJsonData(this.url, {
       clientId: this.props.clientId,
       domainLimitChange: {
         newDomainLimit: this.state.newDomainLimit,
