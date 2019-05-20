@@ -4,7 +4,7 @@
 
 ### v1.5.1
 
-- Add diagnostic logging to investigate reports of login issues
+- Fixed an issue where user login fails in certain unusual circumstances
 
 ### v1.5.0
 
