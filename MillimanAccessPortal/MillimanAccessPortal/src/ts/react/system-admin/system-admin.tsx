@@ -432,6 +432,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             className="modal"
             overlayClassName="modal-overlay"
             clientId={this.state.primaryPanel.selected.card}
+            existingDomainLimit={3}
           />
         </CardPanel>
       )
