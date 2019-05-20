@@ -12,7 +12,6 @@ using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
-using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.WsFederation;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -489,26 +488,6 @@ namespace MillimanAccessPortal
 
                 Log.Information("MVC took {elapsed}ms", stopwatch.Elapsed.TotalMilliseconds);
             });
-
-            #region TODO This entire middleware item is for diagnostic purposes only.  Delete when done.
-            app.Use(async (context, next) =>
-            {
-                try
-                {
-                    await next();
-                }
-                catch (AntiforgeryValidationException e)
-                {
-                    Log.Warning(e, $"Diagnostic AntiforgeryValidationException logging, Request path: {{@path}},{Environment.NewLine}, Request headers: {{@Headers}},{Environment.NewLine}Request cookies: {{@Cookies}},{Environment.NewLine}User is {{@User}}", context.Request.Path, context.Request.Headers, context.Request.Cookies, context.User);
-                    throw;
-                }
-                catch (Exception e)
-                {
-                    Log.Warning(e, $"Diagnostic exception logging in middleware or action, Request path: {{@path}},{Environment.NewLine}, Request headers: {{@Headers}},{Environment.NewLine}Request cookies: {{@Cookies}},{Environment.NewLine}User is {{@User}}", context.Request.Path, context.Request.Headers, context.Request.Cookies, context.User);
-                    throw;
-                }
-            });
-            #endregion
 
             app.UseMvc(routes =>
             {
