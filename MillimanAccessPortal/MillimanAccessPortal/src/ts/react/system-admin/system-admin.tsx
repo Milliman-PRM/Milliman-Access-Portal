@@ -29,8 +29,8 @@ import { Filter } from '../shared-components/filter';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
-    ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo,
-    isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
+    ClientDetail, ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientDetail,
+    isClientInfo, isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
     isUserClientRoles, isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail,
     SecondaryDetailData, UserClientRoles, UserInfo,
 } from './interfaces';
@@ -431,9 +431,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             ariaHideApp={false}
             className="modal"
             overlayClassName="modal-overlay"
-            clientId={this.state.primaryPanel.selected.card}
-            existingDomainLimit={3}
+            clientId={primaryDetail.id}
+            existingDomainLimit={(isClientDetail(primaryDetail) ? primaryDetail.domainListCountLimit : null}
           />
+        }
         </CardPanel>
       )
       : null;
