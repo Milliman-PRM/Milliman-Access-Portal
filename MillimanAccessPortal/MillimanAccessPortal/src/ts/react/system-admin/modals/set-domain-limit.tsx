@@ -103,8 +103,6 @@ export class SetDomainLimitClientModal extends Form<
             >
               Cancel
             </button>
-          </div>
-          <div className="button-container">
             <button
               type="submit"
               disabled={!formIsValid}
