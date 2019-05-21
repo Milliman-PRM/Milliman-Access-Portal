@@ -1,3 +1,9 @@
+/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Actions to support administration of user authorization to hosted content
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib.ActionFilters;
@@ -239,7 +245,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            if (!contentItem.DoesReduce)
+            if (!contentItem.DoesReduce && contentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
             {
                 ContentRelatedFile liveMasterFile = contentItem.ContentFilesList
                     .SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
