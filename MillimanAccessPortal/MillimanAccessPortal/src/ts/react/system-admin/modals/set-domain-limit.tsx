@@ -140,34 +140,28 @@ export class SetDomainLimitClientModal extends Form<
     });
   }
 
-  private handleDomainLimitChange(event: React.ChangeEvent<HTMLInputElement>) {
-    this.setState((prevState) => ({
-      ...prevState,
-      data: {
-        ...prevState.data,
-        newDomainLimit: event.target.valueAsNumber.toString(),
-      },
-    }));
+  private handleDomainLimitChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const data = {
+      ...this.state.data,
+      newDomainLimit: event.target.valueAsNumber.toString(),
+    };
+    this.setState({ data });
   }
 
-  private handleReasonChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
-    this.setState((prevState) => ({
-      ...prevState,
-      data: {
-        ...prevState.data,
-        domainLimitReason: event.target.value,
-      },
-    }));
+  private handleReasonChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const data = {
+      ...this.state.data,
+      domainLimitReason: event.target.value,
+    };
+    this.setState({ data });
   }
 
-  private handleRequestorChange(event: React.ChangeEvent<HTMLInputElement>) {
-    this.setState((prevState) => ({
-      ...prevState,
-      data: {
-        ...prevState.data,
-        domainLimitRequestedByPersonName: event.target.value,
-      },
-    }));
+  private handleRequestorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const data = {
+      ...this.state.data,
+      domainLimitRequestedByPersonName: event.target.value,
+    };
+    this.setState({ data });
   }
 
   private cancel(event: React.MouseEvent<HTMLButtonElement>) {
