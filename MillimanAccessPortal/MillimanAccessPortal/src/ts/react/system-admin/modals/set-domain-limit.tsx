@@ -53,6 +53,12 @@ export class SetDomainLimitClientModal extends Form<
       errors: {},
       formIsValid: false,
     };
+
+    this.handleDomainLimitChange = this.handleDomainLimitChange.bind(this);
+    this.handleRequestorChange = this.handleRequestorChange.bind(this);
+    this.handleReasonChange = this.handleReasonChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.cancel = this.cancel.bind(this);
   }
 
   public render() {
