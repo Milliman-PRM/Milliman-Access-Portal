@@ -10,7 +10,7 @@ interface InputProps {
   label: string;
   type: string;
   value: string | number | string[];
-  onChange: (currentTarget: React.FormEvent<HTMLInputElement>) => void;
+  onChange: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => void;
   onBlur: (currentTarget: React.FormEvent<HTMLInputElement>) => void;
   onClick?: (currentTarget: React.FormEvent<HTMLInputElement> | null) => void;
   error: string;
@@ -38,6 +38,29 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref)
             name={name}
             id={name}
             ref={ref}
+            className="form-input"
+            placeholder={placeholderText || label}
+            readOnly={readOnly}
+            {...rest}
+          />
+          <label className="form-input-label" htmlFor={name}>{label}</label>
+        </div>
+        {children}
+      </div>
+      {error && <div className="error-message">{error}</div>}
+    </div>
+  );
+});
+
+export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, InputProps>((props) => {
+  const { name, label, error, placeholderText, children, readOnly, hidden, ...rest } = props;
+  return (
+    <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
+      <div className={'form-element' + (error ? ' error' : '')}>
+        <div className="form-input-container">
+          <input
+            name={name}
+            id={name}
             className="form-input"
             placeholder={placeholderText || label}
             readOnly={readOnly}
