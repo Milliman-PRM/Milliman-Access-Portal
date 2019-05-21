@@ -31,9 +31,11 @@ export class SetDomainLimitClientModal extends Form<
 
   protected schema = Yup.object({
     newDomainLimit: Yup.string()
-    .required()
+      .required()
+      .min(0)
     .label('New Domain Limit'),
     domainLimitRequestedByPersonName: Yup.string()
+    .email()
     .required()
     .label('Who Requested the Change?'),
     domainLimitReason: Yup.string()
@@ -141,11 +143,13 @@ export class SetDomainLimitClientModal extends Form<
   }
 
   private handleDomainLimitChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const data = {
-      ...this.state.data,
-      newDomainLimit: event.target.valueAsNumber.toString(),
-    };
-    this.setState({ data });
+    if (event.target.valueAsNumber >= 0) {
+      const data = {
+        ...this.state.data,
+        newDomainLimit: event.target.valueAsNumber.toString(),
+      };
+      this.setState({ data });
+    }
   }
 
   private handleReasonChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
