@@ -181,7 +181,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
               this.focusPasswordInput();
             });
           } else {
-            window.location.href = `/Account/RemoteAuthenticate?username=${this.state.data.username}`;
+            window.location.replace(`/Account/RemoteAuthenticate?username=${this.state.data.username}`);
           }
         })
         .catch(() => {
