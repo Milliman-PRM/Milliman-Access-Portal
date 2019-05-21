@@ -125,6 +125,7 @@ namespace MillimanAccessPortal
                     options.Wtrealm = schemeProperties.Wtrealm;
                     options.CallbackPath = $"{options.CallbackPath}-{scheme.Name}";
 
+                    #region WS-Federation middleware event overrides
                     // Event override to add username query parameter to adfs request
                     options.Events.OnRedirectToIdentityProvider = context =>
                     {
@@ -142,6 +143,22 @@ namespace MillimanAccessPortal
                         {
                             context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
                         }
+                        return Task.CompletedTask;
+                    };
+
+                    // Event override to handle all remote failures from WsFederation middleware
+                    options.Events.OnRemoteFailure = context =>
+                    {
+                        context.Response.Redirect("/");
+                        context.HandleResponse();
+                        return Task.CompletedTask;
+                    };
+
+                    // Event override to handle authentication failures from WsFederation middleware
+                    options.Events.OnAuthenticationFailed = context =>
+                    {
+                        context.Response.Redirect("/");
+                        context.HandleResponse();
                         return Task.CompletedTask;
                     };
 
@@ -229,8 +246,9 @@ namespace MillimanAccessPortal
                             }
                         }
 
-                        context.Response.Redirect("/Account/ExternalLoginCallbackAsync");
+                        context.Response.Redirect("/Account/ExternalLoginCallback");
                     };
+                    #endregion
                 });
             }
             authenticationBuilder.AddIdentityCookies();
@@ -488,7 +506,6 @@ namespace MillimanAccessPortal
 
                 Log.Information("MVC took {elapsed}ms", stopwatch.Elapsed.TotalMilliseconds);
             });
-
 
             app.UseMvc(routes =>
             {

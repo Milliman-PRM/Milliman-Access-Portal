@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.5.1
+
+- Fixed an issue where user login fails in certain unusual circumstances
+
 ### v1.5.0
 
 - Add support for Federated Authentication through external authentication providers

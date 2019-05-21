@@ -83,11 +83,18 @@ namespace MillimanAccessPortal.Controllers
         [LogTiming]
         public async Task<IActionResult> Login(string returnUrl = null)
         {
-            // Clear the existing external cookie to ensure a clean login process
-            await HttpContext.SignOutAsync();
-
-            ViewData["ReturnUrl"] = returnUrl;
-            return View();
+            if (string.IsNullOrWhiteSpace(User.Identity.Name) && !User.Identity.IsAuthenticated)
+            {
+                ViewData["ReturnUrl"] = returnUrl;
+                return View();
+            }
+            else
+            {
+                // Sign out current user and redirect back here to regenerate a valid antiforgery token
+                await HttpContext.SignOutAsync();
+                HttpContext.Session.Clear();
+                return RedirectToAction(nameof(Login), new { returnUrl });
+            }
         }
 
         //
@@ -169,7 +176,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
             {
-                string redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), new { ReturnUrl = "/AuthorizedContent/Index" });
+                string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { ReturnUrl = "/AuthorizedContent/Index" });
                 AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme.Name, redirectUrl);
                 properties.SetString("username", userName);
                 switch (scheme.Type)
@@ -420,16 +427,16 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("Entered AccountController.ExternalLogin action with {@Provider}", provider);
 
             // Request a redirect to the external login provider.
-            var redirectUrl = Url.Action(nameof(ExternalLoginCallbackAsync), "Account", new { ReturnUrl = returnUrl });
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { ReturnUrl = returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return Challenge(properties, provider);
         }
 
         //
-        // GET: /Account/ExternalLoginCallbackAsync
+        // GET: /Account/ExternalLoginCallback
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> ExternalLoginCallbackAsync(string returnUrl = null, string remoteError = null)
+        public IActionResult ExternalLoginCallback(string returnUrl = null, string remoteError = null)
         {
             Log.Verbose("Entered AccountController.ExternalLoginCallback action");
 
