@@ -86,7 +86,7 @@ export class SetDomainLimitClientModal extends Form<
           <Input
             name="domainLimitRequestedByPersonName"
             label="Who Requested the Change?"
-            type="string"
+            type="text"
             value={data.domainLimitRequestedByPersonName}
             onChange={this.handleRequestorChange}
             onBlur={this.handleBlur}
@@ -95,7 +95,6 @@ export class SetDomainLimitClientModal extends Form<
           <TextAreaInput
             name="domainLimitReason"
             label="Reason for Changing the Domain Limit"
-            type="string"
             value={data.domainLimitReason}
             onChange={this.handleReasonChange}
             onBlur={this.handleBlur}

@@ -5,20 +5,23 @@ import '../../../scss/react/shared-components/form-elements.scss';
 
 import * as React from 'react';
 
-interface InputProps {
+interface BaseInputProps {
   name: string;
   label: string;
-  type: string;
   value: string | number | string[];
   onChange: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => void;
-  onBlur: (currentTarget: React.FormEvent<HTMLInputElement>) => void;
-  onClick?: (currentTarget: React.FormEvent<HTMLInputElement> | null) => void;
+  onBlur: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => void;
+  onClick?: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement> | null) => void;
   error: string;
   placeholderText?: string;
   autoFocus?: boolean;
   inputIcon?: string;
   readOnly?: boolean;
   hidden?: boolean;
+}
+
+interface InputProps extends BaseInputProps {
+  type: string;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
@@ -52,15 +55,16 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref)
   );
 });
 
-export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, InputProps>((props) => {
+export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, BaseInputProps>((props, ref) => {
   const { name, label, error, placeholderText, children, readOnly, hidden, ...rest } = props;
   return (
     <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
       <div className={'form-element' + (error ? ' error' : '')}>
         <div className="form-input-container">
-          <input
+          <textarea
             name={name}
             id={name}
+            ref={ref}
             className="form-input"
             placeholder={placeholderText || label}
             readOnly={readOnly}
