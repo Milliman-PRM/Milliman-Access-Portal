@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using AuditLogLib.Models;
 using MapDbContextLib.Models;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -421,21 +422,8 @@ namespace AuditLogLib.Event
             {
                 SummaryGUID = summaryGUID,
             });
-        public static readonly AuditEventType<object> PreGoLiveSummary = new AuditEventType<object>(
-            6106, "Content publication pre-golive summary", (preliveSummary) => preliveSummary);
-        public class PreLiveSummaryLogObject
-        {
-            public Guid ValidationSummaryId { get; set; }
-            public Guid PublicationRequestId { get; set; }
-            public string AttestationLanguage { get; set; }
-            public string ContentDescription { get; set; }
-            public string RootContentName { get; set; }
-            public string ContentTypeName { get; set; }
-            public long LiveHierarchy { get; set; }
-            public long NewHierarchy { get; set; }
-            public bool DoesReduce { get; set; }
-            public long ClientName { get; set; }
-        }
+        public static readonly AuditEventType<PreLiveContentValidationSummaryLogModel> PreGoLiveSummary = new AuditEventType<PreLiveContentValidationSummaryLogModel>(
+            6106, "Content publication pre-golive summary", preliveSummary => preliveSummary);
         public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> ContentPublicationRejected = new AuditEventType<RootContentItem, ContentPublicationRequest>(
             6107, "Content publication rejected", (rootContentItem, publicationRequest) => new
             {

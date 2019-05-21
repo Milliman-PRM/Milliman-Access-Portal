@@ -86,7 +86,7 @@ namespace QlikviewLib.Qms
 
     public class QmsClientCreator
     {
-        public static IQMS New(string Url)
+        public async static Task<IQMS> New(string Url)
         {
             QMSClient Client =
                 string.IsNullOrWhiteSpace(Url) 
@@ -98,7 +98,7 @@ namespace QlikviewLib.Qms
 
             Client.Endpoint.EndpointBehaviors.Add(NewBehavior);
 
-            var sk = Client.GetTimeLimitedServiceKeyAsync().Result;
+            var sk = await Client.GetTimeLimitedServiceKeyAsync();
 
             foreach (ServiceKeyEndpointBehavior Behavior in Client.Endpoint.EndpointBehaviors.Where(b => b.GetType() == typeof(ServiceKeyEndpointBehavior)))
             {

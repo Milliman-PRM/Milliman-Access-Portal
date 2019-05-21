@@ -11,7 +11,7 @@ namespace MapCommonLib
         /// <param name="path">Path to the file to be deleted</param>
         /// <param name="attempts">Times to try deleting the directory before giving up</param>
         /// <param name="baseIntervalMs">Time to wait after initial attempt</param>
-        public static void DeleteFileWithRetry(string path, int attempts = 5, int baseIntervalMs = 500)
+        public static void DeleteFileWithRetry(string path, int attempts = 5, int baseIntervalMs = 200)
         {
             StaticUtil.ApplyRetryOperation<IOException, string>(File.Delete, attempts, baseIntervalMs, path);
         }
@@ -23,7 +23,7 @@ namespace MapCommonLib
         /// <param name="path">Path to the directory to be deleted</param>
         /// <param name="attempts">Times to try deleting the directory before giving up</param>
         /// <param name="baseIntervalMs">Time to wait after initial attempt</param>
-        public static void DeleteDirectoryWithRetry(string path, int attempts = 5, int baseIntervalMs = 500)
+        public static void DeleteDirectoryWithRetry(string path, int attempts = 5, int baseIntervalMs = 200)
         {
             StaticUtil.ApplyRetryOperation<IOException, string>(p => Directory.Delete(p, true), attempts, baseIntervalMs, path);
         }

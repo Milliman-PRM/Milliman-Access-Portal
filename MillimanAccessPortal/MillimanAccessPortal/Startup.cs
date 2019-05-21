@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Rewrite;
+using Microsoft.AspNetCore.Session;
 using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -33,12 +34,14 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
 using NetEscapades.AspNetCore.SecurityHeaders;
 using Newtonsoft.Json;
+using PowerBiLib;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -88,7 +91,6 @@ namespace MillimanAccessPortal
             services.AddIdentityCore<ApplicationUser>(config =>
                 {
                     config.SignIn.RequireConfirmedEmail = true;
-                    // TODO Does this work instead of the below?  config.Tokens.PasswordResetTokenProvider = tokenProviderName;
                 })
                 .AddRoles<ApplicationRole>()
                 .AddSignInManager()
@@ -158,7 +160,7 @@ namespace MillimanAccessPortal
                             Log.Error($"External authentication token received, but no authenticated user name was included in claim <{ClaimTypes.Name}> or <{ClaimTypes.NameIdentifier}>");
                             UriBuilder msg = new UriBuilder
                             {
-                                Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.Message)}",
                                 Query = "msg=The authenticating domain did not return your user name. Please email us at map.support@milliman.com and provide this error message and your user name.",
                             };
                             context.Response.Redirect(msg.Uri.PathAndQuery);
@@ -181,7 +183,7 @@ namespace MillimanAccessPortal
 
                                     UriBuilder msg = new UriBuilder
                                     {
-                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                        Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.Message)}",
                                         Query = "msg=Your login does not have a MAP account.  Please contact your Milliman consultant, or email map.support@milliman.com.",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
@@ -193,7 +195,7 @@ namespace MillimanAccessPortal
 
                                     UriBuilder msg = new UriBuilder
                                     {
-                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller", "")}/{nameof(Controllers.SharedController.Message)}",
+                                        Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.Message)}",
                                         Query = "msg=Your MAP account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email map.support@milliman.com.",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
@@ -201,13 +203,13 @@ namespace MillimanAccessPortal
                                 }
                                 else if (!_applicationUser.EmailConfirmed)
                                 {
-                                    Controllers.AccountController accountController = serviceProvider.GetService<Controllers.AccountController>();
+                                    AccountController accountController = serviceProvider.GetService<AccountController>();
                                     IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
                                     await accountController.SendNewAccountWelcomeEmail(_applicationUser, context.Request, appConfig["Global:DefaultNewUserWelcomeText"]);
 
                                     UriBuilder msg = new UriBuilder
                                     {
-                                        Path = $"/{nameof(Controllers.SharedController).Replace("Controller","")}/{nameof(Controllers.SharedController.Message)}",
+                                        Path = $"/{nameof(SharedController).Replace("Controller","")}/{nameof(SharedController.Message)}",
                                         Query = "msg=Your MAP account has not been activated. Please look for a welcome email from map.support@milliman.com and follow instructions in that message to activate the account."
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
@@ -229,7 +231,7 @@ namespace MillimanAccessPortal
                             }
                         }
 
-                        context.Response.Redirect("/Account/ExternalLoginCallbackAsync");
+                        context.Response.Redirect($"/Account/{nameof(AccountController.ExternalLoginCallback)}");
                     };
                 });
             }
@@ -283,6 +285,7 @@ namespace MillimanAccessPortal
             });
 
             services.Configure<QlikviewConfig>(Configuration);
+            services.Configure<PowerBiConfig>(Configuration);
             services.Configure<AuditLoggerConfiguration>(Configuration);
             services.Configure<SmtpConfig>(Configuration);
 
@@ -302,7 +305,8 @@ namespace MillimanAccessPortal
             .AddControllersAsServices()
             .AddJsonOptions(opt =>
             {
-                opt.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
+                opt.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
+                opt.SerializerSettings.NullValueHandling = NullValueHandling.Include;
             });
 
             services.AddApplicationInsightsTelemetry(Configuration);

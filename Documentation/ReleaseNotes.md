@@ -3,6 +3,7 @@
 ## Release Notes
 
 ### v1.6.0
+- Introduced support for PowerBI as a new content type
 - Converted the Forgot Password page to use React
 - Converted the Reset Password page to use React
 

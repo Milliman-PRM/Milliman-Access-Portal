@@ -71,7 +71,7 @@ namespace ContentPublishingServiceTests
                 {
                     System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
                 }
-                Assert.Equal(ReductionJobDetail.JobStatusEnum.Success, MonitorTask.Result.Status);
+                Assert.Equal(ReductionJobDetail.JobStatusEnum.Success, JobDetail.Status);
 
                 Assert.NotNull(TaskResult.MasterContentHierarchy);
                 Assert.Equal(3, TaskResult.MasterContentHierarchy.Fields.Count);
@@ -124,7 +124,7 @@ namespace ContentPublishingServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
-            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, MonitorTask.Result.Status);
+            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, JobDetail.Status);
 
             Assert.NotNull(TaskResult.MasterContentHierarchy);
             Assert.Equal(3, TaskResult.MasterContentHierarchy.Fields.Count);
@@ -175,7 +175,7 @@ namespace ContentPublishingServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
-            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, MonitorTask.Result.Status);
+            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, JobDetail.Status);
 
             Assert.NotNull(TaskResult.MasterContentHierarchy);
             Assert.Equal(3, TaskResult.MasterContentHierarchy.Fields.Count);
@@ -227,7 +227,7 @@ namespace ContentPublishingServiceTests
             {
                 System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
             }
-            Assert.Equal(ReductionJobDetail.JobStatusEnum.Success, MonitorTask.Result.Status);
+            Assert.Equal(ReductionJobDetail.JobStatusEnum.Success, JobDetail.Status);
 
             Assert.NotNull(TaskResult.MasterContentHierarchy);
             Assert.Equal(3, TaskResult.MasterContentHierarchy.Fields.Count);
@@ -282,7 +282,7 @@ namespace ContentPublishingServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
-            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, MonitorTask.Result.Status);
+            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, JobDetail.Status);
             Assert.Null(TaskResult.MasterContentHierarchy);
             Assert.Null(TaskResult.ReducedContentHierarchy);
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
