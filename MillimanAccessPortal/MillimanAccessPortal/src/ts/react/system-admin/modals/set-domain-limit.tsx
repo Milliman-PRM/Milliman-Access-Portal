@@ -65,59 +65,55 @@ export class SetDomainLimitClientModal extends Form<
         className="modal"
         overlayClassName="modal-overlay"
       >
-        <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
-          <div className="form-section">
-            <form onSubmit={this.handleSubmit}>
-              <h3 className="form-section-title">Set Domain Limits</h3>
-              <Input
-                name="newDomainLimit"
-                label="New Domain Limit"
-                type="number"
-                value={data.newDomainLimit}
-                onChange={this.handleDomainLimitChange}
-                onBlur={this.handleBlur}
-                error={errors.newDomainLimit}
-                autoFocus={true}
-              />
-              <Input
-                name="domainLimitRequestedByPersonName"
-                label="Who Requested the Change?"
-                type="string"
-                value={data.domainLimitRequestedByPersonName}
-                onChange={this.handleRequestorChange}
-                onBlur={this.handleBlur}
-                error={errors.domainLimitRequestedByPersonName}
-              />
-              <TextAreaInput
-                name="domainLimitReason"
-                label="Reason for Changing the Domain Limit"
-                type="string"
-                value={data.domainLimitReason}
-                onChange={this.handleReasonChange}
-                onBlur={this.handleBlur}
-                error={errors.domainLimitReason}
-              />
-              <div className="button-container">
-                <button
-                  type="button"
-                  className="blue-button"
-                  onClick={this.cancel}
-                >
-                  Cancel
-                </button>
-              </div>
-              <div className="button-container">
-                <button
-                  type="submit"
-                  disabled={!formIsValid}
-                  className="blue-button"
-                >
-                  Update Domain Limits
-                </button>
-              </div>
-            </form>
+        <form onSubmit={this.handleSubmit}>
+          <h3 className="form-section-title">Set Domain Limits</h3>
+          <Input
+            name="newDomainLimit"
+            label="New Domain Limit"
+            type="number"
+            value={data.newDomainLimit}
+            onChange={this.handleDomainLimitChange}
+            onBlur={this.handleBlur}
+            error={errors.newDomainLimit}
+            autoFocus={true}
+          />
+          <Input
+            name="domainLimitRequestedByPersonName"
+            label="Who Requested the Change?"
+            type="string"
+            value={data.domainLimitRequestedByPersonName}
+            onChange={this.handleRequestorChange}
+            onBlur={this.handleBlur}
+            error={errors.domainLimitRequestedByPersonName}
+          />
+          <TextAreaInput
+            name="domainLimitReason"
+            label="Reason for Changing the Domain Limit"
+            type="string"
+            value={data.domainLimitReason}
+            onChange={this.handleReasonChange}
+            onBlur={this.handleBlur}
+            error={errors.domainLimitReason}
+          />
+          <div className="button-container">
+            <button
+              type="button"
+              className="blue-button"
+              onClick={this.cancel}
+            >
+              Cancel
+            </button>
           </div>
-        </div>
+          <div className="button-container">
+            <button
+              type="submit"
+              disabled={!formIsValid}
+              className="blue-button"
+            >
+              Update Domain Limits
+            </button>
+          </div>
+        </form>
       </Modal>
     );
   }
