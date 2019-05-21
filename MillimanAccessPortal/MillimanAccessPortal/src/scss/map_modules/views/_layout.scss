@@ -1,4 +1,9 @@
-﻿#content-wrapper {
+﻿body {
+    display: flex;
+    flex-direction: column;
+ }
+
+#content-wrapper {
     display: flex;
     flex-flow: column nowrap;
     height: 100vh;
