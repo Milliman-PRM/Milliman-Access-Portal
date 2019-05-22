@@ -137,6 +137,15 @@ export class SetDomainLimitClientModal extends Form<
     .then(() => {
       alert('Domain limit updated.');
       this.props.onRequestClose(null);
+      this.setState({
+        data: {
+          newDomainLimit: this.state.data.newDomainLimit,
+          domainLimitRequestedByPersonName: '',
+          domainLimitReason: '',
+        },
+        errors: {},
+        formIsValid: false,
+      });
     })
     .catch((err) => {
       alert(err);
