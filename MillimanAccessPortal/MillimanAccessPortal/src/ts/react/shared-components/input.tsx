@@ -56,7 +56,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref)
 });
 
 export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, BaseInputProps>((props, ref) => {
-  const { name, label, error, placeholderText, children, readOnly, hidden, ...rest } = props;
+  const { name, label, error, placeholderText, children, readOnly, hidden, value, ...rest } = props;
   return (
     <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
       <div className={'form-element-textarea' + (error ? ' error' : '')}>
@@ -68,6 +68,7 @@ export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, BaseInputProp
             className="form-input"
             placeholder={placeholderText || label}
             readOnly={readOnly}
+            data-input-value={value}
             {...rest}
           />
           <label className="form-input-label" htmlFor={name}>{label}</label>
