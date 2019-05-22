@@ -112,7 +112,8 @@ export class SetDomainLimitClientModal extends Form<
             </button>
             <button
               type="submit"
-              disabled={!formIsValid}
+              disabled={!formIsValid
+                || this.props.existingDomainLimit.toString() === this.state.data.newDomainLimit}
               className="blue-button"
             >
               Update Domain Limits
