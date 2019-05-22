@@ -18,7 +18,7 @@ module.exports = {
     'forgot-password': './src/ts/react/forgot-password/index.tsx',
     'login': './src/ts/react/login/index.tsx',
     'message': './src/ts/message.ts',
-    'reset-password': './src/ts/reset-password.ts',
+    'reset-password': './src/ts/react/reset-password/index.tsx',
     'system-admin': './src/ts/react/system-admin/index.tsx',
   },
   output: {

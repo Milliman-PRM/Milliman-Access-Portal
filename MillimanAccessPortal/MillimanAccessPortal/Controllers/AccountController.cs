@@ -85,11 +85,18 @@ namespace MillimanAccessPortal.Controllers
         [LogTiming]
         public async Task<IActionResult> Login(string returnUrl = null)
         {
-            // Clear the existing external cookie to ensure a clean login process
-            await HttpContext.SignOutAsync();
-
-            ViewData["ReturnUrl"] = returnUrl;
-            return View();
+            if (string.IsNullOrWhiteSpace(User.Identity.Name) && !User.Identity.IsAuthenticated)
+            {
+                ViewData["ReturnUrl"] = returnUrl;
+                return View();
+            }
+            else
+            {
+                // Sign out current user and redirect back here to regenerate a valid antiforgery token
+                await HttpContext.SignOutAsync();
+                HttpContext.Session.Clear();
+                return RedirectToAction(nameof(Login), new { returnUrl });
+            }
         }
 
         //
