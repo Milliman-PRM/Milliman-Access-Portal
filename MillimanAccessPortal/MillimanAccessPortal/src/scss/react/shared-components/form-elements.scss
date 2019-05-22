@@ -33,11 +33,11 @@
     }
 
 
-    .form-element {
+    .form-element-input,
+    .form-element-textarea {
         position: relative;
         display: flex;
         flex-flow: row nowrap;
-        height: 3.5rem;
         width: 100%;
         align-self: flex-start;
         margin-bottom: .5rem;
@@ -99,7 +99,8 @@
             background-color: $white;
 
 
-            input.form-input {
+            input.form-input,
+            textarea.form-input {
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -120,6 +121,7 @@
                 }
 
                 &:not([value='']),
+                &:not([data-input-value='']),
                 &:focus {
                     padding: 1.25rem .5rem .1rem;
                 }
@@ -127,6 +129,7 @@
                 &[readonly] + .form-input-label,
                 &[disabled] + .form-input-label,
                 &:not([value='']) + .form-input-label,
+                &:not([data-input-value='']) + .form-input-label,
                 &:focus + .form-input-label {
                     top: 0;
                     opacity: 1;
@@ -156,75 +159,12 @@
         }
     }
 
+    .form-element-input {
+        height: 3.5rem;
+    }
+
     .form-element-textarea {
-        position: relative;
-        display: flex;
-        flex-flow: row nowrap;
         min-height: 10rem;
-        width: 100%;
-        align-self: flex-start;
-        margin-bottom: .5rem;
-
-        &.error {
-            border: 2px solid $red;
-        }
-
-        .form-input-container {
-            flex: 1 0 auto;
-            position: relative;
-            border: 1px solid $charcoal;
-            background-color: $white;
-
-            textarea.form-input {
-                font-size: 1.25rem;
-                border: none;
-                background-color: transparent;
-                color: $charcoal;
-                transition: all .25s;
-
-                &:focus:not([readonly]) {
-
-                    & + .form-input-label {
-                        color: $blue;
-                        font-weight: bold;
-                    }
-                }
-
-                &:not([data-input-value='']),
-                &:focus {
-                    padding: 1.25rem .5rem .1rem;
-                }
-
-                &[readonly] + .form-input-label,
-                &[disabled] + .form-input-label,
-                &:not([data-input-value='']) + .form-input-label,
-                &:focus + .form-input-label {
-                    top: 0;
-                    opacity: 1;
-                    transition: opacity .5s, top .5s;
-                }
-
-                &[readonly],
-                &[disabled],
-                &:focus {
-                    &::placeholder {
-                        color: transparent;
-                    }
-                }
-            }
-
-            .form-input-label {
-                position: absolute;
-                top: .25rem;
-                left: 0;
-                padding: .25rem .5rem;
-                font-size: .75rem;
-                font-weight: 300;
-                color: $dark-grey;
-                opacity: 0;
-                pointer-events: none;
-            }
-        }
     }
 }
 

@@ -28,7 +28,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref)
   const { name, label, error, inputIcon, placeholderText, children, readOnly, hidden, ...rest } = props;
   return (
     <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
-      <div className={'form-element' + (error ? ' error' : '')}>
+      <div className={'form-element-input' + (error ? ' error' : '')}>
         {inputIcon && (
           <div className="input-icon-label">
             <svg className="input-icon">
