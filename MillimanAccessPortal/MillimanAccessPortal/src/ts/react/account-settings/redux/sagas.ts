@@ -57,7 +57,7 @@ export default function* rootSaga() {
       ? 'Your session has expired. Please refresh the page.'
       : isNaN(message)
         ? message
-        : 'An unexpected error has occured.',
+        : 'An unexpected error has occurred.',
     'error');
 
   // Validation

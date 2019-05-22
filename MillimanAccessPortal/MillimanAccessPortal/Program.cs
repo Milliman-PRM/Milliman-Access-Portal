@@ -74,7 +74,8 @@ namespace MillimanAccessPortal
             .ConfigureLogging((hostingContext, config) => config.ClearProviders())  // remove ASP default logger
             ;
 
-            if (new List<string> { "DEVELOPMENT", "STAGING" }.Contains(EnvironmentNameUpper))
+            if (new List<string> { "DEVELOPMENT", "STAGING" }.Contains(EnvironmentNameUpper) &&
+                Environment.GetEnvironmentVariable("SUPPRESS_MAP_WEBHOST_LOGGING") == null)
             {
                 // includes highly detailed .NET logging to the Serilog sinks
                 webHost = webHost.UseSerilog();
