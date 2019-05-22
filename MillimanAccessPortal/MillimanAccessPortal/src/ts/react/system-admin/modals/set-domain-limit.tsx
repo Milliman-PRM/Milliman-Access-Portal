@@ -148,16 +148,17 @@ export class SetDomainLimitClientModal extends Form<
         ...this.state.data,
         newDomainLimit: event.target.valueAsNumber.toString(),
       };
-      this.setState({ data });
-    }
-  }
 
-  private handleReasonChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const data = {
-      ...this.state.data,
-      domainLimitReason: event.target.value,
-    };
-    this.setState({ data });
+      const errorMessage = this.validateProperty(event.target.valueAsNumber.toString());
+      const errors = {...this.state.errors};
+      this.validate();
+
+      if (!errorMessage) {
+        delete errors[data.newDomainLimit];
+      }
+
+      this.setState({ data, errors });
+    }
   }
 
   private handleRequestorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,8 +166,34 @@ export class SetDomainLimitClientModal extends Form<
       ...this.state.data,
       domainLimitRequestedByPersonName: event.target.value,
     };
-    this.setState({ data });
+
+    const errorMessage = this.validateProperty(event.target.value);
+    const errors = {...this.state.errors};
+    this.validate();
+
+    if (!errorMessage) {
+      delete errors[data.domainLimitRequestedByPersonName];
+    }
+
+    this.setState({ data, errors });
   }
+
+  private handleReasonChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const data = {
+      ...this.state.data,
+      domainLimitReason: event.target.value,
+    };
+
+    const errorMessage = this.validateProperty(event.target.value);
+    const errors = {...this.state.errors};
+    this.validate();
+
+    if (!errorMessage) {
+      delete errors[data.domainLimitReason];
+    }
+
+    this.setState({ data, errors });
+}
 
   private cancel(event: React.MouseEvent<HTMLButtonElement>) {
     this.props.onRequestClose(event.nativeEvent);
