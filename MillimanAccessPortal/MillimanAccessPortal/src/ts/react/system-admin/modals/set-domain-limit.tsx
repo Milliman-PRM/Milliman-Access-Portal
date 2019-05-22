@@ -33,14 +33,14 @@ export class SetDomainLimitClientModal extends Form<
     newDomainLimit: Yup.string()
       .required()
       .min(0)
-    .label('New Domain Limit'),
+      .label('New Domain Limit'),
     domainLimitRequestedByPersonName: Yup.string()
-    .email()
-    .required()
-    .label('Who Requested the Change?'),
+      .email()
+      .required()
+      .label('Who Requested the Change?'),
     domainLimitReason: Yup.string()
-    .required()
-    .label('Reason for Changing the Domain Limit'),
+      .required()
+      .label('Reason for Changing the Domain Limit'),
   });
 
   public constructor(props: SetDomainLimitClientModalProps) {
