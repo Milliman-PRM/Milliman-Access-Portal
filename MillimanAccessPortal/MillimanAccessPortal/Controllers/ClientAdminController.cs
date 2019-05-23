@@ -807,6 +807,14 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", $"The client name already exists for another client: ({Model.Name})");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
+            // Domain limit must not exceed the default
+            if (Model.DomainListCountLimit != GlobalFunctions.DefaultClientDomainListCountLimit)
+            {
+                Log.Debug($"In ClientAdminController.SaveNewClient action: The provided domain count limit ({Model.DomainListCountLimit}) does not match the default ({GlobalFunctions.DefaultClientDomainListCountLimit})");
+                Response.Headers.Add("Warning", $"The domain list count limit does not match the system default");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion Validation
 
             // Make sure current user is allowed by email or domain whitelist
