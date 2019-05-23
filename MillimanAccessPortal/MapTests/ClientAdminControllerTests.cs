@@ -719,6 +719,29 @@ namespace MapTests
         }
 
         /// <summary>
+        /// Validate that status code 422 is returned when excessive domains are requested
+        /// </summary>
+        [Fact]
+        public async Task SaveNewClient_ErrorWhenDomainLimitExceeded()
+        {
+            #region Arrange
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+            testClient.ParentClientId = null;
+            testClient.AcceptedEmailDomainList = new List<string> { "test1.com", "test2.com", "test3.com", "test4.com" };
+            #endregion
+
+            #region Act
+            var view = await controller.SaveNewClient(testClient);
+            #endregion
+
+            #region Assert
+            StatusCodeResult result = Assert.IsType<StatusCodeResult>(view);
+            Assert.Equal(422, result.StatusCode);
+            #endregion
+        }
+
+        /// <summary>
         /// Validate that new clients are added successfully when the model is valid and the user is authorized
         /// </summary>
         [Fact]
@@ -803,6 +826,31 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<UnauthorizedResult>(view);
+            #endregion
+        }
+
+        /// <summary>
+        /// Validate that EditClient call with domain list exceeding the limit causes 422 error
+        /// </summary>
+        [Fact]
+        public async Task EditClient_ErrorWhenDomainLimitExceeded()
+        {
+            #region Arrange
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+            testClient.AcceptedEmailDomainList = new List<string> { "test1.com", "test2.com", "test3.com", "test4.com" };
+            testClient.Id = TestUtil.MakeTestGuid(1);
+            testClient.ParentClientId = TestResources.DbContextObject.Client.Find(testClient.Id).ParentClientId;
+            testClient.ProfitCenterId = TestResources.DbContextObject.Client.Find(testClient.Id).ProfitCenterId;
+            #endregion
+
+            #region Act
+            var view = await controller.EditClient(testClient);
+            #endregion
+
+            #region Assert
+            StatusCodeResult result = Assert.IsType<StatusCodeResult>(view);
+            Assert.Equal(422, result.StatusCode);
             #endregion
         }
 
