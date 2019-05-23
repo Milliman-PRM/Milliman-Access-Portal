@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-
 import '../images/icons/add.svg';
 import '../images/icons/cancel.svg';
 import '../images/icons/collapse-cards.svg';
@@ -44,7 +42,6 @@ let formObject: FormBase;
 let defaultWelcomeText: string;
 let statusMonitor: StatusMonitor<null>;
 let clientDomainLimit: number;
-// To Do: Get this information from server
 let nonLimitedDomains: string[];
 
 document.addEventListener('DOMContentLoaded', () => {
