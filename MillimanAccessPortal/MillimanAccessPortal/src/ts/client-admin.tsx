@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-
 import '../images/icons/add.svg';
 import '../images/icons/cancel.svg';
 import '../images/icons/collapse-cards.svg';
@@ -44,8 +42,8 @@ let formObject: FormBase;
 let defaultWelcomeText: string;
 let statusMonitor: StatusMonitor<null>;
 let clientDomainLimit: number;
-// To Do: Get this information from server
 let nonLimitedDomains: string[];
+let defaultClientDomainListCountLimit: number;
 
 document.addEventListener('DOMContentLoaded', () => {
   const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');
@@ -65,6 +63,7 @@ function removeClientInserts() {
 
 function clearClientSelection() {
   $('.card-body-container').removeAttr('editing selected');
+  clientDomainLimit = defaultClientDomainListCountLimit;
 }
 
 function hideClientDetails() {
@@ -120,7 +119,6 @@ function populateClientForm(response: any) {
         field.val(value);
       } else if (keyU === 'DomainListCountLimit') {
         clientDomainLimit = value;
-        console.log(clientDomainLimit);
       } else {
         field.val(value);
       }
@@ -380,6 +378,8 @@ function openClientCardReadOnly($clientCard: any, callback: () => void = null) {
 function openNewClientForm() {
   clearClientSelection();
   setupClientForm();
+  clientDomainLimit = defaultClientDomainListCountLimit;
+  updateDomainLimitUsage(0);
   formObject.accessMode = AccessMode.Write;
   $('#new-client-card').find('div.card-body-container').attr('selected', '');
   hideClientUsers();
@@ -614,6 +614,7 @@ function getClientTree(clientId?: any) {
     defaultWelcomeText = response.systemDefaultWelcomeEmailText;
     $('#client-tree .loading-wrapper').hide();
     nonLimitedDomains = response.nonLimitedDomains.map((x: string) => x.toLowerCase());
+    defaultClientDomainListCountLimit = response.defaultDomainLimit;
   }).fail(function onFail(response) {
     $('#client-tree .loading-wrapper').hide();
     toastr.warning(response.getResponseHeader('Warning')
