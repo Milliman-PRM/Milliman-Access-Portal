@@ -72,7 +72,8 @@ WHERE ctid IN
         FROM public."UserInSelectionGroup" usg 
             LEFT JOIN map."UserInSelectionGroup" musg ON usg."UserId" = musg."UserId" AND usg."SelectionGroupId" = musg."SelectionGroupId"
         WHERE musg."Id" IS NULL
-    );
+    )
+ON CONFLICT ON CONSTRAINT "UNIQUE_User_SelectionGroup_Current" DO NOTHING;
 
 -- Insert currently applicable records
 INSERT INTO public."UserInSelectionGroup"
