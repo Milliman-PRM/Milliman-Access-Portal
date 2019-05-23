@@ -26,17 +26,28 @@ To increase the effectiveness of the issue backlog, it is helpful to categorize 
 
 #### Issue Triage
 
+Identifying high priority issues quickly is important to maintaining a stable application.  As issues are created, it is important for the project manager to identify the severity of the issue and prioritize them according to the following criteria:
+
+- Does the issue represent a threat to application security?
+- Does the issue prevent users from performing a vital task?
+- Does the issue cause the user to receive incorrect results?
+- Does the issue make the application appear less secure?
+
 #### Milestone Creation
 
 To better track upcoming work, it is important to create release Milestones for each major release.  As work is planned it should be tagged with the appropriate Milestone, and as pre-release branches are completed and merged they should be closed as part of the release process.
 
 ### Release Planning and Prioritization
 
-#### Determining Business Need
+There are many factors to take into account when planning for an upcoming release of the application. In general, feature releases are built around one or two main features, with several smaller ehancements and bug fixes added to round out the work.  These smaller parts of the release should be chosen based on priority, proximity or relationship to other work in the release, and the availability of development resources during the duration of the release cycle.  Finally, it is generally preferrable to keep releases small to keep turnaround time manageable.
 
 #### Defining Requirements
 
+Before starting development of a new feature or enhancement, it is important to make sure that the work is well-defined.  This should be accomplished by the creation of a set of requirements that outline what constitutes a completed feature.  Once the intial requirements have been authored, they should be signed off on by the project manager to ensure that the feature fits within the larger picture of the application.
+
 #### Research / Proof of Concept
+
+For larger features where there are significant unknowns, it is often a good time investment to research potential options and to create a proof of concept project to verify assumptions.  In general the time spent in this phase will pay off with smoother release cycles and a better end product.  Additionally, having filled in many of the unknowns, it is much easier to judge the amount of time needed to complete the feature.
 
 ### Development
 
