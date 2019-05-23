@@ -57,7 +57,7 @@ namespace MapDbContextLib.Context
 
         [Required]
         [Display(Name = "Email Domain List Count Limit")]
-        public int DomainListCountLimit { get; set; } = GlobalFunctions.ClientDomainListCountLimit;
+        public int DomainListCountLimit { get; set; } = GlobalFunctions.DefaultClientDomainListCountLimit;
 
         [Required]
         [Display(Name = "Approved Email Address Exception List")]
