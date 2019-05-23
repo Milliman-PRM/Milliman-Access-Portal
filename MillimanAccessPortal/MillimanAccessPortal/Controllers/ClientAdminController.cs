@@ -808,11 +808,11 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            // Domain limit must not exceed the default
-            if (Model.DomainListCountLimit != GlobalFunctions.DefaultClientDomainListCountLimit)
+            // Apply domain limit
+            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains).Count() > GlobalFunctions.DefaultClientDomainListCountLimit)
             {
-                Log.Debug($"In ClientAdminController.SaveNewClient action: The provided domain count limit ({Model.DomainListCountLimit}) does not match the default ({GlobalFunctions.DefaultClientDomainListCountLimit})");
-                Response.Headers.Add("Warning", $"The domain list count limit does not match the system default");
+                Log.Debug($"In ClientAdminController.SaveNewClient action: number of domains subject to limit ({{@Domains}}> exceeds the default limit of {GlobalFunctions.DefaultClientDomainListCountLimit}, aborting", Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains));
+                Response.Headers.Add("Warning", $"The requested domain list exceeds the default limit");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion Validation
