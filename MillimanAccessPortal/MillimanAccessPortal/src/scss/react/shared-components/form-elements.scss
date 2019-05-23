@@ -120,16 +120,16 @@
                     }
                 }
 
-                &:not([value='']),
-                &:not([data-input-value='']),
+                &[value]:not([value='']),
+                &[data-input-value]:not([data-input-value='']),
                 &:focus {
                     padding: 1.25rem .5rem .1rem;
                 }
 
                 &[readonly] + .form-input-label,
                 &[disabled] + .form-input-label,
-                &:not([value='']) + .form-input-label,
-                &:not([data-input-value='']) + .form-input-label,
+                &[value]:not([value='']) + .form-input-label,
+                &[data-input-value]:not([data-input-value='']) + .form-input-label,
                 &:focus + .form-input-label {
                     top: 0;
                     opacity: 1;
