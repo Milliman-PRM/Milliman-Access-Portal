@@ -1089,6 +1089,37 @@ namespace MapTests
             #endregion
         }
 
+        /// <summary>
+        /// Validate that EditClient call with domain list exceeding the limit causes error
+        /// </summary>
+        [Fact]
+        public async Task UpdateClient_ErrorWhenDomainLimitExceeded()
+        {
+            #region Arrange
+            SystemAdminController controller = await GetControllerForUser("sysAdmin1");
+            Client testClient = _testResources.DbContextObject.Client.Find(TestUtil.MakeTestGuid(1));
+            var updateObj = new ClientUpdate
+            {
+                ClientId = testClient.Id,
+                DomainLimitChange = new ClientUpdate.DomainLimitUpdate
+                {
+                    DomainLimitRequestedByPersonName = "xyz",
+                    DomainLimitReason = "Not telling",
+                    NewDomainLimit = 1,
+                }
+            };
+            #endregion
+
+            #region Act
+            var view = await controller.UpdateClient(updateObj);
+            #endregion
+
+            #region Assert
+            StatusCodeResult result = Assert.IsType<StatusCodeResult>(view);
+            Assert.Equal(422, result.StatusCode);
+            #endregion
+        }
+
         #endregion
 
         #region Remove/delete action tests
