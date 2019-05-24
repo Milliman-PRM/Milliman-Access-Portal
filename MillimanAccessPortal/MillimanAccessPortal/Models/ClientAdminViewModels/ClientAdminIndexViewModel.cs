@@ -23,6 +23,8 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         public List<AuthorizedProfitCenterModel> AuthorizedProfitCenterList { get; set; } = new List<AuthorizedProfitCenterModel>();
         public Guid RelevantClientId { get; set; } = Guid.Empty;
         public string SystemDefaultWelcomeEmailText { get; set; }
+        public List<string> NonLimitedDomains { get; protected set; } = GlobalFunctions.NonLimitedDomains;
+        public int DefaultDomainLimit { get; set; } = GlobalFunctions.DefaultClientDomainListCountLimit;
 
         public static async Task<ClientAdminIndexViewModel> GetClientAdminIndexModelForUser(ApplicationUser CurrentUser, UserManager<ApplicationUser> UserManager, ApplicationDbContext DbContext, string SystemDefaultWelcomeEmailTextArg = null)
         {

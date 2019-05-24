@@ -67,8 +67,7 @@ namespace MapTests
                 ConsultantEmail = "consultant@example.com",
                 ConsultantName = "Test Consultant",
                 ConsultantOffice = "Indy PRM Testing",
-                AcceptedEmailAddressExceptionList = new string[] { },
-                AcceptedEmailDomainList = new string[] { "placeholder.com" },
+                AcceptedEmailDomainList = new List<string> { "placeholder.com" },
                 ParentClientId = TestUtil.MakeTestGuid(2),
                 ProfitCenterId = TestUtil.MakeTestGuid(1)
             };
@@ -704,11 +703,11 @@ namespace MapTests
             testClient.ParentClientId = null;
             if (domainListArg != null)
             {
-                testClient.AcceptedEmailDomainList = domainListArg;
+                testClient.AcceptedEmailDomainList = domainListArg.ToList();
             }
             if (emailListArg != null)
             {
-                testClient.AcceptedEmailAddressExceptionList = emailListArg;
+                testClient.AcceptedEmailAddressExceptionList = emailListArg.ToList();
             }
             var view = await controller.SaveNewClient(testClient);
             #endregion
@@ -716,6 +715,29 @@ namespace MapTests
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
             Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+            #endregion
+        }
+
+        /// <summary>
+        /// Validate that status code 422 is returned when excessive domains are requested
+        /// </summary>
+        [Fact]
+        public async Task SaveNewClient_ErrorWhenDomainLimitExceeded()
+        {
+            #region Arrange
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+            testClient.ParentClientId = null;
+            testClient.AcceptedEmailDomainList = new List<string> { "test1.com", "test2.com", "test3.com", "test4.com" };
+            #endregion
+
+            #region Act
+            var view = await controller.SaveNewClient(testClient);
+            #endregion
+
+            #region Assert
+            StatusCodeResult result = Assert.IsType<StatusCodeResult>(view);
+            Assert.Equal(422, result.StatusCode);
             #endregion
         }
 
@@ -808,6 +830,31 @@ namespace MapTests
         }
 
         /// <summary>
+        /// Validate that EditClient call with domain list exceeding the limit causes 422 error
+        /// </summary>
+        [Fact]
+        public async Task EditClient_ErrorWhenDomainLimitExceeded()
+        {
+            #region Arrange
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+            testClient.AcceptedEmailDomainList = new List<string> { "test1.com", "test2.com", "test3.com", "test4.com" };
+            testClient.Id = TestUtil.MakeTestGuid(1);
+            testClient.ParentClientId = TestResources.DbContextObject.Client.Find(testClient.Id).ParentClientId;
+            testClient.ProfitCenterId = TestResources.DbContextObject.Client.Find(testClient.Id).ProfitCenterId;
+            #endregion
+
+            #region Act
+            var view = await controller.EditClient(testClient);
+            #endregion
+
+            #region Assert
+            StatusCodeResult result = Assert.IsType<StatusCodeResult>(view);
+            Assert.Equal(422, result.StatusCode);
+            #endregion
+        }
+
+        /// <summary>
         /// Validate that changing the parent client is not supported
         /// </summary>
         [Fact]
@@ -873,12 +920,12 @@ namespace MapTests
 
             if (domainWhitelistArg != null)
             {
-                testClient.AcceptedEmailDomainList = domainWhitelistArg;
+                testClient.AcceptedEmailDomainList = domainWhitelistArg.ToList();
             }
 
             if (addressWhitelistArg != null)
             {
-                testClient.AcceptedEmailAddressExceptionList = addressWhitelistArg;
+                testClient.AcceptedEmailAddressExceptionList = addressWhitelistArg.ToList();
             }
             #endregion 
 
@@ -923,8 +970,8 @@ namespace MapTests
             testClient.ConsultantEmail = "editconsultant@example2.com";
             testClient.ConsultantName = "Edit consultant name";
             testClient.ConsultantOffice = "Edit consultant office";
-            testClient.AcceptedEmailAddressExceptionList = new string[] { "edit1@example.com,edit2@example.com", "edit3@example.com" };
-            testClient.AcceptedEmailDomainList = new string[] { "editexample.com", "example2.com" };
+            testClient.AcceptedEmailAddressExceptionList = new List<string> { "edit1@example.com,edit2@example.com", "edit3@example.com" };
+            testClient.AcceptedEmailDomainList = new List<string> { "editexample.com", "example2.com" };
             #endregion 
 
             var view = await controller.EditClient(testClient);

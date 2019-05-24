@@ -5,14 +5,13 @@ import '../../../scss/react/shared-components/form-elements.scss';
 
 import * as React from 'react';
 
-interface InputProps {
+interface BaseInputProps {
   name: string;
   label: string;
-  type: string;
   value: string | number | string[];
-  onChange: (currentTarget: React.FormEvent<HTMLInputElement>) => void;
-  onBlur: (currentTarget: React.FormEvent<HTMLInputElement>) => void;
-  onClick?: (currentTarget: React.FormEvent<HTMLInputElement> | null) => void;
+  onChange: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => void;
+  onBlur: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => void;
+  onClick?: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement> | null) => void;
   error: string;
   placeholderText?: string;
   autoFocus?: boolean;
@@ -21,11 +20,15 @@ interface InputProps {
   hidden?: boolean;
 }
 
+interface InputProps extends BaseInputProps {
+  type: string;
+}
+
 export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
   const { name, label, error, inputIcon, placeholderText, children, readOnly, hidden, ...rest } = props;
   return (
     <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
-      <div className={'form-element' + (error ? ' error' : '')}>
+      <div className={'form-element-input' + (error ? ' error' : '')}>
         {inputIcon && (
           <div className="input-icon-label">
             <svg className="input-icon">
@@ -41,6 +44,31 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref)
             className="form-input"
             placeholder={placeholderText || label}
             readOnly={readOnly}
+            {...rest}
+          />
+          <label className="form-input-label" htmlFor={name}>{label}</label>
+        </div>
+        {children}
+      </div>
+      {error && <div className="error-message">{error}</div>}
+    </div>
+  );
+});
+
+export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, BaseInputProps>((props, ref) => {
+  const { name, label, error, placeholderText, children, readOnly, hidden, value, ...rest } = props;
+  return (
+    <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
+      <div className={'form-element-textarea' + (error ? ' error' : '')}>
+        <div className="form-input-container">
+          <textarea
+            name={name}
+            id={name}
+            ref={ref}
+            className="form-input"
+            placeholder={placeholderText || label}
+            readOnly={readOnly}
+            data-input-value={value}
             {...rest}
           />
           <label className="form-input-label" htmlFor={name}>{label}</label>

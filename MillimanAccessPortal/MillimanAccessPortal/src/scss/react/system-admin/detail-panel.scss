@@ -35,6 +35,11 @@
                     width: 65%;
                     display: inline-block;
                     vertical-align: top;
+
+                    ul {
+                        list-style: none;
+                        padding: 0;
+                    }
                 }
             }
 

@@ -16,6 +16,7 @@ interface PrimaryDetailPanelProps {
   checkedSystemAdmin: boolean;
   onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSuspended: boolean;
+  doDomainLimitOpen: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps> {
@@ -115,6 +116,34 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     <div className="detail-container">
                       <span className="detail-label">Phone</span>
                       <span className="detail-value">{clientDetail.clientContactPhone}</span>
+                    </div>
+                    <div className="detail-container">
+                      <span className="detail-label">Email Domain(s)</span>
+                      <span className="detail-value">
+                        <ul>
+                          {clientDetail.acceptedEmailDomainList.map((x, i) => (<li key={i}>{x}</li>))}
+                        </ul>
+                      </span>
+                    </div>
+                    <div className="detail-container">
+                      <span className="detail-label">Email Exception(s)</span>
+                      <span className="detail-value">
+                        <ul>
+                          {clientDetail.acceptedEmailAddressExceptionList.map((x, i) => (<li key={i}>{x}</li>))}
+                        </ul>
+                      </span>
+                    </div>
+                    <div className="detail-container">
+                      <span className="detail-label">Domain Limit</span>
+                      <span className="detail-value">
+                        {clientDetail.domainListCountLimit}
+                        <button
+                          className="link-button inline-link-button"
+                          onClick={this.props.doDomainLimitOpen}
+                        >
+                          Change Domain Limit
+                        </button>
+                      </span>
                     </div>
                   </div>
                 </div>
