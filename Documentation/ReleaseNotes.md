@@ -8,6 +8,7 @@
 - Implemented a mechanism for controlling the number of domains that can be added to a client email domain whitelist
 - Fixed an issue preventing content publication post-processing from running in parallel
 - Redesigned the Forgot Password page
+- Redesigned the Reset Password page
 
 #### v1.5.1
 
