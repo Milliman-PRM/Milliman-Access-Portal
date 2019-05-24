@@ -6,10 +6,8 @@
 
 - Introduced support for PowerBI as a new content type
 - Implemented a mechanism for controlling the number of domains that can be added to a client email domain whitelist
+- Fixed an issue preventing content publication post-processing from running in parallel
 - Redesigned the Forgot Password page
-- Fixed an issue preventing content publication from running in parallel
-- Converted the Forgot Password page to use React
-- Converted the Reset Password page to use React
 
 #### v1.5.1
 
