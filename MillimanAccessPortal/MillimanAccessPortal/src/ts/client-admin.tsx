@@ -301,6 +301,8 @@ function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
   const $template = new (card.AddChildInsertCard as any)(1).build();
 
   shared.clearForm($('#client-info'));
+  clientDomainLimit = defaultClientDomainListCountLimit;
+  updateDomainLimitUsage(0);
   $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
   bindForm();
   formObject.submissionMode = 'new';
