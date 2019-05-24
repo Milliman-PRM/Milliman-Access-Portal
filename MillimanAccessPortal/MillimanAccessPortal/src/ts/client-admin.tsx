@@ -631,7 +631,7 @@ function updateDomainLimitUsage(usedDomains: number) {
 function getCleanedApprovedDomains() {
   const rawDomains = getRawApprovedDomains();
   return rawDomains.filter((x) => {
-    return !nonLimitedDomains.includes(x.toLowerCase());
+    return nonLimitedDomains.indexOf(x.toLowerCase()) === -1;
   });
 }
 
@@ -671,7 +671,7 @@ $(function onReady() {
     create: function onCreate(input: string) {
       const rawApprovedDomains: string[] = getRawApprovedDomains();
 
-      if (rawApprovedDomains.includes(input.toLowerCase())) {
+      if (rawApprovedDomains.indexOf(input.toLowerCase()) !== -1) {
         $('#AcceptedEmailDomainList-selectized').val('');
         toastr.warning('That domain already exists');
         return false;
@@ -680,7 +680,7 @@ $(function onReady() {
       const newApprovedDomains = [...rawApprovedDomains, input];
 
       const numberOfDomains: number = newApprovedDomains.filter((x) => {
-        return !nonLimitedDomains.includes(x.toLowerCase()) && x !== '';
+        return nonLimitedDomains.indexOf(x.toLowerCase()) === -1 && x !== '';
       }).length;
 
       if (!input.match(domainRegex())) {
@@ -721,7 +721,7 @@ $(function onReady() {
     onItemRemove: () => {
       const domains: string[] = getRawApprovedDomains();
       const numberOfDomains: number = domains.filter((x) => {
-        return !nonLimitedDomains.includes(x.toLowerCase());
+        return nonLimitedDomains.indexOf(x.toLowerCase()) === -1;
       }).length;
 
       updateDomainLimitUsage(numberOfDomains);
