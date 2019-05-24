@@ -691,8 +691,17 @@ $(function onReady() {
 
       if (numberOfDomains > clientDomainLimit) {
         $('#AcceptedEmailDomainList-selectized').val('');
-        toastr.warning(`You have reached the allowed domain limit.\r\n\r\n
-          Please contact MAP.Support@milliman.com to request an increase to this limit.`);
+        const selectedClientId = $('form input#Id').val();
+        const selectedClientName = $('form input#Name').val();
+        const supportAddress = 'map.support@milliman.com';
+        const subject = 'Domain Limit Increase Request';
+        const body = `Client Id: ${selectedClientId}
+          %0D%0AClient Name: ${selectedClientName}
+          %0D%0A%0D%0A_______________________________
+          %0D%0A%0D%0APlease specify the new requested domain limit, and the reason for the increase.`;
+        toastr.warning(`<a href="mailto:${supportAddress}?subject=${subject}&body=${body}">
+          You have reached the allowed domain limit for this client.
+          Click here to request an increase to this limit.</a>`);
         return false;
       }
 
