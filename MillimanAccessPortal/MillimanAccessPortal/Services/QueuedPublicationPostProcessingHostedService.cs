@@ -93,6 +93,8 @@ namespace MillimanAccessPortal.Services
 
         protected async Task PostProcessAsync(Guid publicationRequestId)
         {
+            await Task.Yield();
+
             using (var scope = Services.CreateScope())
             {
                 var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
