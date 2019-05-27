@@ -242,6 +242,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             StructureType = f.StructureType,
                         };
                         dbContext.HierarchyField.Add(NewField);
+                        dbContext.SaveChanges();
 
                         LiveHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
                         {
@@ -254,7 +255,6 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         });
                     });
                 }
-                dbContext.SaveChanges();
 
                 //1.3.2  Add/Remove field values based on value list differences between new/old
                 foreach (var NewHierarchyField in NewHierarchy.Fields)
