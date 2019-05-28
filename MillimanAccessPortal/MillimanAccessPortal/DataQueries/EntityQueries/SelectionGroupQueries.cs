@@ -212,7 +212,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _dbContext.SelectionGroup.Add(group);
 
             _dbContext.SaveChanges();
-            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group));
+            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, group.RootContentItem, group.RootContentItem.Client));
 
             return group;
         }
@@ -254,7 +254,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _dbContext.SelectionGroup.Add(group);
             _dbContext.SaveChanges();
 
-            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group));
+            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, group.RootContentItem, group.RootContentItem.Client));
 
             return group;
         }

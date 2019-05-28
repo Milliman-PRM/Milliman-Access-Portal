@@ -214,10 +214,12 @@ namespace AuditLogLib.Event
         #endregion
 
         #region Content Access [4000 - 4999]
-        public static readonly AuditEventType<SelectionGroup> SelectionGroupCreated = new AuditEventType<SelectionGroup>(
-            4001, "Selection group created", (selectionGroup) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client> SelectionGroupCreated = new AuditEventType<SelectionGroup, RootContentItem, Client>(
+            4001, "Selection group created", (selectionGroup, contentItem, client) => new
             {
                 SelectionGroup = selectionGroup,
+                RootContentItem = contentItem,
+                Client = client,
             });
         public static readonly AuditEventType<SelectionGroup> SelectionGroupDeleted = new AuditEventType<SelectionGroup>(
             4002, "Selection group deleted", (selectionGroup) => new
