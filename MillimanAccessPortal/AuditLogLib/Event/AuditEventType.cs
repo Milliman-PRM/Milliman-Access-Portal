@@ -519,6 +519,7 @@ namespace AuditLogLib.Event
             7001, "User suspension status updated", (user, isSuspended, reason) => new
             {
                 UserId = user.Id,
+                UserName = user.UserName,
                 IsSuspended = isSuspended,
                 Reason = reason,
             });
@@ -534,12 +535,14 @@ namespace AuditLogLib.Event
             7003, "System role assigned", (user, role) => new
             {
                 UserId = user.Id,
+                UserName = user.UserName,
                 Role = role.ToString(),
             });
         public static readonly AuditEventType<ApplicationUser, RoleEnum> SystemRoleRemoved = new AuditEventType<ApplicationUser, RoleEnum>(
             7004, "System role removed", (user, role) => new
             {
                 UserId = user.Id,
+                UserName = user.UserName,
                 Role = role.ToString(),
             });
         public static readonly AuditEventType<ProfitCenter> ProfitCenterCreated = new AuditEventType<ProfitCenter>(
