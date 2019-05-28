@@ -33,11 +33,11 @@
     }
 
 
-    .form-element {
+    .form-element-input,
+    .form-element-textarea {
         position: relative;
         display: flex;
         flex-flow: row nowrap;
-        height: 3.5rem;
         width: 100%;
         align-self: flex-start;
         margin-bottom: .5rem;
@@ -81,7 +81,7 @@
             }
 
             &.waiting {
-                
+
                 &:hover {
                     background-color: $green;
                 }
@@ -99,7 +99,8 @@
             background-color: $white;
 
 
-            input.form-input {
+            input.form-input,
+            textarea.form-input {
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -119,14 +120,16 @@
                     }
                 }
 
-                &:not([value='']),
+                &[value]:not([value='']),
+                &[data-input-value]:not([data-input-value='']),
                 &:focus {
                     padding: 1.25rem .5rem .1rem;
                 }
 
                 &[readonly] + .form-input-label,
                 &[disabled] + .form-input-label,
-                &:not([value='']) + .form-input-label,
+                &[value]:not([value='']) + .form-input-label,
+                &[data-input-value]:not([data-input-value='']) + .form-input-label,
                 &:focus + .form-input-label {
                     top: 0;
                     opacity: 1;
@@ -155,11 +158,19 @@
             }
         }
     }
+
+    .form-element-input {
+        height: 3.5rem;
+    }
+
+    .form-element-textarea {
+        min-height: 10rem;
+    }
 }
 
 .error-message {
     display: block;
-    font-style: italic;
+    font-size: .9rem;
     color: $red;
     margin: .25rem;
     white-space: pre-line;

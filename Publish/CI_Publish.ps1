@@ -323,7 +323,7 @@ $env:PGPASSWORD = $dbPassword
 $appDbFound = $false
 $logDbFound = $false
 
-$command = "$psqlExePath --dbname=postgres  -h $dbServer -U $dbUser --tuples-only --command=`"select datname from Pg_database`" --echo-errors"
+$command = "$psqlExePath --dbname=postgres  -h $dbServer -U $dbUser --tuples-only --set=sslmode=require --command=`"select datname from Pg_database`" --echo-errors"
 $output = invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {

@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett, 
- * OBJECTIVE: A database entity representing a user request for content publication
+ * OBJECTIVE: A model for parameters of a ContentPublishing.Publish action request
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 

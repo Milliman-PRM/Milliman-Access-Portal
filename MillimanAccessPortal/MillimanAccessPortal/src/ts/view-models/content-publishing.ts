@@ -121,6 +121,7 @@ export enum ContentTypeEnum {
   Html = 2,
   Pdf = 3,
   FileDownload = 4,
+  PowerBi = 5,
 }
 
 export interface ContentType {
@@ -138,11 +139,17 @@ export interface RootContentItemDetail {
   contentName: string;
   contentTypeId: Guid;
   doesReduce: boolean;
+  filterPaneEnabled?: boolean;
+  navigationPaneEnabled?: boolean;
   relatedFiles: ContentRelatedFile[];
   description: string;
   notes: string;
   contentDisclaimer: string;
   isSuspended: boolean;
+  typeSpecificDetailObject?: {
+    filterPaneEnabled?: boolean;
+    navigationPaneEnabled?: boolean;
+  };
 }
 
 export interface RootContentItemSummaryAndDetail {

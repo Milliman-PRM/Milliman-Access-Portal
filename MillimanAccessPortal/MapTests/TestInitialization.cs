@@ -30,6 +30,8 @@ using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
 using Moq;
+using Newtonsoft.Json;
+using PowerBiLib;
 using QlikviewLib;
 using System;
 using System.Collections.Generic;
@@ -105,6 +107,7 @@ namespace MapTests
         public SignInManager<ApplicationUser> SignInManagerObject { get => MockSignInManager.Object; }
 
         public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
+        public IOptions<PowerBiConfig> PowerBiConfig { get { return BuildPbiConfig(); } }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
 
@@ -316,6 +319,52 @@ namespace MapTests
             });
         }
 
+        private IOptions<PowerBiConfig> BuildPbiConfig()
+        {
+            var configurationBuilder = new ConfigurationBuilder();
+            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            // Determine location to fetch the configuration
+            switch (environmentName)
+            {
+                case "CI":
+                case "Production": // Get configuration from Azure Key Vault for Production
+                    configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
+
+                    var built = configurationBuilder.Build();
+                    configurationBuilder = new ConfigurationBuilder();
+
+                    var store = new X509Store(StoreLocation.LocalMachine);
+                    store.Open(OpenFlags.ReadOnly);
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+
+                    configurationBuilder.AddJsonFile($"appsettings.{environmentName}.json");
+
+                    configurationBuilder.AddAzureKeyVault(
+                        built["AzureVaultName"],
+                        built["AzureClientID"],
+                        cert.OfType<X509Certificate2>().Single());
+                    break;
+
+                default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
+                    configurationBuilder.AddUserSecrets<TestInitialization>();
+                    break;
+            }
+
+            var configuration = configurationBuilder.Build();
+
+            return Options.Create(new PowerBiConfig
+            {
+                PbiAuthenticationScope = configuration["QvServerHost"],
+                PbiAzureADClientId = configuration["QvServerHost"],
+                PbiAzureADClientSecret = configuration["QvServerHost"],
+                PbiAzureADPassword = configuration["QvServerHost"],
+                PbiAzureADUsername = configuration["QvServerHost"],
+                PbiGrantType = configuration["QvServerHost"],
+                PbiTenantId = configuration["QvServerHost"],
+            });
+        }
+
         /// <summary>
         /// Perform mocking operations for the MockRoleManager
         /// </summary>
@@ -497,14 +546,14 @@ namespace MapTests
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
                 { 
-                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Name1", ClientCode="ClientCode1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
-                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Name2", ClientCode="ClientCode2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(1),    AcceptedEmailDomainList=new string[] { "example.com" }  },
-                    new Client { Id=TestUtil.MakeTestGuid(3), Name="Name3", ClientCode="ClientCode3", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
-                    new Client { Id=TestUtil.MakeTestGuid(4), Name="Name4", ClientCode="ClientCode4", ProfitCenterId=TestUtil.MakeTestGuid(2), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
-                    new Client { Id=TestUtil.MakeTestGuid(5), Name="Name5", ClientCode="ClientCode5", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
-                    new Client { Id=TestUtil.MakeTestGuid(6), Name="Name6", ClientCode="ClientCode6", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(1),    AcceptedEmailDomainList=new string[] { "example2.com" } },
-                    new Client { Id=TestUtil.MakeTestGuid(7), Name="Name7", ClientCode="ClientCode7", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" } },
-                    new Client { Id=TestUtil.MakeTestGuid(8), Name="Name8", ClientCode="ClientCode8", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(7),    AcceptedEmailDomainList=new string[] { "example.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Name1", ClientCode="ClientCode1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Name2", ClientCode="ClientCode2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(1),    AcceptedEmailDomainList=new List<string> { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(3), Name="Name3", ClientCode="ClientCode3", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example2.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(4), Name="Name4", ClientCode="ClientCode4", ProfitCenterId=TestUtil.MakeTestGuid(2), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example2.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(5), Name="Name5", ClientCode="ClientCode5", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example2.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(6), Name="Name6", ClientCode="ClientCode6", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(1),    AcceptedEmailDomainList=new List<string> { "example2.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(7), Name="Name7", ClientCode="ClientCode7", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(8), Name="Name8", ClientCode="ClientCode8", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(7),    AcceptedEmailDomainList=new List<string> { "example.com" } },
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -653,7 +702,8 @@ namespace MapTests
             #region Initialize ContentType
             DbContextObject.ContentType.AddRange(new List<ContentType>
                 {
-                    new ContentType{ Id=TestUtil.MakeTestGuid(1), Name="Qlikview", CanReduce=true },
+                    new ContentType{ Id=TestUtil.MakeTestGuid((int)ContentTypeEnum.Qlikview), Name="Qlikview", CanReduce=true },
+                    new ContentType{ Id=TestUtil.MakeTestGuid((int)ContentTypeEnum.PowerBi), Name="PowerBI", CanReduce=true },
                 });
             #endregion
 
@@ -667,8 +717,8 @@ namespace MapTests
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
                 {
-                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
-                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" }  },
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -706,9 +756,10 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
             {
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1), DoesReduce=true },
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 2", ContentTypeId=TestUtil.MakeTestGuid(1) },
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 3", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid((int)ContentTypeEnum.Qlikview), DoesReduce=true },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 2", ContentTypeId=TestUtil.MakeTestGuid((int)ContentTypeEnum.Qlikview) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 3", ContentTypeId=TestUtil.MakeTestGuid((int)ContentTypeEnum.Qlikview) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=TestUtil.MakeTestGuid((int)ContentTypeEnum.PowerBi), TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiContentItemProperties()) },
             });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
             MockDbSet<RootContentItem>.AssignNavigationProperty<Client>(DbContextObject.RootContentItem, "ClientId", DbContextObject.Client);
@@ -773,6 +824,7 @@ namespace MapTests
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(7), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(4) },
             });
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
@@ -905,8 +957,8 @@ namespace MapTests
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
                 {
-                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
-                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" }  },
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -1121,7 +1173,7 @@ namespace MapTests
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
             { 
-                new Client { Id = TestUtil.MakeTestGuid(1), ProfitCenterId = TestUtil.MakeTestGuid(1), ParentClientId = null, },
+                new Client { Id = TestUtil.MakeTestGuid(1), ProfitCenterId = TestUtil.MakeTestGuid(1), ParentClientId = null, AcceptedEmailDomainList = new List<string>{"abc.com", "def.com"} },
                 new Client { Id = TestUtil.MakeTestGuid(2), ProfitCenterId = TestUtil.MakeTestGuid(1), ParentClientId = null, },
             });
             MockDbSet<Client>.AssignNavigationProperty(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);

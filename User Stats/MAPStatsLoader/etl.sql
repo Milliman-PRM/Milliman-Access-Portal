@@ -46,12 +46,13 @@ INSERT INTO public."ProfitCenter"
 
 -- Update existing records that are no longer applicable
 UPDATE public."ClientInProfitCenter"
-SET "EndDate" = (current_timestamp AT TIME ZONE 'UTC') - interval '1 day'
+SET "EndDate" = (current_timestamp AT TIME ZONE 'UTC')
 WHERE ctid IN
 	(SELECT cpc.ctid
 		FROM public."ClientInProfitCenter" cpc
 			LEFT JOIN map."Client" cl ON cpc."ClientId" = cl."Id" AND cpc."ProfitCenterId" = cl."ProfitCenterId"
-		WHERE cl."Id" IS NULL);
+		WHERE cl."Id" IS NULL)
+AND "EndDate" = '12/31/9999';
 			
 -- Insert currently applicable records
 INSERT INTO public."ClientInProfitCenter"
@@ -60,7 +61,32 @@ INSERT INTO public."ClientInProfitCenter"
 	ON CONFLICT ON CONSTRAINT "UNIQUE_Client_ProfitCenter_Current" DO NOTHING;
 
 /*
-	SECTION 3: Audit Events
+	Section 3: User-SelectionGroup relationships
+*/
+
+-- Update existing records that are no longer applicable
+UPDATE public."UserInSelectionGroup"
+SET "EndDate" = (current_timestamp AT TIME ZONE 'UTC')
+WHERE ctid IN
+    (
+        SELECT usg.ctid
+        FROM public."UserInSelectionGroup" usg 
+            LEFT JOIN map."UserInSelectionGroup" musg ON usg."UserId" = musg."UserId" AND usg."SelectionGroupId" = musg."SelectionGroupId"
+        WHERE musg."Id" IS NULL
+    )
+AND "EndDate" = '12/31/9999';
+
+-- Insert currently applicable records
+INSERT INTO public."UserInSelectionGroup"
+("UserId", "SelectionGroupId", "StartDate")
+(
+    SELECT "UserId", "SelectionGroupId", (current_timestamp AT TIME ZONE 'UTC')
+    FROM map."UserInSelectionGroup"
+)
+ON CONFLICT ON CONSTRAINT "UNIQUE_User_SelectionGroup_Current" DO NOTHING;
+
+/*
+	SECTION 4: Audit Events
 
 	Similar to Section 1, but sourced from a different database
 */

@@ -137,6 +137,23 @@ CREATE TABLE public."ClientInProfitCenter"
    CONSTRAINT "UNIQUE_Client_ProfitCenter_Current" UNIQUE ("ClientId", "ProfitCenterId", "EndDate")
 );
 
+CREATE TABLE public."UserInSelectionGroup"
+(
+   "Id" serial,
+   "UserId" uuid NOT NULL,
+   "SelectionGroupId" uuid NOT NULL,
+   "StartDate" date NOT NULL,
+   "EndDate" date NOT NULL DEFAULT '12-31-9999', -- Default value makes BETWEEN clausess easy to use and makes the current record easy to find
+   CONSTRAINT "PK_UserInSelectionGroup" PRIMARY KEY ("Id"),
+   CONSTRAINT "FK_UserInSelectionGroup_User_UserId" FOREIGN KEY ("UserId")
+   REFERENCES public."Users" ("Id") MATCH SIMPLE
+   ON UPDATE NO ACTION ON DELETE CASCADE,
+   CONSTRAINT "FK_UserInSelectionGroup_SelectionGroup_SelectionGroupId" FOREIGN KEY ("SelectionGroupId")
+   REFERENCES map."SelectionGroup" ("Id") MATCH SIMPLE
+   ON UPDATE NO ACTION ON DELETE CASCADE,
+   CONSTRAINT "UNIQUE_User_SelectionGroup_Current" UNIQUE ("UserId", "SelectionGroupId", "EndDate")
+);
+
 CREATE TABLE public."PublishingHistory"
 (
    "Id" serial,

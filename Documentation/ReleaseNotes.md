@@ -2,9 +2,21 @@
 
 ## Release Notes
 
+### v1.x.x
+- strip-whitespace-form-input
+
 ### v1.6.0
 - Converted the Forgot Password page to use React
 - Trim whitespace on username inputs
+- Introduced support for PowerBI as a new content type
+- Implemented a mechanism for controlling the number of domains that can be added to a client email domain whitelist
+- Fixed an issue preventing content publication post-processing from running in parallel
+- Redesigned the Forgot Password page
+- Redesigned the Reset Password page
+
+#### v1.5.1
+
+- Fixed an issue where user login fails in certain unusual circumstances
 
 ### v1.5.0
 
@@ -12,7 +24,7 @@
 - Redesigned the login page to support externally authenticated users
 - Redesigned the account settings page to better support externally authenticated users
 - Redesigned the account authorization workflow to support externally authenticated users
-- Fixed a issue that allowed users to be added to the same selection group multiple times
+- Fixed an issue that allowed users to be added to the same selection group multiple times
 
 #### v1.4.1
 

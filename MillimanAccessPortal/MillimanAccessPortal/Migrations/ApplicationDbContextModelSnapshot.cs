@@ -17,7 +17,7 @@ namespace MillimanAccessPortal.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:Enum:authentication_type", "default,ws_federation")
-                .HasAnnotation("Npgsql:Enum:content_type_enum", "unknown,qlikview,html,pdf,file_download")
+                .HasAnnotation("Npgsql:Enum:content_type_enum", "unknown,qlikview,html,pdf,file_download,power_bi")
                 .HasAnnotation("Npgsql:Enum:publication_status", "unknown,canceled,rejected,validating,queued,processing,post_process_ready,post_processing,processed,confirming,confirmed,replaced,error")
                 .HasAnnotation("Npgsql:Enum:reduction_status_enum", "unspecified,canceled,rejected,validating,queued,reducing,reduced,live,replaced,error")
                 .HasAnnotation("Npgsql:PostgresExtension:citext", ",,")
@@ -58,10 +58,10 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<string[]>("AcceptedEmailAddressExceptionList")
+                    b.Property<List<string>>("AcceptedEmailAddressExceptionList")
                         .IsRequired();
 
-                    b.Property<string[]>("AcceptedEmailDomainList")
+                    b.Property<List<string>>("AcceptedEmailDomainList")
                         .IsRequired();
 
                     b.Property<string>("ClientCode");
@@ -79,6 +79,10 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("ContactPhone");
 
                     b.Property<string>("ContactTitle");
+
+                    b.Property<int>("DomainListCountLimit")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue(3);
 
                     b.Property<string>("Name")
                         .IsRequired();

@@ -52,6 +52,9 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
       case ContentTypeEnum.Qlikview:
         sandboxValues = null;
         break;
+      case ContentTypeEnum.PowerBi:
+        sandboxValues = 'allow-scripts allow-popups allow-modals allow-forms allow-same-origin';
+        break;
       default:
         sandboxValues = '';
     }

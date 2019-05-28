@@ -29,8 +29,8 @@ import { Filter } from '../shared-components/filter';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
-    ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo,
-    isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
+    ClientDetail, ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientDetail,
+    isClientInfo, isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
     isUserClientRoles, isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail,
     SecondaryDetailData, UserClientRoles, UserInfo,
 } from './interfaces';
@@ -39,6 +39,7 @@ import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
 import { CardModal } from './modals/card-modal';
 import { CreateProfitCenterModal } from './modals/create-profit-center';
 import { CreateUserModal } from './modals/create-user';
+import { SetDomainLimitClientModal } from './modals/set-domain-limit';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
@@ -66,6 +67,9 @@ export interface SystemAdminState {
   };
   primaryPanel: ContentPanelAttributes;
   secondaryPanel: ContentPanelAttributes;
+  domainLimitModal: {
+    open: boolean;
+  };
 }
 
 export enum SystemAdminColumn {
@@ -114,6 +118,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         createModal: {
           open: false,
         },
+      },
+      domainLimitModal: {
+        open: false,
       },
     };
   }
@@ -418,6 +425,21 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             overlayClassName="modal-overlay"
             profitCenterId={this.state.primaryPanel.selected.card}
           />
+          {
+            this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
+            && primaryDetail
+            && (
+              <SetDomainLimitClientModal
+                isOpen={this.state.domainLimitModal.open}
+                onRequestClose={this.handleDomainLimitClose}
+                ariaHideApp={false}
+                className="modal"
+                overlayClassName="modal-overlay"
+                clientId={primaryDetail.id}
+                existingDomainLimit={isClientDetail(primaryDetail) && primaryDetail.domainListCountLimit}
+              />
+            )
+          }
         </CardPanel>
       )
       : null;
@@ -600,6 +622,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             checkedSystemAdmin={isUserDetail(primaryDetail) && primaryDetail.isSystemAdmin}
             onPushSuspend={this.pushSuspendUser}
             checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.isSuspended}
+            doDomainLimitOpen={this.handleDomainLimitOpen}
           />
           <SecondaryDetailPanel
             selectedCard={secondaryCard}
@@ -848,6 +871,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             open: false,
           },
         },
+        domainLimitModal: {
+          open: false,
+        },
       };
     });
   }
@@ -876,6 +902,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           createModal: {
             open: false,
           },
+        },
+        domainLimitModal: {
+          open: false,
         },
       };
     });
@@ -1292,6 +1321,24 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         createModal: {
           open: false,
         },
+      },
+    }));
+  }
+
+  private handleDomainLimitOpen = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      domainLimitModal: {
+          open: true,
+      },
+    }));
+  }
+
+  private handleDomainLimitClose = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      domainLimitModal: {
+        open: false,
       },
     }));
   }

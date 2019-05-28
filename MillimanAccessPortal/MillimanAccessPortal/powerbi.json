@@ -1,0 +1,9 @@
+{
+  "PbiAuthenticationScope": "https://analysis.windows.net/powerbi/api/.default",
+  "PbiAzureADClientID": "",
+  "PbiAzureADClientSecret": "",
+  "PbiGrantType": "password",
+  "PbiAzureADUsername": "",
+  "PbiAzureADPassword": "",
+  "PbiTenantId": ""
+}

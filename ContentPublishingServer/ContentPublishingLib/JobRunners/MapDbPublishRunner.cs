@@ -295,7 +295,7 @@ namespace ContentPublishingLib.JobRunners
 
         /// <summary>
         /// Performs all actions required only in the presence of a master content file in the publication request
-        /// Note that a publication request can be made without a mast content file to update associated files.
+        /// Note that a publication request can be made without a master content file to update associated files.
         /// </summary>
         /// <param name="contentRelatedFile"></param>
         private void QueueReductionActivity(ContentRelatedFile contentRelatedFile)

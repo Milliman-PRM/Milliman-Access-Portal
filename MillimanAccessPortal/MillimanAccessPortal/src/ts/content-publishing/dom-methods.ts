@@ -23,7 +23,7 @@ import {
 import { setUnloadAlert } from '../unload-alerts';
 import { UploadComponent } from '../upload/upload';
 import {
-    BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, isSelection,
+  BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, ContentTypeEnum, isSelection,
     PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue, RootContentItemDetail,
     RootContentItemList, RootContentItemSummary, RootContentItemSummaryAndDetail,
 } from '../view-models/content-publishing';
@@ -134,6 +134,10 @@ export function openNewRootContentItemForm() {
     contentTypeId: '0',
     description: '',
     doesReduce: false,
+    typeSpecificDetailObject: {
+      filterPaneEnabled: false,
+      navigationPaneEnabled: false,
+    },
     id: '0',
     notes: '',
     contentDisclaimer: '',
@@ -178,7 +182,17 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
   formMap.set('ClientId', item.clientId);
   formMap.set('ContentName', item.contentName);
   formMap.set('ContentTypeId', item.contentTypeId);
-  formMap.set('DoesReduce',  item.doesReduce);
+  formMap.set('DoesReduce', item.doesReduce);
+  if (item.typeSpecificDetailObject) {
+    formMap.set('FilterPaneEnabled',
+      (item.typeSpecificDetailObject.hasOwnProperty('filterPaneEnabled')
+        ? item.typeSpecificDetailObject.filterPaneEnabled
+        : false));
+    formMap.set('NavigationPaneEnabled',
+      (item.typeSpecificDetailObject.hasOwnProperty('navigationPaneEnabled')
+        ? item.typeSpecificDetailObject.navigationPaneEnabled
+        : false));
+  }
   formMap.set('Description', item.description);
   formMap.set('Notes', item.notes);
   formMap.set('ContentDisclaimer', item.contentDisclaimer);
@@ -196,7 +210,7 @@ function addToDocumentCount(clientId: Guid, offset: number) {
 function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   // Show and clear all confirmation checkboxes
   $('#report-confirmation .loading-wrapper').hide();
-  $('#report-confirmation .form-content-container')
+  $('#report-confirmation .admin-panel-content-container')
     .show()[0].scrollTop = 0;
   $('#report-confirmation label')
     .show()
@@ -549,7 +563,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
   if (item) {
     const formMap = mapRootContentItemDetail(item);
     formMap.forEach((value, key) => {
-      if (key !== 'DoesReduce') {  // because DoesReduce is a checkbox
+      if (key !== 'DoesReduce'
+        && key !== 'FilterPaneEnabled'
+        && key !== 'NavigationPaneEnabled') {  // because these are checkboxes
         $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
       }
     });
@@ -565,6 +581,19 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
 
     const $doesReduceToggle = $rootContentItemForm.find('#DoesReduce');
     $doesReduceToggle.prop('checked', item.doesReduce);
+
+    if (item.typeSpecificDetailObject) {
+      const $filterPaneToggle = $rootContentItemForm.find('#FilterPaneEnabled');
+      $filterPaneToggle.prop('checked',
+        (item.typeSpecificDetailObject.hasOwnProperty('filterPaneEnabled')
+          ? item.typeSpecificDetailObject.filterPaneEnabled
+          : false));
+      const $navigationPaneToggle = $rootContentItemForm.find('#NavigationPaneEnabled');
+      $navigationPaneToggle.prop('checked',
+        (item.typeSpecificDetailObject.hasOwnProperty('navigationPaneEnabled')
+          ? item.typeSpecificDetailObject.navigationPaneEnabled
+          : false));
+    }
   }
 
   const createContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
@@ -572,6 +601,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       'common',
       'root-content-item-info',
       'root-content-item-content-type',
+      'root-content-item-display-settings',
       'root-content-item-description',
     ],
     'ContentPublishing/CreateRootContentItem',
@@ -597,6 +627,8 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     [
       'common',
       'root-content-item-info',
+      'root-content-item-content-type',
+      'root-content-item-display-settings',
       'root-content-item-description',
     ],
     'ContentPublishing/UpdateRootContentItem',
@@ -692,6 +724,12 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
   } else {
     $('#DoesReduce').closest('.form-input-toggle').show();
   }
+  const $contentDisplaySettings = $('.form-section[data-section="root-content-item-display-settings"]');
+  if (contentType.typeEnum === ContentTypeEnum.PowerBi) {
+    $contentDisplaySettings.show();
+  } else {
+    $contentDisplaySettings.hide();
+  }
   formObject.inputSections.forEach((section) =>
     section.inputs.forEach((input) => {
       if (contentType && isFileUploadInput(input)) {
@@ -735,7 +773,7 @@ function renderRootContentItem(item: RootContentItemSummary) {
     rootContentItemDeleteClickHandler,
     rootContentItemCancelClickHandler,
     wrapCardIconCallback((card) => {
-      $('#report-confirmation .form-content-container').hide();
+      $('#report-confirmation .admin-panel-content-container').hide();
       $('#report-confirmation .loading-wrapper').show();
       $('.confirmation-section iframe,object')
         .attr('src', 'about:blank')
@@ -834,6 +872,20 @@ export function setup() {
     } else {
       $doesReduceToggle.removeAttr('disabled');
       $doesReduceToggle.closest('.form-input-toggle').show();
+    }
+    const $contentDisplaySettings = $('.form-section[data-section="root-content-item-display-settings"]');
+    if (contentType && contentType.typeEnum === ContentTypeEnum.PowerBi) {
+      $contentDisplaySettings.show();
+      $('#FilterPaneEnabled').removeAttr('disabled');
+      $('#NavigationPaneEnabled').removeAttr('disabled');
+    } else {
+      $contentDisplaySettings.hide();
+      $('#FilterPaneEnabled')
+        .prop('checked', false)
+        .attr('disabled', '');
+      $('#NavigationPaneEnabled')
+        .prop('checked', false)
+        .attr('disabled', '');
     }
     formObject.inputSections.forEach((section) =>
       section.inputs.forEach((input) => {
