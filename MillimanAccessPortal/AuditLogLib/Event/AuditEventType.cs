@@ -374,6 +374,7 @@ namespace AuditLogLib.Event
             6001, "Root content item created", (rootContentItem) => new
             {
                 RootContentItemId = rootContentItem.Id,
+                RootContentItemName = rootContentItem.ContentName,
                 ContentTypeId = rootContentItem.ContentTypeId,
                 ClientId = rootContentItem.ClientId,
             });
@@ -381,6 +382,7 @@ namespace AuditLogLib.Event
             6002, "Root content item deleted", (rootContentItem) => new
             {
                 RootContentItemId = rootContentItem.Id,
+                RootContentItemName = rootContentItem.ContentName,
                 ContentTypeId = rootContentItem.ContentTypeId,
                 ClientId = rootContentItem.ClientId,
             });
@@ -413,6 +415,7 @@ namespace AuditLogLib.Event
             {
                 PublicationRequestId = publicationRequest.Id,
                 RootContentItemId = rootContentItem.Id,
+                RootContentItemName = rootContentItem.ContentName,
             });
         public static readonly AuditEventType<SelectionGroup, ContentRelatedFile,string> ChecksumInvalid = new AuditEventType<SelectionGroup, ContentRelatedFile,string>(
             6104, "Checksum Invalid", (selectionGroup, contentRelatedFile, sourceAction) => new
@@ -435,6 +438,7 @@ namespace AuditLogLib.Event
             {
                 PublicationRequestId = publicationRequest.Id,
                 RootContentItemId = rootContentItem.Id,
+                RootContentItemName = rootContentItem.ContentName,
             });
         #endregion
 
