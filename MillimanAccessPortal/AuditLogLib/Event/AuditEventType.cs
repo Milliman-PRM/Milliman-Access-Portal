@@ -98,7 +98,9 @@ namespace AuditLogLib.Event
             2002, "User removed from client", (client, user) => new
             {
                 ClientId = client.Id,
+                ClientName = client.Name,
                 UserId = user.Id,
+                UserName = user.UserName,
             });
         public static readonly AuditEventType<Client> ClientCreated = new AuditEventType<Client>(
             2003, "Client created", (client) => new
@@ -119,14 +121,18 @@ namespace AuditLogLib.Event
             2006, "Client role assigned", (client, user, roles) => new
             {
                 ClientId = client.Id,
+                ClientName = client.Name,
                 UserId = user.Id,
+                UserName =  user.UserName,
                 Role = roles.Select(r => r.ToString()),
             });
         public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>> ClientRoleRemoved = new AuditEventType<Client, ApplicationUser, List<RoleEnum>>(
             2007, "Client role removed", (client, user, roles) => new
             {
                 ClientId = client.Id,
+                ClientName = client.Name,
                 UserId = user.Id,
+                UserName = user.UserName,
                 Role = roles.Select(r => r.ToString()),
             });
         #endregion
