@@ -454,6 +454,7 @@ namespace AuditLogLib.Event
             7002, "Root content item suspension status updated", (item, isSuspended, reason) => new
             {
                 RootContentItemId = item.Id,
+                RootContentItemName = item.ContentName,
                 IsSuspended = isSuspended,
                 Reason = reason,
             });
@@ -483,6 +484,7 @@ namespace AuditLogLib.Event
             7103, "Profit center deleted", (profitCenter) => new
             {
                 ProfitCenterId = profitCenter.Id,
+                ProfitCenterName = profitCenter.Name,
             });
         public static readonly AuditEventType<ProfitCenter, ApplicationUser> UserAssignedToProfitCenter = new AuditEventType<ProfitCenter, ApplicationUser>(
             7104, "User assigned to profit center", (profitCenter, user) => new
@@ -496,7 +498,9 @@ namespace AuditLogLib.Event
             7105, "User removed from profit center", (profitCenter, user) => new
             {
                 ProfitCenterId = profitCenter.Id,
+                ProfitCenterName = profitCenter.Name,
                 UserId = user.Id,
+                UserName = user.UserName,
             });
 
         // 72xx - Authentication scheme management
