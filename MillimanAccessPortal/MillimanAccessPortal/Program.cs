@@ -34,6 +34,14 @@ namespace MillimanAccessPortal
                 GlobalFunctions.EmailValRegex = Configuration.GetValue("Global:EmailValidationRegex", GlobalFunctions.EmailValRegex);
                 GlobalFunctions.MaxFileUploadSize = Configuration.GetValue("Global:MaxFileUploadSize", GlobalFunctions.MaxFileUploadSize);
                 GlobalFunctions.VirusScanWindowSeconds = Configuration.GetValue("Global:VirusScanWindowSeconds", GlobalFunctions.VirusScanWindowSeconds);
+                GlobalFunctions.DefaultClientDomainListCountLimit = Configuration.GetValue("Global:DefaultClientDomainListCountLimit", GlobalFunctions.DefaultClientDomainListCountLimit);
+                GlobalFunctions.NonLimitedDomains = 
+                    (
+                        Configuration.GetValue<string>("Global:NonLimitedDomains", null)
+                        ?.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                        ?.Select(d => d.Trim())
+                        ?? GlobalFunctions.NonLimitedDomains
+                    ).ToList();
 
                 // Initialize Serilog
                 Log.Logger = new LoggerConfiguration()

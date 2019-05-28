@@ -522,6 +522,10 @@ namespace AuditLogLib.Event
                     SchemeProperties = after.SchemePropertiesObj,
                 }
             });
+
+        // 73xx - Client management
+        public static readonly AuditEventType<UpdateClientDomainLimitLogModel> ClientDomainLimitUpdated = new AuditEventType<UpdateClientDomainLimitLogModel>(
+            7301, "Client domain limit updated", logModel => logModel);
         #endregion
         #endregion
 
@@ -660,6 +664,40 @@ namespace AuditLogLib.Event
         {
             var auditEvent = ToEvent(callerName, callerPath, callerLine);
             auditEvent.EventDataObject = logObjectTransform(param1, param2, param3);
+
+            return auditEvent;
+        }
+    }
+
+    public sealed class AuditEventType<P1, P2, P3, P4> : AuditEventTypeBase
+    {
+        private readonly Func<P1, P2, P3, P4, object> logObjectTransform;
+
+        /// <summary>
+        /// Represents a class of loggable event.
+        /// </summary>
+        /// <param name="id">AuditEvent ID. This value is logged and is used to uniquely identify this event type.</param>
+        /// <param name="name">Name of the event type.</param>
+        /// <param name="logObjectTransform">Defines the log object for this event type.</param>
+        public AuditEventType(int id, string name, Func<P1, P2, P3, P4, object> logObjectTransform) : base(id, name)
+        {
+            this.logObjectTransform = logObjectTransform;
+        }
+
+        /// <summary>
+        /// Create an audit event based on this event type.
+        /// </summary>
+        /// <param name="callerName">Calling method or property. Determined by the compiler if not supplied.</param>
+        /// <param name="callerPath">Absolute path of the calling file. Determined by the compiler if not supplied.</param>
+        /// <param name="callerLine">Line of the calling file. Determined by the compiler if not supplied.</param>
+        /// <returns>AuditEvent</returns>
+        public AuditEvent ToEvent(P1 param1, P2 param2, P3 param3, P4 param4,
+            [CallerMemberName] string callerName = "",
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0)
+        {
+            var auditEvent = ToEvent(callerName, callerPath, callerLine);
+            auditEvent.EventDataObject = logObjectTransform(param1, param2, param3, param4);
 
             return auditEvent;
         }

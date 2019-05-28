@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using System;
+using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
@@ -17,6 +18,9 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public string ClientContactName { get; set; }
         public string ClientContactEmail { get; set; }
         public string ClientContactPhone { get; set; }
+        public int DomainListCountLimit { get; set; }
+        public List<string> AcceptedEmailDomainList { get; set; }
+        public List<string> AcceptedEmailAddressExceptionList { get; set; }
         public string ProfitCenter { get; set; }
         public string Office { get; set; }
         public string ConsultantName { get; set; }
@@ -37,6 +41,9 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 ClientContactName = client.ContactName,
                 ClientContactEmail = client.ContactEmail,
                 ClientContactPhone = client.ContactPhone,
+                DomainListCountLimit = client.DomainListCountLimit,
+                AcceptedEmailDomainList = client.AcceptedEmailDomainList,
+                AcceptedEmailAddressExceptionList = client.AcceptedEmailAddressExceptionList,
                 ProfitCenter = client.ProfitCenter?.Name,
                 Office = client.ConsultantOffice,
                 ConsultantName = client.ConsultantName,
