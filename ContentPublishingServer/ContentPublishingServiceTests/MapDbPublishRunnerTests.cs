@@ -97,7 +97,7 @@ namespace ContentPublishingServiceTests
             Assert.Equal(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
-            Assert.Equal(PublishJobDetail.JobStatusEnum.Success, MonitorTask.Result.Status);
+            Assert.Equal(PublishJobDetail.JobStatusEnum.Success, JobDetail.Status);
 
             Assert.Equal(string.Empty, TaskResult.StatusMessage);
             Assert.NotNull(TaskResult.ResultingRelatedFiles);
@@ -189,7 +189,7 @@ namespace ContentPublishingServiceTests
             Assert.Equal(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
-            Assert.Equal(PublishJobDetail.JobStatusEnum.Success, MonitorTask.Result.Status);
+            Assert.Equal(PublishJobDetail.JobStatusEnum.Success, JobDetail.Status);
 
             Assert.Equal(string.Empty, TaskResult.StatusMessage);
             Assert.NotNull(TaskResult.ResultingRelatedFiles);
@@ -302,7 +302,7 @@ namespace ContentPublishingServiceTests
                 Assert.Equal(TaskStatus.RanToCompletion, RequestRunnerTask.Status);
                 Assert.False(RequestRunnerTask.IsCanceled);
                 Assert.False(RequestRunnerTask.IsFaulted);
-                Assert.Equal(PublishJobDetail.JobStatusEnum.Success, RequestRunnerTask.Result.Status);
+                Assert.Equal(PublishJobDetail.JobStatusEnum.Success, JobDetail.Status);
 
                 Assert.Equal(string.Empty, TaskResult.StatusMessage);
                 Assert.NotNull(TaskResult.ResultingRelatedFiles);

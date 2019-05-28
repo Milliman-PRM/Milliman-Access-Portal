@@ -1,6 +1,6 @@
 {
   "name": "milliman-access-portal",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "Milliman Access Portal",
   "license": "UNLICENSED",
   "dependencies": {
@@ -13,6 +13,7 @@
     "moment": "^2.22.2",
     "node-forge": "^0.7.5",
     "popper.js": "^1.14.1",
+    "prop-types": "^15.5.7",
     "react": "^16.3.0",
     "react-dom": "^16.3.0",
     "react-modal": "^3.5.1",
@@ -141,6 +142,7 @@
     ]
   },
   "engines": {
-    "node": "8.9.4"
+    "node": "8.9.4",
+    "yarn": "1.12.3"
   }
 }

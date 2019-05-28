@@ -116,10 +116,16 @@ export interface ClientDetail {
   clientContactName: string;
   clientContactEmail: string;
   clientContactPhone: string;
+  domainListCountLimit: number;
+  acceptedEmailDomainList: string[];
+  acceptedEmailAddressExceptionList: string[];
   profitCenter: string;
   office: string;
   consultantName: string;
   consultantEmail: string;
+}
+export function isClientDetail(detail: PrimaryDetail): detail is ClientDetail {
+  return detail && (detail as ClientDetail).domainListCountLimit !== null;
 }
 export interface ProfitCenterDetail {
   id: Guid;

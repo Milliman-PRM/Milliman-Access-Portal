@@ -46,7 +46,8 @@ namespace ContentPublishingServiceTests
                 await MonitorTask;  // await rethrows anything that is thrown from the task
             }
             catch (OperationCanceledException)  // This is thrown when a task is cancelled
-            { }
+            {
+            }
             DateTime CancelEndTime = DateTime.UtcNow;
             #endregion
 

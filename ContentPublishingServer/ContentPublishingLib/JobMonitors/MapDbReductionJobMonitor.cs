@@ -139,7 +139,7 @@ namespace ContentPublishingLib.JobMonitors
                             switch (type)
                             {
                                 case ContentTypeEnum.Qlikview:
-                                    QvReductionRunner Runner = new QvReductionRunner
+                                    QvReductionRunner Runner = new QvReductionRunner()
                                     {
                                         JobDetail = (ReductionJobDetail)DbTask,
                                     };

@@ -2,7 +2,8 @@
 
 /* Form Elements */
 
-.admin-panel-content-container form {
+.admin-panel-content-container form,
+.form-content-container form {
     padding: 1em !important;
     background-color: $white;
     border-radius: 1em !important;
@@ -45,6 +46,12 @@ a,
     &[disabled] {
         display: none;
     }
+}
+
+.inline-link-button {
+    padding: 0 0 0 1em !important;
+    margin: 0;
+    line-height: normal;
 }
 
 button,

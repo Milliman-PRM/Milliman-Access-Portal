@@ -1,7 +1,14 @@
-﻿using AuditLogLib.Event;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Encapsulates query operations related to selection groups
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
 using System;
 using System.Collections.Generic;
@@ -218,14 +225,22 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>New selection group</returns>
         internal SelectionGroup CreateMasterSelectionGroup(Guid contentItemId, string name)
         {
-            var contentItem = _dbContext.RootContentItem.Find(contentItemId);
-            ContentRelatedFile liveMasterFile = contentItem.ContentFilesList
-                .SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
-            if (liveMasterFile == null || !File.Exists(liveMasterFile.FullPath))
+            var contentItem = _dbContext.RootContentItem
+                                        .Include(c => c.ContentType)
+                                        .Single(t => t.Id == contentItemId);
+
+            string contentFileName = default;
+            if (contentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
             {
-                return null;
+                ContentRelatedFile liveMasterFile = contentItem.ContentFilesList
+                    .SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
+                if (liveMasterFile == null || !File.Exists(liveMasterFile.FullPath))
+                {
+                    return null;
+                }
+
+                contentFileName = Path.GetFileName(liveMasterFile.FullPath);
             }
-            string contentUrl = Path.GetFileName(liveMasterFile.FullPath);
 
             var group = new SelectionGroup
             {
@@ -234,10 +249,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 SelectedHierarchyFieldValueList = new Guid[] { },
                 IsMaster = true,
             };
-            group.SetContentUrl(contentUrl);
-            _dbContext.SelectionGroup.Add(group);
+            group.SetContentUrl(contentFileName);
 
+            _dbContext.SelectionGroup.Add(group);
             _dbContext.SaveChanges();
+
             _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group));
 
             return group;

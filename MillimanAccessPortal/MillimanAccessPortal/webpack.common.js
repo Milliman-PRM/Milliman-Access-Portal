@@ -15,10 +15,10 @@ module.exports = {
     'content-publishing': './src/ts/content-publishing/index.tsx',
     'create-initial-user': './src/ts/create-initial-user.ts',
     'enable-account': './src/ts/enable-account.ts',
-    'forgot-password': './src/ts/forgot-password.ts',
+    'forgot-password': './src/ts/react/forgot-password/index.tsx',
     'login': './src/ts/react/login/index.tsx',
     'message': './src/ts/message.ts',
-    'reset-password': './src/ts/reset-password.ts',
+    'reset-password': './src/ts/react/reset-password/index.tsx',
     'system-admin': './src/ts/react/system-admin/index.tsx',
   },
   output: {

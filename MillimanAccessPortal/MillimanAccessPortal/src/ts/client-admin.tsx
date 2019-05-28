@@ -41,6 +41,9 @@ let eligibleUsers: any;
 let formObject: FormBase;
 let defaultWelcomeText: string;
 let statusMonitor: StatusMonitor<null>;
+let clientDomainLimit: number;
+let nonLimitedDomains: string[];
+let defaultClientDomainListCountLimit: number;
 
 document.addEventListener('DOMContentLoaded', () => {
   const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');
@@ -60,6 +63,7 @@ function removeClientInserts() {
 
 function clearClientSelection() {
   $('.card-body-container').removeAttr('editing selected');
+  clientDomainLimit = defaultClientDomainListCountLimit;
 }
 
 function hideClientDetails() {
@@ -113,6 +117,8 @@ function populateClientForm(response: any) {
         const cb = field.parent().parent().find('input');
         cb.prop('checked', value !== null);
         field.val(value);
+      } else if (keyU === 'DomainListCountLimit') {
+        clientDomainLimit = value;
       } else {
         field.val(value);
       }
@@ -120,6 +126,7 @@ function populateClientForm(response: any) {
       field.change();
     }
   }
+  updateDomainLimitUsage(getCleanedApprovedDomains().length);
   bindForm();
 }
 function populateProfitCenterDropDown(profitCenterList: any) {
@@ -294,6 +301,8 @@ function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
   const $template = new (card.AddChildInsertCard as any)(1).build();
 
   shared.clearForm($('#client-info'));
+  clientDomainLimit = defaultClientDomainListCountLimit;
+  updateDomainLimitUsage(0);
   $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
   bindForm();
   formObject.submissionMode = 'new';
@@ -371,6 +380,8 @@ function openClientCardReadOnly($clientCard: any, callback: () => void = null) {
 function openNewClientForm() {
   clearClientSelection();
   setupClientForm();
+  clientDomainLimit = defaultClientDomainListCountLimit;
+  updateDomainLimitUsage(0);
   formObject.accessMode = AccessMode.Write;
   $('#new-client-card').find('div.card-body-container').attr('selected', '');
   hideClientUsers();
@@ -604,11 +615,34 @@ function getClientTree(clientId?: any) {
     renderClientTree(response.clientTreeList, clientId || response.relevantClientId);
     defaultWelcomeText = response.systemDefaultWelcomeEmailText;
     $('#client-tree .loading-wrapper').hide();
+    nonLimitedDomains = response.nonLimitedDomains.map((x: string) => x.toLowerCase());
+    defaultClientDomainListCountLimit = response.defaultDomainLimit;
   }).fail(function onFail(response) {
     $('#client-tree .loading-wrapper').hide();
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
   });
+}
+
+function updateDomainLimitUsage(usedDomains: number) {
+  $('#email-domain-limit-label').text(` (${usedDomains} of ${clientDomainLimit} domains used)`);
+}
+
+function getCleanedApprovedDomains() {
+  const rawDomains = getRawApprovedDomains();
+  return rawDomains.filter((x) => {
+    return nonLimitedDomains.indexOf(x.toLowerCase()) === -1;
+  });
+}
+
+function getRawApprovedDomains() {
+  const rawDomains: string[] = $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0]
+    .selectize
+    .getValue()
+    .split(',')
+    .map((x: string) => x.toLowerCase())
+    .filter((x: string) => x !== '');
+  return rawDomains;
 }
 
 $(function onReady() {
@@ -633,21 +667,64 @@ $(function onReady() {
   $('.tooltip').tooltipster();
 
   $('#client-info form.admin-panel-content #AcceptedEmailDomainList').selectize({
-    create: function onCreate(input: any) {
-      if (input.match(domainRegex())) {
-        return {
-          text: input,
-          value: input,
-        };
+    allowEmptyOption: false,
+    create: function onCreate(input: string) {
+      const rawApprovedDomains: string[] = getRawApprovedDomains();
+
+      if (rawApprovedDomains.indexOf(input.toLowerCase()) !== -1) {
+        $('#AcceptedEmailDomainList-selectized').val('');
+        toastr.warning('That domain already exists');
+        return false;
       }
 
-      toastr.warning('Please enter a valid domain name (e.g. domain.com)');
+      const newApprovedDomains = [...rawApprovedDomains, input];
 
-      $('#AcceptedEmailDomainList-selectized').val(input);
-      $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.unlock();
-      $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.focus();
+      const numberOfDomains: number = newApprovedDomains.filter((x) => {
+        return nonLimitedDomains.indexOf(x.toLowerCase()) === -1 && x !== '';
+      }).length;
 
-      return {};
+      if (!input.match(domainRegex())) {
+        toastr.warning('Please enter a valid domain name (e.g. domain.com)');
+        $('#AcceptedEmailDomainList-selectized').val(input);
+        $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.unlock();
+        $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.focus();
+        return false;
+      }
+
+      if (numberOfDomains > clientDomainLimit) {
+        $('#AcceptedEmailDomainList-selectized').val('');
+        const selectedClientId = $('form input#Id').val();
+        const selectedClientName = $('form input#Name').val();
+        const supportAddress = 'map.support@milliman.com';
+        const subject = 'Domain Limit Increase Request';
+        const body = `Client Id: ${selectedClientId}
+          %0D%0AClient Name: ${selectedClientName}
+          %0D%0A%0D%0A_______________________________
+          %0D%0A%0D%0APlease specify the new requested domain limit, and the reason for the increase.`;
+        toastr.warning(`<a href="mailto:${supportAddress}?subject=${subject}&body=${body}">
+          You have reached the allowed domain limit for this client.
+          Click here to request an increase to this limit.</a>`);
+        return false;
+      }
+
+      updateDomainLimitUsage(numberOfDomains);
+      return {
+        text: input,
+        value: input.toLowerCase(),
+      };
+    },
+    onItemAdd: () => {
+      for (const domain of nonLimitedDomains) {
+        $(`div[data-value="${domain}"]`).addClass('non-limited');
+      }
+    },
+    onItemRemove: () => {
+      const domains: string[] = getRawApprovedDomains();
+      const numberOfDomains: number = domains.filter((x) => {
+        return nonLimitedDomains.indexOf(x.toLowerCase()) === -1;
+      }).length;
+
+      updateDomainLimitUsage(numberOfDomains);
     },
     persist: false,
     plugins: ['remove_button'],

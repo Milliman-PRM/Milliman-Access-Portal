@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
@@ -28,6 +29,7 @@ using AuditLogLib.Event;
 using MillimanAccessPortal.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using Serilog;
@@ -116,7 +118,7 @@ namespace MillimanAccessPortal.Controllers
         [NonAction]
         public async Task<bool> IsUserAccountLocal(string userName)
         {
-            MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationSchemeAsync(userName);
+            MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationScheme(userName);
 
             bool isLocal = scheme == null ||
                            scheme.Name == (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
@@ -130,7 +132,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="userName"></param>
         /// <returns>The identified scheme name or <see langword="null"/> if none is appropriate</returns>
         [NonAction]
-        public MapDbContextLib.Context.AuthenticationScheme GetExternalAuthenticationSchemeAsync(string userName)
+        public MapDbContextLib.Context.AuthenticationScheme GetExternalAuthenticationScheme(string userName)
         {
             // 1. If the specified user has an assigned scheme
             MapDbContextLib.Context.AuthenticationScheme assignedScheme = DbContext.ApplicationUser
@@ -172,7 +174,7 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RemoteAuthenticate(string userName)
         {
-            MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationSchemeAsync(userName);
+            MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationScheme(userName);
 
             if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
             {
@@ -411,7 +413,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In AccountController.Logout action: user {appUser?.UserName ?? "<unknown>"} logged out.");
             _auditLogger.Log(AuditEventType.Logout.ToEvent(), appUser?.UserName);
 
-            Response.Cookies.Delete(".AspNetCore.Session");  // TODO get the cookie name from the authentication middleware, don't hard code
+            Response.Cookies.Delete(SessionDefaults.CookieName);
             HttpContext.Session.Clear();
 
             return Ok();
@@ -443,7 +445,7 @@ namespace MillimanAccessPortal.Controllers
             if (string.IsNullOrWhiteSpace(HttpContext.User?.Identity?.Name) ||
                 !HttpContext.User.Identity.IsAuthenticated)
             {
-                Log.Warning("AccountController.ExternalLoginCallback action invoked with {@HttpContext.User}", HttpContext.User);
+                Log.Warning("AccountController.ExternalLoginCallback action invoked with {@HttpContextUser}", HttpContext.User);
                 return RedirectToAction(nameof(Login));
             }
 
@@ -453,7 +455,7 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            SignInCommon(HttpContext.User.Identity.Name, GetExternalAuthenticationSchemeAsync(HttpContext.User.Identity.Name)?.Name);
+            SignInCommon(HttpContext.User.Identity.Name, GetExternalAuthenticationScheme(HttpContext.User.Identity.Name)?.Name);
 
             returnUrl = returnUrl ?? Url.Content("~/");
             return LocalRedirect(returnUrl);
@@ -566,7 +568,7 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationSchemeAsync(RequestedUser.UserName);
+                MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationScheme(RequestedUser.UserName);
 
                 emailBody = "A password reset was requested for your Milliman Access Portal account. " +
                     $"Your MAP account uses login services from your organization ({scheme.DisplayName}). Please contact your IT department if you require password assistance.";

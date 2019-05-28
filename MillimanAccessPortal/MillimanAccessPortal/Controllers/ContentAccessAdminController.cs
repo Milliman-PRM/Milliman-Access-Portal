@@ -1,3 +1,9 @@
+/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Actions to support administration of user authorization to hosted content
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib.ActionFilters;
@@ -239,7 +245,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            if (!contentItem.DoesReduce)
+            if (!contentItem.DoesReduce && contentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
             {
                 ContentRelatedFile liveMasterFile = contentItem.ContentFilesList
                     .SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
@@ -423,7 +429,7 @@ namespace MillimanAccessPortal.Controllers
                             ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"),
                             selectionGroup.ContentInstanceUrl);
 
-                        await new QlikviewLibApi().ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl, QvConfig);
+                        await new QlikviewLibApi(QvConfig).ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl);
 
                         if (System.IO.File.Exists(ContentFileFullPath))
                         {
@@ -443,6 +449,7 @@ namespace MillimanAccessPortal.Controllers
                 case ContentTypeEnum.Html:
                 case ContentTypeEnum.Pdf:
                 case ContentTypeEnum.FileDownload:
+                case ContentTypeEnum.PowerBi:
                 default:
                     // for all non-reducible content types, do nothing.
                     break;
@@ -683,6 +690,7 @@ namespace MillimanAccessPortal.Controllers
                         case ContentTypeEnum.Html:
                         case ContentTypeEnum.Pdf:
                         case ContentTypeEnum.FileDownload:
+                        case ContentTypeEnum.PowerBi:
                         default:
                             // should never get here because non-reducible content types are blocked in validation above
                             break;

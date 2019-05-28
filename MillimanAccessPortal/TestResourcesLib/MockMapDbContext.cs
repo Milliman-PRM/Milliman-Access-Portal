@@ -52,6 +52,12 @@ namespace TestResourcesLib
                 MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(MockContentPublicationRequest.Object, "ApplicationUserId", ReturnMockContext.Object.ApplicationUser);
                 MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(MockContentPublicationRequest.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
             });
+            MockContentPublicationRequest.Setup(d => d.AddRange(It.IsAny<IEnumerable<ContentPublicationRequest>>())).Callback<IEnumerable<ContentPublicationRequest>>(s =>
+            {
+                ContentPublicationRequestData.AddRange(s);
+                MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(MockContentPublicationRequest.Object, "ApplicationUserId", ReturnMockContext.Object.ApplicationUser);
+                MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(MockContentPublicationRequest.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
+            });
             ReturnMockContext.Object.ContentPublicationRequest = MockContentPublicationRequest.Object;
 
             List<ContentReductionTask> ContentReductionTaskData = new List<ContentReductionTask>();
@@ -76,6 +82,12 @@ namespace TestResourcesLib
                 MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ContentTypeId", ReturnMockContext.Object.ContentType);
                 MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ClientId", ReturnMockContext.Object.Client);
             });
+            MockRootContentItem.Setup(d => d.AddRange(It.IsAny<IEnumerable<RootContentItem>>())).Callback< IEnumerable<RootContentItem>>(s =>
+            {
+                RootContentItemData.AddRange(s);
+                MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ContentTypeId", ReturnMockContext.Object.ContentType);
+                MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ClientId", ReturnMockContext.Object.Client);
+            });
             ReturnMockContext.Object.RootContentItem = MockRootContentItem.Object;
 
             List<SelectionGroup> SelectionGroupData = new List<SelectionGroup>();
@@ -83,6 +95,11 @@ namespace TestResourcesLib
             MockSelectionGroup.Setup(d => d.Add(It.IsAny<SelectionGroup>())).Callback<SelectionGroup>(s =>
             {
                 SelectionGroupData.Add(s);
+                MockDbSet<SelectionGroup>.AssignNavigationProperty(MockSelectionGroup.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
+            });
+            MockSelectionGroup.Setup(d => d.AddRange(It.IsAny<IEnumerable<SelectionGroup>>())).Callback< IEnumerable<SelectionGroup>>(s =>
+            {
+                SelectionGroupData.AddRange(s);
                 MockDbSet<SelectionGroup>.AssignNavigationProperty(MockSelectionGroup.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
             });
             ReturnMockContext.Object.SelectionGroup = MockSelectionGroup.Object;
@@ -95,7 +112,14 @@ namespace TestResourcesLib
                 UserRoleInClientData.Add(s);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(MockUserRoleInClient.Object, "ClientId", ReturnMockContext.Object.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(MockUserRoleInClient.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
-                MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationRole>(MockUserRoleInClient.Object, "RoleId", ReturnMockContext.Object.ApplicationRole);
+                MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationRole>(MockUserRoleInClient.Object, "RoleId", ReturnMockContext.Object.Roles);
+            });
+            MockUserRoleInClient.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserRoleInClient>>())).Callback<IEnumerable<UserRoleInClient>>(s =>
+            {
+                UserRoleInClientData.AddRange(s);
+                MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(MockUserRoleInClient.Object, "ClientId", ReturnMockContext.Object.Client);
+                MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(MockUserRoleInClient.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
+                MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationRole>(MockUserRoleInClient.Object, "RoleId", ReturnMockContext.Object.Roles);
             });
             ReturnMockContext.Object.UserRoleInClient = MockUserRoleInClient.Object;
 
@@ -119,6 +143,12 @@ namespace TestResourcesLib
 
             List<UserInSelectionGroup> UserInSelectionGroupData = new List<UserInSelectionGroup>();
             Mock<DbSet<UserInSelectionGroup>> MockUserInSelectionGroup = MockDbSet<UserInSelectionGroup>.New(UserInSelectionGroupData);
+            MockUserInSelectionGroup.Setup(d => d.Add(It.IsAny<UserInSelectionGroup>())).Callback<UserInSelectionGroup>(s =>
+            {
+                UserInSelectionGroupData.Add(s);
+                MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<SelectionGroup>(MockUserInSelectionGroup.Object, "SelectionGroupId", ReturnMockContext.Object.SelectionGroup);
+                MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<ApplicationUser>(MockUserInSelectionGroup.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
+            });
             MockUserInSelectionGroup.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserInSelectionGroup>>())).Callback<IEnumerable<UserInSelectionGroup>>(s =>
             {
                 UserInSelectionGroupData.AddRange(s);
@@ -129,6 +159,11 @@ namespace TestResourcesLib
 
             List<ApplicationUser> ApplicationUserData = new List<ApplicationUser>();
             Mock<DbSet<ApplicationUser>> MockApplicationUser = MockDbSet<ApplicationUser>.New(ApplicationUserData);
+            MockApplicationUser.Setup(d => d.Add(It.IsAny<ApplicationUser>())).Callback<ApplicationUser>(s =>
+            {
+                ApplicationUserData.Add(s);
+                MockDbSet<ApplicationUser>.AssignNavigationProperty<AuthenticationScheme>(MockApplicationUser.Object, "AuthenticationSchemeId", ReturnMockContext.Object.AuthenticationScheme);
+            });
             MockApplicationUser.Setup(d => d.AddRange(It.IsAny<IEnumerable<ApplicationUser>>())).Callback<IEnumerable<ApplicationUser>>(s =>
             {
                 ApplicationUserData.AddRange(s);
@@ -170,7 +205,7 @@ namespace TestResourcesLib
 
                 foreach (RoleEnum Role in Enum.GetValues(typeof(RoleEnum)))
                 {
-                    ApplicationRole NewRole = new ApplicationRole { Id = new Guid((int)Role,1,1,1,1,1,1,1,1,1,1), RoleEnum = Role, Name = Role.ToString(), NormalizedName = Role.ToString().ToUpper(), DisplayName = ApplicationRole.RoleDisplayNames[Role] };
+                    ApplicationRole NewRole = new ApplicationRole { Id = TestUtil.MakeTestGuid((int)Role), RoleEnum = Role, Name = Role.ToString(), NormalizedName = Role.ToString().ToUpper(), DisplayName = ApplicationRole.RoleDisplayNames[Role] };
 
                     ReturnList.Add(NewRole);
                     if (ResetRoles)
