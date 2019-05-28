@@ -3,11 +3,10 @@
 ## Release Notes
 
 ### v1.x.x
-- strip-whitespace-form-input
+- Trim whitespace on username inputs
 
 ### v1.6.0
 - Converted the Forgot Password page to use React
-- Trim whitespace on username inputs
 - Introduced support for PowerBI as a new content type
 - Implemented a mechanism for controlling the number of domains that can be added to a client email domain whitelist
 - Fixed an issue preventing content publication post-processing from running in parallel
