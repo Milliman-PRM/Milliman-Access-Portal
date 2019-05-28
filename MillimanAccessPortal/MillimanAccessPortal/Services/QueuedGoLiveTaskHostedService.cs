@@ -519,7 +519,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     if (MasterContentUploaded)
                     {
                         auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetRepublish
-                            .ToEvent(usersInGroup, publicationRequest.RootContentItemId));
+                            .ToEvent(usersInGroup, publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client));
                     }
                 }
             }

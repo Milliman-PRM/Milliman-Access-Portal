@@ -1482,7 +1482,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In SystemAdminController.CancelReduction action: success");
             foreach (var updatedReduction in activeReductions)
             {
-                _auditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(existingRecord, updatedReduction));
+                _auditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(existingRecord, existingRecord.RootContentItem, existingRecord.RootContentItem.Client, updatedReduction));
             }
 
             return Json(existingRecord);

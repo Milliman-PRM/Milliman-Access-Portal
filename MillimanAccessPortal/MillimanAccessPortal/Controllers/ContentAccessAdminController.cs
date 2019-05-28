@@ -609,9 +609,9 @@ namespace MillimanAccessPortal.Controllers
 
                 DbContext.SaveChanges();
 
-                AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup));
+                AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client));
                 AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetSelectionChange
-                    .ToEvent(usersInGroup, selectionGroup.RootContentItemId));
+                    .ToEvent(usersInGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client));
             }
             else
             {
@@ -697,7 +697,7 @@ namespace MillimanAccessPortal.Controllers
                     }
                     ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath, ContentTypeConfigObj)));
 
-                    AuditLogger.Log(AuditEventType.SelectionChangeReductionQueued.ToEvent(selectionGroup, contentReductionTask));
+                    AuditLogger.Log(AuditEventType.SelectionChangeReductionQueued.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentReductionTask));
                 }
             }
             //SelectionsDetail model = SelectionsDetail.Build(DbContext, _standardQueries, selectionGroup);
@@ -759,7 +759,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Debug($"In ContentAccessAdminController.CancelReduction action: tasks cancelled: {string.Join(", ", UpdatedTasks.Select(t=>t.Id.ToString()))}");
             foreach (var Task in UpdatedTasks)
             {
-                AuditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(SelectionGroup, Task));
+                AuditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(SelectionGroup, SelectionGroup.RootContentItem, SelectionGroup.RootContentItem.Client, Task));
             }
 
             //SelectionsDetail Model = SelectionsDetail.Build(DbContext, _standardQueries, SelectionGroup);

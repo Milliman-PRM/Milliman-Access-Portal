@@ -221,51 +221,77 @@ namespace AuditLogLib.Event
                 RootContentItem = contentItem,
                 Client = client,
             });
-        public static readonly AuditEventType<SelectionGroup> SelectionGroupDeleted = new AuditEventType<SelectionGroup>(
-            4002, "Selection group deleted", (selectionGroup) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client> SelectionGroupDeleted = new AuditEventType<SelectionGroup, RootContentItem, Client>(
+            4002, "Selection group deleted", (selectionGroup, rootContentItem, client) => new
             {
                 SelectionGroupId = selectionGroup.Id,
+                SelectionGroupName = selectionGroup.GroupName,
+                RootContentItem = rootContentItem,
+                Client = client,
             });
-        public static readonly AuditEventType<SelectionGroup, Guid> SelectionGroupUserAssigned = new AuditEventType<SelectionGroup, Guid>(
-            4003, "User assigned to selection group", (selectionGroup, userId) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, Guid> SelectionGroupUserAssigned = new AuditEventType<SelectionGroup, RootContentItem, Client, Guid>(
+            4003, "User assigned to selection group", (selectionGroup, rootContentItem, client, userId) => new
             {
                 SelectionGroupId = selectionGroup.Id,
+                SelectionGroupName = selectionGroup.GroupName,
                 UserId = userId,
+                RootContentItem = rootContentItem,
+                Client = client,
             });
-        public static readonly AuditEventType<SelectionGroup, Guid> SelectionGroupUserRemoved = new AuditEventType<SelectionGroup, Guid>(
-            4004, "User removed from selection group", (selectionGroup, userId) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, Guid> SelectionGroupUserRemoved = new AuditEventType<SelectionGroup, RootContentItem, Client, Guid>(
+            4004, "User removed from selection group", (selectionGroup, rootContentItem, client, userId) => new
             {
                 SelectionGroupId = selectionGroup.Id,
+                SelectionGroupName = selectionGroup.GroupName,
                 UserId = userId,
+                RootContentItem = rootContentItem,
+                Client = client,
             });
-        public static readonly AuditEventType<SelectionGroup, ContentReductionTask> SelectionChangeReductionQueued = new AuditEventType<SelectionGroup, ContentReductionTask>(
-            4005, "Selection change reduction task queued", (selectionGroup, reductionTask) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, ContentReductionTask> SelectionChangeReductionQueued = new AuditEventType<SelectionGroup, RootContentItem, Client, ContentReductionTask>(
+            4005, "Selection change reduction task queued", (selectionGroup, rootContentItem, client, reductionTask) => new
             {
                 SelectionGroupId = selectionGroup.Id,
-                RootContentItemId = selectionGroup.RootContentItemId,
+                SelectionGroupName = selectionGroup.GroupName,
+                RootContentItemId = rootContentItem.Id,
+                RootContentItemName = rootContentItem.ContentName,
+                ClientId = client.Id,
+                ClientName = client.Name,
                 Action = reductionTask.TaskAction.ToString(),
                 SelectedValues = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList(),
                 SelectedValueIds = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Id)).ToList(),
             });
-        public static readonly AuditEventType<SelectionGroup, ContentReductionTask> SelectionChangeReductionCanceled = new AuditEventType<SelectionGroup, ContentReductionTask>(
-            4006, "Selection change reduction task canceled", (selectionGroup, reductionTask) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, ContentReductionTask> SelectionChangeReductionCanceled = new AuditEventType<SelectionGroup, RootContentItem, Client, ContentReductionTask>(
+            4006, "Selection change reduction task canceled", (selectionGroup, rootContentItem, client, reductionTask) => new
             {
                 SelectionGroupId = selectionGroup.Id,
-                RootContentItemId = selectionGroup.RootContentItemId,
+                SelectionGroupName = selectionGroup.GroupName,
+                RootContentItemId = rootContentItem.Id,
+                RootContentItemName = rootContentItem.ContentName,
+                ClientId = client.Id,
+                ClientName = client.Name,
                 Action = reductionTask.TaskAction.ToString(),
                 SelectedValues = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList(),
                 SelectedValueIds = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Id)).ToList(),
             });
-        public static readonly AuditEventType<SelectionGroup> SelectionChangeMasterAccessGranted = new AuditEventType<SelectionGroup>(
-            4007, "Selection group given master access", (selectionGroup) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client> SelectionChangeMasterAccessGranted = new AuditEventType<SelectionGroup, RootContentItem, Client>(
+            4007, "Selection group given master access", (selectionGroup, rootContentItem, client) => new
             {
                 SelectionGroupId = selectionGroup.Id,
-                RootContentItemId = selectionGroup.RootContentItemId,
+                SelectionGroupName = selectionGroup.GroupName,
+                RootContentItemId = rootContentItem.Id,
+                RootContentItemName = rootContentItem.ContentName,
+                ClientId = client.Id,
+                ClientName = client.Name,
             });
-        public static readonly AuditEventType<SelectionGroup, bool, string> SelectionGroupSuspensionUpdate = new AuditEventType<SelectionGroup, bool, string>(
-            4008, "Selection group suspension status updated", (selectionGroup, isSuspended, reason) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, bool, string> SelectionGroupSuspensionUpdate = new AuditEventType<SelectionGroup, RootContentItem, Client, bool, string>(
+            4008, "Selection group suspension status updated", (selectionGroup, rootContentItem, client, isSuspended, reason) => new
             {
                 SelectionGroupId = selectionGroup.Id,
+                SelectionGroupName = selectionGroup.GroupName,
+                RootContentItemId = rootContentItem.Id,
+                RootContentItemName = rootContentItem.ContentName,
+                ClientId = client.Id,
+                ClientName = client.Name,
                 IsSuspended = isSuspended,
                 Reason = reason,
             });
@@ -274,65 +300,85 @@ namespace AuditLogLib.Event
             {
                 ContentReductionTaskId = task.Id,
             });
-        public static readonly AuditEventType<List<UserInSelectionGroup>, Guid>
+        public static readonly AuditEventType<List<UserInSelectionGroup>, RootContentItem, Client>
         ContentDisclaimerAcceptanceResetTextChange =
-            new AuditEventType<List<UserInSelectionGroup>, Guid>(
-                4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItemId) => new
+            new AuditEventType<List<UserInSelectionGroup>, RootContentItem, Client>(
+                4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItem, client) => new
                 {
-                    RootContentItemId = rootContentItemId,
+                    RootContentItemId = rootContentItem.Id,
+                    RootContentItemName = rootContentItem.ContentName,
+                    ClientId = client.Id,
+                    ClientName = client.Name,
                     UsersInGroup = usersInGroup.Select(u => new
                     {
                         UserInSelectionGroupId = u.Id,
                         UserId = u.UserId,
+                        UserName = u.User.UserName,
                         SelectionGroupId = u.SelectionGroupId,
+                        SelectionGroupName = u.SelectionGroup.GroupName,
                     }),
                     Reason = "Content disclaimer text was changed",
                 });
-        public static readonly AuditEventType<List<UserInSelectionGroup>, Guid>
+        public static readonly AuditEventType<List<UserInSelectionGroup>, RootContentItem, Client>
         ContentDisclaimerAcceptanceResetRepublish =
-            new AuditEventType<List<UserInSelectionGroup>, Guid>(
-                4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItemId) => new
+            new AuditEventType<List<UserInSelectionGroup>, RootContentItem, Client>(
+                4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItem, client) => new
                 {
-                    RootContentItemId = rootContentItemId,
+                    RootContentItemId = rootContentItem.Id,
+                    RootContentItemName = rootContentItem.ContentName,
+                    ClientId = client.Id,
+                    ClientName = client.Name,
                     UsersInGroup = usersInGroup.Select(u => new
                     {
                         UserInSelectionGroupId = u.Id,
                         UserId = u.UserId,
+                        UserName = u.User.UserName,
                         SelectionGroupId = u.SelectionGroupId,
+                        SelectionGroupName = u.SelectionGroup.GroupName,
                     }),
                     Reason = "Root content item was republished",
                 });
-        public static readonly AuditEventType<List<UserInSelectionGroup>, Guid>
+        public static readonly AuditEventType<List<UserInSelectionGroup>, RootContentItem, Client>
         ContentDisclaimerAcceptanceResetSelectionChange =
-            new AuditEventType<List<UserInSelectionGroup>, Guid>(
-                4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItemId) => new
+            new AuditEventType<List<UserInSelectionGroup>, RootContentItem, Client>(
+                4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItem, client) => new
                 {
-                    RootContentItemId = rootContentItemId,
+                    RootContentItemId = rootContentItem.Id,
+                    RootContentItemName = rootContentItem.ContentName,
+                    ClientId = client.Id,
+                    ClientName = client.Name,
                     UsersInGroup = usersInGroup.Select(u => new
                     {
                         UserInSelectionGroupId = u.Id,
                         UserId = u.UserId,
+                        UserName = u.User.UserName,
                         SelectionGroupId = u.SelectionGroupId,
+                        SelectionGroupName = u.SelectionGroup.GroupName,
                     }),
                     Reason = "Selections were changed",
                 });
-        public static readonly AuditEventType<List<UserInSelectionGroup>, Guid>
+        public static readonly AuditEventType<List<UserInSelectionGroup>, RootContentItem, Client>
             ContentDisclaimerAcceptanceResetRemovedFromGroup =
-            new AuditEventType<List<UserInSelectionGroup>, Guid>(
-                4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItemId) => new
+            new AuditEventType<List<UserInSelectionGroup>, RootContentItem, Client>(
+                4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItem, client) => new
                 {
-                    RootContentItemId = rootContentItemId,
+                    RootContentItemId = rootContentItem.Id,
+                    RootContentItemName = rootContentItem.ContentName,
+                    ClientId = client.Id,
+                    ClientName = client.Name,
                     UsersInGroup = usersInGroup.Select(u => new
                     {
                         UserInSelectionGroupId = u.Id,
                         UserId = u.UserId,
+                        UserName = u.User.UserName,
                         SelectionGroupId = u.SelectionGroupId,
+                        SelectionGroupName = u.SelectionGroup.GroupName,
                     }),
                     Reason = "User removed from selection group",
                 });
-        public static readonly AuditEventType<UserInSelectionGroup, string, string> ContentDisclaimerPresented =
-            new AuditEventType<UserInSelectionGroup, string, string>(4102, "Content disclaimer presented to user",
-                (userInSelectionGroup, validationId, disclaimerText) => new
+        public static readonly AuditEventType<UserInSelectionGroup, RootContentItem, Client, string, string> ContentDisclaimerPresented =
+            new AuditEventType<UserInSelectionGroup, RootContentItem, Client, string, string>(4102, "Content disclaimer presented to user",
+                (userInSelectionGroup, rootContentItem, client, validationId, disclaimerText) => new
                 {
                     ValidationId = validationId,
                     UserInSelectionGroup = new
@@ -340,12 +386,17 @@ namespace AuditLogLib.Event
                         Id = userInSelectionGroup.Id,
                         UserId = userInSelectionGroup.UserId,
                         SelectionGroupId = userInSelectionGroup.SelectionGroupId,
+                        SelectionGroupName = userInSelectionGroup.SelectionGroup.GroupName,
                     },
+                    RootContentItemId = rootContentItem.Id,
+                    RootContentItemName = rootContentItem.ContentName,
+                    ClientId = client.Id,
+                    ClientName = client.Name,
                     DisclaimerText = disclaimerText,
                 });
-        public static readonly AuditEventType<UserInSelectionGroup, string> ContentDisclaimerAccepted =
-            new AuditEventType<UserInSelectionGroup, string>(4103, "Content disclaimer accepted by user",
-                (userInSelectionGroup, validationId) => new
+        public static readonly AuditEventType<UserInSelectionGroup, RootContentItem, Client, string, string> ContentDisclaimerAccepted =
+            new AuditEventType<UserInSelectionGroup, RootContentItem, Client, string, string>(4103, "Content disclaimer accepted by user",
+                (userInSelectionGroup, rootContentItem, client, validationId, disclaimerText) => new
                 {
                     ValidationId = validationId,
                     UserInSelectionGroup = new
@@ -353,7 +404,13 @@ namespace AuditLogLib.Event
                         Id = userInSelectionGroup.Id,
                         UserId = userInSelectionGroup.UserId,
                         SelectionGroupId = userInSelectionGroup.SelectionGroupId,
+                        SelectionGroupName = userInSelectionGroup.SelectionGroup.GroupName,
                     },
+                    RootContentItemId = rootContentItem.Id,
+                    RootContentItemName = rootContentItem.ContentName,
+                    ClientId = client.Id,
+                    ClientName = client.Name,
+                    DisclaimerText = disclaimerText,
                 });
 
         #endregion

@@ -164,7 +164,7 @@ namespace MillimanAccessPortal.Controllers
                     DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
                 };
                 AuditLogger.Log(AuditEventType.ContentDisclaimerPresented.ToEvent(
-                    userInSelectionGroup, disclaimer.ValidationId, disclaimer.DisclaimerText));
+                    userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, disclaimer.ValidationId, disclaimer.DisclaimerText));
 
                 return View("ContentDisclaimer", disclaimer);
             }
@@ -199,7 +199,7 @@ namespace MillimanAccessPortal.Controllers
                 userInSelectionGroup.DisclaimerAccepted = true;
 
                 await DataContext.SaveChangesAsync();
-                AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, validationId));
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, validationId, userInSelectionGroup.SelectionGroup.RootContentItem.ContentDisclaimer));
             }
 
             return Ok();

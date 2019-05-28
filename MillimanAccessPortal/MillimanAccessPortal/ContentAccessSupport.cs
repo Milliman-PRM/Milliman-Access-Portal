@@ -208,7 +208,7 @@ namespace MillimanAccessPortal
 
             AuditLogger Logger = new AuditLogger();
             Logger.Log(AuditEventType.ContentDisclaimerAcceptanceResetSelectionChange
-                .ToEvent(usersInGroup, rootContentItemId));
+                .ToEvent(usersInGroup, reductionTask.SelectionGroup.RootContentItem, reductionTask.SelectionGroup.RootContentItem.Client));
 
             return FilesToDelete;
         }
