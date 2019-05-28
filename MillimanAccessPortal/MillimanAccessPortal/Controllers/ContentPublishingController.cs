@@ -272,7 +272,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In ContentPublishingController.CreateRootContentItem action: success");
-            AuditLogger.Log(AuditEventType.RootContentItemCreated.ToEvent(rootContentItem));
+            AuditLogger.Log(AuditEventType.RootContentItemCreated.ToEvent(rootContentItem, client));
 
             RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, rootContentItem);
             RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
@@ -365,7 +365,7 @@ namespace MillimanAccessPortal.Controllers
             DbContext.SaveChanges();
 
             Log.Verbose($"In ContentPublishingController.UpdateRootContentItem action: success");
-            AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(rootContentItem));
+            AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(rootContentItem, rootContentItem.Client));
             if (usersInGroup != null)
             {
                 AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetTextChange
@@ -478,7 +478,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In ContentPublishingController.DeleteRootContentItem action: success, aborting");
-            AuditLogger.Log(AuditEventType.RootContentItemDeleted.ToEvent(rootContentItem));
+            AuditLogger.Log(AuditEventType.RootContentItemDeleted.ToEvent(rootContentItem, rootContentItem.Client));
 
             return Json(model);
         }

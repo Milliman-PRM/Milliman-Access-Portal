@@ -442,45 +442,60 @@ namespace AuditLogLib.Event
         #endregion
 
         #region Content Publishing [6000 - 6999]
-        public static readonly AuditEventType<RootContentItem> RootContentItemCreated = new AuditEventType<RootContentItem>(
-            6001, "Root content item created", (rootContentItem) => new
+        public static readonly AuditEventType<RootContentItem, Client> RootContentItemCreated = new AuditEventType<RootContentItem, Client>(
+            6001, "Root content item created", (rootContentItem, client) => new
+            {
+                RootContentItemId = rootContentItem.Id,
+                RootContentItemName = rootContentItem.ContentName,
+                RootContentDescription = rootContentItem.Description,
+                RootContentNotes = rootContentItem.Notes,
+                RootContentDisclaimer = rootContentItem.ContentDisclaimer,
+                ContentTypeId = rootContentItem.ContentTypeId,
+                ContentTypeName = rootContentItem.ContentType.Name,
+                ClientId = client.Id,
+                ClientName = client.Name,
+            });
+        public static readonly AuditEventType<RootContentItem, Client> RootContentItemDeleted = new AuditEventType<RootContentItem, Client>(
+            6002, "Root content item deleted", (rootContentItem, client) => new
             {
                 RootContentItemId = rootContentItem.Id,
                 RootContentItemName = rootContentItem.ContentName,
                 ContentTypeId = rootContentItem.ContentTypeId,
-                ClientId = rootContentItem.ClientId,
+                ContentTypeName = rootContentItem.ContentType.Name,
+                ClientId = client.Id,
+                ClientName = client.Name,
             });
-        public static readonly AuditEventType<RootContentItem> RootContentItemDeleted = new AuditEventType<RootContentItem>(
-            6002, "Root content item deleted", (rootContentItem) => new
+        public static readonly AuditEventType<RootContentItem, Client> RootContentItemUpdated = new AuditEventType<RootContentItem, Client>(
+            6003, "Root content item updated", (rootContentItem, client) => new
             {
                 RootContentItemId = rootContentItem.Id,
                 RootContentItemName = rootContentItem.ContentName,
                 ContentTypeId = rootContentItem.ContentTypeId,
-                ClientId = rootContentItem.ClientId,
-            });
-        public static readonly AuditEventType<RootContentItem> RootContentItemUpdated = new AuditEventType<RootContentItem>(
-            6003, "Root content item updated", (rootContentItem) => new
-            {
-                RootContentItemId = rootContentItem.Id,
-                RootContentName = rootContentItem.ContentName,
+                ContentTypeName = rootContentItem.ContentType.Name,
+                ClientId = client.Id,
+                ClientName = client.Name,
                 RootContentDescription = rootContentItem.Description,
                 RootContentNotes = rootContentItem.Notes,
                 RootContentDisclaimer = rootContentItem.ContentDisclaimer,
             });
-        public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> PublicationRequestInitiated = new AuditEventType<RootContentItem, ContentPublicationRequest>(
-            6101, "Publication request initiated", (rootContentItem, publicationRequest) => new
+        public static readonly AuditEventType<RootContentItem, Client, ContentPublicationRequest> PublicationRequestInitiated = new AuditEventType<RootContentItem, Client, ContentPublicationRequest>(
+            6101, "Publication request initiated", (rootContentItem, client, publicationRequest) => new
             {
                 PublicationRequestId = publicationRequest.Id,
                 ContentItemId = rootContentItem.Id,
                 ContentItemName = rootContentItem.ContentName,
+                ClientId = client.Id,
+                ClientName = client.Name,
                 Uploads = publicationRequest.UploadedRelatedFilesObj,
             });
-        public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> PublicationCanceled = new AuditEventType<RootContentItem, ContentPublicationRequest>(
-            6102, "Publication request canceled", (rootContentItem, publicationRequest) => new
+        public static readonly AuditEventType<RootContentItem, Client, ContentPublicationRequest> PublicationCanceled = new AuditEventType<RootContentItem, Client, ContentPublicationRequest>(
+            6102, "Publication request canceled", (rootContentItem, client, publicationRequest) => new
             {
                 PublicationRequestId = publicationRequest.Id,
                 ContentItemId = rootContentItem.Id,
                 ContentItemName = rootContentItem.ContentName,
+                ClientId = client.Id,
+                ClientName = client.Name,
             });
         public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> GoLiveValidationFailed = new AuditEventType<RootContentItem, ContentPublicationRequest>(
             6103, "GoLive Validation Failed", (rootContentItem, publicationRequest) => new
