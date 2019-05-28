@@ -51,7 +51,8 @@ WHERE ctid IN
 	(SELECT cpc.ctid
 		FROM public."ClientInProfitCenter" cpc
 			LEFT JOIN map."Client" cl ON cpc."ClientId" = cl."Id" AND cpc."ProfitCenterId" = cl."ProfitCenterId"
-		WHERE cl."Id" IS NULL);
+		WHERE cl."Id" IS NULL)
+AND "EndDate" = '12/31/9999';
 			
 -- Insert currently applicable records
 INSERT INTO public."ClientInProfitCenter"
@@ -72,7 +73,8 @@ WHERE ctid IN
         FROM public."UserInSelectionGroup" usg 
             LEFT JOIN map."UserInSelectionGroup" musg ON usg."UserId" = musg."UserId" AND usg."SelectionGroupId" = musg."SelectionGroupId"
         WHERE musg."Id" IS NULL
-    );
+    )
+AND "EndDate" = '12/31/9999';
 
 -- Insert currently applicable records
 INSERT INTO public."UserInSelectionGroup"
