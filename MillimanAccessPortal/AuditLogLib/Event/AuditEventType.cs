@@ -75,12 +75,25 @@ namespace AuditLogLib.Event
                        Name = client.Name,
                    },
                });
-        public static readonly AuditEventType<string, string, string> UserContentRelatedFileAccess =
-            new AuditEventType<string, string, string>(1009, "Content related file access",
-                (contentItemId, selectionGroupId, relatedFilePurpose) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, string> UserContentRelatedFileAccess =
+            new AuditEventType<SelectionGroup, RootContentItem, Client, string>(1009, "Content related file access",
+                (selectionGroup, contentItem, client, relatedFilePurpose) => new
                 {
-                    ContentItem = contentItemId,
-                    SelectionGroup = selectionGroupId,
+                    SelectionGroup = new
+                    {
+                        Id = selectionGroup.Id,
+                        GroupName = selectionGroup.GroupName,
+                    },
+                    ContentItem = new
+                    {
+                        Id = contentItem.Id,
+                        ContentName = contentItem.ContentName,
+                    },
+                    Client = new
+                    {
+                        Id = client.Id,
+                        Name = client.Name,
+                    },
                     RelatedFilePurpose = relatedFilePurpose,
                 });
         #endregion

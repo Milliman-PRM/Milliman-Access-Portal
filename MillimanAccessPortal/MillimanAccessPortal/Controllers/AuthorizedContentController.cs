@@ -726,7 +726,10 @@ namespace MillimanAccessPortal.Controllers
 
             // Log access to related file
             AuditLogger.Log(AuditEventType.UserContentRelatedFileAccess.ToEvent(
-                selectionGroup.RootContentItemId.ToString(), selectionGroup.Id.ToString(), purpose));
+                    selectionGroup, 
+                    selectionGroup.RootContentItem, 
+                    selectionGroup.RootContentItem.Client,
+                    purpose));
 
             try
             {
