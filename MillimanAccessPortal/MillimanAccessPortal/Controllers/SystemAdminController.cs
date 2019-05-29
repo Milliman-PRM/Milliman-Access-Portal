@@ -1412,7 +1412,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("In SystemAdminController.CancelPublication action: success");
             foreach (var updatedPublication in activePublications)
             {
-                _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingRecord, updatedPublication));
+                _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingRecord, existingRecord.Client, updatedPublication));
             }
 
             return Json(existingRecord);

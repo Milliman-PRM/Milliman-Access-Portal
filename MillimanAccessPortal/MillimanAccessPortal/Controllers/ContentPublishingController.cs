@@ -617,7 +617,7 @@ namespace MillimanAccessPortal.Controllers
                     ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath, _PostProcessingTaskQueue)));
 
                 Log.Verbose($"In ContentPublishingController.Publish action: publication request queued successfully");
-                AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(NewContentPublicationRequest.RootContentItem, NewContentPublicationRequest));
+                AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(NewContentPublicationRequest.RootContentItem, NewContentPublicationRequest.RootContentItem.Client, NewContentPublicationRequest));
             }
 
             var rootContentItemDetail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, ContentItem);
