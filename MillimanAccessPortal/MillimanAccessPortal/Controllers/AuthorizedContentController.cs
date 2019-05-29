@@ -316,7 +316,7 @@ namespace MillimanAccessPortal.Controllers
 
                     notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
                     Log.Warning("In AuthorizedContentController.WebHostedContent action: checksum failure for ContentFile {@ContentFile}, aborting", requestedContentFile);
-                    AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, requestedContentFile, "AuthorizedContentController.WebHostedContent"));
+                    AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, requestedContentFile, "AuthorizedContentController.WebHostedContent"));
                     return View("ContentMessage", ErrMsg);
                 }
             }
@@ -719,7 +719,7 @@ namespace MillimanAccessPortal.Controllers
 
                 notifier.sendSupportMail(MailMsg, $"Checksum verification ({purpose})");
                 Log.Error("In AuthorizedContentController.RelatedPdf action: file checksum failure, ContentRelatedFile {@ContentRelatedFile}, aborting", contentRelatedPdf);
-                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, contentRelatedPdf, "AuthorizedContentController.RelatedPdf"));
+                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentRelatedPdf, "AuthorizedContentController.RelatedPdf"));
                 return View("ContentMessage", ErrMsg);
             }
             #endregion

@@ -509,35 +509,47 @@ namespace AuditLogLib.Event
                 ClientId = client.Id,
                 ClientName = client.Name,
             });
-        public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> GoLiveValidationFailed = new AuditEventType<RootContentItem, ContentPublicationRequest>(
-            6103, "GoLive Validation Failed", (rootContentItem, publicationRequest) => new
+        public static readonly AuditEventType<RootContentItem, Client, ContentPublicationRequest> GoLiveValidationFailed = new AuditEventType<RootContentItem, Client, ContentPublicationRequest>(
+            6103, "GoLive Validation Failed", (rootContentItem, client, publicationRequest) => new
             {
                 PublicationRequestId = publicationRequest.Id,
                 RootContentItemId = rootContentItem.Id,
                 RootContentItemName = rootContentItem.ContentName,
+                ClientId = client.Id,
+                ClientName = client.Name,
             });
-        public static readonly AuditEventType<SelectionGroup, ContentRelatedFile,string> ChecksumInvalid = new AuditEventType<SelectionGroup, ContentRelatedFile,string>(
-            6104, "Checksum Invalid", (selectionGroup, contentRelatedFile, sourceAction) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, ContentRelatedFile, string> ChecksumInvalid = new AuditEventType<SelectionGroup, RootContentItem, Client, ContentRelatedFile, string>(
+            6104, "Checksum Invalid", (selectionGroup, rootContentItem, client, contentRelatedFile, sourceAction) => new
             {
                 SelectionGroupId = selectionGroup.Id,
-                RootContentItemId = selectionGroup.RootContentItemId,
+                SelectionGroupName = selectionGroup.GroupName,
+                RootContentItemId = rootContentItem.Id,
+                RootContentItemName = rootContentItem.ContentName,
+                ClientId = client.Id,
+                ClientName = client.Name,
                 FilePath = contentRelatedFile.FullPath,
                 FilePurpose = contentRelatedFile.FilePurpose,
                 Action = sourceAction,
             });
-        public static readonly AuditEventType<RootContentItem, ContentPublicationRequest, string> ContentPublicationGoLive = new AuditEventType<RootContentItem, ContentPublicationRequest, string>(
-            6105, "Content publication golive", (rootContentItem, publicationRequest, summaryGUID) => new
+        public static readonly AuditEventType<RootContentItem, Client, ContentPublicationRequest, string> ContentPublicationGoLive = new AuditEventType<RootContentItem, Client, ContentPublicationRequest, string>(
+            6105, "Content publication golive", (rootContentItem, client, publicationRequest, summaryGUID) => new
             {
+                RootContentItemId = rootContentItem.Id,
+                RootContentItemName = rootContentItem.ContentName,
+                ClientId = client.Id,
+                ClientName = client.Name,
                 SummaryGUID = summaryGUID,
             });
         public static readonly AuditEventType<PreLiveContentValidationSummaryLogModel> PreGoLiveSummary = new AuditEventType<PreLiveContentValidationSummaryLogModel>(
             6106, "Content publication pre-golive summary", preliveSummary => preliveSummary);
-        public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> ContentPublicationRejected = new AuditEventType<RootContentItem, ContentPublicationRequest>(
-            6107, "Content publication rejected", (rootContentItem, publicationRequest) => new
+        public static readonly AuditEventType<RootContentItem, Client, ContentPublicationRequest> ContentPublicationRejected = new AuditEventType<RootContentItem, Client, ContentPublicationRequest>(
+            6107, "Content publication rejected", (rootContentItem, client, publicationRequest) => new
             {
                 PublicationRequestId = publicationRequest.Id,
                 RootContentItemId = rootContentItem.Id,
                 RootContentItemName = rootContentItem.ContentName,
+                ClientId = client.Id,
+                ClientName = client.Name,
             });
         #endregion
 
