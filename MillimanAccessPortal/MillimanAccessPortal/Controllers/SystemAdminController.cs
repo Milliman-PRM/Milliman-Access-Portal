@@ -1037,7 +1037,7 @@ namespace MillimanAccessPortal.Controllers
             #region Audit logging (may depend on what is updated)
             if (updatedClient.DomainLimitChange.NewDomainLimit != previousDomainLimit)
             {
-                _auditLogger.Log(AuditEventType.ClientDomainLimitUpdated.ToEvent(updatedClient.BuildAuditLogEventData(previousDomainLimit)));
+                _auditLogger.Log(AuditEventType.ClientDomainLimitUpdated.ToEvent(updatedClient.BuildAuditLogEventData(previousDomainLimit, existingRecord.Name)));
             }
 
             // Log other auditable things here
