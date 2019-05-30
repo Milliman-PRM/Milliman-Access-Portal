@@ -36,7 +36,7 @@ export class CardPanel<TEntity> extends React.Component<CardPanelProps<TEntity>>
                 {entities.map((entity, i) => renderEntity(entity, i))}
               </ul>
             )
-            : <div>No results.</div>
+            : <div>Select a tab or alter the filter to view cards</div>
           }
           {renderNewEntityButton && renderNewEntityButton()}
         </CardPanelSectionContent>
