@@ -73,6 +73,7 @@ export interface SystemAdminState {
 }
 
 export enum SystemAdminColumn {
+  NONE = 'none',
   USER = 'user',
   CLIENT = 'client',
   PROFIT_CENTER = 'profitCenter',
@@ -95,7 +96,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       },
       primaryPanel: {
         selected: {
-          column: SystemAdminColumn.USER,
+          column: null,
           card: null,
         },
         cards: null,
@@ -126,7 +127,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   public componentDidMount() {
-    this.handlePrimaryColumnSelected(SystemAdminColumn.USER);
+    this.handlePrimaryColumnSelected(SystemAdminColumn.NONE);
   }
 
   public componentDidUpdate() {
@@ -750,6 +751,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   private getDataAction(column: SystemAdminColumn) {
     switch (column) {
+      case SystemAdminColumn.NONE:
+        return null;
       case SystemAdminColumn.USER:
         return 'Users';
       case SystemAdminColumn.CLIENT:
@@ -765,6 +768,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   private getDetailAction(column: SystemAdminColumn) {
     switch (column) {
+      case SystemAdminColumn.NONE:
+        return null;
       case SystemAdminColumn.USER:
         return 'UserDetail';
       case SystemAdminColumn.CLIENT:
