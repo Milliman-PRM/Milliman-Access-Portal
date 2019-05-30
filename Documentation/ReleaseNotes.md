@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.x.x
+
+- Fixed a bug in displaying userguide contents
+
 ### v1.6.0
 
 - Introduced support for PowerBI as a new content type
