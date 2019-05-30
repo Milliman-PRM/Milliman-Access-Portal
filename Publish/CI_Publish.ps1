@@ -598,18 +598,4 @@ else {
     exit $error_code
 }
 
-log_statement "Creating MAP User Stats Loader release"
-
-octo create-release --project "User Stats Loader" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
-if ($LASTEXITCODE -eq 0) {
-    log_statement "MAP User Stats Loader release created successfully"
-}
-else {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to create Octopus release for MAP User Stats Loader"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
-
 #endregion
