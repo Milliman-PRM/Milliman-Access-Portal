@@ -126,10 +126,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     };
   }
 
-  public componentDidMount() {
-    this.handlePrimaryColumnSelected(SystemAdminColumn.NONE);
-  }
-
   public componentDidUpdate() {
     const { primaryEntities, secondaryEntities, primaryDetail, secondaryDetail } = this.state.data;
     const { card: primaryCard } = this.state.primaryPanel.selected;
