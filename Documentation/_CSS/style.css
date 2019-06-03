@@ -32,7 +32,7 @@ body {
 
 .content.show {
     transition: 1.5s;
-    max-height: 100%;
+    max-height: 100em;
 }
 
 h3 {
