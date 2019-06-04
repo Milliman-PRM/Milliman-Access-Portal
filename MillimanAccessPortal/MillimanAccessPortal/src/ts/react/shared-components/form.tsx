@@ -73,6 +73,15 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
     this.setState({ data, errors });
   }
 
+  protected handleWhiteSpace = async ({ currentTarget: input }: React.FormEvent<HTMLInputElement>) => {
+    const { data } = Object.assign({}, this.state);
+    this.validate();
+
+    data[input.name] = input.value.trim();
+
+    this.setState({ data });
+  }
+
   protected handleBlur = async ({ currentTarget: input }: React.FormEvent<HTMLInputElement>) => {
     const errorMessage = await this.validateProperty(input);
     const { errors } = Object.assign({}, this.state);
