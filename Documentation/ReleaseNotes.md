@@ -4,6 +4,7 @@
 
 ### v1.x.x
 
+- Fixed the styling on republishing icons
 - Fixed a bug in displaying userguide contents
 
 ### v1.6.0
