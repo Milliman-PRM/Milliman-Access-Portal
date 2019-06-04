@@ -51,7 +51,7 @@ export class ForgotPasswordForm extends Form<{}, ForgotPasswordState> {
               label="Email"
               type="text"
               value={data.email}
-              onChange={this.handleChange}
+              onChange={this.handleChange && this.handleWhiteSpace}
               onBlur={this.handleBlur}
               error={errors.email}
               autoFocus={true}
