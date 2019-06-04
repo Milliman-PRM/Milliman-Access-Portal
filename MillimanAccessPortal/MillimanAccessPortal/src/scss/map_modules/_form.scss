@@ -346,7 +346,7 @@ label.input-with-upload {
 
     .file-upload-icons {
         position: absolute;
-        display: inline-block;
+        display: flex;
         right: .25em;
         top: 1.9em;
         z-index: 2;

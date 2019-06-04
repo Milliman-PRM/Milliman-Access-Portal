@@ -3,9 +3,13 @@
 ## Release Notes
 
 ### v1.x.x
+
 - Trim whitespace on username inputs
+- Fixed the styling on republishing icons
+- Fixed a bug in displaying userguide contents
 
 ### v1.6.0
+
 - Introduced support for PowerBI as a new content type
 - Implemented a mechanism for controlling the number of domains that can be added to a client email domain whitelist
 - Fixed an issue preventing content publication post-processing from running in parallel
