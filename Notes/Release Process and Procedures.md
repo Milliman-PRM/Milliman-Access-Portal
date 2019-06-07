@@ -4,9 +4,9 @@
 
 The purpose of this document is to detail the process by which a release of Milliman Access Portal (MAP) progresses through the software development lifecycle.
 
-## Additional Resources
-
 ## Release Process
+
+The process of creating new features and improving the overall functionality of MAP involves significantly more than simply writing code.  To create and maintain a high-quality application takes a lot of planning and coordination, smart development practices, and thorough testing.
 
 ### Backlog Management
 
@@ -51,6 +51,8 @@ For larger features where there are significant unknowns, it is often a good tim
 
 ### Development
 
+Development is where the work of improving MAP takes place.  The majority of day to day work takes place in this stage of the release process, so it is important to ensure that development best practices are being followed.
+
 #### Branching Strategies
 
 To keep changes to the code base as easily reviewable as possible, it's important to keep branches focused. To accomplish this, branches should be opened with a specific purpose in mind and pull requests should have tasks laid out as checkboxes in the description at the top.  Furthermore, pull requests should be opened early and collaborators identified as soon as possible.
@@ -70,6 +72,8 @@ The purpose of a Pull Request is to act as a channel for collaboration and revie
 When opening a new Pull Request, you should first give it a name that helps to describe what the Pull Request is for.  Second, in the description of Pull Request, you should describe the problem that the Pull Request is meant to address and any other relevant information necessary to understand the changes.  Below the description you should create a checklist that lists all of the major tasks necessary to complete the work required to address the stated issue.  The last check in the task list should be a definition of done, which is a simple statement that describes when the work is truly done.  Additionally, if there are any open Issues related to the work being done in the Pull Request, then they should all be tagged at the bottom of the Pull Request description.  Finally, you should add your collaborators to the Pull Request, tag the issue with any appropriate labels, assign it to the MAP Kanboard project, and then specify the correct milestone.
 
 ### Pre-release / User Acceptance Testing (UAT)
+
+Pre-Release and UAT are the final steps before a release is promoted into Master.  These steps are vital to ensure that the application is functioning as intended, and that all necessary steps were taken during the development and testing process.
 
 #### Determining Release Version Number
 
