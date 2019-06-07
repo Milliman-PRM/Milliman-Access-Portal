@@ -71,6 +71,10 @@ When opening a new Pull Request, you should first give it a name that helps to d
 
 ### Pre-release / User Acceptance Testing (UAT)
 
+#### Determining Release Version Number
+
+Milliman Access Portal follows a semantic version numbering system.  This means that the position of the number indicates the type of change from the previous version.  In traditional distributed software applications, the first position is used to indicate breaking changes.  In a web application this isn't as meaningful, so MAP will use changes to this position to indicate major redesigns that would have far-reaching impacts on the users’ experience of the application.  This will likely be a rare occurrence.  The second position is used to indicate a release that includes new features.  Feature releases should happen on a fairly regular basis for the foreseeable future.  The final position indicates a patch, or a release containing bug fixes or small enhancements to existing functionality.  Historically we have seen 2 or 3 patch releases for each feature release.  Determining the release number of an upcoming release, based on the above information, should be a fairly straightforward process.
+
 #### Creating the Pre-Release Pull Request
 
 Once the Develop branch is feature complete for the upcoming release, a Pre-Release Pull Request should be opened and targeted at the Master branch.  The Pre-Release Pull Request is a special type of Pull Request that is used to track the progress of the release process and to record the Pre-Release Peer Review and any documentation that may be necessary for completion of the release.  To open a Pre-Release Pull Request, a new branch must be created off of Develop, and should be named `pre-release-vX.X.X` (with the appropriate version number for the release).  Once this branch is created, a Pull Request should be opened.  Similarly to the branch name, the Pull Request should be named "Pre-Release vX.X.X".  In the description of the new Pull Request, you should paste the contents of the Pre-Release Pull Request template that can be found here:
@@ -79,9 +83,15 @@ Once the Develop branch is feature complete for the upcoming release, a Pre-Rele
 
 Once the template has been copied and pasted into the description of the Pull Request, the contents should be updated to reflect the contents of the proposed release.  This would include updating the release number, tagging any users that will be completing any work in any of the sections, and adding/removing any tasks specific to this release.  Finally, the correct Milestone should be tagged, and the Pull Request should be added to the MAP Kanboard Project.
 
-#### Determining Release Version Number
+After the Pre-Release Pull Request has been completed, the following folder should be copied into its parent directory and renamed to reflect the upcoming release version:
 
-Milliman Access Portal follows a semantic version numbering system.  This means that the position of the number indicates the type of change from the previous version.  In traditional distributed software applications, the first position is used to indicate breaking changes.  In a web application this isn't as meaningful, so MAP will use changes to this position to indicate major redesigns that would have far-reaching impacts on the users’ experience of the application.  This will likely be a rare occurrence.  The second position is used to indicate a release that includes new features.  Feature releases should happen on a fairly regular basis for the foreseeable future.  The final position indicates a patch, or a release containing bug fixes or small enhancements to existing functionality.  Historically we have seen 2 or 3 patch releases for each feature release.  Determining the release number of an upcoming release, based on the above information, should be a fairly straightforward process.
+- S:\PRM\UAT_Documentation\Milliman Access Portal\Version X.X.X
+
+The folder should follow the existing naming convention for previous releases in the above folder, and this folder will hold any documentation related specifically to this release.  For smaller releases, this folder may not be necessary depending on the scope of the changes, and in these cases, the Pre-Release Pull Request will act as the repository of any documentation of testing that has been completed.
+
+#### Authoring the UAT Document
+
+For major releases, a UAT Document will be required to record the UAT process and identify who has performed testing for the release, as well as to record the Pre-Release Peer Review signature.  A template for this document was added when the UAT release folder was created.  After opening the document titled "UAT Checklist - Milliman Access Portal.xlsx" to the "UAT Acceptance" tab, the information for the pending release should be added in the appropriate locations.  This information include the version number of the upcoming release, the currently deployed version number, the date that the Pre-Release Pull Request was open and the URL.  At the bottom of the tab, please include the release notes for the upcoming release and save the document.  As the testing checklists are completed and UAT progresses, the rest of the document should be filled out to indicate who performed each task, the date, and the location on the network (if applicable).  This document should be completed before the release is merged into Master, and all responsible parties must have signed off on it.
 
 #### Determining Risk Level
 
@@ -112,11 +122,21 @@ It is vitally important that User Acceptance Testing (UAT) is performed in an en
 
 #### Application Testing
 
+Application testing is extremely important to ensuring the proper function of new releases.  For each feature release, and any patch release that has wide ranging effects, an application checklist should be created to thoroughly test the functionality of all basic application actions.  This checklist should ensure that all pre-existing functionality has not been unintentionally altered or broken, as well as checking all new features to ensure that they are working as intended under a wide variety of circumstances.  In addition to testing the obvious aspects of the application the checklist should also include checks on the audit log to ensure that all loggable events are being captured appropriately.  This completed checklists should live in the UAT folder that was created for the release.
+
 #### Browser Testing
+
+Much like Application Testing, Browser Testing should be used to identify areas where the application is not performing as expected.  This testing should include a comprehensive testing of both existing and new functionality.  A single Browser Checklist template should be created to ensure that each browser is having the same tests performed and should be compiled with the user interface in mind and focus on ensuring that the application is working as expected in all of the browsers supported by Milliman Access Portal.  There should be one completed checklist for each browser, and it should be signed and dated by the tester, and include the release version being tested and the browser version that the tests were performed on.  This completed checklists should live in the UAT folder that was created for the release.
 
 #### Triaging Issues Identified in Testing
 
+Before moving forward with a release, it is important that any issues discovered during the testing of the application should have corresponding issues created in GitHub and their priority must be determined to ensure that they are addressed at the appropriate time.  High priority issues that will broadly affect the application should be addressed before the release moves forward, while lower impact issues may be noted and addressed in a later release.  The determination of priority should be determined by the project manager.
+
 #### Pre-release Peer Review
+
+The Pre-Release Peer Review should be the final step in the release process before merging the Pre-Release Pull Request into the Master branch.  The Pre-Release Peer Review can only be completed by authorized personel based on their Approved Professional (AP)/Signature Authority (SA) status, and their familiarity with the software development process.  For high-risk or high-visibility releases (2B+/2A) an external peer reviewer may be required.  If this is the case, the external peer reviewer should be identified early in the release process to ensure that there won't be a long delay.  
+
+The Pre-Release Peer Review process is less about reviewing the technical aspects of a release, and more about reviewing the appropriateness.  It should include a review of the development process, any documentation that was compiled in regards to the release, the testing that was performed, and anything else that the peer reviewers deem to be within scope of, or relevant to, the release.  Once the peer reviewers have completed their reviews and are satisfied that the release meets all of the requirements for deployment, they should add the appropriate attestation language to the Pre-Release Pull Request in a comment, ensure that all appropriate Pre-Release Pull Request tasks and assertions are checked off, and sign off in the UAT Workbook, if one exists for the release.  
 
 ### Promotion
 
