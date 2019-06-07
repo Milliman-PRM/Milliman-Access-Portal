@@ -89,7 +89,26 @@ The Risk Level of a given release is used to identify the amount of risk involve
 
 #### Penetration Testing
 
+Penetration Testing is a useful tool for ensuring that an application does not contain egregious security vulnerabilities.  For Milliman Access Portal, we routinely work with Naomi Bornemann at Global Corporate Services (GCS) to have penetration testing performed on release candidates to ensure that new features aren't introducing new security vulnerabilities.  Decisions on whether penetration testing is required for a release are based on several factors:  
+
+- The new feature is directly, or indirectly, related to MAP security
+- The release includes support of a new content type
+- The release has wide-ranging effects in the application that could introduce new attack vectors
+
+If any of these factors are present in a release, than penetration testing will be required for the approval of the release.
+
+In addition to the periodic testing performed by Naomi Bornemann, MAP is also required to go through 3rd party penetration testing on an annual basis.  This will be coordinated through the Security and Infrastructure team.  In either case, any findings must be addressed or mitigated before a release can go forward with the release process.
+
 #### Deployment to Staging
+
+It is vitally important that User Acceptance Testing (UAT) is performed in an environment that resembles the production environment as closely as possible.  To enable this, a staging environment has been created that mirrors production.  When a Pre-Release Pull Request is opened the release candidate should be deployed to Staging to ensure that testing is being performed on the correct code base.  Assuming the proper branch naming conventions have been followed, this should be an automated process, but it's important to confirm that it has been deployed correctly without error.  To manually deploy a release candidate to the staging environment the following steps must be taken by a user with the appropriate permissions:
+
+1. Navigate to https://indy-prmdeploy.milliman.com/app#/
+1. Click on "Milliman Access Portal" in the left-most column under "MAP projects"
+1. Identify the correct branch in the "Channel" column and push "DEPLOY" in the corresponding row
+1. Click the green "DEPLOY" button in the upper right-hand corner
+1. Ensure that all deployment steps succeed (indicated by green checkmarks)
+1. Repeat the above steps for the "Content Publication Server" project
 
 #### Application Testing
 
