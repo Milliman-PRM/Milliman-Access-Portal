@@ -124,6 +124,8 @@ It is vitally important that User Acceptance Testing (UAT) is performed in an en
 1. Ensure that all deployment steps succeed (indicated by green checkmarks)
 1. Repeat the above steps for the "Content Publication Server" project
 
+If the release involves changes to the database, then it will be necessary to run a migration.  This will need to be performed by someone from the Security and Infrastructure team as it involves elevated privileges.  For releases that do not require database changes, this step will be unnecessary.
+
 #### Application Testing
 
 Application testing is extremely important to ensuring the proper function of new releases.  For each feature release, and any patch release that has wide ranging effects, an application checklist should be created to thoroughly test the functionality of all basic application actions.  This checklist should ensure that all pre-existing functionality has not been unintentionally altered or broken, as well as checking all new features to ensure that they are working as intended under a wide variety of circumstances.  In addition to testing the obvious aspects of the application the checklist should also include checks on the audit log to ensure that all loggable events are being captured appropriately.  This completed checklists should live in the UAT folder that was created for the release.
