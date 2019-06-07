@@ -79,7 +79,7 @@ Milliman Access Portal follows a semantic version numbering system.  This means 
 
 Once the Develop branch is feature complete for the upcoming release, a Pre-Release Pull Request should be opened and targeted at the Master branch.  The Pre-Release Pull Request is a special type of Pull Request that is used to track the progress of the release process and to record the Pre-Release Peer Review and any documentation that may be necessary for completion of the release.  To open a Pre-Release Pull Request, a new branch must be created off of Develop, and should be named `pre-release-vX.X.X` (with the appropriate version number for the release).  Once this branch is created, a Pull Request should be opened.  Similarly to the branch name, the Pull Request should be named "Pre-Release vX.X.X".  In the description of the new Pull Request, you should paste the contents of the Pre-Release Pull Request template that can be found here:
 
-- https://indy-github.milliman.com/raw/PRM/Milliman-Access-Portal/develop/.github/PRE_RELEASE_CHECKLIST_TEMPLATE.md
+- [https://indy-github.milliman.com/raw/PRM/Milliman-Access-Portal/develop/.github/PRE_RELEASE_CHECKLIST_TEMPLATE.md](https://indy-github.milliman.com/raw/PRM/Milliman-Access-Portal/develop/.github/PRE_RELEASE_CHECKLIST_TEMPLATE.md)
 
 Once the template has been copied and pasted into the description of the Pull Request, the contents should be updated to reflect the contents of the proposed release.  This would include updating the release number, tagging any users that will be completing any work in any of the sections, and adding/removing any tasks specific to this release.  Finally, the correct Milestone should be tagged, and the Pull Request should be added to the MAP Kanboard Project.
 
@@ -113,7 +113,7 @@ In addition to the periodic testing performed by Naomi Bornemann, MAP is also re
 
 It is vitally important that User Acceptance Testing (UAT) is performed in an environment that resembles the production environment as closely as possible.  To enable this, a staging environment has been created that mirrors production.  When a Pre-Release Pull Request is opened the release candidate should be deployed to Staging to ensure that testing is being performed on the correct code base.  Assuming the proper branch naming conventions have been followed, this should be an automated process, but it's important to confirm that it has been deployed correctly without error.  To manually deploy a release candidate to the staging environment the following steps must be taken by a user with the appropriate permissions:
 
-1. Navigate to https://indy-prmdeploy.milliman.com/app#/
+1. Navigate to [https://indy-prmdeploy.milliman.com/app#/](https://indy-prmdeploy.milliman.com/app#/)
 1. Click on "Milliman Access Portal" in the left-most column under "MAP projects"
 1. Identify the correct branch in the "Channel" column and push "DEPLOY" in the corresponding row
 1. Click the green "DEPLOY" button in the upper right-hand corner
