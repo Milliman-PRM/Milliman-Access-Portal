@@ -140,14 +140,46 @@ The Pre-Release Peer Review process is less about reviewing the technical aspect
 
 ### Promotion
 
+Promotion is the process by which a release candidate is merged into the Master branch and is then made ready for deployment.  This portion of the release process should only take place after the Pre-Release Peer Review has been completed and CI has completed successfully.
+
+#### Merging the Release
+
+Once UAT and Pre-Release Peer Review has been completed, and CI has passed successfully, it is time to merge the release.  Once the branch has been merged into Master, the Pre-Release branch can then be deleted.  The appropriate checks at the top of the Pre-Release Pull Request must still be completed, however.  This merge should automatically trigger a CI synchronize build of Master.  This build will be what is actually deployed, so it is important to make sure that this build completes successfully.
+
+Finally, once the Master branch has been updated with the new release, Master should be merged back into Develop to ensure that it is in sync with the Master branch.  Any existing branches being actively worked on should then be updated from Develop as necessary.
+
 #### Tagging the Release
 
-#### Notification of Release
+Tagging the release can be done in one of two ways:
 
-### Deployment
+Through the GitHub repo:
+
+  1. Navigate to: [https://indy-github.milliman.com/PRM/Milliman-Access-Portal/releases/new](https://indy-github.milliman.com/PRM/Milliman-Access-Portal/releases/new)
+  1. Type in the release version in the format vX.X.X using the targeted release version in the "Tag version" field
+  1. Switch to target the Master branch
+  1. Add a release title of "Milliman Access Portal vX.X.X" with the targeted release version applied
+  1. Click the green "Publish release" button at the bottom of the form
+
+Through the CLI:
+
+  1. Open a command window at the root of the repository on your local repo
+  2. Enter the following commands (replacing vX.X.X with the appropriate release version):
+
+    > git checkout master
+    > git fetch
+    > git tag -a vX.X.X -m "Milliman Access Portal vX.X.X"
+    > git push origin vX.X.X
+
+Once the tag has been created, the GitHub repository should be checked to ensure that the new tag was created and was applied correctly.
 
 #### Scheduling the Deployment
 
-#### Applying Migrations
+Once the release has been merged and tagged, it is then time to schedule deployment with the Security and Infrastructure team.  By this point, the person performing the deployment should be identified, and a deployment time should be agreed upon.  If there are any migrations, or ancillary scripts that need to be run in conjunction with the deployment, these should be included in the discussion with the person deploying the application, as well as in a message on the Pre-Release Pull Request about the details deployment.
 
-#### Deploying the New Release
+#### Notification of Release
+
+At this time, an email should be sent informing all interested parties that the release has been promoted and when deployment is scheduled for.  This email should be a follow up of the email sent previously describing the contents of the release.
+
+#### Post Deployment
+
+Once the new release has been deployed, someone should log in to ensure that the new features, or fixes, have been properly applied in the application.  If serious issues are found, it may be necessary to revert the deployment, and this will need to be coordinated with the person performing the deployment.
