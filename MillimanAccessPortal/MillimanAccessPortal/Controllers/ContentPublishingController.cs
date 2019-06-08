@@ -5,6 +5,7 @@
  */
 
 using AuditLogLib.Event;
+using AuditLogLib.Models;
 using AuditLogLib.Services;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
@@ -19,10 +20,12 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.Binders;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
+using PowerBiLib;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -44,7 +47,8 @@ namespace MillimanAccessPortal.Controllers
         private readonly IGoLiveTaskQueue _goLiveTaskQueue;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
-        private readonly QlikviewConfig QlikviewConfig;
+        private readonly PowerBiConfig _powerBiConfig;
+        private readonly QlikviewConfig _qlikviewConfig;
         private readonly IPublicationPostProcessingTaskQueue _PostProcessingTaskQueue;
 
 
@@ -65,6 +69,7 @@ namespace MillimanAccessPortal.Controllers
             StandardQueries QueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
+            IOptions<PowerBiConfig> PowerBiOptionsAccessorArg,
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             IPublicationPostProcessingTaskQueue postProcessingTaskQueue
             )
@@ -77,7 +82,8 @@ namespace MillimanAccessPortal.Controllers
             Queries = QueriesArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
-            QlikviewConfig = QlikviewOptionsAccessorArg.Value;
+            _powerBiConfig = PowerBiOptionsAccessorArg.Value;
+            _qlikviewConfig = QlikviewOptionsAccessorArg.Value;
             _PostProcessingTaskQueue = postProcessingTaskQueue;
         }
 
@@ -187,7 +193,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateRootContentItem(RootContentItem rootContentItem)
+        public async Task<IActionResult> CreateRootContentItem([ModelBinder(BinderType = typeof(RootContentItemBinder))] RootContentItem rootContentItem)
         {
             Log.Verbose($"Entered ContentPublishingController.CreateRootContentItem action with root content item {{@RootContentItem}}", rootContentItem);
 
@@ -215,17 +221,21 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var contentType = DbContext.ContentType
-                .Where(c => c.Id == rootContentItem.ContentTypeId)
-                .SingleOrDefault();
-            if (contentType == null)
+            if (!DbContext.ContentType.Any(c => c.Id == rootContentItem.ContentTypeId))
             {
                 Log.Debug($"In ContentPublishingController.CreateRootContentItem action: content type for content item {rootContentItem.Id} not found, aborting");
                 Response.Headers.Add("Warning", "The associated content type does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            if (rootContentItem.ContentName == null)
+            if (!DbContext.Client.Any(c => c.Id == rootContentItem.ClientId))
+            {
+                Log.Debug($"In ContentPublishingController.CreateRootContentItem action: client for content item {rootContentItem.Id} not found, aborting");
+                Response.Headers.Add("Warning", "The associated client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (string.IsNullOrWhiteSpace(rootContentItem.ContentName))
             {
                 Log.Debug($"In ContentPublishingController.CreateRootContentItem action: content name is required and not provided, aborting");
                 Response.Headers.Add("Warning", "You must supply a name for the content item.");
@@ -272,7 +282,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateRootContentItem(RootContentItem rootContentItem)
+        public async Task<IActionResult> UpdateRootContentItem([ModelBinder(BinderType = typeof(RootContentItemBinder))] RootContentItem rootContentItem)
         {
             Log.Verbose($"Entered ContentPublishingController.UpdateRootContentItem action with root content item {{@RootContentItem}}", rootContentItem);
 
@@ -301,6 +311,13 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            if (currentRootContentItem.ContentTypeId != rootContentItem.ContentTypeId)
+            {
+                Log.Debug($"In ContentPublishingController.UpdateRootContentItem action: change of content type was requested, aborting");
+                Response.Headers.Add("Warning", "The content type can not be modified.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             if (currentRootContentItem.ContentType == null)
             {
                 Log.Debug($"In ContentPublishingController.UpdateRootContentItem action: content type not found for content item {rootContentItem.Id}, aborting");
@@ -317,17 +334,43 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             // Update the current item so that it can be updated
-            // See ClientAdminController.cs
             currentRootContentItem.ContentName = rootContentItem.ContentName;
             currentRootContentItem.Description = rootContentItem.Description;
             currentRootContentItem.Notes = rootContentItem.Notes;
-            currentRootContentItem.TypeSpecificDetail = rootContentItem.TypeSpecificDetail;
+            switch (currentRootContentItem.ContentType.TypeEnum)
+            {
+                case ContentTypeEnum.PowerBi:
+                    rootContentItem.ContentType = DbContext.ContentType.Find(rootContentItem.ContentTypeId);
+                    PowerBiContentItemProperties newProps = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+                    PowerBiContentItemProperties currentProps = currentRootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
-            DbContext.RootContentItem.Update(currentRootContentItem);
+                    currentProps.FilterPaneEnabled = newProps.FilterPaneEnabled;
+                    currentProps.NavigationPaneEnabled = newProps.NavigationPaneEnabled;
+
+                    currentRootContentItem.TypeSpecificDetailObject = currentProps;
+                    break;
+            }
+
+            List<UserInSelectionGroup> usersInGroup = null;
+            if (currentRootContentItem.ContentDisclaimer != rootContentItem.ContentDisclaimer)
+            {
+                // Reset disclaimer acceptance
+                usersInGroup = DbContext.UserInSelectionGroup
+                    .Where(u => u.SelectionGroup.RootContentItemId == currentRootContentItem.Id)
+                    .ToList();
+                usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
+            }
+            currentRootContentItem.ContentDisclaimer = rootContentItem.ContentDisclaimer;
+
             DbContext.SaveChanges();
 
             Log.Verbose($"In ContentPublishingController.UpdateRootContentItem action: success");
             AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(rootContentItem));
+            if (usersInGroup != null)
+            {
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetTextChange
+                    .ToEvent(usersInGroup, rootContentItem.Id));
+            }
 
             RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, currentRootContentItem);
             RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, currentRootContentItem);
@@ -337,7 +380,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId, string password)
+        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId)
         {
             Log.Verbose($"Entered ContentPublishingController.DeleteRootContentItem action with root content item id {rootContentItemId} and password");
 
@@ -347,13 +390,6 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault(x => x.Id == rootContentItemId);
 
             #region Preliminary Validation
-            if (!await UserManager.CheckPasswordAsync(await Queries.GetCurrentApplicationUser(User), password))
-            {
-                Log.Debug($"In ContentPublishingController.DeleteRootContentItem action: user password incorrect, aborting");
-                Response.Headers.Add("Warning", "Incorrect password");
-                return Unauthorized();
-            }
-
             if (rootContentItem == null)
             {
                 Log.Debug($"In ContentPublishingController.DeleteRootContentItem action: content item {rootContentItemId} not found, aborting");
@@ -396,16 +432,23 @@ namespace MillimanAccessPortal.Controllers
                 case ContentTypeEnum.Qlikview:
                     string ContentFolderFullPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), rootContentItem.Id.ToString());
 
-                    if (Directory.Exists(ContentFolderFullPath))  // unlikely but could happen if nothing was ever published
+                    if (Directory.Exists(ContentFolderFullPath))  // unlikely but it might not exist if e.g. nothing was ever published
                     {
                         List<string> AllQvwFiles = Directory.GetFiles(ContentFolderFullPath, "*.qvw").ToList();
                         AllQvwFiles.ForEach(async f =>
                         {
                             string FileFullPath = Path.Combine(ContentFolderFullPath, f);
                             string FileRelativePath = Path.GetRelativePath(ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"), FileFullPath);
-                            await new QlikviewLibApi().ReclaimAllDocCalsForFile(FileRelativePath, QlikviewConfig);
+                            await new QlikviewLibApi(_qlikviewConfig).ReclaimAllDocCalsForFile(FileRelativePath);
                         });
                     }
+                    break;
+
+                case ContentTypeEnum.PowerBi:
+                    PowerBiContentItemProperties props = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+
+                    PowerBiLibApi powerBiApi = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+                    await powerBiApi.DeleteReportAsync(props.LiveReportId);
                     break;
 
                 case ContentTypeEnum.Html:
@@ -680,23 +723,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PreLiveContentValidationSummary ReturnObj = await PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig, HttpContext, QlikviewConfig);
+            PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig, HttpContext);
 
             Log.Verbose($"In ContentPublishingController.PreLiveSummary action: success, returning summary {ReturnObj.ValidationSummaryId}");
-            var preGoLiveSummaryLog = new
-            {
-                ReturnObj.ValidationSummaryId,
-                ReturnObj.PublicationRequestId,
-                ReturnObj.AttestationLanguage,
-                ReturnObj.ContentDescription,
-                ReturnObj.RootContentName,
-                ReturnObj.ContentTypeName,
-                ReturnObj.LiveHierarchy,
-                ReturnObj.NewHierarchy,
-                ReturnObj.DoesReduce,
-                ReturnObj.ClientName,
-            };
-            AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent(preGoLiveSummaryLog));
+            AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent((PreLiveContentValidationSummaryLogModel)ReturnObj));
 
             return new JsonResult(ReturnObj);
         }
@@ -908,45 +938,59 @@ namespace MillimanAccessPortal.Controllers
                     relatedTask.ReductionStatus = ReductionStatusEnum.Rejected;
                     DbContext.ContentReductionTask.Update(relatedTask);
                 }
-                DbContext.SaveChanges();
-                Txn.Commit();
-            }
 
-            string configuredContentRootFolder = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
-            // Clean up temporary pre-live folder (asynchronously, browser doesn't have to wait for this)
-            Task asyncDeleteTask = Task.Run(async () =>   // This Task variable assignment exists only to prevent a compiler warning
-            {
-                // Prepare each pre-live file for delete
+                string configuredContentRootFolder = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
+
+                // Prepare each pre-live file/resource for delete
                 foreach (ContentRelatedFile PreliveFile in pubRequest.LiveReadyFilesObj)
                 {
-                    switch (Path.GetExtension(PreliveFile.FullPath).ToLower())
+                    // if the filename extension matches any of those stored in the Content item's matching contentType record
+                    if (rootContentItem.ContentType.FileExtensions.Any(e => string.Equals($".{e}", Path.GetExtension(PreliveFile.FullPath), StringComparison.OrdinalIgnoreCase)))
                     {
-                        case ".qvw":
-                            string qvwFileRelativePath = Path.GetRelativePath(configuredContentRootFolder, PreliveFile.FullPath);
-                            try
-                            {
-                                await new QlikviewLibApi().ReclaimAllDocCalsForFile(qvwFileRelativePath, QlikviewConfig);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Warning(ex, $"Failed to reclaim Qlikview document CAL for file {PreliveFile.FullPath}, relative path {qvwFileRelativePath}");
-                            }
-                            break;
+                        switch (rootContentItem.ContentType.TypeEnum)
+                        {
+                            case ContentTypeEnum.Qlikview:
+                                string qvwFileRelativePath = Path.GetRelativePath(configuredContentRootFolder, PreliveFile.FullPath);
+                                try
+                                {
+                                    await new QlikviewLibApi(_qlikviewConfig).ReclaimAllDocCalsForFile(qvwFileRelativePath);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Warning(ex, $"Failed to reclaim Qlikview document CAL for file {PreliveFile.FullPath}, relative path {qvwFileRelativePath}");
+                                }
+                                break;
 
-                        default:
-                            break;
+                            case ContentTypeEnum.PowerBi:
+                                PowerBiContentItemProperties props = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+
+                                PowerBiLibApi powerBiApi = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+                                await powerBiApi.DeleteReportAsync(props.PreviewReportId);
+
+                                props.PreviewEmbedUrl = null;
+                                props.PreviewReportId = null;
+                                props.PreviewWorkspaceId = null;
+                                rootContentItem.TypeSpecificDetailObject = props;
+                                break;
+
+                            default:
+                                break;
+                        }
                     }
                 }
 
-                // Delete pre-live folder
-                string PreviewFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"],
-                                                    rootContentItemId.ToString(),
-                                                    publicationRequestId.ToString());
-                if (Directory.Exists(PreviewFolder))
-                {
-                    Directory.Delete(PreviewFolder, true);
-                }
-            });
+                await DbContext.SaveChangesAsync();
+                Txn.Commit();
+            }
+
+            // Delete pre-live folder
+            string PreviewFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"],
+                                                rootContentItemId.ToString(),
+                                                publicationRequestId.ToString());
+            if (Directory.Exists(PreviewFolder))
+            {
+                Directory.Delete(PreviewFolder, true);
+            }
 
             Log.Verbose($"In ContentPublishingController.Reject action, success");
             AuditLogger.Log(AuditEventType.ContentPublicationRejected.ToEvent(rootContentItem, pubRequest));

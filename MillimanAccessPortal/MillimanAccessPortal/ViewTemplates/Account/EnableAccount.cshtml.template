@@ -26,7 +26,7 @@
 
 <div id="enable-account-container">
     <div id="enable-account" class="admin-panel-container flex-item-for-phone-only-12-12 flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
-        <div class="admin-panel-content-container">
+        <div class="form-content-container">
             <form id="enable-account-form" autocomplete="off" class="admin-panel-content" autocomplete="off" action="EnableAccount/" method="post">
                 <div class="form-section-container">
                     <div class="form-section" style="display: none;">
@@ -83,26 +83,29 @@
                                     <span asp-validation-for="Employer" class="text-danger"></span>
                                 </div>
                             </div>
-                            <div class="form-input form-input-text flex-item-12-12">
-                                <label class="form-input-text-title" asp-for="NewPassword"></label>
-                                <div>
-                                    <input asp-for="NewPassword" data-original-value="@Model.NewPassword" />
-                                    <span asp-validation-for="NewPassword" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="form-input form-input-text flex-item-12-12">
-                                <label class="form-input-text-title" asp-for="ConfirmNewPassword"></label>
-                                <div>
-                                    <input asp-for="ConfirmNewPassword" data-original-value="@Model.ConfirmNewPassword" />
-                                    <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="form-input form-input-text flex-item-12-12">
-                                <div>
-                                    <input style="display: none;" asp-for="PasswordsAreValid" data-original-value="" />
-                                    <span asp-validation-for="PasswordsAreValid" class="text-danger"></span>
-                                </div>
-                            </div>
+							@if (Model.IsLocalAccount) 
+							{
+								<div class="form-input form-input-text flex-item-12-12">
+									<label class="form-input-text-title" asp-for="NewPassword"></label>
+									<div>
+										<input asp-for="NewPassword" data-original-value="@Model.NewPassword" />
+										<span asp-validation-for="NewPassword" class="text-danger"></span>
+									</div>
+								</div>
+								<div class="form-input form-input-text flex-item-12-12">
+									<label class="form-input-text-title" asp-for="ConfirmNewPassword"></label>
+									<div>
+										<input asp-for="ConfirmNewPassword" data-original-value="@Model.ConfirmNewPassword" />
+										<span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
+									</div>
+								</div>
+								<div class="form-input form-input-text flex-item-12-12">
+									<div>
+										<input style="display: none;" asp-for="PasswordsAreValid" data-original-value="" />
+										<span asp-validation-for="PasswordsAreValid" class="text-danger"></span>
+									</div>
+								</div>
+							}
                         </div>
                         <div class="form-submission-section">
                             <div class="button-container button-container-update">

@@ -1,3 +1,9 @@
+/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Actions to support administration of user authorization to hosted content
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib.ActionFilters;
@@ -239,7 +245,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            if (!contentItem.DoesReduce)
+            if (!contentItem.DoesReduce && contentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
             {
                 ContentRelatedFile liveMasterFile = contentItem.ContentFilesList
                     .SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
@@ -259,6 +265,7 @@ namespace MillimanAccessPortal.Controllers
             return Json(selectionGroups);
         }
 
+        private static object updateGroupLockObj = new object();
         /// <summary>
         /// POST an update to a selection group
         /// </summary>
@@ -286,44 +293,45 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Validation
-            var existsCount = DbContext.ApplicationUser
-                .Where(u => model.Users.Contains(u.Id))
-                .Count();
-            if (existsCount < model.Users.Count)
+            lock (updateGroupLockObj)
             {
-                Response.Headers.Add("Warning", "One or more requested users do not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                #region Validation
+                int accountsExistCount = DbContext.ApplicationUser.Count(u => model.Users.Contains(u.Id));
+                if (accountsExistCount < model.Users.Count)
+                {
+                    Response.Headers.Add("Warning", "One or more requested users do not exist in the system.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+
+                int hasClientContentRoleCount = DbContext.UserRoleInClient
+                    .Where(r => model.Users.Contains(r.UserId))
+                    .Where(r => r.ClientId == clientId)
+                    .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
+                    .Count();
+                if (hasClientContentRoleCount < model.Users.Count)
+                {
+                    Response.Headers.Add("Warning",
+                        "One or more requested users do not have permission to view content of this client.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+
+                bool anyAlreadyInAnotherGroup = DbContext.UserInSelectionGroup
+                    .Where(u => model.Users.Contains(u.UserId))
+                    .Where(u => u.SelectionGroup.RootContentItemId == contentItemId)
+                    .Where(u => u.SelectionGroupId != model.GroupId)
+                    .Any();
+                if (anyAlreadyInAnotherGroup)
+                {
+                    Response.Headers.Add("Warning",
+                        "One or more requested users are curently in a different selection group for the same content.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+                #endregion
+
+                var group = _queries.UpdateGroup(model.GroupId, model.Name, model.Users);
+
+                return Json(group);
             }
-
-            var hasRoleCount = DbContext.UserRoleInClient
-                .Where(r => model.Users.Contains(r.UserId))
-                .Where(r => r.ClientId == clientId)
-                .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
-                .Count();
-            if (hasRoleCount < model.Users.Count)
-            {
-                Response.Headers.Add("Warning",
-                    "One or more requested users do not have permission to use this content.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-
-            var anyInOtherGroup = DbContext.UserInSelectionGroup
-                .Where(u => model.Users.Contains(u.UserId))
-                .Where(u => u.SelectionGroup.RootContentItemId == contentItemId)
-                .Where(u => u.SelectionGroupId != model.GroupId)
-                .Any();
-            if (anyInOtherGroup)
-            {
-                Response.Headers.Add("Warning",
-                    "One or more requested users are already in a different selection group.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            var group = _queries.UpdateGroup(model.GroupId, model.Name, model.Users.ToList());
-
-            return Json(group);
         }
 
         /// <summary>
@@ -421,7 +429,7 @@ namespace MillimanAccessPortal.Controllers
                             ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"),
                             selectionGroup.ContentInstanceUrl);
 
-                        await new QlikviewLibApi().ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl, QvConfig);
+                        await new QlikviewLibApi(QvConfig).ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl);
 
                         if (System.IO.File.Exists(ContentFileFullPath))
                         {
@@ -441,6 +449,7 @@ namespace MillimanAccessPortal.Controllers
                 case ContentTypeEnum.Html:
                 case ContentTypeEnum.Pdf:
                 case ContentTypeEnum.FileDownload:
+                case ContentTypeEnum.PowerBi:
                 default:
                     // for all non-reducible content types, do nothing.
                     break;
@@ -591,9 +600,18 @@ namespace MillimanAccessPortal.Controllers
                 selectionGroup.IsMaster = true;
                 selectionGroup.SelectedHierarchyFieldValueList = new Guid[0];
                 selectionGroup.SetContentUrl(Path.GetFileName(LiveMasterFile.FullPath));
+
+                // Reset disclaimer acceptance
+                var usersInGroup = DbContext.UserInSelectionGroup
+                    .Where(u => u.SelectionGroupId == selectionGroupId)
+                    .ToList();
+                usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
+
                 DbContext.SaveChanges();
 
                 AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup));
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetSelectionChange
+                    .ToEvent(usersInGroup, selectionGroup.RootContentItemId));
             }
             else
             {
@@ -672,6 +690,7 @@ namespace MillimanAccessPortal.Controllers
                         case ContentTypeEnum.Html:
                         case ContentTypeEnum.Pdf:
                         case ContentTypeEnum.FileDownload:
+                        case ContentTypeEnum.PowerBi:
                         default:
                             // should never get here because non-reducible content types are blocked in validation above
                             break;

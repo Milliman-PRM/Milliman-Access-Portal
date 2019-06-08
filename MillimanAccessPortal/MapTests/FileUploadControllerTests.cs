@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ContentPublishing;
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 using TestResourcesLib;
@@ -85,7 +85,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<List<uint>>(result.Value);
             #endregion
         }
 
@@ -103,7 +104,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<List<uint>>(result.Value);
             #endregion
         }
     }

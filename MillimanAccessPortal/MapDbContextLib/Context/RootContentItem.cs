@@ -36,11 +36,56 @@ namespace MapDbContextLib.Context
         // [Required] This causes a problem with migration database update
         public string TypeSpecificDetail { get; set; }
 
+        /// <summary>
+        /// Requires that this object has a populated ContentType navigation property
+        /// </summary>
+        [NotMapped]
+        public TypeSpecificContentItemProperties TypeSpecificDetailObject
+        {
+            get
+            {
+                if (ContentType == null || string.IsNullOrWhiteSpace(TypeSpecificDetail))
+                {
+                    return null;
+                }
+                switch (ContentType.TypeEnum)
+                {
+                    case ContentTypeEnum.PowerBi:
+                        return JsonConvert.DeserializeObject<PowerBiContentItemProperties>(TypeSpecificDetail, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Include });
+                    case ContentTypeEnum.Qlikview:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.FileDownload:
+                    default:
+                        return null;
+                }
+            }
+            set
+            {
+                switch (ContentType.TypeEnum)
+                {
+                    case ContentTypeEnum.PowerBi:
+                        TypeSpecificDetail = JsonConvert.SerializeObject(value as PowerBiContentItemProperties);
+                        break;
+                    case ContentTypeEnum.Qlikview:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.FileDownload:
+                    default:
+                        break;
+                }
+            }
+        }
+
         public string Description { get; set; }
 
         public string Notes { get; set; }
 
         public bool IsSuspended { get; set; }
+
+        [DataType(DataType.MultilineText)]
+        [Display(Name = "Content Disclaimer")]
+        public string ContentDisclaimer { get; set; }
 
         [Column(TypeName = "jsonb")]
         public string ContentFiles { get; set; } = "[]";

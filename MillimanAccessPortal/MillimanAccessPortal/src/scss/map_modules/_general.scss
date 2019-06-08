@@ -1,5 +1,10 @@
-﻿body {
-    font-family: "Helvetica Neue", sans-serif;
+@import "./variables";
+@import "./mixins/breakpoints";
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+body {
+    font-family: "Roboto", "Helvetica Neue", sans-serif;
+    font-weight: 300;
     background-color: $light-grey;
     color: $charcoal;
     height: 100%;

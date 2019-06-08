@@ -110,7 +110,7 @@ if ($Action.ToLower() -eq 'closed') {
 #region Configure environment properties
 $BranchName = $env:git_branch_name # Will be used in the version string of the octopus package & appended to database names
 
-$buildType = if($BranchName -eq 'develop' -or $BranchName -eq 'master' -or $BranchName.ToLower() -like 'pre-release*') {"Release"} Else {"Debug"}
+$buildType = if($BranchName -eq 'develop' -or $BranchName -eq 'master' -or $BranchName.ToLower() -like 'pre-release*' -or $BranchName.ToLower() -like "*hotfix*") {"Release"} Else {"Debug"}
 log_statement "Building configuration: $buildType"
 
 $gitExePath = "git"
@@ -171,7 +171,7 @@ if ($buildType -ne "Release")
     foreach ($diff in $diffOutput)
     {
     # If both of these are true, the line being examined is likely a change to the software that needs testing
-    if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike 'User Stats/*' -and $diff -notlike '.github/*' -and $diff -notlike 'UtilityScripts/*')
+    if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike '.github/*' -and $diff -notlike 'UtilityScripts/*')
     {
         log_statement "Code change found in $diff"
         $codeChangeFound = $true
@@ -258,6 +258,19 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+Set-Location "$rootPath\User Stats\MAPStatsLoader"
+
+log_statement "Building MAP User Stats loader"
+
+dotnet publish --configuration=release /p:Platform=x64
+
+if ($LASTEXITCODE -ne 0)
+{
+    log_statement "ERROR: Build failed for MAP User Stats Loader project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
 if($runTests) {
     log_statement "Performing MAP unit tests"
 
@@ -310,7 +323,7 @@ $env:PGPASSWORD = $dbPassword
 $appDbFound = $false
 $logDbFound = $false
 
-$command = "$psqlExePath --dbname=postgres  -h $dbServer -U $dbUser --tuples-only --command=`"select datname from Pg_database`" --echo-errors"
+$command = "$psqlExePath --dbname=postgres  -h $dbServer -U $dbUser --tuples-only --set=sslmode=require --command=`"select datname from Pg_database`" --echo-errors"
 $output = invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
@@ -431,6 +444,21 @@ if ($LASTEXITCODE -ne 0) {
 
 #endregion
 
+#region Package MAP User Stats Loader for nuget
+log_statement "Packaging MAP User Stats Loader"
+
+Set-Location "$rootPath\User Stats\MAPStatsLoader\bin\x64\release\netcoreapp2.1\publish"
+
+octo pack --id UserStatsLoader --version $webVersion --outfolder $nugetDestination\UserStatsLoader
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package user stats loader for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+#endregion
+
 #region Publish MAP Query Admin to a folder
 log_statement "Publishing MAP Query Admin to a folder"
 
@@ -472,7 +500,7 @@ log_statement "Deploying packages to Octopus"
 
 Set-Location $nugetDestination
 
-octo push --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -483,7 +511,17 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Creating web app release"
 
-octo create-release --project "Milliman Access Portal" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+# Determine appropriate release channel (applies only at the time the release is created)
+if ($BranchName.ToLower() -like "*pre-release*" -or $BranchName.ToLower() -like "*hotfix*")
+{
+    $channelName = "Pre-Release"
+}
+else
+{
+    $channelName = "Development"
+}
+
+octo create-release --project "Milliman Access Portal" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
@@ -500,13 +538,18 @@ $projects = (invoke-restmethod $octopusURL/api/projects?apikey=$octopusAPIKey).i
 $MAPProject = $projects | where {$_.Name -eq "Milliman Access Portal"}
 $releases = (invoke-restmethod "$octopusURL/api/projects/$($mapProject.Id)/releases?apikey=$octopusAPIKey").items
 $BranchRelease = $releases | where {$_.Version -eq "$webVersion"}
-$channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey)
+$channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey) # Retrieve the actual current channel of the release
 $channelName = $channel.Name
+if ([string]::IsNullOrEmpty($channelName))
+{
+    log_statement "ERROR: Failed to determine current channel name"
+    exit -42
+}
 $lifecycle = (Invoke-RestMethod $octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$octopusAPIKey).phases
 $targetEnvId = if ($lifecycle.AutomaticDeploymentTargets) {$lifecycle.AutomaticDeploymentTargets | select-object -first 1} else {$lifecycle.OptionalDeploymentTargets | select-object -first 1}
 $targetEnv = if ($lifecycle.AutomaticDeploymentTargets -or $lifecycle.optionalDeploymentTargets) { (Invoke-RestMethod $octopusURL/api/environments/$($TargetEnvId)?apikey=$octopusAPIKey).name} else {"Development"}
 if ($targetEnv){
-    log_statement "Deploying to $targetEnv"
+    log_statement "Deploying to $targetEnv in the $channelName channel"
 }
 else {
     log_statement "ERROR: Failed to determine deployment environment"

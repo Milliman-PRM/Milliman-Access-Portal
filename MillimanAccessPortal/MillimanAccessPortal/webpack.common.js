@@ -6,22 +6,24 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: {
-    'account-settings': './src/ts/account-settings.tsx',
+    'account-settings': './src/ts/react/account-settings/index.tsx',
     'authorized-content': './src/ts/react/authorized-content/index.tsx',
     'client-admin': './src/ts/client-admin.tsx',
     'content-access-admin': './src/ts/react/content-access-admin/index.tsx',
+    'content-disclaimer': './src/ts/content-disclaimer.ts',
+    'content-wrapper': './src/ts/react/authorized-content/content-wrapper.tsx',
     'content-publishing': './src/ts/content-publishing/index.tsx',
     'create-initial-user': './src/ts/create-initial-user.ts',
     'enable-account': './src/ts/enable-account.ts',
-    'forgot-password': './src/ts/forgot-password.ts',
-    'login': './src/ts/login.ts',
+    'forgot-password': './src/ts/react/forgot-password/index.tsx',
+    'login': './src/ts/react/login/index.tsx',
     'message': './src/ts/message.ts',
-    'reset-password': './src/ts/reset-password.ts',
+    'reset-password': './src/ts/react/reset-password/index.tsx',
     'system-admin': './src/ts/react/system-admin/index.tsx',
   },
   output: {
     path: path.resolve(__dirname, 'wwwroot'),
-    publicPath: '~/',
+    publicPath: '/',
   },
   module: {
     rules: [
@@ -80,6 +82,14 @@ module.exports = {
         from: 'src/images/default_content_images/',
         to: 'images/',
         flatten: true,
+      },
+      {
+        from: 'src/images/login-hero.jpg',
+        to: 'images/login-hero.jpg',
+      },
+      {
+        from: 'src/js/polyfills.min.js',
+        to: 'js/polyfills.min.js',
       },
       {
         from: 'src/html/Error/502.html',
@@ -155,8 +165,26 @@ module.exports = {
       chunks: [ 'commons', 'authorized-content' ],
     }),
     new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'AuthorizedContent', 'ContentDisclaimer.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'AuthorizedContent', 'ContentDisclaimer.cshtml.template'),
+      inject: false,
+      chunks: [ 'commons', 'content-disclaimer' ],
+    }),
+    new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'AuthorizedContent', 'ContentWrapper.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'AuthorizedContent', 'ContentWrapper.cshtml.template'),
+      inject: false,
+      chunks: [ 'commons', 'content-wrapper' ],
+    }),
+    new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'Shared', 'Message.cshtml'),
       template: path.resolve(__dirname, 'ViewTemplates', 'Shared', 'Message.cshtml.template'),
+      inject: false,
+      chunks: ['commons', 'message'],
+    }),
+    new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'Shared', 'ContentMessage.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'Shared', 'ContentMessage.cshtml.template'),
       inject: false,
       chunks: ['commons', 'message'],
     }),
@@ -182,5 +210,8 @@ module.exports = {
       '.ts',
     ],
     symlinks: false,
+  },
+  node: {
+    net: 'mock',
   },
 };

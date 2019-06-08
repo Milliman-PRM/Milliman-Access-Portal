@@ -8,7 +8,7 @@
 *.pdb
 *.dll.config
 *.cache
-**/js/**/*.js
+**/ts-compiled/**/*.js
 *.map
 *.suo
 .sass-cache
@@ -35,7 +35,6 @@ obj/
 TestResults/
 node_modules/
 .vs/
-.vscode/
 wwwroot/
 ###################
 # Web publish log #
@@ -68,7 +67,6 @@ wwwroot/
 ######################
 .DS_Store?
 ehthumbs.db
-Icon?
 Thumbs.db
 [Bb]in
 [Oo]bj

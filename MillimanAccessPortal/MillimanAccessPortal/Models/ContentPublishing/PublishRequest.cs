@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett, 
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: A model for parameters of a ContentPublishing.Publish action request
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 

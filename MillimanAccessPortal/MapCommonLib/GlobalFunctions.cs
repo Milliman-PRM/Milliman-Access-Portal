@@ -16,10 +16,12 @@ namespace MapCommonLib
     public static class GlobalFunctions
     {
 
-        public static string emailValRegex { get; set; } = @"^(([^<>()[\]\\.,;:\s@']+(\.[^<>()[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$";
-        public static string domainValRegex { get; set; } = @"^((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$";
-        public static ulong maxFileUploadSize { get; set; } = 5368709120;
-        public static ulong virusScanWindowSeconds { get; set; } = 30;
+        public static string EmailValRegex { get; set; } = @"^(([^<>()[\]\\.,;:\s@']+(\.[^<>()[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$";
+        public static string DomainValRegex { get; set; } = @"^((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$";
+        public static ulong MaxFileUploadSize { get; set; } = 5368709120;
+        public static ulong VirusScanWindowSeconds { get; set; } = 30;
+        public static int DefaultClientDomainListCountLimit { get; set; } = 3;
+        public static List<string> NonLimitedDomains { get; set; } = new List<string> { "milliman.com" };
 
         public static readonly int fallbackPasswordHistoryDays = 30;
         public static readonly int fallbackPasswordHashingIterations= 100_000;
@@ -28,7 +30,7 @@ namespace MapCommonLib
 
         private static readonly string _DefaultErrorLogPath = ".";
 
-        static Regex EmailAddressValidationRegex = new Regex (emailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+        static Regex EmailAddressValidationRegex = new Regex (EmailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
         public static bool IsValidEmail(string TestAddress)
         {
@@ -143,8 +145,8 @@ namespace MapCommonLib
             public bool Equals(string l, string r)
             {
                 if (ReferenceEquals(l, r)) return true;
-                if (ReferenceEquals(l, null) || ReferenceEquals(r, null)) return false;
-                return l.Trim().ToLower() == r.Trim().ToLower();
+                if (l is null || r is null) return false;
+                return l.Trim().Equals(r.Trim(), StringComparison.OrdinalIgnoreCase);
             }
             public int GetHashCode(string Arg)
             {

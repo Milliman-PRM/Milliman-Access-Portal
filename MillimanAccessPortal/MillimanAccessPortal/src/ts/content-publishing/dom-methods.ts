@@ -1,6 +1,7 @@
+import '../../images/icons/expand-frame.svg';
+
 import 'jquery-validation';
 import 'jquery-validation-unobtrusive';
-import '../../images/expand-frame.svg';
 
 import * as $ from 'jquery';
 import { unionWith } from 'lodash';
@@ -22,7 +23,7 @@ import {
 import { setUnloadAlert } from '../unload-alerts';
 import { UploadComponent } from '../upload/upload';
 import {
-    BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, isSelection,
+  BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, ContentTypeEnum, isSelection,
     PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue, RootContentItemDetail,
     RootContentItemList, RootContentItemSummary, RootContentItemSummaryAndDetail,
 } from '../view-models/content-publishing';
@@ -44,13 +45,11 @@ const goLiveEnabledTooltip = 'Approve content and go live';
 function deleteRootContentItem(
   rootContentItemId: Guid,
   rootContentItemName: string,
-  password: string,
   callback: () => void,
 ) {
   $.ajax({
     data: {
       rootContentItemId,
-      password,
     },
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
@@ -81,16 +80,14 @@ export function rootContentItemDeleteClickHandler(event: Event) {
   new (DeleteRootContentItemDialog as any)(
     rootContentItemName,
     rootContentItemId,
-    (data: { password: string }, callback: () => void) => {
-      if (data.password) {
+    (data: { confirmDeletion: string }, callback: () => void) => {
+      if (data.confirmDeletion.toUpperCase() === 'DELETE') {
         showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
-        deleteRootContentItem(rootContentItemId, rootContentItemName, data.password, callback);
-      } else if (data.password === '') {
-        toastr.warning('Please enter your password to proceed');
-        return false;
+        deleteRootContentItem(rootContentItemId, rootContentItemName, callback);
       } else {
-        toastr.info('Deletion was canceled');
+        toastr.warning('Please type <strong>DELETE</strong> to proceed with deletion');
+        return false;
       }
       return true;
     },
@@ -137,8 +134,13 @@ export function openNewRootContentItemForm() {
     contentTypeId: '0',
     description: '',
     doesReduce: false,
+    typeSpecificDetailObject: {
+      filterPaneEnabled: false,
+      navigationPaneEnabled: false,
+    },
     id: '0',
     notes: '',
+    contentDisclaimer: '',
     relatedFiles: [],
     isSuspended: false,
   });
@@ -180,9 +182,20 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
   formMap.set('ClientId', item.clientId);
   formMap.set('ContentName', item.contentName);
   formMap.set('ContentTypeId', item.contentTypeId);
-  formMap.set('DoesReduce',  item.doesReduce);
+  formMap.set('DoesReduce', item.doesReduce);
+  if (item.typeSpecificDetailObject) {
+    formMap.set('FilterPaneEnabled',
+      (item.typeSpecificDetailObject.hasOwnProperty('filterPaneEnabled')
+        ? item.typeSpecificDetailObject.filterPaneEnabled
+        : false));
+    formMap.set('NavigationPaneEnabled',
+      (item.typeSpecificDetailObject.hasOwnProperty('navigationPaneEnabled')
+        ? item.typeSpecificDetailObject.navigationPaneEnabled
+        : false));
+  }
   formMap.set('Description', item.description);
   formMap.set('Notes', item.notes);
+  formMap.set('ContentDisclaimer', item.contentDisclaimer);
 
   return formMap;
 }
@@ -550,7 +563,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
   if (item) {
     const formMap = mapRootContentItemDetail(item);
     formMap.forEach((value, key) => {
-      if (key !== 'DoesReduce') {  // because DoesReduce is a checkbox
+      if (key !== 'DoesReduce'
+        && key !== 'FilterPaneEnabled'
+        && key !== 'NavigationPaneEnabled') {  // because these are checkboxes
         $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
       }
     });
@@ -566,6 +581,19 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
 
     const $doesReduceToggle = $rootContentItemForm.find('#DoesReduce');
     $doesReduceToggle.prop('checked', item.doesReduce);
+
+    if (item.typeSpecificDetailObject) {
+      const $filterPaneToggle = $rootContentItemForm.find('#FilterPaneEnabled');
+      $filterPaneToggle.prop('checked',
+        (item.typeSpecificDetailObject.hasOwnProperty('filterPaneEnabled')
+          ? item.typeSpecificDetailObject.filterPaneEnabled
+          : false));
+      const $navigationPaneToggle = $rootContentItemForm.find('#NavigationPaneEnabled');
+      $navigationPaneToggle.prop('checked',
+        (item.typeSpecificDetailObject.hasOwnProperty('navigationPaneEnabled')
+          ? item.typeSpecificDetailObject.navigationPaneEnabled
+          : false));
+    }
   }
 
   const createContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
@@ -573,6 +601,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       'common',
       'root-content-item-info',
       'root-content-item-content-type',
+      'root-content-item-display-settings',
       'root-content-item-description',
     ],
     'ContentPublishing/CreateRootContentItem',
@@ -598,6 +627,8 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     [
       'common',
       'root-content-item-info',
+      'root-content-item-content-type',
+      'root-content-item-display-settings',
       'root-content-item-description',
     ],
     'ContentPublishing/UpdateRootContentItem',
@@ -692,6 +723,12 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     $('#DoesReduce').closest('.form-input-toggle').hide();
   } else {
     $('#DoesReduce').closest('.form-input-toggle').show();
+  }
+  const $contentDisplaySettings = $('.form-section[data-section="root-content-item-display-settings"]');
+  if (contentType.typeEnum === ContentTypeEnum.PowerBi) {
+    $contentDisplaySettings.show();
+  } else {
+    $contentDisplaySettings.hide();
   }
   formObject.inputSections.forEach((section) =>
     section.inputs.forEach((input) => {
@@ -835,6 +872,20 @@ export function setup() {
     } else {
       $doesReduceToggle.removeAttr('disabled');
       $doesReduceToggle.closest('.form-input-toggle').show();
+    }
+    const $contentDisplaySettings = $('.form-section[data-section="root-content-item-display-settings"]');
+    if (contentType && contentType.typeEnum === ContentTypeEnum.PowerBi) {
+      $contentDisplaySettings.show();
+      $('#FilterPaneEnabled').removeAttr('disabled');
+      $('#NavigationPaneEnabled').removeAttr('disabled');
+    } else {
+      $contentDisplaySettings.hide();
+      $('#FilterPaneEnabled')
+        .prop('checked', false)
+        .attr('disabled', '');
+      $('#NavigationPaneEnabled')
+        .prop('checked', false)
+        .attr('disabled', '');
     }
     formObject.inputSections.forEach((section) =>
       section.inputs.forEach((input) => {

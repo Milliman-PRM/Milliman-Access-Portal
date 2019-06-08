@@ -14,6 +14,7 @@ using Xunit;
 using TestResourcesLib;
 using MapDbContextLib.Models;
 using System.Linq;
+using System.Reflection;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 
@@ -45,6 +46,7 @@ namespace MapTests
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig,
                 TestResources.QvConfig,
                 TestResources.PublicationPostProcessingQueueObject
                 );
@@ -97,7 +99,7 @@ namespace MapTests
             };
             if (useContentName)
             {
-                validRootContentItem.ContentName = "";
+                validRootContentItem.ContentName = "CreateRootContentItem_ErrorInvalid";
             }
             #endregion
 
@@ -152,7 +154,7 @@ namespace MapTests
             {
                 ClientId = TestUtil.MakeTestGuid(1),
                 ContentTypeId = TestUtil.MakeTestGuid(1),
-                ContentName = "",
+                ContentName = "CreateRootContentItem_ReturnsJson",
                 DoesReduce = false,
             };
             #endregion
@@ -162,7 +164,12 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            IEnumerable<PropertyInfo> resultProperties = result.Value.GetType().GetRuntimeProperties();
+            Assert.Equal(typeof(RootContentItemSummary), resultProperties.Single(p => p.Name == "summary").PropertyType);
+            Assert.Equal(typeof(RootContentItemDetail), resultProperties.Single(p => p.Name == "detail").PropertyType);
+            
+            //Assert.IsType<>(result.Value);
             #endregion
         }
 
@@ -175,7 +182,7 @@ namespace MapTests
             {
                 ClientId = TestUtil.MakeTestGuid(1),
                 ContentTypeId = TestUtil.MakeTestGuid(1),
-                ContentName = "",
+                ContentName = "CreateRootContentItem_Success",
                 DoesReduce = false,
             };
             #endregion
@@ -198,13 +205,12 @@ namespace MapTests
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("user1");
             ApplicationUser user = await TestResources.UserManagerObject.FindByNameAsync("user1");
-            await TestResources.UserManagerObject.AddPasswordAsync(user, "password");
             #endregion
 
             #region Act
             Guid rootContentItemId = TestUtil.MakeTestGuid(rootContentItemIdArg);
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.DeleteRootContentItem(rootContentItemId, "password");
+            var view = await controller.DeleteRootContentItem(rootContentItemId);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -223,13 +229,12 @@ namespace MapTests
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser(userName);
             ApplicationUser user = await TestResources.UserManagerObject.FindByNameAsync("user1");
-            await TestResources.UserManagerObject.AddPasswordAsync(user, "password");
             #endregion
 
             #region Act
             Guid rootContentItemId = TestUtil.MakeTestGuid(rootContentItemIdArg);
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.DeleteRootContentItem(rootContentItemId, "password");
+            var view = await controller.DeleteRootContentItem(rootContentItemId);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -245,15 +250,15 @@ namespace MapTests
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("user1");
             ApplicationUser user = await TestResources.UserManagerObject.FindByNameAsync("user1");
-            await TestResources.UserManagerObject.AddPasswordAsync(user, "password");
             #endregion
 
             #region Act
-            var view = await controller.DeleteRootContentItem(TestUtil.MakeTestGuid(3), "password");
+            var view = await controller.DeleteRootContentItem(TestUtil.MakeTestGuid(3));
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<RootContentItemDetail>(result.Value);
             #endregion
         }
 
@@ -263,12 +268,11 @@ namespace MapTests
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("user1");
             ApplicationUser user = await TestResources.UserManagerObject.FindByNameAsync("user1");
-            await TestResources.UserManagerObject.AddPasswordAsync(user, "password");
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.DeleteRootContentItem(TestUtil.MakeTestGuid(3), "password");
+            var view = await controller.DeleteRootContentItem(TestUtil.MakeTestGuid(3));
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -491,6 +495,93 @@ namespace MapTests
             #region Assert
             Assert.IsType<BadRequestResult>(view);
             Assert.Contains(controller.Response.Headers, h => h.Value == ExpectedHeaderString);
+            #endregion
+        }
+
+        [Fact]
+        public async Task UpdateRootContentItem_Unauthorized()
+        {
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("user3");
+            RootContentItem dbItem = TestResources.DbContextObject.RootContentItem.Find(TestUtil.MakeTestGuid(1));
+            RootContentItem updateModel = new RootContentItem
+            {
+                Id = dbItem.Id,
+                ContentTypeId = dbItem.ContentTypeId,
+                ClientId = dbItem.ClientId,
+                ContentName = dbItem.ContentName,
+                Notes = "This note is added",
+            };
+            Assert.Null(dbItem.Notes);
+            #endregion
+
+            #region Act
+            var view = await controller.UpdateRootContentItem(updateModel);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Contains(controller.Response.Headers, h => h.Value == "You are not authorized to update this content item.");
+            #endregion
+        }
+
+        [Fact]
+        public async Task UpdateRootContentItem_Success()
+        {
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("user1");
+            RootContentItem dbItem = TestResources.DbContextObject.RootContentItem.Find(TestUtil.MakeTestGuid(3));
+            RootContentItem updateModel = new RootContentItem
+            {
+                Id = dbItem.Id,
+                ContentTypeId = dbItem.ContentTypeId,
+                ClientId = dbItem.ClientId,
+                ContentName = dbItem.ContentName,
+                Notes = "This note is added",
+            };
+            Assert.Null(dbItem.Notes);
+            #endregion
+
+            #region Act
+            var view = await controller.UpdateRootContentItem(updateModel);
+            #endregion
+
+            #region Assert
+            Assert.False(string.IsNullOrWhiteSpace(dbItem.Notes));
+            Assert.Equal(updateModel.Notes, dbItem.Notes);
+            #endregion
+        }
+
+        [Fact]
+        public async Task UpdateRootContentItem_TypeSpecificProperties_Success()
+        {
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("user1");
+            RootContentItem dbItem = TestResources.DbContextObject.RootContentItem.Find(TestUtil.MakeTestGuid(4));
+            PowerBiContentItemProperties props = new PowerBiContentItemProperties
+            {
+                FilterPaneEnabled = true,
+                NavigationPaneEnabled = true,
+            };
+            RootContentItem updateModel = new RootContentItem
+            {
+                Id = dbItem.Id,
+                ContentTypeId = dbItem.ContentTypeId,
+                ClientId = dbItem.ClientId,
+                ContentName = dbItem.ContentName,
+                ContentType = TestResources.DbContextObject.ContentType.Find(dbItem.ContentTypeId),
+            };
+            updateModel.TypeSpecificDetailObject = props;
+            #endregion
+
+            #region Act
+            var view = await controller.UpdateRootContentItem(updateModel);
+            #endregion
+
+            #region Assert
+            PowerBiContentItemProperties savedProps = Assert.IsType<PowerBiContentItemProperties>(dbItem.TypeSpecificDetailObject);
+            Assert.Equal(props.NavigationPaneEnabled, savedProps.NavigationPaneEnabled);
+            Assert.Equal(props.FilterPaneEnabled, savedProps.FilterPaneEnabled);
             #endregion
         }
 

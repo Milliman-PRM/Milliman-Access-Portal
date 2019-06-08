@@ -130,7 +130,7 @@ namespace MillimanAccessPortal.Services
             }
 
             // Expect the total file size to be within the limit
-            if (Info.TotalSize > GlobalFunctions.maxFileUploadSize)
+            if (Info.TotalSize > GlobalFunctions.MaxFileUploadSize)
             {
                 throw new FileUploadException(StatusCodes.Status413PayloadTooLarge, "File size is too large.");
             }
@@ -259,11 +259,11 @@ namespace MillimanAccessPortal.Services
 
                 if (fileInfo.IsDirectory)
                 {
-                    Directory.Delete(fileInfo.PhysicalPath, recursive: true);
+                    FileSystemUtil.DeleteDirectoryWithRetry(fileInfo.PhysicalPath);
                 }
                 else
                 {
-                    File.Delete(fileInfo.PhysicalPath);
+                    FileSystemUtil.DeleteFileWithRetry(fileInfo.PhysicalPath);
                 }
             }
         }

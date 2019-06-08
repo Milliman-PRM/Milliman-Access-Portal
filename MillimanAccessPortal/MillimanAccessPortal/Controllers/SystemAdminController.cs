@@ -19,15 +19,18 @@
 
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using AuditLogLib.Models;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AccountViewModels;
@@ -38,6 +41,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.WsFederation;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -51,6 +57,8 @@ namespace MillimanAccessPortal.Controllers
         private readonly StandardQueries _queries;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IAuthenticationSchemeProvider _schemeProvider;
+        private readonly IServiceProvider _serviceProvider;
 
         public SystemAdminController(
             AccountController accountController,
@@ -60,7 +68,9 @@ namespace MillimanAccessPortal.Controllers
             ApplicationDbContext dbContext,
             StandardQueries queries,
             RoleManager<ApplicationRole> roleManager,
-            UserManager<ApplicationUser> userManager
+            UserManager<ApplicationUser> userManager,
+            IServiceProvider serviceProviderArg,
+            IAuthenticationSchemeProvider schemeProvider
             )
         {
             _accountController = accountController;
@@ -71,6 +81,8 @@ namespace MillimanAccessPortal.Controllers
             _queries = queries;
             _roleManager = roleManager;
             _userManager = userManager;
+            _serviceProvider = serviceProviderArg;
+            _schemeProvider = schemeProvider;
         }
 
         /// <summary>
@@ -157,6 +169,31 @@ namespace MillimanAccessPortal.Controllers
             return Json(userInfoList);
         }
 
+        public async Task<ActionResult> AuthenticationSchemes()
+        {
+            Log.Verbose("Entered SystemAdminController.AuthenticationSchemes action");
+
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In SystemAdminController.AuthenticationSchemes action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var returnObject = new AllAuthenticationSchemes
+            {
+                Schemes = _dbContext.AuthenticationScheme.Select(s => (AllAuthenticationSchemes.AuthenticationScheme)s).ToList(),
+            };
+
+            Log.Verbose("Completed SystemAdminController.AuthenticationSchemes action");
+
+            return Json(returnObject);
+        }
+
         /// <summary>
         /// Query for details for a specified user, optionally in context of another entity
         /// </summary>
@@ -178,12 +215,13 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ApplicationUser user = null;
+            Guid queryUserId = filter.UserId ?? Guid.Empty;
+            ApplicationUser user = _dbContext.ApplicationUser.Include(u => u.AuthenticationScheme).SingleOrDefault(u => u.Id == queryUserId);
+
             #region Validation
-            user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == (filter.UserId ?? Guid.Empty));
             if (user == null)
             {
-                Log.Debug($"In SystemAdminController.UserDetail action: user {User.Identity.Name} not found, aborting");
+                Log.Information($"In SystemAdminController.UserDetail action: requested user {queryUserId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -548,7 +586,7 @@ namespace MillimanAccessPortal.Controllers
             if (createResult.Succeeded && user != null)
             {
                 string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
+                await _accountController.SendNewAccountWelcomeEmail(user, Request, welcomeText);
             }
             else
             {
@@ -661,7 +699,7 @@ namespace MillimanAccessPortal.Controllers
                     if (createResult.Succeeded && user != null)
                     {
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                        await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
+                        await _accountController.SendNewAccountWelcomeEmail(user, Request, welcomeText);
                     }
                     else
                     {
@@ -746,7 +784,7 @@ namespace MillimanAccessPortal.Controllers
                     if (createResult.Succeeded && user != null)
                     {
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                        await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
+                        await _accountController.SendNewAccountWelcomeEmail(user, Request, welcomeText);
                     }
                     else
                     {
@@ -781,6 +819,98 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger.Log(AuditEventType.UserAssignedToProfitCenter.ToEvent(profitCenter, user));
 
             return Json(user);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddNewAuthenticationScheme(AllAuthenticationSchemes.AuthenticationScheme model)
+        {
+            Log.Verbose("Entered SystemAdminController.AddNewAuthenticationScheme action with model {@Model}", model);
+
+            #region Authorization
+            // User must have SysAdmin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In SystemAdminController.AddNewAuthenticationScheme action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            // 1. There should not be an existing scheme with the requested name
+            if (!ModelState.IsValid)
+            {
+                Log.Error($"ModelState not valid: {string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            // 2. There should not be an existing scheme with the requested name
+            if (await _schemeProvider.GetSchemeAsync(model.Name) != null || 
+                _dbContext.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, model.Name)))
+            {
+                Log.Error($"Attempted to add authentication scheme named {model.Name} but a scheme with this name already exists");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            // 3. The requested scheme type should not be default
+            if (model.Type == AuthenticationType.Default)
+            {
+                Log.Warning($"Attempted to add authentication scheme named {model.Name} with the default scheme type, not permitted");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+            #endregion
+
+            MapDbContextLib.Context.AuthenticationScheme newSchemeRecord = new MapDbContextLib.Context.AuthenticationScheme
+            {
+                DisplayName = model.DisplayName,
+                DomainList = model.DomainList ?? new List<string>(),
+                Name = model.Name,
+                Type = model.Type,
+            };
+
+            switch (model.Type)
+            {
+                case AuthenticationType.WsFederation:
+                    OptionsCache<WsFederationOptions> _wsFederationOptionsCache = (OptionsCache<WsFederationOptions>)_serviceProvider.GetService(typeof(IOptionsMonitorCache<WsFederationOptions>));
+                    try
+                    {
+                        // Add new scheme to DI AuthenticationSchemeProvider
+                        _schemeProvider.AddScheme(new Microsoft.AspNetCore.Authentication.AuthenticationScheme(model.Name, model.DisplayName, typeof(WsFederationHandler)));
+
+                        WsFederationSchemeProperties schemeProperties = (WsFederationSchemeProperties)model.Properties;
+                        WsFederationOptions newOptions = new WsFederationOptions { Wtrealm = schemeProperties.Wtrealm, MetadataAddress = schemeProperties.MetadataAddress, CallbackPath = $"/signin-wsfed-{model.Name}" };
+                        if (_wsFederationOptionsCache.TryAdd(model.Name, newOptions))
+                        {
+                            // Add new scheme to database
+                            newSchemeRecord.SchemePropertiesObj = schemeProperties;
+                            _dbContext.AuthenticationScheme.Add(newSchemeRecord);
+                            await _dbContext.SaveChangesAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Failed to add new authentication scheme using model {{@Model}}, aborting", model);
+
+                        _wsFederationOptionsCache.TryRemove(model.Name);
+                        if (await _schemeProvider.GetSchemeAsync(model.Name) != null)
+                        {
+                            _schemeProvider.RemoveScheme(model.Name);
+                        }
+                        _dbContext.AuthenticationScheme.Remove(newSchemeRecord);
+
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                    }
+
+                    break;
+
+                default:
+                    throw new ApplicationException($"Request to {nameof(SystemAdminController)}.{nameof(AddNewAuthenticationScheme)} with unsupported AuthenticationType {model.Type}");
+            }
+            
+            _auditLogger.Log(AuditEventType.NewAuthenticationSchemeAdded.ToEvent(newSchemeRecord));
+
+            return Ok();
         }
         #endregion
 
@@ -838,6 +968,204 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger.Log(AuditEventType.ProfitCenterUpdated.ToEvent(profitCenter));
 
             return Json(existingRecord);
+        }
+
+        /// <summary>
+        /// Update a Client
+        /// </summary>
+        /// <param name="updatedClient">ClientUpdate model</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> UpdateClient([FromBody] ClientUpdate updatedClient)
+        {
+            Log.Verbose("Entered SystemAdminController.UpdateClient action with model {@ClientUpdate}", updatedClient);
+
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In SystemAdminController.UpdateClient action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (!ModelState.IsValid)
+            {
+                Log.Debug($"In SystemAdminController.UpdateClient action: ModelState invalid, errors <{string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}>, aborting");
+                Response.Headers.Add("Warning", ModelState.Values.First(v => v.Errors.Any()).Errors.ToString());
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var existingRecord = _dbContext.Client.Find(updatedClient.ClientId);
+            if (existingRecord == null)
+            {
+                Log.Debug($"In SystemAdminController.UpdateClient action: requested client {updatedClient.ClientId} not found, aborting");
+                Response.Headers.Add("Warning", "The specified client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            #region Save values for later logging
+            int previousDomainLimit = existingRecord.DomainListCountLimit;
+            #endregion
+
+            if (updatedClient.DomainLimitChange.NewDomainLimit < existingRecord.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains).Count())
+            {
+                Log.Debug($"In SystemAdminController.UpdateClient action: attempted to set domain limit less than existing domain count, aborting");
+                Response.Headers.Add("Warning", "There are currently more domains than the requested limit.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (updatedClient.DomainLimitChange.NewDomainLimit != existingRecord.DomainListCountLimit && string.IsNullOrWhiteSpace(updatedClient.DomainLimitChange.DomainLimitReason))
+            {
+                Log.Debug($"In SystemAdminController.UpdateClient action: attempted to change domain limit but no reason provided, aborting");
+                Response.Headers.Add("Warning", "A reason is required when updating the client's domain count limit.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            if (updatedClient.DomainLimitChange.NewDomainLimit != previousDomainLimit)
+            {
+                existingRecord.DomainListCountLimit = updatedClient.DomainLimitChange.NewDomainLimit;
+            }
+
+            _dbContext.SaveChanges();
+
+            #region Audit logging (may depend on what is updated)
+            if (updatedClient.DomainLimitChange.NewDomainLimit != previousDomainLimit)
+            {
+                _auditLogger.Log(AuditEventType.ClientDomainLimitUpdated.ToEvent(updatedClient.BuildAuditLogEventData(previousDomainLimit)));
+            }
+
+            // Log other auditable things here
+            #endregion
+
+            Log.Verbose($"In SystemAdminController.UpdateClient action: success");
+
+            return Json(existingRecord);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateAuthenticationScheme(AllAuthenticationSchemes.AuthenticationScheme model)
+        {
+            Microsoft.AspNetCore.Authentication.AuthenticationScheme ExistingScheme = null;
+
+            Log.Verbose("Entered SystemAdminController.UpdateAuthenticationScheme action with {@Scheme}", model);
+
+            #region Authorization
+            // User must have SysAdmin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In SystemAdminController.UpdateAuthenticationScheme action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            List<string> errMessages = new List<string>();
+
+            // 1. ModelState must be valid
+            if (!ModelState.IsValid)
+            {
+                errMessages.Add($"ModelState not valid: {string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}");
+            }
+
+            // 2. The requested scheme name must already exist in the database with the same type conveyed in the request model
+            else if (_dbContext.AuthenticationScheme.All(s => !EF.Functions.ILike(s.Name, model.Name)) ||
+                _dbContext.AuthenticationScheme.Single(s => EF.Functions.ILike(s.Name, model.Name)).Type != model.Type)
+            {
+                errMessages.Add($"In SystemAdminController.UpdateAuthenticationScheme action: Attempted to update external authentication scheme named {model.Name} but no scheme with this name and of the requested authentication type {model.Type.ToString()} exists in the database");
+            }
+
+            // 3. The existing scheme must already be configured in the AuthenticationService with the same type conveyed in the request model
+            else
+            {
+                ExistingScheme = await _schemeProvider.GetSchemeAsync(model.Name);
+                string expectedHandlerName = null;
+                switch (model.Type)
+                {
+                    case AuthenticationType.Default:
+                        // The default type should never be updated
+                        errMessages.Add($"In SystemAdminController.UpdateAuthenticationScheme action: Error, attempted to update the default authentication scheme");
+                        break;
+                    case AuthenticationType.WsFederation:
+                        expectedHandlerName = "WsFederationHandler";
+                        break;
+                    default:
+                        errMessages.Add($"In SystemAdminController.UpdateAuthenticationScheme action: Requested authentication type {model.Type.ToString()} is not supported, code maintenance is required");
+                        break;
+                }
+
+                if (!string.IsNullOrEmpty(expectedHandlerName) && (ExistingScheme == null || ExistingScheme.HandlerType.Name != expectedHandlerName))
+                {
+                    errMessages.Add($"Attempted to update external authentication scheme named {model.Name} but no scheme with this name and of the requested authentication type {model.Type.ToString()} is configured in the AuthenticationService");
+                }
+            }
+
+            if (errMessages.Any())
+            {
+                errMessages.ForEach(m => Log.Error(m));
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+            #endregion
+
+            // Prepare the database record changes
+            MapDbContextLib.Context.AuthenticationScheme schemeRecord = _dbContext.AuthenticationScheme.Single(s => EF.Functions.ILike(s.Name, model.Name));
+            MapDbContextLib.Context.AuthenticationScheme beforeUpdate = schemeRecord.DeepCopy();  // for logging
+            schemeRecord.DisplayName = model.DisplayName;
+            schemeRecord.DomainList = model.DomainList;
+            schemeRecord.Type = model.Type;
+
+            switch (model.Type)
+            {
+                case AuthenticationType.WsFederation:
+                    OptionsCache<WsFederationOptions> _wsFederationOptionsCache = (OptionsCache<WsFederationOptions>)_serviceProvider.GetService(typeof(IOptionsMonitorCache<WsFederationOptions>));
+                    try
+                    {
+                        WsFederationSchemeProperties schemeProperties = (WsFederationSchemeProperties)model.Properties;
+                        schemeRecord.SchemePropertiesObj = schemeProperties;
+
+                        // start with a copy of the existing options
+                        WsFederationOptions newOptions = _wsFederationOptionsCache.GetOrAdd(model.Name, () => { return new WsFederationOptions(); });
+                        newOptions.Wtrealm = schemeProperties.Wtrealm;
+                        newOptions.MetadataAddress = schemeProperties.MetadataAddress;
+
+                        if (_wsFederationOptionsCache.TryRemove(model.Name) &&
+                            _wsFederationOptionsCache.TryAdd(model.Name, newOptions))
+                        {
+                            if (ExistingScheme.DisplayName != model.DisplayName)
+                            {
+                                var newScheme = new Microsoft.AspNetCore.Authentication.AuthenticationScheme(ExistingScheme.Name, model.DisplayName, ExistingScheme.HandlerType);
+                                _schemeProvider.RemoveScheme(ExistingScheme.Name);
+                                _schemeProvider.AddScheme(newScheme);
+                            }
+
+                            await _dbContext.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            throw new ApplicationException($"Failed to update authentication scheme <{model.Name}> in _wsFederationOptionsCache");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Failed to update authentication scheme using {@Model}", model);
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                    }
+                    break;
+
+                default:
+                    throw new ApplicationException($"Request to {nameof(SystemAdminController)}.{nameof(AddNewAuthenticationScheme)} with unsupported AuthenticationType {model.Type}");
+            }
+
+            _auditLogger.Log(AuditEventType.AuthenticationSchemeUpdated.ToEvent(beforeUpdate, schemeRecord));
+
+            return Ok();
         }
         #endregion
 
@@ -1162,6 +1490,56 @@ namespace MillimanAccessPortal.Controllers
         #endregion
 
         #region Immediate toggle actions
+        /// <summary>
+        /// Assigns a user to use the specified authentication scheme for future authentication
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="schemeName">null to specify that the username domain will be parsed to determine authentication provider</param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<ActionResult> AssignUserAuthenticationScheme(Guid userId, string schemeName)
+        {
+            Log.Verbose("Entered SystemAdminController.UserAuthenticationScheme action with {@UserId}, {@SchemeName}", userId, schemeName);
+
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In SystemAdminController.UserAuthenticationScheme action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var user = await _dbContext.ApplicationUser.SingleOrDefaultAsync(u => u.Id == userId);
+            var authenticationScheme = await _dbContext.AuthenticationScheme.SingleOrDefaultAsync(s => EF.Functions.ILike(s.Name, schemeName));
+
+            #region Validation
+            if (user == null)
+            {
+                Log.Debug($"In SystemAdminController.UserAuthenticationScheme action: user {userId} not found, aborting");
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (authenticationScheme == null)
+            {
+                Log.Debug($"In SystemAdminController.UserAuthenticationScheme action: scheme {schemeName} not found, aborting");
+                Response.Headers.Add("Warning", "The specified scheme does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            user.AuthenticationSchemeId = authenticationScheme.Id;
+            int writeCount = await _dbContext.SaveChangesAsync();
+
+            Log.Verbose("In SystemAdminController.UserAuthenticationScheme action: success");
+
+            return Json(writeCount == 1);
+        }
+
         /// <summary>
         /// Get whether a user has a particular system role or not.
         /// </summary>

@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Identity;
@@ -23,5 +24,8 @@ namespace MapDbContextLib.Context
         [ForeignKey("User")]
         public Guid UserId { get; set; }
         public ApplicationUser User { get; set; }
+
+        [Required]
+        public bool DisclaimerAccepted { get; set; }
     }
 }

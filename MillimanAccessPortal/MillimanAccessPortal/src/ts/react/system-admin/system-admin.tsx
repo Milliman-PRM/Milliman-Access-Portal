@@ -1,10 +1,10 @@
-﻿import '../../../images/add.svg';
-import '../../../images/client.svg';
-import '../../../images/email.svg';
-import '../../../images/expand-card.svg';
-import '../../../images/group.svg';
-import '../../../images/reports.svg';
-import '../../../images/user.svg';
+import '../../../images/icons/add.svg';
+import '../../../images/icons/client.svg';
+import '../../../images/icons/email.svg';
+import '../../../images/icons/expand-card.svg';
+import '../../../images/icons/group.svg';
+import '../../../images/icons/reports.svg';
+import '../../../images/icons/user.svg';
 import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
@@ -29,16 +29,17 @@ import { Filter } from '../shared-components/filter';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
-    ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientInfo,
-    isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
+    ClientDetail, ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientDetail,
+    isClientInfo, isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
     isUserClientRoles, isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail,
-    SecondaryDetailData, UserClientRoles,
+    SecondaryDetailData, UserClientRoles, UserInfo,
 } from './interfaces';
 import { AddUserToClientModal } from './modals/add-user-to-client';
 import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
 import { CardModal } from './modals/card-modal';
 import { CreateProfitCenterModal } from './modals/create-profit-center';
 import { CreateUserModal } from './modals/create-user';
+import { SetDomainLimitClientModal } from './modals/set-domain-limit';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
@@ -66,6 +67,9 @@ export interface SystemAdminState {
   };
   primaryPanel: ContentPanelAttributes;
   secondaryPanel: ContentPanelAttributes;
+  domainLimitModal: {
+    open: boolean;
+  };
 }
 
 export enum SystemAdminColumn {
@@ -91,7 +95,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       },
       primaryPanel: {
         selected: {
-          column: SystemAdminColumn.USER,
+          column: null,
           card: null,
         },
         cards: null,
@@ -115,11 +119,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           open: false,
         },
       },
+      domainLimitModal: {
+        open: false,
+      },
     };
-  }
-
-  public componentDidMount() {
-    this.handlePrimaryColumnSelected(SystemAdminColumn.USER);
   }
 
   public componentDidUpdate() {
@@ -201,7 +204,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                   <>
                     <CardSectionMain>
                       <CardText
-                        text={entity.firstName + ' ' + entity.lastName}
+                        text={normalizeName(entity)}
                         subtext={entity.userName}
                       />
                       <CardSectionStats>
@@ -238,7 +241,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                               <li key={i.id}>
                                 <span className="detail-item-user">
                                   <div className="detail-item-user-icon">
-                                    <svg className="card-user-icon">
+                                    <svg
+                                      className="card-user-icon"
+                                      style={{
+                                        width: '2em',
+                                        height: '2em',
+                                      }}
+                                    >
                                       <use xlinkHref="#reports" />
                                     </svg>
                                   </div>
@@ -285,12 +294,18 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                               <li key={u.id}>
                                 <span className="detail-item-user">
                                   <div className="detail-item-user-icon">
-                                    <svg className="card-user-icon">
+                                    <svg
+                                      className="card-user-icon"
+                                      style={{
+                                        width: '2em',
+                                        height: '2em',
+                                      }}
+                                    >
                                       <use xlinkHref="#user" />
                                     </svg>
                                   </div>
                                   <div className="detail-item-user-name">
-                                    <h4>{u.firstName + ' ' + u.lastName}</h4>
+                                    <h4>{normalizeName(u)}</h4>
                                     <span>{u.userName}</span>
                                   </div>
                                 </span>
@@ -309,7 +324,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                 cardContents = (
                   <CardSectionMain>
                     <CardText
-                      text={entity.firstName + ' ' + entity.lastName}
+                      text={normalizeName(entity)}
                       subtext={entity.userName}
                     />
                     <CardSectionStats>
@@ -406,6 +421,21 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             overlayClassName="modal-overlay"
             profitCenterId={this.state.primaryPanel.selected.card}
           />
+          {
+            this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
+            && primaryDetail
+            && (
+              <SetDomainLimitClientModal
+                isOpen={this.state.domainLimitModal.open}
+                onRequestClose={this.handleDomainLimitClose}
+                ariaHideApp={false}
+                className="modal"
+                overlayClassName="modal-overlay"
+                clientId={primaryDetail.id}
+                existingDomainLimit={isClientDetail(primaryDetail) && primaryDetail.domainListCountLimit}
+              />
+            )
+          }
         </CardPanel>
       )
       : null;
@@ -422,7 +452,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
               cardContents = (
                 <>
                   <CardText
-                    text={entity.firstName + ' ' + entity.lastName}
+                    text={normalizeName(entity)}
                     subtext={entity.userName}
                   />
                   <CardSectionStats>
@@ -588,6 +618,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             checkedSystemAdmin={isUserDetail(primaryDetail) && primaryDetail.isSystemAdmin}
             onPushSuspend={this.pushSuspendUser}
             checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.isSuspended}
+            doDomainLimitOpen={this.handleDomainLimitOpen}
           />
           <SecondaryDetailPanel
             selectedCard={secondaryCard}
@@ -836,6 +867,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             open: false,
           },
         },
+        domainLimitModal: {
+          open: false,
+        },
       };
     });
   }
@@ -864,6 +898,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           createModal: {
             open: false,
           },
+        },
+        domainLimitModal: {
+          open: false,
         },
       };
     });
@@ -1284,6 +1321,24 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }));
   }
 
+  private handleDomainLimitOpen = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      domainLimitModal: {
+          open: true,
+      },
+    }));
+  }
+
+  private handleDomainLimitClose = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      domainLimitModal: {
+        open: false,
+      },
+    }));
+  }
+
   private handleSecondaryModalOpen = () => {
     this.setState((prevState) => ({
       ...prevState,
@@ -1432,4 +1487,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
     return cards;
   }
+}
+
+function normalizeName({ firstName, lastName }: UserInfo) {
+  return firstName && lastName
+    ? `${firstName} ${lastName}`
+    : '(Unactivated)';
 }

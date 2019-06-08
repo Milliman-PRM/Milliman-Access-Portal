@@ -1,6 +1,3 @@
-import 'promise-polyfill/dist/polyfill';
-import 'whatwg-fetch';
-
 import * as $ from 'jquery';
 import * as toastr from 'toastr';
 

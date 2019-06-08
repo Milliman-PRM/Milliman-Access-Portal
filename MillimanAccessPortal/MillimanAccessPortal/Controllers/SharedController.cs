@@ -4,24 +4,24 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Controllers
 {
     public class SharedController : Controller
     {
+        [AllowAnonymous]
         public IActionResult Message(string Msg)
         {
-            return View(Msg);
+            return View("Message", Msg);
         }
 
+        [AllowAnonymous]
         public IActionResult ContentMessage(List<string> MsgList)
         {
-            return View(MsgList);
+            return View("ContentMessage", MsgList);
         }
     }
 }

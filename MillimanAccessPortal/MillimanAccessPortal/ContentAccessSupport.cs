@@ -127,6 +127,7 @@ namespace MillimanAccessPortal
         /// Moves files and updates db, requires navigation property chain SelectionGroup and RootContentItem. Cooperates in a transaction
         /// </summary>
         /// <param name="Db">A valid instance of database context</param>
+        /// <param name="auditLogger">A valid instance of audit logger</param>
         /// <param name="reductionTask">The reduction task with navigation property chain SelectionGroup and RootContentItem</param>
         /// <param name="contentRootShareFolder">The configured root path for live content files</param>
         /// <returns>A list of files that should be deleted by the caller</returns>
@@ -182,9 +183,10 @@ namespace MillimanAccessPortal
             {
                 case ContentTypeEnum.Qlikview:
                     QlikviewConfig QvConfig = (QlikviewConfig)ContentTypeConfig;
-                    await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(reductionTask.SelectionGroup.RootContentItemId.ToString(), QvConfig);
+                    await new QlikviewLibApi(QvConfig).AuthorizeUserDocumentsInFolderAsync(reductionTask.SelectionGroup.RootContentItemId.ToString());
                     break;
 
+                case ContentTypeEnum.PowerBi:
                 case ContentTypeEnum.Html:
                 case ContentTypeEnum.Pdf:
                 case ContentTypeEnum.FileDownload:
@@ -193,8 +195,20 @@ namespace MillimanAccessPortal
                     break;
             }
 
+            // Reset disclaimer acceptance
+            var usersInGroup = Db.UserInSelectionGroup
+                .Include(u => u.SelectionGroup)
+                .Where(u => u.SelectionGroupId == reductionTask.SelectionGroupId)
+                .ToList();
+            usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
+            var rootContentItemId = usersInGroup.FirstOrDefault()?.SelectionGroup.RootContentItemId ?? Guid.Empty;
+
             // save changes
             Db.SaveChanges();
+
+            AuditLogger Logger = new AuditLogger();
+            Logger.Log(AuditEventType.ContentDisclaimerAcceptanceResetSelectionChange
+                .ToEvent(usersInGroup, rootContentItemId));
 
             return FilesToDelete;
         }

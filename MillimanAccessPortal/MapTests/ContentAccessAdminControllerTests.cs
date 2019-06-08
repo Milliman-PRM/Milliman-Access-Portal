@@ -121,7 +121,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ClientsResponseModel>(result.Value);
             #endregion
         }
 
@@ -169,7 +170,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<ContentItemsResponseModel>(result.Value);
             #endregion
         }
 
@@ -220,7 +222,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<SelectionGroupsResponseModel>(result.Value);
             #endregion
         }
 
@@ -289,7 +292,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<CreateGroupResponseModel>(result.Value);
             #endregion
         }
 
@@ -401,7 +405,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<UpdateGroupResponseModel>(result.Value);
             #endregion
         }
 
@@ -507,7 +512,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<DeleteGroupResponseModel>(result.Value);
             #endregion
         }
 
@@ -581,7 +587,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<SelectionsResponseModel>(result.Value);
             #endregion
         }
 
@@ -763,7 +770,8 @@ namespace MapTests
                 ReductionStatus = ReductionStatusEnum.Queued,
                 ContentPublicationRequestId = null,
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
-                ApplicationUserId = TestUtil.MakeTestGuid(1)
+                ApplicationUserId = TestUtil.MakeTestGuid(1),
+                SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>(),
             });
             #endregion
 
@@ -775,7 +783,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            JsonResult result = Assert.IsType<JsonResult>(view);
+            Assert.IsType<SingleReductionModel>(result.Value);
             #endregion
         }
 
@@ -797,6 +806,7 @@ namespace MapTests
                     ContentPublicationRequestId = null,
                     SelectionGroupId = TestUtil.MakeTestGuid(SelectionGroupId),
                     ApplicationUserId = TestUtil.MakeTestGuid(UserId),
+                    SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>(),
                 });
             }
             #endregion

@@ -37,7 +37,11 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public string Notes { get; set; }
 
+        public string ContentDisclaimer { get; set; }
+
         public bool IsSuspended { get; set; }
+
+        public TypeSpecificContentItemProperties TypeSpecificDetailObject { get; set; }
 
         internal static RootContentItemDetail Build(ApplicationDbContext dbContext, RootContentItem rootContentItem)
         {
@@ -45,6 +49,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();
+            var contentType = dbContext.ContentType.Find(rootContentItem.ContentTypeId);
 
             List<ContentRelatedFile> relatedFiles = rootContentItem.ContentFilesList;
             if ((publicationRequest?.RequestStatus ?? PublicationStatus.Unknown).IsActive())
@@ -71,8 +76,22 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 RelatedFiles = relatedFiles,
                 Description = rootContentItem.Description,
                 Notes = rootContentItem.Notes,
+                ContentDisclaimer = rootContentItem.ContentDisclaimer,
                 IsSuspended = rootContentItem.IsSuspended,
+                TypeSpecificDetailObject = default,
             };
+            switch (contentType.TypeEnum)
+            {
+                case ContentTypeEnum.PowerBi:
+                    model.TypeSpecificDetailObject = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+                    break;
+                case ContentTypeEnum.Qlikview:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.FileDownload:
+                default:
+                    break;
+            }
 
             return model;
         }

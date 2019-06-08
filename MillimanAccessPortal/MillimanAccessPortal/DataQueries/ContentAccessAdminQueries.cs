@@ -1,5 +1,6 @@
 ﻿using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries.EntityQueries;
+using MillimanAccessPortal.Models.ClientModels;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
@@ -45,6 +46,7 @@ namespace MillimanAccessPortal.DataQueries
         public ClientsResponseModel SelectClients(ApplicationUser user)
         {
             var clients = _clientQueries.SelectClientsWithEligibleUsers(user, RoleEnum.ContentAccessAdmin);
+            var parentClients = _clientQueries.SelectParentClients(clients);
             var clientIds = clients.ConvertAll(c => c.Id);
 
             var users = _userQueries.SelectUsersWhereEligibleClientIn(clientIds);
@@ -52,6 +54,7 @@ namespace MillimanAccessPortal.DataQueries
             return new ClientsResponseModel
             {
                 Clients = clients.ToDictionary(c => c.Id),
+                ParentClients = parentClients.ToDictionary(c => c.Id),
                 Users = users.ToDictionary(u => u.Id),
             };
         }
@@ -233,15 +236,16 @@ namespace MillimanAccessPortal.DataQueries
         public UpdateGroupResponseModel UpdateGroup(Guid selectionGroupId, string name, List<Guid> users)
         {
             _selectionGroupQueries.UpdateSelectionGroupName(selectionGroupId, name);
-            var group = _selectionGroupQueries.UpdateSelectionGroupUsers(selectionGroupId, users);
 
-            var groupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
-            var contentItemStats = _contentItemQueries.SelectContentItemWithCardStats(group.RootContentItemId);
+            var updatedGroup = _selectionGroupQueries.UpdateSelectionGroupUsers(selectionGroupId, users);
+
+            BasicSelectionGroupWithAssignedUsers selectionGroupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(updatedGroup.Id);
+            BasicContentItemWithCardStats contentItemWithStats = _contentItemQueries.SelectContentItemWithCardStats(updatedGroup.RootContentItemId);
 
             return new UpdateGroupResponseModel
             {
-                Group = groupWithUsers,
-                ContentItemStats = contentItemStats,
+                Group = selectionGroupWithUsers,
+                ContentItemStats = contentItemWithStats,
             };
         }
 

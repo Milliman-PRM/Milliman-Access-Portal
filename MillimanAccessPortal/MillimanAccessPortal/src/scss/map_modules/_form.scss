@@ -1,6 +1,9 @@
-﻿/* Form Elements */
+﻿@import "./variables";
 
-.admin-panel-content-container form {
+/* Form Elements */
+
+.admin-panel-content-container form,
+.form-content-container form {
     padding: 1em !important;
     background-color: $white;
     border-radius: 1em !important;
@@ -43,6 +46,12 @@ a,
     &[disabled] {
         display: none;
     }
+}
+
+.inline-link-button {
+    padding: 0 0 0 1em !important;
+    margin: 0;
+    line-height: normal;
 }
 
 button,
@@ -337,7 +346,7 @@ label.input-with-upload {
 
     .file-upload-icons {
         position: absolute;
-        display: inline-block;
+        display: flex;
         right: .25em;
         top: 1.9em;
         z-index: 2;

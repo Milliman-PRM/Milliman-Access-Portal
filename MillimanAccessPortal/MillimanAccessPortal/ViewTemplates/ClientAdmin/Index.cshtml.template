@@ -21,7 +21,7 @@
 <div id="navbar"></div>
 <div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
     <div class="loading-wrapper" style="display: none;">
-        @Html.Partial("~/Views/Shared/_Loader.cshtml")
+        @await Html.PartialAsync("~/Views/Shared/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Client Tree</h3>
     <div class="admin-panel-toolbar">
@@ -39,7 +39,7 @@
 </div>
 <div id="client-info" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12" style="display: none;">
     <div class="loading-wrapper" style="display: none;">
-        @Html.Partial("~/Views/Shared/_Loader.cshtml")
+        @await Html.PartialAsync("~/Views/Shared/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Client Information</h3>
     <div class="admin-panel-toolbar">
@@ -112,7 +112,10 @@
                     <h4 class="form-section-title">Security Information</h4>
                     <div class="form-input-container">
                         <div class="form-input form-input-selectized flex-item-12-12">
-                            <label class="form-input-selectized-title" asp-for="AcceptedEmailDomainList"></label>
+                            <label class="form-input-selectized-title" asp-for="AcceptedEmailDomainList">
+								Approved Email Domain List
+								<span id="email-domain-limit-label"></span>
+							</label>
                             <div>
                                 <input asp-for="AcceptedEmailDomainList" class="selectize-custom-input" />
                             </div>
@@ -200,7 +203,7 @@
 </div>
 <div id="client-users" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12" style="display: none;">
     <div class="loading-wrapper" style="display: none;">
-        @Html.Partial("~/Views/Shared/_Loader.cshtml")
+        @await Html.PartialAsync("~/Views/Shared/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Client Users</h3>
     <div class="admin-panel-toolbar">

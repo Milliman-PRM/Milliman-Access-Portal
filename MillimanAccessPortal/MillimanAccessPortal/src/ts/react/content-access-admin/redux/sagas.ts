@@ -1,115 +1,38 @@
-import { toastr } from 'react-redux-toastr';
-import { all, call, Effect, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
+import { select, takeLatest } from 'redux-saga/effects';
 
 import { ClientWithEligibleUsers, RootContentItemWithStats } from '../../models';
+import {
+    createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
+} from '../../shared-components/redux/sagas';
 import * as AccessActionCreators from './action-creators';
-import { createErrorActionCreator, createResponseActionCreator } from './action-creators';
 import * as AccessActions from './actions';
 import {
-    AccessAction, ErrorAction, isErrorAction, isScheduleAction, RequestAction, ResponseAction,
+    AccessAction, ErrorAccessAction, RequestAccessAction, ResponseAccessAction,
 } from './actions';
 import * as api from './api';
-import { selectedClient, selectedItem } from './selectors';
+import { remainingStatusRefreshAttempts, selectedClient, selectedItem } from './selectors';
 
 /**
- * Make an asynchronous API request and await the result.
- * @param apiCall API method to invoke
- * @param action the request action that caused this saga to fire
- */
-function* requestSaga(
-  apiCall: (request: RequestAction['request']) => ResponseAction['response'], action: RequestAction) {
-  try {
-    const response = yield call(apiCall, action.request);
-    yield put(createResponseActionCreator(`${action.type}_SUCCEEDED` as ResponseAction['type'])(response));
-  } catch (error) {
-    yield put(createErrorActionCreator(`${action.type}_FAILED` as ErrorAction['type'])(error));
-  }
-}
-/**
- * Helper function for handling request actions.
+ * Custom effect for handling request actions.
  * @param type Action type
  * @param apiCall API method to invoke
  */
-function takeLatestRequest<TRequest extends RequestAction>(
-  type: TRequest['type'],
-  apiCall: (request: TRequest['request']) => Promise<ResponseAction['response']>,
-) {
-  return takeLatest(type, requestSaga, apiCall);
-}
+const takeLatestRequest = createTakeLatestRequest<RequestAccessAction, ResponseAccessAction>();
 
 /**
- * Sleep for the specified duration; awaitable.
- * @param duration time to sleep in milliseconds
- */
-function sleep(duration: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, duration);
-  });
-}
-/**
- * Schedule an action to be fired at a later time.
- * @param nextActionCreator action creator to invoke after the scheduled duration
- * @param action the schedule action that caused this saga to fire
- */
-function* scheduleSaga(
-  nextActionCreator: () => (AccessAction | IterableIterator<Effect | AccessAction>),
-  action: AccessAction,
-) {
-  if (isScheduleAction(action)) {
-    yield call(sleep, action.delay);
-  }
-  const nextAction = yield nextActionCreator();
-  if (nextAction) {
-    yield put(nextAction);
-  }
-}
-/**
- * Helper function for handling schedule actions.
+ * Custom effect for handling schedule actions.
  * @param type action type
  * @param nextActionCreator action creator to invoke after the scheduled duration
  */
-function takeLatestSchedule<TAction extends AccessAction, TNext extends AccessAction>(
-  type: TAction['type'] | ((type: TAction) => boolean),
-  nextActionCreator: () => (TNext | IterableIterator<Effect | AccessAction>),
-) {
-  return takeLatest(type, scheduleSaga, nextActionCreator);
-}
+const takeLatestSchedule = createTakeLatestSchedule<AccessAction>();
 
 /**
- * Display a toast.
- * @param message message to display, or a function that builds the message from a response
- * @param level message severity
- * @param action the action that caused this saga to fire
- */
-function* toastSaga(
-  message: string
-    | ((response: ResponseAction['response'] | ErrorAction['error']) => string),
-  level: 'error' | 'info' | 'message' | 'success' | 'warning',
-  action: ResponseAction | ErrorAction,
-) {
-  yield toastr[level]('', typeof message === 'string'
-    ? message
-    : isErrorAction(action)
-      ? message(action.error)
-      : message(action.response));
-}
-/**
- * Helper function for handling actions that result in toasts.
+ * Custom effect for handling actions that result in toasts.
  * @param type action type
  * @param message message to display, or a function that builds the message from a response
  * @param level message severity
  */
-function takeEveryToast<TAction extends AccessAction>(
-  type: TAction['type'] | Array<TAction['type']> | ((type: TAction) => boolean),
-  message: string | (TAction extends ResponseAction
-    ? (response: TAction['response']) => string
-    : TAction extends ErrorAction
-      ? (error: TAction['error']) => string
-      : never),
-  level: 'error' | 'info' | 'message' | 'success' | 'warning' = 'success',
-) {
-  return takeEvery(type, toastSaga, message, level);
-}
+const takeEveryToast = createTakeEveryToast<AccessAction, ResponseAccessAction>();
 
 /**
  * Register all sagas for the page.
@@ -142,6 +65,14 @@ export default function* rootSaga() {
   });
   yield takeLatestSchedule('FETCH_STATUS_REFRESH_SUCCEEDED',
     () => AccessActionCreators.scheduleStatusRefresh({ delay: 5000 }));
+  yield takeLatestSchedule('FETCH_STATUS_REFRESH_FAILED',
+    () => AccessActionCreators.decrementStatusRefreshAttempts({}));
+  yield takeLatestSchedule('DECREMENT_STATUS_REFRESH_ATTEMPTS', function*() {
+    const retriesLeft: number = yield select(remainingStatusRefreshAttempts);
+    return retriesLeft
+      ? AccessActionCreators.scheduleStatusRefresh({ delay: 5000 })
+      : AccessActionCreators.promptStatusRefreshStopped({});
+  });
   yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessActionCreators.fetchSessionCheck({}));
   yield takeLatestSchedule('FETCH_SESSION_CHECK_SUCCEEDED',
     () => AccessActionCreators.scheduleSessionCheck({ delay: 60000 }));
@@ -166,12 +97,13 @@ export default function* rootSaga() {
     'Please finish editing the current selection group before performing this action.', 'warning');
   yield takeEveryToast('PROMPT_GROUP_NAME_EMPTY',
     'Please name the selection group before saving changes.', 'warning');
-  yield takeEveryToast<ErrorAction>([
+  yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',
+    'Please refresh the page to update reduction status.', 'warning');
+  yield takeEveryToast<ErrorAccessAction>([
     'FETCH_CLIENTS_FAILED',
     'FETCH_ITEMS_FAILED',
     'FETCH_GROUPS_FAILED',
     'FETCH_SELECTIONS_FAILED',
-    'FETCH_STATUS_REFRESH_FAILED',
     'FETCH_SESSION_CHECK_FAILED',
     'CREATE_GROUP_FAILED',
     'UPDATE_GROUP_FAILED',
@@ -183,6 +115,6 @@ export default function* rootSaga() {
       ? 'Your session has expired. Please refresh the page.'
       : isNaN(message)
         ? message
-        : 'An unexpected error has occured.',
+        : 'An unexpected error has occurred.',
     'error');
 }

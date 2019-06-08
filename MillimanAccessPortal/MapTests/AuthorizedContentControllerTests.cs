@@ -43,13 +43,14 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName=="test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName=="test1").First().UserName);
             #endregion
 
             #region Act
@@ -59,6 +60,53 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<ViewResult>(view);
+            #endregion
+        }
+
+        /// <summary>
+        /// Test that the Index returns a view containing a list of content items the test user can access.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task Content_DeduplicatesAssignedSelectionGroups()
+        {
+            #region Arrange
+            // initialize dependencies
+            TestInitialization TestResources = new TestInitialization();
+
+            // initialize data
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+
+            // Create the system under test (sut)
+            AuthorizedContentController sut = new AuthorizedContentController(
+                TestResources.AuditLoggerObject,
+                TestResources.AuthorizationService,
+                TestResources.DbContextObject,
+                TestResources.MessageQueueServicesObject,
+                TestResources.QvConfig,
+                TestResources.QueriesObj,
+                TestResources.UserManagerObject,
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
+
+            // For illustration only, the same result comes from either of the following techniques:
+            // This one should never throw even if the user name is not in the context data
+            sut.ControllerContext = TestInitialization.GenerateControllerContext("test1", new UriBuilder { Scheme="https", Host = "www.test.com", Path = "/", Query="p1=abc&p2=def&p3=ghi" });
+            // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
+            //sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            #endregion
+
+            #region Act
+            // invoke the controller action to be tested
+            var view = await sut.Content();
+            #endregion
+
+            #region Assert
+            Assert.Equal(2, TestResources.DbContextObject.UserInSelectionGroup.Where(usg => usg.UserId == TestUtil.MakeTestGuid(1) && usg.SelectionGroupId == TestUtil.MakeTestGuid(1)).Count());
+            JsonResult returnModel = Assert.IsType<JsonResult>(view);
+            AuthorizedContentViewModel typedModel = Assert.IsType<AuthorizedContentViewModel>(returnModel.Value);
+            Assert.Single(typedModel.ItemGroups);
+            Assert.Single(typedModel.ItemGroups[0].Items);
             #endregion
         }
 
@@ -86,26 +134,26 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
             sut.ControllerContext.ActionDescriptor = new Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor { ActionName = "WebHostedContent" };
             sut.HttpContext.Session = new MockSession();
             #endregion
-
 
             #region Act
             var view = await sut.WebHostedContent(TestUtil.MakeTestGuid(3)); // User "test1" is not authorized to RootContentItem for SelectionGroup w/ ID 3
             #endregion
 
             #region Assert
-            // Test that a 500 error was returned instead of the content
-            Assert.IsType<UnauthorizedResult>(view);
+            ViewResult typedResult = Assert.IsType<ViewResult>(view);
+            Assert.Equal("ContentMessage", typedResult.ViewName);
             #endregion
         }
 
@@ -132,18 +180,19 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
             // Add a file to the root content item and a content url to the selection group
             string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
-            string TestFileSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", FileName);
-            string TestFileTargetPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", TestUtil.MakeTestGuid(1).ToString(), FileName);
+            string TestFileSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", FileName);
+            string TestFileTargetPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", TestUtil.MakeTestGuid(1).ToString(), FileName);
             File.Copy(TestFileSourcePath, TestFileTargetPath, true);
             SelectionGroup ThisGroup = TestResources.DbContextObject.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
             RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
@@ -159,10 +208,9 @@ namespace MapTests
 
             #region Assert
             // Test that a content view was returned
-            Assert.IsType<RedirectResult>(actionResult);
+            RedirectResult viewResult = Assert.IsType<RedirectResult>(actionResult);
 
             // Test that the expected URI was returned
-            RedirectResult viewResult = actionResult as RedirectResult;
             UriBuilder Uri = new UriBuilder(viewResult.Url);
             Assert.Equal("https", Uri.Scheme);
             Assert.Equal(@"/qvajaxzfc/Authenticate.aspx", Uri.Path);
@@ -196,18 +244,19 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
             // Add a file to the root content item and a content url to the selection group
             string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
-            string TestFileSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", FileName);
-            string TestFileTargetPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", TestUtil.MakeTestGuid(1).ToString(), FileName);
+            string TestFileSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", FileName);
+            string TestFileTargetPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", TestUtil.MakeTestGuid(1).ToString(), FileName);
             File.Copy(TestFileSourcePath, TestFileTargetPath, true);
             SelectionGroup ThisGroup = TestResources.DbContextObject.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
             RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
@@ -223,10 +272,9 @@ namespace MapTests
 
             #region Assert
             // Test that a ViewResult was returned instead of a RedirectResult
-            Assert.IsType<ViewResult>(result);
+            ViewResult viewResult = Assert.IsType<ViewResult>(result);
 
             // Test that the Message view was returned
-            ViewResult viewResult = result as ViewResult;
             Assert.Equal("ContentMessage", viewResult.ViewName);
             #endregion
         }
@@ -254,27 +302,23 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
             #endregion
 
             #region Act
-            // Attempt to load the content view for authorized content
             var actionResult = await sut.WebHostedContent(TestUtil.MakeTestGuid(999));
             #endregion
 
             #region Assert
-            // Test that a content view was returned
-            Assert.IsType<ObjectResult>(actionResult);
-
-            // Test that the expected error was returned
-            ObjectResult objectResult = actionResult as ObjectResult;
-            Assert.Equal(500, objectResult.StatusCode);
+            ViewResult typedResult = Assert.IsType<ViewResult>(actionResult);
+            Assert.Equal("ContentMessage", typedResult.ViewName);
             #endregion
         }
 
@@ -301,13 +345,14 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
             #endregion
 
             #region Act
@@ -316,9 +361,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            // Test that a content view was returned
-            Assert.IsType<UnauthorizedResult>(actionResult);
-            Assert.Contains("You are not authorized to access the requested content", sut.Response.Headers.Select(h => h.Value));
+            ViewResult typedResult = Assert.IsType<ViewResult>(actionResult);
+            Assert.Equal("ContentMessage", typedResult.ViewName);
             #endregion
         }
 
@@ -347,16 +391,17 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
-            string UserGuideSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", "IHopeSo.pdf");
-            string UserGuideTestPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", purpose + ".pdf");
+            string UserGuideSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", "IHopeSo.pdf");
+            string UserGuideTestPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", purpose + ".pdf");
             File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
             RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
             ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
@@ -374,8 +419,7 @@ namespace MapTests
             try
             {
                 // Test that a content view was returned
-                Assert.IsType<PhysicalFileResult>(result);
-                PhysicalFileResult fileResult = result as PhysicalFileResult;
+                PhysicalFileResult fileResult = Assert.IsType<PhysicalFileResult>(result);
                 Assert.Equal(UserGuideTestPath, fileResult.FileName);
             }
             finally
@@ -410,16 +454,17 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
             string purpose = "UserGuide";
-            string UserGuideSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", "IHopeSo.pdf");
-            string UserGuideTestPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", purpose + ".pdf");
+            string UserGuideSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", "IHopeSo.pdf");
+            string UserGuideTestPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", purpose + ".pdf");
             File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
             RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
             ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
@@ -437,8 +482,7 @@ namespace MapTests
             try
             {
                 // Test that a content view was not returned
-                Assert.IsType<ViewResult>(result);
-                ViewResult viewResult = result as ViewResult;
+                ViewResult viewResult = Assert.IsType<ViewResult>(result);
                 Assert.Equal("ContentMessage", viewResult.ViewName);
             }
             finally
@@ -471,17 +515,18 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
             string purpose = "UserGuide";
-            string UserGuideSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", "IHopeSo.pdf");
-            string UserGuideTestPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", purpose + ".pdf");
+            string UserGuideSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", "IHopeSo.pdf");
+            string UserGuideTestPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", purpose + ".pdf");
             File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
             RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
             ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
@@ -498,9 +543,7 @@ namespace MapTests
             #region Assert
             try
             {
-                // Test that a content view was returned
-                Assert.IsType<ObjectResult>(result);
-                ObjectResult objectResult = result as ObjectResult;
+                ObjectResult objectResult = Assert.IsType<ObjectResult>(result);
                 Assert.Equal(500, objectResult.StatusCode);
             }
             finally
@@ -533,17 +576,18 @@ namespace MapTests
                 TestResources.QvConfig,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
             string purpose = "UserGuide";
-            string UserGuideSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", "IHopeSo.pdf");
-            string UserGuideTestPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", purpose + ".pdf");
+            string UserGuideSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", "IHopeSo.pdf");
+            string UserGuideTestPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", purpose + ".pdf");
             File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
             RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
             ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>

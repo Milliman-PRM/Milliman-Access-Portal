@@ -48,39 +48,26 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         </a>
       )
       : null;
-    const newWindow = (this.props.contentTypeEnum === ContentTypeEnum.FileDownload)
-      ? (
-        <a
-          href={this.props.contentURL}
-          download={true}
-          className="secondary-button"
-        >
-          Download
-        </a>
-      ) : (
-        <a
-          href={this.props.contentURL}
-          target="_blank"
-          className="secondary-button"
-        >
-          Open in New Tab
-        </a>
-      );
-    const contentLink = (this.props.contentTypeEnum === ContentTypeEnum.FileDownload)
-      ? (
-        <a
-          href={this.props.contentURL}
-          download={true}
-          className="content-card-link content-card-download"
-        />
-      ) : (
-        <a
-          href={this.props.contentURL}
-          target="_blank"
-          className="content-card-link"
-          onClick={this.selectContent}
-        />
-      );
+    const newWindow = (
+      <a
+        href={this.props.contentURL}
+        target="_blank"
+        className="secondary-button"
+        onClick={this.props.contentTypeEnum === ContentTypeEnum.FileDownload ? this.selectContent : null}
+      >
+        {this.props.contentTypeEnum === ContentTypeEnum.FileDownload
+          ? 'Download'
+          : 'Open in New Tab'
+        }
+      </a>
+    );
+    const contentLink = (
+      <a
+        href={this.props.contentURL}
+        className="content-card-link"
+        onClick={this.selectContent}
+      />
+    );
     return (
       <div className="content-card-container">
         <div className="content-card">
@@ -92,9 +79,9 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
             {this.props.description && <p className="content-card-description">{this.props.description}</p>}
           </div>
           <div className="secondary-actions">
-            {newWindow}
             {releaseNotes}
             {userGuide}
+            {newWindow}
           </div>
           {contentLink}
         </div>
