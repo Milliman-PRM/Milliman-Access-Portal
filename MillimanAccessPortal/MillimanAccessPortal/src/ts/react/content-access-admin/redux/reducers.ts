@@ -276,10 +276,7 @@ const pendingSelections = createReducer<Dict<{ selected?: boolean }>>({}, {
       selected: false,
     })),
   SET_PENDING_ALL_SELECTIONS_RESET: (state) =>
-    _.mapValues(state, (selection) => ({
-      ...selection,
-      selected: false,
-    })),
+    _.mapValues(state, () => ({})),
   SELECT_GROUP: (state) => _.mapValues(state, () => ({})),
   FETCH_SELECTIONS_SUCCEEDED: (_state, action: AccessActions.FetchSelectionsSucceeded) => {
     const state: Dict<{ selected?: boolean }> = {};
