@@ -22,6 +22,7 @@ export interface SelectionsPanelProps {
   loading?: boolean;
   onSetPendingAllSelectionsOff: () => void;
   onSetPendingAllSelectionsOn: () => void;
+  onSetPendingAllSelectionsReset: () => void;
   submitting: boolean;
   fieldsets: FieldsetData[];
 }
@@ -100,6 +101,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
         <div className="fieldset-container" style={{ flex: '1 1 1px', overflowY: 'auto' }}>
           <div onClick={this.props.onSetPendingAllSelectionsOn}>Select All</div>
           <div onClick={this.props.onSetPendingAllSelectionsOff}>Deselect All</div>
+          <div onClick={this.props.onSetPendingAllSelectionsReset}>Reset Selections</div>
           {this.renderReductionFields()}
         </div>
       );
