@@ -654,6 +654,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         }
         onCancelReduction={() => this.props.cancelReduction({ groupId: group.id })}
         loading={pending.data.selections}
+        onSetPendingAllSelectionsOff={() => this.props.setPendingAllSelectionsOff({})}
+        onSetPendingAllSelectionsOn={() => this.props.setPendingAllSelectionsOn({})}
         submitting={pending.data.updateSelections || pending.data.cancelReduction}
         fieldsets={fieldsets}
       >
