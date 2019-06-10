@@ -103,7 +103,7 @@ At this point, it is important to notify relevant parties (management, developer
 
 #### Determining Risk Level
 
-The Risk Level of a given release is used to identify the amount of risk involved with the proposed changes to the application.  Determining the Risk Level of a release is based on the judgment of the authorized individual reviewing the release, and can only be performed by an individual with Signature Authority and familiarity with software development.  While software releases are substantially different from the typical consulting work done within Milliman, the Milliman Risk Levels themselves act as a useful indicator and guide for is required to perform the Pre-Release Peer Review.
+The Risk Level of a given release is used to identify the amount of risk involved with the proposed changes to the application.  Determining the Risk Level of a release is based on the judgment of the authorized individual reviewing the release, and can only be performed by an individual with Signature Authority and familiarity with software development.  While software releases are substantially different from the typical consulting work done within Milliman, the Milliman Risk Levels themselves act as a useful indicator and are required to perform the Pre-Release Peer Review.
 
 #### Penetration Testing
 
@@ -113,9 +113,9 @@ Penetration Testing is a useful tool for ensuring that an application does not c
 - The release includes support of a new content type
 - The release has wide-ranging effects in the application that could introduce new attack vectors
 
-If any of these factors are present in a release, than penetration testing will be required for the approval of the release.
+If any of these factors are present in a release, then penetration testing will be required for the approval of the release.
 
-In addition to the periodic testing performed by Naomi Bornemann, MAP is also required to go through 3rd party penetration testing on an annual basis.  This will be coordinated through the Security and Infrastructure team.  In either case, any findings must be addressed or mitigated before a release can go forward with the release process.
+In addition to the periodic testing performed by Naomi Bornemann, MAP is also required to go through 3rd party penetration testing on an annual basis.  This will be coordinated through the Infrastructure and Security team.  In either case, any findings must be addressed or mitigated before a release can go forward with the release process.
 
 #### Deployment to Staging
 
@@ -128,7 +128,7 @@ It is vitally important that User Acceptance Testing (UAT) is performed in an en
 1. Ensure that all deployment steps succeed (indicated by green checkmarks)
 1. Repeat the above steps for the "Content Publication Server" project
 
-If the release involves changes to the database, then it will be necessary to run a migration.  This will need to be performed by someone from the Security and Infrastructure team as it involves elevated privileges.  For releases that do not require database changes, this step will be unnecessary.
+If the release involves changes to the database, then it will be necessary to run a migration.  This will need to be performed by someone from the Infrastructure and Security team as it involves elevated privileges.  For releases that do not require database changes, this step will be unnecessary.
 
 #### Application Testing
 
@@ -140,7 +140,7 @@ Much like Application Testing, Browser Testing should be used to identify areas 
 
 #### Triaging Issues Identified in Testing
 
-Before moving forward with a release, it is important that any issues discovered during the testing of the application should have corresponding issues created in GitHub and their priority must be determined to ensure that they are addressed at the appropriate time.  High priority issues that will broadly affect the application should be addressed before the release moves forward, while lower impact issues may be noted and addressed in a later release.  The determination of priority should be determined by the project manager.
+Before moving forward with a release, it is important that any issues discovered during the testing of the application should have corresponding issues created in GitHub and their priority must be determined to ensure that they are addressed at the appropriate time.  High priority issues that will broadly affect the application should be addressed before the release moves forward, while lower impact issues may be noted and addressed in a later release.  The determination of priority should be made by the project manager.
 
 #### Pre-release Peer Review
 
@@ -184,7 +184,7 @@ Once the tag has been created, the GitHub repository should be checked to ensure
 
 #### Scheduling the Deployment
 
-Once the release has been merged and tagged, it is then time to schedule deployment with the Security and Infrastructure team.  By this point, the person performing the deployment should be identified, and a deployment time should be agreed upon.  If there are any migrations, or ancillary scripts that need to be run in conjunction with the deployment, these should be included in the discussion with the person deploying the application, as well as in a message on the Pre-Release Pull Request about the details deployment.
+Once the release has been merged and tagged, it is then time to schedule deployment with the Infrastructure and Security team.  By this point, the person performing the deployment should be identified, and a deployment time should be agreed upon.  To minimize the impact to users, deployments should generally be scheduled in the evening after 9PM EST.  Deployments of a more urgent nature may be scheduled for normal business hours on a case-by-case basis if there is an overriding need.  If there are any migrations, or ancillary scripts that need to be run in conjunction with the deployment, these should be included in the discussion with the person deploying the application, as well as in a message on the Pre-Release Pull Request about the details deployment.
 
 #### Notification of Release
 
