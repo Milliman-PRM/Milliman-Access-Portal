@@ -142,6 +142,13 @@ export interface SetPendingAllSelectionsOff {
 }
 
 /**
+ * Reset all hierarchy fields for the current selection group.
+ */
+export interface SetPendingAllSelectionsReset {
+  type: 'SET_PENDING_ALL_SELECTIONS_RESET';
+}
+
+/**
  * Open the modal used to add new selection groups.
  */
 export interface OpenAddGroupModal {
@@ -603,6 +610,7 @@ export type PageAccessAction =
   | SetPendingSelectionOff
   | SetPendingAllSelectionsOn
   | SetPendingAllSelectionsOff
+  | SetPendingAllSelectionsReset
   | OpenAddGroupModal
   | CloseAddGroupModal
   | OpenDeleteGroupModal
