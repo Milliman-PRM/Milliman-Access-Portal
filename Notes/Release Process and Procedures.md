@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The purpose of this document is to detail the process by which a release of Milliman Access Portal (MAP) progresses through the software development lifecycle.
+The purpose of this document is to detail the process by which a release of the Milliman Access Portal (MAP) web application and publishing service progress through the software development lifecycle.
 
 ## Release Process
 
@@ -32,6 +32,10 @@ Identifying high priority issues quickly is important to maintaining a stable ap
 - Does the issue prevent users from performing a vital task?
 - Does the issue cause the user to receive incorrect results?
 - Does the issue make the application appear less secure?
+
+If a determination is made that the issue justifies the creation of a hotfix, then a branch should be opened immediately off of the Master branch and named according to our standard pre-release branch naming conventions outlined in the Pre-Release section of this document.  This branch should follow our standard Pre-Release process with two exceptions.  First, the Pre-Release Pull Request should be tagged with the "Type: Hotfix" label to indicate that this is a high priority pull request.  Second, in order to expedite the release of the hotfix, a determination may be made by the project manager and peer reviewers regarding the amount and scope of the testing necessary to approve the release.  This will be highly dependent on the scope of the changes necessary, the type of changes, and the potential impacts of the changes.
+
+In the event that a security vulnerability is identified, the Project Manager and Infrastructure and Security team will make a joint determination on whether the application should be made unavailable until a fix is in place.  The application will be shut down if either party believes that the vulnerability necessitates that course of action.  This determination will need to be made on a case-by-case basis and will be influenced by factors such as the severity of the vulnerability, the complexity of the circumstances necessary to reproduce, and any other relevant factors.
 
 #### Milestone Creation
 
@@ -188,7 +192,7 @@ Once the release has been merged and tagged, it is then time to schedule deploym
 
 #### Notification of Release
 
-At this time, an email should be sent informing all interested parties that the release has been promoted and when deployment is scheduled for.  This email should be a follow up of the email sent previously describing the contents of the release.
+At this time, an email should be sent informing all interested parties (management, developers, account managers, sales, etc.) that the release has been promoted and when deployment is scheduled for.  This email should be a follow up of the email sent previously describing the contents of the release.
 
 #### Post Deployment
 
