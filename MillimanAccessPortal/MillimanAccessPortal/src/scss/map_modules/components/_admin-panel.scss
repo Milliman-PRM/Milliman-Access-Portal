@@ -104,6 +104,31 @@
 
             .fieldset-container {
 
+                .fieldset-options-container {
+                    display: flex;
+                    flex-flow: row nowrap;
+                    justify-content: space-around;
+                    padding: 1em 0;
+
+                    .fieldset-option {
+                        flex: 1 0 auto;
+                        background-color: $blue;
+                        color: $white;
+                        margin: .25em;
+                        border: 1px solid $charcoal;
+                        border-radius: .25em;
+                        text-align: center;
+                        cursor: pointer;
+
+                        &.disabled {
+                            background-color: $white;
+                            color: $grey;
+                            border-color: $grey;
+                            cursor: default;
+                        }
+                    }
+                }
+
                 fieldset {
 
                     legend {
