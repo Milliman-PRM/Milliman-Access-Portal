@@ -109,6 +109,8 @@
                     flex-flow: row nowrap;
                     justify-content: space-around;
                     padding: 1em 0;
+                    border-top: 2px solid $charcoal;
+                    margin-top: 1em;
 
                     .fieldset-option {
                         flex: 1 0 auto;
