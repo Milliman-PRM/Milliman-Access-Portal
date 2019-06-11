@@ -608,6 +608,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
 
   private renderSelectionsPanel() {
     const {
+      allValuesDeselected: allDeselected,
+      allValuesSelected: allSelected,
       selectedItem: item,
       selectedGroup: group,
       reductionFieldsets,
@@ -638,6 +640,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         isSuspended={group.isSuspended}
         onIsSuspendedChange={(value) => this.props.suspendGroup({ groupId: group.id, isSuspended: value })}
         doesReduce={item.doesReduce}
+        isAllValuesSelected={allSelected}
+        isAllValuesDeselected={allDeselected}
         isModified={formModified}
         isMaster={selectedMaster}
         onIsMasterChange={(isMaster) => this.props.setPendingIsMaster({ isMaster })}

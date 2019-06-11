@@ -11,6 +11,8 @@ export interface SelectionsPanelProps {
   isSuspended: boolean;
   onIsSuspendedChange: (value: boolean) => void;
   doesReduce: boolean;
+  isAllValuesSelected: boolean;
+  isAllValuesDeselected: boolean;
   isModified: boolean;
   isMaster: boolean;
   onIsMasterChange: (value: boolean) => void;
@@ -99,9 +101,26 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
       ? null
       : (
         <div className="fieldset-container" style={{ flex: '1 1 1px', overflowY: 'auto' }}>
-          <div onClick={this.props.onSetPendingAllSelectionsOn}>Select All</div>
-          <div onClick={this.props.onSetPendingAllSelectionsOff}>Deselect All</div>
-          <div onClick={this.props.onSetPendingAllSelectionsReset}>Reset Selections</div>
+          <div className="fieldset-options-container">
+            <div
+              className={`fieldset-option${this.props.isAllValuesSelected ? ' disabled' : ''}`}
+              onClick={this.props.onSetPendingAllSelectionsOn}
+            >
+              Select All
+            </div>
+            <div
+              className={`fieldset-option${this.props.isAllValuesDeselected ? ' disabled' : ''}`}
+              onClick={this.props.onSetPendingAllSelectionsOff}
+            >
+              Clear All
+            </div>
+            <div
+              className={`fieldset-option${!this.props.isModified ? ' disabled' : ''}`}
+              onClick={this.props.onSetPendingAllSelectionsReset}
+            >
+              Reset
+            </div>
+          </div>
           {this.renderReductionFields()}
         </div>
       );
