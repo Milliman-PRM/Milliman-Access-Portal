@@ -58,8 +58,20 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
                 height: 'calc(100% - 1.5em)',
               }}
             >
-              <h2>{title}</h2>
-              <h3>{subtitle}</h3>
+              <h2
+                style={{
+                  margin: 0,
+                }}
+              >
+                {title}
+              </h2>
+              <h3
+                style={{
+                  marginBottom: '1rem',
+                }}
+              >
+                {subtitle}
+              </h3>
               <Toggle
                 label={'Suspend Access'}
                 checked={isSuspended}
@@ -101,7 +113,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
       ? null
       : (
         <div className="fieldset-container" style={{ flex: '1 1 1px', overflowY: 'auto' }}>
-          <h4>Manage Reductions</h4>
+          <h4>Reduction Values</h4>
           <div className="fieldset-options-container">
             <div
               className={`fieldset-option${this.props.isAllValuesSelected ? ' disabled' : ''}`}
