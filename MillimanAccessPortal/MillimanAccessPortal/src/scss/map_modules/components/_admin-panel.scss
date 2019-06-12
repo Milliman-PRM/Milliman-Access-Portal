@@ -104,12 +104,19 @@
 
             .fieldset-container {
 
+                h4 {
+                    width: 100%;
+                    border-bottom: 2px solid #2B2B2B;
+                    padding: 1em .5em 0 .5em;
+                    margin-bottom: .25em;
+                    text-transform: uppercase;
+                }
+
                 .fieldset-options-container {
                     display: flex;
                     flex-flow: row nowrap;
                     justify-content: space-around;
                     padding: 1em 0;
-                    border-top: 2px solid $charcoal;
                     margin-top: 1em;
 
                     .fieldset-option {
@@ -134,7 +141,8 @@
                 fieldset {
 
                     legend {
-                        border-bottom: 1px solid $black;
+                        border-bottom: 1px solid $charcoal;
+                        font-size: 1em;
                     }
                 }
             }

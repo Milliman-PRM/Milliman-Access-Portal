@@ -84,7 +84,6 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
             flexDirection: 'column',
           }}
         >
-          <hr style={{ width: '100%', marginTop: 0 }} />
           <Toggle
             label={'Unrestricted Access'}
             checked={isMaster}
@@ -102,6 +101,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
       ? null
       : (
         <div className="fieldset-container" style={{ flex: '1 1 1px', overflowY: 'auto' }}>
+          <h4>Manage Reductions</h4>
           <div className="fieldset-options-container">
             <div
               className={`fieldset-option${this.props.isAllValuesSelected ? ' disabled' : ''}`}
