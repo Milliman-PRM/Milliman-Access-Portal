@@ -14,6 +14,7 @@ export interface SelectionsPanelProps {
   isAllValuesSelected: boolean;
   isAllValuesDeselected: boolean;
   isModified: boolean;
+  isValuesModified: boolean;
   isMaster: boolean;
   onIsMasterChange: (value: boolean) => void;
   title: string;
@@ -115,7 +116,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
               Clear All
             </div>
             <div
-              className={`fieldset-option${!this.props.isModified ? ' disabled' : ''}`}
+              className={`fieldset-option${!this.props.isValuesModified ? ' disabled' : ''}`}
               onClick={this.props.onSetPendingAllSelectionsReset}
             >
               Reset

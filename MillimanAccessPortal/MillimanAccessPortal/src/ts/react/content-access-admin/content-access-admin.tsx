@@ -36,7 +36,7 @@ import {
     activeReductionFieldsets, activeSelectedClient, activeSelectedGroup, activeSelectedItem,
     addableUsers, allGroupsCollapsed, allGroupsExpanded, allValuesDeselected, allValuesSelected,
     clientEntities, groupEntities, groupToDelete, itemEntities, modifiedReductionValues,
-    pendingMaster, pendingReductionValues, selectedGroupWithStatus, selectedItem,
+    pendingMaster, pendingReductionValues, reductionValuesModified, selectedGroupWithStatus, selectedItem,
     selectionsFormModified,
 } from './redux/selectors';
 import {
@@ -74,6 +74,7 @@ interface ContentAccessAdminProps {
   activeSelectedGroup: SelectionGroup;
   selectedValues: Guid[];
   modifiedValues: Guid[];
+  valuesModified: boolean;
   selectedMaster: boolean;
   formModified: boolean;
   addableUsers: User[];
@@ -623,6 +624,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
       modifiedValues,
       selectedMaster,
       formModified,
+      valuesModified,
     } = this.props;
     const fieldsets = reductionFieldsets.map((s) => ({
       name: s.field.displayName,
@@ -643,6 +645,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         isAllValuesSelected={allSelected}
         isAllValuesDeselected={allDeselected}
         isModified={formModified}
+        isValuesModified={valuesModified}
         isMaster={selectedMaster}
         onIsMasterChange={(isMaster) => this.props.setPendingIsMaster({ isMaster })}
         title={group.name}
@@ -737,6 +740,7 @@ function mapStateToProps(state: AccessState): ContentAccessAdminProps {
     modifiedValues: modifiedReductionValues(state)
       ? modifiedReductionValues(state).map((v) => v.id)
       : [],
+    valuesModified: reductionValuesModified(state),
     selectedMaster: pendingMaster(state),
     formModified: selectionsFormModified(state),
     addableUsers: addableUsers(state),
