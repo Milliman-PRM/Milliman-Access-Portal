@@ -109,31 +109,34 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderReductionSection() {
+    const { status } = this.props;
     return this.props.isMaster
       ? null
       : (
         <div className="fieldset-container" style={{ flex: '1 1 1px', overflowY: 'auto' }}>
           <h4>Reduction Values</h4>
-          <div className="fieldset-options-container">
-            <div
-              className={`fieldset-option${this.props.isAllValuesSelected ? ' disabled' : ''}`}
-              onClick={this.props.onSetPendingAllSelectionsOn}
-            >
-              Select All
+          {!isReductionActive(status) && (
+            <div className="fieldset-options-container">
+              <div
+                className={`fieldset-option${this.props.isAllValuesSelected ? ' disabled' : ''}`}
+                onClick={this.props.onSetPendingAllSelectionsOn}
+              >
+                Select All
+              </div>
+              <div
+                className={`fieldset-option${this.props.isAllValuesDeselected ? ' disabled' : ''}`}
+                onClick={this.props.onSetPendingAllSelectionsOff}
+              >
+                Clear All
+              </div>
+              <div
+                className={`fieldset-option${!this.props.isValuesModified ? ' disabled' : ''}`}
+                onClick={this.props.onSetPendingAllSelectionsReset}
+              >
+                Reset
+              </div>
             </div>
-            <div
-              className={`fieldset-option${this.props.isAllValuesDeselected ? ' disabled' : ''}`}
-              onClick={this.props.onSetPendingAllSelectionsOff}
-            >
-              Clear All
-            </div>
-            <div
-              className={`fieldset-option${!this.props.isValuesModified ? ' disabled' : ''}`}
-              onClick={this.props.onSetPendingAllSelectionsReset}
-            >
-              Reset
-            </div>
-          </div>
+          )}
           {this.renderReductionFields()}
         </div>
       );
