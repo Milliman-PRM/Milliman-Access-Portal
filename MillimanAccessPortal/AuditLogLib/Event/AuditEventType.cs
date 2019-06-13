@@ -5,16 +5,39 @@
  */
 
 using AuditLogLib.Models;
+using MapCommonLib.Extensions;
 using MapDbContextLib.Models;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace AuditLogLib.Event
 {
+    #region Common type declarations used in audit logging
+    public class SelectionGroupLogObject
+    {
+        public Guid ClientId { get; set; }
+        public Guid RootContentItemId { get; set; }
+        public Guid SelectionGroupId { get; set; }
+    }
+
+    public enum PasswordResetRequestReason
+    {
+        [Display(Name = "User Request")]
+        UserRequest,
+
+        [Display(Name = "Password Expired")]
+        PasswordExpired,
+
+        [Display(Name = "Previous Password Reset Token Invalid")]
+        PasswordResetTokenInvalid,
+    }
+    #endregion
+
     public sealed class AuditEventType : AuditEventTypeBase
     {
         #region Static event type declarations
@@ -163,11 +186,12 @@ namespace AuditLogLib.Event
                 UserId = user.Id,
                 AccountUserName = user.UserName,
             });
-        public static readonly AuditEventType<ApplicationUser> PasswordResetRequested = new AuditEventType<ApplicationUser>(
-            3006, "Account password reset requested", (user) => new
+        public static readonly AuditEventType<ApplicationUser,PasswordResetRequestReason> PasswordResetRequested = new AuditEventType<ApplicationUser, PasswordResetRequestReason>(
+            3006, "Account password reset requested", (user,reason) => new
             {
                 UserId = user.Id,
                 AccountUserName = user.UserName,
+                Reason = reason.GetDisplayValueString()
             });
         public static readonly AuditEventType<ApplicationUser> PasswordResetCompleted = new AuditEventType<ApplicationUser>(
             3007, "Account password reset completed", (user) => new
@@ -533,15 +557,6 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<UpdateClientDomainLimitLogModel> ClientDomainLimitUpdated = new AuditEventType<UpdateClientDomainLimitLogModel>(
             7301, "Client domain limit updated", logModel => logModel);
         #endregion
-        #endregion
-
-        #region Common loggable object declarations
-        public class SelectionGroupLogObject
-        {
-            public Guid ClientId { get; set; }
-            public Guid RootContentItemId { get; set; }
-            public Guid SelectionGroupId { get; set; }
-        }
         #endregion
 
         private readonly Func<object> logObjectTransform;
