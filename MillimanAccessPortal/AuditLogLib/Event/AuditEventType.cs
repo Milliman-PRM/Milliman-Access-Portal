@@ -192,6 +192,12 @@ namespace AuditLogLib.Event
             {
                 AttemptedUsername = attemptedUserName,
             });
+        public static readonly AuditEventType<ApplicationUser> PasswordResetRequestedForExpiredPassword = new AuditEventType<ApplicationUser>(
+            3013, "Account password reset initiated due to expired password", (user) => new
+            {
+                UserId = user.Id,
+                AccountUserName = user.UserName,
+            });
         #endregion
 
         #region Content Access [4000 - 4999]

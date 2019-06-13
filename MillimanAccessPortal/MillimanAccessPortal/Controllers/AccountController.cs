@@ -254,7 +254,7 @@ namespace MillimanAccessPortal.Controllers
                     await SendPasswordResetEmail(user, Url);
 
                     Log.Information($"User {model.Username} password is expired, sent password reset email");
-                    _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
+                    _auditLogger.Log(AuditEventType.PasswordResetRequestedForExpiredPassword.ToEvent(user));
                     string WhatHappenedMessage = "Your password has expired. Check your email for a link to reset your password.";
                     Response.Headers.Add("Warning", WhatHappenedMessage);
                     return Ok();
