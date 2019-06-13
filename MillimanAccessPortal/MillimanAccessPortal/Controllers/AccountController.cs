@@ -863,13 +863,13 @@ namespace MillimanAccessPortal.Controllers
                 model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
                 return View(model);
             }
-            var passwordResetMessage = "Your password has been reset. <a href=\"/Account/Login\">Click here to log in</a>.";
+            var passwordResetErrorMessage = "An error occurred. Please try again. If the issue persists, please contact <a href=\"mailto:map.support@milliman.com\">MAP.Support@Milliman.com</a>.";
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
                 Log.Debug($"In AccountController.ResetPassword POST action: requested user with email {model.Email} not found, current user will not be informed of the issue, aborting");
-                return View("Message", passwordResetMessage);
+                return View("Message", passwordResetErrorMessage);
             }
             using (var Txn = DbContext.Database.BeginTransaction())
             {
@@ -905,9 +905,13 @@ namespace MillimanAccessPortal.Controllers
                         Txn.Commit();
                         Log.Debug($"In AccountController.ResetPassword POST action: succeeded for user {user.UserName }");
                         _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user));
+                        return View("Message", "Your password has been reset. <a href=\"/Account/Login\">Click here to log in</a>.");
+                    }
+                    else
+                    {
+                        return View("Message", passwordResetErrorMessage);
                     }
 
-                    return View("Message", passwordResetMessage);
                 }
                 else if (result.Errors.Any(e => e.Code == "InvalidToken"))  // Happens when token is expired. I don't know whether it could indicate anything else
                 {
