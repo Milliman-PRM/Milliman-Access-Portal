@@ -824,7 +824,7 @@ namespace MillimanAccessPortal.Controllers
                     await SendPasswordResetEmail(user, Url);
 
                     Log.Debug($"ResetPassword GET action requested for user {user.UserName} having expired token, new password reset email sent");
-                    UserMsg = "Your password reset link has expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
+                    UserMsg = "Your password reset link is invalid or expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
                 }
                 else
                 {
