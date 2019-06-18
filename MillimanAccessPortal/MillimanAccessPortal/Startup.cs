@@ -222,7 +222,7 @@ namespace MillimanAccessPortal
                                 {
                                     AccountController accountController = serviceProvider.GetService<AccountController>();
                                     IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
-                                    await accountController.SendNewAccountWelcomeEmail(_applicationUser, context.Request, appConfig["Global:DefaultNewUserWelcomeText"]);
+                                    await accountController.SendNewAccountWelcomeEmail(_applicationUser, context.Request.Scheme, context.Request.Host, appConfig["Global:DefaultNewUserWelcomeText"]);
 
                                     UriBuilder msg = new UriBuilder
                                     {
