@@ -126,6 +126,29 @@ export interface SetPendingSelectionOff {
 }
 
 /**
+ * Select all hierarchy fields for the current selection group.
+ * This change is not made permanent until pending selection changes are submitted to the server.
+ */
+export interface SetPendingAllSelectionsOn {
+  type: 'SET_PENDING_ALL_SELECTIONS_ON';
+}
+
+/**
+ * Deselect all hierarchy fields for the current selection group.
+ * This change is not made permanent until pending selection changes are submitted to the server.
+ */
+export interface SetPendingAllSelectionsOff {
+  type: 'SET_PENDING_ALL_SELECTIONS_OFF';
+}
+
+/**
+ * Reset all hierarchy fields for the current selection group.
+ */
+export interface SetPendingAllSelectionsReset {
+  type: 'SET_PENDING_ALL_SELECTIONS_RESET';
+}
+
+/**
  * Open the modal used to add new selection groups.
  */
 export interface OpenAddGroupModal {
@@ -585,6 +608,9 @@ export type PageAccessAction =
   | SetPendingIsMaster
   | SetPendingSelectionOn
   | SetPendingSelectionOff
+  | SetPendingAllSelectionsOn
+  | SetPendingAllSelectionsOff
+  | SetPendingAllSelectionsReset
   | OpenAddGroupModal
   | CloseAddGroupModal
   | OpenDeleteGroupModal
