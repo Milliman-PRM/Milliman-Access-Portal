@@ -176,20 +176,23 @@ namespace MapTests
 
             if (requestUriBuilder != null)
             {
-                var listOfQueries = requestUriBuilder.Query.Substring(1).Split('&', StringSplitOptions.RemoveEmptyEntries).ToList();
-                Dictionary<string, StringValues> dict = new Dictionary<string, StringValues>();
-                foreach (string query in listOfQueries)
-                {
-                    var keyAndValue = query.Split('=', 2, StringSplitOptions.RemoveEmptyEntries);
-                    dict.Add(keyAndValue[0], keyAndValue[1]);
-                }
-
                 returnVal.HttpContext.Request.Scheme = requestUriBuilder.Scheme;
                 returnVal.HttpContext.Request.Host = requestUriBuilder.Port > 0 
                     ? new HostString(requestUriBuilder.Host, requestUriBuilder.Port) 
                     : new HostString(requestUriBuilder.Host);
                 returnVal.HttpContext.Request.Path = requestUriBuilder.Path;
-                returnVal.HttpContext.Request.Query = new QueryCollection(dict);
+
+                if (!string.IsNullOrWhiteSpace(requestUriBuilder.Query))
+                {
+                    var listOfQueries = requestUriBuilder.Query.Substring(1).Split('&', StringSplitOptions.RemoveEmptyEntries).ToList();
+                    Dictionary<string, StringValues> dict = new Dictionary<string, StringValues>();
+                    foreach (string query in listOfQueries)
+                    {
+                        var keyAndValue = query.Split('=', 2, StringSplitOptions.RemoveEmptyEntries);
+                        dict.Add(keyAndValue[0], keyAndValue[1]);
+                    }
+                    returnVal.HttpContext.Request.Query = new QueryCollection(dict);
+                }
             }
             return returnVal;
         }
