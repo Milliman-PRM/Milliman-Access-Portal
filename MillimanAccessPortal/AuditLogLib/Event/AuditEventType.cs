@@ -5,7 +5,6 @@
  */
 
 using AuditLogLib.Models;
-using MapCommonLib.Extensions;
 using MapDbContextLib.Models;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -27,8 +26,8 @@ namespace AuditLogLib.Event
 
     public enum PasswordResetRequestReason
     {
-        [Display(Name = "User Request")]
-        UserRequest,
+        [Display(Name = "User Initiated")]
+        UserInitiated,
 
         [Display(Name = "Password Expired")]
         PasswordExpired,
@@ -215,12 +214,6 @@ namespace AuditLogLib.Event
             3012, "Login account is suspended", (attemptedUserName) => new
             {
                 AttemptedUsername = attemptedUserName,
-            });
-        public static readonly AuditEventType<ApplicationUser> PasswordResetRequestedForExpiredPassword = new AuditEventType<ApplicationUser>(
-            3013, "Account password reset initiated due to expired password", (user) => new
-            {
-                UserId = user.Id,
-                AccountUserName = user.UserName,
             });
         #endregion
 
