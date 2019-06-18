@@ -579,7 +579,7 @@ namespace MillimanAccessPortal.Controllers
                 emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
                 emailBody += $"{link.Uri.AbsoluteUri}";
 
-                appLogMsg = $"Password reset email queued to address {RequestedUser.Email}, reason <{reason.GetDisplayValueString()}>";
+                appLogMsg = $"Password reset email queued to address {RequestedUser.Email}{Environment.NewLine}reason <{reason.GetDisplayValueString()}{Environment.NewLine}emailed link: {link.Uri.AbsoluteUri}>";
             }
             else
             {
@@ -592,7 +592,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
-            Log.Debug(appLogMsg);
+            Log.Information(appLogMsg);
             _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser, reason));
         }
 
