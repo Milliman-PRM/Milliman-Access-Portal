@@ -586,7 +586,7 @@ namespace MillimanAccessPortal.Controllers
             if (createResult.Succeeded && user != null)
             {
                 string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                await _accountController.SendNewAccountWelcomeEmail(user, Request, welcomeText);
+                await _accountController.SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, welcomeText);
             }
             else
             {
@@ -699,7 +699,7 @@ namespace MillimanAccessPortal.Controllers
                     if (createResult.Succeeded && user != null)
                     {
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                        await _accountController.SendNewAccountWelcomeEmail(user, Request, welcomeText);
+                        await _accountController.SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, welcomeText);
                     }
                     else
                     {
@@ -784,7 +784,7 @@ namespace MillimanAccessPortal.Controllers
                     if (createResult.Succeeded && user != null)
                     {
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                        await _accountController.SendNewAccountWelcomeEmail(user, Request, welcomeText);
+                        await _accountController.SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, welcomeText);
                     }
                     else
                     {
