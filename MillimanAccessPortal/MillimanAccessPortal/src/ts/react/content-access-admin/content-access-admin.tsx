@@ -34,9 +34,10 @@ import { NavBar } from '../shared-components/navbar';
 import * as AccessActionCreators from './redux/action-creators';
 import {
     activeReductionFieldsets, activeSelectedClient, activeSelectedGroup, activeSelectedItem,
-    addableUsers, allGroupsCollapsed, allGroupsExpanded, clientEntities, groupEntities,
-    groupToDelete, itemEntities, modifiedReductionValues, pendingMaster, pendingReductionValues,
-    selectedGroupWithStatus, selectedItem, selectionsFormModified,
+    addableUsers, allGroupsCollapsed, allGroupsExpanded, allValuesDeselected, allValuesSelected,
+    clientEntities, groupEntities, groupToDelete, itemEntities, modifiedReductionValues,
+    pendingMaster, pendingReductionValues, reductionValuesModified, selectedGroupWithStatus, selectedItem,
+    selectionsFormModified,
 } from './redux/selectors';
 import {
     AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateModals,
@@ -73,12 +74,15 @@ interface ContentAccessAdminProps {
   activeSelectedGroup: SelectionGroup;
   selectedValues: Guid[];
   modifiedValues: Guid[];
+  valuesModified: boolean;
   selectedMaster: boolean;
   formModified: boolean;
   addableUsers: User[];
 
   allGroupsExpanded: boolean;
   allGroupsCollapsed: boolean;
+  allValuesSelected: boolean;
+  allValuesDeselected: boolean;
   groupToDelete: SelectionGroup;
 }
 
@@ -605,6 +609,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
 
   private renderSelectionsPanel() {
     const {
+      allValuesDeselected: allDeselected,
+      allValuesSelected: allSelected,
       selectedItem: item,
       selectedGroup: group,
       reductionFieldsets,
@@ -618,6 +624,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
       modifiedValues,
       selectedMaster,
       formModified,
+      valuesModified,
     } = this.props;
     const fieldsets = reductionFieldsets.map((s) => ({
       name: s.field.displayName,
@@ -635,7 +642,10 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         isSuspended={group.isSuspended}
         onIsSuspendedChange={(value) => this.props.suspendGroup({ groupId: group.id, isSuspended: value })}
         doesReduce={item.doesReduce}
+        isAllValuesSelected={allSelected}
+        isAllValuesDeselected={allDeselected}
         isModified={formModified}
+        isValuesModified={valuesModified}
         isMaster={selectedMaster}
         onIsMasterChange={(isMaster) => this.props.setPendingIsMaster({ isMaster })}
         title={group.name}
@@ -651,6 +661,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         }
         onCancelReduction={() => this.props.cancelReduction({ groupId: group.id })}
         loading={pending.data.selections}
+        onSetPendingAllSelectionsOff={() => this.props.setPendingAllSelectionsOff({})}
+        onSetPendingAllSelectionsOn={() => this.props.setPendingAllSelectionsOn({})}
+        onSetPendingAllSelectionsReset={() => this.props.setPendingAllSelectionsReset({})}
         submitting={pending.data.updateSelections || pending.data.cancelReduction}
         fieldsets={fieldsets}
       >
@@ -727,11 +740,14 @@ function mapStateToProps(state: AccessState): ContentAccessAdminProps {
     modifiedValues: modifiedReductionValues(state)
       ? modifiedReductionValues(state).map((v) => v.id)
       : [],
+    valuesModified: reductionValuesModified(state),
     selectedMaster: pendingMaster(state),
     formModified: selectionsFormModified(state),
     addableUsers: addableUsers(state),
     allGroupsExpanded: allGroupsExpanded(state),
     allGroupsCollapsed: allGroupsCollapsed(state),
+    allValuesSelected: allValuesSelected(state),
+    allValuesDeselected: allValuesDeselected(state),
     groupToDelete: groupToDelete(state),
   };
 }

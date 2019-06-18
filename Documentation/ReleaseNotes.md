@@ -4,6 +4,9 @@
 
 ### v1.x.x
 
+- Clarified several user messages in the password reset workflow
+- Fixed a bug that allowed the password reset form to be displayed using an expired, though less than 7 days old, email link
+- Added the ability to select all, deselect all, and reset selections for reducible QlikView content items in Content Access Admin
 - Trim whitespace on username inputs
 - Fixed the styling on republishing icons
 - Fixed a bug in displaying userguide contents

@@ -11,7 +11,10 @@ export interface SelectionsPanelProps {
   isSuspended: boolean;
   onIsSuspendedChange: (value: boolean) => void;
   doesReduce: boolean;
+  isAllValuesSelected: boolean;
+  isAllValuesDeselected: boolean;
   isModified: boolean;
+  isValuesModified: boolean;
   isMaster: boolean;
   onIsMasterChange: (value: boolean) => void;
   title: string;
@@ -20,6 +23,9 @@ export interface SelectionsPanelProps {
   onBeginReduction: () => void;
   onCancelReduction: () => void;
   loading?: boolean;
+  onSetPendingAllSelectionsOff: () => void;
+  onSetPendingAllSelectionsOn: () => void;
+  onSetPendingAllSelectionsReset: () => void;
   submitting: boolean;
   fieldsets: FieldsetData[];
 }
@@ -52,8 +58,20 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
                 height: 'calc(100% - 1.5em)',
               }}
             >
-              <h2>{title}</h2>
-              <h3>{subtitle}</h3>
+              <h2
+                style={{
+                  margin: 0,
+                }}
+              >
+                {title}
+              </h2>
+              <h3
+                style={{
+                  marginBottom: '1rem',
+                }}
+              >
+                {subtitle}
+              </h3>
               <Toggle
                 label={'Suspend Access'}
                 checked={isSuspended}
@@ -78,7 +96,6 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
             flexDirection: 'column',
           }}
         >
-          <hr style={{ width: '100%', marginTop: 0 }} />
           <Toggle
             label={'Unrestricted Access'}
             checked={isMaster}
@@ -92,10 +109,34 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderReductionSection() {
+    const { status } = this.props;
     return this.props.isMaster
       ? null
       : (
         <div className="fieldset-container" style={{ flex: '1 1 1px', overflowY: 'auto' }}>
+          <h4>Reduction Values</h4>
+          {!isReductionActive(status) && (
+            <div className="fieldset-options-container">
+              <div
+                className={`fieldset-option${this.props.isAllValuesSelected ? ' disabled' : ''}`}
+                onClick={this.props.onSetPendingAllSelectionsOn}
+              >
+                Select All
+              </div>
+              <div
+                className={`fieldset-option${this.props.isAllValuesDeselected ? ' disabled' : ''}`}
+                onClick={this.props.onSetPendingAllSelectionsOff}
+              >
+                Clear All
+              </div>
+              <div
+                className={`fieldset-option${!this.props.isValuesModified ? ' disabled' : ''}`}
+                onClick={this.props.onSetPendingAllSelectionsReset}
+              >
+                Reset
+              </div>
+            </div>
+          )}
           {this.renderReductionFields()}
         </div>
       );
