@@ -933,14 +933,14 @@ namespace MillimanAccessPortal.Controllers
                     }
 
                 }
-                else if (result.Errors.Any(e => e.Code == "InvalidToken"))  // Happens when token is expired. I don't know whether it could indicate anything else
+                else if (result.Errors.Any(e => e.Code == "InvalidToken"))  // Could be expired, mismatched security stamp, etc. The reason is not accessible here.
                 {
                     string UserMsg = "";
                     if (await _userManager.IsEmailConfirmedAsync(user))
                     {
                         await RequestPasswordReset(user, PasswordResetRequestReason.PasswordResetTokenInvalid, Request.Scheme, Request.Host);
                         Log.Debug($"In AccountController.ResetPassword POST action: for user {user.UserName}, expired reset token, new password reset email sent, aborting");
-                        UserMsg = "Your password reset link has expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
+                        UserMsg = "Your password reset link is invalid or expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
                     }
                     else
                     {
