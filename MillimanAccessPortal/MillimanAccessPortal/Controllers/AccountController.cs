@@ -579,7 +579,7 @@ namespace MillimanAccessPortal.Controllers
                 emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
                 emailBody += $"{link.Uri.AbsoluteUri}";
 
-                appLogMsg = $"Password reset email queued to address {RequestedUser.Email}{Environment.NewLine}reason <{reason.GetDisplayValueString()}{Environment.NewLine}emailed link: {link.Uri.AbsoluteUri}>";
+                appLogMsg = $"Password reset email queued to address {RequestedUser.Email}{Environment.NewLine}reason: {reason.GetDisplayValueString()}{Environment.NewLine}emailed link: {link.Uri.AbsoluteUri}";
             }
             else
             {
@@ -819,7 +819,7 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ResetPassword(string userEmail, string passwordResetToken)
         {
-            Log.Verbose("Entered AccountController.ResetPassword GET action with {@UserEmail}", userEmail);
+            Log.Information("Entered AccountController.ResetPassword GET action with query string {@QueryString},", Request.QueryString);
 
             ApplicationUser user = await _userManager.FindByEmailAsync(userEmail);
             if (user == null)
@@ -838,7 +838,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     await RequestPasswordReset(user, PasswordResetRequestReason.PasswordResetTokenInvalid, Request.Scheme, Request.Host);
 
-                    Log.Debug($"ResetPassword GET action requested for user {user.UserName} having expired token, new password reset email sent");
+                    Log.Debug($"ResetPassword GET action requested for user {user.UserName} having expired or invalid reset token, new password reset email sent");
                     UserMsg = "Your password reset link is invalid or expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
                 }
                 else
