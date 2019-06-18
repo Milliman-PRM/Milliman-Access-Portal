@@ -564,24 +564,19 @@ namespace MillimanAccessPortal.Controllers
             {
                 string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(RequestedUser);
 
-                // TODO remove this
-                string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = RequestedUser.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
-
                 UriBuilder link = new UriBuilder
                 {
                     Scheme = requestScheme,
                     Host = host.Host,
                     Port = host.Port ?? -1,
                     Path = $"/{nameof(AccountController).Replace("Controller", "")}/{nameof(AccountController.ResetPassword)}",
-                    Query = $"userEmail={Uri.EscapeDataString(RequestedUser.Email)}&passwordResetToken={Uri.EscapeDataString(PasswordResetToken)}"
+                    Query = $"userEmail={RequestedUser.Email}&passwordResetToken={Uri.EscapeDataString(PasswordResetToken)}"
                 };
 
                 string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
 
                 emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
                 emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
-                // TODO remove this
-                emailBody += $"{linkUrl}";
                 emailBody += $"{link.Uri.AbsoluteUri}";
 
                 appLogMsg = $"Password reset email queued to address {RequestedUser.Email}, reason <{reason.GetDisplayValueString()}>";
