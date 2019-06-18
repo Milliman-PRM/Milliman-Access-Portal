@@ -9,7 +9,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 
-namespace MapCommonLib.Extensions
+namespace System
 {
     public static class EnumExtensions
     {
