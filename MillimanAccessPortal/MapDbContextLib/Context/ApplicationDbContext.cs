@@ -74,7 +74,8 @@ namespace MapDbContextLib.Context
             builder.Entity<ApplicationUser>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
-                b.HasIndex("NormalizedEmail").IsUnique();
+                b.HasIndex(x => x.NormalizedEmail).IsUnique();
+                b.Property(x => x.IsUserAgreementAccepted).HasDefaultValue(null);
             });
             builder.Entity<ApplicationRole>(b =>
             {
