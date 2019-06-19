@@ -26,6 +26,7 @@ using MillimanAccessPortal.Services;
 using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using AuditLogLib.Models;
 using MillimanAccessPortal.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -320,16 +321,35 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public IActionResult UserAgreement(UserAgreementViewModel model)
+        public async Task<IActionResult> UserAgreement(UserAgreementViewModel model)
         {
+            ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
+
+            if (user == null)
+            {
+                Log.Error($"Account.UserAgreement: GET Requested user {User.Identity.Name} not found");
+                return RedirectToAction(nameof(Login));
+            }
+            if (user.IsUserAgreementAccepted == true)
+            {
+                Log.Error($"Account.UserAgreement: GET Request for user {user.UserName} to accept, but user has already accepted");
+                return RedirectToAction(nameof(Login));
+            }
+
             return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> UserAgreement(string acceptedText, string returnUrl)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AcceptUserAgreement(UserAgreementViewModel model)
         {
             ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
-            return Redirect(returnUrl);
+            user.IsUserAgreementAccepted = true;
+            DbContext.SaveChanges();
+
+            _auditLogger.Log(AuditEventType.UserAgreementAcceptance.ToEvent((UserAgreementLogModel)model), user.UserName);
+
+            return Redirect(model.ReturnUrl);
         }
 
         //
