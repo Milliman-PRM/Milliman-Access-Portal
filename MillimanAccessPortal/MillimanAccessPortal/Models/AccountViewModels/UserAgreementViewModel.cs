@@ -4,10 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using AuditLogLib.Models;
 
 namespace MillimanAccessPortal.Models.AccountViewModels
 {
@@ -17,7 +14,9 @@ namespace MillimanAccessPortal.Models.AccountViewModels
 
         public bool IsRenewal { get; set; }
 
-        public bool ReturnUrl { get; set; }
+        public string ReturnUrl { get; set; }
 
+        public static explicit operator UserAgreementLogModel(UserAgreementViewModel source)
+            => new UserAgreementLogModel { AgreementText = source.AgreementText };
     }
 }

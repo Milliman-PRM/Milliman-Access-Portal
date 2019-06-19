@@ -215,6 +215,17 @@ namespace AuditLogLib.Event
             {
                 AttemptedUsername = attemptedUserName,
             });
+
+        public static readonly AuditEventType<UserAgreementLogModel> UserAgreementAcceptance = new AuditEventType<UserAgreementLogModel>(
+            3101, "User agreement acceptance", (userAgreementLogModel) => new
+            {
+                userAgreementLogModel.AgreementText,
+            });
+        public static readonly AuditEventType<string> UserAgreementReset = new AuditEventType<string>(
+            3102, "User agreement reset", (userName) => new
+            {
+                UserName = userName,
+            });
         #endregion
 
         #region Content Access [4000 - 4999]
@@ -276,6 +287,7 @@ namespace AuditLogLib.Event
             {
                 ContentReductionTaskId = task.Id,
             });
+
         public static readonly AuditEventType<List<UserInSelectionGroup>, Guid>
         ContentDisclaimerAcceptanceResetTextChange =
             new AuditEventType<List<UserInSelectionGroup>, Guid>(
