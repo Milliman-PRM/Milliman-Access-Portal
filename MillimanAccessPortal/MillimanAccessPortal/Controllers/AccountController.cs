@@ -320,9 +320,9 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public IActionResult UserAgreement(bool previouslyAccepted, string returnUrl = "/")
+        public IActionResult UserAgreement(UserAgreementViewModel model)
         {
-            return View(new { previouslyAccepted, returnUrl });
+            return View(model);
         }
 
         [HttpPost]

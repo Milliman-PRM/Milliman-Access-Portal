@@ -1,4 +1,4 @@
-@model MillimanAccessPortal.Models.AuthorizedContentViewModels.ContentDisclaimerModel
+@model MillimanAccessPortal.Models.AccountViewModels.UserAgreementViewModel
 
 @{
     ViewData["Title"] = "";
