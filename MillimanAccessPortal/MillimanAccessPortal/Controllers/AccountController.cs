@@ -319,6 +319,19 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), userName, HttpContext.Session.Id);
         }
 
+        [HttpGet]
+        public IActionResult UserAgreement(bool previouslyAccepted, string returnUrl = "/")
+        {
+            return View(new { previouslyAccepted, returnUrl });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UserAgreement(string acceptedText, string returnUrl)
+        {
+            ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
+            return Redirect(returnUrl);
+        }
+
         //
         // GET: /Account/CreateInitialUser
         [HttpGet]
