@@ -3,9 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function handleScroll() {
-    let element = document.getElementById('disclaimer-container');
+    const element = document.getElementById('disclaimer-container');
 
     if (element.scrollHeight - element.scrollTop === element.clientHeight) {
-        (<HTMLInputElement> document.getElementById('accept-button')).disabled = false;
+      (document.getElementById('accept-button') as HTMLButtonElement ).disabled = false;
     }
 }

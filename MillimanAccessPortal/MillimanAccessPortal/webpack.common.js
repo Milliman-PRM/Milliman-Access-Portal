@@ -203,7 +203,7 @@ module.exports = {
     }),
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'Account', 'UserAgreement.cshtml'),
-      template: path.resolve(__dirname, 'ViewTemplates', 'SystemAdmin', 'UserAgreement.cshtml.template'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'Account', 'UserAgreement.cshtml.template'),
       inject: false,
       chunks: [ 'commons', 'user-agreement' ],
     }),
