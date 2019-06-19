@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -397,24 +398,10 @@ namespace MillimanAccessPortal
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ApplicationDbContext db)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            var options = new RewriteOptions()
-               .AddRedirectToHttps();
-
-            // time the entire middleware execution
-            app.Use(async (context, next) =>
-            {
-                var stopwatch = new Stopwatch();
-
-                stopwatch.Start();
-                await next();
-                stopwatch.Stop();
-
-                Log.Information("Middleware pipeline took {elapsed}ms", stopwatch.Elapsed.TotalMilliseconds);
-            });
-
-            app.UseRewriter(options);
+            var rewriteOptions = new RewriteOptions().AddRedirectToHttps();
+            app.UseRewriter(rewriteOptions);
 
             if (env.IsDevelopment() || env.EnvironmentName.ToUpper() == "AZURECI")
             {
@@ -455,7 +442,6 @@ namespace MillimanAccessPortal
             // CSRF protection disables caching for unsafe HTTP methods only, so this additional configuration
             // is required to prevent some browsers (IE, ) from caching Ajax requests
             app.UseResponseCaching();
-
             app.Use(async (context, next) =>
             {
                 context.Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue
@@ -473,7 +459,7 @@ namespace MillimanAccessPortal
             app.UseSecurityHeaders(policyCollection);
 
             // Conditionally omit authentication cookie, intended for status calls that should not extend the user session
-            app.Use(next => context =>
+            app.Use(async (context,next) =>
             {
                 context.Response.OnStarting(state =>
                 {
@@ -489,7 +475,7 @@ namespace MillimanAccessPortal
                     }
                     return Task.CompletedTask;
                 }, context.Response);
-                return next(context);
+                await next();
             });
 
             app.UseAuthentication();
@@ -499,16 +485,41 @@ namespace MillimanAccessPortal
 
             app.UseSession();
 
-            // time action execution
+            // Redirect to the user agreement view if an authenticated user has not accepted. 
             app.Use(async (context, next) =>
             {
-                var stopwatch = new Stopwatch();
+                string redirectPath = $"/{nameof(AccountController).Replace("Controller", "")}/{nameof(AccountController.UserAgreement)}";
 
-                stopwatch.Start();
+                if (context.Request.Path != redirectPath &&
+                    context.Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase) &&
+                    context.User.Identity.IsAuthenticated)
+                {
+                    ApplicationDbContext db = context.RequestServices.GetService<ApplicationDbContext>();
+                    var user = await db.ApplicationUser.SingleAsync(u => u.UserName == context.User.Identity.Name);
+
+                    if (user.IsUserAgreementAccepted != true) // if false or null
+                    {
+                        UriBuilder userAgreementUri = new UriBuilder
+                        {
+                            Scheme = context.Request.Scheme,
+                            Host = context.Request.Host.Host,
+                            Port = context.Request.Host.Port.GetValueOrDefault(-1),
+                            Path = redirectPath,
+                            Query = $"previouslyAccepted={user.IsUserAgreementAccepted == false}&returnUrl={UriHelper.GetEncodedUrl(context.Request)}",
+                        };
+
+                        //context.Response.Redirect(userAgreementUri.Uri.AbsoluteUri);
+                        //return;
+                    }
+                }
+
                 await next();
-                stopwatch.Stop();
+            });
 
-                Log.Information("MVC took {elapsed}ms", stopwatch.Elapsed.TotalMilliseconds);
+            // for debugging
+            app.Use(async (context, next) =>
+            {
+                await next();
             });
 
             app.UseMvc(routes =>
