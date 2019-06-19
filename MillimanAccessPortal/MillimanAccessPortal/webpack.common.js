@@ -20,6 +20,7 @@ module.exports = {
     'message': './src/ts/message.ts',
     'reset-password': './src/ts/react/reset-password/index.tsx',
     'system-admin': './src/ts/react/system-admin/index.tsx',
+    'user-agreement': './src/ts/react/user-agreement/index.ts'
   },
   output: {
     path: path.resolve(__dirname, 'wwwroot'),
@@ -200,6 +201,12 @@ module.exports = {
       inject: false,
       chunks: [ 'commons', 'system-admin' ],
     }),
+    new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'Account', 'UserAgreement.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'SystemAdmin', 'UserAgreement.cshtml.template'),
+      inject: false,
+      chunks: [ 'commons', 'user-agreement' ],
+    }),
   ],
   resolve: {
     extensions: [
@@ -215,3 +222,4 @@ module.exports = {
     net: 'mock',
   },
 };
+
