@@ -1,3 +1,5 @@
+import '../../../scss/content-disclaimer.scss';
+
 document.addEventListener('DOMContentLoaded', () => {
     handleScroll();
 });
