@@ -6,28 +6,12 @@
 }
 
 @section CSS {
-  <% for (var css in htmlWebpackPlugin.files.css) { %>
-  <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
-  <% } %>
 }
 
 <div id="disclaimer-container">
-  <h2 id="content-name">Disclaimer: @Model.ContentName</h2>
-  <div id="content-disclaimer-text">
-    @Model.DisclaimerText
-  </div>
-  <form id="content-disclaimer-form">
-    <input asp-for="SelectionGroupId" style="visibility: hidden;">
-    <input asp-for="ValidationId" style="visibility: hidden;">
-    @Html.AntiForgeryToken()
-    <div class="button-container">
-      <button id="accept-button" type="button" class="green-button" disabled>Accept</button>
-    </div>
-  </form>
+  <p>@(Model.IsRenewal ? "An updated user agreement must be signed" : "A user agreement must be signed")</p>
+  <p>@Model.AgreementText</p>
 </div>
 
 @section Scripts {
-    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
-    <% } %>
 }

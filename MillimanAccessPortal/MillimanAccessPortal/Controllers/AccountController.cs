@@ -336,6 +336,8 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
+            model.AgreementText = DbContext.NameValueConfiguration.Find("UserAgreement")?.Value ?? "User agreement text is not configured";
+
             return View(model);
         }
 

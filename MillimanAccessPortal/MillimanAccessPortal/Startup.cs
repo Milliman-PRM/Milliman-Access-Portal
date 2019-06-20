@@ -490,6 +490,7 @@ namespace MillimanAccessPortal
             {
                 string redirectPath = $"/{nameof(AccountController).Replace("Controller", "")}/{nameof(AccountController.UserAgreement)}";
 
+                // Only do this expensive thing for appropriate requests
                 if (context.Request.Path != redirectPath &&
                     context.Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase) &&
                     context.User.Identity.IsAuthenticated)
@@ -505,11 +506,11 @@ namespace MillimanAccessPortal
                             Host = context.Request.Host.Host,
                             Port = context.Request.Host.Port.GetValueOrDefault(-1),
                             Path = redirectPath,
-                            Query = $"previouslyAccepted={user.IsUserAgreementAccepted == false}&returnUrl={UriHelper.GetEncodedUrl(context.Request)}",
+                            Query = $"isRenewal={user.IsUserAgreementAccepted.HasValue}&returnUrl={UriHelper.GetEncodedUrl(context.Request)}",
                         };
 
-                        //context.Response.Redirect(userAgreementUri.Uri.AbsoluteUri);
-                        //return;
+                        context.Response.Redirect(userAgreementUri.Uri.AbsoluteUri);
+                        return;
                     }
                 }
 
