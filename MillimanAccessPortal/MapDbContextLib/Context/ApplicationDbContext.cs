@@ -173,6 +173,7 @@ namespace MapDbContextLib.Context
             await Identity.ApplicationRole.SeedRoles(serviceProvider);
             Context.ContentType.InitializeContentTypes(serviceProvider);
             await Context.AuthenticationScheme.SeedSchemes(serviceProvider);
+            Context.NameValueConfiguration.InitializeNameValueConfiguration(serviceProvider);
         }
     }
 
