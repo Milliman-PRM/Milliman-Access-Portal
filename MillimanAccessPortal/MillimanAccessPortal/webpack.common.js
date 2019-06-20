@@ -20,7 +20,7 @@ module.exports = {
     'message': './src/ts/message.ts',
     'reset-password': './src/ts/react/reset-password/index.tsx',
     'system-admin': './src/ts/react/system-admin/index.tsx',
-    'user-agreement': './src/ts/react/user-agreement/index.ts'
+    'user-agreement': './src/ts/user-agreement.ts'
   },
   output: {
     path: path.resolve(__dirname, 'wwwroot'),
