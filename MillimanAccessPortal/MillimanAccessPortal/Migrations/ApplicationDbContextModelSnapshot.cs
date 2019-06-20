@@ -301,6 +301,21 @@ namespace MillimanAccessPortal.Migrations
                     b.ToTable("HierarchyFieldValue");
                 });
 
+            modelBuilder.Entity("MapDbContextLib.Context.NameValueConfiguration", b =>
+                {
+                    b.Property<string>("Key")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue("");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("NameValueConfiguration");
+                });
+
             modelBuilder.Entity("MapDbContextLib.Context.ProfitCenter", b =>
                 {
                     b.Property<Guid>("Id")

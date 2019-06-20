@@ -35,6 +35,7 @@ namespace MapDbContextLib.Context
         public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
         public DbSet<FileUpload> FileUpload { get; set; }
         public DbSet<AuthenticationScheme> AuthenticationScheme { get; set; }
+        public DbSet<NameValueConfiguration> NameValueConfiguration { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
@@ -150,6 +151,10 @@ namespace MapDbContextLib.Context
             builder.Entity<FileUpload>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
+            builder.Entity<NameValueConfiguration>(b =>
+            {
+                b.Property(x => x.Value).HasDefaultValue("");
             });
         }
 

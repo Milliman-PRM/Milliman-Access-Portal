@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20190619141112_AddUserAgreementFlag")]
-    partial class AddUserAgreementFlag
+    [Migration("20190620153433_AddUserAgreement")]
+    partial class AddUserAgreement
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -301,6 +301,21 @@ namespace MillimanAccessPortal.Migrations
                     b.HasIndex("HierarchyFieldId");
 
                     b.ToTable("HierarchyFieldValue");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.NameValueConfiguration", b =>
+                {
+                    b.Property<string>("Key")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue("");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("NameValueConfiguration");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.ProfitCenter", b =>
