@@ -1,17 +1,27 @@
 @model MillimanAccessPortal.Models.AccountViewModels.UserAgreementViewModel
 
-@{
-    ViewData["Title"] = "";
-    Layout = "_Layout";
-}
-
 @section CSS {
+  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+  <% } %>
 }
 
 <div id="disclaimer-container">
+  <h2 id="content-name">User Agreement</h2>
   <p>@(Model.IsRenewal ? "An updated user agreement must be signed" : "A user agreement must be signed")</p>
-  <p>@Model.AgreementText</p>
+  <div id="content-disclaimer-text">
+    @Model.AgreementText
+  </div>
+  <form id="content-disclaimer-form">
+    @Html.AntiForgeryToken()
+    <div class="button-container">
+      <button id="accept-button" type="button" class="green-button">Accept</button>
+    </div>
+  </form>
 </div>
 
 @section Scripts {
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
 }
