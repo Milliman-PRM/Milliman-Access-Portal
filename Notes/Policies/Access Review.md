@@ -57,3 +57,4 @@ Review documentation will be stored under `S:\PRM\PRM_IT\Access Reviews`
 
 * List of users with merge/push rights in the MAP GitHub repository
 * List of users with access to shared Azure or MAP credentials in LastPass
+* List of user accounts in Splunk
