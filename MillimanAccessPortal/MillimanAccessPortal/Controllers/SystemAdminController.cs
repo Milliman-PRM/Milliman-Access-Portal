@@ -29,6 +29,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
@@ -968,6 +969,102 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger.Log(AuditEventType.ProfitCenterUpdated.ToEvent(profitCenter));
 
             return Json(existingRecord);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult> UpdateUserAgreement()
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            if (!result.Succeeded)
+            {
+                Log.Information($"In SystemAdminController.UpdateUserAgreement GET action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            string currentText = (await _dbContext.NameValueConfiguration.FindAsync(nameof(ConfiguredValueKeys.UserAgreementText)))?.Value;
+            return View(currentText);
+        }
+
+        [HttpPost]
+        //[AllowAnonymous]
+        public async Task<ActionResult> UpdateUserAgreement(string newAgreementText)
+        {
+            Log.Debug("Entered SystemAdminController.UpdateUserAgreement POST action with {@newText}", newAgreementText);
+
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            if (!result.Succeeded)
+            {
+                Log.Information($"In SystemAdminController.UpdateUserAgreement action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (!ModelState.IsValid)
+            {
+                Log.Information($"In SystemAdminController.UpdateUserAgreement POST action: ModelState invalid, errors <{string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}>, aborting");
+                Response.Headers.Add("Warning", ModelState.Values.First(v => v.Errors.Any()).Errors.ToString());
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            var existingRecord = _dbContext.NameValueConfiguration.Find(nameof(ConfiguredValueKeys.UserAgreementText));
+            if (existingRecord == null)
+            {
+                Log.Information($"In SystemAdminController.UpdateUserAgreement POST action: existing configuration record not found, aborting");
+                Response.Headers.Add("Warning", "The required configuration item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (existingRecord.Value == newAgreementText)
+            {
+                Log.Information($"In SystemAdminController.UpdateUserAgreement POST action: submitted agreement text is unchanged from the current agreement");
+                Response.Headers.Add("Warning", "The submitted agreement text is unchanged from the current agreement.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            using (var txn = _dbContext.Database.BeginTransaction())
+            {
+                try
+                {
+                    List<string> usersToReset = _dbContext.ApplicationUser.Where(u => u.IsUserAgreementAccepted == true).Select(u => u.UserName).ToList();
+
+                    IRelationalEntityTypeAnnotations mapping = _dbContext.Model.FindEntityType(typeof(ApplicationUser)).Relational();
+#pragma warning disable EF1000 // Possible SQL injection vulnerability.
+                    string statement = $"UPDATE \"{mapping.TableName}\" " +
+                                       $"SET \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = false " +
+                                       $"WHERE \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = true;";
+                    int howManyAffected = await _dbContext.Database.ExecuteSqlCommandAsync(statement); // much more efficient than EF
+#pragma warning restore EF1000 // Possible SQL injection vulnerability.
+                    existingRecord.Value = newAgreementText;
+                    _dbContext.SaveChanges();
+
+                    #region Audit logging
+                    _auditLogger.Log(AuditEventType.UserAgreementUpdated.ToEvent(newAgreementText));
+                    foreach (string user in usersToReset)
+                    {
+                        _auditLogger.Log(AuditEventType.UserAgreementReset.ToEvent(user));
+                    }
+                    #endregion
+
+                    Log.Information("SystemAdminController.UpdateUserAgreement POST: The submitted text has been saved and all users have been flagged to renew their acceptance");
+                    txn.Commit();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Exception while attempting to update user agreement text");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
+
+            Log.Verbose($"In SystemAdminController.UpdateUserAgreement POST action: success");
+            return Ok();
         }
 
         /// <summary>

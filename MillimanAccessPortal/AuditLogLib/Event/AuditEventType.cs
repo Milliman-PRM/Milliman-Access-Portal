@@ -561,6 +561,10 @@ namespace AuditLogLib.Event
         // 73xx - Client management
         public static readonly AuditEventType<UpdateClientDomainLimitLogModel> ClientDomainLimitUpdated = new AuditEventType<UpdateClientDomainLimitLogModel>(
             7301, "Client domain limit updated", logModel => logModel);
+
+        // 74xx - Global system management
+        public static readonly AuditEventType<string> UserAgreementUpdated = new AuditEventType<string>(
+            7401, "User agreement updated", NewText => NewText);
         #endregion
         #endregion
 
