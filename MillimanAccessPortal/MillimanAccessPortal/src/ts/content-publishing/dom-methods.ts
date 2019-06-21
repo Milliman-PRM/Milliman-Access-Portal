@@ -570,7 +570,8 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     formMap.forEach((value, key) => {
       if (key !== 'DoesReduce'
         && key !== 'FilterPaneEnabled'
-        && key !== 'NavigationPaneEnabled') {  // because these are checkboxes
+        && key !== 'NavigationPaneEnabled'
+        && key !== 'BookmarksPaneEnabled') {  // because these are checkboxes
         $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
       }
     });
@@ -888,12 +889,16 @@ export function setup() {
       $contentDisplaySettings.show();
       $('#FilterPaneEnabled').removeAttr('disabled');
       $('#NavigationPaneEnabled').removeAttr('disabled');
+      $('#BookmarksPaneEnabled').removeAttr('disabled');
     } else {
       $contentDisplaySettings.hide();
       $('#FilterPaneEnabled')
         .prop('checked', false)
         .attr('disabled', '');
       $('#NavigationPaneEnabled')
+        .prop('checked', false)
+        .attr('disabled', '');
+      $('#BookmarksPaneEnabled')
         .prop('checked', false)
         .attr('disabled', '');
     }
