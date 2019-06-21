@@ -137,6 +137,7 @@ export function openNewRootContentItemForm() {
     typeSpecificDetailObject: {
       filterPaneEnabled: false,
       navigationPaneEnabled: false,
+      bookmarksPaneEnabled: false,
     },
     id: '0',
     notes: '',
@@ -191,6 +192,10 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
     formMap.set('NavigationPaneEnabled',
       (item.typeSpecificDetailObject.hasOwnProperty('navigationPaneEnabled')
         ? item.typeSpecificDetailObject.navigationPaneEnabled
+        : false));
+    formMap.set('BookmarksPaneEnabled',
+      (item.typeSpecificDetailObject.hasOwnProperty('bookmarksPaneEnabled')
+        ? item.typeSpecificDetailObject.bookmarksPaneEnabled
         : false));
   }
   formMap.set('Description', item.description);
@@ -592,6 +597,11 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       $navigationPaneToggle.prop('checked',
         (item.typeSpecificDetailObject.hasOwnProperty('navigationPaneEnabled')
           ? item.typeSpecificDetailObject.navigationPaneEnabled
+          : false));
+      const $bookmarksPaneToggle = $rootContentItemForm.find('#BookmarksPaneEnabled');
+      $bookmarksPaneToggle.prop('checked',
+        (item.typeSpecificDetailObject.hasOwnProperty('bookmarksPaneEnabled')
+          ? item.typeSpecificDetailObject.bookmarksPaneEnabled
           : false));
     }
   }
