@@ -47,6 +47,7 @@
 
 	    // Embed the report and display it within the div container.
 	    var report = powerbi.embed(reportContainer, config);
+	    report.on('loaded', function(event) {report.updateSettings({bookmarksPaneEnabled: @Json.Serialize(Model.BookmarksPaneEnabled)})});
         </script>
     </body>
 </html>
