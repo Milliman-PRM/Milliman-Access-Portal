@@ -986,8 +986,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            string currentText = (await _dbContext.NameValueConfiguration.FindAsync(nameof(ConfiguredValueKeys.UserAgreementText)))?.Value;
-            return View(currentText);
+            string currentAgreementText = (await _dbContext.NameValueConfiguration.FindAsync(nameof(ConfiguredValueKeys.UserAgreementText)))?.Value;
+            return View(nameof(UpdateUserAgreement), currentAgreementText);
         }
 
         [HttpPost]
