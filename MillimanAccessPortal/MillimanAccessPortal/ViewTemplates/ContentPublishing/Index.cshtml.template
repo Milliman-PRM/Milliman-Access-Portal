@@ -156,6 +156,18 @@
                                 <label class="switch-label" for="NavigationPaneEnabled">Show Navigation Pane</label>
                             </div>
                         </div>
+                        <div class="form-input form-input-toggle">
+                            <div class="switch-container">
+                                <div class="toggle-switch">
+                                    <input type="checkbox" class="toggle-switch-checkbox" name="BookmarksPaneEnabled" id="BookmarksPaneEnabled" value="true">
+                                    <label class="toggle-switch-label" for="BookmarksPaneEnabled">
+                                        <span class="toggle-switch-inner"></span>
+                                        <span class="toggle-switch-switch"></span>
+                                    </label>
+                                </div>
+                                <label class="switch-label" for="BookmarksPaneEnabled">Show Bookmarks Pane</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="form-section form-section-valid-files" data-section="publication-files">
