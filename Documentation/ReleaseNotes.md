@@ -5,6 +5,7 @@
 ### v1.x.x
 
 - Added the ability to select all, deselect all, and reset selections for reducible QlikView content items in Content Access Admin
+- Added support for markdown for content disclaimers
 - Trim whitespace on username inputs
 - Fixed the styling on republishing icons
 - Fixed a bug in displaying userguide contents
