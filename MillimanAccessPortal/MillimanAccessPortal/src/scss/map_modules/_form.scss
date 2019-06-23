@@ -162,6 +162,7 @@ textarea {
     border: none;
     border-right: 1px dashed $charcoal;
     border-bottom: 1px solid $charcoal;
+    min-height: 70px;
 
     &:focus {
         border-right: 1px dashed $blue;

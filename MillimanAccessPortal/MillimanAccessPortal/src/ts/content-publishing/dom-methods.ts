@@ -596,6 +596,8 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     }
   }
 
+  $('textarea').change();
+
   const createContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
     [
       'common',
@@ -900,6 +902,15 @@ export function setup() {
   $('.action-icon-collapse').click(collapseAllListener);
   $('.admin-panel-searchbar-tree').keyup(filterTreeListener);
   $('.admin-panel-searchbar-form').keyup(filterFormListener);
+
+  $('textarea').on('change keydown paste cut', function() {
+    $(this).height(0).height(Math.min(this.scrollHeight + 2, 300));
+    if ($(this).height() >= 300) {
+      $(this).css('overflow', 'auto');
+    } else {
+      $(this).css('overflow', 'hidden');
+    }
+  });
 
   $('#root-content-items .admin-panel-toolbar .action-icon-add').click(() => {
     openNewRootContentItemForm();
