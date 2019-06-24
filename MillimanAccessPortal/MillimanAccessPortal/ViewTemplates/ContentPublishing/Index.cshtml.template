@@ -263,10 +263,17 @@
                                 <textarea id="Notes" name="Notes" for="Notes"></textarea>
                             </div>
                         </div>
-                        <div class="form-input form-input-textarea flex-item-12-12">
-                            <label class="form-input-textarea-title" for="ContentDisclaimer">Custom Disclaimer Text</label>
+                        <div id="content-disclaimer-container" class="form-input form-input-textarea flex-item-12-12">
+                            <label class="form-input-textarea-title" for="ContentDisclaimer">
+								Custom Disclaimer Text
+							</label>
+							<div class="markdown-view-button-container">
+								<span class="markdown-view-toggle markdown-select-edit selected">Edit</span>
+								<span class="markdown-view-toggle markdown-select-preview">Preview</span>
+							</div>
                             <div class="form-input-textarea-contents">
                                 <textarea id="ContentDisclaimer" name="ContentDisclaimer" for="ContentDisclaimer" placeholder="There is no disclaimer for this content."></textarea>
+								<div id="ContentDisclaimerPreview" style="display: none;"></div>
                             </div>
                         </div>
                     </div>
