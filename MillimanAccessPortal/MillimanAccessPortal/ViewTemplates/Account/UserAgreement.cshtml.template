@@ -12,9 +12,12 @@
 }
 
 <div id="disclaimer-container">
+	@Html.Hidden("ReturnUrl", Model.ReturnUrl)
   <h2 id="content-name">User Agreement</h2>
+	 @Html.Hidden("IsRenewal", Model.IsRenewal)
   <p>@(Model.IsRenewal ? "An updated user agreement must be signed" : "A user agreement must be signed")</p>
   <div id="content-disclaimer-text">
+	@Html.Hidden("AgreementText", Model.AgreementText)
     @Model.AgreementText
   </div>
   <form id="content-disclaimer-form">
