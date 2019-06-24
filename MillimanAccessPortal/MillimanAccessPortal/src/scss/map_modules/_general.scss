@@ -35,3 +35,7 @@ body {
 svg:not([id='header-logo']):not(.action-icon):not(.cancel-icon):not(.upload-icon) {
     pointer-events: none;
 }
+
+b, strong {
+    font-weight: bold;
+}
