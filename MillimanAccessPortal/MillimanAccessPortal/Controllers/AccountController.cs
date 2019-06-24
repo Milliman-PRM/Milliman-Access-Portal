@@ -351,7 +351,8 @@ namespace MillimanAccessPortal.Controllers
 
             _auditLogger.Log(AuditEventType.UserAgreementAcceptance.ToEvent((UserAgreementLogModel)model), user.UserName);
 
-            return Redirect(model.ReturnUrl);
+            Response.Headers.Add("NavigateTo", string.IsNullOrEmpty(model.ReturnUrl) ? "/" : model.ReturnUrl);
+            return Ok();
         }
 
         //
