@@ -273,6 +273,9 @@
 							</div>
                             <div class="form-input-textarea-contents">
                                 <textarea id="ContentDisclaimer" name="ContentDisclaimer" for="ContentDisclaimer" placeholder="There is no disclaimer for this content."></textarea>
+								<div id="ContentDisclaimerGuide">
+									**<strong>bold</strong>**, _<i>italics</i>_, ### <b>Section Header</b>
+								</div>
 								<div id="ContentDisclaimerPreview" style="display: none;"></div>
                             </div>
                         </div>

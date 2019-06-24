@@ -868,6 +868,7 @@ function setDisclaimerToEditMode() {
   $('#content-disclaimer-container .markdown-select-preview').removeClass('selected');
   // Toggle preview -> textarea
   $('#ContentDisclaimer').show();
+  $('#ContentDisclaimerGuide').show();
   $('#ContentDisclaimerPreview').hide();
   // Clear the preview
   $('ContentDisclaimerPreview').empty();
@@ -884,6 +885,7 @@ function setDisclaimerToPreviewMode() {
   // Toggle textarea -> preview
   $('#ContentDisclaimerPreview').show();
   $('#ContentDisclaimer').hide();
+  $('#ContentDisclaimerGuide').hide();
 }
 
 export function setup() {
