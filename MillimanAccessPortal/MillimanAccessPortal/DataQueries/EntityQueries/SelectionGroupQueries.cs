@@ -212,7 +212,13 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _dbContext.SelectionGroup.Add(group);
 
             _dbContext.SaveChanges();
-            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, group.RootContentItem, group.RootContentItem.Client));
+
+            var contentItem = _dbContext.RootContentItem
+                                .Include(c => c.Client)
+                                .Where(c => c.Id == contentItemId)
+                                .FirstOrDefault();
+
+            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, contentItem, contentItem.Client));
 
             return group;
         }
@@ -227,6 +233,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         {
             var contentItem = _dbContext.RootContentItem
                                         .Include(c => c.ContentType)
+                                        .Include(c => c.Client)
                                         .Single(t => t.Id == contentItemId);
 
             string contentFileName = default;
@@ -254,7 +261,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _dbContext.SelectionGroup.Add(group);
             _dbContext.SaveChanges();
 
-            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, group.RootContentItem, group.RootContentItem.Client));
+            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, contentItem, contentItem.Client));
 
             return group;
         }
