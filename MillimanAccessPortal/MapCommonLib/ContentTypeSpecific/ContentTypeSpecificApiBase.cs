@@ -21,9 +21,9 @@ namespace MapCommonLib.ContentTypeSpecific
         /// <param name="ExtensionWithDot"></param>
         /// <param name="rootContentItemId"></param>
         /// <returns></returns>
-        public static string GenerateContentFileName(string FilePurpose, string extensionWithDot, Guid rootContentItemId)
+        public static string GenerateContentFileName(string FilePurpose, string extensionWithDot, Guid rootContentItemId, string sequenceOrder)
         {
-            string PreHashedFileName = $"{FilePurpose}.Content[{rootContentItemId}]";
+            string PreHashedFileName = $"{FilePurpose}{(string.IsNullOrEmpty(sequenceOrder) ? "" : $"-{sequenceOrder}")}.Content[{rootContentItemId}]";
             return GlobalFunctions.GetStringChecksum(PreHashedFileName) + extensionWithDot;
         }
 
