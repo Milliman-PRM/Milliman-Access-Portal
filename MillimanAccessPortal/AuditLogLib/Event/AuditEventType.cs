@@ -1,7 +1,14 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney, Tom Puckett
  * OBJECTIVE: <What and WHY.>
- * DEVELOPER NOTES: <What future developers need to know.>
+ * DEVELOPER NOTES:
+ *   Guidelines for useful log events:
+ *  
+ *      1) If a content item, selection group, user, or client is 
+ *          relevant to the event, include it in the log
+ *          
+ *      2) If you include one or more of those items, include both
+ *          the Id and Name (or equivalent) properties - UserName for users
  */
 
 using AuditLogLib.Models;
@@ -17,17 +24,6 @@ namespace AuditLogLib.Event
 {
     public sealed class AuditEventType : AuditEventTypeBase
     {
-        /*
-         *  Guidelines for useful log events:
-         *  
-         *      1) If a content item, selection group, user, or client is 
-         *          relevant to the event, include it in the log
-         *          
-         *      2) If you include one or more of those items, include both
-         *          the Id and Name (or equivalent) properties - UserName for users
-         * 
-         */
-
 
         #region Static event type declarations
         // WARNING!!!  After production begins, never change the numeric ID of any AuditEventType
