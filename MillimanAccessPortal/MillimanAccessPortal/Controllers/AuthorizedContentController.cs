@@ -426,6 +426,7 @@ namespace MillimanAccessPortal.Controllers
                     ReportId = embedProperties.PreviewReportId,
                     FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                     NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
+                    BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
                 };
 
             return View("PowerBi", embedModel);
@@ -466,6 +467,7 @@ namespace MillimanAccessPortal.Controllers
                 ReportId = embedProperties.LiveReportId,
                 FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                 NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
+                BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
             };
 
             return View("PowerBi", embedModel);

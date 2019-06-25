@@ -221,6 +221,20 @@ namespace MillimanAccessPortal.Binders
                         bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.NavigationPaneEnabled");
                     }
 
+                    valueProviderResult = bindingContext.ValueProvider.GetValue("BookmarksPaneEnabled");
+                    bindingContext.ModelState.SetModelValue("TypeSpecificDetailObject.BookmarksPaneEnabled", valueProviderResult);
+                    if (valueProviderResult != ValueProviderResult.None &&
+                        bool.TryParse(valueProviderResult.FirstValue, out bool bookmarksPaneEnabledVal))
+                    {
+                        properties.BookmarksPaneEnabled = bookmarksPaneEnabledVal;
+                        bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.BookmarksPaneEnabled");
+                    }
+                    else
+                    {
+                        properties.BookmarksPaneEnabled = false;
+                        bindingContext.ModelState.MarkFieldValid("TypeSpecificDetailObject.BookmarksPaneEnabled");
+                    }
+
                     model.TypeSpecificDetail = JsonConvert.SerializeObject(properties);
                     break;
 

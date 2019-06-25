@@ -23,5 +23,7 @@ namespace PowerBiLib
         public bool NavigationPaneEnabled { get; set; }
 
         public bool FilterPaneEnabled { get; set; }
+
+        public bool BookmarksPaneEnabled { get; set; }
     }
 }

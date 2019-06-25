@@ -137,6 +137,7 @@ export function openNewRootContentItemForm() {
     typeSpecificDetailObject: {
       filterPaneEnabled: false,
       navigationPaneEnabled: false,
+      bookmarksPaneEnabled: false,
     },
     id: '0',
     notes: '',
@@ -191,6 +192,10 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
     formMap.set('NavigationPaneEnabled',
       (item.typeSpecificDetailObject.hasOwnProperty('navigationPaneEnabled')
         ? item.typeSpecificDetailObject.navigationPaneEnabled
+        : false));
+    formMap.set('BookmarksPaneEnabled',
+      (item.typeSpecificDetailObject.hasOwnProperty('bookmarksPaneEnabled')
+        ? item.typeSpecificDetailObject.bookmarksPaneEnabled
         : false));
   }
   formMap.set('Description', item.description);
@@ -565,7 +570,8 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     formMap.forEach((value, key) => {
       if (key !== 'DoesReduce'
         && key !== 'FilterPaneEnabled'
-        && key !== 'NavigationPaneEnabled') {  // because these are checkboxes
+        && key !== 'NavigationPaneEnabled'
+        && key !== 'BookmarksPaneEnabled') {  // because these are checkboxes
         $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
       }
     });
@@ -592,6 +598,11 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
       $navigationPaneToggle.prop('checked',
         (item.typeSpecificDetailObject.hasOwnProperty('navigationPaneEnabled')
           ? item.typeSpecificDetailObject.navigationPaneEnabled
+          : false));
+      const $bookmarksPaneToggle = $rootContentItemForm.find('#BookmarksPaneEnabled');
+      $bookmarksPaneToggle.prop('checked',
+        (item.typeSpecificDetailObject.hasOwnProperty('bookmarksPaneEnabled')
+          ? item.typeSpecificDetailObject.bookmarksPaneEnabled
           : false));
     }
   }
@@ -878,12 +889,16 @@ export function setup() {
       $contentDisplaySettings.show();
       $('#FilterPaneEnabled').removeAttr('disabled');
       $('#NavigationPaneEnabled').removeAttr('disabled');
+      $('#BookmarksPaneEnabled').removeAttr('disabled');
     } else {
       $contentDisplaySettings.hide();
       $('#FilterPaneEnabled')
         .prop('checked', false)
         .attr('disabled', '');
       $('#NavigationPaneEnabled')
+        .prop('checked', false)
+        .attr('disabled', '');
+      $('#BookmarksPaneEnabled')
         .prop('checked', false)
         .attr('disabled', '');
     }
