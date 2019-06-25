@@ -79,7 +79,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
           ref={this.usernameInput}
           type="text"
           value={data.username}
-          onChange={this.handleChange}
+          onChange={this.handleChange && this.handleWhiteSpace}
           onBlur={this.handleBlur}
           onClick={userConfirmed ? this.handleUsernameClick : undefined}
           error={errors.username}
