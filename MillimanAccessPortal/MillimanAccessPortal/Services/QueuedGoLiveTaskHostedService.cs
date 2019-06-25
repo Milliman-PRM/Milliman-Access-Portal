@@ -106,6 +106,8 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 : dbContext.ContentPublicationRequest
                     .Include(r => r.RootContentItem)
                         .ThenInclude(c => c.ContentType)
+                    .Include(r => r.RootContentItem)
+                        .ThenInclude(c => c.Client)
                     .Include(r => r.ApplicationUser)
                     .Where(r => r.Id == goLiveViewModel.PublicationRequestId)
                     .Where(r => r.RootContentItemId == goLiveViewModel.RootContentItemId)
