@@ -286,7 +286,10 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>Selection group</returns>
         internal SelectionGroup UpdateSelectionGroupUsers(Guid selectionGroupId, List<Guid> newListOfUserIds)
         {
-            var requestedGroup = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var requestedGroup = _dbContext.SelectionGroup
+                .Include(g => g.RootContentItem)
+                    .ThenInclude(c => c.Client)
+                .SingleOrDefault(g => g.Id == selectionGroupId);
 
             List<Guid> allCurrentUserIds = _dbContext.UserInSelectionGroup
                 .Where(uisg => uisg.SelectionGroupId == selectionGroupId)
