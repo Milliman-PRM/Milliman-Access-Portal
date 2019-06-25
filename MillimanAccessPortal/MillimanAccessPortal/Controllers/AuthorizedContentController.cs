@@ -110,6 +110,9 @@ namespace MillimanAccessPortal.Controllers
         {
             var user = await Queries.GetCurrentApplicationUser(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
+                .Include(u => u.SelectionGroup)
+                    .ThenInclude(sg => sg.RootContentItem)
+                        .ThenInclude(c => c.Client)
                 .Where(u => u.UserId == user.Id)
                 .Where(u => u.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
@@ -190,6 +193,9 @@ namespace MillimanAccessPortal.Controllers
         {
             var user = await Queries.GetCurrentApplicationUser(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
+                .Include(u => u.SelectionGroup)
+                    .ThenInclude(sg => sg.RootContentItem)
+                        .ThenInclude(c => c.Client)
                 .Where(u => u.UserId == user.Id)
                 .Where(u => u.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
