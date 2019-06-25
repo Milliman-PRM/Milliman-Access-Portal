@@ -485,6 +485,8 @@ namespace MillimanAccessPortal.Controllers
             var selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(c => c.ContentType)
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(c => c.Client)
                 .Where(sg => sg.Id == selectionGroupId)
                 .SingleOrDefault();
 
@@ -711,6 +713,7 @@ namespace MillimanAccessPortal.Controllers
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
+                    .ThenInclude(c => c.Client)
                 .Where(sg => sg.Id == SelectionGroupId)
                 .SingleOrDefault();
 
