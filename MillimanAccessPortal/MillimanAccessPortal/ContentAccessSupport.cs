@@ -206,9 +206,15 @@ namespace MillimanAccessPortal
             // save changes
             Db.SaveChanges();
 
+            var logGroup = Db.SelectionGroup
+                                .Include(g => g.RootContentItem)
+                                .ThenInclude(c => c.Client)
+                                .FirstOrDefault(g => g.Id == reductionTask.SelectionGroupId);
+                                
+
             AuditLogger Logger = new AuditLogger();
             Logger.Log(AuditEventType.ContentDisclaimerAcceptanceResetSelectionChange
-                .ToEvent(usersInGroup, reductionTask.SelectionGroup.RootContentItem, reductionTask.SelectionGroup.RootContentItem.Client));
+                .ToEvent(usersInGroup, logGroup.RootContentItem, logGroup.RootContentItem.Client));
 
             return FilesToDelete;
         }
