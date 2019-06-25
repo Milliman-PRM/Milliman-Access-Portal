@@ -1371,7 +1371,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var existingRecord = _dbContext.RootContentItem.Find(rootContentItemId);
+            var existingRecord = _dbContext.RootContentItem
+                .Include(c => c.Client)
+                .SingleOrDefault(c => c.Id == rootContentItemId);
             if (existingRecord == null)
             {
                 Log.Debug($"In SystemAdminController.CancelPublication action: content item {rootContentItemId} not found, aborting");
@@ -1442,7 +1444,10 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var existingRecord = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var existingRecord = _dbContext.SelectionGroup
+                .Include(g => g.RootContentItem)
+                    .ThenInclude(c => c.Client)
+                .SingleOrDefault(g => g.Id == selectionGroupId);
             if (existingRecord == null)
             {
                 Log.Debug($"In SystemAdminController.CancelReduction action: selection group not found, aborting");
