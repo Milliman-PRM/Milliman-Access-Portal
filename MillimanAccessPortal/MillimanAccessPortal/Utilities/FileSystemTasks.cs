@@ -31,7 +31,7 @@ namespace MillimanAccessPortal.Utilities
             {
                 string workingDirectory = Path.GetDirectoryName(relatedFile.FullPath);
                 string targetFilePrefix = ContentTypeSpecificApiBase.GenerateContentFileName(
-                    relatedFile.FilePurpose, "", contentItem.Id);
+                    relatedFile.FilePurpose, "", contentItem.Id, relatedFile.SequenceOrder);
 
                 // Assumes only one file for each purpose
                 var targetFiles = Directory.EnumerateFiles(workingDirectory)

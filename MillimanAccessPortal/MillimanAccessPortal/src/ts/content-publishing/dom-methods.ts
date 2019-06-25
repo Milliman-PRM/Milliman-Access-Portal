@@ -684,8 +684,15 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
             fileOriginalName: fileData[0],
             filePurpose: file,
             fileUploadId: fileData[1],
+            sequenceOrder: '',
           };
-        });
+        })
+        .concat([
+          {fileOriginalName: 'ghi', filePurpose: 'xls', fileUploadId: '3', sequenceOrder: '3'},
+          {fileOriginalName: 'abc', filePurpose: 'xls', fileUploadId: '1', sequenceOrder: '1'},
+          {fileOriginalName: 'def', filePurpose: 'xls', fileUploadId: '2', sequenceOrder: '2'},
+        ])
+        ;
       const publishRequest: PublishRequest = {
         newRelatedFiles: fileChanges
           .filter((file) => file.fileUploadId && file.fileUploadId !== 'delete'),

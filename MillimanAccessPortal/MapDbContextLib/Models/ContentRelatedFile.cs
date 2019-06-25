@@ -19,6 +19,8 @@ namespace MapDbContextLib.Models
         /// </summary>
         public string FilePurpose { get; set; }
         public string FileOriginalName { get; set; }
+        public string SequenceOrder { get; set; } = "";
+
         public string Checksum
         {
             get { return _Checksum; }

@@ -133,6 +133,13 @@ export interface ContentType {
   fileExtensions: string[];
 }
 
+export interface ContentRelatedFile {
+  fullPath: string;
+  filePurpose: string;
+  fileOriginalName: string;
+  sequenceOrder: string;
+  checksum: string;
+}
 export interface RootContentItemDetail {
   id: Guid;
   clientId: Guid;
@@ -163,14 +170,15 @@ export interface RootContentItemStatus {
   status: PublicationSummary[];
 }
 
-export interface ContentRelatedFile {
+export interface UploadedRelatedFile {
   fileOriginalName: string;
   filePurpose: string;
   fileUploadId: Guid;
+  sequenceOrder: string;
 }
 export interface PublishRequest {
   rootContentItemId: Guid;
-  newRelatedFiles: ContentRelatedFile[];
+  newRelatedFiles: UploadedRelatedFile[];
   deleteFilePurposes: string[];
 }
 

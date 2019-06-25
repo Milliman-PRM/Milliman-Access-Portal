@@ -227,6 +227,7 @@ namespace MillimanAccessPortal
                     FilePurpose = RelatedFile.FilePurpose,
                     FullPath = DestinationFullPath,
                     FileOriginalName = RelatedFile.FileOriginalName,
+                    SequenceOrder = RelatedFile.SequenceOrder,
                     Checksum = FileUploadRecord.Checksum,
                 };
 

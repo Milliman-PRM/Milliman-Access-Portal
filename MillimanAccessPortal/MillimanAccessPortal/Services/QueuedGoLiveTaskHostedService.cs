@@ -321,7 +321,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     foreach (ContentRelatedFile Crf in publicationRequest.LiveReadyFilesObj)
                     {
                         string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
-                            Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId);
+                            Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId, Crf.SequenceOrder);
 
                         // special treatment for powerbi content file (no live content file persists in MAP)
                         if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase) && 
