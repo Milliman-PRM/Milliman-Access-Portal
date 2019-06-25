@@ -364,12 +364,17 @@ namespace MillimanAccessPortal.Controllers
 
             DbContext.SaveChanges();
 
+            var logClient = DbContext.RootContentItem
+                                .Include(c => c.Client)
+                                .Where(c => c.Id == rootContentItem.Id)
+                                .FirstOrDefault();
+
             Log.Verbose($"In ContentPublishingController.UpdateRootContentItem action: success");
-            AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(rootContentItem, rootContentItem.Client));
+            AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(rootContentItem, logClient));
             if (usersInGroup != null)
             {
                 AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetTextChange
-                    .ToEvent(usersInGroup, rootContentItem, rootContentItem.Client));
+                    .ToEvent(usersInGroup, rootContentItem, logClient));
             }
 
             RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, currentRootContentItem);
@@ -513,6 +518,7 @@ namespace MillimanAccessPortal.Controllers
 
             RootContentItem ContentItem = DbContext.RootContentItem
                                                    .Include(rc => rc.ContentType)
+                                                   .Include(rc => rc.Client)
                                                    .SingleOrDefault(rc => rc.Id == request.RootContentItemId);
 
             #region Validation
@@ -617,7 +623,7 @@ namespace MillimanAccessPortal.Controllers
                     ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath, _PostProcessingTaskQueue)));
 
                 Log.Verbose($"In ContentPublishingController.Publish action: publication request queued successfully");
-                AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(NewContentPublicationRequest.RootContentItem, NewContentPublicationRequest.RootContentItem.Client, NewContentPublicationRequest));
+                AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(ContentItem, ContentItem.Client, NewContentPublicationRequest));
             }
 
             var rootContentItemDetail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, ContentItem);
@@ -905,7 +911,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            RootContentItem rootContentItem = DbContext.RootContentItem.Include(c => c.ContentType).Single(c => c.Id == rootContentItemId);
+            RootContentItem rootContentItem = DbContext.RootContentItem
+                                                .Include(c => c.ContentType)
+                                                .Include(c => c.Client)
+                                                .Single(c => c.Id == rootContentItemId);
             ContentPublicationRequest pubRequest = DbContext.ContentPublicationRequest.Find(publicationRequestId);
 
             #region Validation
