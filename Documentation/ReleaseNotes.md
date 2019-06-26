@@ -11,6 +11,7 @@
 - Fixed the styling on republishing icons
 - Fixed a bug in displaying userguide contents
 - Added ability to show the Bookmarks pane in PowerBI reports
+- Created the user agreement page
 
 ### v1.6.0
 
