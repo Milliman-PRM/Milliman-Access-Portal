@@ -141,6 +141,7 @@ export interface RootContentItemDetail {
   doesReduce: boolean;
   filterPaneEnabled?: boolean;
   navigationPaneEnabled?: boolean;
+  bookmarksPaneEnabled?: boolean;
   relatedFiles: ContentRelatedFile[];
   description: string;
   notes: string;
@@ -149,6 +150,7 @@ export interface RootContentItemDetail {
   typeSpecificDetailObject?: {
     filterPaneEnabled?: boolean;
     navigationPaneEnabled?: boolean;
+    bookmarksPaneEnabled?: boolean;
   };
 }
 

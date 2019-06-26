@@ -10,6 +10,7 @@
 - Trim whitespace on username inputs
 - Fixed the styling on republishing icons
 - Fixed a bug in displaying userguide contents
+- Added ability to show the Bookmarks pane in PowerBI reports
 
 ### v1.6.0
 

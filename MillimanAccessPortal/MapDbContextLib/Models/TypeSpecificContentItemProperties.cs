@@ -15,6 +15,8 @@ namespace MapDbContextLib.Models
 
         public bool NavigationPaneEnabled { get; set; }
 
+        public bool BookmarksPaneEnabled { get; set; }
+
         public string PreviewWorkspaceId { get; set; }
 
         public string PreviewReportId { get; set; }

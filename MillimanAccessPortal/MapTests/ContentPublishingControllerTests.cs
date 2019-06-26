@@ -562,6 +562,7 @@ namespace MapTests
             {
                 FilterPaneEnabled = true,
                 NavigationPaneEnabled = true,
+                BookmarksPaneEnabled = true,
             };
             RootContentItem updateModel = new RootContentItem
             {
@@ -582,6 +583,7 @@ namespace MapTests
             PowerBiContentItemProperties savedProps = Assert.IsType<PowerBiContentItemProperties>(dbItem.TypeSpecificDetailObject);
             Assert.Equal(props.NavigationPaneEnabled, savedProps.NavigationPaneEnabled);
             Assert.Equal(props.FilterPaneEnabled, savedProps.FilterPaneEnabled);
+            Assert.Equal(props.BookmarksPaneEnabled, savedProps.BookmarksPaneEnabled);
             #endregion
         }
 
