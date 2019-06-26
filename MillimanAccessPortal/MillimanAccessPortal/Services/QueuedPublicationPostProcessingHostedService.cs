@@ -203,7 +203,7 @@ namespace MillimanAccessPortal.Services
                                                 Crf.FilePurpose,
                                                 Path.GetExtension(Crf.FullPath),
                                                 thisPubRequest.RootContentItemId,
-                                                Crf.SequenceOrder);
+                                                Crf.SortOrder);
                     string TargetFilePath = Path.Combine(tempContentDestinationFolder, TargetFileName);
 
                     // Can move because destination is on same volume as source
@@ -214,7 +214,7 @@ namespace MillimanAccessPortal.Services
                         Checksum = Crf.Checksum,
                         FileOriginalName = Crf.FileOriginalName,
                         FilePurpose = Crf.FilePurpose,
-                        SequenceOrder = Crf.SequenceOrder,
+                        SortOrder = Crf.SortOrder,
                         FullPath = TargetFilePath,
                     });
                 }

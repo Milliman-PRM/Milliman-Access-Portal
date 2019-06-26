@@ -13,6 +13,6 @@ namespace MapDbContextLib.Models
 
         public Guid FileUploadId { get; set; }
 
-        public string SequenceOrder { get; set; } = "";
+        public string SortOrder { get; set; } = "";
     }
 }

@@ -21,9 +21,9 @@ namespace MapCommonLib.ContentTypeSpecific
         /// <param name="ExtensionWithDot"></param>
         /// <param name="rootContentItemId"></param>
         /// <returns></returns>
-        public static string GenerateContentFileName(string FilePurpose, string extensionWithDot, Guid rootContentItemId, string sequenceOrder)
+        public static string GenerateContentFileName(string FilePurpose, string extensionWithDot, Guid rootContentItemId, string sortOrder)
         {
-            string PreHashedFileName = $"{FilePurpose}{(string.IsNullOrEmpty(sequenceOrder) ? "" : $"-{sequenceOrder}")}.Content[{rootContentItemId}]";
+            string PreHashedFileName = $"{FilePurpose}{(string.IsNullOrEmpty(sortOrder) ? "" : $"-{sortOrder}")}.Content[{rootContentItemId}]";
             return GlobalFunctions.GetStringChecksum(PreHashedFileName) + extensionWithDot;
         }
 
@@ -48,9 +48,9 @@ namespace MapCommonLib.ContentTypeSpecific
         /// <param name="rootContentItemId"></param>
         /// <param name="extensionWithDot"></param>
         /// <returns></returns>
-        public static string GeneratePreliveRelatedFileName(string filePurpose, Guid publicationRequestId, Guid rootContentItemId, string extensionWithDot)
+        public static string GeneratePreliveRelatedFileName(string filePurpose, Guid publicationRequestId, Guid rootContentItemId, string extensionWithDot, string sortOrder)
         {
-            string PreHashedFileName = $"{filePurpose}.Pub[{publicationRequestId}].Content[{rootContentItemId}]";
+            string PreHashedFileName = $"{filePurpose}{(string.IsNullOrEmpty(sortOrder) ? "" : $"-{sortOrder}")}.Pub[{publicationRequestId}].Content[{rootContentItemId}]";
             return GlobalFunctions.GetStringChecksum(PreHashedFileName) + extensionWithDot;
         }
 

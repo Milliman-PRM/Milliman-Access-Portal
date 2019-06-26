@@ -185,7 +185,7 @@ namespace MapDbContextLib.Context
                 return string.IsNullOrWhiteSpace(UploadedRelatedFiles)
                     ? new List<UploadedRelatedFile>()
                     : JsonConvert.DeserializeObject<List<UploadedRelatedFile>>(UploadedRelatedFiles)
-                                 .OrderBy(rf => rf.SequenceOrder, StringComparer.OrdinalIgnoreCase)
+                                 .OrderBy(rf => rf.SortOrder, StringComparer.OrdinalIgnoreCase)
                                  .ToList();
             }
             set
