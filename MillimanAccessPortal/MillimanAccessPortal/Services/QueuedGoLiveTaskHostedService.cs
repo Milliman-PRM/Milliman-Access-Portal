@@ -387,7 +387,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 File.Move(TargetFilePath, Crf.FullPath);
                             }));
 
-                            UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.Equals(Crf.FilePurpose, StringComparison.OrdinalIgnoreCase) && Crf.SequenceOrderMatches(f.SortOrder));
+                            UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.Equals(Crf.FilePurpose, StringComparison.OrdinalIgnoreCase) && Crf.SortOrderMatches(f.SortOrder));
                             UpdatedContentFilesList.Add(new ContentRelatedFile
                             {
                                 FilePurpose = Crf.FilePurpose,
