@@ -53,7 +53,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
             if (goLiveViewModel.PublicationRequestId != Guid.Empty)
             {
-                _runningTasks.TryAdd(goLiveViewModel.PublicationRequestId, ProcessGoLive(goLiveViewModel));
+                _runningTasks.TryAdd(goLiveViewModel.PublicationRequestId, ProcessGoLiveAsync(goLiveViewModel));
             }
 
             // Log any exception, and update database with error status
@@ -91,7 +91,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
         }
     }
 
-    private async Task ProcessGoLive(GoLiveViewModel goLiveViewModel)
+    private async Task ProcessGoLiveAsync(GoLiveViewModel goLiveViewModel)
     {
         await Task.Yield();
 
@@ -114,10 +114,10 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Confirming);
 
             #region Validation
-            if (publicationRequest?.RootContentItem == null || publicationRequest?.ApplicationUser == null)
+            if (publicationRequest?.RootContentItem?.ContentType == null || publicationRequest?.ApplicationUser == null)
             {
                 Log.Error(
-                    "In QueueGoLiveTaskHostedService.ExecuteAsync action: " +
+                    "In QueueGoLiveTaskHostedService.ProcessGoLiveAsync: " +
                     $"publication request {goLiveViewModel?.PublicationRequestId} not found, " + 
                     $"or related user {publicationRequest?.ApplicationUserId} not found, " +
                     $"or related content item {publicationRequest?.RootContentItemId} not found");
@@ -164,7 +164,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     catch (InvalidOperationException)
                     {
                         Log.Error($"" +
-                            "In QueueGoLiveTaskHostedService.ExecuteAsync action: expected `Single` reduction task for each non-master selection group, " +
+                            "In QueueGoLiveTaskHostedService.ProcessGoLiveAsync: expected `Single` reduction task for each non-master selection group, " +
                             $"failed for selection group {relatedSelectionGroup.Id}, aborting");
                         await FailGoLiveAsync(dbContext, publicationRequest, $"Expected 1 reduction task related to SelectionGroup {relatedSelectionGroup.Id}, cannot complete this go-live request.");
                         return;
@@ -177,7 +177,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         var currentChecksum = GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower();
                         if (currentChecksum != ThisTask.ReducedContentChecksum.ToLower())
                         {
-                            Log.Error($"In QueueGoLiveTaskHostedService.ExecuteAsync action: " +
+                            Log.Error($"In QueueGoLiveTaskHostedService.ProcessGoLiveAsync: " +
                                 $"for selection group {relatedSelectionGroup.Id}, " +
                                 $"reduced content file {ThisTask.ResultFilePath} failed checksum validation, aborting");
                             auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
@@ -199,7 +199,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             {
                 if (!Crf.ValidateChecksum())
                 {
-                    Log.Error($"In QueueGoLiveTaskHostedService.ExecuteAsync action: " +
+                    Log.Error($"In QueueGoLiveTaskHostedService.ProcessGoLiveAsync: " +
                         $"for publication request {publicationRequest.Id}, " +
                         $"live ready file {Crf.FullPath} failed checksum validation, " +
                         "aborting");
@@ -546,7 +546,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             }
 
             Log.Verbose(
-                "In ContentPublishingController.GoLive action: " +
+                "In ContentPublishingController.ProcessGoLiveAsync: " +
                 $"publication request {publicationRequest.Id} success");
             auditLogger.Log(AuditEventType.ContentPublicationGoLive.ToEvent(
                 publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest, goLiveViewModel.ValidationSummaryId));
