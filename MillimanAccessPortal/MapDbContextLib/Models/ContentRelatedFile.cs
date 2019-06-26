@@ -1,10 +1,11 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: Represents properties of a file that is related to a MAP content item
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
 using MapCommonLib;
+using System;
 
 namespace MapDbContextLib.Models
 {
@@ -41,14 +42,14 @@ namespace MapDbContextLib.Models
         /// </summary>
         /// <param name="testSortOrder"></param>
         /// <returns></returns>
-        public bool SequenceOrderMatches(string testSortOrder)
+        public bool SortOrderMatches(string testSortOrder)
         {
             if (string.IsNullOrEmpty(SortOrder) && 
                 string.IsNullOrEmpty(testSortOrder))
             {
                 return true;
             }
-            return SortOrder == testSortOrder;
+            return SortOrder.Equals(testSortOrder, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

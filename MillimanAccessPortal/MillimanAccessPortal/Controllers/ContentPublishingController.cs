@@ -579,6 +579,14 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "New publications must include a master content file");
                 return BadRequest();
             }
+
+            // There must be no more than one master content file specified in the request
+            if (ContentItem.ContentFilesList.Count(f => f.FilePurpose.ToLower() == "mastercontent") > 1)
+            {
+                Log.Debug($"In ContentPublishingController.Publish action: no more than one master file may be submitted, aborting");
+                Response.Headers.Add("Warning", "No more than one master content file may be specified");
+                return BadRequest();
+            }
             #endregion
 
             if (request.DeleteFilePurposes.Any())
