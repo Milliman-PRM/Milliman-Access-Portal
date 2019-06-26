@@ -120,7 +120,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     "In QueueGoLiveTaskHostedService.ProcessGoLiveAsync: " +
                     $"publication request {goLiveViewModel?.PublicationRequestId} not found, " + 
                     $"or related user {publicationRequest?.ApplicationUserId} not found, " +
-                    $"or related content item {publicationRequest?.RootContentItemId} not found");
+                    $"or related content item/type {publicationRequest?.RootContentItemId} not found");
                 return;
             }
             #endregion
@@ -201,8 +201,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 {
                     Log.Error($"In QueueGoLiveTaskHostedService.ProcessGoLiveAsync: " +
                         $"for publication request {publicationRequest.Id}, " +
-                        $"live ready file {Crf.FullPath} failed checksum validation, " +
-                        "aborting");
+                        $"live ready file {Crf.FullPath} failed checksum validation, aborting");
                     auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
                         publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest));
                     await FailGoLiveAsync(dbContext, publicationRequest, "File integrity validation failed");
@@ -261,7 +260,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
                             LiveHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
                             {
-                                Id = NewField.Id,  // Id is assigned during dbContext.SaveChanges() above
+                                Id = NewField.Id,  // NewField.Id is assigned during dbContext.SaveChanges() above
                                 FieldName = NewField.FieldName,
                                 DisplayName = NewField.FieldDisplayName,
                                 StructureType = NewField.StructureType,
@@ -321,7 +320,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     foreach (ContentRelatedFile Crf in publicationRequest.LiveReadyFilesObj)
                     {
                         string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
-                            Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId, Crf.SequenceOrder);
+                            Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId, Crf.SortOrder);
 
                         // special treatment for powerbi content file (no live content file persists in MAP)
                         if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase) && 
@@ -379,7 +378,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 }));
                             }
 
-                            // Can move since files are on the same volume
+                            // Can move rather than copy since source and target are on the same volume
                             File.Move(Crf.FullPath, TargetFilePath);
 
                             failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
@@ -390,13 +389,14 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 File.Move(TargetFilePath, Crf.FullPath);
                             }));
 
-                            UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
+                            UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.Equals(Crf.FilePurpose, StringComparison.OrdinalIgnoreCase) && Crf.SequenceOrderMatches(f.SortOrder));
                             UpdatedContentFilesList.Add(new ContentRelatedFile
                             {
                                 FilePurpose = Crf.FilePurpose,
                                 FullPath = TargetFilePath,
                                 Checksum = Crf.Checksum,
                                 FileOriginalName = Crf.FileOriginalName,
+                                SortOrder = Crf.SortOrder,
                             });
                         }
 
@@ -545,9 +545,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 throw;
             }
 
-            Log.Verbose(
-                "In ContentPublishingController.ProcessGoLiveAsync: " +
-                $"publication request {publicationRequest.Id} success");
+            Log.Verbose($"In ContentPublishingController.ProcessGoLiveAsync: publication request {publicationRequest.Id} success");
             auditLogger.Log(AuditEventType.ContentPublicationGoLive.ToEvent(
                 publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest, goLiveViewModel.ValidationSummaryId));
 

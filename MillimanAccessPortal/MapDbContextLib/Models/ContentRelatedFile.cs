@@ -19,7 +19,7 @@ namespace MapDbContextLib.Models
         /// </summary>
         public string FilePurpose { get; set; }
         public string FileOriginalName { get; set; }
-        public string SequenceOrder { get; set; } = "";
+        public string SortOrder { get; set; } = "";
 
         public string Checksum
         {
@@ -34,6 +34,21 @@ namespace MapDbContextLib.Models
         public bool ValidateChecksum()
         {
             return Checksum == GlobalFunctions.GetFileChecksum(FullPath).ToLower();
+        }
+
+        /// <summary>
+        /// Exists because null and empty are semantically equivalent
+        /// </summary>
+        /// <param name="testSortOrder"></param>
+        /// <returns></returns>
+        public bool SequenceOrderMatches(string testSortOrder)
+        {
+            if (string.IsNullOrEmpty(SortOrder) && 
+                string.IsNullOrEmpty(testSortOrder))
+            {
+                return true;
+            }
+            return SortOrder == testSortOrder;
         }
     }
 }

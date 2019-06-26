@@ -137,7 +137,7 @@ export interface ContentRelatedFile {
   fullPath: string;
   filePurpose: string;
   fileOriginalName: string;
-  sequenceOrder: string;
+  sortOrder: string;
   checksum: string;
 }
 export interface RootContentItemDetail {
@@ -174,7 +174,7 @@ export interface UploadedRelatedFile {
   fileOriginalName: string;
   filePurpose: string;
   fileUploadId: Guid;
-  sequenceOrder: string;
+  sortOrder: string;
 }
 export interface PublishRequest {
   rootContentItemId: Guid;
