@@ -16,13 +16,16 @@
   <h2 id="content-name">User Agreement</h2>
 	 @Html.Hidden("IsRenewal", Model.IsRenewal)
   <p>@(Model.IsRenewal ? "An updated user agreement must be signed" : "A user agreement must be signed")</p>
-  <div id="content-disclaimer-text">
+  <div id="raw-markdown" style="display: none">
 	@Html.Hidden("AgreementText", Model.AgreementText)
-    @Model.AgreementText
+	@Model.AgreementText
   </div>
-  <form id="content-disclaimer-form">
+  <div id="disclaimer-text">
+  </div>
+  <form id="disclaimer-form">
     @Html.AntiForgeryToken()
-    <div class="button-container">
+    <span id="disclaimer-acceptance">By clicking the "Accept" button below, you are acknowledging that you have read and accept the terms presented above.</span>
+	<div class="button-container">
       <button id="accept-button" type="button" class="green-button" >Accept</button>
     </div>
   </form>
