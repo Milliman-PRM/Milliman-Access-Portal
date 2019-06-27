@@ -549,6 +549,7 @@ namespace MillimanAccessPortal.Controllers
         /// </param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> CreateUser(string email)
         {
             Log.Verbose($"Entered SystemAdminController.CreateUser action with email {email}");
@@ -611,6 +612,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="profitCenter">The profit center to create</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> CreateProfitCenter(
             [Bind("Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
         {
@@ -654,6 +656,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="clientId">Client of which the user is to become a member.</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> AddUserToClient(string email, Guid clientId)
         {
             Log.Verbose("Entered SystemAdminController.AddUserToClient action with {@Email}, {@ClientId}", email, clientId);
@@ -739,6 +742,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="profitCenterId">Profit center to which the user is to become an admin.</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> AddUserToProfitCenter(string email, Guid profitCenterId)
         {
             Log.Verbose("Entered SystemAdminController.AddUserToProfitCenter action with {@Email}, {@ProfitCenterId}", email, profitCenterId);
@@ -823,6 +827,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddNewAuthenticationScheme(AllAuthenticationSchemes.AuthenticationScheme model)
         {
             Log.Verbose("Entered SystemAdminController.AddNewAuthenticationScheme action with model {@Model}", model);
@@ -922,6 +927,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="profitCenter">Profit center to update</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> UpdateProfitCenter(
             [Bind("Id", "Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
         {
@@ -972,7 +978,6 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<ActionResult> UpdateUserAgreement()
         {
             #region Authorization
@@ -991,7 +996,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
-        //[AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> UpdateUserAgreement(string newAgreementText)
         {
             Log.Debug("Entered SystemAdminController.UpdateUserAgreement POST action with {@newText}", newAgreementText);
@@ -1073,6 +1078,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="updatedClient">ClientUpdate model</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> UpdateClient([FromBody] ClientUpdate updatedClient)
         {
             Log.Verbose("Entered SystemAdminController.UpdateClient action with model {@ClientUpdate}", updatedClient);
@@ -1146,6 +1152,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateAuthenticationScheme(AllAuthenticationSchemes.AuthenticationScheme model)
         {
             Microsoft.AspNetCore.Authentication.AuthenticationScheme ExistingScheme = null;
@@ -1273,6 +1280,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="profitCenterId">Profit center to delete</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteProfitCenter(Guid profitCenterId)
         {
             Log.Verbose("Entered SystemAdminController.DeleteProfitCenter action with {@ProfitCenterId}", profitCenterId);
@@ -1322,6 +1330,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="profitCenterId">Profit center from which user is to be removed</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> RemoveUserFromProfitCenter(Guid userId, Guid profitCenterId)
         {
             Log.Verbose("Entered SystemAdminController.RemoveUserFromProfitCenter action with {@UserId}, {@ProfitCenterId}", userId, profitCenterId);
@@ -1380,6 +1389,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="clientId">Client from which user is to be removed</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> RemoveUserFromClient(Guid userId, Guid clientId)
         {
             Log.Verbose("Entered SystemAdminController.RemoveUserFromClient action with {@userId}, {@clientId}", userId, clientId);
@@ -1451,6 +1461,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="rootContentItemId">The root content item whose publication is to be canceled</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> CancelPublication(Guid rootContentItemId)
         {
             Log.Verbose("Entered SystemAdminController.CancelPublication action with {@RootContentItemId}", rootContentItemId);
@@ -1522,6 +1533,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="selectionGroupId">The selection group whose reduction is to be canceled</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> CancelReduction(Guid selectionGroupId)
         {
             Log.Verbose("Entered SystemAdminController.CancelReduction action with {@SelectionGroupId}", selectionGroupId);
@@ -1594,6 +1606,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="schemeName">null to specify that the username domain will be parsed to determine authentication provider</param>
         /// <returns></returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> AssignUserAuthenticationScheme(Guid userId, string schemeName)
         {
             Log.Verbose("Entered SystemAdminController.UserAuthenticationScheme action with {@UserId}, {@SchemeName}", userId, schemeName);
