@@ -1,8 +1,13 @@
+import { convertMarkdownToHTML } from './convert-markdown';
 import { postData } from './shared';
 
-import '../../src/scss/content-disclaimer.scss';
+import '../../src/scss/disclaimer.scss';
 
 document.addEventListener('DOMContentLoaded', () => {
+    const rawMarkdown = document.getElementById('raw-markdown').innerText;
+    const contentDisclaimer = document.getElementById('disclaimer-text');
+    contentDisclaimer.innerHTML = convertMarkdownToHTML(rawMarkdown);
+
     handleScroll();
 });
 
