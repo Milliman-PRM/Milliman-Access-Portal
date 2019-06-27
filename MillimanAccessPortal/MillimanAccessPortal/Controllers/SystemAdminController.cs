@@ -986,7 +986,7 @@ namespace MillimanAccessPortal.Controllers
             if (!result.Succeeded)
             {
                 Log.Information($"In SystemAdminController.UpdateUserAgreement GET action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
-                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                Response.Headers.Add("Warning", $"You are not authorized to perform the requested operation.");
                 return Unauthorized();
             }
             #endregion
@@ -1069,7 +1069,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In SystemAdminController.UpdateUserAgreement POST action: success");
-            return Ok();
+            return RedirectToAction(nameof(Index));
         }
 
         /// <summary>
