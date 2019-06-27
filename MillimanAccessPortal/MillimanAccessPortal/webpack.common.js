@@ -20,6 +20,7 @@ module.exports = {
     'message': './src/ts/message.ts',
     'reset-password': './src/ts/react/reset-password/index.tsx',
     'system-admin': './src/ts/react/system-admin/index.tsx',
+    'update-user-agreement': './src/ts/update-user-agreement.ts',
     'user-agreement': './src/ts/user-agreement.ts'
   },
   output: {
@@ -202,10 +203,16 @@ module.exports = {
       chunks: [ 'commons', 'system-admin' ],
     }),
     new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'SystemAdmin', 'UpdateUserAgreement.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'SystemAdmin', 'UpdateUserAgreement.cshtml.template'),
+      inject: false,
+      chunks: ['commons', 'update-user-agreement'],
+    }),
+    new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'Account', 'UserAgreement.cshtml'),
       template: path.resolve(__dirname, 'ViewTemplates', 'Account', 'UserAgreement.cshtml.template'),
       inject: false,
-      chunks: [ 'commons', 'user-agreement' ],
+      chunks: ['commons', 'user-agreement'],
     }),
   ],
   resolve: {
