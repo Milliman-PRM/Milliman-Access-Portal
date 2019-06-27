@@ -1069,7 +1069,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In SystemAdminController.UpdateUserAgreement POST action: success");
-            return Ok();
+            return RedirectToAction(nameof(Index));
         }
 
         /// <summary>
