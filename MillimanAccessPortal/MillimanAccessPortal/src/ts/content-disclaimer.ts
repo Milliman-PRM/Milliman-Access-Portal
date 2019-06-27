@@ -1,11 +1,11 @@
 import { convertMarkdownToHTML } from './convert-markdown';
 import { postData } from './shared';
 
-import '../scss/content-disclaimer.scss';
+import '../scss/disclaimer.scss';
 
 document.addEventListener('DOMContentLoaded', () => {
   const rawMarkdown = document.getElementById('raw-markdown').firstChild.nodeValue;
-  const contentDisclaimer = document.getElementById('content-disclaimer-text');
+  const contentDisclaimer = document.getElementById('disclaimer-text');
   contentDisclaimer.innerHTML = convertMarkdownToHTML(rawMarkdown);
 
   const acceptButton = document.getElementById('accept-button');
