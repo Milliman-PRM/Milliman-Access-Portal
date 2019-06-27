@@ -13,13 +13,16 @@
 
 <div id="disclaimer-container">
   <h2 id="content-name">Disclaimer: @Model.ContentName</h2>
-  <div id="content-disclaimer-text">
+  <div id="raw-markdown" style="display: none">
     @Model.DisclaimerText
+  </div>
+  <div id="content-disclaimer-text">
   </div>
   <form id="content-disclaimer-form">
     <input asp-for="SelectionGroupId" style="visibility: hidden;">
     <input asp-for="ValidationId" style="visibility: hidden;">
     @Html.AntiForgeryToken()
+	<span id="content-disclaimer-acceptance">By clicking the "Accept" button below, You are acknowledging that you have read and accept the terms presented above.</span>
     <div class="button-container">
       <button id="accept-button" type="button" class="green-button">Accept</button>
     </div>
