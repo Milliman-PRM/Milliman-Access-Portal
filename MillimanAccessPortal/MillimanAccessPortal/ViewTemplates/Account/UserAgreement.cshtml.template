@@ -23,7 +23,7 @@
   <form id="content-disclaimer-form">
     @Html.AntiForgeryToken()
     <div class="button-container">
-      <button id="accept-button" type="button" class="green-button" >Accept</button>
+      <button id="accept-button" type="button" class="green-button" disabled>Accept</button>
     </div>
   </form>
 </div>
