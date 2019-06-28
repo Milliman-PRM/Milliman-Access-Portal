@@ -5,10 +5,12 @@
 ### v1.x.x
 
 - Added the ability to select all, deselect all, and reset selections for reducible QlikView content items in Content Access Admin
+- Added support for markdown for content disclaimers
 - Trim whitespace on username inputs
 - Fixed the styling on republishing icons
 - Fixed a bug in displaying userguide contents
 - Added ability to show the Bookmarks pane in PowerBI reports
+- Loosen `<iframe>` sandbox for HTML content to allow rendering PDFs in a "popup"/new window
 
 ### v1.6.0
 

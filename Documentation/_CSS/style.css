@@ -35,7 +35,7 @@ body {
     max-height: 100em;
 }
 
-h3 {
+h3.subheading {
     font-size: 16px;
     color: #444;
     font-weight: bold;
@@ -70,4 +70,30 @@ a {
 
 a:hover {
     color: #0068B2;
+}
+
+table#syntax {
+    border: 2px solid #444;
+    border-collapse: collapse;
+    margin-bottom: 1em;
+}
+
+table#syntax th, 
+table#syntax td {
+    padding: .5em 1em;
+    border: 1px solid #444;
+}
+
+table#syntax td ul,
+table#syntax td ol {
+    padding: 0;
+}
+
+table#syntax td ul li,
+table#syntax td ol li {
+    list-style-position: inside;
+}
+
+table#syntax td ul li {
+    list-style-type: circle;
 }

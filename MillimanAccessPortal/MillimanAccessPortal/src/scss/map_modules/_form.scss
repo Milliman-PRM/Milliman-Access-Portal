@@ -162,6 +162,7 @@ textarea {
     border: none;
     border-right: 1px dashed $charcoal;
     border-bottom: 1px solid $charcoal;
+    min-height: 70px;
 
     &:focus {
         border-right: 1px dashed $blue;
@@ -455,5 +456,27 @@ span.form-validation-error {
     #message {
         height: 10em;
         margin-bottom: 1em;
+    }
+}
+
+.markdown-view-button-container {
+    padding: .5em;
+
+    .markdown-view-toggle {
+        display: inline-block;
+        padding: .25em 2em;
+        cursor: pointer;
+        margin-right: .25em;
+        font-weight: bold;
+        color: $blue;
+        text-decoration: underline;
+
+        &.selected {
+            background-color: $blue;
+            color: $white;
+            border: 2px solid $charcoal;
+            text-decoration: none;
+            cursor: default;
+        }
     }
 }

@@ -9,6 +9,7 @@ import * as moment from 'moment';
 import * as toastr from 'toastr';
 
 import { AddRootContentItemActionCard, ClientCard, RootContentItemCard } from '../card';
+import { convertMarkdownToHTML } from '../convert-markdown';
 import { CancelContentPublicationRequestDialog, DeleteRootContentItemDialog } from '../dialog';
 import { FormBase } from '../form/form-base';
 import { isFileUploadInput } from '../form/form-input/file-upload';
@@ -607,6 +608,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     }
   }
 
+  $('textarea').change();
+  setDisclaimerToEditMode();
+
   const createContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
     [
       'common',
@@ -875,6 +879,32 @@ function populateAvailableContentTypes(contentTypes: ContentType[]) {
   $contentTypeDropdown.val(0);
 }
 
+function setDisclaimerToEditMode() {
+  // Toggle buttons
+  $('#content-disclaimer-container .markdown-select-edit').addClass('selected');
+  $('#content-disclaimer-container .markdown-select-preview').removeClass('selected');
+  // Toggle preview -> textarea
+  $('#ContentDisclaimer').show();
+  $('#ContentDisclaimerGuide').show();
+  $('#ContentDisclaimerPreview').hide();
+  // Clear the preview
+  $('ContentDisclaimerPreview').empty();
+}
+
+function setDisclaimerToPreviewMode() {
+  // Update markdown from textarea content
+  const rawDisclaimerMarkdown = (document.getElementById('ContentDisclaimer') as HTMLTextAreaElement).value.trimRight();
+  const processedDisclaimerHTML = convertMarkdownToHTML(rawDisclaimerMarkdown);
+  document.getElementById('ContentDisclaimerPreview').innerHTML = processedDisclaimerHTML;
+  // Toggle buttons
+  $('#content-disclaimer-container .markdown-select-preview').addClass('selected');
+  $('#content-disclaimer-container .markdown-select-edit').removeClass('selected');
+  // Toggle textarea -> preview
+  $('#ContentDisclaimerPreview').show();
+  $('#ContentDisclaimer').hide();
+  $('#ContentDisclaimerGuide').hide();
+}
+
 export function setup() {
   const $contentTypeDropdown = $('#ContentTypeId');
   $contentTypeDropdown.change(() => {
@@ -921,6 +951,18 @@ export function setup() {
   $('.action-icon-collapse').click(collapseAllListener);
   $('.admin-panel-searchbar-tree').keyup(filterTreeListener);
   $('.admin-panel-searchbar-form').keyup(filterFormListener);
+
+  $('textarea').on('change keydown paste cut', function() {
+    $(this).height(0).height(Math.min(this.scrollHeight + 2, 300));
+    if ($(this).height() >= 300) {
+      $(this).css('overflow', 'auto');
+    } else {
+      $(this).css('overflow', 'hidden');
+    }
+  });
+
+  $('#content-disclaimer-container .markdown-select-edit').click(setDisclaimerToEditMode);
+  $('#content-disclaimer-container .markdown-select-preview').click(setDisclaimerToPreviewMode);
 
   $('#root-content-items .admin-panel-toolbar .action-icon-add').click(() => {
     openNewRootContentItemForm();
