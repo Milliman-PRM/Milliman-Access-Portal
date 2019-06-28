@@ -10,6 +10,7 @@
 - Fixed the styling on republishing icons
 - Fixed a bug in displaying userguide contents
 - Added ability to show the Bookmarks pane in PowerBI reports
+- Loosen `<iframe>` sandbox for HTML content to allow rendering PDFs in a "popup"/new window
 
 ### v1.6.0
 
