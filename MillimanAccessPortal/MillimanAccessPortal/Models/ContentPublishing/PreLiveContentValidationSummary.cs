@@ -238,7 +238,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
                     default:
                         uriBuilder.Path += nameof(AuthorizedContentController.AssociatedFilePreview);
-                        uriBuilder.Query = $"purpose={RelatedFile.FilePurpose.ToLower()}{}&publicationRequestId={PubRequest.Id}";
+                        uriBuilder.Query = $"purpose={RelatedFile.FilePurpose.ToLower()}&sort={sortString}&publicationRequestId={PubRequest.Id}";
                         ReturnObj.ReleaseNotesLink = uriBuilder.Uri.AbsoluteUri;
                         break;
                 }
