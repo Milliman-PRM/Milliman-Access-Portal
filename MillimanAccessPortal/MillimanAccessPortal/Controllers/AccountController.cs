@@ -26,6 +26,7 @@ using MillimanAccessPortal.Services;
 using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using AuditLogLib.Models;
 using MillimanAccessPortal.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -317,6 +318,41 @@ namespace MillimanAccessPortal.Controllers
             HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
             Log.Information($"User {userName} logged in with scheme {scheme}");
             _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), userName, HttpContext.Session.Id);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> UserAgreement(UserAgreementViewModel model)
+        {
+            ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
+
+            if (user == null)
+            {
+                Log.Error($"Account.UserAgreement: GET Requested user {User.Identity.Name} not found");
+                return RedirectToAction(nameof(Login));
+            }
+            if (user.IsUserAgreementAccepted == true)
+            {
+                Log.Error($"Account.UserAgreement: GET Request for user {user.UserName} to accept, but user has already accepted");
+                return RedirectToAction(nameof(Login));
+            }
+
+            model.AgreementText = DbContext.NameValueConfiguration.Find(nameof(ConfiguredValueKeys.UserAgreementText))?.Value ?? "User agreement text is not configured";
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AcceptUserAgreement(UserAgreementViewModel model)
+        {
+            ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
+            user.IsUserAgreementAccepted = true;
+            DbContext.SaveChanges();
+
+            _auditLogger.Log(AuditEventType.UserAgreementAcceptance.ToEvent((UserAgreementLogModel)model), user.UserName);
+
+            Response.Headers.Add("NavigateTo", string.IsNullOrEmpty(model.ReturnUrl) ? "/" : model.ReturnUrl);
+            return Ok();
         }
 
         //
