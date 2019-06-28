@@ -798,6 +798,11 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
+        public async Task<IActionResult> AssociatedFilePreview(string purpose, string sort, Guid publicationRequestId)
+        {
+
+        }
+        
         /// <summary>
         /// Handles a request to display a preview of a master HTML content file
         /// </summary>
