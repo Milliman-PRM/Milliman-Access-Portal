@@ -1,5 +1,5 @@
 import { convertMarkdownToHTML } from './convert-markdown';
-import { postData } from './shared';
+import { enableButtonOnScrollBottom, postData } from './shared';
 
 import '../scss/disclaimer.scss';
 
@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const contentDisclaimer = document.getElementById('disclaimer-text');
   contentDisclaimer.innerHTML = convertMarkdownToHTML(rawMarkdown);
 
-  const acceptButton = document.getElementById('accept-button');
+  const acceptButton = document.getElementById('accept-button') as HTMLButtonElement;
   acceptButton.onclick = async () => {
     try {
       await postData('/AuthorizedContent/AcceptDisclaimer', {
@@ -20,4 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.location.replace(window.location.href);
   };
+
+  enableButtonOnScrollBottom(contentDisclaimer, acceptButton);
 });
