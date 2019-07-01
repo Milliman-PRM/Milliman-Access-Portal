@@ -7,3 +7,5 @@ New profit centers in the production environment must be requested via the Profi
 The request must be approved by a PRM Principal or the PRM security manager before the Profit Center is created. The request cannot be made and approved by the same person.
 
 Additionally, the initial user assigned to the profit center must be a Milliman employee. That individual is responsible for the creation of clients and assigning users. 
+
+Any new profit center administrators must be requested by a profit center administrator, they can do this via the help desk system.
