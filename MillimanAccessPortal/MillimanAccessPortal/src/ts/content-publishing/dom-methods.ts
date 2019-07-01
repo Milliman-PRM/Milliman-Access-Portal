@@ -9,6 +9,7 @@ import * as moment from 'moment';
 import * as toastr from 'toastr';
 
 import { AddRootContentItemActionCard, ClientCard, RootContentItemCard } from '../card';
+import { convertMarkdownToHTML } from '../convert-markdown';
 import { CancelContentPublicationRequestDialog, DeleteRootContentItemDialog } from '../dialog';
 import { FormBase } from '../form/form-base';
 import { isFileUploadInput } from '../form/form-input/file-upload';
@@ -137,6 +138,7 @@ export function openNewRootContentItemForm() {
     typeSpecificDetailObject: {
       filterPaneEnabled: false,
       navigationPaneEnabled: false,
+      bookmarksPaneEnabled: false,
     },
     id: '0',
     notes: '',
@@ -191,6 +193,10 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
     formMap.set('NavigationPaneEnabled',
       (item.typeSpecificDetailObject.hasOwnProperty('navigationPaneEnabled')
         ? item.typeSpecificDetailObject.navigationPaneEnabled
+        : false));
+    formMap.set('BookmarksPaneEnabled',
+      (item.typeSpecificDetailObject.hasOwnProperty('bookmarksPaneEnabled')
+        ? item.typeSpecificDetailObject.bookmarksPaneEnabled
         : false));
   }
   formMap.set('Description', item.description);
@@ -565,7 +571,8 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
     formMap.forEach((value, key) => {
       if (key !== 'DoesReduce'
         && key !== 'FilterPaneEnabled'
-        && key !== 'NavigationPaneEnabled') {  // because these are checkboxes
+        && key !== 'NavigationPaneEnabled'
+        && key !== 'BookmarksPaneEnabled') {  // because these are checkboxes
         $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
       }
     });
@@ -593,8 +600,16 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
         (item.typeSpecificDetailObject.hasOwnProperty('navigationPaneEnabled')
           ? item.typeSpecificDetailObject.navigationPaneEnabled
           : false));
+      const $bookmarksPaneToggle = $rootContentItemForm.find('#BookmarksPaneEnabled');
+      $bookmarksPaneToggle.prop('checked',
+        (item.typeSpecificDetailObject.hasOwnProperty('bookmarksPaneEnabled')
+          ? item.typeSpecificDetailObject.bookmarksPaneEnabled
+          : false));
     }
   }
+
+  $('textarea').change();
+  setDisclaimerToEditMode();
 
   const createContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
     [
@@ -858,6 +873,32 @@ function populateAvailableContentTypes(contentTypes: ContentType[]) {
   $contentTypeDropdown.val(0);
 }
 
+function setDisclaimerToEditMode() {
+  // Toggle buttons
+  $('#content-disclaimer-container .markdown-select-edit').addClass('selected');
+  $('#content-disclaimer-container .markdown-select-preview').removeClass('selected');
+  // Toggle preview -> textarea
+  $('#ContentDisclaimer').show();
+  $('#ContentDisclaimerGuide').show();
+  $('#ContentDisclaimerPreview').hide();
+  // Clear the preview
+  $('ContentDisclaimerPreview').empty();
+}
+
+function setDisclaimerToPreviewMode() {
+  // Update markdown from textarea content
+  const rawDisclaimerMarkdown = (document.getElementById('ContentDisclaimer') as HTMLTextAreaElement).value.trimRight();
+  const processedDisclaimerHTML = convertMarkdownToHTML(rawDisclaimerMarkdown);
+  document.getElementById('ContentDisclaimerPreview').innerHTML = processedDisclaimerHTML;
+  // Toggle buttons
+  $('#content-disclaimer-container .markdown-select-preview').addClass('selected');
+  $('#content-disclaimer-container .markdown-select-edit').removeClass('selected');
+  // Toggle textarea -> preview
+  $('#ContentDisclaimerPreview').show();
+  $('#ContentDisclaimer').hide();
+  $('#ContentDisclaimerGuide').hide();
+}
+
 export function setup() {
   const $contentTypeDropdown = $('#ContentTypeId');
   $contentTypeDropdown.change(() => {
@@ -878,12 +919,16 @@ export function setup() {
       $contentDisplaySettings.show();
       $('#FilterPaneEnabled').removeAttr('disabled');
       $('#NavigationPaneEnabled').removeAttr('disabled');
+      $('#BookmarksPaneEnabled').removeAttr('disabled');
     } else {
       $contentDisplaySettings.hide();
       $('#FilterPaneEnabled')
         .prop('checked', false)
         .attr('disabled', '');
       $('#NavigationPaneEnabled')
+        .prop('checked', false)
+        .attr('disabled', '');
+      $('#BookmarksPaneEnabled')
         .prop('checked', false)
         .attr('disabled', '');
     }
@@ -900,6 +945,18 @@ export function setup() {
   $('.action-icon-collapse').click(collapseAllListener);
   $('.admin-panel-searchbar-tree').keyup(filterTreeListener);
   $('.admin-panel-searchbar-form').keyup(filterFormListener);
+
+  $('textarea').on('change keydown paste cut', function() {
+    $(this).height(0).height(Math.min(this.scrollHeight + 2, 300));
+    if ($(this).height() >= 300) {
+      $(this).css('overflow', 'auto');
+    } else {
+      $(this).css('overflow', 'hidden');
+    }
+  });
+
+  $('#content-disclaimer-container .markdown-select-edit').click(setDisclaimerToEditMode);
+  $('#content-disclaimer-container .markdown-select-preview').click(setDisclaimerToPreviewMode);
 
   $('#root-content-items .admin-panel-toolbar .action-icon-add').click(() => {
     openNewRootContentItemForm();

@@ -346,6 +346,7 @@ namespace MillimanAccessPortal.Controllers
 
                     currentProps.FilterPaneEnabled = newProps.FilterPaneEnabled;
                     currentProps.NavigationPaneEnabled = newProps.NavigationPaneEnabled;
+                    currentProps.BookmarksPaneEnabled = newProps.BookmarksPaneEnabled;
 
                     currentRootContentItem.TypeSpecificDetailObject = currentProps;
                     break;

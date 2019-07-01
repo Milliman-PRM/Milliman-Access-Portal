@@ -565,6 +565,18 @@ export function confirmAndContinueForm(onContinue: any, condition = true) {
   }
 }
 
+export function enableButtonOnScrollBottom(scrollElement: HTMLElement, button: HTMLButtonElement) {
+  if (scrollElement.scrollHeight - scrollElement.clientHeight > 5) {
+    scrollElement.addEventListener('scroll', () => {
+      if (scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight < 5) {
+        button.disabled = false;
+      }
+    });
+  } else {
+    button.disabled = false;
+  }
+}
+
 // fetch helpers
 export function getData(url = '', data: any = {}) {
   const queryParams: string[] = [];

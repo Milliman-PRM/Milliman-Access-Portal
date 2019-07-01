@@ -1,4 +1,4 @@
-@model MillimanAccessPortal.Models.AuthorizedContentViewModels.ContentDisclaimerModel
+@model MillimanAccessPortal.Models.AccountViewModels.UserAgreementViewModel
 
 @{
     ViewData["Title"] = "";
@@ -12,17 +12,20 @@
 }
 
 <div id="disclaimer-container">
-  <h2 id="content-name">Disclaimer: @Model.ContentName</h2>
-  <div id="raw-markdown" style="display: none">
-    @Model.DisclaimerText
-  </div>
+	@Html.Hidden("ReturnUrl", Model.ReturnUrl)
+  <h2 id="content-name">User Agreement</h2>
+	 @Html.Hidden("IsRenewal", Model.IsRenewal)
+  <p>
+	@(Model.IsRenewal ? 
+	"Our Terms and Conditions have changed.  Please review and accept the updated Terms." : 
+	"Please review and accept our Terms and Conditions.")
+  </p>
   <div id="content-disclaimer-text">
+	@Html.Hidden("AgreementText", Model.AgreementText)
+    @Model.AgreementText
   </div>
   <form id="content-disclaimer-form">
-    <input asp-for="SelectionGroupId" style="visibility: hidden;">
-    <input asp-for="ValidationId" style="visibility: hidden;">
     @Html.AntiForgeryToken()
-	<span id="content-disclaimer-acceptance">By clicking the "Accept" button below, You are acknowledging that you have read and accept the terms presented above.</span>
     <div class="button-container">
       <button id="accept-button" type="button" class="green-button" disabled>Accept</button>
     </div>

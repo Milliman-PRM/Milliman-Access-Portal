@@ -17,11 +17,33 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace AuditLogLib.Event
 {
+    #region Common type declarations used in audit logging
+    public class SelectionGroupLogObject
+    {
+        public Guid ClientId { get; set; }
+        public Guid RootContentItemId { get; set; }
+        public Guid SelectionGroupId { get; set; }
+    }
+
+    public enum PasswordResetRequestReason
+    {
+        [Display(Name = "User Initiated")]
+        UserInitiated,
+
+        [Display(Name = "Password Expired")]
+        PasswordExpired,
+
+        [Display(Name = "Previous Password Reset Token Invalid")]
+        PasswordResetTokenInvalid,
+    }
+    #endregion
+
     public sealed class AuditEventType : AuditEventTypeBase
     {
 
@@ -190,11 +212,12 @@ namespace AuditLogLib.Event
                 UserId = user.Id,
                 AccountUserName = user.UserName,
             });
-        public static readonly AuditEventType<ApplicationUser> PasswordResetRequested = new AuditEventType<ApplicationUser>(
-            3006, "Account password reset requested", (user) => new
+        public static readonly AuditEventType<ApplicationUser,PasswordResetRequestReason> PasswordResetRequested = new AuditEventType<ApplicationUser, PasswordResetRequestReason>(
+            3006, "Account password reset requested", (user,reason) => new
             {
                 UserId = user.Id,
                 AccountUserName = user.UserName,
+                Reason = reason.GetDisplayValueString()
             });
         public static readonly AuditEventType<ApplicationUser> PasswordResetCompleted = new AuditEventType<ApplicationUser>(
             3007, "Account password reset completed", (user) => new
@@ -218,6 +241,17 @@ namespace AuditLogLib.Event
             3012, "Login account is suspended", (attemptedUserName) => new
             {
                 AttemptedUsername = attemptedUserName,
+            });
+
+        public static readonly AuditEventType<UserAgreementLogModel> UserAgreementAcceptance = new AuditEventType<UserAgreementLogModel>(
+            3101, "User agreement acceptance", (userAgreementLogModel) => new
+            {
+                userAgreementLogModel.AgreementText,
+            });
+        public static readonly AuditEventType<string> UserAgreementReset = new AuditEventType<string>(
+            3102, "User agreement reset", (userName) => new
+            {
+                UserName = userName,
             });
         #endregion
 
@@ -650,16 +684,11 @@ namespace AuditLogLib.Event
         // 73xx - Client management
         public static readonly AuditEventType<UpdateClientDomainLimitLogModel> ClientDomainLimitUpdated = new AuditEventType<UpdateClientDomainLimitLogModel>(
             7301, "Client domain limit updated", logModel => logModel);
-        #endregion
-        #endregion
 
-        #region Common loggable object declarations
-        public class SelectionGroupLogObject
-        {
-            public Guid ClientId { get; set; }
-            public Guid RootContentItemId { get; set; }
-            public Guid SelectionGroupId { get; set; }
-        }
+        // 74xx - Global system management
+        public static readonly AuditEventType<string> UserAgreementUpdated = new AuditEventType<string>(
+            7401, "User agreement updated", NewText => NewText);
+        #endregion
         #endregion
 
         private readonly Func<object> logObjectTransform;
