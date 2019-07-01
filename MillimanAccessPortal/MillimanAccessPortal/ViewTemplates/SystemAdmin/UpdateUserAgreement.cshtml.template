@@ -20,10 +20,7 @@
 		</div>
         <div id="user-agreement-text">
             @Html.TextArea("newAgreementText", @Model)
-			<div id="ContentDisclaimerGuide">
-			**<strong>bold</strong>**, _<i>italics</i>_, ### <b>Section Header</b>
-			</div>
-			<div id="ContentDisclaimerPreview" style="display: none;"></div>
+			<div id="AgreementPreview" style="display: none;"></div>
         </div>
         @Html.AntiForgeryToken()
         <div class="button-container">
