@@ -14,8 +14,13 @@
 <div id="agreement-container" class="admin-panel-content-container">
     <form id="user-agreement-form" action="updateUserAgreement" method="POST">
         <h3 class="section-title">User Agreement Text</h3>
+        <div class="markdown-view-button-container">
+            <span class="markdown-view-toggle markdown-select-edit selected">Edit</span>
+            <span class="markdown-view-toggle markdown-select-preview">Preview</span>
+        </div>
         <div id="user-agreement-text">
             @Html.TextArea("newAgreementText", @Model)
+           <div id="AgreementPreview" style="display: none;"></div>
         </div>
         @Html.AntiForgeryToken()
         <div class="button-container">

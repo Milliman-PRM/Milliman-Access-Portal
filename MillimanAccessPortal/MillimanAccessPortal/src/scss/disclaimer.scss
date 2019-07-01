@@ -28,24 +28,27 @@ body {
         margin-bottom: .5em;
     }
 
-    #content-disclaimer-text {
+    #disclaimer-text {
         flex: 1 1 auto;
         overflow-y: auto;
         background-color: $white;
         padding: 1em;
+        margin-bottom: 1em;
         border: 1px solid $grey;
     }
 
-    #content-disclaimer-acceptance {
+    #disclaimer-acceptance {
         font-weight: bold;
     } 
     
-    #content-disclaimer-form {
+    #disclaimer-form {
         flex: none;
         width: 100%;
 
         input[type="text"] {
             height: 0;
+            margin: 0;
+            padding: 0;
         }
 
         .button-container {
