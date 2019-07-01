@@ -364,17 +364,14 @@ namespace MillimanAccessPortal.Controllers
 
             DbContext.SaveChanges();
 
-            var logInfo = DbContext.RootContentItem
-                                .Include(c => c.Client)
-                                .Where(c => c.Id == rootContentItem.Id)
-                                .FirstOrDefault();
+            var logClient = DbContext.Client.Find(rootContentItem.ClientId);
 
             Log.Verbose($"In ContentPublishingController.UpdateRootContentItem action: success");
-            AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(rootContentItem, logInfo.Client));
+            AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(rootContentItem, logClient));
             if (usersInGroup != null)
             {
                 AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetTextChange
-                    .ToEvent(usersInGroup, rootContentItem, logInfo.Client));
+                    .ToEvent(usersInGroup, rootContentItem, logClient));
             }
 
             RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, currentRootContentItem);

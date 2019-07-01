@@ -212,13 +212,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _dbContext.SelectionGroup.Add(group);
 
             _dbContext.SaveChanges();
-
-            var contentItem = _dbContext.RootContentItem
-                                .Include(c => c.Client)
-                                .Where(c => c.Id == contentItemId)
-                                .FirstOrDefault();
-
-            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, contentItem, contentItem.Client));
+            
+            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, group.RootContentItem, group.RootContentItem.Client)); ;
 
             return group;
         }
