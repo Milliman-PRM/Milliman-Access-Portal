@@ -7,6 +7,7 @@ import '../../../images/icons/user.svg';
 import * as React from 'react';
 import * as Yup from 'yup';
 
+import { URLSearchParams } from 'url';
 import { postData } from '../../shared';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { BaseFormState, Form } from '../shared-components/form';
@@ -171,7 +172,8 @@ export class LoginForm extends Form<{}, LoginFormState> {
 
     // hold for
     this.setState({ awaitingConfirmation: true }, () => {
-      postData('/Account/IsLocalAccount', { username: this.state.data.username })
+      const { username } = this.state.data;
+      postData('/Account/IsLocalAccount', { username })
         .then((response) => {
           if (response.localAccount) {
             this.setState({
@@ -181,7 +183,9 @@ export class LoginForm extends Form<{}, LoginFormState> {
               this.focusPasswordInput();
             });
           } else {
-            window.location.replace(`/Account/RemoteAuthenticate?username=${this.state.data.username}`);
+            const urlParemeters = new URLSearchParams(window.location.search);
+            const returnTo = encodeURI(urlParemeters.has('ReturnUrl') ? urlParemeters.get('ReturnUrl') : '/');
+            window.location.replace(`/Account/RemoteAuthenticate?username=${username}&returnURL=${returnTo}`);
           }
         })
         .catch(() => {
