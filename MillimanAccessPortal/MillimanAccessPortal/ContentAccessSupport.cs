@@ -105,6 +105,9 @@ namespace MillimanAccessPortal
                                                                   .Include(t => t.SelectionGroup)
                                                                       .ThenInclude(g => g.RootContentItem)
                                                                           .ThenInclude(c=> c.ContentType)
+                                                                  .Include(t => t.SelectionGroup)
+                                                                      .ThenInclude(g => g.RootContentItem)
+                                                                          .ThenInclude(c => c.Client)
                                                                   .Single(t => t.Id == thisContentReductionTask.Id);
 
                 List<string> FilesToDelete = await ReducedContentGoLive(Db, thisContentReductionTask, contentRootFolder, ContentTypeConfig);
@@ -124,7 +127,7 @@ namespace MillimanAccessPortal
         }
 
         /// <summary>
-        /// Moves files and updates db, requires navigation property chain SelectionGroup and RootContentItem. Cooperates in a transaction
+        /// Moves files and updates db, requires navigation property chain SelectionGroup, RootContentItem, and Client. Cooperates in a transaction
         /// </summary>
         /// <param name="Db">A valid instance of database context</param>
         /// <param name="auditLogger">A valid instance of audit logger</param>
@@ -208,7 +211,7 @@ namespace MillimanAccessPortal
 
             AuditLogger Logger = new AuditLogger();
             Logger.Log(AuditEventType.ContentDisclaimerAcceptanceResetSelectionChange
-                .ToEvent(usersInGroup, rootContentItemId));
+                .ToEvent(usersInGroup, reductionTask.SelectionGroup.RootContentItem, reductionTask.SelectionGroup.RootContentItem.Client));
 
             return FilesToDelete;
         }

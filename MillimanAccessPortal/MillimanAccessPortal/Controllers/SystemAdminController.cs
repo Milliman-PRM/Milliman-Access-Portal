@@ -1140,7 +1140,7 @@ namespace MillimanAccessPortal.Controllers
             #region Audit logging (may depend on what is updated)
             if (updatedClient.DomainLimitChange.NewDomainLimit != previousDomainLimit)
             {
-                _auditLogger.Log(AuditEventType.ClientDomainLimitUpdated.ToEvent(updatedClient.BuildAuditLogEventData(previousDomainLimit)));
+                _auditLogger.Log(AuditEventType.ClientDomainLimitUpdated.ToEvent(updatedClient.BuildAuditLogEventData(previousDomainLimit, existingRecord.Name)));
             }
 
             // Log other auditable things here
@@ -1479,7 +1479,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var existingRecord = _dbContext.RootContentItem.Find(rootContentItemId);
+            var existingRecord = _dbContext.RootContentItem
+                .Include(c => c.Client)
+                .SingleOrDefault(c => c.Id == rootContentItemId);
             if (existingRecord == null)
             {
                 Log.Debug($"In SystemAdminController.CancelPublication action: content item {rootContentItemId} not found, aborting");
@@ -1520,7 +1522,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("In SystemAdminController.CancelPublication action: success");
             foreach (var updatedPublication in activePublications)
             {
-                _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingRecord, updatedPublication));
+                _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingRecord, existingRecord.Client, updatedPublication));
             }
 
             return Json(existingRecord);
@@ -1551,7 +1553,10 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var existingRecord = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var existingRecord = _dbContext.SelectionGroup
+                .Include(g => g.RootContentItem)
+                    .ThenInclude(c => c.Client)
+                .SingleOrDefault(g => g.Id == selectionGroupId);
             if (existingRecord == null)
             {
                 Log.Debug($"In SystemAdminController.CancelReduction action: selection group not found, aborting");
@@ -1591,7 +1596,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In SystemAdminController.CancelReduction action: success");
             foreach (var updatedReduction in activeReductions)
             {
-                _auditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(existingRecord, updatedReduction));
+                _auditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(existingRecord, existingRecord.RootContentItem, existingRecord.RootContentItem.Client, updatedReduction));
             }
 
             return Json(existingRecord);

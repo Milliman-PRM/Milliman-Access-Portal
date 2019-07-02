@@ -535,7 +535,9 @@ namespace MapTests
             {
                 Id = dbItem.Id,
                 ContentTypeId = dbItem.ContentTypeId,
+                ContentType = dbItem.ContentType,
                 ClientId = dbItem.ClientId,
+                Client = dbItem.Client,
                 ContentName = dbItem.ContentName,
                 Notes = "This note is added",
             };
@@ -568,9 +570,10 @@ namespace MapTests
             {
                 Id = dbItem.Id,
                 ContentTypeId = dbItem.ContentTypeId,
+                ContentType = dbItem.ContentType,
                 ClientId = dbItem.ClientId,
+                Client = dbItem.Client,
                 ContentName = dbItem.ContentName,
-                ContentType = TestResources.DbContextObject.ContentType.Find(dbItem.ContentTypeId),
             };
             updateModel.TypeSpecificDetailObject = props;
             #endregion

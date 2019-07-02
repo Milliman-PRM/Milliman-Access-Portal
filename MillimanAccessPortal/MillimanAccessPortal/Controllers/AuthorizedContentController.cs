@@ -110,6 +110,9 @@ namespace MillimanAccessPortal.Controllers
         {
             var user = await Queries.GetCurrentApplicationUser(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
+                .Include(u => u.SelectionGroup)
+                    .ThenInclude(sg => sg.RootContentItem)
+                        .ThenInclude(c => c.Client)
                 .Where(u => u.UserId == user.Id)
                 .Where(u => u.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
@@ -164,7 +167,7 @@ namespace MillimanAccessPortal.Controllers
                     DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
                 };
                 AuditLogger.Log(AuditEventType.ContentDisclaimerPresented.ToEvent(
-                    userInSelectionGroup, disclaimer.ValidationId, disclaimer.DisclaimerText));
+                    userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, disclaimer.ValidationId, disclaimer.DisclaimerText));
 
                 return View("ContentDisclaimer", disclaimer);
             }
@@ -190,6 +193,9 @@ namespace MillimanAccessPortal.Controllers
         {
             var user = await Queries.GetCurrentApplicationUser(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
+                .Include(u => u.SelectionGroup)
+                    .ThenInclude(sg => sg.RootContentItem)
+                        .ThenInclude(c => c.Client)
                 .Where(u => u.UserId == user.Id)
                 .Where(u => u.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
@@ -199,7 +205,7 @@ namespace MillimanAccessPortal.Controllers
                 userInSelectionGroup.DisclaimerAccepted = true;
 
                 await DataContext.SaveChangesAsync();
-                AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, validationId));
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, validationId, userInSelectionGroup.SelectionGroup.RootContentItem.ContentDisclaimer));
             }
 
             return Ok();
@@ -316,7 +322,7 @@ namespace MillimanAccessPortal.Controllers
 
                     notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
                     Log.Warning("In AuthorizedContentController.WebHostedContent action: checksum failure for ContentFile {@ContentFile}, aborting", requestedContentFile);
-                    AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, requestedContentFile, "AuthorizedContentController.WebHostedContent"));
+                    AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, requestedContentFile, "AuthorizedContentController.WebHostedContent"));
                     return View("ContentMessage", ErrMsg);
                 }
             }
@@ -721,14 +727,17 @@ namespace MillimanAccessPortal.Controllers
 
                 notifier.sendSupportMail(MailMsg, $"Checksum verification ({purpose})");
                 Log.Error("In AuthorizedContentController.RelatedPdf action: file checksum failure, ContentRelatedFile {@ContentRelatedFile}, aborting", contentRelatedPdf);
-                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, contentRelatedPdf, "AuthorizedContentController.RelatedPdf"));
+                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentRelatedPdf, "AuthorizedContentController.RelatedPdf"));
                 return View("ContentMessage", ErrMsg);
             }
             #endregion
 
             // Log access to related file
             AuditLogger.Log(AuditEventType.UserContentRelatedFileAccess.ToEvent(
-                selectionGroup.RootContentItemId.ToString(), selectionGroup.Id.ToString(), purpose));
+                    selectionGroup, 
+                    selectionGroup.RootContentItem, 
+                    selectionGroup.RootContentItem.Client,
+                    purpose));
 
             try
             {

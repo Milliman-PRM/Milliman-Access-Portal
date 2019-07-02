@@ -27,11 +27,12 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             public string DomainLimitRequestedByPersonName { get; set; }
         }
 
-        public UpdateClientDomainLimitLogModel BuildAuditLogEventData(int previousLimit)
+        public UpdateClientDomainLimitLogModel BuildAuditLogEventData(int previousLimit, string clientName)
         {
             return new UpdateClientDomainLimitLogModel
             {
                 ClientId = ClientId,
+                ClientName = clientName,
                 NewDomainLimit = DomainLimitChange.NewDomainLimit,
                 PreviousDomainLimit = previousLimit,
                 DomainListUpdateRequestedByPersonName = DomainLimitChange.DomainLimitRequestedByPersonName,
