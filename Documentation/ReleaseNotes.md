@@ -2,7 +2,7 @@
 
 ## Release Notes
 
-### v1.x.x
+### v1.7.0
 
 - Added a User Agreement
 - Added support for markdown for content disclaimers
