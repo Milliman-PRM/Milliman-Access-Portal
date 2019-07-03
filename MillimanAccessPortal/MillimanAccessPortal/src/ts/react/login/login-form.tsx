@@ -183,7 +183,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
             });
           } else {
             const urlParemeters = new URLSearchParams(window.location.search);
-            const returnTo = encodeURI(urlParemeters.has('ReturnUrl') ? urlParemeters.get('ReturnUrl') : '/');
+            const returnTo = escape(urlParemeters.has('ReturnUrl') ? urlParemeters.get('ReturnUrl') : '/');
             window.location.replace(`/Account/RemoteAuthenticate?username=${username}&returnURL=${returnTo}`);
           }
         })
