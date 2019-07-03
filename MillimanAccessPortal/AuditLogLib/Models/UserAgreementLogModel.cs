@@ -6,6 +6,7 @@ namespace AuditLogLib.Models
 {
     public class UserAgreementLogModel
     {
+        public string ValidationId { get; set; }
         public string AgreementText { get; set; }
     }
 }

@@ -10,7 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const declineButton = document.getElementById('decline-button') as HTMLButtonElement;
   declineButton.onclick = async () => {
-    await postData('/Account/DeclineUserAgreement', {}, true)
+    await postData('/Account/DeclineUserAgreement', {
+      ValidationId: (document.getElementById('ValidationId') as HTMLInputElement).value,
+    }, true)
       .then((response) => {
         const redirectUrl = response.headers.get('NavigateTo');
         window.location.replace(redirectUrl);
@@ -24,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
   acceptButton.onclick = async () => {
     await postData('/Account/AcceptUserAgreement', {
       AgreementText: (document.getElementById('AgreementText') as HTMLInputElement).value,
+      ValidationId: (document.getElementById('ValidationId') as HTMLInputElement).value,
       IsRenewal: (document.getElementById('IsRenewal') as HTMLInputElement).value,
       ReturnUrl: (document.getElementById('ReturnUrl') as HTMLInputElement).value,
     }, true)

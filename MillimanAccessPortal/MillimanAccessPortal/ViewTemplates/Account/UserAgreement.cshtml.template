@@ -13,8 +13,9 @@
 
 <div id="disclaimer-container">
 	@Html.Hidden("ReturnUrl", Model.ReturnUrl)
+	@Html.Hidden("ValidationId", Model.ValidationId)
+	@Html.Hidden("IsRenewal", Model.IsRenewal)
   <h2 id="content-name">User Agreement</h2>
-	 @Html.Hidden("IsRenewal", Model.IsRenewal)
   <p>
     @(Model.IsRenewal ? 
     "Our Terms and Conditions have changed.  Please review and accept the updated Terms." : 
