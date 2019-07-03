@@ -343,6 +343,19 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeclineUserAgreement()
+        {
+            ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
+
+            _auditLogger.Log(AuditEventType.UserAgreementDeclined.ToEvent(), user.UserName);
+
+            await _signInManager.SignOutAsync();
+            Response.Headers.Add("NavigateTo", "/");
+            return Ok();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AcceptUserAgreement(UserAgreementViewModel model)
         {
             ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);

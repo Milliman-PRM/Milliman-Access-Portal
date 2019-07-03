@@ -8,8 +8,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const contentDisclaimer = document.getElementById('disclaimer-text');
   contentDisclaimer.innerHTML = convertMarkdownToHTML(rawMarkdown);
 
-  const acceptButton = document.getElementById('accept-button') as HTMLButtonElement;
+  const declineButton = document.getElementById('decline-button') as HTMLButtonElement;
+  declineButton.onclick = async () => {
+    await postData('/Account/DeclineUserAgreement', {}, true)
+      .then((response) => {
+        const redirectUrl = response.headers.get('NavigateTo');
+        window.location.replace(redirectUrl);
+      })
+      .catch(() => {
+        alert('An error has occurred. Please try again.');
+      });
+  };
 
+  const acceptButton = document.getElementById('accept-button') as HTMLButtonElement;
   acceptButton.onclick = async () => {
     await postData('/Account/AcceptUserAgreement', {
       AgreementText: (document.getElementById('AgreementText') as HTMLInputElement).value,

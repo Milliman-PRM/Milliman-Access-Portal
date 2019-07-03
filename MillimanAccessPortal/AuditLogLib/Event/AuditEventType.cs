@@ -248,8 +248,9 @@ namespace AuditLogLib.Event
             {
                 userAgreementLogModel.AgreementText,
             });
+        public static readonly AuditEventType UserAgreementDeclined = new AuditEventType(3102, "User agreement declined");
         public static readonly AuditEventType<string> UserAgreementReset = new AuditEventType<string>(
-            3102, "User agreement reset", (userName) => new
+            3103, "User agreement reset", (userName) => new
             {
                 UserName = userName,
             });

@@ -30,6 +30,7 @@
     @Html.AntiForgeryToken()
     <span id="disclaimer-acceptance">By clicking the "Accept" button below, you are acknowledging that you have read and accept the terms presented above.</span>
   	<div class="button-container">
+      <button id="decline-button" type="button" class="red-button">Decline</button>
       <button id="accept-button" type="button" class="green-button" disabled>Accept</button>
     </div>
   </form>
