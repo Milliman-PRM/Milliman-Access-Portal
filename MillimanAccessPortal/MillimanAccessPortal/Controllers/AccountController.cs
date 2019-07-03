@@ -189,6 +189,7 @@ namespace MillimanAccessPortal.Controllers
                         if (!string.IsNullOrWhiteSpace(wauthValue))
                         {
                             properties.SetString("wauth", wauthValue);
+                            properties.SetString("wctx", "ru=" + returnUrl);
                         }
                         break;
                 }
