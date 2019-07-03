@@ -179,12 +179,12 @@ namespace MillimanAccessPortal.Controllers
                 Scheme = Request.Scheme,
                 Port = Request.Host.Port ?? -1,
                 Path = $"/AuthorizedContent/{nameof(WebHostedContent)}",
-                Query = "selectionGroupId=",
+                Query = Request.QueryString.Value?.Substring(1),
             };
 
             return View("ContentWrapper", new ContentWrapperModel
             {
-                ContentURL = $"{contentUrlBuilder.Uri.AbsoluteUri}{selectionGroup.Id}",
+                ContentURL = contentUrlBuilder.Uri.AbsoluteUri,
                 ContentType = selectionGroup.RootContentItem.ContentType.TypeEnum,
             });
         }
