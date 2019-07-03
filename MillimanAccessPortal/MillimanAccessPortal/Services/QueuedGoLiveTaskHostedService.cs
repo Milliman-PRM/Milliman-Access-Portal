@@ -510,6 +510,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     if (MasterContentUploaded)
                     {
                         usersInGroup = dbContext.UserInSelectionGroup
+                            .Include(u => u.User)
                             .Where(u => u.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
                             .ToList();
                         usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
