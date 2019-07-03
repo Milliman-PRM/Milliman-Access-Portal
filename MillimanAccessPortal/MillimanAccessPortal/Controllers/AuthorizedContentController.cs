@@ -266,13 +266,24 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Content Disclaimer Verification
+            #region Validation
+            // user must have accepted the content disclaimer if one exists
             if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer)
                 && !userInSelectionGroup.DisclaimerAccepted)
             {
                 return View("ContentMessage", new List<string>
                 {
                     "You are not authorized to access the requested content.",
+                });
+            }
+
+            // This request must be referred by ContentWrapper
+            var requestHeaders = Request.GetTypedHeaders();
+            if (requestHeaders.Referer == null || !requestHeaders.Referer.AbsolutePath.Contains(nameof(ContentWrapper)))
+            {
+                return View("ContentMessage", new List<string>
+                {
+                    "The content is not properly requested.",
                 });
             }
             #endregion
