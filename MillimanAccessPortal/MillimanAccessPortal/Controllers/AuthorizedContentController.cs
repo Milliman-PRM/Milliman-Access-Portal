@@ -281,10 +281,16 @@ namespace MillimanAccessPortal.Controllers
             var requestHeaders = Request.GetTypedHeaders();
             if (requestHeaders.Referer == null || !requestHeaders.Referer.AbsolutePath.Contains(nameof(ContentWrapper)))
             {
-                return View("ContentMessage", new List<string>
+                UriBuilder contentUrlBuilder = new UriBuilder
                 {
-                    "The content is not properly requested.",
-                });
+                    Host = Request.Host.Host,
+                    Scheme = Request.Scheme,
+                    Port = Request.Host.Port ?? -1,
+                    Path = $"/AuthorizedContent/{nameof(ContentWrapper)}",
+                    Query = Request.QueryString.Value?.Substring(1),
+                };
+                Log.Warning($"From AuthorizedContentController.{nameof(WebHostedContent)}: Improper request not refered by AuthorizedContentController.{nameof(ContentWrapper)}, redirecting to {contentUrlBuilder.Uri.AbsoluteUri}")
+                return Redirect(contentUrlBuilder.Uri.AbsoluteUri);
             }
             #endregion
 
