@@ -7,7 +7,6 @@ import '../../../images/icons/user.svg';
 import * as React from 'react';
 import * as Yup from 'yup';
 
-import { URLSearchParams } from 'url';
 import { postData } from '../../shared';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { BaseFormState, Form } from '../shared-components/form';
