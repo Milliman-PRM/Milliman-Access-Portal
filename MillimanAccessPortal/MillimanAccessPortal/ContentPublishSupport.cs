@@ -222,9 +222,11 @@ namespace MillimanAccessPortal
 
                 ReturnObj = new ContentRelatedFile
                 {
+                    Id = RelatedFile.FileUploadId,
                     FilePurpose = RelatedFile.FilePurpose,
                     FullPath = DestinationFullPath,
                     FileOriginalName = RelatedFile.FileOriginalName,
+                    FileType = RelatedFile.FileType,
                     SortOrder = RelatedFile.SortOrder,
                     Checksum = FileUploadRecord.Checksum,
                 };

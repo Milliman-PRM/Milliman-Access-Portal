@@ -558,11 +558,11 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
-            // There must be new files or files to delete
-            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any())
+            // There must be new files or changes to existing files (including change of sort order)
+            if (!request.NewRelatedFiles.Any() && !request.RemainingExistingAssociatedFiles.ToHashSet().SetEquals(ContentItem.ContentFilesList))
             {
-                Log.Debug($"In ContentPublishingController.Publish action: no files provided, aborting");
-                Response.Headers.Add("Warning", "No files provided.");
+                Log.Debug($"In ContentPublishingController.Publish action: no file changes provided, aborting");
+                Response.Headers.Add("Warning", "No file changes provided.");
                 return BadRequest();
             }
 
@@ -583,15 +583,9 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            if (request.DeleteFilePurposes.Any())
-            {
-                var filesToDelete = ContentItem.ContentFilesList
-                    .Where(f => request.DeleteFilePurposes.Contains(f.FilePurpose)).ToList();
-
-                _fileSystemTasks.DeleteRelatedFiles(ContentItem, filesToDelete);
-
-                DbContext.SaveChanges();
-            }
+            var associatedFilesToRemove = ContentItem.ContentFilesList.Except(request.RemainingExistingAssociatedFiles, new ContentRelatedFileIdComparer()).ToList();
+            _fileSystemTasks.DeleteRelatedFiles(ContentItem, associatedFilesToRemove);
+            DbContext.SaveChanges();
 
             if (request.NewRelatedFiles.Any())
             {
