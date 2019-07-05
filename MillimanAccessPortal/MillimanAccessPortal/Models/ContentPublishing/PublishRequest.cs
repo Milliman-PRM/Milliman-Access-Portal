@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Models;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
@@ -18,6 +19,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public UploadedRelatedFile[] NewRelatedFiles { get; set; } = new UploadedRelatedFile[0];
 
         [Required]
-        public string[] DeleteFilePurposes { get; set; } = new string[0];
+        public List<ContentRelatedFile> RemainingExistingAssociatedFiles { get; set; } = new List<ContentRelatedFile>();
     }
 }

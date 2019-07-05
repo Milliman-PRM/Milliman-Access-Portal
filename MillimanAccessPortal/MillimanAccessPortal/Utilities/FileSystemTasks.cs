@@ -16,35 +16,21 @@ namespace MillimanAccessPortal.Utilities
 
         /// <summary>
         /// Delete files related to a root content item.
-        /// 
-        /// This function is meant to delete simple supporting files. After deleting the file, no additional
-        /// cleanup is performed aside from removing its reference from the root content item record.
-        /// 
-        /// The calling code is responsible for saving changes to contentItem.
+        /// After deleting the file, the related reference is removed from the root content item record.
+        /// The calling code is responsible for saving changes to the contentItem.
         /// </summary>
-        /// <param name="contentItem">Root content item from which files are to be removed</param>
+        /// <param name="contentItem">Root content item from which files are to be removed, must be already tracked in EF cache.</param>
         /// <param name="relatedFiles">Related files to be removed</param>
         public void DeleteRelatedFiles(RootContentItem contentItem, List<ContentRelatedFile> relatedFiles)
         {
             var relatedFilesObj = contentItem.ContentFilesList;
             foreach (var relatedFile in relatedFiles.Where(f => f.FilePurpose != "MasterContent"))
             {
-                string workingDirectory = Path.GetDirectoryName(relatedFile.FullPath);
-                string targetFilePrefix = ContentTypeSpecificApiBase.GenerateContentFileName(
-                    relatedFile.FilePurpose, "", contentItem.Id, relatedFile.SortOrder);
+                // Delete the file
+                FileSystemUtil.DeleteFileWithRetry(relatedFile.FullPath);
 
-                // Assumes only one file for each purpose
-                var targetFiles = Directory.EnumerateFiles(workingDirectory)
-                    .Where(f => Path.GetFileNameWithoutExtension(f) == targetFilePrefix).ToList();
-
-                foreach (var file in targetFiles)
-                {
-                    // Delete the file
-                    FileSystemUtil.DeleteFileWithRetry(file);
-
-                    // Update content list in root content item
-                    relatedFilesObj.RemoveAll(f => f.FilePurpose == relatedFile.FilePurpose);
-                }
+                // Update content list in root content item
+                relatedFilesObj.RemoveAll(f => f.Id == relatedFile.Id);
             }
             contentItem.ContentFilesList = relatedFilesObj;
         }

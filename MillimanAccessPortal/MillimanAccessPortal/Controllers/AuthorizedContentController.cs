@@ -835,7 +835,8 @@ namespace MillimanAccessPortal.Controllers
 
         public async Task<IActionResult> AssociatedFilePreview(string purpose, string sort, Guid publicationRequestId)
         {
-
+            // TODO implement this
+            return Ok();
         }
         
         /// <summary>
