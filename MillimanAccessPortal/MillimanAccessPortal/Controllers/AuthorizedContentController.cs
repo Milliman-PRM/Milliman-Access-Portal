@@ -289,7 +289,7 @@ namespace MillimanAccessPortal.Controllers
                     Path = $"/AuthorizedContent/{nameof(ContentWrapper)}",
                     Query = Request.QueryString.Value?.Substring(1),
                 };
-                Log.Warning($"From AuthorizedContentController.{nameof(WebHostedContent)}: Improper request not refered by AuthorizedContentController.{nameof(ContentWrapper)}, redirecting to {contentUrlBuilder.Uri.AbsoluteUri}")
+                Log.Warning($"From AuthorizedContentController.{nameof(WebHostedContent)}: Improper request not refered by AuthorizedContentController.{nameof(ContentWrapper)}, redirecting to {contentUrlBuilder.Uri.AbsoluteUri}");
                 return Redirect(contentUrlBuilder.Uri.AbsoluteUri);
             }
             #endregion
