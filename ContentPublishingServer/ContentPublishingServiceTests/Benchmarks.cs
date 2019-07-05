@@ -51,7 +51,7 @@ namespace ContentPublishingServiceTests
 
                     string exchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{taskGuid}\";
                     string masterContentFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
-                        "MasterContent", $".{taskNo}.qvw", dbTask.SelectionGroup.RootContentItemId);
+                        "MasterContent", $".{taskNo}.qvw", dbTask.SelectionGroup.RootContentItemId, "");
                     string masterContentFilePath = Path.Combine(exchangeFolder, masterContentFileName);
 
                     Directory.CreateDirectory(exchangeFolder);
