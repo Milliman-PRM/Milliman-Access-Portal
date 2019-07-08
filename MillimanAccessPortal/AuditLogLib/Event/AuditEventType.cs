@@ -250,10 +250,10 @@ namespace AuditLogLib.Event
                     UserAgreementLogModel.ValidationId,
                     UserAgreementLogModel.AgreementText,
                 });
-        public static readonly AuditEventType<string> UserAgreementAcceptance = new AuditEventType<string>(
+        public static readonly AuditEventType<Guid> UserAgreementAcceptance = new AuditEventType<Guid>(
             3102, "User agreement acceptance", (validationId) => new
             {
-                ValidationId = validationId,
+                ValidationId = validationId.ToString(),
             });
         public static readonly AuditEventType<string> UserAgreementDeclined = new AuditEventType<string>(
             3103, "User agreement declined", (validationId) => new
