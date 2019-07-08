@@ -250,15 +250,15 @@ namespace AuditLogLib.Event
                     UserAgreementLogModel.ValidationId,
                     UserAgreementLogModel.AgreementText,
                 });
-        public static readonly AuditEventType<string> UserAgreementAcceptance = new AuditEventType<string>(
+        public static readonly AuditEventType<Guid> UserAgreementAcceptance = new AuditEventType<Guid>(
             3102, "User agreement acceptance", (validationId) => new
             {
-                ValidationId = validationId,
+                ValidationId = validationId.ToString(),
             });
-        public static readonly AuditEventType<string> UserAgreementDeclined = new AuditEventType<string>(
+        public static readonly AuditEventType<Guid> UserAgreementDeclined = new AuditEventType<Guid>(
             3103, "User agreement declined", (validationId) => new
             {
-                ValidationId = validationId,
+                ValidationId = validationId.ToString(),
             });
         public static readonly AuditEventType<string> UserAgreementReset = new AuditEventType<string>(
             3104, "User agreement reset", (userName) => new
@@ -430,11 +430,11 @@ namespace AuditLogLib.Event
                     }),
                     Reason = "User removed from selection group",
                 });
-        public static readonly AuditEventType<UserInSelectionGroup, RootContentItem, Client, string, string> ContentDisclaimerPresented =
-            new AuditEventType<UserInSelectionGroup, RootContentItem, Client, string, string>(4102, "Content disclaimer presented to user",
+        public static readonly AuditEventType<UserInSelectionGroup, RootContentItem, Client, Guid, string> ContentDisclaimerPresented =
+            new AuditEventType<UserInSelectionGroup, RootContentItem, Client, Guid, string>(4102, "Content disclaimer presented to user",
                 (userInSelectionGroup, rootContentItem, client, validationId, disclaimerText) => new
                 {
-                    ValidationId = validationId,
+                    ValidationId = validationId.ToString(),
                     UserInSelectionGroup = new
                     {
                         Id = userInSelectionGroup.Id,
@@ -448,9 +448,9 @@ namespace AuditLogLib.Event
                     ClientName = client.Name,
                     DisclaimerText = disclaimerText,
                 });
-        public static readonly AuditEventType<UserInSelectionGroup, RootContentItem, Client, string, string> ContentDisclaimerAccepted =
-            new AuditEventType<UserInSelectionGroup, RootContentItem, Client, string, string>(4103, "Content disclaimer accepted by user",
-                (userInSelectionGroup, rootContentItem, client, validationId, disclaimerText) => new
+        public static readonly AuditEventType<UserInSelectionGroup, RootContentItem, Client, Guid> ContentDisclaimerAccepted =
+            new AuditEventType<UserInSelectionGroup, RootContentItem, Client, Guid>(4103, "Content disclaimer accepted by user",
+                (userInSelectionGroup, rootContentItem, client, validationId) => new
                 {
                     ValidationId = validationId,
                     UserInSelectionGroup = new
@@ -464,7 +464,6 @@ namespace AuditLogLib.Event
                     RootContentItemName = rootContentItem.ContentName,
                     ClientId = client.Id,
                     ClientName = client.Name,
-                    DisclaimerText = disclaimerText,
                 });
 
         #endregion

@@ -337,7 +337,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             model.AgreementText = DbContext.NameValueConfiguration.Find(nameof(ConfiguredValueKeys.UserAgreementText))?.Value ?? "User agreement text is not configured";
-            model.ValidationId = Guid.NewGuid().ToString("D");
+            model.ValidationId = Guid.NewGuid();
 
             UserAgreementLogModel userAgreement = new UserAgreementLogModel
             {
@@ -352,7 +352,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeclineUserAgreement(string validationId)
+        public async Task<IActionResult> DeclineUserAgreement(Guid validationId)
         {
             ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
 

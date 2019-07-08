@@ -161,7 +161,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 var disclaimer = new ContentDisclaimerModel
                 {
-                    ValidationId = Guid.NewGuid().ToString("D"),
+                    ValidationId = Guid.NewGuid(),
                     SelectionGroupId = selectionGroupId,
                     ContentName = selectionGroup.RootContentItem.ContentName,
                     DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
@@ -192,7 +192,7 @@ namespace MillimanAccessPortal.Controllers
             });
         }
 
-        public async Task<IActionResult> AcceptDisclaimer(Guid selectionGroupId, string validationId)
+        public async Task<IActionResult> AcceptDisclaimer(Guid selectionGroupId, Guid validationId)
         {
             var user = await Queries.GetCurrentApplicationUser(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
@@ -208,7 +208,7 @@ namespace MillimanAccessPortal.Controllers
                 userInSelectionGroup.DisclaimerAccepted = true;
 
                 await DataContext.SaveChangesAsync();
-                AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, validationId, userInSelectionGroup.SelectionGroup.RootContentItem.ContentDisclaimer));
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, validationId));
             }
 
             return Ok();
