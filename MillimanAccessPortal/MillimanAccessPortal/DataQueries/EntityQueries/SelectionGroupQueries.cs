@@ -337,10 +337,13 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>Selection group</returns>
         internal SelectionGroup UpdateSelectionGroupSuspended(Guid selectionGroupId, bool isSuspended)
         {
-            var group = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var group = _dbContext.SelectionGroup
+                                  .Include(sg => sg.RootContentItem)
+                                      .ThenInclude(ci => ci.Client)
+                                  .Single(sg => sg.Id == selectionGroupId);
             group.IsSuspended = isSuspended;
-
             _dbContext.SaveChanges();
+
             _auditLogger.Log(AuditEventType.SelectionGroupSuspensionUpdate.ToEvent(group, group.RootContentItem, group.RootContentItem.Client, isSuspended, ""));
 
             return group;
