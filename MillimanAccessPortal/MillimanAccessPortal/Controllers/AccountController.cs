@@ -352,7 +352,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeclineUserAgreement(string validationId)
+        public async Task<IActionResult> DeclineUserAgreement(Guid validationId)
         {
             ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
 

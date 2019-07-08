@@ -255,10 +255,10 @@ namespace AuditLogLib.Event
             {
                 ValidationId = validationId.ToString(),
             });
-        public static readonly AuditEventType<string> UserAgreementDeclined = new AuditEventType<string>(
+        public static readonly AuditEventType<Guid> UserAgreementDeclined = new AuditEventType<Guid>(
             3103, "User agreement declined", (validationId) => new
             {
-                ValidationId = validationId,
+                ValidationId = validationId.ToString(),
             });
         public static readonly AuditEventType<string> UserAgreementReset = new AuditEventType<string>(
             3104, "User agreement reset", (userName) => new
