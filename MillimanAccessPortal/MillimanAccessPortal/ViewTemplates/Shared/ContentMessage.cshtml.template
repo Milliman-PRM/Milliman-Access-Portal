@@ -25,4 +25,7 @@
         </h3>
         <br>
     }
+    <h3 class="message">
+        @Html.ActionLink("OK", "Index", "AuthorizedContent")
+    </h3>
 </div>

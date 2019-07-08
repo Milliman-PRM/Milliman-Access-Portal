@@ -179,8 +179,11 @@ namespace MillimanAccessPortal.Controllers
                 Scheme = Request.Scheme,
                 Port = Request.Host.Port ?? -1,
                 Path = $"/AuthorizedContent/{nameof(WebHostedContent)}",
-                Query = Request.QueryString.Value?.Substring(1),
             };
+            if (Request.QueryString.HasValue)
+            {
+                contentUrlBuilder.Query = Request.QueryString.Value.Substring(1);
+            }
 
             return View("ContentWrapper", new ContentWrapperModel
             {
@@ -266,7 +269,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Content Disclaimer Verification
+            #region Validation
+            // user must have accepted the content disclaimer if one exists
             if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer)
                 && !userInSelectionGroup.DisclaimerAccepted)
             {
@@ -274,6 +278,25 @@ namespace MillimanAccessPortal.Controllers
                 {
                     "You are not authorized to access the requested content.",
                 });
+            }
+
+            // This request must be referred by ContentWrapper
+            var requestHeaders = Request.GetTypedHeaders();
+            if (requestHeaders.Referer == null || !requestHeaders.Referer.AbsolutePath.Contains(nameof(ContentWrapper)))
+            {
+                UriBuilder contentUrlBuilder = new UriBuilder
+                {
+                    Host = Request.Host.Host,
+                    Scheme = Request.Scheme,
+                    Port = Request.Host.Port ?? -1,
+                    Path = $"/AuthorizedContent/{nameof(ContentWrapper)}",
+                };
+                if (Request.QueryString.HasValue)
+                {
+                    contentUrlBuilder.Query = Request.QueryString.Value.Substring(1);
+                }
+                Log.Warning($"From AuthorizedContentController.{nameof(WebHostedContent)}: Improper request not refered by AuthorizedContentController.{nameof(ContentWrapper)}, redirecting to {contentUrlBuilder.Uri.AbsoluteUri}");
+                return Redirect(contentUrlBuilder.Uri.AbsoluteUri);
             }
             #endregion
 

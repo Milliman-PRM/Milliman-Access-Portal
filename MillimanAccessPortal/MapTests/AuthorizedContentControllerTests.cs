@@ -9,6 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using Xunit;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AuthorizedContentViewModels;
@@ -188,6 +189,9 @@ namespace MapTests
             sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
             sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName,
+                                                                                 new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" },
+                                                                                 new Dictionary<string, StringValues> { { "Referer", "https://www.impossible.wut/AuthorizedContent/ContentWrapper" } });
 
             // Add a file to the root content item and a content url to the selection group
             string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
@@ -251,7 +255,11 @@ namespace MapTests
             // This one should never throw even if the user name is not in the context data
             sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName, 
+                                                                                 new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" },
+                                                                                 new Dictionary<string, StringValues> { {"Referer", "https://www.impossible.wut/AuthorizedContent/ContentWrapper" } });
 
             // Add a file to the root content item and a content url to the selection group
             string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
@@ -276,6 +284,64 @@ namespace MapTests
 
             // Test that the Message view was returned
             Assert.Equal("ContentMessage", viewResult.ViewName);
+            #endregion
+        }
+
+        [Fact]
+        public async Task WebHostedContent_RedirectToContentWrapperWhenNotReferredTherefrom()
+        {
+            #region Arrange
+            // initialize dependencies
+            TestInitialization TestResources = new TestInitialization();
+
+            // initialize data
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+
+            // Create the system under test (sut)
+            AuthorizedContentController sut = new AuthorizedContentController(
+                TestResources.AuditLoggerObject,
+                TestResources.AuthorizationService,
+                TestResources.DbContextObject,
+                TestResources.MessageQueueServicesObject,
+                TestResources.QvConfig,
+                TestResources.QueriesObj,
+                TestResources.UserManagerObject,
+                TestResources.ConfigurationObject,
+                TestResources.PowerBiConfig);
+
+            // For illustration only, the same result comes from either of the following techniques:
+            // This one should never throw even if the user name is not in the context data
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(userName: "test1");
+            // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName,
+                                                                                 new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" },
+                                                                                 new Dictionary<string, StringValues> { { "Referer", "https://www.impossible.wut/AuthorizedContent/Index" } });
+
+            // Add a file to the root content item and a content url to the selection group
+            string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
+            string TestFileSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", FileName);
+            string TestFileTargetPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", TestUtil.MakeTestGuid(1).ToString(), FileName);
+            File.Copy(TestFileSourcePath, TestFileTargetPath, true);
+            SelectionGroup ThisGroup = TestResources.DbContextObject.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
+            RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
+            ThisGroup.ReducedContentChecksum = "Bad Checksum Will Not Validate";
+            ThisGroup.ContentInstanceUrl = $@"{ThisItem.Id}\{FileName}";
+
+            #endregion
+
+            #region Act
+            // Attempt to load the content view for authorized content
+            var result = await sut.WebHostedContent(TestUtil.MakeTestGuid(1)); // User "test1" is authorized to RootContentItem w/ ID 1
+            #endregion
+
+            #region Assert
+            // Test that a ViewResult was returned instead of a RedirectResult
+            RedirectResult redirectResult = Assert.IsType<RedirectResult>(result);
+
+            // Test that the Message view was returned
+            Assert.Contains("/ContentWrapper", redirectResult.Url);
             #endregion
         }
 
