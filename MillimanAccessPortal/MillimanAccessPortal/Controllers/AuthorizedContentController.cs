@@ -161,7 +161,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 var disclaimer = new ContentDisclaimerModel
                 {
-                    ValidationId = Guid.NewGuid().ToString("D"),
+                    ValidationId = Guid.NewGuid(),
                     SelectionGroupId = selectionGroupId,
                     ContentName = selectionGroup.RootContentItem.ContentName,
                     DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
