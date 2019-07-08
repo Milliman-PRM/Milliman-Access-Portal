@@ -606,15 +606,17 @@ namespace MillimanAccessPortal.Controllers
 
                 // Reset disclaimer acceptance
                 var usersInGroup = DbContext.UserInSelectionGroup
-                    .Where(u => u.SelectionGroupId == selectionGroupId)
-                    .ToList();
+                                            .Include(usg => usg.User)
+                                            .Include(usg => usg.SelectionGroup)
+                                            .Where(u => u.SelectionGroupId == selectionGroupId)
+                                            .ToList();
                 usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
 
                 DbContext.SaveChanges();
 
                 AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client));
-                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetSelectionChange
-                    .ToEvent(usersInGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client));
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
+                    .ToEvent(usersInGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, ContentDisclaimerResetReason.ContentSelectionsModified));
             }
             else
             {
