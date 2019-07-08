@@ -430,11 +430,11 @@ namespace AuditLogLib.Event
                     }),
                     Reason = "User removed from selection group",
                 });
-        public static readonly AuditEventType<UserInSelectionGroup, RootContentItem, Client, string, string> ContentDisclaimerPresented =
-            new AuditEventType<UserInSelectionGroup, RootContentItem, Client, string, string>(4102, "Content disclaimer presented to user",
+        public static readonly AuditEventType<UserInSelectionGroup, RootContentItem, Client, Guid, string> ContentDisclaimerPresented =
+            new AuditEventType<UserInSelectionGroup, RootContentItem, Client, Guid, string>(4102, "Content disclaimer presented to user",
                 (userInSelectionGroup, rootContentItem, client, validationId, disclaimerText) => new
                 {
-                    ValidationId = validationId,
+                    ValidationId = validationId.ToString(),
                     UserInSelectionGroup = new
                     {
                         Id = userInSelectionGroup.Id,
@@ -448,9 +448,9 @@ namespace AuditLogLib.Event
                     ClientName = client.Name,
                     DisclaimerText = disclaimerText,
                 });
-        public static readonly AuditEventType<UserInSelectionGroup, RootContentItem, Client, string, string> ContentDisclaimerAccepted =
-            new AuditEventType<UserInSelectionGroup, RootContentItem, Client, string, string>(4103, "Content disclaimer accepted by user",
-                (userInSelectionGroup, rootContentItem, client, validationId, disclaimerText) => new
+        public static readonly AuditEventType<UserInSelectionGroup, RootContentItem, Client, Guid> ContentDisclaimerAccepted =
+            new AuditEventType<UserInSelectionGroup, RootContentItem, Client, Guid>(4103, "Content disclaimer accepted by user",
+                (userInSelectionGroup, rootContentItem, client, validationId) => new
                 {
                     ValidationId = validationId,
                     UserInSelectionGroup = new
@@ -464,7 +464,6 @@ namespace AuditLogLib.Event
                     RootContentItemName = rootContentItem.ContentName,
                     ClientId = client.Id,
                     ClientName = client.Name,
-                    DisclaimerText = disclaimerText,
                 });
 
         #endregion
