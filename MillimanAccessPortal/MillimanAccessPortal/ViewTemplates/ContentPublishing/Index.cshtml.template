@@ -275,7 +275,7 @@
                                 <textarea id="Notes" name="Notes" for="Notes"></textarea>
                             </div>
                         </div>
-                        <div id="disclaimer-container" class="form-input form-input-textarea flex-item-12-12">
+                        <div id="content-disclaimer-container" class="form-input form-input-textarea flex-item-12-12">
                             <label class="form-input-textarea-title" for="ContentDisclaimer">
 								Custom Disclaimer Text
 							</label>
