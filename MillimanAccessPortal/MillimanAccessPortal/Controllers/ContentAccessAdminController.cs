@@ -341,20 +341,21 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SuspendGroup([FromBody] SuspendGroupRequestModel model)
         {
-            Guid contentItemId = DbContext.SelectionGroup
-                .Where(g => g.Id == model.GroupId)
-                .Select(g => g.RootContentItemId)
-                .SingleOrDefault();
+            SelectionGroup sg = DbContext.SelectionGroup.SingleOrDefault(g => g.Id == model.GroupId);
+            if (sg == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            Guid contentItemId = sg.RootContentItemId;
 
             #region Authorization
-            var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, contentItemId));
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, contentItemId));
             if (!roleResult.Succeeded)
             {
-                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} "
-                        + $"for user {User.Identity.Name}");
-                Response.Headers.Add("Warning",
-                    "You are not authorized to administer content access to the specified content item.");
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
             #endregion
