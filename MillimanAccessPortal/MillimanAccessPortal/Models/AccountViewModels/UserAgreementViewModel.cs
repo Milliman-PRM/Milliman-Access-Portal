@@ -12,6 +12,8 @@ namespace MillimanAccessPortal.Models.AccountViewModels
     {
         public string AgreementText { get; set; }
 
+        public string ValidationId { get; set; }
+
         public bool IsRenewal { get; set; }
 
         public string ReturnUrl { get; set; }

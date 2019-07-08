@@ -243,13 +243,25 @@ namespace AuditLogLib.Event
                 AttemptedUsername = attemptedUserName,
             });
 
-        public static readonly AuditEventType<UserAgreementLogModel> UserAgreementAcceptance = new AuditEventType<UserAgreementLogModel>(
-            3101, "User agreement acceptance", (userAgreementLogModel) => new
+        public static readonly AuditEventType<UserAgreementLogModel> UserAgreementPresented =
+            new AuditEventType<UserAgreementLogModel>(3101, "User agreement presented to user",
+                (UserAgreementLogModel) => new
+                {
+                    UserAgreementLogModel.ValidationId,
+                    UserAgreementLogModel.AgreementText,
+                });
+        public static readonly AuditEventType<string> UserAgreementAcceptance = new AuditEventType<string>(
+            3102, "User agreement acceptance", (validationId) => new
             {
-                userAgreementLogModel.AgreementText,
+                ValidationId = validationId,
+            });
+        public static readonly AuditEventType<string> UserAgreementDeclined = new AuditEventType<string>(
+            3103, "User agreement declined", (validationId) => new
+            {
+                ValidationId = validationId,
             });
         public static readonly AuditEventType<string> UserAgreementReset = new AuditEventType<string>(
-            3102, "User agreement reset", (userName) => new
+            3104, "User agreement reset", (userName) => new
             {
                 UserName = userName,
             });
