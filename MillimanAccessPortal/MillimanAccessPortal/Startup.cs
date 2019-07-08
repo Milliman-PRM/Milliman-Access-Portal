@@ -249,7 +249,7 @@ namespace MillimanAccessPortal
                             }
                         }
 
-                        context.Response.Redirect($"/Account/{nameof(AccountController.ExternalLoginCallback)}");
+                        context.Response.Redirect(context.ReturnUri);
                     };
                     #endregion
                 });

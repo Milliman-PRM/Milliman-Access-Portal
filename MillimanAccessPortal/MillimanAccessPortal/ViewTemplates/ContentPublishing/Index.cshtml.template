@@ -275,7 +275,7 @@
                                 <textarea id="Notes" name="Notes" for="Notes"></textarea>
                             </div>
                         </div>
-                        <div id="disclaimer-container" class="form-input form-input-textarea flex-item-12-12">
+                        <div id="content-disclaimer-container" class="form-input form-input-textarea flex-item-12-12">
                             <label class="form-input-textarea-title" for="ContentDisclaimer">
 								Custom Disclaimer Text
 							</label>
@@ -332,7 +332,7 @@
             <div class="content-preview-container">
                 <iframe src="about:blank" class="content-preview"></iframe>
                 <object data="about:blank" type="application/pdf" class="content-preview-pdf"></object>
-                <iframe sandbox="allow-scripts allow-popups allow-modals allow-forms" src="about:blank" class="content-preview-sandbox"></iframe>
+                <iframe sandbox="allow-scripts allow-popups allow-modals allow-forms allow-popups-to-escape-sandbox" src="about:blank" class="content-preview-sandbox"></iframe>
                 <a download class="content-preview-download">Click to download</a>
                 <p class="content-preview-none" style="display: none;">This file has not changed.</p>
                 <a class="new-tab-icon" target="_blank">

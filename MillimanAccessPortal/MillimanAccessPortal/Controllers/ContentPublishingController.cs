@@ -245,6 +245,7 @@ namespace MillimanAccessPortal.Controllers
 
             using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
             {
+                DbContext.ContentType.Where(ct => ct.Id == rootContentItem.ContentTypeId).Load();
                 // Commit the new root content item
                 DbContext.RootContentItem.Add(rootContentItem);
                 DbContext.SaveChanges();

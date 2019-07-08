@@ -173,13 +173,13 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/RemoteAuthenticate
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> RemoteAuthenticate(string userName)
+        public async Task<IActionResult> RemoteAuthenticate(string userName, string returnUrl)
         {
             MapDbContextLib.Context.AuthenticationScheme scheme = GetExternalAuthenticationScheme(userName);
 
             if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
             {
-                string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { ReturnUrl = "/AuthorizedContent/Index" });
+                string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { ReturnUrl = returnUrl });
                 AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme.Name, redirectUrl);
                 properties.SetString("username", userName);
                 switch (scheme.Type)

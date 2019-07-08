@@ -875,8 +875,8 @@ function populateAvailableContentTypes(contentTypes: ContentType[]) {
 
 function setDisclaimerToEditMode() {
   // Toggle buttons
-  $('#disclaimer-container .markdown-select-edit').addClass('selected');
-  $('#disclaimer-container .markdown-select-preview').removeClass('selected');
+  $('#content-disclaimer-container .markdown-select-edit').addClass('selected');
+  $('#content-disclaimer-container .markdown-select-preview').removeClass('selected');
   // Toggle preview -> textarea
   $('#ContentDisclaimer').show();
   $('#ContentDisclaimerGuide').show();
@@ -891,8 +891,8 @@ function setDisclaimerToPreviewMode() {
   const processedDisclaimerHTML = convertMarkdownToHTML(rawDisclaimerMarkdown);
   document.getElementById('ContentDisclaimerPreview').innerHTML = processedDisclaimerHTML;
   // Toggle buttons
-  $('#disclaimer-container .markdown-select-preview').addClass('selected');
-  $('#disclaimer-container .markdown-select-edit').removeClass('selected');
+  $('#content-disclaimer-container .markdown-select-preview').addClass('selected');
+  $('#content-disclaimer-container .markdown-select-edit').removeClass('selected');
   // Toggle textarea -> preview
   $('#ContentDisclaimerPreview').show();
   $('#ContentDisclaimer').hide();
@@ -955,8 +955,8 @@ export function setup() {
     }
   });
 
-  $('#disclaimer-container .markdown-select-edit').click(setDisclaimerToEditMode);
-  $('#disclaimer-container .markdown-select-preview').click(setDisclaimerToPreviewMode);
+  $('#content-disclaimer-container .markdown-select-edit').click(setDisclaimerToEditMode);
+  $('#content-disclaimer-container .markdown-select-preview').click(setDisclaimerToPreviewMode);
 
   $('#root-content-items .admin-panel-toolbar .action-icon-add').click(() => {
     openNewRootContentItemForm();
