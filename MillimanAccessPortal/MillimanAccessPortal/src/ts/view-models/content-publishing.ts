@@ -123,6 +123,12 @@ export enum ContentTypeEnum {
   FileDownload = 4,
   PowerBi = 5,
 }
+export enum ContentAssociatedFileTypeEnum {
+    Unknown = 0,
+    Pdf = 1,
+    Html = 2,
+    FileDownload = 3,
+}
 
 export interface ContentType {
   id: Guid;
@@ -133,6 +139,19 @@ export interface ContentType {
   fileExtensions: string[];
 }
 
+export interface ContentRelatedFile {
+  fullPath: string;
+  filePurpose: string;
+  fileOriginalName: string;
+  checksum: string;
+}
+export interface ContentAssociatedFile {
+  id: Guid;
+  displayName: string;
+  fileOriginalName: string;
+  sortOrder: string;
+  checksum: string;
+}
 export interface RootContentItemDetail {
   id: Guid;
   clientId: Guid;
@@ -163,14 +182,22 @@ export interface RootContentItemStatus {
   status: PublicationSummary[];
 }
 
-export interface ContentRelatedFile {
+export interface UploadedRelatedFile {
   fileOriginalName: string;
   filePurpose: string;
   fileUploadId: Guid;
 }
+export interface UploadedAssociatedFile {
+    id: Guid;
+    fileOriginalName: string;
+    displayName: string;
+    sortOrder: string;
+    fileType: ContentAssociatedFileTypeEnum;
+}
 export interface PublishRequest {
   rootContentItemId: Guid;
-  newRelatedFiles: ContentRelatedFile[];
+  newRelatedFiles: UploadedRelatedFile[];
+  associatedFiles: UploadedAssociatedFile[];
   deleteFilePurposes: string[];
 }
 
