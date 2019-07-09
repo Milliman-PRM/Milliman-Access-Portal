@@ -5,12 +5,15 @@
  */
 
 using AuditLogLib.Models;
+using System;
 
 namespace MillimanAccessPortal.Models.AccountViewModels
 {
     public class UserAgreementViewModel
     {
         public string AgreementText { get; set; }
+
+        public Guid ValidationId { get; set; }
 
         public bool IsRenewal { get; set; }
 

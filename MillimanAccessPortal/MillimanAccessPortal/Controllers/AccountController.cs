@@ -337,8 +337,30 @@ namespace MillimanAccessPortal.Controllers
             }
 
             model.AgreementText = DbContext.NameValueConfiguration.Find(nameof(ConfiguredValueKeys.UserAgreementText))?.Value ?? "User agreement text is not configured";
+            model.ValidationId = Guid.NewGuid();
+
+            UserAgreementLogModel userAgreement = new UserAgreementLogModel
+            {
+                ValidationId = model.ValidationId,
+                AgreementText = model.AgreementText,
+            };
+
+            _auditLogger.Log(AuditEventType.UserAgreementPresented.ToEvent(userAgreement), user.UserName);
 
             return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeclineUserAgreement(Guid validationId)
+        {
+            ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
+
+            _auditLogger.Log(AuditEventType.UserAgreementDeclined.ToEvent(validationId), user.UserName);
+
+            await _signInManager.SignOutAsync();
+            Response.Headers.Add("NavigateTo", "/");
+            return Ok();
         }
 
         [HttpPost]
@@ -349,7 +371,7 @@ namespace MillimanAccessPortal.Controllers
             user.IsUserAgreementAccepted = true;
             DbContext.SaveChanges();
 
-            _auditLogger.Log(AuditEventType.UserAgreementAcceptance.ToEvent((UserAgreementLogModel)model), user.UserName);
+            _auditLogger.Log(AuditEventType.UserAgreementAcceptance.ToEvent(model.ValidationId), user.UserName);
 
             Response.Headers.Add("NavigateTo", string.IsNullOrEmpty(model.ReturnUrl) ? "/" : model.ReturnUrl);
             return Ok();

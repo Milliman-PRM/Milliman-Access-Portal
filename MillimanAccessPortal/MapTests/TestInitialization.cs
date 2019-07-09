@@ -150,7 +150,7 @@ namespace MapTests
         /// </summary>
         /// <param name="userName">The user to be impersonated in the ControllerContext</param>
         /// <returns></returns>
-        internal static ControllerContext GenerateControllerContext(string userName = null, UriBuilder requestUriBuilder = null)
+        internal static ControllerContext GenerateControllerContext(string userName = null, UriBuilder requestUriBuilder = null, Dictionary<string, StringValues> requestHeaders = null)
         {
             ClaimsPrincipal TestUserClaimsPrincipal = new ClaimsPrincipal();
             if (!string.IsNullOrWhiteSpace(userName))
@@ -158,7 +158,7 @@ namespace MapTests
                 TestUserClaimsPrincipal.AddIdentity(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, userName) }));
             }
 
-            return GenerateControllerContext(TestUserClaimsPrincipal, requestUriBuilder);
+            return GenerateControllerContext(TestUserClaimsPrincipal, requestUriBuilder, requestHeaders);
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace MapTests
         /// </summary>
         /// <param name="UserAsClaimsPrincipal">The user to be impersonated in the ControllerContext</param>
         /// <returns></returns>
-        internal static ControllerContext GenerateControllerContext(ClaimsPrincipal UserAsClaimsPrincipal, UriBuilder requestUriBuilder = null)
+        internal static ControllerContext GenerateControllerContext(ClaimsPrincipal UserAsClaimsPrincipal, UriBuilder requestUriBuilder = null, Dictionary<string, StringValues> requestHeaders = null)
         {
             ControllerContext returnVal = new ControllerContext
             {
@@ -194,6 +194,15 @@ namespace MapTests
                     returnVal.HttpContext.Request.Query = new QueryCollection(dict);
                 }
             }
+
+            if (requestHeaders != null)
+            {
+                foreach (var header in requestHeaders)
+                {
+                    returnVal.HttpContext.Request.Headers.Add(header);
+                }
+            }
+
             return returnVal;
         }
 

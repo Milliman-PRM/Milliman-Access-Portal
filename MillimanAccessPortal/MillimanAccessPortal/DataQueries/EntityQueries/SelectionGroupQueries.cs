@@ -304,9 +304,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             var userGuidsToRemove = allCurrentUserIds.Except(newListOfUserIds);
             var recordsToRemove = _dbContext.UserInSelectionGroup
-                .Where(usg => userGuidsToRemove.Contains(usg.UserId))
-                .Where(usg => usg.SelectionGroupId == selectionGroupId)
-                .ToList();
+                                            .Include(usg => usg.User)
+                                            .Include(usg => usg.SelectionGroup)
+                                            .Where(usg => userGuidsToRemove.Contains(usg.UserId))
+                                            .Where(usg => usg.SelectionGroupId == selectionGroupId)
+                                            .ToList();
             _dbContext.UserInSelectionGroup.RemoveRange(recordsToRemove);
 
             _dbContext.SaveChanges();
@@ -322,8 +324,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             }
             if (userGuidsToRemove.Any())
             {
-                _auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetRemovedFromGroup
-                    .ToEvent(recordsToRemove, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client));
+                _auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
+                    .ToEvent(recordsToRemove, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client, ContentDisclaimerResetReason.UserRemovedFromSelectionGroup));
             }
 
             return requestedGroup;
@@ -337,10 +339,13 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>Selection group</returns>
         internal SelectionGroup UpdateSelectionGroupSuspended(Guid selectionGroupId, bool isSuspended)
         {
-            var group = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var group = _dbContext.SelectionGroup
+                                  .Include(sg => sg.RootContentItem)
+                                      .ThenInclude(ci => ci.Client)
+                                  .Single(sg => sg.Id == selectionGroupId);
             group.IsSuspended = isSuspended;
-
             _dbContext.SaveChanges();
+
             _auditLogger.Log(AuditEventType.SelectionGroupSuspensionUpdate.ToEvent(group, group.RootContentItem, group.RootContentItem.Client, isSuspended, ""));
 
             return group;
