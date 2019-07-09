@@ -45,16 +45,16 @@ namespace AuditLogLib.Event
 
     public enum ContentDisclaimerResetReason
     {
-        [Display(Name = "Content disclaimer text was modified")]
+        [Display(Name = "Content disclaimer text was changed")]
         DisclaimerTextModified,
 
-        [Display(Name = "Content item was republished")]
+        [Display(Name = "Root content item was republished")]
         ContentItemRepublished,
 
-        [Display(Name = "Content selections were modified")]
+        [Display(Name = "Selections were changed")]
         ContentSelectionsModified,
 
-        [Display(Name = "User was removed from selection group")]
+        [Display(Name = "User removed from selection group")]
         UserRemovedFromSelectionGroup,
     }
     #endregion
