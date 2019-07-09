@@ -40,6 +40,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy { get; set; }
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; }
+        public List<AssociatedFileSummary> AssociatedFiles { get; set; }
 
         public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
         {
@@ -76,11 +77,12 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 UserGuideLink = null,
                 ReleaseNotesLink = null,
                 ThumbnailLink = null,
-            };
+                LiveHierarchy = null,
+                NewHierarchy = null,
+                SelectionGroups = null,
+                AssociatedFiles = new List<AssociatedFileSummary>(),
+        };
 
-            ReturnObj.LiveHierarchy = null;
-            ReturnObj.NewHierarchy = null;
-            ReturnObj.SelectionGroups = null;
             if (PubRequest.RootContentItem.DoesReduce)
             {
                 // retrieve all reduction tasks for this publication, filtering out the request
@@ -239,7 +241,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                     default:
                         uriBuilder.Path += nameof(AuthorizedContentController.AssociatedFilePreview);
                         uriBuilder.Query = $"purpose={RelatedFile.FilePurpose.ToLower()}&sort={sortString}&publicationRequestId={PubRequest.Id}";
-                        ReturnObj.ReleaseNotesLink = uriBuilder.Uri.AbsoluteUri;
+                        ReturnObj.AssociatedFiles.Add(AssociatedFileSummary.Build(RelatedFile, uriBuilder));
                         break;
                 }
             }
@@ -279,5 +281,28 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string InactiveReason { get; set; } = null;
         public ContentReductionHierarchy<ReductionFieldValueSelection> LiveSelections { get; set; }
         public ContentReductionHierarchy<ReductionFieldValueSelection> PendingSelections { get; set; }
+    }
+
+    public class AssociatedFileSummary
+    {
+        public Guid Id { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
+        public string SortOrder { get; set; } = string.Empty;
+        public string FileOriginalName { get; set; } = string.Empty;
+        public ContentRelatedFileType Type { get; set; } = ContentRelatedFileType.Unknown;
+        public string Link { get; set; } = string.Empty;
+
+        public static AssociatedFileSummary Build(ContentRelatedFile source, UriBuilder uriBuilder)
+        {
+            return new AssociatedFileSummary
+            {
+                Id = source.Id,
+                DisplayName = source.FilePurpose,
+                FileOriginalName = source.FileOriginalName,
+                SortOrder = source.SortOrder,
+                Type = source.FileType,
+                Link = uriBuilder.Uri.AbsoluteUri
+            };
+        }
     }
 }
