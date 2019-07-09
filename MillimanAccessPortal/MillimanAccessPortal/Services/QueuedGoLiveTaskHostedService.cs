@@ -510,9 +510,10 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     if (MasterContentUploaded)
                     {
                         usersInGroup = dbContext.UserInSelectionGroup
-                            .Include(u => u.User)
-                            .Where(u => u.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
-                            .ToList();
+                                                .Include(usg => usg.User)
+                                                .Include(usg => usg.SelectionGroup)
+                                                .Where(u => u.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
+                                                .ToList();
                         usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
                     }
 
@@ -521,8 +522,8 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
                     if (MasterContentUploaded)
                     {
-                        auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetRepublish
-                            .ToEvent(usersInGroup, publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client));
+                        auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
+                            .ToEvent(usersInGroup, publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, ContentDisclaimerResetReason.ContentItemRepublished));
                     }
                 }
             }

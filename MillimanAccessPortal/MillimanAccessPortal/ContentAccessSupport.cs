@@ -200,9 +200,10 @@ namespace MillimanAccessPortal
 
             // Reset disclaimer acceptance
             var usersInGroup = Db.UserInSelectionGroup
-                .Include(u => u.SelectionGroup)
-                .Where(u => u.SelectionGroupId == reductionTask.SelectionGroupId)
-                .ToList();
+                                 .Include(usg => usg.User)
+                                 .Include(usg => usg.SelectionGroup)
+                                 .Where(u => u.SelectionGroupId == reductionTask.SelectionGroupId)
+                                 .ToList();
             usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
             var rootContentItemId = usersInGroup.FirstOrDefault()?.SelectionGroup.RootContentItemId ?? Guid.Empty;
 
@@ -210,8 +211,8 @@ namespace MillimanAccessPortal
             Db.SaveChanges();
 
             AuditLogger Logger = new AuditLogger();
-            Logger.Log(AuditEventType.ContentDisclaimerAcceptanceResetSelectionChange
-                .ToEvent(usersInGroup, reductionTask.SelectionGroup.RootContentItem, reductionTask.SelectionGroup.RootContentItem.Client));
+            Logger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
+                .ToEvent(usersInGroup, reductionTask.SelectionGroup.RootContentItem, reductionTask.SelectionGroup.RootContentItem.Client, ContentDisclaimerResetReason.ContentSelectionsModified));
 
             return FilesToDelete;
         }

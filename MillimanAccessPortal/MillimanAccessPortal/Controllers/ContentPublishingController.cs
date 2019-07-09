@@ -358,8 +358,10 @@ namespace MillimanAccessPortal.Controllers
             {
                 // Reset disclaimer acceptance
                 usersInGroup = DbContext.UserInSelectionGroup
-                    .Where(u => u.SelectionGroup.RootContentItemId == currentRootContentItem.Id)
-                    .ToList();
+                                        .Include(usg => usg.User)
+                                        .Include(usg => usg.SelectionGroup)
+                                        .Where(u => u.SelectionGroup.RootContentItemId == currentRootContentItem.Id)
+                                        .ToList();
                 usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
             }
             currentRootContentItem.ContentDisclaimer = rootContentItem.ContentDisclaimer;
@@ -372,8 +374,8 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(currentRootContentItem, logClient));
             if (usersInGroup != null)
             {
-                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetTextChange
-                    .ToEvent(usersInGroup, currentRootContentItem, logClient));
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
+                    .ToEvent(usersInGroup, currentRootContentItem, logClient, ContentDisclaimerResetReason.DisclaimerTextModified));
             }
 
             RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, currentRootContentItem);
