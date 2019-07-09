@@ -7,6 +7,7 @@ import '../../../images/icons/user.svg';
 import * as React from 'react';
 import * as Yup from 'yup';
 
+import { getUrlParameter } from '../../get-url-parameters';
 import { postData } from '../../shared';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { BaseFormState, Form } from '../shared-components/form';
@@ -182,8 +183,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
               this.focusPasswordInput();
             });
           } else {
-            const urlParemeters = new URLSearchParams(window.location.search);
-            const returnTo = escape(urlParemeters.has('ReturnUrl') ? urlParemeters.get('ReturnUrl') : '/');
+            const returnTo = escape(getUrlParameter('ReturnUrl') || '/');
             window.location.replace(`/Account/RemoteAuthenticate?username=${username}&returnURL=${returnTo}`);
           }
         })
