@@ -42,4 +42,4 @@ You acknowledge and agree that MAP is proprietary and confidential to, and a val
 **10. Termination.** Your rights under this Agreement and your access to MAP may be terminated by Milliman immediately and without notice if you fail to comply with any term or condition of this Agreement. Any termination of this Agreement shall not affect Milliman’s rights hereunder.
 
 
-**BY ACCEPTING THIS USER AGREEMENT YOU REPRESENT AND WARRANT THAT YOU ARE DULY AUTHORIZED TO ACCEPT THE TERMS AND CONDITIONS OF THIS USER AGREEMENT ON BEHALF OF THE ORGANIZATION IDENTIFIED BELOW.**
+**BY ACCEPTING THIS USER AGREEMENT YOU REPRESENT AND WARRANT THAT YOU ARE DULY AUTHORIZED TO ACCEPT THE TERMS AND CONDITIONS OF THIS USER AGREEMENT ON BEHALF OF THE ORGANIZATION THAT YOU REPRESENT.**
