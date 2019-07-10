@@ -32,7 +32,7 @@ namespace MapDbContextLib.Context
             {
                 if (!Db.NameValueConfiguration.Any(c => c.Key == key.ToString()))
                 {
-                    Db.NameValueConfiguration.Add(new NameValueConfiguration { Key = key.ToString(), Value = "This configuration item as not been set." });
+                    Db.NameValueConfiguration.Add(new NameValueConfiguration { Key = key.ToString(), Value = "This configuration item has not been set." });
                     Db.SaveChanges();
                 }
             }
