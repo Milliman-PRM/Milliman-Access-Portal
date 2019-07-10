@@ -22,7 +22,7 @@ function setAgreementToEditMode() {
 
 function setAgreementToPreviewMode() {
   // Update markdown from textarea content
-  const rawAgreementMarkdown = (document.getElementById('newAgreementText') as HTMLTextAreaElement).value.trimRight();
+  const rawAgreementMarkdown = (document.getElementById('newAgreementText') as HTMLTextAreaElement).value;
   const processedAgreementHTML = convertMarkdownToHTML(rawAgreementMarkdown);
   document.getElementById('AgreementPreview').innerHTML = processedAgreementHTML;
   // Toggle buttons

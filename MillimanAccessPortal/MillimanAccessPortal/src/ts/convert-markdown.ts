@@ -5,6 +5,7 @@ export function convertMarkdownToHTML(rawMarkdown: string): string {
   const markedOptions = {
     breaks: true,
     gfm: true,
+    headerIds: false,
     sanitize: false,
   };
   const rawHTML = marked(rawMarkdown.trim(), markedOptions);

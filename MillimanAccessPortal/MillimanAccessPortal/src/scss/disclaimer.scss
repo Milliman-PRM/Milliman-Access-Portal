@@ -20,8 +20,9 @@ body {
     border: 1px solid $charcoal;
     border-radius: 1em;
     max-height: 95vh;
+    height: 95vh;
     max-width: 95vw;
-    width: 42em;
+    width: 50em;
 
     #content-name {
         flex: none;
