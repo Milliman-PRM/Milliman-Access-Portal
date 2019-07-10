@@ -259,25 +259,42 @@ namespace MillimanAccessPortal
 
         private static ContentAssociatedFile HandleAssociatedFile(ApplicationDbContext Db, UploadedAssociatedFile uploadedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
         {
-            FileUpload fileUploadRecord = Db.FileUpload
+            ContentAssociatedFile ReturnObj = null;
+
+            using (IDbContextTransaction Txn = Db.Database.BeginTransaction())
+            {
+                FileUpload fileUploadRecord = Db.FileUpload
                 .Where(f => f.Id == uploadedFile.Id)
                 .Where(f => f.Status == FileUploadStatus.Complete)
                 .SingleOrDefault();
 
-            string RootContentFolder = Path.Combine(contentItemRootPath, ContentItem.Id.ToString());
-            string DestinationFileName = ContentTypeSpecificApiBase.GenerateAssociatedFileName(uploadedFile.Id, PubRequestId, ContentItem.Id, Path.GetExtension(fileUploadRecord.StoragePath));
-            string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
+                string RootContentFolder = Path.Combine(contentItemRootPath, ContentItem.Id.ToString());
+                string DestinationFileName = ContentTypeSpecificApiBase.GeneratePreliveAssociatedFileName(uploadedFile.Id, PubRequestId, ContentItem.Id, Path.GetExtension(fileUploadRecord.StoragePath));
+                string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
 
-            ContentAssociatedFile ReturnObj = new ContentAssociatedFile
-            {
-                Id = uploadedFile.Id,
-                Checksum = fileUploadRecord.Checksum,
-                DisplayName = uploadedFile.DisplayName,
-                FileOriginalName = uploadedFile.FileOriginalName,
-                FileType = uploadedFile.FileType,
-                SortOrder = uploadedFile.SortOrder,
-                FullPath = DestinationFullPath,
-            };
+                // Create the root content folder if it does not already exist
+                Directory.CreateDirectory(RootContentFolder);
+                File.Copy(fileUploadRecord.StoragePath, DestinationFullPath, true);
+
+                ReturnObj = new ContentAssociatedFile
+                {
+                    Id = uploadedFile.Id,
+                    Checksum = fileUploadRecord.Checksum,
+                    DisplayName = uploadedFile.DisplayName,
+                    FileOriginalName = uploadedFile.FileOriginalName,
+                    FileType = uploadedFile.FileType,
+                    SortOrder = uploadedFile.SortOrder,
+                    FullPath = DestinationFullPath,
+                };
+
+                // Remove FileUpload record(s) for this file path
+                List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == fileUploadRecord.StoragePath).ToList();
+                File.Delete(fileUploadRecord.StoragePath);  // delete the uploaded file
+                Db.FileUpload.RemoveRange(Uploads);  // remove the FileUpload record
+
+                Db.SaveChanges();
+                Txn.Commit();
+            }
 
             return ReturnObj;
         }

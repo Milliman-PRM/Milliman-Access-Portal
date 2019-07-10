@@ -62,9 +62,22 @@ namespace MapCommonLib.ContentTypeSpecific
         /// <param name="rootContentItemId"></param>
         /// <param name="extensionWithDot"></param>
         /// <returns></returns>
-        public static string GenerateAssociatedFileName(Guid fileId, Guid publicationRequestId, Guid rootContentItemId, string extensionWithDot)
+        public static string GeneratePreliveAssociatedFileName(Guid fileId, Guid publicationRequestId, Guid rootContentItemId, string extensionWithDot)
         {
             string PreHashedFileName = $"Id{fileId}.Pub[{publicationRequestId}].Content[{rootContentItemId}]";
+            return GlobalFunctions.GetStringChecksum(PreHashedFileName) + extensionWithDot;
+        }
+
+        /// <summary>
+        /// Returns a standard file name for a live content associated file
+        /// </summary>
+        /// <param name="fileId"></param>
+        /// <param name="rootContentItemId"></param>
+        /// <param name="extensionWithDot"></param>
+        /// <returns></returns>
+        public static string GenerateLiveAssociatedFileName(Guid fileId, Guid rootContentItemId, string extensionWithDot)
+        {
+            string PreHashedFileName = $"Id{fileId}.Content[{rootContentItemId}]";
             return GlobalFunctions.GetStringChecksum(PreHashedFileName) + extensionWithDot;
         }
 

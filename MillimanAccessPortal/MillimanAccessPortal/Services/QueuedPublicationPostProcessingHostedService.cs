@@ -154,12 +154,26 @@ namespace MillimanAccessPortal.Services
                 {
                     if (!File.Exists(crf.FullPath))
                     {
-                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), file not found: {crf.FullPath}";
+                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), related file not found: {crf.FullPath}";
                         throw new ApplicationException(Msg);
                     }
                     else if (!crf.ValidateChecksum())
                     {
-                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), checksum validation failed for file {crf.FullPath}";
+                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), checksum validation failed for related file {crf.FullPath}";
+                        throw new ApplicationException(Msg);
+                    }
+                }
+                // Validate the existence and checksum of each uploaded associated file
+                foreach (ContentAssociatedFile caf in thisPubRequest.LiveReadyAssociatedFilesList)
+                {
+                    if (!File.Exists(caf.FullPath))
+                    {
+                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), associated file not found: {caf.FullPath}";
+                        throw new ApplicationException(Msg);
+                    }
+                    else if (!caf.ValidateChecksum())
+                    {
+                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), checksum validation failed for associated file {caf.FullPath}";
                         throw new ApplicationException(Msg);
                     }
                 }
@@ -194,11 +208,11 @@ namespace MillimanAccessPortal.Services
                 catch (DirectoryNotFoundException) { }
                 Directory.CreateDirectory(tempContentDestinationFolder);
 
-                // Move uploaded (non-reduced) files for this publication
+                // Move uploaded (non-reduced) related files for this publication
                 List<ContentRelatedFile> newLiveReadyFilesObj = new List<ContentRelatedFile>();
                 foreach (ContentRelatedFile Crf in thisPubRequest.LiveReadyFilesObj)
                 {
-                    // This assignment defines the live file name
+                    // This assignment defines the live file name, used in the preview folder for the pub request
                     string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
                                                 Crf.FilePurpose,
                                                 Path.GetExtension(Crf.FullPath),
@@ -216,8 +230,36 @@ namespace MillimanAccessPortal.Services
                         FullPath = TargetFilePath,
                     });
                 }
+
+                // Move uploaded associated files for this publication
+                List<ContentAssociatedFile> newLiveReadyAssociatedFilesList = new List<ContentAssociatedFile>();
+                foreach (ContentAssociatedFile Caf in thisPubRequest.LiveReadyAssociatedFilesList)
+                {
+                    // This assignment defines the live file name, used in the preview folder for the pub request
+                    string TargetFileName = ContentTypeSpecificApiBase.GenerateLiveAssociatedFileName(
+                                                Caf.Id,
+                                                thisPubRequest.RootContentItemId,
+                                                Path.GetExtension(Caf.FullPath));
+                    string TargetFilePath = Path.Combine(tempContentDestinationFolder, TargetFileName);
+
+                    // Can move because destination is on same volume as source
+                    File.Move(Caf.FullPath, TargetFilePath);
+
+                    newLiveReadyAssociatedFilesList.Add(new ContentAssociatedFile
+                    {
+                        Id = Caf.Id,
+                        Checksum = Caf.Checksum,
+                        FileOriginalName = Caf.FileOriginalName,
+                        DisplayName = Caf.DisplayName,
+                        FullPath = TargetFilePath,
+                        FileType = Caf.FileType,
+                        SortOrder = Caf.SortOrder,
+                    });
+                }
+
                 // record the path change in thisPubRequest
                 thisPubRequest.LiveReadyFilesObj = newLiveReadyFilesObj;
+                thisPubRequest.LiveReadyAssociatedFilesList = newLiveReadyAssociatedFilesList;
                 dbContext.SaveChanges();
 
                 // PostProcess the output of successful reduction tasks
