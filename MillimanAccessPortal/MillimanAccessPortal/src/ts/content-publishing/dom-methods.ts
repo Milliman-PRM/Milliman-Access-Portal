@@ -24,9 +24,11 @@ import {
 import { setUnloadAlert } from '../unload-alerts';
 import { UploadComponent } from '../upload/upload';
 import {
-    BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, ContentTypeEnum, ContentAssociatedFileTypeEnum, isSelection,
-    PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue, RootContentItemDetail,
-    RootContentItemList, RootContentItemSummary, RootContentItemSummaryAndDetail,
+  BasicNode, ClientSummary, ClientTree, ContentAssociatedFileTypeEnum,
+  ContentReductionHierarchy, ContentType, ContentTypeEnum, isSelection,
+  PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue,
+  RootContentItemDetail, RootContentItemList, RootContentItemSummary,
+  RootContentItemSummaryAndDetail,
 } from '../view-models/content-publishing';
 import { PublicationStatusMonitor } from './publication-status-monitor';
 
