@@ -106,18 +106,18 @@ namespace AuditLogLib.Event
                {
                    SelectionGroup = new
                    {
-                       Id = selectionGroup.Id,
-                       GroupName = selectionGroup.GroupName,
+                       selectionGroup.Id,
+                       selectionGroup.GroupName,
                    },
                    ContentItem = new
                    {
-                       Id = contentItem.Id,
-                       ContentName = contentItem.ContentName,
+                       contentItem.Id,
+                       contentItem.ContentName,
                    },
                    Client = new
                    {
-                       Id = client.Id,
-                       Name = client.Name,
+                       client.Id,
+                       client.Name,
                    },
                });
         public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, string> UserContentRelatedFileAccess =
@@ -126,18 +126,18 @@ namespace AuditLogLib.Event
                 {
                     SelectionGroup = new
                     {
-                        Id = selectionGroup.Id,
-                        GroupName = selectionGroup.GroupName,
+                        selectionGroup.Id,
+                        selectionGroup.GroupName,
                     },
                     ContentItem = new
                     {
-                        Id = contentItem.Id,
-                        ContentName = contentItem.ContentName,
+                        contentItem.Id,
+                        contentItem.ContentName,
                     },
                     Client = new
                     {
-                        Id = client.Id,
-                        Name = client.Name,
+                        client.Id,
+                        client.Name,
                     },
                     RelatedFilePurpose = relatedFilePurpose,
                 });
@@ -147,18 +147,30 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<Client, ApplicationUser> UserAssignedToClient = new AuditEventType<Client, ApplicationUser>(
             2001, "User assigned to client", (client, user) => new
             {
-                ClientId = client.Id,
-                ClientName = client.Name,
-                UserId = user.Id,
-                UserName = user.UserName,
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                }
             });
         public static readonly AuditEventType<Client, ApplicationUser> UserRemovedFromClient = new AuditEventType<Client, ApplicationUser>(
             2002, "User removed from client", (client, user) => new
             {
-                ClientId = client.Id,
-                ClientName = client.Name,
-                UserId = user.Id,
-                UserName = user.UserName,
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                }
             });
         public static readonly AuditEventType<Client> ClientCreated = new AuditEventType<Client>(
             2003, "Client created", (client) => new
@@ -178,19 +190,31 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>> ClientRoleAssigned = new AuditEventType<Client, ApplicationUser, List<RoleEnum>>(
             2006, "Client role assigned", (client, user, roles) => new
             {
-                ClientId = client.Id,
-                ClientName = client.Name,
-                UserId = user.Id,
-                UserName =  user.UserName,
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
                 Role = roles.Select(r => r.ToString()),
             });
         public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>> ClientRoleRemoved = new AuditEventType<Client, ApplicationUser, List<RoleEnum>>(
             2007, "Client role removed", (client, user, roles) => new
             {
-                ClientId = client.Id,
-                ClientName = client.Name,
-                UserId = user.Id,
-                UserName = user.UserName,
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
                 Role = roles.Select(r => r.ToString()),
             });
         #endregion
@@ -199,46 +223,68 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<ApplicationUser> UserAccountCreated = new AuditEventType<ApplicationUser>(
             3001, "User account created", (user) => new
             {
-                UserId = user.Id,
-                UserName = user.UserName,
-                Email = user.Email,
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                    user.Email,
+                }
             });
         public static readonly AuditEventType<ApplicationUser> UserAccountModified = new AuditEventType<ApplicationUser>(
             3002, "User account modified", (user) => new
             {
-                UserId = user.Id,
-                AccountUserName = user.UserName,
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                }
             });
         public static readonly AuditEventType<ApplicationUser, string> UserAccountLockByAdmin = new AuditEventType<ApplicationUser, string>(
             3003, "User account lock by Admin", (user, reason) => new
             {
-                UserId = user.Id,
-                AccountUserName = user.UserName,
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
+                reason,
             });
         public static readonly AuditEventType<ApplicationUser> UserAccountDeleted = new AuditEventType<ApplicationUser>(
             3004, "User account deleted", (user) => new
             {
-                UserId = user.Id,
-                AccountUserName = user.UserName,
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
             });
         public static readonly AuditEventType<ApplicationUser> UserAccountEnabled = new AuditEventType<ApplicationUser>(
             3005, "New user account enabled", (user) => new
             {
-                UserId = user.Id,
-                AccountUserName = user.UserName,
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
             });
         public static readonly AuditEventType<ApplicationUser,PasswordResetRequestReason> PasswordResetRequested = new AuditEventType<ApplicationUser, PasswordResetRequestReason>(
             3006, "Account password reset requested", (user,reason) => new
             {
-                UserId = user.Id,
-                AccountUserName = user.UserName,
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
                 Reason = reason.GetDisplayValueString()
             });
         public static readonly AuditEventType<ApplicationUser> PasswordResetCompleted = new AuditEventType<ApplicationUser>(
             3007, "Account password reset completed", (user) => new
             {
-                UserId = user.Id,
-                AccountUserName = user.UserName,
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
             });
         public static readonly AuditEventType<string> PasswordResetRequestedForInvalidEmail = new AuditEventType<string>(
             3008, "Account password reset requested for invalid email", (email) => new
@@ -249,13 +295,20 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType LoginIsLockedOut = new AuditEventType(3010, "Login account is locked out");
 
         public static readonly AuditEventType<ApplicationUser> UserPasswordExpired =
-            new AuditEventType<ApplicationUser>(3011, "User password expired", (user) =>
-                new { userId = user.Id, userName = user.UserName, dateLastSetUtc = user.LastPasswordChangeDateTimeUtc });
+            new AuditEventType<ApplicationUser>(3011, "User password expired", (user) => new
+            {
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
+                dateLastSetUtc = user.LastPasswordChangeDateTimeUtc
+            });
 
         public static readonly AuditEventType<string> LoginIsSuspended = new AuditEventType<string>(
             3012, "Login account is suspended", (attemptedUserName) => new
             {
-                AttemptedUsername = attemptedUserName,
+                attemptedUserName,
             });
 
         public static readonly AuditEventType<UserAgreementLogModel> UserAgreementPresented =
@@ -275,10 +328,14 @@ namespace AuditLogLib.Event
             {
                 ValidationId = validationId.ToString(),
             });
-        public static readonly AuditEventType<string> UserAgreementReset = new AuditEventType<string>(
-            3104, "User agreement reset", (userName) => new
+        public static readonly AuditEventType<ApplicationUser> UserAgreementReset = new AuditEventType<ApplicationUser>(
+            3104, "User agreement reset", (user) => new
             {
-                UserName = userName,
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
             });
         #endregion
 
@@ -287,44 +344,102 @@ namespace AuditLogLib.Event
             4001, "Selection group created", (selectionGroup, contentItem, client) => new
             {
                 SelectionGroup = selectionGroup,
-                RootContentItem = contentItem,
-                Client = client,
+                RootContentItem = new
+                {
+                    contentItem.Id,
+                    contentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
             });
         public static readonly AuditEventType<SelectionGroup, RootContentItem, Client> SelectionGroupDeleted = new AuditEventType<SelectionGroup, RootContentItem, Client>(
             4002, "Selection group deleted", (selectionGroup, rootContentItem, client) => new
             {
-                SelectionGroupId = selectionGroup.Id,
-                SelectionGroupName = selectionGroup.GroupName,
-                RootContentItem = rootContentItem,
-                Client = client,
+                SelectionGroup = new 
+                {
+                    selectionGroup.Id,
+                    selectionGroup.GroupName,
+                },
+                RootContentItem = new 
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
             });
-        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, Guid> SelectionGroupUserAssigned = new AuditEventType<SelectionGroup, RootContentItem, Client, Guid>(
-            4003, "User assigned to selection group", (selectionGroup, rootContentItem, client, userId) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, ApplicationUser> SelectionGroupUserAssigned = new AuditEventType<SelectionGroup, RootContentItem, Client, ApplicationUser>(
+            4003, "User assigned to selection group", (selectionGroup, rootContentItem, client, user) => new
             {
-                SelectionGroupId = selectionGroup.Id,
-                SelectionGroupName = selectionGroup.GroupName,
-                UserId = userId,
-                RootContentItem = rootContentItem,
-                Client = client,
+                SelectionGroup = new
+                {
+                    selectionGroup.Id,
+                    selectionGroup.GroupName,
+                },
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
             });
-        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, Guid> SelectionGroupUserRemoved = new AuditEventType<SelectionGroup, RootContentItem, Client, Guid>(
-            4004, "User removed from selection group", (selectionGroup, rootContentItem, client, userId) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, ApplicationUser> SelectionGroupUserRemoved = new AuditEventType<SelectionGroup, RootContentItem, Client, ApplicationUser>(
+            4004, "User removed from selection group", (selectionGroup, rootContentItem, client, user) => new
             {
-                SelectionGroupId = selectionGroup.Id,
-                SelectionGroupName = selectionGroup.GroupName,
-                UserId = userId,
-                RootContentItem = rootContentItem,
-                Client = client,
+                SelectionGroup = new
+                {
+                    selectionGroup.Id,
+                    selectionGroup.GroupName,
+                },
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
             });
         public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, ContentReductionTask> SelectionChangeReductionQueued = new AuditEventType<SelectionGroup, RootContentItem, Client, ContentReductionTask>(
             4005, "Selection change reduction task queued", (selectionGroup, rootContentItem, client, reductionTask) => new
             {
-                SelectionGroupId = selectionGroup.Id,
-                SelectionGroupName = selectionGroup.GroupName,
-                RootContentItemId = rootContentItem.Id,
-                RootContentItemName = rootContentItem.ContentName,
-                ClientId = client.Id,
-                ClientName = client.Name,
+                SelectionGroup = new
+                {
+                    selectionGroup.Id,
+                    selectionGroup.GroupName,
+                },
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
                 Action = reductionTask.TaskAction.ToString(),
                 SelectedValues = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList(),
                 SelectedValueIds = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Id)).ToList(),
@@ -332,12 +447,21 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, ContentReductionTask> SelectionChangeReductionCanceled = new AuditEventType<SelectionGroup, RootContentItem, Client, ContentReductionTask>(
             4006, "Selection change reduction task canceled", (selectionGroup, rootContentItem, client, reductionTask) => new
             {
-                SelectionGroupId = selectionGroup.Id,
-                SelectionGroupName = selectionGroup.GroupName,
-                RootContentItemId = rootContentItem.Id,
-                RootContentItemName = rootContentItem.ContentName,
-                ClientId = client.Id,
-                ClientName = client.Name,
+                SelectionGroup = new
+                {
+                    selectionGroup.Id,
+                    selectionGroup.GroupName,
+                },
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
                 Action = reductionTask.TaskAction.ToString(),
                 SelectedValues = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList(),
                 SelectedValueIds = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Id)).ToList(),
@@ -345,24 +469,41 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<SelectionGroup, RootContentItem, Client> SelectionChangeMasterAccessGranted = new AuditEventType<SelectionGroup, RootContentItem, Client>(
             4007, "Selection group given master access", (selectionGroup, rootContentItem, client) => new
             {
-                SelectionGroupId = selectionGroup.Id,
-                SelectionGroupName = selectionGroup.GroupName,
-                RootContentItemId = rootContentItem.Id,
-                RootContentItemName = rootContentItem.ContentName,
-                ClientId = client.Id,
-                ClientName = client.Name,
+                SelectionGroup = new
+                {
+                    selectionGroup.Id,
+                    selectionGroup.GroupName,
+                },
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
             });
-        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, bool, string> SelectionGroupSuspensionUpdate = new AuditEventType<SelectionGroup, RootContentItem, Client, bool, string>(
-            4008, "Selection group suspension status updated", (selectionGroup, rootContentItem, client, isSuspended, reason) => new
+        public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, bool> SelectionGroupSuspensionUpdate = new AuditEventType<SelectionGroup, RootContentItem, Client, bool>(
+            4008, "Selection group suspension status updated", (selectionGroup, rootContentItem, client, isSuspended) => new
             {
-                SelectionGroupId = selectionGroup.Id,
-                SelectionGroupName = selectionGroup.GroupName,
-                RootContentItemId = rootContentItem.Id,
-                RootContentItemName = rootContentItem.ContentName,
-                ClientId = client.Id,
-                ClientName = client.Name,
+                SelectionGroup = new
+                {
+                    selectionGroup.Id,
+                    selectionGroup.GroupName,
+                },
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
                 IsSuspended = isSuspended,
-                Reason = reason,
             });
         public static readonly AuditEventType<ContentReductionTask> SelectionChangeReductionLive = new AuditEventType<ContentReductionTask>(
             4009, "Selection change reduction task go live succeeded", (task) => new
@@ -373,17 +514,23 @@ namespace AuditLogLib.Event
         ContentDisclaimerAcceptanceReset = new AuditEventType<List<UserInSelectionGroup>, RootContentItem, Client, ContentDisclaimerResetReason>(
             4101, "Content disclaimer acceptance reset", (usersInGroup, rootContentItem, client, reason) => new
             {
-                RootContentItemId = rootContentItem.Id,
-                RootContentItemName = rootContentItem.ContentName,
-                ClientId = client.Id,
-                ClientName = client.Name,
-                UsersInGroup = usersInGroup.Select(u => new
+                RootContentItem = new
                 {
-                    UserInSelectionGroupId = u.Id,
-                    UserId = u.UserId,
-                    UserName = u.User.UserName,
-                    SelectionGroupId = u.SelectionGroupId,
-                    SelectionGroupName = u.SelectionGroup.GroupName,
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
+                UserInSelectionGroup = usersInGroup.Select(u => new
+                {
+                    u.Id,
+                    u.UserId,
+                    u.User.UserName,
+                    u.SelectionGroupId,
+                    u.SelectionGroup.GroupName,
                 }),
                 Reason = reason.GetDisplayValueString(),
             });
@@ -394,15 +541,21 @@ namespace AuditLogLib.Event
                     ValidationId = validationId.ToString(),
                     UserInSelectionGroup = new
                     {
-                        Id = userInSelectionGroup.Id,
-                        UserId = userInSelectionGroup.UserId,
-                        SelectionGroupId = userInSelectionGroup.SelectionGroupId,
+                        userInSelectionGroup.Id,
+                        userInSelectionGroup.UserId,
+                        userInSelectionGroup.SelectionGroupId,
                         SelectionGroupName = userInSelectionGroup.SelectionGroup.GroupName,
                     },
-                    RootContentItemId = rootContentItem.Id,
-                    RootContentItemName = rootContentItem.ContentName,
-                    ClientId = client.Id,
-                    ClientName = client.Name,
+                    RootContentItem = new
+                    {
+                        rootContentItem.Id,
+                        rootContentItem.ContentName,
+                    },
+                    Client = new
+                    {
+                        client.Id,
+                        client.Name,
+                    },
                     DisclaimerText = disclaimerText,
                 });
         public static readonly AuditEventType<UserInSelectionGroup, RootContentItem, Client, Guid> ContentDisclaimerAccepted =
@@ -412,15 +565,21 @@ namespace AuditLogLib.Event
                     ValidationId = validationId,
                     UserInSelectionGroup = new
                     {
-                        Id = userInSelectionGroup.Id,
-                        UserId = userInSelectionGroup.UserId,
-                        SelectionGroupId = userInSelectionGroup.SelectionGroupId,
+                        userInSelectionGroup.Id,
+                        userInSelectionGroup.UserId,
+                        userInSelectionGroup.SelectionGroupId,
                         SelectionGroupName = userInSelectionGroup.SelectionGroup.GroupName,
                     },
-                    RootContentItemId = rootContentItem.Id,
-                    RootContentItemName = rootContentItem.ContentName,
-                    ClientId = client.Id,
-                    ClientName = client.Name,
+                    RootContentItem = new
+                    {
+                        rootContentItem.Id,
+                        rootContentItem.ContentName,
+                    },
+                    Client = new
+                    {
+                        client.Id,
+                        client.Name,
+                    },
                 });
 
         #endregion
@@ -455,76 +614,130 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<RootContentItem, Client> RootContentItemCreated = new AuditEventType<RootContentItem, Client>(
             6001, "Root content item created", (rootContentItem, client) => new
             {
-                RootContentItemId = rootContentItem.Id,
-                RootContentItemName = rootContentItem.ContentName,
-                RootContentDescription = rootContentItem.Description,
-                RootContentNotes = rootContentItem.Notes,
-                RootContentDisclaimer = rootContentItem.ContentDisclaimer,
-                ContentTypeId = rootContentItem.ContentTypeId,
-                ContentTypeName = rootContentItem.ContentType.Name,
-                ClientId = client.Id,
-                ClientName = client.Name,
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                    rootContentItem.Description,
+                    rootContentItem.Notes,
+                    rootContentItem.ContentDisclaimer,
+                },
+                ContentType = new
+                {
+                    rootContentItem.ContentType.Id,
+                    rootContentItem.ContentType.Name,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
             });
         public static readonly AuditEventType<RootContentItem, Client> RootContentItemDeleted = new AuditEventType<RootContentItem, Client>(
             6002, "Root content item deleted", (rootContentItem, client) => new
             {
-                RootContentItemId = rootContentItem.Id,
-                RootContentItemName = rootContentItem.ContentName,
-                ContentTypeId = rootContentItem.ContentTypeId,
-                ContentTypeName = rootContentItem.ContentType.Name,
-                ClientId = client.Id,
-                ClientName = client.Name,
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                ContentType = new
+                {
+                    rootContentItem.ContentType.Id,
+                    rootContentItem.ContentType.Name,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
             });
         public static readonly AuditEventType<RootContentItem, Client> RootContentItemUpdated = new AuditEventType<RootContentItem, Client>(
             6003, "Root content item updated", (rootContentItem, client) => new
             {
-                RootContentItemId = rootContentItem.Id,
-                RootContentItemName = rootContentItem.ContentName,
-                ContentTypeId = rootContentItem.ContentTypeId,
-                ContentTypeName = rootContentItem.ContentType.Name,
-                ClientId = client.Id,
-                ClientName = client.Name,
-                RootContentDescription = rootContentItem.Description,
-                RootContentNotes = rootContentItem.Notes,
-                RootContentDisclaimer = rootContentItem.ContentDisclaimer,
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                    rootContentItem.Description,
+                    rootContentItem.Notes,
+                    rootContentItem.ContentDisclaimer,
+                },
+                ContentType = new
+                {
+                    rootContentItem.ContentType.Id,
+                    rootContentItem.ContentType.Name,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
             });
         public static readonly AuditEventType<RootContentItem, Client, ContentPublicationRequest> PublicationRequestInitiated = new AuditEventType<RootContentItem, Client, ContentPublicationRequest>(
             6101, "Publication request initiated", (rootContentItem, client, publicationRequest) => new
             {
                 PublicationRequestId = publicationRequest.Id,
-                ContentItemId = rootContentItem.Id,
-                ContentItemName = rootContentItem.ContentName,
-                ClientId = client.Id,
-                ClientName = client.Name,
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
                 Uploads = publicationRequest.UploadedRelatedFilesObj,
             });
         public static readonly AuditEventType<RootContentItem, Client, ContentPublicationRequest> PublicationCanceled = new AuditEventType<RootContentItem, Client, ContentPublicationRequest>(
             6102, "Publication request canceled", (rootContentItem, client, publicationRequest) => new
             {
                 PublicationRequestId = publicationRequest.Id,
-                ContentItemId = rootContentItem.Id,
-                ContentItemName = rootContentItem.ContentName,
-                ClientId = client.Id,
-                ClientName = client.Name,
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
             });
         public static readonly AuditEventType<RootContentItem, Client, ContentPublicationRequest> GoLiveValidationFailed = new AuditEventType<RootContentItem, Client, ContentPublicationRequest>(
             6103, "GoLive Validation Failed", (rootContentItem, client, publicationRequest) => new
             {
                 PublicationRequestId = publicationRequest.Id,
-                RootContentItemId = rootContentItem.Id,
-                RootContentItemName = rootContentItem.ContentName,
-                ClientId = client.Id,
-                ClientName = client.Name,
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
             });
         public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, ContentRelatedFile, string> ChecksumInvalid = new AuditEventType<SelectionGroup, RootContentItem, Client, ContentRelatedFile, string>(
             6104, "Checksum Invalid", (selectionGroup, rootContentItem, client, contentRelatedFile, sourceAction) => new
             {
-                SelectionGroupId = selectionGroup.Id,
-                SelectionGroupName = selectionGroup.GroupName,
-                RootContentItemId = rootContentItem.Id,
-                RootContentItemName = rootContentItem.ContentName,
-                ClientId = client.Id,
-                ClientName = client.Name,
+                SelectionGroup = new
+                {
+                    selectionGroup.Id,
+                    selectionGroup.GroupName,
+                },
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
                 FilePath = contentRelatedFile.FullPath,
                 FilePurpose = contentRelatedFile.FilePurpose,
                 Action = sourceAction,
@@ -532,10 +745,16 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<RootContentItem, Client, ContentPublicationRequest, string> ContentPublicationGoLive = new AuditEventType<RootContentItem, Client, ContentPublicationRequest, string>(
             6105, "Content publication golive", (rootContentItem, client, publicationRequest, summaryGUID) => new
             {
-                RootContentItemId = rootContentItem.Id,
-                RootContentItemName = rootContentItem.ContentName,
-                ClientId = client.Id,
-                ClientName = client.Name,
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
                 SummaryGUID = summaryGUID,
             });
         public static readonly AuditEventType<PreLiveContentValidationSummaryLogModel> PreGoLiveSummary = new AuditEventType<PreLiveContentValidationSummaryLogModel>(
@@ -544,10 +763,16 @@ namespace AuditLogLib.Event
             6107, "Content publication rejected", (rootContentItem, client, publicationRequest) => new
             {
                 PublicationRequestId = publicationRequest.Id,
-                RootContentItemId = rootContentItem.Id,
-                RootContentItemName = rootContentItem.ContentName,
-                ClientId = client.Id,
-                ClientName = client.Name,
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
             });
         #endregion
 
@@ -555,31 +780,48 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<ApplicationUser, bool, string> UserSuspensionUpdate = new AuditEventType<ApplicationUser, bool, string>(
             7001, "User suspension status updated", (user, isSuspended, reason) => new
             {
-                UserId = user.Id,
-                UserName = user.UserName,
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
                 IsSuspended = isSuspended,
                 Reason = reason,
             });
-        public static readonly AuditEventType<RootContentItem, bool, string> RootContentItemSuspensionUpdate = new AuditEventType<RootContentItem, bool, string>(
-            7002, "Root content item suspension status updated", (item, isSuspended, reason) => new
+        public static readonly AuditEventType<RootContentItem, Client, bool, string> RootContentItemSuspensionUpdate = new AuditEventType<RootContentItem, Client, bool, string>(
+            7002, "Root content item suspension status updated", (rootContentItem, client, isSuspended, reason) => new
             {
-                RootContentItemId = item.Id,
-                RootContentItemName = item.ContentName,
+                RootContentItem = new
+                {
+                    rootContentItem.Id,
+                    rootContentItem.ContentName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
                 IsSuspended = isSuspended,
                 Reason = reason,
             });
         public static readonly AuditEventType<ApplicationUser, RoleEnum> SystemRoleAssigned = new AuditEventType<ApplicationUser, RoleEnum>(
             7003, "System role assigned", (user, role) => new
             {
-                UserId = user.Id,
-                UserName = user.UserName,
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
                 Role = role.ToString(),
             });
         public static readonly AuditEventType<ApplicationUser, RoleEnum> SystemRoleRemoved = new AuditEventType<ApplicationUser, RoleEnum>(
             7004, "System role removed", (user, role) => new
             {
-                UserId = user.Id,
-                UserName = user.UserName,
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
                 Role = role.ToString(),
             });
         public static readonly AuditEventType<ProfitCenter> ProfitCenterCreated = new AuditEventType<ProfitCenter>(
@@ -595,24 +837,39 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<ProfitCenter> ProfitCenterDeleted = new AuditEventType<ProfitCenter>(
             7103, "Profit center deleted", (profitCenter) => new
             {
-                ProfitCenterId = profitCenter.Id,
-                ProfitCenterName = profitCenter.Name,
+                ProfitCenter = new
+                {
+                    profitCenter.Id,
+                    profitCenter.Name,
+                }
             });
         public static readonly AuditEventType<ProfitCenter, ApplicationUser> UserAssignedToProfitCenter = new AuditEventType<ProfitCenter, ApplicationUser>(
             7104, "User assigned to profit center", (profitCenter, user) => new
             {
-                ProfitCenterId = profitCenter.Id,
-                ProfitCenterName = profitCenter.Name,
-                UserId = user.Id,
-                UserName = user.UserName,
+                ProfitCenter = new
+                {
+                    profitCenter.Id,
+                    profitCenter.Name,
+                },
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
             });
         public static readonly AuditEventType<ProfitCenter, ApplicationUser> UserRemovedFromProfitCenter = new AuditEventType<ProfitCenter, ApplicationUser>(
             7105, "User removed from profit center", (profitCenter, user) => new
             {
-                ProfitCenterId = profitCenter.Id,
-                ProfitCenterName = profitCenter.Name,
-                UserId = user.Id,
-                UserName = user.UserName,
+                ProfitCenter = new
+                {
+                    profitCenter.Id,
+                    profitCenter.Name,
+                },
+                User = new
+                {
+                    user.Id,
+                    user.UserName,
+                },
             });
 
         // 72xx - Authentication scheme management
@@ -629,7 +886,7 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<AuthenticationScheme,AuthenticationScheme> AuthenticationSchemeUpdated = new AuditEventType<AuthenticationScheme,AuthenticationScheme>(
             7202, "Authentication scheme updated", (before,after) => new
             {
-                before = new
+                Before = new
                 {
                     SchemeId = before.Id,
                     SchemeName = before.Name,
@@ -638,7 +895,7 @@ namespace AuditLogLib.Event
                     Type = before.Type.ToString(),
                     SchemeProperties = before.SchemePropertiesObj,
                 },
-                after = new
+                After = new
                 {
                     SchemeId = after.Id,
                     SchemeName = after.Name,

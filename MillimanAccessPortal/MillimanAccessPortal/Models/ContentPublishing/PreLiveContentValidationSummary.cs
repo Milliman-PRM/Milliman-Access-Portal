@@ -24,10 +24,12 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     {
         public string ValidationSummaryId { get; set; }
         public Guid PublicationRequestId { get; set; }
+        public Guid RootContentId { get; set; }
         public string RootContentName { get; set; }
         public string ContentTypeName { get; set; }
         public string ContentDescription { get; set; }
         public bool DoesReduce { get; set; }
+        public Guid ClientId { get; set; }
         public string ClientName { get; set; }
         public string ClientCode { get; set; }
         public string AttestationLanguage { get; set; }
@@ -61,10 +63,12 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             {
                 ValidationSummaryId = Guid.NewGuid().ToString("D"),
                 PublicationRequestId = PubRequest.Id,
+                RootContentId = PubRequest.RootContentItem.Id,
                 RootContentName = PubRequest.RootContentItem.ContentName,
                 ContentTypeName = PubRequest.RootContentItem.ContentType.Name,
                 ContentDescription = PubRequest.RootContentItem.Description,
                 DoesReduce = PubRequest.RootContentItem.DoesReduce,
+                ClientId = PubRequest.RootContentItem.Client.Id,
                 ClientName = PubRequest.RootContentItem.Client.Name,
                 ClientCode = PubRequest.RootContentItem.Client.ClientCode,
                 AttestationLanguage = ApplicationConfig.GetValue<string>("Publishing:AttestationLanguage"),
@@ -291,11 +295,13 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 PublicationRequestId = source.PublicationRequestId,
                 AttestationLanguage = source.AttestationLanguage,
                 ContentDescription = source.ContentDescription,
+                RootContentId = source.RootContentId,
                 RootContentName = source.RootContentName,
                 ContentTypeName = source.ContentTypeName,
                 LiveHierarchy = source.LiveHierarchy,
                 NewHierarchy = source.NewHierarchy,
                 DoesReduce = source.DoesReduce,
+                ClientId = source.ClientId,
                 ClientName = source.ClientName,
             };
         }
