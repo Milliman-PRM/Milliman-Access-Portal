@@ -638,7 +638,9 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"Entered ContentPublishingController.CancelContentPublicationRequest action with content item {rootContentItemId}");
 
             #region Preliminary validation
-            var rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
+            var rootContentItem = DbContext.RootContentItem
+                .Include(c => c.Client)
+                .SingleOrDefault(c => c.Id == rootContentItemId);
             if (rootContentItem == null)
             {
                 Log.Debug($"In ContentPublishingController.CancelContentPublicationRequest action: content item {rootContentItemId} not found, aborting");
@@ -686,6 +688,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In ContentPublishingController.CancelContentPublicationRequest action: success");
+            AuditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(rootContentItem, rootContentItem.Client, contentPublicationRequest));
 
             var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
 

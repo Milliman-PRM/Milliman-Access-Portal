@@ -367,7 +367,10 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>Deleted selection group</returns>
         internal SelectionGroup DeleteSelectionGroup(Guid selectionGroupId)
         {
-            var group = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var group = _dbContext.SelectionGroup
+                .Include(g => g.RootContentItem)
+                    .ThenInclude(c => c.Client)
+                .SingleOrDefault(g => g.Id == selectionGroupId);
             _dbContext.SelectionGroup.Remove(group);
 
             _dbContext.SaveChanges();

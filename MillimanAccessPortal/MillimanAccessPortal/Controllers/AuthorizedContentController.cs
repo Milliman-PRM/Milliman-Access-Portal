@@ -316,6 +316,7 @@ namespace MillimanAccessPortal.Controllers
                                 selectionGroup.ContentInstanceUrl),
                             Checksum = selectionGroup.ReducedContentChecksum,
                             FileOriginalName = masterContentRelatedFile.FileOriginalName,
+                            FilePurpose = masterContentRelatedFile.FilePurpose,
                         };
 
                 if (requestedContentFile == null)

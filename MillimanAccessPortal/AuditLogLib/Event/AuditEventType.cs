@@ -343,17 +343,27 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<SelectionGroup, RootContentItem, Client> SelectionGroupCreated = new AuditEventType<SelectionGroup, RootContentItem, Client>(
             4001, "Selection group created", (selectionGroup, contentItem, client) => new
             {
-                SelectionGroup = selectionGroup,
+                SelectionGroup = new
+                {
+                    selectionGroup.Id,
+                    selectionGroup.GroupName,
+                    selectionGroup.IsInactive,
+                    selectionGroup.IsMaster,
+                    selectionGroup.IsSuspended,
+                    selectionGroup.ReducedContentChecksum,
+                    selectionGroup.SelectedHierarchyFieldValueList,
+                    selectionGroup.ContentInstanceUrl,
+                },
                 RootContentItem = new
                 {
-                    contentItem.Id,
-                    contentItem.ContentName,
+                    selectionGroup.RootContentItem.Id,
+                    selectionGroup.RootContentItem.ContentName,
                 },
                 Client = new
                 {
-                    client.Id,
-                    client.Name,
-                },
+                    selectionGroup.RootContentItem.Client.Id,
+                    selectionGroup.RootContentItem.Client.Name,
+                }
             });
         public static readonly AuditEventType<SelectionGroup, RootContentItem, Client> SelectionGroupDeleted = new AuditEventType<SelectionGroup, RootContentItem, Client>(
             4002, "Selection group deleted", (selectionGroup, rootContentItem, client) => new
@@ -441,8 +451,10 @@ namespace AuditLogLib.Event
                     client.Name,
                 },
                 Action = reductionTask.TaskAction.ToString(),
-                SelectedValues = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList(),
-                SelectedValueIds = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Id)).ToList(),
+                SelectedValues = reductionTask.SelectionCriteriaObj
+                                              .Fields
+                                              .SelectMany(f => f.Values.Where(v => v.SelectionStatus).Select(v => new { v.Id, v.Value }))
+                                              .ToList(),
             });
         public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, ContentReductionTask> SelectionChangeReductionCanceled = new AuditEventType<SelectionGroup, RootContentItem, Client, ContentReductionTask>(
             4006, "Selection change reduction task canceled", (selectionGroup, rootContentItem, client, reductionTask) => new
@@ -463,8 +475,10 @@ namespace AuditLogLib.Event
                     client.Name,
                 },
                 Action = reductionTask.TaskAction.ToString(),
-                SelectedValues = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList(),
-                SelectedValueIds = reductionTask.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Select(v => v.Id)).ToList(),
+                SelectedValues = reductionTask.SelectionCriteriaObj
+                                              .Fields
+                                              .SelectMany(f => f.Values.Where(v => v.SelectionStatus).Select(v => new { v.Id, v.Value }))
+                                              .ToList(),
             });
         public static readonly AuditEventType<SelectionGroup, RootContentItem, Client> SelectionChangeMasterAccessGranted = new AuditEventType<SelectionGroup, RootContentItem, Client>(
             4007, "Selection group given master access", (selectionGroup, rootContentItem, client) => new
@@ -527,10 +541,16 @@ namespace AuditLogLib.Event
                 UserInSelectionGroup = usersInGroup.Select(u => new
                 {
                     u.Id,
-                    u.UserId,
-                    u.User.UserName,
-                    u.SelectionGroupId,
-                    u.SelectionGroup.GroupName,
+                    User = new
+                    {
+                        u.UserId,
+                        u.User.UserName,
+                    },
+                    SelectionGroup = new
+                    {
+                        u.SelectionGroupId,
+                        u.SelectionGroup.GroupName,
+                    }
                 }),
                 Reason = reason.GetDisplayValueString(),
             });
@@ -542,9 +562,16 @@ namespace AuditLogLib.Event
                     UserInSelectionGroup = new
                     {
                         userInSelectionGroup.Id,
-                        userInSelectionGroup.UserId,
-                        userInSelectionGroup.SelectionGroupId,
-                        SelectionGroupName = userInSelectionGroup.SelectionGroup.GroupName,
+                        User = new
+                        {
+                            userInSelectionGroup.Id,
+                            userInSelectionGroup.UserId,
+                        },
+                        SelectionGroup = new
+                        {
+                            userInSelectionGroup.SelectionGroupId,
+                            userInSelectionGroup.SelectionGroup.GroupName,
+                        }
                     },
                     RootContentItem = new
                     {
@@ -566,9 +593,16 @@ namespace AuditLogLib.Event
                     UserInSelectionGroup = new
                     {
                         userInSelectionGroup.Id,
-                        userInSelectionGroup.UserId,
-                        userInSelectionGroup.SelectionGroupId,
-                        SelectionGroupName = userInSelectionGroup.SelectionGroup.GroupName,
+                        User = new
+                        {
+                            userInSelectionGroup.Id,
+                            userInSelectionGroup.UserId,
+                        },
+                        SelectionGroup = new
+                        {
+                            userInSelectionGroup.SelectionGroupId,
+                            userInSelectionGroup.SelectionGroup.GroupName,
+                        }
                     },
                     RootContentItem = new
                     {
@@ -721,7 +755,7 @@ namespace AuditLogLib.Event
                 },
             });
         public static readonly AuditEventType<SelectionGroup, RootContentItem, Client, ContentRelatedFile, string> ChecksumInvalid = new AuditEventType<SelectionGroup, RootContentItem, Client, ContentRelatedFile, string>(
-            6104, "Checksum Invalid", (selectionGroup, rootContentItem, client, contentRelatedFile, sourceAction) => new
+            6104, "Checksum Invalid", (selectionGroup, rootContentItem, client, contentRelatedFile, SourceAction) => new
             {
                 SelectionGroup = new
                 {
@@ -738,9 +772,9 @@ namespace AuditLogLib.Event
                     client.Id,
                     client.Name,
                 },
-                FilePath = contentRelatedFile.FullPath,
-                FilePurpose = contentRelatedFile.FilePurpose,
-                Action = sourceAction,
+                contentRelatedFile.FullPath,
+                contentRelatedFile.FilePurpose,
+                SourceAction,
             });
         public static readonly AuditEventType<RootContentItem, Client, ContentPublicationRequest, string> ContentPublicationGoLive = new AuditEventType<RootContentItem, Client, ContentPublicationRequest, string>(
             6105, "Content publication golive", (rootContentItem, client, publicationRequest, summaryGUID) => new
