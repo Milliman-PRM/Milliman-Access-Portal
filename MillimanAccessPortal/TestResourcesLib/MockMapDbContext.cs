@@ -48,12 +48,14 @@ namespace TestResourcesLib
             Mock<DbSet<ContentPublicationRequest>> MockContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(ContentPublicationRequestData);
             MockContentPublicationRequest.Setup(d => d.Add(It.IsAny<ContentPublicationRequest>())).Callback<ContentPublicationRequest>(s =>
             {
+                if (s.Id == default) s.Id = Guid.NewGuid();
                 ContentPublicationRequestData.Add(s);
                 MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(MockContentPublicationRequest.Object, "ApplicationUserId", ReturnMockContext.Object.ApplicationUser);
                 MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(MockContentPublicationRequest.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
             });
             MockContentPublicationRequest.Setup(d => d.AddRange(It.IsAny<IEnumerable<ContentPublicationRequest>>())).Callback<IEnumerable<ContentPublicationRequest>>(s =>
             {
+                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
                 ContentPublicationRequestData.AddRange(s);
                 MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(MockContentPublicationRequest.Object, "ApplicationUserId", ReturnMockContext.Object.ApplicationUser);
                 MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(MockContentPublicationRequest.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
@@ -64,6 +66,7 @@ namespace TestResourcesLib
             Mock<DbSet<ContentReductionTask>> MockContentReductionTask = MockDbSet<ContentReductionTask>.New(ContentReductionTaskData);
             MockContentReductionTask.Setup(d => d.Add(It.IsAny<ContentReductionTask>())).Callback<ContentReductionTask>(s =>
             {
+                if (s.Id == default) s.Id = Guid.NewGuid();
                 s.CreateDateTimeUtc = s.ReductionStatus == ReductionStatusEnum.Replaced
                     ? DateTime.FromFileTimeUtc(50)
                     : DateTime.FromFileTimeUtc(200);
@@ -78,12 +81,14 @@ namespace TestResourcesLib
             Mock<DbSet<RootContentItem>> MockRootContentItem = MockDbSet<RootContentItem>.New(RootContentItemData);
             MockRootContentItem.Setup(d => d.Add(It.IsAny<RootContentItem>())).Callback<RootContentItem>(s =>
             {
+                if (s.Id == default) s.Id = Guid.NewGuid();
                 RootContentItemData.Add(s);
                 MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ContentTypeId", ReturnMockContext.Object.ContentType);
                 MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ClientId", ReturnMockContext.Object.Client);
             });
             MockRootContentItem.Setup(d => d.AddRange(It.IsAny<IEnumerable<RootContentItem>>())).Callback< IEnumerable<RootContentItem>>(s =>
             {
+                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
                 RootContentItemData.AddRange(s);
                 MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ContentTypeId", ReturnMockContext.Object.ContentType);
                 MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ClientId", ReturnMockContext.Object.Client);
@@ -94,11 +99,13 @@ namespace TestResourcesLib
             Mock<DbSet<SelectionGroup>> MockSelectionGroup = MockDbSet<SelectionGroup>.New(SelectionGroupData);
             MockSelectionGroup.Setup(d => d.Add(It.IsAny<SelectionGroup>())).Callback<SelectionGroup>(s =>
             {
+                if (s.Id == default) s.Id = Guid.NewGuid();
                 SelectionGroupData.Add(s);
                 MockDbSet<SelectionGroup>.AssignNavigationProperty(MockSelectionGroup.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
             });
             MockSelectionGroup.Setup(d => d.AddRange(It.IsAny<IEnumerable<SelectionGroup>>())).Callback< IEnumerable<SelectionGroup>>(s =>
             {
+                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
                 SelectionGroupData.AddRange(s);
                 MockDbSet<SelectionGroup>.AssignNavigationProperty(MockSelectionGroup.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
             });
@@ -109,6 +116,7 @@ namespace TestResourcesLib
             Mock<DbSet<UserRoleInClient>> MockUserRoleInClient = MockDbSet<UserRoleInClient>.New(UserRoleInClientData);
             MockUserRoleInClient.Setup(d => d.Add(It.IsAny<UserRoleInClient>())).Callback<UserRoleInClient>(s =>
             {
+                if (s.Id == default) s.Id = Guid.NewGuid();
                 UserRoleInClientData.Add(s);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(MockUserRoleInClient.Object, "ClientId", ReturnMockContext.Object.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(MockUserRoleInClient.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
@@ -116,6 +124,7 @@ namespace TestResourcesLib
             });
             MockUserRoleInClient.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserRoleInClient>>())).Callback<IEnumerable<UserRoleInClient>>(s =>
             {
+                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
                 UserRoleInClientData.AddRange(s);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(MockUserRoleInClient.Object, "ClientId", ReturnMockContext.Object.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(MockUserRoleInClient.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
@@ -127,6 +136,7 @@ namespace TestResourcesLib
             var mockUserRoleInRootContentItem = MockDbSet<UserRoleInRootContentItem>.New(userRoleInRootContentItemData);
             mockUserRoleInRootContentItem.Setup(d => d.Add(It.IsAny<UserRoleInRootContentItem>())).Callback<UserRoleInRootContentItem>(s =>
             {
+                if (s.Id == default) s.Id = Guid.NewGuid();
                 userRoleInRootContentItemData.Add(s);
                 MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
                 MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "RoleId", ReturnMockContext.Object.Roles);
@@ -134,6 +144,7 @@ namespace TestResourcesLib
             });
             mockUserRoleInRootContentItem.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserRoleInRootContentItem>>())).Callback<IEnumerable<UserRoleInRootContentItem>>(s =>
             {
+                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
                 userRoleInRootContentItemData.AddRange(s);
                 MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
                 MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "RoleId", ReturnMockContext.Object.Roles);
@@ -145,12 +156,14 @@ namespace TestResourcesLib
             Mock<DbSet<UserInSelectionGroup>> MockUserInSelectionGroup = MockDbSet<UserInSelectionGroup>.New(UserInSelectionGroupData);
             MockUserInSelectionGroup.Setup(d => d.Add(It.IsAny<UserInSelectionGroup>())).Callback<UserInSelectionGroup>(s =>
             {
+                if (s.Id == default) s.Id = Guid.NewGuid();
                 UserInSelectionGroupData.Add(s);
                 MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<SelectionGroup>(MockUserInSelectionGroup.Object, "SelectionGroupId", ReturnMockContext.Object.SelectionGroup);
                 MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<ApplicationUser>(MockUserInSelectionGroup.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
             });
             MockUserInSelectionGroup.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserInSelectionGroup>>())).Callback<IEnumerable<UserInSelectionGroup>>(s =>
             {
+                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
                 UserInSelectionGroupData.AddRange(s);
                 MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<SelectionGroup>(MockUserInSelectionGroup.Object, "SelectionGroupId", ReturnMockContext.Object.SelectionGroup);
                 MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<ApplicationUser>(MockUserInSelectionGroup.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
@@ -161,11 +174,13 @@ namespace TestResourcesLib
             Mock<DbSet<ApplicationUser>> MockApplicationUser = MockDbSet<ApplicationUser>.New(ApplicationUserData);
             MockApplicationUser.Setup(d => d.Add(It.IsAny<ApplicationUser>())).Callback<ApplicationUser>(s =>
             {
+                if (s.Id == default) s.Id = Guid.NewGuid();
                 ApplicationUserData.Add(s);
                 MockDbSet<ApplicationUser>.AssignNavigationProperty<AuthenticationScheme>(MockApplicationUser.Object, "AuthenticationSchemeId", ReturnMockContext.Object.AuthenticationScheme);
             });
             MockApplicationUser.Setup(d => d.AddRange(It.IsAny<IEnumerable<ApplicationUser>>())).Callback<IEnumerable<ApplicationUser>>(s =>
             {
+                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
                 ApplicationUserData.AddRange(s);
                 MockDbSet<ApplicationUser>.AssignNavigationProperty<AuthenticationScheme>(MockApplicationUser.Object, "AuthenticationSchemeId", ReturnMockContext.Object.AuthenticationScheme);
             });

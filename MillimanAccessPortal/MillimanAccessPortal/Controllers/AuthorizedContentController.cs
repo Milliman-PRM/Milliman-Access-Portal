@@ -113,6 +113,7 @@ namespace MillimanAccessPortal.Controllers
                 .Include(u => u.SelectionGroup)
                     .ThenInclude(sg => sg.RootContentItem)
                         .ThenInclude(c => c.Client)
+                .Include(u => u.User)
                 .Where(u => u.UserId == user.Id)
                 .Where(u => u.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
@@ -199,6 +200,7 @@ namespace MillimanAccessPortal.Controllers
                 .Include(u => u.SelectionGroup)
                     .ThenInclude(sg => sg.RootContentItem)
                         .ThenInclude(c => c.Client)
+                .Include(u => u.User)
                 .Where(u => u.UserId == user.Id)
                 .Where(u => u.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
@@ -316,6 +318,7 @@ namespace MillimanAccessPortal.Controllers
                                 selectionGroup.ContentInstanceUrl),
                             Checksum = selectionGroup.ReducedContentChecksum,
                             FileOriginalName = masterContentRelatedFile.FileOriginalName,
+                            FilePurpose = masterContentRelatedFile.FilePurpose,
                         };
 
                 if (requestedContentFile == null)
