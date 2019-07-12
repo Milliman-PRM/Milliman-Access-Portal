@@ -324,7 +324,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _dbContext.AttachRange(recordsToAdd);
             foreach (var userInGroup in recordsToAdd)
             {
-                _dbContext.Entry(userInGroup).Reference(uig => uig.User).Load();
+                _dbContext.Entry(userInGroup)?.Reference(uig => uig.User)?.Load();  // Load `User` navigation property into EF cache for this context
                 _auditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(requestedGroup, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client, userInGroup.User));
             }
             foreach (var userInGroup in usersToRemove.Distinct(new IdPropertyComparer<ApplicationUser>()))
