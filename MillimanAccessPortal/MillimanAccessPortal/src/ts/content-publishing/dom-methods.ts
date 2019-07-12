@@ -906,7 +906,7 @@ function setDisclaimerToEditMode() {
 
 function setDisclaimerToPreviewMode() {
   // Update markdown from textarea content
-  const rawDisclaimerMarkdown = (document.getElementById('ContentDisclaimer') as HTMLTextAreaElement).value.trimRight();
+  const rawDisclaimerMarkdown = (document.getElementById('ContentDisclaimer') as HTMLTextAreaElement).value;
   const processedDisclaimerHTML = convertMarkdownToHTML(rawDisclaimerMarkdown);
   document.getElementById('ContentDisclaimerPreview').innerHTML = processedDisclaimerHTML;
   // Toggle buttons

@@ -968,7 +968,6 @@ namespace MillimanAccessPortal.Controllers
             existingRecord.ContactEmail = profitCenter.ContactEmail;
             existingRecord.ContactPhone = profitCenter.ContactPhone;
 
-            _dbContext.Update(existingRecord);
             _dbContext.SaveChanges();
 
             Log.Verbose($"In SystemAdminController.UpdateProfitCenter action: success");
@@ -1038,21 +1037,22 @@ namespace MillimanAccessPortal.Controllers
             {
                 try
                 {
-                    List<string> usersToReset = _dbContext.ApplicationUser.Where(u => u.IsUserAgreementAccepted == true).Select(u => u.UserName).ToList();
+                    List<ApplicationUser> usersToReset = _dbContext.ApplicationUser.Where(u => u.IsUserAgreementAccepted == true).ToList();
 
-                    IRelationalEntityTypeAnnotations mapping = _dbContext.Model.FindEntityType(typeof(ApplicationUser)).Relational();
 #pragma warning disable EF1000 // Possible SQL injection vulnerability.
+                    IRelationalEntityTypeAnnotations mapping = _dbContext.Model.FindEntityType(typeof(ApplicationUser)).Relational();
                     string statement = $"UPDATE \"{mapping.TableName}\" " +
                                        $"SET \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = false " +
                                        $"WHERE \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = true;";
-                    int howManyAffected = await _dbContext.Database.ExecuteSqlCommandAsync(statement); // much more efficient than EF
+                    // This runs much more efficiently than EF, but elements in usersToReset do not get updated, nor does EF cache
+                    int howManyAffected = await _dbContext.Database.ExecuteSqlCommandAsync(statement); 
 #pragma warning restore EF1000 // Possible SQL injection vulnerability.
                     existingRecord.Value = newAgreementText;
                     _dbContext.SaveChanges();
 
                     #region Audit logging
                     _auditLogger.Log(AuditEventType.UserAgreementUpdated.ToEvent(newAgreementText));
-                    foreach (string user in usersToReset)
+                    foreach (var user in usersToReset)
                     {
                         _auditLogger.Log(AuditEventType.UserAgreementReset.ToEvent(user));
                     }
@@ -2183,7 +2183,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var rootContentItem = _dbContext.RootContentItem.SingleOrDefault(i => i.Id == rootContentItemId);
+            var rootContentItem = _dbContext.RootContentItem
+                .Include(i => i.Client)
+                .SingleOrDefault(i => i.Id == rootContentItemId);
+
             #region Validation
             if (rootContentItem == null)
             {
@@ -2198,7 +2201,7 @@ namespace MillimanAccessPortal.Controllers
             _dbContext.SaveChanges();
 
             Log.Verbose("In SystemAdminController.ContentSuspendedStatus action: success");
-            _auditLogger.Log(AuditEventType.RootContentItemSuspensionUpdate.ToEvent(rootContentItem, value, ""));
+            _auditLogger.Log(AuditEventType.RootContentItemSuspensionUpdate.ToEvent(rootContentItem, rootContentItem.Client, value, ""));
 
             return Json(rootContentItem.IsSuspended);
         }

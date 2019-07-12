@@ -4,6 +4,8 @@
 #agreement-container {
     flex: 1 0 auto;
     padding: 1em 5em 4em;
+    height: auto;
+    max-height: 90%;
 
     #user-agreement-form {
         display: flex;
@@ -17,7 +19,7 @@
         }
 
         #user-agreement-text {
-            flex: 1 0 0;
+            flex: 1 0;
             padding: 1em;
             overflow: hidden;
 
