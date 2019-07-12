@@ -1,0 +1,43 @@
+﻿@import "map";
+@import "map_modules/variables";
+
+#agreement-container {
+    flex: 1 0 auto;
+    padding: 1em 5em 4em;
+    height: auto;
+    max-height: 90%;
+
+    #user-agreement-form {
+        display: flex;
+        flex-flow: column nowrap;
+        height: 100%;
+        padding: 1em;
+
+        .section-title,
+        .button-container {
+            flex: none;
+        }
+
+        #user-agreement-text {
+            flex: 1 0;
+            padding: 1em;
+            overflow: hidden;
+
+            textarea,
+            #AgreementPreview {
+                height: 100%;
+                width: 100%;
+                margin-bottom: 1em;
+            }
+
+            #AgreementPreview {
+                overflow-y: auto;
+            }
+        }
+
+        .button-container {
+            text-align: right;
+            padding-top: 1em;
+        }
+    }
+}

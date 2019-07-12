@@ -150,7 +150,7 @@ namespace MapTests
         /// </summary>
         /// <param name="userName">The user to be impersonated in the ControllerContext</param>
         /// <returns></returns>
-        internal static ControllerContext GenerateControllerContext(string userName = null, UriBuilder requestUriBuilder = null)
+        internal static ControllerContext GenerateControllerContext(string userName = null, UriBuilder requestUriBuilder = null, Dictionary<string, StringValues> requestHeaders = null)
         {
             ClaimsPrincipal TestUserClaimsPrincipal = new ClaimsPrincipal();
             if (!string.IsNullOrWhiteSpace(userName))
@@ -158,7 +158,7 @@ namespace MapTests
                 TestUserClaimsPrincipal.AddIdentity(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, userName) }));
             }
 
-            return GenerateControllerContext(TestUserClaimsPrincipal, requestUriBuilder);
+            return GenerateControllerContext(TestUserClaimsPrincipal, requestUriBuilder, requestHeaders);
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace MapTests
         /// </summary>
         /// <param name="UserAsClaimsPrincipal">The user to be impersonated in the ControllerContext</param>
         /// <returns></returns>
-        internal static ControllerContext GenerateControllerContext(ClaimsPrincipal UserAsClaimsPrincipal, UriBuilder requestUriBuilder = null)
+        internal static ControllerContext GenerateControllerContext(ClaimsPrincipal UserAsClaimsPrincipal, UriBuilder requestUriBuilder = null, Dictionary<string, StringValues> requestHeaders = null)
         {
             ControllerContext returnVal = new ControllerContext
             {
@@ -176,21 +176,33 @@ namespace MapTests
 
             if (requestUriBuilder != null)
             {
-                var listOfQueries = requestUriBuilder.Query.Substring(1).Split('&', StringSplitOptions.RemoveEmptyEntries).ToList();
-                Dictionary<string, StringValues> dict = new Dictionary<string, StringValues>();
-                foreach (string query in listOfQueries)
-                {
-                    var keyAndValue = query.Split('=', 2, StringSplitOptions.RemoveEmptyEntries);
-                    dict.Add(keyAndValue[0], keyAndValue[1]);
-                }
-
                 returnVal.HttpContext.Request.Scheme = requestUriBuilder.Scheme;
                 returnVal.HttpContext.Request.Host = requestUriBuilder.Port > 0 
                     ? new HostString(requestUriBuilder.Host, requestUriBuilder.Port) 
                     : new HostString(requestUriBuilder.Host);
                 returnVal.HttpContext.Request.Path = requestUriBuilder.Path;
-                returnVal.HttpContext.Request.Query = new QueryCollection(dict);
+
+                if (!string.IsNullOrWhiteSpace(requestUriBuilder.Query))
+                {
+                    var listOfQueries = requestUriBuilder.Query.Substring(1).Split('&', StringSplitOptions.RemoveEmptyEntries).ToList();
+                    Dictionary<string, StringValues> dict = new Dictionary<string, StringValues>();
+                    foreach (string query in listOfQueries)
+                    {
+                        var keyAndValue = query.Split('=', 2, StringSplitOptions.RemoveEmptyEntries);
+                        dict.Add(keyAndValue[0], keyAndValue[1]);
+                    }
+                    returnVal.HttpContext.Request.Query = new QueryCollection(dict);
+                }
             }
+
+            if (requestHeaders != null)
+            {
+                foreach (var header in requestHeaders)
+                {
+                    returnVal.HttpContext.Request.Headers.Add(header);
+                }
+            }
+
             return returnVal;
         }
 
@@ -246,17 +258,30 @@ namespace MapTests
         private Mock<IServiceProvider> GenerateServiceProvider()
         {
             Mock<IServiceProvider> newServiceProvider = new Mock<IServiceProvider>();
-            // IDataProtectionProvider dataProtectionProvider, IOptions<DataProtectionTokenProviderOptions> options
+
             Mock<IDataProtectionProvider> provider = new Mock<IDataProtectionProvider>();
+
+            #region Default token provider
             Mock<IOptions<DataProtectionTokenProviderOptions>> options = new Mock<IOptions<DataProtectionTokenProviderOptions>>() ;
             Mock<DataProtectorTokenProvider<ApplicationUser>> newTokenProvider = new Mock<DataProtectorTokenProvider<ApplicationUser>>(provider.Object, options.Object);
-
             // Validate tokens against TestResourcesLib.MockUserManager's static values
             newTokenProvider.Setup(m => m.ValidateAsync(It.IsAny<string>(), TestResourcesLib.MockUserManager.GoodToken, It.IsAny<UserManager<ApplicationUser>>(), It.IsAny<ApplicationUser>()))
                 .Returns(Task.Run(() => true));
             newTokenProvider.Setup(m => m.ValidateAsync(It.IsAny<string>(), TestResourcesLib.MockUserManager.BadToken, It.IsAny<UserManager<ApplicationUser>>(), It.IsAny<ApplicationUser>()))
                 .Returns(Task.Run(() => false));
             newServiceProvider.Setup(m => m.GetService(It.Is<Type>(t => t == typeof(DataProtectorTokenProvider<ApplicationUser>)))).Returns(newTokenProvider.Object);
+            #endregion
+
+            #region Custom password reset token provider
+            Mock<IOptions<PasswordResetSecurityTokenProviderOptions>> resetOptions = new Mock<IOptions<PasswordResetSecurityTokenProviderOptions>>();
+            Mock<PasswordResetSecurityTokenProvider<ApplicationUser>> resetTokenProvider = new Mock<PasswordResetSecurityTokenProvider<ApplicationUser>>(provider.Object, resetOptions.Object);
+            // Validate tokens against TestResourcesLib.MockUserManager's static values
+            resetTokenProvider.Setup(m => m.ValidateAsync(It.IsAny<string>(), TestResourcesLib.MockUserManager.GoodToken, It.IsAny<UserManager<ApplicationUser>>(), It.IsAny<ApplicationUser>()))
+                .Returns(Task.Run(() => true));
+            resetTokenProvider.Setup(m => m.ValidateAsync(It.IsAny<string>(), TestResourcesLib.MockUserManager.BadToken, It.IsAny<UserManager<ApplicationUser>>(), It.IsAny<ApplicationUser>()))
+                .Returns(Task.Run(() => false));
+            newServiceProvider.Setup(m => m.GetService(It.Is<Type>(t => t == typeof(PasswordResetSecurityTokenProvider<ApplicationUser>)))).Returns(resetTokenProvider.Object);
+            #endregion
 
             OptionsCache<WsFederationOptions> newWsOptionsProvider = MockOptionsCache<WsFederationOptions>.New();
             newServiceProvider.Setup(m => m.GetService(It.Is<Type>(t => t == typeof(IOptionsMonitorCache<WsFederationOptions>)))).Returns<Type>(t => 

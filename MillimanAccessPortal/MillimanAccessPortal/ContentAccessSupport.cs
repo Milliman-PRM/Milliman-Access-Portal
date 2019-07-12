@@ -105,6 +105,9 @@ namespace MillimanAccessPortal
                                                                   .Include(t => t.SelectionGroup)
                                                                       .ThenInclude(g => g.RootContentItem)
                                                                           .ThenInclude(c=> c.ContentType)
+                                                                  .Include(t => t.SelectionGroup)
+                                                                      .ThenInclude(g => g.RootContentItem)
+                                                                          .ThenInclude(c => c.Client)
                                                                   .Single(t => t.Id == thisContentReductionTask.Id);
 
                 List<string> FilesToDelete = await ReducedContentGoLive(Db, thisContentReductionTask, contentRootFolder, ContentTypeConfig);
@@ -124,7 +127,7 @@ namespace MillimanAccessPortal
         }
 
         /// <summary>
-        /// Moves files and updates db, requires navigation property chain SelectionGroup and RootContentItem. Cooperates in a transaction
+        /// Moves files and updates db, requires navigation property chain SelectionGroup, RootContentItem, and Client. Cooperates in a transaction
         /// </summary>
         /// <param name="Db">A valid instance of database context</param>
         /// <param name="auditLogger">A valid instance of audit logger</param>
@@ -197,9 +200,10 @@ namespace MillimanAccessPortal
 
             // Reset disclaimer acceptance
             var usersInGroup = Db.UserInSelectionGroup
-                .Include(u => u.SelectionGroup)
-                .Where(u => u.SelectionGroupId == reductionTask.SelectionGroupId)
-                .ToList();
+                                 .Include(usg => usg.User)
+                                 .Include(usg => usg.SelectionGroup)
+                                 .Where(u => u.SelectionGroupId == reductionTask.SelectionGroupId)
+                                 .ToList();
             usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
             var rootContentItemId = usersInGroup.FirstOrDefault()?.SelectionGroup.RootContentItemId ?? Guid.Empty;
 
@@ -207,8 +211,8 @@ namespace MillimanAccessPortal
             Db.SaveChanges();
 
             AuditLogger Logger = new AuditLogger();
-            Logger.Log(AuditEventType.ContentDisclaimerAcceptanceResetSelectionChange
-                .ToEvent(usersInGroup, rootContentItemId));
+            Logger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
+                .ToEvent(usersInGroup, reductionTask.SelectionGroup.RootContentItem, reductionTask.SelectionGroup.RootContentItem.Client, ContentDisclaimerResetReason.ContentSelectionsModified));
 
             return FilesToDelete;
         }

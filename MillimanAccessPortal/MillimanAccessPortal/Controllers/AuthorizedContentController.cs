@@ -110,6 +110,10 @@ namespace MillimanAccessPortal.Controllers
         {
             var user = await Queries.GetCurrentApplicationUser(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
+                .Include(u => u.SelectionGroup)
+                    .ThenInclude(sg => sg.RootContentItem)
+                        .ThenInclude(c => c.Client)
+                .Include(u => u.User)
                 .Where(u => u.UserId == user.Id)
                 .Where(u => u.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
@@ -158,13 +162,13 @@ namespace MillimanAccessPortal.Controllers
             {
                 var disclaimer = new ContentDisclaimerModel
                 {
-                    ValidationId = Guid.NewGuid().ToString("D"),
+                    ValidationId = Guid.NewGuid(),
                     SelectionGroupId = selectionGroupId,
                     ContentName = selectionGroup.RootContentItem.ContentName,
                     DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
                 };
                 AuditLogger.Log(AuditEventType.ContentDisclaimerPresented.ToEvent(
-                    userInSelectionGroup, disclaimer.ValidationId, disclaimer.DisclaimerText));
+                    userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, disclaimer.ValidationId, disclaimer.DisclaimerText));
 
                 return View("ContentDisclaimer", disclaimer);
             }
@@ -176,20 +180,27 @@ namespace MillimanAccessPortal.Controllers
                 Scheme = Request.Scheme,
                 Port = Request.Host.Port ?? -1,
                 Path = $"/AuthorizedContent/{nameof(WebHostedContent)}",
-                Query = "selectionGroupId=",
             };
+            if (Request.QueryString.HasValue)
+            {
+                contentUrlBuilder.Query = Request.QueryString.Value.Substring(1);
+            }
 
             return View("ContentWrapper", new ContentWrapperModel
             {
-                ContentURL = $"{contentUrlBuilder.Uri.AbsoluteUri}{selectionGroup.Id}",
+                ContentURL = contentUrlBuilder.Uri.AbsoluteUri,
                 ContentType = selectionGroup.RootContentItem.ContentType.TypeEnum,
             });
         }
 
-        public async Task<IActionResult> AcceptDisclaimer(Guid selectionGroupId, string validationId)
+        public async Task<IActionResult> AcceptDisclaimer(Guid selectionGroupId, Guid validationId)
         {
             var user = await Queries.GetCurrentApplicationUser(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
+                .Include(u => u.SelectionGroup)
+                    .ThenInclude(sg => sg.RootContentItem)
+                        .ThenInclude(c => c.Client)
+                .Include(u => u.User)
                 .Where(u => u.UserId == user.Id)
                 .Where(u => u.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
@@ -199,7 +210,7 @@ namespace MillimanAccessPortal.Controllers
                 userInSelectionGroup.DisclaimerAccepted = true;
 
                 await DataContext.SaveChangesAsync();
-                AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, validationId));
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, validationId));
             }
 
             return Ok();
@@ -260,7 +271,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Content Disclaimer Verification
+            #region Validation
+            // user must have accepted the content disclaimer if one exists
             if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer)
                 && !userInSelectionGroup.DisclaimerAccepted)
             {
@@ -268,6 +280,25 @@ namespace MillimanAccessPortal.Controllers
                 {
                     "You are not authorized to access the requested content.",
                 });
+            }
+
+            // This request must be referred by ContentWrapper
+            var requestHeaders = Request.GetTypedHeaders();
+            if (requestHeaders.Referer == null || !requestHeaders.Referer.AbsolutePath.Contains(nameof(ContentWrapper)))
+            {
+                UriBuilder contentUrlBuilder = new UriBuilder
+                {
+                    Host = Request.Host.Host,
+                    Scheme = Request.Scheme,
+                    Port = Request.Host.Port ?? -1,
+                    Path = $"/AuthorizedContent/{nameof(ContentWrapper)}",
+                };
+                if (Request.QueryString.HasValue)
+                {
+                    contentUrlBuilder.Query = Request.QueryString.Value.Substring(1);
+                }
+                Log.Warning($"From AuthorizedContentController.{nameof(WebHostedContent)}: Improper request not refered by AuthorizedContentController.{nameof(ContentWrapper)}, redirecting to {contentUrlBuilder.Uri.AbsoluteUri}");
+                return Redirect(contentUrlBuilder.Uri.AbsoluteUri);
             }
             #endregion
 
@@ -287,6 +318,7 @@ namespace MillimanAccessPortal.Controllers
                                 selectionGroup.ContentInstanceUrl),
                             Checksum = selectionGroup.ReducedContentChecksum,
                             FileOriginalName = masterContentRelatedFile.FileOriginalName,
+                            FilePurpose = masterContentRelatedFile.FilePurpose,
                         };
 
                 if (requestedContentFile == null)
@@ -316,7 +348,7 @@ namespace MillimanAccessPortal.Controllers
 
                     notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
                     Log.Warning("In AuthorizedContentController.WebHostedContent action: checksum failure for ContentFile {@ContentFile}, aborting", requestedContentFile);
-                    AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, requestedContentFile, "AuthorizedContentController.WebHostedContent"));
+                    AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, requestedContentFile, "AuthorizedContentController.WebHostedContent"));
                     return View("ContentMessage", ErrMsg);
                 }
             }
@@ -426,6 +458,7 @@ namespace MillimanAccessPortal.Controllers
                     ReportId = embedProperties.PreviewReportId,
                     FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                     NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
+                    BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
                 };
 
             return View("PowerBi", embedModel);
@@ -466,6 +499,7 @@ namespace MillimanAccessPortal.Controllers
                 ReportId = embedProperties.LiveReportId,
                 FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                 NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
+                BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
             };
 
             return View("PowerBi", embedModel);
@@ -719,14 +753,17 @@ namespace MillimanAccessPortal.Controllers
 
                 notifier.sendSupportMail(MailMsg, $"Checksum verification ({purpose})");
                 Log.Error("In AuthorizedContentController.RelatedPdf action: file checksum failure, ContentRelatedFile {@ContentRelatedFile}, aborting", contentRelatedPdf);
-                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, contentRelatedPdf, "AuthorizedContentController.RelatedPdf"));
+                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentRelatedPdf, "AuthorizedContentController.RelatedPdf"));
                 return View("ContentMessage", ErrMsg);
             }
             #endregion
 
             // Log access to related file
             AuditLogger.Log(AuditEventType.UserContentRelatedFileAccess.ToEvent(
-                selectionGroup.RootContentItemId.ToString(), selectionGroup.Id.ToString(), purpose));
+                    selectionGroup, 
+                    selectionGroup.RootContentItem, 
+                    selectionGroup.RootContentItem.Client,
+                    purpose));
 
             try
             {

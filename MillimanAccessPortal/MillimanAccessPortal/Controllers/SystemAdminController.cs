@@ -29,6 +29,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
@@ -548,6 +549,7 @@ namespace MillimanAccessPortal.Controllers
         /// </param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> CreateUser(string email)
         {
             Log.Verbose($"Entered SystemAdminController.CreateUser action with email {email}");
@@ -586,7 +588,7 @@ namespace MillimanAccessPortal.Controllers
             if (createResult.Succeeded && user != null)
             {
                 string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                await _accountController.SendNewAccountWelcomeEmail(user, Request, welcomeText);
+                await _accountController.SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, welcomeText);
             }
             else
             {
@@ -610,6 +612,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="profitCenter">The profit center to create</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> CreateProfitCenter(
             [Bind("Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
         {
@@ -653,6 +656,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="clientId">Client of which the user is to become a member.</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> AddUserToClient(string email, Guid clientId)
         {
             Log.Verbose("Entered SystemAdminController.AddUserToClient action with {@Email}, {@ClientId}", email, clientId);
@@ -699,7 +703,7 @@ namespace MillimanAccessPortal.Controllers
                     if (createResult.Succeeded && user != null)
                     {
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                        await _accountController.SendNewAccountWelcomeEmail(user, Request, welcomeText);
+                        await _accountController.SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, welcomeText);
                     }
                     else
                     {
@@ -738,6 +742,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="profitCenterId">Profit center to which the user is to become an admin.</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> AddUserToProfitCenter(string email, Guid profitCenterId)
         {
             Log.Verbose("Entered SystemAdminController.AddUserToProfitCenter action with {@Email}, {@ProfitCenterId}", email, profitCenterId);
@@ -784,7 +789,7 @@ namespace MillimanAccessPortal.Controllers
                     if (createResult.Succeeded && user != null)
                     {
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                        await _accountController.SendNewAccountWelcomeEmail(user, Request, welcomeText);
+                        await _accountController.SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, welcomeText);
                     }
                     else
                     {
@@ -822,6 +827,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddNewAuthenticationScheme(AllAuthenticationSchemes.AuthenticationScheme model)
         {
             Log.Verbose("Entered SystemAdminController.AddNewAuthenticationScheme action with model {@Model}", model);
@@ -921,6 +927,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="profitCenter">Profit center to update</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> UpdateProfitCenter(
             [Bind("Id", "Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
         {
@@ -961,7 +968,6 @@ namespace MillimanAccessPortal.Controllers
             existingRecord.ContactEmail = profitCenter.ContactEmail;
             existingRecord.ContactPhone = profitCenter.ContactPhone;
 
-            _dbContext.Update(existingRecord);
             _dbContext.SaveChanges();
 
             Log.Verbose($"In SystemAdminController.UpdateProfitCenter action: success");
@@ -970,12 +976,109 @@ namespace MillimanAccessPortal.Controllers
             return Json(existingRecord);
         }
 
+        [HttpGet]
+        public async Task<ActionResult> UpdateUserAgreement()
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            if (!result.Succeeded)
+            {
+                Log.Information($"In SystemAdminController.UpdateUserAgreement GET action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to perform the requested operation.");
+                return Unauthorized();
+            }
+            #endregion
+
+            string currentAgreementText = (await _dbContext.NameValueConfiguration.FindAsync(nameof(ConfiguredValueKeys.UserAgreementText)))?.Value;
+            return View(nameof(UpdateUserAgreement), currentAgreementText);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> UpdateUserAgreement(string newAgreementText)
+        {
+            Log.Debug("Entered SystemAdminController.UpdateUserAgreement POST action with {@newText}", newAgreementText);
+
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            if (!result.Succeeded)
+            {
+                Log.Information($"In SystemAdminController.UpdateUserAgreement action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (!ModelState.IsValid)
+            {
+                Log.Information($"In SystemAdminController.UpdateUserAgreement POST action: ModelState invalid, errors <{string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}>, aborting");
+                Response.Headers.Add("Warning", ModelState.Values.First(v => v.Errors.Any()).Errors.ToString());
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            var existingRecord = _dbContext.NameValueConfiguration.Find(nameof(ConfiguredValueKeys.UserAgreementText));
+            if (existingRecord == null)
+            {
+                Log.Information($"In SystemAdminController.UpdateUserAgreement POST action: existing configuration record not found, aborting");
+                Response.Headers.Add("Warning", "The required configuration item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (existingRecord.Value == newAgreementText)
+            {
+                Log.Information($"In SystemAdminController.UpdateUserAgreement POST action: submitted agreement text is unchanged from the current agreement");
+                Response.Headers.Add("Warning", "The submitted agreement text is unchanged from the current agreement.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            using (var txn = _dbContext.Database.BeginTransaction())
+            {
+                try
+                {
+                    List<ApplicationUser> usersToReset = _dbContext.ApplicationUser.Where(u => u.IsUserAgreementAccepted == true).ToList();
+
+#pragma warning disable EF1000 // Possible SQL injection vulnerability.
+                    IRelationalEntityTypeAnnotations mapping = _dbContext.Model.FindEntityType(typeof(ApplicationUser)).Relational();
+                    string statement = $"UPDATE \"{mapping.TableName}\" " +
+                                       $"SET \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = false " +
+                                       $"WHERE \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = true;";
+                    // This runs much more efficiently than EF, but elements in usersToReset do not get updated, nor does EF cache
+                    int howManyAffected = await _dbContext.Database.ExecuteSqlCommandAsync(statement); 
+#pragma warning restore EF1000 // Possible SQL injection vulnerability.
+                    existingRecord.Value = newAgreementText;
+                    _dbContext.SaveChanges();
+
+                    #region Audit logging
+                    _auditLogger.Log(AuditEventType.UserAgreementUpdated.ToEvent(newAgreementText));
+                    foreach (var user in usersToReset)
+                    {
+                        _auditLogger.Log(AuditEventType.UserAgreementReset.ToEvent(user));
+                    }
+                    #endregion
+
+                    Log.Information("SystemAdminController.UpdateUserAgreement POST: The submitted text has been saved and all users have been flagged to renew their acceptance");
+                    txn.Commit();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Exception while attempting to update user agreement text");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
+
+            Log.Verbose($"In SystemAdminController.UpdateUserAgreement POST action: success");
+            return RedirectToAction(nameof(Index));
+        }
+
         /// <summary>
         /// Update a Client
         /// </summary>
         /// <param name="updatedClient">ClientUpdate model</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> UpdateClient([FromBody] ClientUpdate updatedClient)
         {
             Log.Verbose("Entered SystemAdminController.UpdateClient action with model {@ClientUpdate}", updatedClient);
@@ -1037,7 +1140,7 @@ namespace MillimanAccessPortal.Controllers
             #region Audit logging (may depend on what is updated)
             if (updatedClient.DomainLimitChange.NewDomainLimit != previousDomainLimit)
             {
-                _auditLogger.Log(AuditEventType.ClientDomainLimitUpdated.ToEvent(updatedClient.BuildAuditLogEventData(previousDomainLimit)));
+                _auditLogger.Log(AuditEventType.ClientDomainLimitUpdated.ToEvent(updatedClient.BuildAuditLogEventData(previousDomainLimit, existingRecord.Name)));
             }
 
             // Log other auditable things here
@@ -1049,6 +1152,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateAuthenticationScheme(AllAuthenticationSchemes.AuthenticationScheme model)
         {
             Microsoft.AspNetCore.Authentication.AuthenticationScheme ExistingScheme = null;
@@ -1176,6 +1280,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="profitCenterId">Profit center to delete</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteProfitCenter(Guid profitCenterId)
         {
             Log.Verbose("Entered SystemAdminController.DeleteProfitCenter action with {@ProfitCenterId}", profitCenterId);
@@ -1225,6 +1330,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="profitCenterId">Profit center from which user is to be removed</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> RemoveUserFromProfitCenter(Guid userId, Guid profitCenterId)
         {
             Log.Verbose("Entered SystemAdminController.RemoveUserFromProfitCenter action with {@UserId}, {@ProfitCenterId}", userId, profitCenterId);
@@ -1283,6 +1389,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="clientId">Client from which user is to be removed</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> RemoveUserFromClient(Guid userId, Guid clientId)
         {
             Log.Verbose("Entered SystemAdminController.RemoveUserFromClient action with {@userId}, {@clientId}", userId, clientId);
@@ -1354,6 +1461,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="rootContentItemId">The root content item whose publication is to be canceled</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> CancelPublication(Guid rootContentItemId)
         {
             Log.Verbose("Entered SystemAdminController.CancelPublication action with {@RootContentItemId}", rootContentItemId);
@@ -1371,7 +1479,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var existingRecord = _dbContext.RootContentItem.Find(rootContentItemId);
+            var existingRecord = _dbContext.RootContentItem
+                .Include(c => c.Client)
+                .SingleOrDefault(c => c.Id == rootContentItemId);
             if (existingRecord == null)
             {
                 Log.Debug($"In SystemAdminController.CancelPublication action: content item {rootContentItemId} not found, aborting");
@@ -1412,7 +1522,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("In SystemAdminController.CancelPublication action: success");
             foreach (var updatedPublication in activePublications)
             {
-                _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingRecord, updatedPublication));
+                _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingRecord, existingRecord.Client, updatedPublication));
             }
 
             return Json(existingRecord);
@@ -1425,6 +1535,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="selectionGroupId">The selection group whose reduction is to be canceled</param>
         /// <returns>Json</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> CancelReduction(Guid selectionGroupId)
         {
             Log.Verbose("Entered SystemAdminController.CancelReduction action with {@SelectionGroupId}", selectionGroupId);
@@ -1442,7 +1553,10 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var existingRecord = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var existingRecord = _dbContext.SelectionGroup
+                .Include(g => g.RootContentItem)
+                    .ThenInclude(c => c.Client)
+                .SingleOrDefault(g => g.Id == selectionGroupId);
             if (existingRecord == null)
             {
                 Log.Debug($"In SystemAdminController.CancelReduction action: selection group not found, aborting");
@@ -1482,7 +1596,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In SystemAdminController.CancelReduction action: success");
             foreach (var updatedReduction in activeReductions)
             {
-                _auditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(existingRecord, updatedReduction));
+                _auditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(existingRecord, existingRecord.RootContentItem, existingRecord.RootContentItem.Client, updatedReduction));
             }
 
             return Json(existingRecord);
@@ -1497,6 +1611,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="schemeName">null to specify that the username domain will be parsed to determine authentication provider</param>
         /// <returns></returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> AssignUserAuthenticationScheme(Guid userId, string schemeName)
         {
             Log.Verbose("Entered SystemAdminController.UserAuthenticationScheme action with {@UserId}, {@SchemeName}", userId, schemeName);
@@ -2068,7 +2183,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var rootContentItem = _dbContext.RootContentItem.SingleOrDefault(i => i.Id == rootContentItemId);
+            var rootContentItem = _dbContext.RootContentItem
+                .Include(i => i.Client)
+                .SingleOrDefault(i => i.Id == rootContentItemId);
+
             #region Validation
             if (rootContentItem == null)
             {
@@ -2083,7 +2201,7 @@ namespace MillimanAccessPortal.Controllers
             _dbContext.SaveChanges();
 
             Log.Verbose("In SystemAdminController.ContentSuspendedStatus action: success");
-            _auditLogger.Log(AuditEventType.RootContentItemSuspensionUpdate.ToEvent(rootContentItem, value, ""));
+            _auditLogger.Log(AuditEventType.RootContentItemSuspensionUpdate.ToEvent(rootContentItem, rootContentItem.Client, value, ""));
 
             return Json(rootContentItem.IsSuspended);
         }

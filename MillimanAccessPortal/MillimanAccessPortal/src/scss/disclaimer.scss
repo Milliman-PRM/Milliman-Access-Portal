@@ -20,25 +20,36 @@ body {
     border: 1px solid $charcoal;
     border-radius: 1em;
     max-height: 95vh;
+    height: 95vh;
     max-width: 95vw;
-    width: 42em;
+    width: 50em;
 
     #content-name {
         flex: none;
+        margin-bottom: .5em;
     }
 
-    #content-disclaimer-text {
+    #disclaimer-text {
         flex: 1 1 auto;
         overflow-y: auto;
-        white-space: pre-line;
+        background-color: $white;
+        padding: 1em;
+        margin-bottom: 1em;
+        border: 1px solid $grey;
     }
 
-    #content-disclaimer-form {
+    #disclaimer-acceptance {
+        font-weight: bold;
+    } 
+    
+    #disclaimer-form {
         flex: none;
         width: 100%;
 
         input[type="text"] {
             height: 0;
+            margin: 0;
+            padding: 0;
         }
 
         .button-container {

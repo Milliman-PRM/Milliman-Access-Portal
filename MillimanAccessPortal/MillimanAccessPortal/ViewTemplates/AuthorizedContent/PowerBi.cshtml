@@ -20,6 +20,7 @@
     <body>
         <div id="reportContainer"></div>
 
+        <script src="~/js/polyfills.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/powerbi-client@2.7.2/dist/powerbi.min.js"></script>
         <script>
 	    // Get models. models contains enums that can be used.
@@ -47,6 +48,7 @@
 
 	    // Embed the report and display it within the div container.
 	    var report = powerbi.embed(reportContainer, config);
+	    report.on('loaded', function(event) {report.updateSettings({bookmarksPaneEnabled: @Json.Serialize(Model.BookmarksPaneEnabled)})});
         </script>
     </body>
 </html>

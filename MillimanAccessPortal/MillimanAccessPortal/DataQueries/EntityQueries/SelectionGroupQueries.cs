@@ -7,6 +7,7 @@
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
@@ -212,7 +213,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _dbContext.SelectionGroup.Add(group);
 
             _dbContext.SaveChanges();
-            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group));
+            
+            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, group.RootContentItem, group.RootContentItem.Client)); ;
 
             return group;
         }
@@ -227,6 +229,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         {
             var contentItem = _dbContext.RootContentItem
                                         .Include(c => c.ContentType)
+                                        .Include(c => c.Client)
                                         .Single(t => t.Id == contentItemId);
 
             string contentFileName = default;
@@ -254,7 +257,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _dbContext.SelectionGroup.Add(group);
             _dbContext.SaveChanges();
 
-            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group));
+            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, contentItem, contentItem.Client));
 
             return group;
         }
@@ -286,20 +289,31 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>Selection group</returns>
         internal SelectionGroup UpdateSelectionGroupUsers(Guid selectionGroupId, List<Guid> newListOfUserIds)
         {
-            var requestedGroup = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var requestedGroup = _dbContext.SelectionGroup
+                .Include(g => g.RootContentItem)
+                    .ThenInclude(c => c.Client)
+                .SingleOrDefault(g => g.Id == selectionGroupId);
 
-            List<Guid> allCurrentUserIds = _dbContext.UserInSelectionGroup
+            List<ApplicationUser> allCurrentUsers = _dbContext.UserInSelectionGroup
                 .Where(uisg => uisg.SelectionGroupId == selectionGroupId)
-                .Select(uisg => uisg.UserId)
+                .Select(uisg => uisg.User)
                 .ToList();
 
-            var recordsToAdd = newListOfUserIds.Except(allCurrentUserIds)
-                .Select(uid => new UserInSelectionGroup { UserId = uid, SelectionGroupId = selectionGroupId });
+            List<ApplicationUser> updatedUserList = _dbContext.ApplicationUser
+                .Where(u => newListOfUserIds.Contains(u.Id))
+                .ToList();
+
+            List<ApplicationUser> usersToRemove = allCurrentUsers.Except(updatedUserList).ToList();
+
+            List<UserInSelectionGroup> recordsToAdd = updatedUserList.Except(allCurrentUsers)
+                .Select(u => new UserInSelectionGroup { UserId = u.Id, SelectionGroupId = selectionGroupId })
+                .ToList();
             _dbContext.UserInSelectionGroup.AddRange(recordsToAdd);
 
-            var userGuidsToRemove = allCurrentUserIds.Except(newListOfUserIds);
-            var recordsToRemove = _dbContext.UserInSelectionGroup
-                .Where(usg => userGuidsToRemove.Contains(usg.UserId))
+            List<UserInSelectionGroup> recordsToRemove = _dbContext.UserInSelectionGroup
+                .Include(usg => usg.User)
+                .Include(usg => usg.SelectionGroup)
+                .Where(usg => usersToRemove.Select(u => u.Id).Contains(usg.UserId))
                 .Where(usg => usg.SelectionGroupId == selectionGroupId)
                 .ToList();
             _dbContext.UserInSelectionGroup.RemoveRange(recordsToRemove);
@@ -307,18 +321,20 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _dbContext.SaveChanges();
 
             // audit logging
+            _dbContext.AttachRange(recordsToAdd);
             foreach (var userInGroup in recordsToAdd)
             {
-                _auditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(requestedGroup, userInGroup.UserId));
+                _dbContext.Entry(userInGroup)?.Reference(uig => uig.User)?.Load();  // Load `User` navigation property into EF cache for this context
+                _auditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(requestedGroup, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client, userInGroup.User));
             }
-            foreach (var userInGroup in userGuidsToRemove.Distinct())
+            foreach (var userInGroup in usersToRemove.Distinct(new IdPropertyComparer<ApplicationUser>()))
             {
-                _auditLogger.Log(AuditEventType.SelectionGroupUserRemoved.ToEvent(requestedGroup, userInGroup));
+                _auditLogger.Log(AuditEventType.SelectionGroupUserRemoved.ToEvent(requestedGroup, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client, userInGroup));
             }
-            if (userGuidsToRemove.Any())
+            if (usersToRemove.Any())
             {
-                _auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceResetRemovedFromGroup
-                    .ToEvent(recordsToRemove, requestedGroup.RootContentItemId));
+                _auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
+                    .ToEvent(recordsToRemove, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client, ContentDisclaimerResetReason.UserRemovedFromSelectionGroup));
             }
 
             return requestedGroup;
@@ -332,11 +348,14 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>Selection group</returns>
         internal SelectionGroup UpdateSelectionGroupSuspended(Guid selectionGroupId, bool isSuspended)
         {
-            var group = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var group = _dbContext.SelectionGroup
+                                  .Include(sg => sg.RootContentItem)
+                                      .ThenInclude(ci => ci.Client)
+                                  .Single(sg => sg.Id == selectionGroupId);
             group.IsSuspended = isSuspended;
-
             _dbContext.SaveChanges();
-            _auditLogger.Log(AuditEventType.SelectionGroupSuspensionUpdate.ToEvent(group, isSuspended, ""));
+
+            _auditLogger.Log(AuditEventType.SelectionGroupSuspensionUpdate.ToEvent(group, group.RootContentItem, group.RootContentItem.Client, isSuspended));
 
             return group;
         }
@@ -348,11 +367,14 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>Deleted selection group</returns>
         internal SelectionGroup DeleteSelectionGroup(Guid selectionGroupId)
         {
-            var group = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var group = _dbContext.SelectionGroup
+                .Include(g => g.RootContentItem)
+                    .ThenInclude(c => c.Client)
+                .SingleOrDefault(g => g.Id == selectionGroupId);
             _dbContext.SelectionGroup.Remove(group);
 
             _dbContext.SaveChanges();
-            _auditLogger.Log(AuditEventType.SelectionGroupDeleted.ToEvent(group));
+            _auditLogger.Log(AuditEventType.SelectionGroupDeleted.ToEvent(group, group.RootContentItem, group.RootContentItem.Client));
 
             return group;
         }

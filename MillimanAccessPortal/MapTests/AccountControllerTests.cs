@@ -54,7 +54,13 @@ namespace MapTests
                 TestResources.AuthenticationServiceObject)
                 ;
 
-            testController.ControllerContext = TestInitialization.GenerateControllerContext(userName: UserName);
+            UriBuilder uriBuilder = new UriBuilder
+            {
+                Scheme = "https",
+                Host = "abc",
+                Port = 123,
+            };
+            testController.ControllerContext = TestInitialization.GenerateControllerContext(userName: UserName, requestUriBuilder: uriBuilder);
             testController.HttpContext.Session = new MockSession();
             return testController;
         }
@@ -712,7 +718,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var result = await controller.RemoteAuthenticate(userName);
+            var result = await controller.RemoteAuthenticate(userName, "%2F");
             #endregion
 
             #region Assert

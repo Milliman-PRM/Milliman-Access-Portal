@@ -35,6 +35,7 @@ namespace MapDbContextLib.Context
         public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
         public DbSet<FileUpload> FileUpload { get; set; }
         public DbSet<AuthenticationScheme> AuthenticationScheme { get; set; }
+        public DbSet<NameValueConfiguration> NameValueConfiguration { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
@@ -74,7 +75,8 @@ namespace MapDbContextLib.Context
             builder.Entity<ApplicationUser>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
-                b.HasIndex("NormalizedEmail").IsUnique();
+                b.HasIndex(x => x.NormalizedEmail).IsUnique();
+                b.Property(x => x.IsUserAgreementAccepted).HasDefaultValue(null);
             });
             builder.Entity<ApplicationRole>(b =>
             {
@@ -150,6 +152,10 @@ namespace MapDbContextLib.Context
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
             });
+            builder.Entity<NameValueConfiguration>(b =>
+            {
+                b.Property(x => x.Value).HasDefaultValue("");
+            });
         }
 
         public bool ClientExists(Guid id)
@@ -167,6 +173,7 @@ namespace MapDbContextLib.Context
             await Identity.ApplicationRole.SeedRoles(serviceProvider);
             Context.ContentType.InitializeContentTypes(serviceProvider);
             await Context.AuthenticationScheme.SeedSchemes(serviceProvider);
+            Context.NameValueConfiguration.InitializeNameValueConfiguration(serviceProvider);
         }
     }
 

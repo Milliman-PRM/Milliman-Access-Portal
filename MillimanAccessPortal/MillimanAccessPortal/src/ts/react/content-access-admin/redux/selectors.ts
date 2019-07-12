@@ -38,8 +38,8 @@ export function pendingReductionValues(state: AccessState) {
   return _.filter(state.data.values, (v) => {
     const selectionChanges = state.pending.selections || {};
     return _selectedGroup.selectedValues && _selectedGroup.selectedValues.filter((sv) => sv === v.id).length
-      ? !(v.id in selectionChanges) || selectionChanges[v.id].selected
-      : (v.id in selectionChanges) && selectionChanges[v.id].selected;
+      ? selectionChanges[v.id].selected === undefined || selectionChanges[v.id].selected
+      : selectionChanges[v.id].selected !== undefined && selectionChanges[v.id].selected;
   });
 }
 
@@ -394,6 +394,22 @@ export function allGroupsCollapsed(state: AccessState) {
       const card = state.cardAttributes.group[g.id];
       return prev && (!card || !card.expanded);
     }, true);
+}
+
+/**
+ * Select whether all reduction values are selected.
+ * @param state Redux store
+ */
+export function  allValuesSelected(state: AccessState) {
+  return pendingReductionValues(state).length === activeReductionValues(state).length;
+}
+
+/**
+ * Select whether all reduction values are deselected.
+ * @param state Redux store
+ */
+export function allValuesDeselected(state: AccessState) {
+  return pendingReductionValues(state).length === 0;
 }
 
 /**

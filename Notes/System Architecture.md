@@ -24,7 +24,7 @@ MAP will be hosted on Microsoft's Azure platform, in the Central US region (Iowa
 
 ## Azure Products Used
 
-We will utilize multiple Azure products to build the production environment. Most will not be accessible to end-users.
+We utilize multiple Azure products to build the production environment. Most are not accessible to end-users.
 
 * **Azure Database for PostgreSQL** - Managed database service to be leveraged by the application
 
@@ -41,15 +41,26 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Network Security Groups** - Network-level security configuration for VMs. Applies Firewall rules to VMs which use the Security Group.
 
-* **Barracuda Web Application Firewall** - A virtual appliance which applies security filtering to inbound traffic to ensure malicious traffic doesn't reach MAP.
-
-* **Azure Security Center** - Monitor our Azure infrastructure and alert security staff about possible issues.
+* **Azure Security Center** - Monitor our Azure infrastructure configuration and alert security staff about possible issues.
 
 * **Azure Site Recovery** - Maintain copies of VMs in the case of data center loss or other large-scale disaster. Additional details are outlined in the [System Recovery document](System%20Recovery.md).
 
 * **Azure File Sync** - Synchronize file shares from the file server VM to Azure Files, to provide redundancy and secure storage.
 
-* **Azure Monitor** - Define and monitor metrics for production systems. Identify issues proactively and notify the infrastructure team.
+* **Azure Monitor** - Define and alert on metrics for production systems. Identify issues proactively and notify the infrastructure team.
+
+* **PowerBI Embedded Capacity** - Provides dedicated compute resources for our PowerBI content hosting. 
+
+* **Azure Automation** - Provides update automation & management for Azure VMs
+
+* **Traffic Manager** - Provides dynamic DNS services which allow us to manage MAP's public IPs without coordinating changes with GCS IT. 
+
+## Other Products/Services Used
+
+* **Barracuda Web Application Firewall** - A virtual appliance which applies security filtering to inbound traffic to ensure malicious traffic doesn't reach MAP.
+    * Barracuda also offers an automated vulnerability scanning service, which we are in the process of implementing.
+
+* **Help Scout** - SaaS helpdesk software used to track customer support requests as well as security events.
 
 ## Virtual Machines
 
@@ -67,6 +78,8 @@ VMs in the MAP environment are segmented by function and user access. Throughout
 ### Application availability
 
 Microsoft guarantees a 99.95% availability SLA. This is sufficient for our purposes, so we will plan to maintain a single instance of the application. Note that this SLA is only for Microsoft services, not for our application itself. We have not determined an SLA for our application at this time.
+
+Historically, the SLAs we've agreed to with clients guarantee the system will be available 99% of the time from 7 AM to 9 PM on weekdays. Time zones were not specified, nor were limitations on downtime outside of those hours.
 
 ### Domain Controller Availability
 
@@ -110,11 +123,11 @@ In the case that the data center becomes unavailable permanently or for a signif
 * Restore most recent available PostgreSQL database backups
 * Verify that all applications and services are functioning normally
 
-## Security Policies
+## Security Configuration
 
 ### Web Application firewall
 
-The Web Application Firewall  guards our infrastructure against common types of attacks and vulnerabilities. All end-user traffic to MAP and QlikView Server will flow through the WAF.
+The Barracuda Web Application Firewall  guards our infrastructure against common types of attacks and vulnerabilities. All end-user traffic to MAP and QlikView Server flows through the WAF.
 
 ### Azure Security Center
 
@@ -126,7 +139,7 @@ VM disks are stored in [encrypted storage accounts](https://docs.microsoft.com/e
 
 ### Configuration Encryption
 
-Sensitive configuration options will be stored in Azure Key Vault and protected by Hardware Security Modules.
+Sensitive configuration options are stored in Azure Key Vault and protected by Hardware Security Modules.
 
 ### Point-to-Site VPN
 
@@ -168,17 +181,11 @@ The table defines rules to be applied both within Network Security Groups as wel
 |Domain Controllers|---|---|
 |QlikView Server|HTTPS, through WAF|HTTPS, through WAF|
 |QlikView Publisher|---|---|
-|Web Server|HTTPS, through WAF|HTTPS, WAF|
+|Web Server|HTTPS, through WAF|HTTPS, through WAF|
 |File Server|---|---|
 |Remote Administration VMs|---|RDP|
 
 Additionally, servers that host Octopus Deploy endpoints allow traffic from Milliman on port 10933. This traffic is HTTPS-only and it will only allow deployments from our in-house Octopus Deploy server.
-
-#### Additional Firewall rule for Azure VMs
-
-Microsoft publishes a [guide to Azure networking](https://docs.microsoft.com/en-us/azure/virtual-network/security-overview#azure-platform-considerations) that specifies two Microsoft-owned IP addresses used for monitoring and managing Azure resources. Our Virtual Machines must allow traffic on both addresses for Azure services to function properly.
-
-A Group Policy Object should be defined to ensure traffic is always accepted from `168.63.129.16` and `169.254.169.254`.
 
 ### Remote Administration access
 
@@ -258,11 +265,15 @@ No shared accounts/credentials will be created or distributed.
 
 ### Limited write access
 
-Only the applications (MAP and the Content Publishing Service) should have write access to the database. At no time will any non-DBA user be granted write access to any database in this environment.
+Only the applications (MAP and the Content Publishing Service) should have write access to the database. At no time will any non-DBA user be granted write access to any production database.
 
 DBAs may temporarily grant themselves write access to the application only when necessary. They should never have write access to the Audit Log database.
 
 ## Active Directory Management
+
+### Dedicated admin accounts
+
+Administrator-level permissions will be granted only to specialized admin accounts. Users who have these accounts also have standard user accounts, which they should use whenever possible.
 
 ### Account Sharing
 
@@ -277,6 +288,8 @@ Groups will be named with this convention: `[resource type]_[resource name]_[acc
 ### User naming conventions
 
 Regular accounts: `firstname.lastname`
+
+Admin accounts: `firstname.lastname.admin`
 
 ### Service accounts
 
@@ -294,9 +307,7 @@ From time to time, system configuration changes may become necessary. When at al
 
 ### Change tracking and approval
 
-Changes to Azure infrastructure should be submitted first as an issue in Github, where it should be approved by both Azure administrators and application developers before the change is implemented.
-
-In the case of an emergency (defined as a change that's necessary to fix an immediate critical production issue), a change request can be opened after the work is completed. If Azure administrators and application developers do not approve of the change, they must put together a plan to revert the change or identify additional needed changes.
+Changes to Azure infrastructure are governed by a policy in the private MAP Infrastructure repository. Only Infrastructure & Security staff and PRM principals have access to this repository.
 
 ### Automated VM updates
 
@@ -337,7 +348,7 @@ Additional special scenarios should be added to this section as they are identif
 
 ## Monitoring
 
-### Internal monitors - Azure Monitor
+### Azure Monitor
 
 We leverage Azure Monitor, including custom metrics defined with Application Insights, to monitor VM performance and service availability. The infrastructure team is alerted by email when any alarm is raised.
 
@@ -347,11 +358,13 @@ We will configure availability alerts to notify the infrastructure team of any A
 
 ### External monitors
 
-We will utilize an external monitoring & notification service to check that the application is available to the public and alert the PRM infrastructure team if it becomes unavailable.
+We utilize [Uptime.com](https://uptime.com) to check that the application is available to the public and alert the PRM infrastructure team if it becomes unavailable.
 
 ## Manual Query Application
 
-In order to facilitate appropriate logging of manually executed database changes, we have developed an additional web application accessible from the production web server.
+In order to facilitate appropriate logging of manually executed database changes, we have developed an additional web application accessible from the production web server. No database changes should be executed outside of this application.
+
+Requests to perform these queries must be created as issues in this repository using the `QUERY_REVIEW_TEMPLATE.md` template. 
 
 ### Security Measures
 

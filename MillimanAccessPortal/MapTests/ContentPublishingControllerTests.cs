@@ -535,7 +535,9 @@ namespace MapTests
             {
                 Id = dbItem.Id,
                 ContentTypeId = dbItem.ContentTypeId,
+                ContentType = dbItem.ContentType,
                 ClientId = dbItem.ClientId,
+                Client = dbItem.Client,
                 ContentName = dbItem.ContentName,
                 Notes = "This note is added",
             };
@@ -562,14 +564,16 @@ namespace MapTests
             {
                 FilterPaneEnabled = true,
                 NavigationPaneEnabled = true,
+                BookmarksPaneEnabled = true,
             };
             RootContentItem updateModel = new RootContentItem
             {
                 Id = dbItem.Id,
                 ContentTypeId = dbItem.ContentTypeId,
+                ContentType = dbItem.ContentType,
                 ClientId = dbItem.ClientId,
+                Client = dbItem.Client,
                 ContentName = dbItem.ContentName,
-                ContentType = TestResources.DbContextObject.ContentType.Find(dbItem.ContentTypeId),
             };
             updateModel.TypeSpecificDetailObject = props;
             #endregion
@@ -582,6 +586,7 @@ namespace MapTests
             PowerBiContentItemProperties savedProps = Assert.IsType<PowerBiContentItemProperties>(dbItem.TypeSpecificDetailObject);
             Assert.Equal(props.NavigationPaneEnabled, savedProps.NavigationPaneEnabled);
             Assert.Equal(props.FilterPaneEnabled, savedProps.FilterPaneEnabled);
+            Assert.Equal(props.BookmarksPaneEnabled, savedProps.BookmarksPaneEnabled);
             #endregion
         }
 

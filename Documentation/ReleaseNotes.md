@@ -2,6 +2,20 @@
 
 ## Release Notes
 
+### v1.7.0
+
+- Added a User Agreement
+- Added support for markdown for content disclaimers
+- Added the ability to select all, deselect all, and reset selections for reducible QlikView content items in Content Access Admin
+- Added ability to show the Bookmarks pane in PowerBI reports
+- Allow `<iframe>` to render PDFs in a new window
+- Clarified several user messages in the password reset workflow
+- Fixed a bug that prevented SSO users from logging into any view other than Authorized Content
+- Fixed a bug that allowed the password reset form to be displayed using an expired email link
+- Fixed an issue that allowed whitespace on username inputs
+- Fixed the styling on republishing icons
+- Fixed a bug in displaying user guide contents
+
 ### v1.6.0
 
 - Introduced support for PowerBI as a new content type

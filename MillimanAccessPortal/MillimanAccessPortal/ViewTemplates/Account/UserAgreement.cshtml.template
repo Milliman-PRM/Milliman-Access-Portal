@@ -1,0 +1,44 @@
+@model MillimanAccessPortal.Models.AccountViewModels.UserAgreementViewModel
+
+@{
+    ViewData["Title"] = "";
+    Layout = "_Layout";
+}
+
+@section CSS {
+  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+  <% } %>
+}
+
+<div id="disclaimer-container">
+	@Html.Hidden("ReturnUrl", Model.ReturnUrl)
+	@Html.Hidden("ValidationId", Model.ValidationId)
+	@Html.Hidden("IsRenewal", Model.IsRenewal)
+  <h2 id="content-name">User Agreement</h2>
+  <p>
+    @(Model.IsRenewal ? 
+    "Our Terms and Conditions have changed.  Please review and accept the updated Terms." : 
+    "Please review and accept our Terms and Conditions.")
+  </p>
+  <div id="raw-markdown" style="display: none">
+    @Html.Hidden("AgreementText", Model.AgreementText)
+    @Model.AgreementText
+  </div>
+  <div id="disclaimer-text">
+  </div>
+  <form id="disclaimer-form">
+    @Html.AntiForgeryToken()
+    <span id="disclaimer-acceptance">By clicking the "Accept" button below, you are acknowledging that you have read and accept the terms presented above.</span>
+  	<div class="button-container">
+      <button id="decline-button" type="button" class="red-button">Decline</button>
+      <button id="accept-button" type="button" class="green-button" disabled>Accept</button>
+    </div>
+  </form>
+</div>
+
+@section Scripts {
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+}
