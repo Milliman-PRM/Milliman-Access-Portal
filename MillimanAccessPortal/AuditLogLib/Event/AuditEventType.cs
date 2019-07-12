@@ -548,7 +548,7 @@ namespace AuditLogLib.Event
                     },
                     SelectionGroup = new
                     {
-                        u.SelectionGroupId,
+                        u.SelectionGroup.Id,
                         u.SelectionGroup.GroupName,
                     }
                 }),
@@ -564,12 +564,12 @@ namespace AuditLogLib.Event
                         userInSelectionGroup.Id,
                         User = new
                         {
-                            userInSelectionGroup.Id,
-                            userInSelectionGroup.UserId,
+                            userInSelectionGroup.User.Id,
+                            userInSelectionGroup.User.UserName,
                         },
                         SelectionGroup = new
                         {
-                            userInSelectionGroup.SelectionGroupId,
+                            userInSelectionGroup.SelectionGroup.Id,
                             userInSelectionGroup.SelectionGroup.GroupName,
                         }
                     },
@@ -595,12 +595,12 @@ namespace AuditLogLib.Event
                         userInSelectionGroup.Id,
                         User = new
                         {
-                            userInSelectionGroup.Id,
-                            userInSelectionGroup.UserId,
+                            userInSelectionGroup.User.Id,
+                            userInSelectionGroup.User.UserName,
                         },
                         SelectionGroup = new
                         {
-                            userInSelectionGroup.SelectionGroupId,
+                            userInSelectionGroup.SelectionGroup.Id,
                             userInSelectionGroup.SelectionGroup.GroupName,
                         }
                     },
