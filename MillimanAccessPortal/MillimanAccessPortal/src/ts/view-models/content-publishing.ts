@@ -162,6 +162,7 @@ export interface RootContentItemDetail {
   navigationPaneEnabled?: boolean;
   bookmarksPaneEnabled?: boolean;
   relatedFiles: ContentRelatedFile[];
+  associatedFiles: ContentAssociatedFile[];
   description: string;
   notes: string;
   contentDisclaimer: string;
