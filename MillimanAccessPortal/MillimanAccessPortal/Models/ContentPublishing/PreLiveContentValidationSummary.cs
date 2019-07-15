@@ -40,6 +40,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy { get; set; }
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; }
+        public List<AssociatedFileSummary> AssociatedFiles { get; set; } = new List<AssociatedFileSummary>();
 
         public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
         {
@@ -165,7 +166,19 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 }
             }
 
-            string ContentRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");            
+            foreach (var associatedFile in PubRequest.LiveReadyAssociatedFilesList)
+            {
+                ReturnObj.AssociatedFiles.Add(new AssociatedFileSummary
+                {
+                    Id = associatedFile.Id,
+                    DisplayName = associatedFile.DisplayName,
+                    FileOriginalName = associatedFile.FileOriginalName,
+                    FileType = associatedFile.FileType,
+                    SortOrder = associatedFile.SortOrder,
+                });
+            }
+
+            string ContentRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
             foreach (ContentRelatedFile RelatedFile in PubRequest.LiveReadyFilesObj)
             {
                 string Link = Path.GetRelativePath(ContentRootPath, RelatedFile.FullPath);
@@ -319,5 +332,14 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string InactiveReason { get; set; } = null;
         public ContentReductionHierarchy<ReductionFieldValueSelection> LiveSelections { get; set; }
         public ContentReductionHierarchy<ReductionFieldValueSelection> PendingSelections { get; set; }
+    }
+
+    public class AssociatedFileSummary
+    {
+        public Guid Id { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
+        public string FileOriginalName { get; set; }
+        public string SortOrder { get; set; } = null;
+        public ContentAssociatedFileType FileType { get; set; } = ContentAssociatedFileType.Unknown;
     }
 }

@@ -218,6 +218,7 @@ export interface PreLiveContentValidationSummary {
   liveHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   newHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   selectionGroups: SelectionGroupSummary[];
+  associatedFiles: AssociatedFileSummary[];
 }
 export interface SelectionGroupSummary {
   id: Guid;
@@ -230,6 +231,13 @@ export interface SelectionGroupSummary {
   inactiveReason?: string;
   liveSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
   pendingSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
+}
+export interface AssociatedFileSummary {
+  id: Guid;
+  displayName: string;
+  fileOriginalName: string;
+  sortOrder: string;
+  fileType: ContentAssociatedFileTypeEnum;
 }
 
 export interface ContentReductionHierarchy<T extends ReductionFieldValue> {
