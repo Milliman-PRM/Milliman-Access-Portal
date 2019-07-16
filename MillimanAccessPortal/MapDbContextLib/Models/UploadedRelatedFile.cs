@@ -12,5 +12,9 @@ namespace MapDbContextLib.Models
         public string FilePurpose { get; set; }
 
         public Guid FileUploadId { get; set; }
+
+        public ContentRelatedFileType FileType { get; set; }
+
+        public string SortOrder { get; set; } = "";
     }
 }

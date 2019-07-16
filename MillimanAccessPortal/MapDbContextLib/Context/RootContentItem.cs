@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
+using System.Linq;
 using MapDbContextLib.Models;
 using Newtonsoft.Json;
 
@@ -97,7 +98,9 @@ namespace MapDbContextLib.Context
             {
                 return ContentFiles == null
                     ? new List<ContentRelatedFile>()
-                    : JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ContentFiles);
+                    : JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ContentFiles)
+                                 .OrderBy(f => f.SortOrder, StringComparer.OrdinalIgnoreCase)
+                                 .ToList();
             }
             set
             {

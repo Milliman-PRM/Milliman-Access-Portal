@@ -684,8 +684,14 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
             fileOriginalName: fileData[0],
             filePurpose: file,
             fileUploadId: fileData[1],
+            sortOrder: '',
           };
-        });
+        })
+        .concat([
+          {fileOriginalName: 'def', filePurpose: 'xls', fileUploadId: '2', sortOrder: '2'},
+          {fileOriginalName: 'abc', filePurpose: 'xls', fileUploadId: '1', sortOrder: '1'},
+        ])
+        ;
       const publishRequest: PublishRequest = {
         newRelatedFiles: fileChanges
           .filter((file) => file.fileUploadId && file.fileUploadId !== 'delete'),

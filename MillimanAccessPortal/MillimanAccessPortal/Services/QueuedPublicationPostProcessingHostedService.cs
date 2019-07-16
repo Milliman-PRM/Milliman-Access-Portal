@@ -202,7 +202,8 @@ namespace MillimanAccessPortal.Services
                     string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
                                                 Crf.FilePurpose,
                                                 Path.GetExtension(Crf.FullPath),
-                                                thisPubRequest.RootContentItemId);
+                                                thisPubRequest.RootContentItemId,
+                                                Crf.SortOrder);
                     string TargetFilePath = Path.Combine(tempContentDestinationFolder, TargetFileName);
 
                     // Can move because destination is on same volume as source
@@ -213,6 +214,7 @@ namespace MillimanAccessPortal.Services
                         Checksum = Crf.Checksum,
                         FileOriginalName = Crf.FileOriginalName,
                         FilePurpose = Crf.FilePurpose,
+                        SortOrder = Crf.SortOrder,
                         FullPath = TargetFilePath,
                     });
                 }

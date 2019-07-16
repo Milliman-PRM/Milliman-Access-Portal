@@ -5,10 +5,8 @@
  *      See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services
  */
 
-using AuditLogLib;
-using AuditLogLib.Event;
 using MapCommonLib;
-using QlikviewLib;
+using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using MillimanAccessPortal.Services;
@@ -204,7 +202,7 @@ namespace MillimanAccessPortal
                 string RootContentFolder = Path.Combine(contentItemRootPath, ContentItem.Id.ToString());
 
                 // Copy uploaded file to root content folder
-                string DestinationFileName = QlikviewLibApi.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath));
+                string DestinationFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath), RelatedFile.SortOrder);
                 switch (contentType)
                 {  // This is where any dependence on ContentType would be incorporated to override base behavior
                     case ContentTypeEnum.PowerBi:
@@ -224,9 +222,12 @@ namespace MillimanAccessPortal
 
                 ReturnObj = new ContentRelatedFile
                 {
+                    Id = RelatedFile.FileUploadId,
                     FilePurpose = RelatedFile.FilePurpose,
                     FullPath = DestinationFullPath,
                     FileOriginalName = RelatedFile.FileOriginalName,
+                    FileType = RelatedFile.FileType,
+                    SortOrder = RelatedFile.SortOrder,
                     Checksum = FileUploadRecord.Checksum,
                 };
 
