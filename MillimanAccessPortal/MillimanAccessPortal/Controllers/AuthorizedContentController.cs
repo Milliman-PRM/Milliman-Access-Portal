@@ -1022,12 +1022,15 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         /// <param name="itemId"></param>
         /// <returns></returns>
-        public async Task<IActionResult> AssociatedFile(Guid itemId, Guid fileId)
+        public async Task<IActionResult> AssociatedFile(Guid selectionGroupId, Guid fileId)
         {
             Log.Verbose($"Entered AuthorizedContentController.AssociatedFile action: user {User.Identity.Name}, "
-                      + $"rootContentItemId {itemId}, fileId {fileId}");
+                      + $"selectionGroupId {selectionGroupId}, fileId {fileId}");
 
-            RootContentItem contentItem = await DataContext.RootContentItem.SingleOrDefaultAsync(r => r.Id == itemId);
+            RootContentItem contentItem = await DataContext.SelectionGroup
+                .Where(g => g.Id == selectionGroupId)
+                .Select(sg => sg.RootContentItem)
+                .SingleOrDefaultAsync();
 
             #region Preliminary validation
             if (contentItem == null)
@@ -1040,12 +1043,11 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
-                User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentUser, itemId));
+                User, null, new UserInSelectionGroupRequirement(selectionGroupId));
             if (!Result1.Succeeded)
             {
                 Log.Verbose($"In AuthorizedContentController.AssociatedFile action: authorization failed "
-                          + $"for user {User.Identity.Name}, content item {itemId}, "
-                          + $"role {RoleEnum.ContentUser.ToString()}, aborting");
+                          + $"for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
