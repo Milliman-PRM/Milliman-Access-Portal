@@ -168,14 +168,24 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
             foreach (var associatedFile in PubRequest.LiveReadyAssociatedFilesList)
             {
-                ReturnObj.AssociatedFiles.Add(new AssociatedFileSummary
+                var summary = new AssociatedFileSummary
                 {
                     Id = associatedFile.Id,
                     DisplayName = associatedFile.DisplayName,
                     FileOriginalName = associatedFile.FileOriginalName,
                     FileType = associatedFile.FileType,
                     SortOrder = associatedFile.SortOrder,
-                });
+                };
+                UriBuilder builder = new UriBuilder
+                {
+                    Scheme = Context.Request.Scheme,
+                    Host = Context.Request.Host.Host,
+                    Port = Context.Request.Host.Port ?? -1,
+                    Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.AssociatedFilePreview)}",
+                    Query = $"publicationRequestId={PubRequest.Id}&fileId={associatedFile.Id}",
+                };
+                summary.Link = builder.Uri.AbsoluteUri;
+                ReturnObj.AssociatedFiles.Add(summary);
             }
 
             string ContentRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
@@ -341,5 +351,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string FileOriginalName { get; set; }
         public string SortOrder { get; set; } = null;
         public ContentAssociatedFileType FileType { get; set; } = ContentAssociatedFileType.Unknown;
+        public string Link { get; set; } = string.Empty;
     }
 }

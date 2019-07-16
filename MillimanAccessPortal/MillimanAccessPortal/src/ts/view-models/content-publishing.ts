@@ -239,6 +239,7 @@ export interface AssociatedFileSummary {
   fileOriginalName: string;
   sortOrder: string;
   fileType: ContentAssociatedFileTypeEnum;
+  link: string;
 }
 
 export interface ContentReductionHierarchy<T extends ReductionFieldValue> {
