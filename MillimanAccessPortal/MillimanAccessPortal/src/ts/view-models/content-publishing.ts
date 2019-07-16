@@ -188,7 +188,7 @@ export interface UploadedRelatedFile {
   filePurpose: string;
   fileUploadId: Guid;
 }
-export interface UploadedAssociatedFile {
+export interface RequestedAssociatedFile {
     id: Guid;
     fileOriginalName: string;
     displayName: string;
@@ -198,7 +198,7 @@ export interface UploadedAssociatedFile {
 export interface PublishRequest {
   rootContentItemId: Guid;
   newRelatedFiles: UploadedRelatedFile[];
-  associatedFiles: UploadedAssociatedFile[];
+  associatedFiles: RequestedAssociatedFile[];
   deleteFilePurposes: string[];
 }
 
