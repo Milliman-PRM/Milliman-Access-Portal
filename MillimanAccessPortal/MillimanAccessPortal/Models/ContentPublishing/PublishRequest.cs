@@ -19,7 +19,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public List<UploadedRelatedFile> NewRelatedFiles { get; set; } = new List<UploadedRelatedFile>();
 
         [Required]
-        public List<UploadedAssociatedFile> AssociatedFiles { get; set; } = new List<UploadedAssociatedFile>();
+        public List<RequestedAssociatedFile> AssociatedFiles { get; set; } = new List<RequestedAssociatedFile>();
 
         [Required]
         public string[] DeleteFilePurposes { get; set; } = new string[0];

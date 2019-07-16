@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20190709184756_AddAssociatedFiles")]
+    [Migration("20190716132857_AddAssociatedFiles")]
     partial class AddAssociatedFiles
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -128,15 +128,15 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<PublicationStatus>("RequestStatus");
 
+                    b.Property<string>("RequestedAssociatedFiles")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("ResultHierarchy")
                         .HasColumnType("jsonb");
 
                     b.Property<Guid>("RootContentItemId");
 
                     b.Property<string>("StatusMessage");
-
-                    b.Property<string>("UploadedAssociatedFiles")
-                        .HasColumnType("jsonb");
 
                     b.Property<string>("UploadedRelatedFiles")
                         .HasColumnType("jsonb");

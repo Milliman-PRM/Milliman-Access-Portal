@@ -8,7 +8,7 @@ using System;
 
 namespace MapDbContextLib.Models
 {
-    public class UploadedAssociatedFile
+    public class RequestedAssociatedFile
     {
         public Guid Id { get; set; }
 

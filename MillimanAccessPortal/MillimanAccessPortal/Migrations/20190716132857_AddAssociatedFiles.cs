@@ -19,7 +19,7 @@ namespace MillimanAccessPortal.Migrations
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "UploadedAssociatedFiles",
+                name: "RequestedAssociatedFiles",
                 table: "ContentPublicationRequest",
                 type: "jsonb",
                 nullable: true);
@@ -36,7 +36,7 @@ namespace MillimanAccessPortal.Migrations
                 table: "ContentPublicationRequest");
 
             migrationBuilder.DropColumn(
-                name: "UploadedAssociatedFiles",
+                name: "RequestedAssociatedFiles",
                 table: "ContentPublicationRequest");
         }
     }

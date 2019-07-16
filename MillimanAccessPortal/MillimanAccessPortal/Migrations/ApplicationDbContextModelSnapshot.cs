@@ -126,15 +126,15 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<PublicationStatus>("RequestStatus");
 
+                    b.Property<string>("RequestedAssociatedFiles")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("ResultHierarchy")
                         .HasColumnType("jsonb");
 
                     b.Property<Guid>("RootContentItemId");
 
                     b.Property<string>("StatusMessage");
-
-                    b.Property<string>("UploadedAssociatedFiles")
-                        .HasColumnType("jsonb");
 
                     b.Property<string>("UploadedRelatedFiles")
                         .HasColumnType("jsonb");

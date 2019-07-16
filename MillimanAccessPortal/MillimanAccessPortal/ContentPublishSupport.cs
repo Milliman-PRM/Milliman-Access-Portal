@@ -79,7 +79,7 @@ namespace MillimanAccessPortal
             {
                 var publicationRequest = Db.ContentPublicationRequest.Single(r => r.Id == publicationRequestId);
                 fileIds = publicationRequest.UploadedRelatedFilesObj.Select(f => f.FileUploadId).Union(
-                          publicationRequest.UploadedAssociatedFileList.Select(f => f.Id))
+                          publicationRequest.RequestedAssociatedFileList.Select(f => f.Id))
                           .ToList();
             }
             while (!validationWindowComplete)
@@ -147,8 +147,8 @@ namespace MillimanAccessPortal
                         throw new NotSupportedException($"Publication request cannot be created for unsupported ContentType {rootContentItem.ContentType.TypeEnum.ToString()}");
                 }
 
-                List<UploadedAssociatedFile> associatedFiles = publicationRequest.UploadedAssociatedFileList;
-                foreach (UploadedAssociatedFile UploadedFileRef in associatedFiles)
+                List<RequestedAssociatedFile> associatedFiles = publicationRequest.RequestedAssociatedFileList;
+                foreach (RequestedAssociatedFile UploadedFileRef in associatedFiles)
                 {
                     // move uploaded file(s) to content folder with temporary name(s)
                     ContentAssociatedFile Caf = HandleAssociatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath);
@@ -156,7 +156,7 @@ namespace MillimanAccessPortal
                     if (Caf != null)
                     {
                         publicationRequest.LiveReadyAssociatedFilesList = publicationRequest.LiveReadyAssociatedFilesList.Append(Caf).ToList();
-                        publicationRequest.UploadedAssociatedFileList = publicationRequest.UploadedAssociatedFileList.Where(f => f.Id != UploadedFileRef.Id).ToList();
+                        publicationRequest.RequestedAssociatedFileList = publicationRequest.RequestedAssociatedFileList.Where(f => f.Id != UploadedFileRef.Id).ToList();
                     }
                 }
 
@@ -257,7 +257,7 @@ namespace MillimanAccessPortal
             return ReturnObj;
         }
 
-        private static ContentAssociatedFile HandleAssociatedFile(ApplicationDbContext Db, UploadedAssociatedFile uploadedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
+        private static ContentAssociatedFile HandleAssociatedFile(ApplicationDbContext Db, RequestedAssociatedFile uploadedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
         {
             ContentAssociatedFile ReturnObj = null;
 

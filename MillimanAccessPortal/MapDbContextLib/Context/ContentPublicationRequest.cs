@@ -131,11 +131,11 @@ namespace MapDbContextLib.Context
         public string UploadedRelatedFiles { get; set; } = "[]";
 
         /// <summary>
-        /// May also be accessed through [NotMapped] property UploadedAssociatedFilesList
+        /// May also be accessed through [NotMapped] property RequestedAssociatedFilesList
         /// Intended to be serialization of type List<UploadedRelatedFile>
         /// </summary>
         [Column(TypeName = "jsonb")]
-        public string UploadedAssociatedFiles { get; set; } = "[]";
+        public string RequestedAssociatedFiles { get; set; } = "[]";
 
         [Required]
         public PublicationStatus RequestStatus { get; set; }
@@ -229,21 +229,21 @@ namespace MapDbContextLib.Context
         }
 
         /// <summary>
-        /// Identifies files uploaded as part of a publication request to be published as content associated files
+        /// The full list of associated files requested to exist upon completion of the publication go-live
         /// </summary>
         /// <remarks>This field is expected to be empty once uploaded files have been processed.</remarks>
         [NotMapped]
-        public List<UploadedAssociatedFile> UploadedAssociatedFileList
+        public List<RequestedAssociatedFile> RequestedAssociatedFileList
         {
             get
             {
-                return string.IsNullOrWhiteSpace(UploadedAssociatedFiles)
-                    ? new List<UploadedAssociatedFile>()
-                    : JsonConvert.DeserializeObject<List<UploadedAssociatedFile>>(UploadedAssociatedFiles);
+                return string.IsNullOrWhiteSpace(RequestedAssociatedFiles)
+                    ? new List<RequestedAssociatedFile>()
+                    : JsonConvert.DeserializeObject<List<RequestedAssociatedFile>>(RequestedAssociatedFiles);
             }
             set
             {
-                UploadedAssociatedFiles = value != null
+                RequestedAssociatedFiles = value != null
                     ? JsonConvert.SerializeObject(value)
                     : "[]";
             }
