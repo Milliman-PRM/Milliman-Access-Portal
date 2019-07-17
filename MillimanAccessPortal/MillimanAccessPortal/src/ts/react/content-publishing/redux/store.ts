@@ -1,0 +1,85 @@
+import * as toastr from 'react-redux-toastr';
+import { applyMiddleware, createStore } from 'redux';
+import createSagaMiddleware from 'redux-saga';
+
+import {
+    ClientWithStats, ContentPublicationRequest, ContentReductionTask, ContentType,
+    Guid, PublicationQueueDetails, ReductionQueueDetails, RootContentItemWithStats, User,
+} from '../../models';
+import { CardAttributes } from '../../shared-components/card/card';
+import { Dict, FilterState } from '../../shared-components/redux/store';
+import { contentPublishing } from './reducers';
+import sagas from './sagas';
+
+/**
+ * Flags indicating whether the page is waiting on new data for an entity type.
+ */
+export interface PendingDataState {
+  clients: boolean;
+  items: boolean;
+}
+
+/**
+ * Entity data returned from the server.
+ */
+export interface PublishingStateData {
+  clients: Dict<ClientWithStats>;
+  items: Dict<RootContentItemWithStats>;
+  users: Dict<User>;
+  contentTypes: Dict<ContentType>;
+  publications: Dict<ContentPublicationRequest>;
+  publicationQueue: Dict<PublicationQueueDetails>;
+  reductions: Dict<ContentReductionTask>;
+  reductionQueue: Dict<ReductionQueueDetails>;
+}
+
+/**
+ * Selected cards.
+ */
+export interface PublishingStateSelected {
+  client: Guid;
+  item: Guid;
+}
+
+/**
+ * Card attribute collections.
+ */
+export interface PublishingStateCardAttributes {
+  client: Dict<CardAttributes>;
+  item: Dict<CardAttributes>;
+}
+
+/**
+ * All state that represents a change pending submission.
+ */
+export interface PublishingStatePending {
+  data: PendingDataState;
+  statusTries: number;
+}
+/**
+ * All filter state.
+ */
+export interface PublishingStateFilters {
+  client: FilterState;
+  item: FilterState;
+}
+
+/**
+ * All content access admin state.
+ */
+export interface PublishingState {
+  data: PublishingStateData;
+  selected: PublishingStateSelected;
+  cardAttributes: PublishingStateCardAttributes;
+  pending: PublishingStatePending;
+  filters: PublishingStateFilters;
+  toastr: toastr.ToastrState;
+}
+
+// Create the store and apply saga middleware
+const sagaMiddleware = createSagaMiddleware();
+export const store = createStore(
+  contentPublishing,
+  applyMiddleware(sagaMiddleware),
+  );
+sagaMiddleware.run(sagas);
