@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.8.0
+
+- Fixed a bug that could lead to a misleading message after a password reset
+
 ### v1.7.0
 
 - Added a User Agreement
