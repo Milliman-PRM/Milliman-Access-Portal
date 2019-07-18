@@ -5,9 +5,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
-import {
-    isPublicationActive, isReductionActive,
-} from '../../view-models/content-publishing';
+import { isPublicationActive } from '../../view-models/content-publishing';
 import {
     Client, ClientWithStats, RootContentItem, RootContentItemWithPublication,
 } from '../models';
