@@ -1008,6 +1008,7 @@ namespace MillimanAccessPortal.Controllers
                 AddErrors(result);
             }
             model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
+            Log.Information($"Password validation error from ResetPassword POST ACTION: user {user.UserName}, {model.Message}");
             return View(model);
         }
 
