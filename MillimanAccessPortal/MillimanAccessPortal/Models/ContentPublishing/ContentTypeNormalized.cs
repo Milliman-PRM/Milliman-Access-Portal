@@ -10,7 +10,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     {
         public Guid Id { get; set; }
         public ContentTypeEnum TypeEnum { get; set; } = ContentTypeEnum.Unknown;
-        public string Name { get => ContentType.ContentTypeString[TypeEnum]; }
+        public string Name { get => TypeEnum.GetDisplayValueString(); }
         public bool CanReduce { get; set; }
         public string DefaultIconName { get; set; }
         public string[] FileExtensions { get; set; } = new string[0];

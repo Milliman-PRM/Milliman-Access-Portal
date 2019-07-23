@@ -96,6 +96,19 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
+        public IActionResult PageGlobalData()
+        {
+            var types = Enum.GetValues(typeof(ContentAssociatedFileType)).Cast<ContentAssociatedFileType>();
+
+            PublishingPageGlobalModel model = new PublishingPageGlobalModel
+            {
+                ContentAssociatedFileTypes = types.Select(t => new AssociatedFileType { typeEnum = t, FileExtensions = t.GetStringList(), Name = t.GetDisplayValueString() }).ToList(),
+                ContentTypes = DbContext.ContentType.Select(t => (ContentTypeNormalized)t).ToList(),
+            };
+
+            return Json(model);
+        }
+
         [HttpGet]
         public IActionResult AvailableContentTypes()
         {
