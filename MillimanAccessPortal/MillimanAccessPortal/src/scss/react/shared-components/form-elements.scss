@@ -34,7 +34,8 @@
 
 
     .form-element-input,
-    .form-element-textarea {
+    .form-element-textarea,
+    .form-element-select {
         position: relative;
         display: flex;
         flex-flow: row nowrap;
@@ -92,7 +93,8 @@
             }
         }
 
-        .form-input-container {
+        .form-input-container,
+        .form-select-container {
             flex: 1 0 auto;
             position: relative;
             border: 1px solid $charcoal;
@@ -100,7 +102,8 @@
 
 
             input.form-input,
-            textarea.form-input {
+            textarea.form-input,
+            select.form-input {
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -122,6 +125,7 @@
 
                 &[value]:not([value='']),
                 &[data-input-value]:not([data-input-value='']),
+                &.item-selected,
                 &:focus {
                     padding: 1.25rem .5rem .1rem;
                 }
@@ -129,6 +133,7 @@
                 &[readonly] + .form-input-label,
                 &[disabled] + .form-input-label,
                 &[value]:not([value='']) + .form-input-label,
+                &.item-selected + .form-input-label,
                 &[data-input-value]:not([data-input-value='']) + .form-input-label,
                 &:focus + .form-input-label {
                     top: 0;
@@ -159,7 +164,8 @@
         }
     }
 
-    .form-element-input {
+    .form-element-input,
+    .form-element-select {
         height: 3.5rem;
     }
 
