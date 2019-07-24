@@ -96,6 +96,28 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Global constant data that is relevant at the page level
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> PageGlobalData()
+        {
+            #region Authorization
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher));
+            if (!RoleInClientResult.Succeeded)
+            {
+                Log.Debug($"In ContentPublishingController.Index action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.ContentPublisher.ToString()}");
+                Response.Headers.Add("Warning", "You are not authorized to publish content.");
+                return Unauthorized();
+            }
+            #endregion
+
+            PublishingPageGlobalModel model = PublishingPageGlobalModel.Build(DbContext);
+
+            return Json(model);
+        }
+
         [HttpGet]
         public IActionResult AvailableContentTypes()
         {

@@ -4,7 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
@@ -23,6 +23,18 @@ namespace System
         {
             DisplayAttribute att = enumVal.GetAttribute<DisplayAttribute>();
             return att?.Name ?? enumVal.ToString();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TEnum"></typeparam>
+        /// <param name="enumVal"></param>
+        /// <returns></returns>
+        public static List<string> GetStringList<TEnum>(this TEnum enumVal) where TEnum : Enum
+        {
+            StringListAttribute att = enumVal.GetAttribute<StringListAttribute>();
+            return att?.GetStringList();
         }
 
         /// <summary>

@@ -15,6 +15,17 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string DefaultIconName { get; set; }
         public string[] FileExtensions { get; set; } = new string[0];
 
+        public ContentTypeNormalized() { }
+
+        public ContentTypeNormalized(ContentType t)
+        {
+            Id = t.Id;
+            TypeEnum = t.TypeEnum;
+            CanReduce = t.CanReduce;
+            DefaultIconName = t.DefaultIconName;
+            FileExtensions = t.FileExtensions;
+        }
+
         public static explicit operator ContentTypeNormalized(ContentType type)
         {
             if (type == null)
@@ -22,14 +33,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 return null;
             }
 
-            return new ContentTypeNormalized
-            {
-                Id = type.Id,
-                TypeEnum = type.TypeEnum,
-                CanReduce = type.CanReduce,
-                DefaultIconName = type.DefaultIconName,
-                FileExtensions = type.FileExtensions,
-            };
+            return new ContentTypeNormalized(type);
         }
     }
 }
