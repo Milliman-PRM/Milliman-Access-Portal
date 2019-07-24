@@ -79,7 +79,7 @@ namespace MillimanAccessPortal.DataQueries
             var parentIds = clients
                 .Where(c => c.ParentId.HasValue)
                 .Select(c => c.ParentId.Value)
-                .Where(id => !clientIds.Contains(id))
+                .Except(clientIds)
                 .ToList();
 
             return _dbContext.Client
@@ -127,12 +127,80 @@ namespace MillimanAccessPortal.DataQueries
         }
 
         /// <summary>
+        /// Get clients with card stats for user and role
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="role">role</param>
+        /// <returns>List of clients with card stats</returns>
+        private List<BasicClientWithCardStats> WithCardStats(ApplicationUser user, RoleEnum role)
+        {
+            var clients = SelectClientWhereRole(user, role);
+
+            var clientsWith = new List<BasicClientWithCardStats> { };
+            foreach (var client in clients)
+            {
+                var clientWith = new BasicClientWithCardStats
+                {
+                    Id = client.Id,
+                    ParentId = client.ParentId,
+                    Name = client.Name,
+                    Code = client.Code,
+                    CanManage = _dbContext.UserRoleInClient.Any(urc => urc.ClientId == client.Id && urc.UserId == user.Id && urc.Role.RoleEnum == role),
+                };
+
+                clientWith.ContentItemCount = _dbContext.RootContentItem
+                    .Where(i => i.ClientId == client.Id)
+                    .Count();
+                clientWith.UserCount = _dbContext.UserRoleInClient
+                    .Where(r => r.ClientId == client.Id)
+                    .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
+                    .Count();
+
+                clientsWith.Add(clientWith);
+            }
+            return clientsWith;
+        }
+
+        /// <summary>
         /// Add a list of eligible users to a client with card stats model
         /// </summary>
         /// <param name="clients">List of clients</param>
         /// <returns>List of clients with card stats and eligble users</returns>
         private List<BasicClientWithEligibleUsers> WithEligibleUsers(List<BasicClientWithCardStats> clients)
         {
+            var clientsWith = new List<BasicClientWithEligibleUsers> { };
+            foreach (var client in clients)
+            {
+                var clientWith = new BasicClientWithEligibleUsers
+                {
+                    Id = client.Id,
+                    ParentId = client.ParentId,
+                    Name = client.Name,
+                    Code = client.Code,
+                    ContentItemCount = client.ContentItemCount,
+                    UserCount = client.UserCount,
+                };
+
+                clientWith.EligibleUsers = _dbContext.UserRoleInClient
+                    .Where(r => r.ClientId == client.Id)
+                    .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
+                    .Select(r => r.UserId)
+                    .ToList();
+
+                clientsWith.Add(clientWith);
+            }
+            return clientsWith;
+        }
+
+        /// <summary>
+        /// Get a list of clients matching the user and role specified
+        /// </summary>
+        /// <param name="clients">List of clients</param>
+        /// <returns>List of clients with card stats and eligble users</returns>
+        private List<BasicClientWithEligibleUsers> WithEligibleUsers(ApplicationUser user, RoleEnum role)
+        {
+            var clients = WithCardStats(user, role);
+
             var clientsWith = new List<BasicClientWithEligibleUsers> { };
             foreach (var client in clients)
             {
@@ -171,9 +239,7 @@ namespace MillimanAccessPortal.DataQueries
                 return new List<BasicClientWithEligibleUsers> { };
             }
 
-            var clients = SelectClientWhereRole(user, role);
-            var clientsWithStats = WithCardStats(clients);
-            var clientsWithEligibleUsers = WithEligibleUsers(clientsWithStats);
+            var clientsWithEligibleUsers = WithEligibleUsers(user, role);
 
             return clientsWithEligibleUsers;
         }
