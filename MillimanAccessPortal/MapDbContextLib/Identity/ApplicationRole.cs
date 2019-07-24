@@ -22,24 +22,24 @@ namespace MapDbContextLib.Identity
     public enum RoleEnum
     {
         // Important: Existing numeric values must never be reassigned to a new meaning.  Always add a new role as a new, explicit, higher value. 
+        [Display(Name = "Admin")]
         Admin = 1,
+
+        [Display(Name = "User Creator")]
         UserCreator = 2,
+
+        [Display(Name = "Content Access Admin")]
         ContentAccessAdmin = 3,
+
+        [Display(Name = "Content Publisher")]
         ContentPublisher = 4,
+
+        [Display(Name = "Content User")]
         ContentUser = 5,
     };
 
     public class ApplicationRole : IdentityRole<Guid>
     {
-        public static Dictionary<RoleEnum, string> RoleDisplayNames = new Dictionary<RoleEnum, string>
-        {
-            { RoleEnum.Admin, "Admin"},
-            { RoleEnum.UserCreator, "User Creator"},
-            { RoleEnum.ContentAccessAdmin, "Content Access Admin"},
-            { RoleEnum.ContentPublisher, "Content Publisher"},
-            { RoleEnum.ContentUser, "Content User"},
-        };
-
         public static Dictionary<RoleEnum, Guid> RoleIds = new Dictionary<RoleEnum, Guid>();
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace MapDbContextLib.Identity
                 ApplicationRole RecordFromDb = dbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == Role);
                 if (RecordFromDb == null)
                 {
-                    RecordFromDb = new ApplicationRole { RoleEnum = Role, Name = RoleName, DisplayName = RoleDisplayNames[Role] };
+                    RecordFromDb = new ApplicationRole { RoleEnum = Role, Name = RoleName, DisplayName = Role.GetDisplayValueString() };
                     var createResult = await roleManager.CreateAsync(RecordFromDb);
                     if (!createResult.Succeeded)
                     {
@@ -87,9 +87,9 @@ namespace MapDbContextLib.Identity
                 {
                     throw new Exception($"It is not possible to change ApplicationRole name in database from {RecordFromDb.Name} to {RoleName}.");
                 }
-                else if (RecordFromDb.DisplayName != RoleDisplayNames[Role])
+                else if (RecordFromDb.DisplayName != Role.GetDisplayValueString())
                 {
-                    RecordFromDb.DisplayName = RoleDisplayNames[Role];
+                    RecordFromDb.DisplayName = Role.GetDisplayValueString();
                     await roleManager.UpdateAsync(RecordFromDb);
                 }
 
@@ -107,7 +107,7 @@ namespace MapDbContextLib.Identity
 
             // Make sure the database table contains exactly the expected records and no more
             var RoleNamesInitialized = Enum.GetValues(typeof(RoleEnum)).Cast<RoleEnum>().OrderBy(r => r).Select(r => new KeyValuePair<RoleEnum, string>(r, r.ToString()));
-            var RoleDisplayNamesInitialized = Enum.GetValues(typeof(RoleEnum)).Cast<RoleEnum>().OrderBy(r => r).Select(r => new KeyValuePair<RoleEnum, string>(r, RoleDisplayNames[r]));
+            var RoleDisplayNamesInitialized = Enum.GetValues(typeof(RoleEnum)).Cast<RoleEnum>().OrderBy(r => r).Select(r => new KeyValuePair<RoleEnum, string>(r, r.GetDisplayValueString()));
             if (!RoleNamesInitialized.SequenceEqual(FoundRolesInDb.OrderBy(fr => fr.Key)) ||
                 !RoleDisplayNamesInitialized.SequenceEqual(FoundDisplayNamesInDb.OrderBy(fr => fr.Key)))
             {
