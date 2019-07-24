@@ -105,8 +105,6 @@ export interface FetchItemsFailed {
 /**
  * GET:
  *   content items for the selected client;
- *   selection groups for the selected content item;
- *   live selections for those selection groups;
  *   publications for the selected client;
  *   publication queue information for those publications;
  *   reductions for the selected content item;
@@ -123,8 +121,6 @@ export interface FetchStatusRefreshSucceeded {
   type: 'FETCH_STATUS_REFRESH_SUCCEEDED';
   response: {
     contentItems: Dict<RootContentItem>;
-    groups: Dict<SelectionGroup>;
-    liveSelectionsSet: Dict<Guid[]>;
     publications: Dict<ContentPublicationRequest>;
     publicationQueue: Dict<PublicationQueueDetails>;
     reductions: Dict<ContentReductionTask>;
