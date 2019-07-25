@@ -48,8 +48,7 @@ const createFilterReducer = (actionType: FilterPublishingAction['type']) =>
 const clientCardAttributes = createReducer<Dict<CardAttributes>>({},
   {
     FETCH_CLIENTS_SUCCEEDED: (__, { response }: PublishingActions.FetchClientsSucceeded) => ({
-      ..._.mapValues(response.clients, () => ({ disabled: false })),
-      ..._.mapValues(response.parentClients, () => ({ disabled: true })),
+      ..._.mapValues(response.clients, (client) => ({ disabled: !client.canManage })),
     }),
   },
 );
@@ -112,9 +111,7 @@ const data = createReducer<PublishingStateData>(_initialData, {
     ...state,
     clients: {
       ...action.response.clients,
-      ...action.response.parentClients,
     },
-    users: action.response.users,
   }),
   FETCH_ITEMS_SUCCEEDED: (state, action: PublishingActions.FetchItemsSucceeded) => {
     const { contentItems, contentTypes, publications, publicationQueue, clientStats } = action.response;
