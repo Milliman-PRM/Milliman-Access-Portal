@@ -30,6 +30,7 @@ export interface Client {
   code: string;
 }
 export interface ClientWithStats extends Client {
+  canManage?: boolean;
   contentItemCount: number;
   userCount: number;
 }
