@@ -1,7 +1,7 @@
 import {
-    ClientWithEligibleUsers, ClientWithStats, ContentPublicationRequest, ContentReductionTask,
-    ContentType, Guid, PublicationQueueDetails, ReductionQueueDetails, RootContentItem,
-    RootContentItemWithStats, SelectionGroup, User,
+    ClientWithEligibleUsers, ClientWithStats, ContentAssociatedFileType, ContentPublicationRequest,
+    ContentReductionTask, ContentType, Guid, PublicationQueueDetails, ReductionQueueDetails,
+    RootContentItem, RootContentItemWithStats, SelectionGroup, User,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -50,6 +50,26 @@ export interface PromptStatusRefreshStopped {
 }
 
 // ~~ Server actions ~~
+
+/**
+ * GET:
+ *   Information on Content Types and Associated Content Types.
+ */
+export interface FetchGlobalData {
+  type: 'FETCH_GLOBAL_DATA';
+  request: {};
+}
+export interface FetchGlobalDataSucceeded {
+  type: 'FETCH_GLOBAL_DATA_SUCCEEDED';
+  response: {
+    contentTypes: Dict<ContentType>;
+    contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
+  };
+}
+export interface FetchGlobalDataFailed {
+  type: 'FETCH_GLOBAL_DATA_FAILED';
+  error: TSError;
+}
 
 /**
  * GET:
@@ -197,6 +217,7 @@ export type SchedulePublishingAction =
  * An action that makes an Ajax request.
  */
 export type RequestPublishingAction =
+  | FetchGlobalData
   | FetchClients
   | FetchItems
   | FetchStatusRefresh
@@ -207,6 +228,7 @@ export type RequestPublishingAction =
  * An action that marks the succesful response of an Ajax request.
  */
 export type ResponsePublishingAction =
+  | FetchGlobalDataSucceeded
   | FetchClientsSucceeded
   | FetchItemsSucceeded
   | FetchStatusRefreshSucceeded
@@ -217,6 +239,7 @@ export type ResponsePublishingAction =
  * An action that marks the errored response of an Ajax request.
  */
 export type ErrorPublishingAction =
+  | FetchGlobalDataFailed
   | FetchClientsFailed
   | FetchItemsFailed
   | FetchStatusRefreshFailed
