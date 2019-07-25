@@ -5,7 +5,7 @@ import { combineReducers } from 'redux';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { Dict, FilterState } from '../../shared-components/redux/store';
-import * as AccessActions from './actions';
+import * as PublishingActions from './actions';
 import { FilterPublishingAction, PublishingAction } from './actions';
 import { PendingDataState, PublishingStateData, PublishingStateSelected } from './store';
 
@@ -14,12 +14,14 @@ const _initialData: PublishingStateData = {
   items: {},
   users: {},
   contentTypes: {},
+  contentAssociatedFileTypes: {},
   publications: {},
   publicationQueue: {},
   reductions: {},
   reductionQueue: {},
 };
 const _initialPendingData: PendingDataState = {
+  globalData: false,
   clients: false,
   items: false,
 };
@@ -45,7 +47,7 @@ const createFilterReducer = (actionType: FilterPublishingAction['type']) =>
 
 const clientCardAttributes = createReducer<Dict<CardAttributes>>({},
   {
-    FETCH_CLIENTS_SUCCEEDED: (__, { response }: AccessActions.FetchClientsSucceeded) => ({
+    FETCH_CLIENTS_SUCCEEDED: (__, { response }: PublishingActions.FetchClientsSucceeded) => ({
       ..._.mapValues(response.clients, () => ({ disabled: false })),
       ..._.mapValues(response.parentClients, () => ({ disabled: true })),
     }),
@@ -53,6 +55,18 @@ const clientCardAttributes = createReducer<Dict<CardAttributes>>({},
 );
 
 const pendingData = createReducer<PendingDataState>(_initialPendingData, {
+  FETCH_GLOBAL_DATA: (state) => ({
+    ...state,
+    globalData: true,
+  }),
+  FETCH_GLOBAL_DATA_SUCCEEDED: (state) => ({
+    ...state,
+    globalData: false,
+  }),
+  FETCH_GLOBAL_DATA_FAILED: (state) => ({
+    ...state,
+    globalData: false,
+  }),
   FETCH_CLIENTS: (state) => ({
     ...state,
     clients: true,
@@ -85,7 +99,16 @@ const pendingStatusTries = createReducer<number>(5, {
 });
 
 const data = createReducer<PublishingStateData>(_initialData, {
-  FETCH_CLIENTS_SUCCEEDED: (state, action: AccessActions.FetchClientsSucceeded) => ({
+  FETCH_GLOBAL_DATA_SUCCEEDED: (state, action: PublishingActions.FetchGlobalDataSucceeded) => ({
+    ...state,
+    contentType: {
+      ...action.response.contentTypes,
+    },
+    contentAssociatedFileTypes: {
+      ...action.response.contentAssociatedFileTypes,
+    },
+  }),
+  FETCH_CLIENTS_SUCCEEDED: (state, action: PublishingActions.FetchClientsSucceeded) => ({
     ...state,
     clients: {
       ...action.response.clients,
@@ -93,7 +116,7 @@ const data = createReducer<PublishingStateData>(_initialData, {
     },
     users: action.response.users,
   }),
-  FETCH_ITEMS_SUCCEEDED: (state, action: AccessActions.FetchItemsSucceeded) => {
+  FETCH_ITEMS_SUCCEEDED: (state, action: PublishingActions.FetchItemsSucceeded) => {
     const { contentItems, contentTypes, publications, publicationQueue, clientStats } = action.response;
     return {
       ...state,
@@ -110,7 +133,7 @@ const data = createReducer<PublishingStateData>(_initialData, {
       },
     };
   },
-  FETCH_STATUS_REFRESH_SUCCEEDED: (state, action: AccessActions.FetchStatusRefreshSucceeded) => {
+  FETCH_STATUS_REFRESH_SUCCEEDED: (state, action: PublishingActions.FetchStatusRefreshSucceeded) => {
     const items = { ...state.items };
     _.forEach(items, (item, itemId) => {
       if (action.response.contentItems[itemId]) {
@@ -138,11 +161,11 @@ const selected = createReducer<PublishingStateSelected>(
     item: null,
   },
   {
-    SELECT_CLIENT: (state, action: AccessActions.SelectClient) => ({
+    SELECT_CLIENT: (state, action: PublishingActions.SelectClient) => ({
       client: action.id === state.client ? null : action.id,
       item: null,
     }),
-    SELECT_ITEM: (state, action: AccessActions.SelectItem) => ({
+    SELECT_ITEM: (state, action: PublishingActions.SelectItem) => ({
       ...state,
       item: action.id === state.item ? null : action.id,
       group: null,

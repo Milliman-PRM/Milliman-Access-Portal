@@ -17,6 +17,8 @@ export const promptStatusRefreshStopped =
   createActionCreator<PublishActions.PromptStatusRefreshStopped>('PROMPT_STATUS_REFRESH_STOPPED');
 
 // Data fetches
+export const fetchGlobalData =
+  createRequestActionCreator<PublishActions.FetchGlobalData>('FETCH_GLOBAL_DATA');
 export const fetchClients =
   createRequestActionCreator<PublishActions.FetchClients>('FETCH_CLIENTS');
 export const fetchItems =

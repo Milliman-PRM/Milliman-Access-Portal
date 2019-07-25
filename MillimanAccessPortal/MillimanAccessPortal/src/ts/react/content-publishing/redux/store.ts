@@ -3,8 +3,9 @@ import { applyMiddleware, createStore } from 'redux';
 import createSagaMiddleware from 'redux-saga';
 
 import {
-    ClientWithStats, ContentPublicationRequest, ContentReductionTask, ContentType,
-    Guid, PublicationQueueDetails, ReductionQueueDetails, RootContentItemWithStats, User,
+    ClientWithStats, ContentAssociatedFileType, ContentPublicationRequest, ContentReductionTask,
+    ContentType, Guid, PublicationQueueDetails, ReductionQueueDetails, RootContentItemWithStats,
+    User,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState } from '../../shared-components/redux/store';
@@ -15,6 +16,7 @@ import sagas from './sagas';
  * Flags indicating whether the page is waiting on new data for an entity type.
  */
 export interface PendingDataState {
+  globalData: boolean;
   clients: boolean;
   items: boolean;
 }
@@ -27,6 +29,7 @@ export interface PublishingStateData {
   items: Dict<RootContentItemWithStats>;
   users: Dict<User>;
   contentTypes: Dict<ContentType>;
+  contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
   publications: Dict<ContentPublicationRequest>;
   publicationQueue: Dict<PublicationQueueDetails>;
   reductions: Dict<ContentReductionTask>;

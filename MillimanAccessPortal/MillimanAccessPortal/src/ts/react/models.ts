@@ -101,6 +101,12 @@ export interface ContentType {
   fileExtensions: string[];
 }
 
+export interface ContentAssociatedFileType {
+  typeEnum: number;
+  name: string;
+  fileExtensions: string[];
+}
+
 export interface ReductionFieldset {
   field: ReductionField;
   values: ReductionFieldValue[];

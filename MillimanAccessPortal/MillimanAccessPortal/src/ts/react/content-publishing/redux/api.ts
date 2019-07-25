@@ -9,6 +9,10 @@ import * as PublishingActions from './actions';
  */
 const createJsonRequestor = createJsonRequestorCreator<RequestPublishingAction, ResponsePublishingAction>();
 
+export const fetchGlobalData =
+  createJsonRequestor<PublishingActions.FetchGlobalData, PublishingActions.FetchGlobalDataSucceeded>
+    ('GET', '/ContentPublishing/PageGlobalData');
+
 export const fetchClients =
   createJsonRequestor<PublishingActions.FetchClients, PublishingActions.FetchClientsSucceeded>
     ('GET', '/ContentPublishing/Clients');
