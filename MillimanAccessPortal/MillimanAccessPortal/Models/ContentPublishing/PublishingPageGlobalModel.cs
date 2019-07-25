@@ -14,16 +14,20 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 {
     public class PublishingPageGlobalModel
     {
-        public List<ContentTypeNormalized> ContentTypes { get; set; }
-        public List<AssociatedFileType> ContentAssociatedFileTypes { get; set; }
+        public Dictionary<Guid,ContentTypeNormalized> ContentTypes { get; set; }
+        public Dictionary<int,AssociatedFileType> ContentAssociatedFileTypes { get; set; }
 
         internal static PublishingPageGlobalModel Build(ApplicationDbContext dbContext)
         {
             var typeValues = Enum.GetValues(typeof(ContentAssociatedFileType)).Cast<ContentAssociatedFileType>();
             return new PublishingPageGlobalModel
             {
-                ContentAssociatedFileTypes = typeValues.Select(t => new AssociatedFileType { typeEnum = t, FileExtensions = t.GetStringList(), Name = t.GetDisplayValueString() }).ToList(),
-                ContentTypes = dbContext.ContentType.Select(t => new ContentTypeNormalized(t)).ToList(),
+                ContentAssociatedFileTypes = typeValues
+                    .Select(t => new AssociatedFileType { typeEnum = t, FileExtensions = t.GetStringList(), Name = t.GetDisplayValueString() })
+                    .ToDictionary(t => (int)t.typeEnum),
+                ContentTypes = dbContext.ContentType
+                    .Select(t => new ContentTypeNormalized(t))
+                    .ToDictionary(t => t.Id),
             };
         }
     }
