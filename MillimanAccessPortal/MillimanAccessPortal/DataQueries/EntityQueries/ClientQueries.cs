@@ -98,9 +98,11 @@ namespace MillimanAccessPortal.DataQueries
         /// <summary>
         /// Add card stats for each client in a list
         /// </summary>
-        /// <param name="clients">List of clients</param>
-        /// <returns>List of clients with card stats</returns>
-        private List<BasicClientWithCardStats> WithCardStats(List<BasicClient> clients)
+        /// <param name="clients"></param>
+        /// <param name="role"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        private List<BasicClientWithCardStats> WithCardStats(List<BasicClient> clients, RoleEnum? role = null, Guid? userId = null)
         {
             var clientsWith = new List<BasicClientWithCardStats> { };
             foreach (var client in clients)
@@ -113,6 +115,10 @@ namespace MillimanAccessPortal.DataQueries
                     Code = client.Code,
                 };
 
+                if (role.HasValue && userId.HasValue)
+                {
+                    clientWith.CanManage = _dbContext.UserRoleInClient.Any(r => r.ClientId == client.Id && r.Role.RoleEnum == role.Value && r.UserId == userId.Value);
+                }
                 clientWith.ContentItemCount = _dbContext.RootContentItem
                     .Where(i => i.ClientId == client.Id)
                     .Count();
@@ -201,10 +207,10 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="clientId"></param>
         /// <returns>Client with card stats</returns>
-        internal BasicClientWithCardStats SelectClientWithCardStats(Guid clientId)
+        internal BasicClientWithCardStats SelectClientWithCardStats(Guid clientId, RoleEnum? role = null, Guid? userId = null)
         {
             var client = FindClient(clientId);
-            var clientWithStats = WithCardStats(new List<BasicClient> { client })
+            var clientWithStats = WithCardStats(new List<BasicClient> { client }, role, userId)
                 .SingleOrDefault();
 
             return clientWithStats;

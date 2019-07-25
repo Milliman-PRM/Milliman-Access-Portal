@@ -45,33 +45,41 @@ namespace MillimanAccessPortal.Controllers
         private readonly ApplicationDbContext DbContext;
         private readonly FileSystemTasks _fileSystemTasks;
         private readonly IGoLiveTaskQueue _goLiveTaskQueue;
-        private readonly StandardQueries Queries;
+        private readonly StandardQueries _standardQueries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly PowerBiConfig _powerBiConfig;
         private readonly QlikviewConfig _qlikviewConfig;
         private readonly IPublicationPostProcessingTaskQueue _PostProcessingTaskQueue;
-
+        private readonly ContentPublishingAdminQueries _publishingQueries;
 
         /// <summary>
         /// Constructor, stores local references to injected service instances
         /// </summary>
-        /// <param name="ContextArg"></param>
-        /// <param name="QueriesArg"></param>
-        /// <param name="LoggerFactoryArg"></param>
         /// <param name="AuditLoggerArg"></param>
         /// <param name="AuthorizationServiceArg"></param>
+        /// <param name="ContextArg"></param>
+        /// <param name="fileSystemTasks"></param>
+        /// <param name="goLiveTaskQueue"></param>
+        /// <param name="standardQueriesArg"></param>
+        /// <param name="UserManagerArg"></param>
+        /// <param name="ApplicationConfigArg"></param>
+        /// <param name="PowerBiOptionsAccessorArg"></param>
+        /// <param name="QlikviewOptionsAccessorArg"></param>
+        /// <param name="postProcessingTaskQueue"></param>
+        /// <param name="publishingQueriesArg"></param>
         public ContentPublishingController(
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext ContextArg,
             FileSystemTasks fileSystemTasks,
             IGoLiveTaskQueue goLiveTaskQueue,
-            StandardQueries QueriesArg,
+            StandardQueries standardQueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
             IOptions<PowerBiConfig> PowerBiOptionsAccessorArg,
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
-            IPublicationPostProcessingTaskQueue postProcessingTaskQueue
+            IPublicationPostProcessingTaskQueue postProcessingTaskQueue,
+            ContentPublishingAdminQueries publishingQueriesArg
             )
         {
             AuditLogger = AuditLoggerArg;
@@ -79,12 +87,13 @@ namespace MillimanAccessPortal.Controllers
             DbContext = ContextArg;
             _fileSystemTasks = fileSystemTasks;
             _goLiveTaskQueue = goLiveTaskQueue;
-            Queries = QueriesArg;
+            _standardQueries = standardQueriesArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
             _powerBiConfig = PowerBiOptionsAccessorArg.Value;
             _qlikviewConfig = QlikviewOptionsAccessorArg.Value;
             _PostProcessingTaskQueue = postProcessingTaskQueue;
+            _publishingQueries = publishingQueriesArg;
         }
 
         /// <summary>
@@ -93,6 +102,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         public IActionResult Index()
         {
+            //var model = _publishingQueries.GetAuthorizedClients(await UserManager.GetUserAsync(User), RoleEnum.ContentPublisher);
             return View();
         }
 
@@ -145,9 +155,14 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var model = ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentPublisher);
+            ClientsResponseModel responseModel = new ClientsResponseModel
+            {
+                Clients = _publishingQueries.GetAuthorizedClients(await UserManager.GetUserAsync(User), RoleEnum.ContentPublisher),
+            };
 
-            return new JsonResult(model);
+            //var model = ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentPublisher);
+
+            return new JsonResult(responseModel);
         }
 
         [HttpGet]
@@ -176,7 +191,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            RootContentItemList model = RootContentItemList.Build(DbContext, client, await Queries.GetCurrentApplicationUser(User), RoleEnum.ContentPublisher);
+            RootContentItemList model = RootContentItemList.Build(DbContext, client, await _standardQueries.GetCurrentApplicationUser(User), RoleEnum.ContentPublisher);
 
             return Json(model);
         }
@@ -516,7 +531,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered ContentPublishingController.Publish action with {{@PublishRequest}}", request);
 
-            ApplicationUser currentApplicationUser = await Queries.GetCurrentApplicationUser(User);
+            ApplicationUser currentApplicationUser = await _standardQueries.GetCurrentApplicationUser(User);
 
             #region Preliminary Validation
             if (currentApplicationUser == null)
@@ -713,7 +728,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ContentPublishingController.CancelContentPublicationRequest action: success");
             AuditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(rootContentItem, rootContentItem.Client, contentPublicationRequest));
 
-            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
+            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await _standardQueries.GetCurrentApplicationUser(User));
 
             return new JsonResult(rootContentItemStatusList);
         }
@@ -722,7 +737,7 @@ namespace MillimanAccessPortal.Controllers
         [PreventAuthRefresh]
         public async Task<IActionResult> Status()
         {
-            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
+            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await _standardQueries.GetCurrentApplicationUser(User));
 
             return new JsonResult(rootContentItemStatusList);
         }

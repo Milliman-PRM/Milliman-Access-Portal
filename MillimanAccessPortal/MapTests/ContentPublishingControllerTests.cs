@@ -48,7 +48,8 @@ namespace MapTests
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig,
                 TestResources.QvConfig,
-                TestResources.PublicationPostProcessingQueueObject
+                TestResources.PublicationPostProcessingQueueObject,
+                TestResources.ContentPublishingAdminQueriesObj
                 );
 
             try

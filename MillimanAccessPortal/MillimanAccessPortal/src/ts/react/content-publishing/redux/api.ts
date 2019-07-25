@@ -11,7 +11,7 @@ const createJsonRequestor = createJsonRequestorCreator<RequestPublishingAction, 
 
 export const fetchClients =
   createJsonRequestor<PublishingActions.FetchClients, PublishingActions.FetchClientsSucceeded>
-    ('GET', '/ContentAccessAdmin/Clients');
+    ('GET', '/ContentPublishing/Clients');
 
 export const fetchItems =
   createJsonRequestor<PublishingActions.FetchItems, PublishingActions.FetchItemsSucceeded>
