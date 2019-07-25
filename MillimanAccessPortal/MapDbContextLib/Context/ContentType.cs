@@ -15,11 +15,17 @@ namespace MapDbContextLib.Context
 {
     public enum ContentTypeEnum
     {
+        [Display(Name = "Unknown")]
         Unknown = 0,
+        [Display(Name = "QlikView")]
         Qlikview,
+        [Display(Name = "HTML")]
         Html,
+        [Display(Name = "PDF")]
         Pdf,
+        [Display(Name = "File Download")]
         FileDownload,
+        [Display(Name = "Power BI")]
         PowerBi,
     }
 
@@ -33,17 +39,6 @@ namespace MapDbContextLib.Context
 
     public class ContentType
     {
-        [NotMapped]
-        public static Dictionary<ContentTypeEnum, string> ContentTypeString = new Dictionary<ContentTypeEnum, string>
-        {
-            { ContentTypeEnum.Unknown, "Unknown" },
-            { ContentTypeEnum.Qlikview, "QlikView" },
-            { ContentTypeEnum.Html, "HTML" },
-            { ContentTypeEnum.Pdf, "PDF" },
-            { ContentTypeEnum.FileDownload, "File Download" },
-            { ContentTypeEnum.PowerBi, "Power BI" }
-        };
-
         [Key]
         public Guid Id { get; set; }
 
