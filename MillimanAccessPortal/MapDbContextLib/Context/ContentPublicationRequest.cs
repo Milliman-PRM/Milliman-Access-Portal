@@ -35,6 +35,17 @@ namespace MapDbContextLib.Context
 
     public static class PublicationStatusExtensions
     {
+        public readonly static List<PublicationStatus> ActiveStatuses = new List<PublicationStatus>
+        {
+            PublicationStatus.Validating,
+            PublicationStatus.Queued,
+            PublicationStatus.Processing,
+            PublicationStatus.PostProcessReady,
+            PublicationStatus.PostProcessing,
+            PublicationStatus.Processed,
+            PublicationStatus.Confirming,
+        };
+
         public static bool IsCancelable(this PublicationStatus status)
         {
             var blockingStatuses = new List<PublicationStatus>
@@ -48,18 +59,8 @@ namespace MapDbContextLib.Context
 
         public static bool IsActive(this PublicationStatus status)
         {
-            var blockingStatuses = new List<PublicationStatus>
-            {
-                PublicationStatus.Validating,
-                PublicationStatus.Queued,
-                PublicationStatus.Processing,
-                PublicationStatus.PostProcessReady,
-                PublicationStatus.PostProcessing,
-                PublicationStatus.Processed,
-                PublicationStatus.Confirming,
-            };
 
-            return blockingStatuses.Contains(status);
+            return ActiveStatuses.Contains(status);
         }
     }
 

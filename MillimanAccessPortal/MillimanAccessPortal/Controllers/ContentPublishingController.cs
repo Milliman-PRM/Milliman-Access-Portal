@@ -42,11 +42,11 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuditLogger AuditLogger;
         private readonly IConfiguration ApplicationConfig;
         private readonly IAuthorizationService AuthorizationService;
-        private readonly ApplicationDbContext DbContext;
+        private readonly ApplicationDbContext _dbContext;
         private readonly FileSystemTasks _fileSystemTasks;
         private readonly IGoLiveTaskQueue _goLiveTaskQueue;
         private readonly StandardQueries _standardQueries;
-        private readonly UserManager<ApplicationUser> UserManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly PowerBiConfig _powerBiConfig;
         private readonly QlikviewConfig _qlikviewConfig;
         private readonly IPublicationPostProcessingTaskQueue _PostProcessingTaskQueue;
@@ -84,11 +84,11 @@ namespace MillimanAccessPortal.Controllers
         {
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
-            DbContext = ContextArg;
+            _dbContext = ContextArg;
             _fileSystemTasks = fileSystemTasks;
             _goLiveTaskQueue = goLiveTaskQueue;
             _standardQueries = standardQueriesArg;
-            UserManager = UserManagerArg;
+            _userManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
             _powerBiConfig = PowerBiOptionsAccessorArg.Value;
             _qlikviewConfig = QlikviewOptionsAccessorArg.Value;
@@ -123,11 +123,12 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PublishingPageGlobalModel model = PublishingPageGlobalModel.Build(DbContext);
+            PublishingPageGlobalModel model = PublishingPageGlobalModel.Build(_dbContext);
 
             return Json(model);
         }
-
+        
+        /*
         [HttpGet]
         public IActionResult AvailableContentTypes()
         {
@@ -139,6 +140,7 @@ namespace MillimanAccessPortal.Controllers
 
             return new JsonResult(model);
         }
+        */
 
         [HttpGet]
         async public Task<IActionResult> Clients()
@@ -157,7 +159,7 @@ namespace MillimanAccessPortal.Controllers
 
             ClientsResponseModel responseModel = new ClientsResponseModel
             {
-                Clients = _publishingQueries.GetAuthorizedClients(await UserManager.GetUserAsync(User), RoleEnum.ContentPublisher),
+                Clients = _publishingQueries.GetAuthorizedClients(await _userManager.GetUserAsync(User), RoleEnum.ContentPublisher),
             };
 
             //var model = ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentPublisher);
@@ -165,6 +167,42 @@ namespace MillimanAccessPortal.Controllers
             return new JsonResult(responseModel);
         }
 
+        /// <summary>
+        /// GET content items for a client authorized to the current user
+        /// </summary>
+        /// <param name="clientId">Client to which content items must belong</param>
+        [HttpGet]
+        public async Task<IActionResult> ContentItems([EmitBeforeAfterLog] Guid clientId)
+        {
+            Client client = await _dbContext.Client.FindAsync(clientId);
+
+            #region Preliminary validation
+            if (client == null)
+            {
+                Log.Debug($"In ContentPublishingController.ContentItems action: client {clientId} not found, aborting");
+                Response.Headers.Add("Warning", "The requested client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var roleResult = await AuthorizationService
+                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, clientId));
+            if (!roleResult.Succeeded)
+            {
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to publish for this client.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            var contentItems = await RootContentItemsModel.BuildAsync(_dbContext, _userManager, client, currentUser, RoleEnum.ContentPublisher);
+
+            return Json(contentItems);
+        }
+
+        /*
         [HttpGet]
         public async Task<IActionResult> RootContentItems(Guid clientId)
         {
@@ -195,13 +233,14 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(model);
         }
+        */
 
         [HttpGet]
         public async Task<IActionResult> RootContentItemDetail(Guid rootContentItemId)
         {
             Log.Verbose($"Entered ContentPublishingController.RootContentItemDetail action with root content item id {rootContentItemId}");
 
-            RootContentItem rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
+            RootContentItem rootContentItem = _dbContext.RootContentItem.Find(rootContentItemId);
 
             #region Preliminary validation
             if (rootContentItem == null)
@@ -223,7 +262,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
+            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, rootContentItem);
 
             return Json(model);
         }
@@ -235,7 +274,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"Entered ContentPublishingController.CreateRootContentItem action with root content item {{@RootContentItem}}", rootContentItem);
 
             #region Preliminary validation
-            var client = DbContext.Client
+            var client = _dbContext.Client
                 .Where(c => c.Id == rootContentItem.ClientId)
                 .SingleOrDefault();
             if (client == null)
@@ -258,14 +297,14 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            if (!DbContext.ContentType.Any(c => c.Id == rootContentItem.ContentTypeId))
+            if (!_dbContext.ContentType.Any(c => c.Id == rootContentItem.ContentTypeId))
             {
                 Log.Debug($"In ContentPublishingController.CreateRootContentItem action: content type for content item {rootContentItem.Id} not found, aborting");
                 Response.Headers.Add("Warning", "The associated content type does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            if (!DbContext.Client.Any(c => c.Id == rootContentItem.ClientId))
+            if (!_dbContext.Client.Any(c => c.Id == rootContentItem.ClientId))
             {
                 Log.Debug($"In ContentPublishingController.CreateRootContentItem action: client for content item {rootContentItem.Id} not found, aborting");
                 Response.Headers.Add("Warning", "The associated client does not exist.");
@@ -280,12 +319,12 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
+            using (IDbContextTransaction DbTransaction = _dbContext.Database.BeginTransaction())
             {
-                DbContext.ContentType.Where(ct => ct.Id == rootContentItem.ContentTypeId).Load();
+                _dbContext.ContentType.Where(ct => ct.Id == rootContentItem.ContentTypeId).Load();
                 // Commit the new root content item
-                DbContext.RootContentItem.Add(rootContentItem);
-                DbContext.SaveChanges();
+                _dbContext.RootContentItem.Add(rootContentItem);
+                _dbContext.SaveChanges();
 
                 // Copy user roles for the new root content item from its client.
                 // In the future, root content item management and publishing roles may
@@ -294,7 +333,7 @@ namespace MillimanAccessPortal.Controllers
 
                 foreach (RoleEnum role in RolesToInheritFromClient)
                 {
-                    var inheritedRoles = DbContext.UserRoleInClient
+                    var inheritedRoles = _dbContext.UserRoleInClient
                         .Where(r => r.ClientId == rootContentItem.ClientId)
                         .Where(r => r.Role.RoleEnum == role)
                         .Select(r => new UserRoleInRootContentItem
@@ -303,17 +342,17 @@ namespace MillimanAccessPortal.Controllers
                             RootContentItemId = rootContentItem.Id,
                             RoleId = ApplicationRole.RoleIds[role],
                         });
-                    DbContext.UserRoleInRootContentItem.AddRange(inheritedRoles);
+                    _dbContext.UserRoleInRootContentItem.AddRange(inheritedRoles);
                 }
-                DbContext.SaveChanges();
+                _dbContext.SaveChanges();
                 DbTransaction.Commit();
             }
 
             Log.Verbose($"In ContentPublishingController.CreateRootContentItem action: success");
             AuditLogger.Log(AuditEventType.RootContentItemCreated.ToEvent(rootContentItem, client));
 
-            RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, rootContentItem);
-            RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
+            RootContentItemSummary summary = RootContentItemSummary.Build(_dbContext, rootContentItem);
+            RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, rootContentItem);
 
             return Json(new { summary, detail });
         }
@@ -325,7 +364,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"Entered ContentPublishingController.UpdateRootContentItem action with root content item {{@RootContentItem}}", rootContentItem);
 
             #region Preliminary validation
-            var currentRootContentItem = DbContext.RootContentItem
+            var currentRootContentItem = _dbContext.RootContentItem
                 .Include(c => c.ContentType)
                 .Where(i => i.Id == rootContentItem.Id)
                 .SingleOrDefault();
@@ -378,7 +417,7 @@ namespace MillimanAccessPortal.Controllers
             switch (currentRootContentItem.ContentType.TypeEnum)
             {
                 case ContentTypeEnum.PowerBi:
-                    rootContentItem.ContentType = DbContext.ContentType.Find(rootContentItem.ContentTypeId);
+                    rootContentItem.ContentType = _dbContext.ContentType.Find(rootContentItem.ContentTypeId);
                     PowerBiContentItemProperties newProps = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
                     PowerBiContentItemProperties currentProps = currentRootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
@@ -394,7 +433,7 @@ namespace MillimanAccessPortal.Controllers
             if (currentRootContentItem.ContentDisclaimer != rootContentItem.ContentDisclaimer)
             {
                 // Reset disclaimer acceptance
-                usersInGroup = DbContext.UserInSelectionGroup
+                usersInGroup = _dbContext.UserInSelectionGroup
                                         .Include(usg => usg.User)
                                         .Include(usg => usg.SelectionGroup)
                                         .Where(u => u.SelectionGroup.RootContentItemId == currentRootContentItem.Id)
@@ -403,9 +442,9 @@ namespace MillimanAccessPortal.Controllers
             }
             currentRootContentItem.ContentDisclaimer = rootContentItem.ContentDisclaimer;
 
-            DbContext.SaveChanges();
+            _dbContext.SaveChanges();
 
-            var logClient = DbContext.Client.Find(rootContentItem.ClientId);
+            var logClient = _dbContext.Client.Find(rootContentItem.ClientId);
 
             Log.Verbose($"In ContentPublishingController.UpdateRootContentItem action: success");
             AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(currentRootContentItem, logClient));
@@ -415,8 +454,8 @@ namespace MillimanAccessPortal.Controllers
                     .ToEvent(usersInGroup, currentRootContentItem, logClient, ContentDisclaimerResetReason.DisclaimerTextModified));
             }
 
-            RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, currentRootContentItem);
-            RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, currentRootContentItem);
+            RootContentItemSummary summary = RootContentItemSummary.Build(_dbContext, currentRootContentItem);
+            RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, currentRootContentItem);
 
             return Json(new { summary, detail });
         }
@@ -427,7 +466,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered ContentPublishingController.DeleteRootContentItem action with root content item id {rootContentItemId} and password");
 
-            var rootContentItem = DbContext.RootContentItem
+            var rootContentItem = _dbContext.RootContentItem
                 .Include(x => x.Client)
                 .Include(x => x.ContentType)
                 .SingleOrDefault(x => x.Id == rootContentItemId);
@@ -453,7 +492,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var blocked = DbContext.ContentPublicationRequest
+            var blocked = _dbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItemId)
                 .Any(r => r.RequestStatus.IsActive());
             if (blocked)
@@ -464,10 +503,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
+            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, rootContentItem);
 
-            DbContext.RootContentItem.Remove(rootContentItem);
-            DbContext.SaveChanges();
+            _dbContext.RootContentItem.Remove(rootContentItem);
+            _dbContext.SaveChanges();
 
             // ContentType specific handling after database operation completes
             switch (rootContentItem.ContentType.TypeEnum)
@@ -554,7 +593,7 @@ namespace MillimanAccessPortal.Controllers
 
             #endregion
 
-            RootContentItem ContentItem = DbContext.RootContentItem
+            RootContentItem ContentItem = _dbContext.RootContentItem
                                                    .Include(rc => rc.ContentType)
                                                    .Include(rc => rc.Client)
                                                    .SingleOrDefault(rc => rc.Id == request.RootContentItemId);
@@ -569,7 +608,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // All the provided references to related files must be found in the FileUpload entity.  
-            if (request.NewRelatedFiles.Any(f => DbContext.FileUpload.Count(fu => fu.Id == f.FileUploadId) != 1))
+            if (request.NewRelatedFiles.Any(f => _dbContext.FileUpload.Count(fu => fu.Id == f.FileUploadId) != 1))
             {
                 Log.Debug($"In ContentPublishingController.Publish action: one or more new files to be published not found in FileUpload table, aborting");
                 Response.Headers.Add("Warning", "A specified uploaded file was not found.");
@@ -579,7 +618,7 @@ namespace MillimanAccessPortal.Controllers
             bool Blocked;
 
             // There must be no unresolved ContentPublicationRequest.
-            Blocked = DbContext.ContentPublicationRequest
+            Blocked = _dbContext.ContentPublicationRequest
                                .Where(r => r.RootContentItemId == request.RootContentItemId)
                                .Any(r => r.RequestStatus.IsActive());
             if (Blocked)
@@ -590,7 +629,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // There must be no unresolved ContentReductionTask.
-            Blocked = DbContext.ContentReductionTask
+            Blocked = _dbContext.ContentReductionTask
                                .Where(t => t.ContentPublicationRequestId == null)
                                .Where(t => t.SelectionGroup.RootContentItemId == request.RootContentItemId)
                                .Any(t => t.ReductionStatus.IsActive());
@@ -625,7 +664,7 @@ namespace MillimanAccessPortal.Controllers
 
                 _fileSystemTasks.DeleteRelatedFiles(ContentItem, filesToDelete);
 
-                DbContext.SaveChanges();
+                _dbContext.SaveChanges();
             }
 
             if (request.NewRelatedFiles.Any())
@@ -642,11 +681,11 @@ namespace MillimanAccessPortal.Controllers
                     UploadedRelatedFilesObj = request.NewRelatedFiles,
                     RequestedAssociatedFileList = request.AssociatedFiles,
                 };
-                DbContext.ContentPublicationRequest.Add(NewContentPublicationRequest);
+                _dbContext.ContentPublicationRequest.Add(NewContentPublicationRequest);
 
                 try
                 {
-                    DbContext.SaveChanges();
+                    _dbContext.SaveChanges();
                 }
                 catch
                 {
@@ -665,7 +704,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(ContentItem, ContentItem.Client, NewContentPublicationRequest));
             }
 
-            var rootContentItemDetail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, ContentItem);
+            var rootContentItemDetail = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, ContentItem);
             return Json(rootContentItemDetail);
         }
 
@@ -676,7 +715,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"Entered ContentPublishingController.CancelContentPublicationRequest action with content item {rootContentItemId}");
 
             #region Preliminary validation
-            var rootContentItem = DbContext.RootContentItem
+            var rootContentItem = _dbContext.RootContentItem
                 .Include(c => c.Client)
                 .SingleOrDefault(c => c.Id == rootContentItemId);
             if (rootContentItem == null)
@@ -699,7 +738,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var contentPublicationRequest = DbContext.ContentPublicationRequest
+            var contentPublicationRequest = _dbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
                 .Where(r => r.RequestStatus.IsCancelable())
                 .SingleOrDefault();
@@ -713,10 +752,10 @@ namespace MillimanAccessPortal.Controllers
 
             contentPublicationRequest.RequestStatus = PublicationStatus.Canceled;
             contentPublicationRequest.UploadedRelatedFilesObj = null;
-            DbContext.ContentPublicationRequest.Update(contentPublicationRequest);
+            _dbContext.ContentPublicationRequest.Update(contentPublicationRequest);
             try
             {
-                DbContext.SaveChanges();
+                _dbContext.SaveChanges();
             }
             catch
             {
@@ -728,7 +767,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ContentPublishingController.CancelContentPublicationRequest action: success");
             AuditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(rootContentItem, rootContentItem.Client, contentPublicationRequest));
 
-            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await _standardQueries.GetCurrentApplicationUser(User));
+            var rootContentItemStatusList = RootContentItemStatus.Build(_dbContext, await _standardQueries.GetCurrentApplicationUser(User));
 
             return new JsonResult(rootContentItemStatusList);
         }
@@ -737,7 +776,7 @@ namespace MillimanAccessPortal.Controllers
         [PreventAuthRefresh]
         public async Task<IActionResult> Status()
         {
-            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await _standardQueries.GetCurrentApplicationUser(User));
+            var rootContentItemStatusList = RootContentItemStatus.Build(_dbContext, await _standardQueries.GetCurrentApplicationUser(User));
 
             return new JsonResult(rootContentItemStatusList);
         }
@@ -763,7 +802,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            if (!DbContext.RootContentItem.Any(c => c.Id == RootContentItemId))
+            if (!_dbContext.RootContentItem.Any(c => c.Id == RootContentItemId))
             {
                 Log.Debug($"In ContentPublishingController.PreLiveSummary action: content item {RootContentItemId} not found, aborting");
                 Response.Headers.Add("Warning", "The requested content item was not found.");
@@ -771,7 +810,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig, HttpContext);
+            PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(_dbContext, RootContentItemId, ApplicationConfig, HttpContext);
 
             Log.Verbose($"In ContentPublishingController.PreLiveSummary action: success, returning summary {ReturnObj.ValidationSummaryId}");
             AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent((PreLiveContentValidationSummaryLogModel)ReturnObj));
@@ -805,7 +844,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var publicationRequest = DbContext.ContentPublicationRequest
+            var publicationRequest = _dbContext.ContentPublicationRequest
                 .Include(r => r.RootContentItem)
                     .ThenInclude(c => c.ContentType)
                 .Include(r => r.ApplicationUser)
@@ -836,7 +875,7 @@ namespace MillimanAccessPortal.Controllers
                 RootContentItemId = publicationRequest.RootContentItemId
             };
 
-            var RelatedReductionTasks = DbContext.ContentReductionTask
+            var RelatedReductionTasks = _dbContext.ContentReductionTask
                 .Include(t => t.SelectionGroup)
                     .ThenInclude(g => g.RootContentItem)
                         .ThenInclude(c => c.ContentType)
@@ -846,7 +885,7 @@ namespace MillimanAccessPortal.Controllers
             if (ReductionIsInvolved)
             {
                 // For each reducing SelectionGroup related to the RootContentItem:
-                var relatedSelectionGroups = DbContext.SelectionGroup
+                var relatedSelectionGroups = _dbContext.SelectionGroup
                     .Where(g => g.RootContentItemId == goLiveViewModel.RootContentItemId)
                     .Where(g => !g.IsMaster);
                 foreach (var relatedSelectionGroup in relatedSelectionGroups)
@@ -907,7 +946,7 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>
-                    .GetHierarchyForRootContentItem(DbContext, publicationRequest.RootContentItemId);
+                    .GetHierarchyForRootContentItem(_dbContext, publicationRequest.RootContentItemId);
                 NewHierarchy = RelatedReductionTasks[0].MasterContentHierarchyObj;
 
                 if (LiveHierarchy.Fields.Count != 0)
@@ -929,7 +968,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             publicationRequest.RequestStatus = PublicationStatus.Confirming;
-            DbContext.SaveChanges();
+            _dbContext.SaveChanges();
 
             _goLiveTaskQueue.QueueGoLive(goLiveViewModel);
 
@@ -953,11 +992,11 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            RootContentItem rootContentItem = DbContext.RootContentItem
+            RootContentItem rootContentItem = _dbContext.RootContentItem
                                                 .Include(c => c.ContentType)
                                                 .Include(c => c.Client)
                                                 .Single(c => c.Id == rootContentItemId);
-            ContentPublicationRequest pubRequest = DbContext.ContentPublicationRequest.Find(publicationRequestId);
+            ContentPublicationRequest pubRequest = _dbContext.ContentPublicationRequest.Find(publicationRequestId);
 
             #region Validation
             // the rootContentItem already exists because the authorization check passed above
@@ -978,16 +1017,16 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             // Update status of request and all associated reduction tasks
-            using (var Txn = DbContext.Database.BeginTransaction())
+            using (var Txn = _dbContext.Database.BeginTransaction())
             {
                 pubRequest.RequestStatus = PublicationStatus.Rejected;
-                DbContext.ContentPublicationRequest.Update(pubRequest);
+                _dbContext.ContentPublicationRequest.Update(pubRequest);
 
-                List<ContentReductionTask> RelatedTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == publicationRequestId).ToList();
+                List<ContentReductionTask> RelatedTasks = _dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == publicationRequestId).ToList();
                 foreach (ContentReductionTask relatedTask in RelatedTasks)
                 {
                     relatedTask.ReductionStatus = ReductionStatusEnum.Rejected;
-                    DbContext.ContentReductionTask.Update(relatedTask);
+                    _dbContext.ContentReductionTask.Update(relatedTask);
                 }
 
                 string configuredContentRootFolder = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
@@ -1030,7 +1069,7 @@ namespace MillimanAccessPortal.Controllers
                     }
                 }
 
-                await DbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
                 Txn.Commit();
             }
 

@@ -38,7 +38,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IConfiguration ApplicationConfig;
         private readonly ApplicationDbContext DbContext;
         private readonly StandardQueries _standardQueries;
-        private readonly ContentAccessAdminQueries _queries;
+        private readonly ContentAccessAdminQueries _accessAdminQueries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly QlikviewConfig QvConfig;
 
@@ -47,7 +47,7 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext DbContextArg,
             StandardQueries QueriesArg,
-            ContentAccessAdminQueries queries,
+            ContentAccessAdminQueries accessAdminQueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
             IOptions<QlikviewConfig> QvConfigArg
@@ -57,7 +57,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationService = AuthorizationServiceArg;
             DbContext = DbContextArg;
             _standardQueries = QueriesArg;
-            _queries = queries;
+            _accessAdminQueries = accessAdminQueriesArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
             QvConfig = QvConfigArg.Value;
@@ -103,7 +103,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var clients = _queries.SelectClients(currentUser);
+            var clients = _accessAdminQueries.SelectClients(currentUser);
 
             return Json(clients);
         }
@@ -129,7 +129,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var contentItems = _queries.SelectContentItems(currentUser, clientId);
+            var contentItems = _accessAdminQueries.SelectContentItems(currentUser, clientId);
 
             return Json(contentItems);
         }
@@ -154,7 +154,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selectionGroups = _queries.SelectSelectionGroups(contentItemId);
+            var selectionGroups = _accessAdminQueries.SelectSelectionGroups(contentItemId);
 
             return Json(selectionGroups);
         }
@@ -184,7 +184,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selections = _queries.SelectSelections(groupId);
+            var selections = _accessAdminQueries.SelectSelections(groupId);
 
             return Json(selections);
         }
@@ -200,7 +200,7 @@ namespace MillimanAccessPortal.Controllers
             [EmitBeforeAfterLog] Guid clientId, [EmitBeforeAfterLog] Guid contentItemId)
         {
             var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var status = _queries.SelectStatus(currentUser, clientId, contentItemId);
+            var status = _accessAdminQueries.SelectStatus(currentUser, clientId, contentItemId);
 
             return Json(status);
         }
@@ -259,8 +259,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var selectionGroups = contentItem.DoesReduce
-                ? _queries.CreateReducingGroup(model.ContentItemId, model.Name)
-                : _queries.CreateMasterGroup(model.ContentItemId, model.Name);
+                ? _accessAdminQueries.CreateReducingGroup(model.ContentItemId, model.Name)
+                : _accessAdminQueries.CreateMasterGroup(model.ContentItemId, model.Name);
 
             return Json(selectionGroups);
         }
@@ -328,7 +328,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 #endregion
 
-                var group = _queries.UpdateGroup(model.GroupId, model.Name, model.Users);
+                var group = _accessAdminQueries.UpdateGroup(model.GroupId, model.Name, model.Users);
 
                 return Json(group);
             }
@@ -360,7 +360,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var group = _queries.SetGroupSuspended(model.GroupId, model.IsSuspended);
+            var group = _accessAdminQueries.SetGroupSuspended(model.GroupId, model.IsSuspended);
 
             return Json(group);
         }
@@ -417,7 +417,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selectionGroups = _queries.DeleteGroup(model.GroupId);
+            var selectionGroups = _accessAdminQueries.DeleteGroup(model.GroupId);
 
             #region file cleanup
             // ContentType specific handling after successful transaction
@@ -706,7 +706,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
             //SelectionsDetail model = SelectionsDetail.Build(DbContext, _standardQueries, selectionGroup);
-            var model = _queries.UpdateSelections(selectionGroupId, isMaster, selections.ToList());
+            var model = _accessAdminQueries.UpdateSelections(selectionGroupId, isMaster, selections.ToList());
 
             return Json(model);
         }
@@ -769,7 +769,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             //SelectionsDetail Model = SelectionsDetail.Build(DbContext, _standardQueries, SelectionGroup);
-            var model = _queries.CancelReduction(SelectionGroupId);
+            var model = _accessAdminQueries.CancelReduction(SelectionGroupId);
 
             return Json(model);
         }
