@@ -23,7 +23,7 @@ export const fetchItems =
 
 export const fetchStatusRefresh =
   createJsonRequestor<PublishingActions.FetchStatusRefresh, PublishingActions.FetchStatusRefreshSucceeded>
-    ('GET', '/ContentAccessAdmin/Status');
+    ('GET', '/ContentPublishing/Status');
 
 export const fetchSessionCheck =
   createJsonRequestor<PublishingActions.FetchSessionCheck, PublishingActions.FetchSessionCheckSucceeded>
