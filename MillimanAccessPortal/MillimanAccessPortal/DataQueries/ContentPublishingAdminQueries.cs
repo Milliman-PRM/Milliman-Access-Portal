@@ -13,6 +13,7 @@ using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -78,6 +79,63 @@ namespace MillimanAccessPortal.DataQueries
                 returnObject.AddRange(FindAncestorClients(parent));
             }
             return returnObject;
+        }
+
+        internal RootContentItemsModel BuildRootContentItemsModel(Client client, ApplicationUser user, RoleEnum roleInRootContentItem)
+        {
+            RootContentItemsModel model = new RootContentItemsModel();
+
+            Claim memberOfThisClient = new Claim(ClaimNames.ClientMembership.ToString(), client.Id.ToString());
+            model.ClientStats = new
+            {
+                code = client.ClientCode,
+                contentItemCount = _dbContext.UserRoleInRootContentItem
+                                            .Where(r => r.UserId == user.Id && r.Role.RoleEnum == roleInRootContentItem && r.RootContentItem.ClientId == client.Id)
+                                            .Select(r => r.RootContentItemId)
+                                            .Distinct()
+                                            .Count(),
+                Id = client.Id.ToString(),
+                name = client.Name,
+                parentId = client.ParentClientId?.ToString(),
+                userCount = _dbContext.UserRoleInClient
+                                     .Where(r => r.UserId == user.Id && r.Role.RoleEnum == RoleEnum.ContentUser && r.ClientId == client.Id)
+                                     .Select(r => r.UserId)
+                                     .Distinct()
+                                     .Count(),
+            };
+
+            List<RootContentItem> rootContentItems = _dbContext.UserRoleInRootContentItem
+                .Where(urc => urc.RootContentItem.ClientId == client.Id)
+                .Where(urc => urc.UserId == user.Id)
+                .Where(urc => urc.Role.RoleEnum == roleInRootContentItem)
+                .OrderBy(urc => urc.RootContentItem.ContentName)
+                .Select(urc => urc.RootContentItem)
+                .AsEnumerable()
+                .Distinct(new IdPropertyComparer<RootContentItem>())
+                .ToList();
+            List<Guid> contentItemIds = rootContentItems.ConvertAll(c => c.Id);
+            foreach (var rootContentItem in rootContentItems)
+            {
+                var summary = RootContentItemNewSummary.Build(_dbContext, rootContentItem);
+                model.ContentItems.Add(rootContentItem.Id, summary);
+            }
+
+            model.PublicationQueue = PublicationQueueDetails.BuildQueueForClient(_dbContext, client);
+
+            var publications = _dbContext.ContentPublicationRequest
+                                          .Where(r => contentItemIds.Contains(r.RootContentItemId))
+                                          .GroupBy(r => r.RootContentItemId,
+                                                   (k, g) => g.OrderByDescending(r => r.CreateDateTimeUtc).FirstOrDefault()
+                                                  );
+
+            // This is required because a `resultSelector` (2nd expression argument) in GroupBy() can return any type, so no EF cache tracking
+            _dbContext.AttachRange(publications); // track in EF cache, including navigation properties
+            foreach (var pub in publications)
+            {
+                model.Publications.Add(pub.Id, (BasicPublication)pub);
+            }
+
+            return model;
         }
 
         /// <summary>
