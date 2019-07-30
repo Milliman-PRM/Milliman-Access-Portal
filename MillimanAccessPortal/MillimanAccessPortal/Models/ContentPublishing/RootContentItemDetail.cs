@@ -5,6 +5,7 @@
  */
 
 using MapDbContextLib.Models;
+using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -39,7 +40,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public Dictionary<string, ContentRelatedFile> RelatedFiles { get; set; } = new Dictionary<string, ContentRelatedFile>();
 
-        public Dictionary<Guid,ContentAssociatedFile> AssociatedFiles { get; set; }
+        public Dictionary<Guid, ContentAssociatedFileModel> AssociatedFiles { get; set; }
 
         public TypeSpecificContentItemProperties TypeSpecificDetailObject { get; set; }
 

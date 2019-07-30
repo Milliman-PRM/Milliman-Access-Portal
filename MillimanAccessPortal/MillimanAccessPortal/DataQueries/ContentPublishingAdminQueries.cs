@@ -7,6 +7,7 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ClientModels;
 using MillimanAccessPortal.Models.ContentPublishing;
@@ -170,7 +171,7 @@ namespace MillimanAccessPortal.DataQueries
                 ContentTypeId = rootContentItem.ContentTypeId,
                 DoesReduce = rootContentItem.DoesReduce,
                 RelatedFiles = relatedFiles.ToDictionary(f => f.FilePurpose),
-                AssociatedFiles = rootContentItem.AssociatedFilesList.ToDictionary(f => f.Id),
+                AssociatedFiles = rootContentItem.AssociatedFilesList.ConvertAll(f => new ContentAssociatedFileModel(f)).ToDictionary(f => f.Id),
                 ContentDescription = rootContentItem.Description,
                 ContentNotes = rootContentItem.Notes,
                 ContentDisclaimer = rootContentItem.ContentDisclaimer,

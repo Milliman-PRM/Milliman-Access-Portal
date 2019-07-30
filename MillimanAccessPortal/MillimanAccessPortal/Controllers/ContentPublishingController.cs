@@ -663,10 +663,11 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered ContentPublishingController.CancelContentPublicationRequest action with content item {rootContentItemId}");
 
-            #region Preliminary validation
             var rootContentItem = _dbContext.RootContentItem
                 .Include(c => c.Client)
                 .SingleOrDefault(c => c.Id == rootContentItemId);
+
+            #region Preliminary validation
             if (rootContentItem == null)
             {
                 Log.Debug($"In ContentPublishingController.CancelContentPublicationRequest action: content item {rootContentItemId} not found, aborting");
@@ -686,11 +687,12 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Validation
             var contentPublicationRequest = _dbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
                 .Where(r => r.RequestStatus.IsCancelable())
                 .SingleOrDefault();
+
+            #region Validation
             if (contentPublicationRequest == null)
             {
                 Log.Debug($"In ContentPublishingController.CancelContentPublicationRequest action: there is no cancelable publication request for this content item {rootContentItemId}, aborting");
