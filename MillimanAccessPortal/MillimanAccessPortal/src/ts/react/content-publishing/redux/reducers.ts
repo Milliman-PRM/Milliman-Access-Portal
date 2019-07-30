@@ -17,8 +17,6 @@ const _initialData: PublishingStateData = {
   contentAssociatedFileTypes: {},
   publications: {},
   publicationQueue: {},
-  reductions: {},
-  reductionQueue: {},
 };
 const _initialPendingData: PendingDataState = {
   globalData: false,
@@ -146,8 +144,6 @@ const data = createReducer<PublishingStateData>(_initialData, {
       items,
       publications: action.response.publications,
       publicationQueue: action.response.publicationQueue,
-      reductions: action.response.reductions,
-      reductionQueue: action.response.reductionQueue,
     };
   },
 });
