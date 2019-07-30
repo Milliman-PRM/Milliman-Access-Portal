@@ -225,6 +225,11 @@
     "@types/prop-types" "*"
     csstype "^2.2.0"
 
+"@types/resumablejs@1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@types/resumablejs/-/resumablejs-1.0.6.tgz#3d3b22352a33d1f01359367e482e3129251aa957"
+  integrity sha512-43Z2O/0KYlfxs7QyLmofrrRGYntD/WZCsX91EV7y7rbgZ5X3GAegc4+H9VtTmOVVN8rrQ4KE0BPGYyo7UwYgHA==
+
 "@types/selectize@^0.12.33":
   version "0.12.33"
   resolved "https://registry.yarnpkg.com/@types/selectize/-/selectize-0.12.33.tgz#a24d715c8b011d24f67afa35e8e107b435cd5c17"
