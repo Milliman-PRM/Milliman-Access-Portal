@@ -42,7 +42,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                             .Count(),
                 Id = client.Id.ToString(),
                 name = client.Name,
-                parentId = client.ParentClientId.ToString(),
+                parentId = client.ParentClientId?.ToString(),
                 userCount = dbContext.UserRoleInClient
                                      .Where(r => r.UserId == user.Id && r.Role.RoleEnum == RoleEnum.ContentUser && r.ClientId == client.Id)
                                      .Select(r => r.UserId)
