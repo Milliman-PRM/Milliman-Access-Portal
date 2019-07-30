@@ -125,20 +125,6 @@ namespace MillimanAccessPortal.Controllers
             return Json(model);
         }
         
-        /*
-        [HttpGet]
-        public IActionResult AvailableContentTypes()
-        {
-            var model = new List<ContentTypeNormalized>();
-            foreach (var type in DbContext.ContentType)
-            {
-                model.Add((ContentTypeNormalized)type);
-            }
-
-            return new JsonResult(model);
-        }
-        */
-
         [HttpGet]
         async public Task<IActionResult> Clients()
         {
@@ -158,8 +144,6 @@ namespace MillimanAccessPortal.Controllers
             {
                 Clients = _publishingQueries.GetAuthorizedClients(await _userManager.GetUserAsync(User), RoleEnum.ContentPublisher),
             };
-
-            //var model = ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentPublisher);
 
             return new JsonResult(responseModel);
         }
@@ -199,39 +183,6 @@ namespace MillimanAccessPortal.Controllers
             return Json(contentItems);
         }
 
-        /*
-        [HttpGet]
-        public async Task<IActionResult> RootContentItems(Guid clientId)
-        {
-            Log.Verbose($"Entered ContentPublishingController.RootContentItems action with client id {clientId}");
-
-            Client client = DbContext.Client.Find(clientId);
-
-            #region Preliminary validation
-            if (client == null)
-            {
-                Log.Debug($"In ContentPublishingController.RootContentItems action: client {clientId} not found, aborting");
-                Response.Headers.Add("Warning", "The requested client does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, clientId));
-            if (!roleInClientResult.Succeeded)
-            {
-                Log.Debug($"In ContentPublishingController.RootContentItems action: authorization failure, user {User.Identity.Name}, client {clientId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                Response.Headers.Add("Warning", "You are not authorized to publish content for the specified client.");
-                return Unauthorized();
-            }
-            #endregion
-
-            RootContentItemList model = RootContentItemList.Build(DbContext, client, await _userManager.GetUserAsync(User), RoleEnum.ContentPublisher);
-
-            return Json(model);
-        }
-        */
-
         [HttpGet]
         public async Task<IActionResult> RootContentItemDetail(Guid rootContentItemId)
         {
@@ -259,7 +210,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, rootContentItem);
+            //RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, rootContentItem);
+            RootContentItemDetail model = _publishingQueries.BuildContentItemDetailModel(rootContentItem);
 
             return Json(model);
         }
@@ -349,7 +301,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.RootContentItemCreated.ToEvent(rootContentItem, client));
 
             RootContentItemSummary summary = RootContentItemSummary.Build(_dbContext, rootContentItem);
-            RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, rootContentItem);
+            RootContentItemDetail detail = _publishingQueries.BuildContentItemDetailModel(rootContentItem);
 
             return Json(new { summary, detail });
         }
@@ -452,7 +404,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             RootContentItemSummary summary = RootContentItemSummary.Build(_dbContext, currentRootContentItem);
-            RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, currentRootContentItem);
+            RootContentItemDetail detail = _publishingQueries.BuildContentItemDetailModel(currentRootContentItem);
 
             return Json(new { summary, detail });
         }
@@ -500,7 +452,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, rootContentItem);
+            RootContentItemDetail model = _publishingQueries.BuildContentItemDetailModel(rootContentItem);
 
             _dbContext.RootContentItem.Remove(rootContentItem);
             _dbContext.SaveChanges();
@@ -701,7 +653,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(ContentItem, ContentItem.Client, NewContentPublicationRequest));
             }
 
-            var rootContentItemDetail = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, ContentItem);
+            var rootContentItemDetail = _publishingQueries.BuildContentItemDetailModel(ContentItem);
             return Json(rootContentItemDetail);
         }
 

@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ClientModels;
 using MillimanAccessPortal.Models.ContentPublishing;
@@ -133,6 +134,60 @@ namespace MillimanAccessPortal.DataQueries
             foreach (var pub in publications)
             {
                 model.Publications.Add(pub.Id, (BasicPublication)pub);
+            }
+
+            return model;
+        }
+
+        internal RootContentItemDetail BuildContentItemDetailModel(RootContentItem rootContentItem)
+        {
+            var publicationRequest = _dbContext.ContentPublicationRequest
+                .Where(r => r.RootContentItemId == rootContentItem.Id)
+                .OrderByDescending(r => r.CreateDateTimeUtc)
+                .FirstOrDefault();
+            var contentType = _dbContext.ContentType.Find(rootContentItem.ContentTypeId);
+
+            List<ContentRelatedFile> relatedFiles = rootContentItem.ContentFilesList;
+            if ((publicationRequest?.RequestStatus ?? PublicationStatus.Unknown).IsActive())
+            {
+                var oldFiles = rootContentItem.ContentFilesList;
+                var newFiles = publicationRequest.UploadedRelatedFilesObj.Any()
+                    ? publicationRequest.UploadedRelatedFilesObj.Select(f => new ContentRelatedFile
+                    {
+                        FileOriginalName = f.FileOriginalName,
+                        FilePurpose = f.FilePurpose,
+                    }).ToList()
+                    : publicationRequest.LiveReadyFilesObj;
+                newFiles.AddRange(oldFiles.Where(f => !newFiles.Select(n => n.FilePurpose).Contains(f.FilePurpose)));
+                relatedFiles = newFiles;
+            }
+
+            var model = new RootContentItemDetail
+            {
+                Id = rootContentItem.Id,
+                ClientId = rootContentItem.ClientId,
+                ContentName = rootContentItem.ContentName,
+                ContentTypeId = rootContentItem.ContentTypeId,
+                DoesReduce = rootContentItem.DoesReduce,
+                RelatedFiles = relatedFiles.ToDictionary(f => f.FilePurpose),
+                AssociatedFiles = rootContentItem.AssociatedFilesList,
+                ContentDescription = rootContentItem.Description,
+                ContentNotes = rootContentItem.Notes,
+                ContentDisclaimer = rootContentItem.ContentDisclaimer,
+                IsSuspended = rootContentItem.IsSuspended,
+                TypeSpecificDetailObject = default,
+            };
+            switch (contentType.TypeEnum)
+            {
+                case ContentTypeEnum.PowerBi:
+                    model.TypeSpecificDetailObject = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+                    break;
+                case ContentTypeEnum.Qlikview:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.FileDownload:
+                default:
+                    break;
             }
 
             return model;
