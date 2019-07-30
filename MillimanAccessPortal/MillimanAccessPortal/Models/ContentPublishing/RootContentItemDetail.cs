@@ -39,7 +39,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public Dictionary<string, ContentRelatedFile> RelatedFiles { get; set; } = new Dictionary<string, ContentRelatedFile>();
 
-        public List<ContentAssociatedFile> AssociatedFiles { get; set; }
+        public Dictionary<Guid,ContentAssociatedFile> AssociatedFiles { get; set; }
 
         public TypeSpecificContentItemProperties TypeSpecificDetailObject { get; set; }
 
