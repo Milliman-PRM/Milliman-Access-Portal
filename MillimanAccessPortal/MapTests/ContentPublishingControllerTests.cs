@@ -43,7 +43,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.FileSystemTasksObject,
                 TestResources.GoLiveTaskQueueObject,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig,
