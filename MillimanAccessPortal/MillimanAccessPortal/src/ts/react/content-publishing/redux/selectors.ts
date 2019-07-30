@@ -86,14 +86,6 @@ export function activeClients(state: PublishingState) {
 }
 
 /**
- * Select all clients that are visible to the user.
- * @param state Redux store
- */
-function queueDetailsForPublication(state: PublishingState, publicationId: Guid) {
-  return state.data.publicationQueue[publicationId];
-}
-
-/**
  * Select the most recent publication for a content item.
  * @param state Redux store
  * @param itemId The ID of the content item to check
@@ -101,7 +93,7 @@ function queueDetailsForPublication(state: PublishingState, publicationId: Guid)
 function relatedPublication(state: PublishingState, itemId: Guid) {
   const publications = _.filter(state.data.publications, (p) => p.rootContentItemId === itemId);
   const publication = publications.sort(sortPublications)[0];
-  const queueDetails = publication && queueDetailsForPublication(state, publication.id);
+  const queueDetails = publication && state.data.publicationQueue[publication.id];
   return publication
     ? { ...publication, queueDetails }
     : null;
