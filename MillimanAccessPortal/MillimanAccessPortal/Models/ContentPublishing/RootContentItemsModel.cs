@@ -7,6 +7,8 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,11 +21,11 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     {
         public object ClientStats { get; set; }
 
-        public Dictionary<Guid, RootContentItemNewSummary> contentItems { get; set; } = new Dictionary<Guid, RootContentItemNewSummary>();
+        public Dictionary<Guid, RootContentItemNewSummary> ContentItems { get; set; } = new Dictionary<Guid, RootContentItemNewSummary>();
 
-        public Dictionary<Guid, PublicationQueueEntry> publicationQueue { get; set; } = new Dictionary<Guid, PublicationQueueEntry>();
+        public Dictionary<Guid, PublicationQueueDetails> PublicationQueue { get; set; } = new Dictionary<Guid, PublicationQueueDetails>();
 
-        public Dictionary<Guid, object> publications { get; set; } = new Dictionary<Guid, object>();
+        public Dictionary<Guid, BasicPublication> Publications { get; set; } = new Dictionary<Guid, BasicPublication>();
 
         internal static async Task<RootContentItemsModel> BuildAsync(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, Client client, ApplicationUser user, RoleEnum roleInRootContentItem)
         {
@@ -51,16 +53,28 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 .Where(urc => urc.Role.RoleEnum == roleInRootContentItem)
                 .OrderBy(urc => urc.RootContentItem.ContentName)
                 .Select(urc => urc.RootContentItem)
-                .ToList()
+                .AsEnumerable()
                 .Distinct(new IdPropertyComparer<RootContentItem>())
                 .ToList();
+            List<Guid> contentItemIds = rootContentItems.ConvertAll(c => c.Id);
             foreach (var rootContentItem in rootContentItems)
             {
                 var summary = RootContentItemNewSummary.Build(dbContext, rootContentItem);
-                model.contentItems.Add(rootContentItem.Id, summary);
+                model.ContentItems.Add(rootContentItem.Id, summary);
             }
 
-            model.publicationQueue = PublicationQueueEntry.Build(dbContext, client);
+            model.PublicationQueue = PublicationQueueDetails.BuildQueueForClient(dbContext, client);
+
+            var publications = dbContext.ContentPublicationRequest
+                                          .Where(r => contentItemIds.Contains(r.RootContentItemId))
+                                          .Include(r => r.ApplicationUser)
+                                          .GroupBy(r => r.RootContentItemId, (k,g) => g.OrderByDescending(r => r.CreateDateTimeUtc).FirstOrDefault());
+            // This loop is required because GroupBy aggregation above does not return tracked entities
+            foreach (var pub in publications)
+            {
+                dbContext.Attach(pub); // loads navigation properties
+                model.Publications.Add(pub.Id, (BasicPublication)pub);
+            }
 
             return model;
         }

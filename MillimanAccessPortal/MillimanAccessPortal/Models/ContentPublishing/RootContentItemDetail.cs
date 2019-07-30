@@ -16,10 +16,10 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 {
     public class RootContentItemDetail
     {
-        public Guid Id { get; set; }
-
         [HiddenInput]
         public Guid ClientId { get; set; }
+
+        public string ContentDisclaimer { get; set; }
 
         [Required]
         [Display(Name = "Content Name *")]
@@ -28,20 +28,20 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         [Display(Name = "Content Type *")]
         public Guid ContentTypeId { get; set; }
 
+        public string ContentDescription { get; set; }
+
         [Display(Name = "Does Reduce")]
         public bool DoesReduce { get; set; }
 
-        public List<ContentRelatedFile> RelatedFiles { get; set; }
-
-        public List<ContentAssociatedFile> AssociatedFiles { get; set; }
-
-        public string Description { get; set; }
-
-        public string Notes { get; set; }
-
-        public string ContentDisclaimer { get; set; }
+        public Guid Id { get; set; }
 
         public bool IsSuspended { get; set; }
+
+        public string ContentNotes { get; set; }
+
+        public Dictionary<string, ContentRelatedFile> RelatedFiles { get; set; } = new Dictionary<string, ContentRelatedFile>();
+
+        public List<ContentAssociatedFile> AssociatedFiles { get; set; }
 
         public TypeSpecificContentItemProperties TypeSpecificDetailObject { get; set; }
 
@@ -75,10 +75,10 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ContentName = rootContentItem.ContentName,
                 ContentTypeId = rootContentItem.ContentTypeId,
                 DoesReduce = rootContentItem.DoesReduce,
-                RelatedFiles = relatedFiles,
+                RelatedFiles = relatedFiles.ToDictionary(f => f.FilePurpose),
                 AssociatedFiles = rootContentItem.AssociatedFilesList,
-                Description = rootContentItem.Description,
-                Notes = rootContentItem.Notes,
+                ContentDescription = rootContentItem.Description,
+                ContentNotes = rootContentItem.Notes,
                 ContentDisclaimer = rootContentItem.ContentDisclaimer,
                 IsSuspended = rootContentItem.IsSuspended,
                 TypeSpecificDetailObject = default,
