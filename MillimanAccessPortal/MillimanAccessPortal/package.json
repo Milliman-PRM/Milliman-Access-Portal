@@ -23,6 +23,7 @@
     "react-redux-toastr": "^7.4.6",
     "react-select": "^2.1.1",
     "redux": "^4.0.1",
+    "redux-devtools-extension": "^2.13.8",
     "redux-saga": "^0.16.2",
     "resumablejs": "^1.1.0",
     "selectize": "0.12.6",
