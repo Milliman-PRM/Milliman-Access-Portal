@@ -131,7 +131,6 @@ export interface FetchStatusRefresh {
   type: 'FETCH_STATUS_REFRESH';
   request: {
     clientId: Guid;
-    contentItemId: Guid;
   };
 }
 export interface FetchStatusRefreshSucceeded {
