@@ -108,11 +108,10 @@ export interface FetchItems {
 export interface FetchItemsSucceeded {
   type: 'FETCH_ITEMS_SUCCEEDED';
   response: {
+    clientStats: ClientWithStats;
     contentItems: Dict<RootContentItemWithStats>;
-    contentTypes: Dict<ContentType>;
     publications: Dict<ContentPublicationRequest>;
     publicationQueue: Dict<PublicationQueueDetails>;
-    clientStats: ClientWithStats;
   };
 }
 export interface FetchItemsFailed {
