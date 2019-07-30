@@ -27,7 +27,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public Dictionary<Guid, BasicPublication> Publications { get; set; } = new Dictionary<Guid, BasicPublication>();
 
-        internal static async Task<RootContentItemsModel> BuildAsync(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, Client client, ApplicationUser user, RoleEnum roleInRootContentItem)
+        internal static RootContentItemsModel Build(ApplicationDbContext dbContext, Client client, ApplicationUser user, RoleEnum roleInRootContentItem)
         {
             RootContentItemsModel model = new RootContentItemsModel();
 
@@ -37,14 +37,17 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 code = client.ClientCode,
                 contentItemCount = dbContext.UserRoleInRootContentItem
                                             .Where(r => r.UserId == user.Id && r.Role.RoleEnum == roleInRootContentItem && r.RootContentItem.ClientId == client.Id)
-                                            .Select(r => r.RootContentItem)
-                                            .ToList()
-                                            .Distinct(new IdPropertyComparer<RootContentItem>())
+                                            .Select(r => r.RootContentItemId)
+                                            .Distinct()
                                             .Count(),
                 Id = client.Id.ToString(),
                 name = client.Name,
                 parentId = client.ParentClientId.ToString(),
-                userCount = (await userManager.GetUsersForClaimAsync(memberOfThisClient)).Select(c => c.UserName).Distinct().Count(),
+                userCount = dbContext.UserRoleInClient
+                                     .Where(r => r.UserId == user.Id && r.Role.RoleEnum == RoleEnum.ContentUser && r.ClientId == client.Id)
+                                     .Select(r => r.UserId)
+                                     .Distinct()
+                                     .Count(),
             };
 
             List<RootContentItem> rootContentItems = dbContext.UserRoleInRootContentItem

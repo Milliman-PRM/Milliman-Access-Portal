@@ -197,7 +197,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await _userManager.GetUserAsync(User);
-            var contentItems = await RootContentItemsModel.BuildAsync(_dbContext, _userManager, client, currentUser, RoleEnum.ContentPublisher);
+            var contentItems = RootContentItemsModel.Build(_dbContext, client, currentUser, RoleEnum.ContentPublisher);
 
             return Json(contentItems);
         }
