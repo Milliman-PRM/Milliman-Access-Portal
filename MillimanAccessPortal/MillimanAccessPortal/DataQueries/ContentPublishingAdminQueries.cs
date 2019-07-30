@@ -8,9 +8,8 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ClientModels;
-using MillimanAccessPortal.Models.ContentAccessAdmin;
-using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
-using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
+using MillimanAccessPortal.Models.ContentPublishing;
+using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +17,7 @@ using System.Linq;
 namespace MillimanAccessPortal.DataQueries
 {
     /// <summary>
-    /// Queries used by content access admin actions
+    /// Queries used by content publishing admin actions
     /// </summary>
     public class ContentPublishingAdminQueries
     {
@@ -79,6 +78,52 @@ namespace MillimanAccessPortal.DataQueries
                 returnObject.AddRange(FindAncestorClients(parent));
             }
             return returnObject;
+        }
+
+        /// <summary>
+        /// Select the publishing page status model
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="clientId"></param>
+        /// <returns></returns>
+        internal StatusResponseModel SelectStatus(ApplicationUser user, Guid clientId)
+        {
+            Client client = _dbContext.Client.Find(clientId);
+
+            var model = new StatusResponseModel();
+
+            List<RootContentItem> rootContentItems = _dbContext.UserRoleInRootContentItem
+                .Where(urc => urc.RootContentItem.ClientId == client.Id)
+                .Where(urc => urc.UserId == user.Id)
+                .Where(urc => urc.Role.RoleEnum == RoleEnum.ContentPublisher)
+                .OrderBy(urc => urc.RootContentItem.ContentName)
+                .Select(urc => urc.RootContentItem)
+                .AsEnumerable()
+                .Distinct(new IdPropertyComparer<RootContentItem>())
+                .ToList();
+            List<Guid> contentItemIds = rootContentItems.ConvertAll(c => c.Id);
+            foreach (var rootContentItem in rootContentItems)
+            {
+                var summary = RootContentItemNewSummary.Build(_dbContext, rootContentItem);
+                model.ContentItems.Add(rootContentItem.Id, summary);
+            }
+
+            model.PublicationQueue = PublicationQueueDetails.BuildQueueForClient(_dbContext, client);
+
+            var publications = _dbContext.ContentPublicationRequest
+                                          .Where(r => contentItemIds.Contains(r.RootContentItemId))
+                                          .GroupBy(r => r.RootContentItemId,
+                                                   (k, g) => g.OrderByDescending(r => r.CreateDateTimeUtc).FirstOrDefault()
+                                                  );
+
+            // This is required because a `resultSelector` (2nd expression argument) in GroupBy() can return any type, so no EF cache tracking
+            _dbContext.AttachRange(publications); // track in EF cache, including navigation properties
+            foreach (var pub in publications)
+            {
+                model.Publications.Add(pub.Id, (BasicPublication)pub);
+            }
+
+            return model;
         }
     }
 }
