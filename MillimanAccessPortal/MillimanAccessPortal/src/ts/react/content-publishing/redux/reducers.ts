@@ -98,7 +98,7 @@ const pendingStatusTries = createReducer<number>(5, {
 const data = createReducer<PublishingStateData>(_initialData, {
   FETCH_GLOBAL_DATA_SUCCEEDED: (state, action: PublishingActions.FetchGlobalDataSucceeded) => ({
     ...state,
-    contentType: {
+    contentTypes: {
       ...action.response.contentTypes,
     },
     contentAssociatedFileTypes: {
@@ -112,11 +112,10 @@ const data = createReducer<PublishingStateData>(_initialData, {
     },
   }),
   FETCH_ITEMS_SUCCEEDED: (state, action: PublishingActions.FetchItemsSucceeded) => {
-    const { contentItems, contentTypes, publications, publicationQueue, clientStats } = action.response;
+    const { contentItems, publications, publicationQueue, clientStats } = action.response;
     return {
       ...state,
       items: contentItems,
-      contentTypes,
       publications,
       publicationQueue,
       clients: {
