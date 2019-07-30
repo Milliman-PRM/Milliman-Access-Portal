@@ -67,12 +67,14 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
             var publications = dbContext.ContentPublicationRequest
                                           .Where(r => contentItemIds.Contains(r.RootContentItemId))
-                                          .Include(r => r.ApplicationUser)
-                                          .GroupBy(r => r.RootContentItemId, (k,g) => g.OrderByDescending(r => r.CreateDateTimeUtc).FirstOrDefault());
-            // This loop is required because GroupBy aggregation above does not return tracked entities
+                                          .GroupBy( r => r.RootContentItemId, 
+                                                   (k,g) => g.OrderByDescending(r => r.CreateDateTimeUtc).FirstOrDefault()
+                                                  );
+
+            // This is required because a `resultSelector` (2nd expression argument) in GroupBy() can return any type, so no EF cache tracking
+            dbContext.AttachRange(publications); // track in EF cache, including navigation properties
             foreach (var pub in publications)
             {
-                dbContext.Attach(pub); // loads navigation properties
                 model.Publications.Add(pub.Id, (BasicPublication)pub);
             }
 
