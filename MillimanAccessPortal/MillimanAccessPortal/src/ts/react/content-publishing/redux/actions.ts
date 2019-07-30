@@ -140,8 +140,6 @@ export interface FetchStatusRefreshSucceeded {
     contentItems: Dict<RootContentItem>;
     publications: Dict<ContentPublicationRequest>;
     publicationQueue: Dict<PublicationQueueDetails>;
-    reductions: Dict<ContentReductionTask>;
-    reductionQueue: Dict<ReductionQueueDetails>;
   };
 }
 export interface FetchStatusRefreshFailed {

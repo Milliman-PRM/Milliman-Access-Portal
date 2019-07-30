@@ -126,29 +126,6 @@ export function activeItemsWithStatus(state: PublishingState) {
   });
 }
 
-/**
- * Select queue details for a reduction.
- * @param state Redux store
- * @param reductionId The ID of the reduction to check
- */
-function queueDetailsForReduction(state: PublishingState, reductionId: Guid) {
-  return state.data.reductionQueue[reductionId];
-}
-
-/**
- * Select the most recent reduction for a selection group.
- * @param state Redux store
- * @param groupId The ID of the selection group to check
- */
-function relatedReduction(state: PublishingState, groupId: Guid) {
-  const reductions = _.filter(state.data.reductions, (r) => r.selectionGroupId === groupId);
-  const reduction = reductions.sort(sortReductions)[0];
-  const queueDetails = reduction && queueDetailsForReduction(state, reduction.id);
-  return reduction
-    ? { ...reduction, queueDetails }
-    : null;
-}
-
 interface ClientWithIndent extends ClientWithStats {
   indent: 1 | 2;
 }

@@ -33,8 +33,6 @@ export interface PublishingStateData {
   contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
   publications: Dict<ContentPublicationRequest>;
   publicationQueue: Dict<PublicationQueueDetails>;
-  reductions: Dict<ContentReductionTask>;
-  reductionQueue: Dict<ReductionQueueDetails>;
 }
 
 /**
