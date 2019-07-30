@@ -47,11 +47,9 @@ export default function* rootSaga() {
   // Scheduled actions
   yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
     const client: ClientWithEligibleUsers = yield select(selectedClient);
-    const item: RootContentItemWithStats = yield select(selectedItem);
     return client
       ? AccessActionCreators.fetchStatusRefresh({
         clientId: client.id,
-        contentItemId: item && item.id,
       })
       : AccessActionCreators.scheduleStatusRefresh({ delay: 5000 });
   });
