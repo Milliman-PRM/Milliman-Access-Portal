@@ -45,6 +45,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         private ContentReductionTask ReductionWhereSelectionGroup(Guid selectionGroupId)
         {
             var reductionTask = _dbContext.ContentReductionTask
+                .Include(t => t.ApplicationUser)
                 .Where(t => t.SelectionGroupId == selectionGroupId)
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();
