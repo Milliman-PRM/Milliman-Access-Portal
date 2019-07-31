@@ -8,6 +8,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
@@ -23,8 +24,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             return new PublishingPageGlobalModel
             {
                 ContentAssociatedFileTypes = typeValues
-                    .Select(t => new AssociatedFileType { typeEnum = t, FileExtensions = t.GetStringList(), Name = t.GetDisplayValueString() })
-                    .ToDictionary(t => (int)t.typeEnum),
+                    .Select(t => new AssociatedFileType { TypeEnum = t, FileExtensions = t.GetStringList(StringListKey.FileExtensions), Name = t.GetDisplayValueString() })
+                    .ToDictionary(t => (int)t.TypeEnum),
                 ContentTypes = dbContext.ContentType
                     .Select(t => new ContentTypeNormalized(t))
                     .ToDictionary(t => t.Id),
@@ -36,15 +37,15 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     {
         public List<string> FileExtensions { get; set; }
         public string Name { get; set; }
-        public ContentAssociatedFileType typeEnum { get; set; }
+        public ContentAssociatedFileType TypeEnum { get; set; }
 
         public static explicit operator AssociatedFileType(ContentAssociatedFileType typeEnum)
         {
             return new AssociatedFileType
             {
                 Name = typeEnum.GetDisplayValueString(),
-                FileExtensions = typeEnum.GetStringList(),
-                typeEnum = typeEnum,
+                FileExtensions = typeEnum.GetStringList(StringListKey.FileExtensions),
+                TypeEnum = typeEnum,
             };
         }
     }

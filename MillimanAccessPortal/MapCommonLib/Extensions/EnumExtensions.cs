@@ -31,10 +31,10 @@ namespace System
         /// <typeparam name="TEnum"></typeparam>
         /// <param name="enumVal"></param>
         /// <returns></returns>
-        public static List<string> GetStringList<TEnum>(this TEnum enumVal) where TEnum : Enum
+        public static List<string> GetStringList<TEnum>(this TEnum enumVal, StringListKey key) where TEnum : Enum
         {
-            StringListAttribute att = enumVal.GetAttribute<StringListAttribute>();
-            return att?.GetStringList();
+            IEnumerable<StringListAttribute> atts = enumVal.GetAllAttributes<StringListAttribute>();
+            return atts.SingleOrDefault(a => a.Key == key)?.GetStringList();
         }
 
         /// <summary>
@@ -49,5 +49,18 @@ namespace System
                       .GetMember(enumVal.ToString())
                       .First()
                       .GetCustomAttribute<TAtt>();
+
+        /// <summary>
+        /// Retrieves all`Attribute`s declared on the specified value of the specified enumeration type
+        /// </summary>
+        /// <typeparam name="TAtt">The type of the attribute to be found and returned</typeparam>
+        /// <param name="enumVal">The enumeration value for which the attribute should be returned</param>
+        /// <returns>Returns null if no matching attribute is found</returns>
+        private static IEnumerable<TAtt> GetAllAttributes<TAtt>(this Enum enumVal)
+            where TAtt : Attribute
+            => enumVal.GetType()
+                      .GetMember(enumVal.ToString())
+                      .First()
+                      .GetCustomAttributes<TAtt>();
     }
 }

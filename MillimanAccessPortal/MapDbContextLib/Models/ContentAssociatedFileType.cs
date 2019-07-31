@@ -11,19 +11,19 @@ namespace MapDbContextLib.Models
     public enum ContentAssociatedFileType
     {
         [Display(Name = "Unknown")]
-        [StringList(StringArray = new string[0])]
+        [StringList(Key = StringListKey.FileExtensions, StringArray = new string[0])]
         Unknown = 0,
 
         [Display(Name = "PDF")]
-        [StringList(StringArray = new string[] { "pdf" })]
+        [StringList(Key = StringListKey.FileExtensions, StringArray = new string[] { "pdf" })]
         Pdf = 1,
 
         [Display(Name = "HTML")]
-        [StringList(StringArray = new string[] { "htm", "html" })]
+        [StringList(Key = StringListKey.FileExtensions, StringArray = new string[] { "htm", "html" })]
         Html = 2,
 
         [Display(Name = "File Download")]
-        [StringList(StringArray = new string[] { "*" })]
+        [StringList(Key = StringListKey.FileExtensions, StringArray = new string[] { "*" })]
         FileDownload = 3,
     }
 }
