@@ -78,24 +78,17 @@ export interface ReductionFieldValue {
   reductionFieldId?: Guid;
   value: string;
 }
-export interface ContentPublicationRequestWithUser {
+export interface ContentPublicationRequest {
   id: Guid;
   rootContentItemId: Guid;
   applicationUser: User;
   createDateTimeUtc: string;
   requestStatus: PublicationStatus;
 }
-export interface ContentPublicationRequest {
-  id: Guid;
-  rootContentItemId: Guid;
-  applicationUserId: Guid;
-  createDateTimeUtc: string;
-  requestStatus: PublicationStatus;
-}
 export interface ContentReductionTask {
   id: Guid;
   contentPublicationRequestId?: Guid;
-  applicationUserId: Guid;
+  applicationUser: User;
   selectionGroupId?: Guid;
   selectedValues: Guid[];
   createDateTimeUtc: string;

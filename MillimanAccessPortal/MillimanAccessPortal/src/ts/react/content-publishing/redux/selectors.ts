@@ -3,7 +3,7 @@ import * as moment from 'moment';
 
 import { publicationStatusNames } from '../../../view-models/content-publishing';
 import {
-  ClientWithStats, ContentPublicationRequestWithUser, ContentReductionTask,
+  ClientWithStats, ContentPublicationRequest, ContentReductionTask,
     Guid, RootContentItemWithStats,
 } from '../../models';
 import { PublishingState } from './store';
@@ -12,8 +12,8 @@ import { PublishingState } from './store';
 const sortReductions = (left: ContentReductionTask, right: ContentReductionTask) =>
   sortMomentDescending(left.createDateTimeUtc, right.createDateTimeUtc);
 const sortPublications = (
-  left: ContentPublicationRequestWithUser,
-  right: ContentPublicationRequestWithUser) =>
+  left: ContentPublicationRequest,
+  right: ContentPublicationRequest) =>
   sortMomentDescending(left.createDateTimeUtc, right.createDateTimeUtc);
 
 const sortMomentDescending = (left: string, right: string) =>
@@ -121,7 +121,6 @@ export function activeItemsWithStatus(state: PublishingState) {
       ...i,
       status: {
         ...publication,
-        applicationUser: publication && state.data.users[publication.applicationUserId],
         requestStatusName: publication && publicationStatusNames[publication.requestStatus],
       },
     };

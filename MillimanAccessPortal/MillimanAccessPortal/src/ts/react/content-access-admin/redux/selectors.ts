@@ -312,7 +312,6 @@ export function activeItemsWithStatus(state: AccessState) {
       ...i,
       status: {
         ...publication,
-        applicationUser: publication && state.data.users[publication.applicationUserId],
         requestStatusName: publication && publicationStatusNames[publication.requestStatus],
       },
     };
@@ -363,7 +362,6 @@ export function activeGroupsWithStatus(state: AccessState) {
       assignedUserCount: g.assignedUsers.length,
       status: {
         ...reduction,
-        applicationUser: reduction && state.data.users[reduction.applicationUserId],
         taskStatusName: reduction && reductionStatusNames[reduction.taskStatus],
       },
     };

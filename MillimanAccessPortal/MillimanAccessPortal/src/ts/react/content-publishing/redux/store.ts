@@ -3,8 +3,9 @@ import { applyMiddleware, createStore } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
 
+import { Upload } from '../../../upload/upload';
 import {
-    ClientWithStats, ContentAssociatedFileType, ContentPublicationRequestWithUser, ContentReductionTask,
+    ClientWithStats, ContentAssociatedFileType, ContentPublicationRequest, ContentReductionTask,
     ContentType, Guid, PublicationQueueDetails, ReductionQueueDetails, RootContentItemWithStats,
     User,
 } from '../../models';
@@ -30,7 +31,7 @@ export interface PublishingStateData {
   items: Dict<RootContentItemWithStats>;
   contentTypes: Dict<ContentType>;
   contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
-  publications: Dict<ContentPublicationRequestWithUser>;
+  publications: Dict<ContentPublicationRequest>;
   publicationQueue: Dict<PublicationQueueDetails>;
 }
 
@@ -48,6 +49,16 @@ export interface PublishingStateSelected {
 export interface PublishingStateCardAttributes {
   client: Dict<CardAttributes>;
   item: Dict<CardAttributes>;
+}
+
+/**
+ * Uploads
+ */
+export interface PublishingUploadState {
+  upload: Upload;
+  isActive: boolean;
+  checksumProgress: number;
+  uploadProgress: number;
 }
 
 /**
