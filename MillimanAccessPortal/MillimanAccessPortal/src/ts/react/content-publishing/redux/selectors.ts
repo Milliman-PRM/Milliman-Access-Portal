@@ -174,7 +174,7 @@ export function itemEntities(state: PublishingState) {
  */
 export function selectedClient(state: PublishingState) {
   return state.selected.client
-    ? state.data.clients[state.selected.client] as ClientWithEligibleUsers
+    ? state.data.clients[state.selected.client] as ClientWithStats
     : null;
 }
 
