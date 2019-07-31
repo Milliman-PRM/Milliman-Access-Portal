@@ -120,7 +120,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PublishingPageGlobalModel model = PublishingPageGlobalModel.Build(_dbContext);
+            PublishingPageGlobalModel model = _publishingQueries.BuildPublishingPageGlobalModel();
 
             return Json(model);
         }

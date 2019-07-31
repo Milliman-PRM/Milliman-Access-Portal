@@ -16,32 +16,19 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     public class PublishingPageGlobalModel
     {
         public Dictionary<Guid,ContentTypeNormalized> ContentTypes { get; set; }
-        public Dictionary<int,AssociatedFileType> ContentAssociatedFileTypes { get; set; }
+        public Dictionary<int,AssociatedFileTypeModel> ContentAssociatedFileTypes { get; set; }
 
-        internal static PublishingPageGlobalModel Build(ApplicationDbContext dbContext)
-        {
-            var typeValues = Enum.GetValues(typeof(ContentAssociatedFileType)).Cast<ContentAssociatedFileType>();
-            return new PublishingPageGlobalModel
-            {
-                ContentAssociatedFileTypes = typeValues
-                    .Select(t => new AssociatedFileType { TypeEnum = t, FileExtensions = t.GetStringList(StringListKey.FileExtensions), Name = t.GetDisplayValueString() })
-                    .ToDictionary(t => (int)t.TypeEnum),
-                ContentTypes = dbContext.ContentType
-                    .Select(t => new ContentTypeNormalized(t))
-                    .ToDictionary(t => t.Id),
-            };
-        }
     }
 
-    public class AssociatedFileType
+    public class AssociatedFileTypeModel
     {
         public List<string> FileExtensions { get; set; }
         public string Name { get; set; }
         public ContentAssociatedFileType TypeEnum { get; set; }
 
-        public static explicit operator AssociatedFileType(ContentAssociatedFileType typeEnum)
+        public static explicit operator AssociatedFileTypeModel(ContentAssociatedFileType typeEnum)
         {
-            return new AssociatedFileType
+            return new AssociatedFileTypeModel
             {
                 Name = typeEnum.GetDisplayValueString(),
                 FileExtensions = typeEnum.GetStringList(StringListKey.FileExtensions),

@@ -14,6 +14,7 @@ using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Claims;
 
@@ -40,6 +41,20 @@ namespace MillimanAccessPortal.DataQueries
             _contentItemQueries = contentItemQueries;
             _userQueries = userQueries;
             _dbContext = dbContextArg;
+        }
+
+        internal PublishingPageGlobalModel BuildPublishingPageGlobalModel()
+        {
+            var typeValues = Enum.GetValues(typeof(ContentAssociatedFileType)).Cast<ContentAssociatedFileType>();
+            return new PublishingPageGlobalModel
+            {
+                ContentAssociatedFileTypes = typeValues
+                    .Select(t => new AssociatedFileTypeModel { TypeEnum = t, FileExtensions = t.GetStringList(StringListKey.FileExtensions), Name = t.GetDisplayValueString() })
+                    .ToDictionary(t => (int)t.TypeEnum),
+                ContentTypes = _dbContext.ContentType
+                    .Select(t => new ContentTypeNormalized(t))
+                    .ToDictionary(t => t.Id),
+            };
         }
 
         internal Dictionary<Guid, BasicClientWithCardStats> GetAuthorizedClients(ApplicationUser user, RoleEnum role)
