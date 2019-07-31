@@ -4,7 +4,7 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
 
 import {
-    ClientWithStats, ContentAssociatedFileType, ContentPublicationRequest, ContentReductionTask,
+    ClientWithStats, ContentAssociatedFileType, ContentPublicationRequestWithUser, ContentReductionTask,
     ContentType, Guid, PublicationQueueDetails, ReductionQueueDetails, RootContentItemWithStats,
     User,
 } from '../../models';
@@ -28,10 +28,9 @@ export interface PendingDataState {
 export interface PublishingStateData {
   clients: Dict<ClientWithStats>;
   items: Dict<RootContentItemWithStats>;
-  users: Dict<User>;
   contentTypes: Dict<ContentType>;
   contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
-  publications: Dict<ContentPublicationRequest>;
+  publications: Dict<ContentPublicationRequestWithUser>;
   publicationQueue: Dict<PublicationQueueDetails>;
 }
 

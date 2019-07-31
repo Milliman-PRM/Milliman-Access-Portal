@@ -3,7 +3,7 @@ import * as moment from 'moment';
 
 import { publicationStatusNames } from '../../../view-models/content-publishing';
 import {
-    ClientWithEligibleUsers, ClientWithStats, ContentPublicationRequest, ContentReductionTask,
+  ClientWithStats, ContentPublicationRequestWithUser, ContentReductionTask,
     Guid, RootContentItemWithStats,
 } from '../../models';
 import { PublishingState } from './store';
@@ -11,7 +11,9 @@ import { PublishingState } from './store';
 // Utility functions
 const sortReductions = (left: ContentReductionTask, right: ContentReductionTask) =>
   sortMomentDescending(left.createDateTimeUtc, right.createDateTimeUtc);
-const sortPublications = (left: ContentPublicationRequest, right: ContentPublicationRequest) =>
+const sortPublications = (
+  left: ContentPublicationRequestWithUser,
+  right: ContentPublicationRequestWithUser) =>
   sortMomentDescending(left.createDateTimeUtc, right.createDateTimeUtc);
 
 const sortMomentDescending = (left: string, right: string) =>
@@ -172,7 +174,7 @@ export function itemEntities(state: PublishingState) {
  */
 export function selectedClient(state: PublishingState) {
   return state.selected.client
-    ? state.data.clients[state.selected.client] as ClientWithEligibleUsers
+    ? state.data.clients[state.selected.client] as ClientWithStats
     : null;
 }
 

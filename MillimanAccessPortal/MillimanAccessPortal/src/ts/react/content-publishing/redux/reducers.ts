@@ -12,7 +12,6 @@ import { PendingDataState, PublishingStateData, PublishingStateSelected } from '
 const _initialData: PublishingStateData = {
   clients: {},
   items: {},
-  users: {},
   contentTypes: {},
   contentAssociatedFileTypes: {},
   publications: {},
