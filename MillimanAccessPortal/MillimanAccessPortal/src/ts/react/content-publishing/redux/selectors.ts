@@ -75,7 +75,7 @@ export function filteredItems(state: PublishingState) {
     || item.name.toLowerCase().indexOf(filterTextLower) !== -1
     || (
       state.data.contentTypes[item.contentTypeId]
-      && state.data.contentTypes[item.contentTypeId].name.toLowerCase().indexOf(filterTextLower) !== -1)
+      && state.data.contentTypes[item.contentTypeId].displayName.toLowerCase().indexOf(filterTextLower) !== -1)
   ));
 }
 
@@ -162,7 +162,7 @@ export function itemEntities(state: PublishingState) {
   return activeItemsWithStatus(state).map((i) => {
     return {
       ...i,
-      contentTypeName: state.data.contentTypes[i.contentTypeId].name,
+      contentTypeName: state.data.contentTypes[i.contentTypeId].displayName,
     };
   });
 }
