@@ -24,12 +24,12 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     public class AssociatedFileTypeModel
     {
         public List<string> FileExtensions { get; set; }
-        public string Name { get; set; }
+        public string DisplayName { get; set; }
         public ContentAssociatedFileType TypeEnum { get; set; }
 
         public AssociatedFileTypeModel(ContentAssociatedFileType typeEnum)
         {
-            Name = typeEnum.GetDisplayValueString();
+            DisplayName = typeEnum.GetDisplayValueString();
             FileExtensions = typeEnum.GetStringList(StringListKey.FileExtensions);
             TypeEnum = typeEnum;
         }
