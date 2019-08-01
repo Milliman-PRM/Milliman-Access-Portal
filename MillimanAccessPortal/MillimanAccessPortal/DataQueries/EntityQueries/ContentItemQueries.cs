@@ -160,5 +160,10 @@ namespace MillimanAccessPortal.DataQueries
 
             return contentTypes;
         }
+
+        internal List<BasicContentType> GetAllContentTypes()
+        {
+            return _dbContext.ContentType.Select(t => new BasicContentType(t)).ToList();
+        }
     }
 }

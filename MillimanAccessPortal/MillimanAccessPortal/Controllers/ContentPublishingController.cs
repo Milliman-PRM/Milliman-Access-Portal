@@ -40,6 +40,8 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ContentPublishingController : Controller
     {
+        private const RoleEnum requiredRole = RoleEnum.ContentPublisher;
+
         private readonly IAuditLogger AuditLogger;
         private readonly IConfiguration ApplicationConfig;
         private readonly IAuthorizationService AuthorizationService;
@@ -99,7 +101,6 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         public IActionResult Index()
         {
-            //var model = _publishingQueries.GetAuthorizedClients(await UserManager.GetUserAsync(User), RoleEnum.ContentPublisher);
             return View();
         }
 
@@ -111,10 +112,10 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> PageGlobalData()
         {
             #region Authorization
-            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher));
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole));
             if (!RoleInClientResult.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.Index action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.ContentPublisher.ToString()}");
+                Log.Debug($"In ContentPublishingController.PageGlobalData action: authorization failure, user {User.Identity.Name}, global role {requiredRole.ToString()}");
                 Response.Headers.Add("Warning", "You are not authorized to publish content.");
                 return Unauthorized();
             }
@@ -131,10 +132,10 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("Entered ContentPublishingController.Clients action");
 
             #region Authorization
-            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher));
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole));
             if (!RoleInClientResult.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.Clients action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.ContentPublisher.ToString()}");
+                Log.Debug($"In ContentPublishingController.Clients action: authorization failure, user {User.Identity.Name}, global role {requiredRole.ToString()}");
                 Response.Headers.Add("Warning", "You are not authorized to publish content.");
                 return Unauthorized();
             }
@@ -142,7 +143,7 @@ namespace MillimanAccessPortal.Controllers
 
             ClientsResponseModel responseModel = new ClientsResponseModel
             {
-                Clients = _publishingQueries.GetAuthorizedClients(await _userManager.GetUserAsync(User), RoleEnum.ContentPublisher),
+                Clients = _publishingQueries.GetAuthorizedClients(await _userManager.GetUserAsync(User), requiredRole),
             };
 
             return new JsonResult(responseModel);
@@ -168,7 +169,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, clientId));
+                .AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole, clientId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -178,7 +179,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await _userManager.GetUserAsync(User);
-            var contentItems = _publishingQueries.BuildRootContentItemsModel(client, currentUser, RoleEnum.ContentPublisher);
+            var contentItems = _publishingQueries.BuildRootContentItemsModel(client, currentUser, requiredRole);
 
             return Json(contentItems);
         }
@@ -201,10 +202,10 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(
-                User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
+                User, null, new RoleInRootContentItemRequirement(requiredRole, rootContentItemId));
             if (!roleInClientResult.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.RootContentItemDetail action: authorization failure, user {User.Identity.Name}, root content item {rootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                Log.Debug($"In ContentPublishingController.RootContentItemDetail action: authorization failure, user {User.Identity.Name}, root content item {rootContentItemId}, role {requiredRole.ToString()}, aborting");
                 Response.Headers.Add("Warning", "You are not authorized to publish content to the specified content item.");
                 return Unauthorized();
             }
@@ -235,11 +236,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, rootContentItem.ClientId));
+            AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole, rootContentItem.ClientId));
             if (!roleInClientResult.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.CreateRootContentItem action: authorization failure, user {User.Identity.Name}, client {rootContentItem.ClientId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                Log.Debug($"In ContentPublishingController.CreateRootContentItem action: authorization failure, user {User.Identity.Name}, client {rootContentItem.ClientId}, role {requiredRole.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", "You are not authorized to create content items for the specified client.");
                 return Unauthorized();
             }
@@ -278,7 +279,7 @@ namespace MillimanAccessPortal.Controllers
                 // Copy user roles for the new root content item from its client.
                 // In the future, root content item management and publishing roles may
                 // be separated in which case this automatic role copy should be removed.
-                List<RoleEnum> RolesToInheritFromClient = new List<RoleEnum> { RoleEnum.ContentAccessAdmin, RoleEnum.ContentPublisher };
+                List<RoleEnum> RolesToInheritFromClient = new List<RoleEnum> { RoleEnum.ContentAccessAdmin, requiredRole };
 
                 foreach (RoleEnum role in RolesToInheritFromClient)
                 {
@@ -326,11 +327,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItem.Id));
+            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, rootContentItem.Id));
             if (!roleInRootContentItemResult.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.UpdateRootContentItem action: authorization failure, user {User.Identity.Name}, content item {rootContentItem.Id}, role {RoleEnum.ContentPublisher.ToString()}");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                Log.Debug($"In ContentPublishingController.UpdateRootContentItem action: authorization failure, user {User.Identity.Name}, content item {rootContentItem.Id}, role {requiredRole.ToString()}");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", "You are not authorized to update this content item.");
                 return Unauthorized();
             }
@@ -430,11 +431,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItem.Id));
+            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, rootContentItem.Id));
             if (!roleInRootContentItemResult.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.DeleteRootContentItem action: authorization failure, user {User.Identity.Name}, content item {rootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                Log.Debug($"In ContentPublishingController.DeleteRootContentItem action: authorization failure, user {User.Identity.Name}, content item {rootContentItemId}, role {requiredRole.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", "You are not authorized to administer the specified content item.");
                 return Unauthorized();
             }
@@ -531,11 +532,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, request.RootContentItemId));
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, request.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.Publish action: authorization failure, user {currentApplicationUser.UserName}, content item {request.RootContentItemId}, role {RoleEnum.ContentPublisher}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                Log.Debug($"In ContentPublishingController.Publish action: authorization failure, user {currentApplicationUser.UserName}, content item {request.RootContentItemId}, role {requiredRole}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", $"You are not authorized to publish this content");
                 return Unauthorized();
             }
@@ -677,11 +678,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult roleInRootContentItem = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItem.Id));
+            AuthorizationResult roleInRootContentItem = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, rootContentItem.Id));
             if (!roleInRootContentItem.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.CancelContentPublicationRequest action: authorization failure, user {User.Identity.Name}, content item {rootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                Log.Debug($"In ContentPublishingController.CancelContentPublicationRequest action: authorization failure, user {User.Identity.Name}, content item {rootContentItemId}, role {requiredRole.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", "You are not authorized to cancel content publication requests for this content item.");
                 return Unauthorized();
             }
@@ -744,10 +745,10 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"Entered ContentPublishingController.PreLiveSummary action with content item {RootContentItemId}");
 
             #region Authorization
-            AuthorizationResult roleInRootContentItem = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, RootContentItemId));
+            AuthorizationResult roleInRootContentItem = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, RootContentItemId));
             if (!roleInRootContentItem.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.PreLiveSummary action: authorization failure, user {User.Identity.Name}, content item {RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                Log.Debug($"In ContentPublishingController.PreLiveSummary action: authorization failure, user {User.Identity.Name}, content item {RootContentItemId}, role {requiredRole.ToString()}, aborting");
                 Response.Headers.Add("Warning", "You are not authorized to view the publication certification summary for this content item.");
                 return Unauthorized();
             }
@@ -780,16 +781,16 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null,
-                new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, goLiveViewModel.RootContentItemId));
+                new RoleInRootContentItemRequirement(requiredRole, goLiveViewModel.RootContentItemId));
             if (!authorization.Succeeded)
             {
                 Log.Debug(
                     "In ContentPublishingController.GoLive action: authorization failure, " +
                     $"user {User.Identity.Name}, " + 
                     $"content item {goLiveViewModel.RootContentItemId}, " + 
-                    $"role {RoleEnum.ContentPublisher.ToString()}, " + 
+                    $"role {requiredRole.ToString()}, " + 
                     "aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", "You are not authorized to publish content for this content item.");
                 return Unauthorized();
             }
@@ -934,11 +935,11 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"Entered ContentPublishingController.Reject action with content item {rootContentItemId}, publication request {publicationRequestId}");
 
             #region Authorization
-            AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
+            AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, rootContentItemId));
             if (!authorization.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.Reject action, authorization failure, user {User.Identity.Name}, content item {rootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                Log.Debug($"In ContentPublishingController.Reject action, authorization failure, user {User.Identity.Name}, content item {rootContentItemId}, role {requiredRole.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", "You are not authorized to publish content for this content item.");
                 return Unauthorized();
             }

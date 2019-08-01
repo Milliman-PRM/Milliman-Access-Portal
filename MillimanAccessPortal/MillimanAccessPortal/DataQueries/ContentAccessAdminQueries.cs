@@ -39,7 +39,10 @@ namespace MillimanAccessPortal.DataQueries
         }
         internal ContentAccessAdminPageGlobalModel BuildAccessAdminPageGlobalModel()
         {
-            return null;
+            return new ContentAccessAdminPageGlobalModel
+            {
+                ContentTypes = _contentItemQueries.GetAllContentTypes().ToDictionary(t => t.Id),
+            };
         }
 
 
