@@ -78,7 +78,7 @@ namespace MapDbContextLib.Context
         public string DefaultIconName { get; set; }
 
         [Required]
-        public string[] FileExtensions { get; set; } = new string[0];
+        public List<string> FileExtensions { get; set; } = new List<string>();
 
         #region Database Initialization
         /// <summary>
@@ -94,31 +94,31 @@ namespace MapDbContextLib.Context
                     TypeEnum = ContentTypeEnum.Qlikview,
                     CanReduce = true,
                     DefaultIconName = "QlikView_Icon.png",
-                    FileExtensions = new string[] { "qvw" },
+                    FileExtensions = new List<string> { "qvw" },
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.Html,
                     CanReduce = false,
                     DefaultIconName = "HTML_Icon.png",
-                    FileExtensions = new string[] { "html", "htm" },
+                    FileExtensions = new List<string> { "html", "htm" },
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.Pdf,
                     CanReduce = false,
                     DefaultIconName = "PDF_Icon.png",
-                    FileExtensions = new string[] { "pdf" },
+                    FileExtensions = new List<string> { "pdf" },
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.FileDownload,
                     CanReduce = false,
                     DefaultIconName = "FileDownload_Icon.png",
-                    FileExtensions = new string[] { },
+                    FileExtensions = new List<string> { },
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.PowerBi,
                     CanReduce = false,
                     DefaultIconName = "PowerBI_Icon.png",
-                    FileExtensions = new string[] { "pbix" },
+                    FileExtensions = new List<string> { "pbix" },
                 },
             };
 
