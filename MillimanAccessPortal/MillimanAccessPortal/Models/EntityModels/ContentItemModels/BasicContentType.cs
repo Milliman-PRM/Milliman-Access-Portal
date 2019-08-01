@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MapDbContextLib.Context;
+using System;
 using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.EntityModels.ContentItemModels
@@ -13,5 +14,16 @@ namespace MillimanAccessPortal.Models.EntityModels.ContentItemModels
         public string Name { get; set; }
         public bool CanReduce { get; set; }
         public List<string> FileExtensions { get; set; }
+        public ContentTypeEnum TypeEnum { get; set; } = ContentTypeEnum.Unknown;
+
+        public BasicContentType(ContentType t)
+        {
+            Id = t.Id;
+            TypeEnum = t.TypeEnum;
+            CanReduce = t.CanReduce;
+            FileExtensions = t.FileExtensions;
+            Name = t.TypeEnum.GetDisplayValueString();
+        }
+
     }
 }

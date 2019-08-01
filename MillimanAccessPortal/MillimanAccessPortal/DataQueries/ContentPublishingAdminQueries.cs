@@ -49,10 +49,11 @@ namespace MillimanAccessPortal.DataQueries
             return new PublishingPageGlobalModel
             {
                 ContentAssociatedFileTypes = typeValues
-                    .Select(t => new AssociatedFileTypeModel { TypeEnum = t, FileExtensions = t.GetStringList(StringListKey.FileExtensions), Name = t.GetDisplayValueString() })
-                    .ToDictionary(t => (int)t.TypeEnum),
+                    .Select(t => new AssociatedFileTypeModel(t))
+                    .ToDictionary(f => (int)f.TypeEnum),
+
                 ContentTypes = _dbContext.ContentType
-                    .Select(t => new ContentTypeNormalized(t))
+                    .Select(t => new BasicContentType(t))
                     .ToDictionary(t => t.Id),
             };
         }
