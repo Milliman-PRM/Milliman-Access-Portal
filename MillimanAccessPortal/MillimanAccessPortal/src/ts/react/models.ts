@@ -98,13 +98,13 @@ export interface ContentReductionTask {
 export interface ContentType {
   id: Guid;
   canReduce: boolean;
-  name: string;
+  displayName: string;
   fileExtensions: string[];
 }
 
 export interface ContentAssociatedFileType {
   typeEnum: number;
-  name: string;
+  displayName: string;
   fileExtensions: string[];
 }
 
