@@ -1,4 +1,5 @@
 ﻿import '../../../images/icons/add.svg';
+import '../../../images/icons/cancel.svg';
 import '../../../images/icons/collapse-cards.svg';
 import '../../../images/icons/expand-cards.svg';
 import '../../../images/icons/release-notes.svg';
@@ -13,7 +14,7 @@ import * as React from 'react';
 
 export interface ActionIconProps {
   label: string;
-  icon: 'add' | 'collapse-cards' | 'expand-cards' | 'release-notes' | 'user' | 'userguide';
+  icon: 'add' | 'cancel' | 'collapse-cards' | 'expand-cards' | 'release-notes' | 'user' | 'userguide';
   action: () => void;
   inline: boolean;
 }
