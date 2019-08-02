@@ -5,7 +5,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
-import { isPublicationActive } from '../../view-models/content-publishing';
+import { isPublicationActive, PublicationStatus } from '../../view-models/content-publishing';
 import {
     Client, ClientWithStats, RootContentItem, RootContentItemWithPublication,
 } from '../models';
@@ -15,8 +15,9 @@ import {
     PanelSectionToolbar, PanelSectionToolbarButtons,
 } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
+import CardButton from '../shared-components/card/card-button';
 import {
-    CardSectionMain, CardSectionStats, CardText,
+   CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
@@ -148,34 +149,68 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       <CardPanel
         entities={items}
         loading={pending.data.items}
-        renderEntity={(entity, key) => (
-          <Card
-            key={key}
-            disabled={isPublicationActive(entity.status && entity.status.requestStatus)}
-            selected={selected.item === entity.id}
-            onSelect={() => {
-              this.props.selectItem({ id: entity.id });
-            }}
-            suspended={entity.isSuspended}
-            status={entity.status}
-          >
-            <CardSectionMain>
-              <CardText text={entity.name} subtext={entity.contentTypeName} />
-              <CardSectionStats>
-                <CardStat
-                  name={'Selection groups'}
-                  value={entity.selectionGroupCount}
-                  icon={'group'}
+        renderEntity={(entity, key) => {
+          const cardButtons = entity.status.requestStatus === PublicationStatus.Processed ?
+            (
+              <>
+                <CardButton
+                  color={'green'}
+                  tooltip={'Cancel'}
+                  onClick={() => alert('Go Live Preview')}
+                  icon={'checkmark'}
                 />
-                <CardStat
-                  name={'Assigned users'}
-                  value={entity.assignedUserCount}
-                  icon={'user'}
+              </>
+            ) : (
+              <>
+                <CardButton
+                  color={'red'}
+                  tooltip={'Cancel'}
+                  onClick={() => alert('delete')}
+                  icon={'delete'}
                 />
-              </CardSectionStats>
-            </CardSectionMain>
-          </Card>
-        )}
+                <CardButton
+                  color={'green'}
+                  tooltip={'Save changes'}
+                  onClick={() => alert('upload')}
+                  icon={'edit'}
+                />
+              </>
+            );
+          return (
+            <Card
+              key={key}
+              selected={selected.item === entity.id}
+              onSelect={() => {
+                this.props.selectItem({ id: entity.id });
+              }}
+              suspended={entity.isSuspended}
+              status={entity.status}
+            >
+              <CardSectionMain>
+                <CardText
+                  text={entity.name}
+                  textSuffix={entity.isSuspended ? '[Suspended]' : ''}
+                  subtext={entity.contentTypeName}
+                />
+                <CardSectionStats>
+                  <CardStat
+                    name={'Selection groups'}
+                    value={entity.selectionGroupCount}
+                    icon={'group'}
+                  />
+                  <CardStat
+                    name={'Assigned users'}
+                    value={entity.assignedUserCount}
+                    icon={'user'}
+                  />
+                </CardSectionStats>
+                <CardSectionButtons>
+                  {cardButtons}
+                </CardSectionButtons>
+              </CardSectionMain>
+            </Card>
+            );
+        }}
         renderNewEntityButton={() => (
           <div className="card-container action-card-container" onClick={() => alert('Content Item Created')}>
             <div className="admin-panel-content">
