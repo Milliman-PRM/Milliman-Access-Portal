@@ -20,6 +20,8 @@ import {
    CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
+import { ColumnSpinner } from '../shared-components/column-spinner';
+import { ContentPanel } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
 import * as PublishingActionCreators from './redux/action-creators';
@@ -74,6 +76,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
         {this.renderItemPanel()}
+        {this.props.selected.item && this.renderContentItemForm()}
       </>
     );
   }
@@ -250,6 +253,29 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       </CardPanel>
     );
   }
+
+  private renderContentItemForm() {
+    // const { activeSelectedItem: selectedItem, pending } = this.props;
+    const { pending } = this.props;
+    const contentItemFormButtons = (
+      <ActionIcon
+        label="Close Form"
+        icon="cancel"
+        action={() => { alert('Cancel Form'); }}
+      />
+    );
+    return (
+      <ContentPanel loading={pending.data.contentItemDetail}>
+        <h3 className="admin-panel-header">Content Item</h3>
+        <PanelSectionToolbar>
+          <PanelSectionToolbarButtons>
+            {contentItemFormButtons}
+          </PanelSectionToolbarButtons>
+        </PanelSectionToolbar>
+      </ContentPanel>
+    );
+  }
+
 }
 
 function mapStateToProps(state: PublishingState): ContentPublishingProps {
