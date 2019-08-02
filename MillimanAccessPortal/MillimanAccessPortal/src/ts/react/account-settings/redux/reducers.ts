@@ -9,6 +9,7 @@ import {
     AccountStateData, AccountStateForm, PendingInputState, PendingRequestState,
     PendingValidationState,
 } from './store';
+import { AccountUserInformation } from './models';
 
 const _initialData: AccountStateData = {
   user: {
@@ -40,7 +41,7 @@ const _initialPendingInputs: PendingInputState = {
   employer: null,
   current: null,
   new: null,
-  confirm: null,
+  confirm: null,  
 };
 const _initialPendingRequests: PendingRequestState = {
   fetchUser: true,
@@ -51,6 +52,8 @@ const _initialPendingValidation: PendingValidationState = {
   user: false,
   password: false,
 };
+
+const _initialSelectedSection: string = AccountUserInformation;
 
 /**
  * Create reducers for a subtree of the redux store
@@ -187,9 +190,18 @@ const form = createReducer<AccountStateForm>(_initialValidation, ({
   RESET_FORM: () => _initialValidation,
   UPDATE_ACCOUNT_SUCCEEDED: () => _initialValidation,
 }));
+
+const selectedSection = createReducer(_initialSelectedSection, ({
+    SELECT_SECTION: (state, action: AccountActions.SelectSection) => ({
+        ...state,
+        selectedSection: action.selectedSection,
+    }),
+}));
+
 export const accountSettings = combineReducers({
   data,
   pending,
   form,
   toastr: toastrReducer,
+  selectedSection
 });
