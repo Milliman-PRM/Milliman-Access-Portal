@@ -21,6 +21,7 @@ const _initialPendingData: PendingDataState = {
   globalData: false,
   clients: false,
   items: false,
+  contentItemDetail: false,
 };
 
 /**

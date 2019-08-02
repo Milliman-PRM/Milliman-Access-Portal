@@ -21,6 +21,7 @@ export interface PendingDataState {
   globalData: boolean;
   clients: boolean;
   items: boolean;
+  contentItemDetail: boolean;
 }
 
 /**
@@ -62,10 +63,18 @@ export interface PublishingUploadState {
 }
 
 /**
+ * Content Item Form
+ */
+export interface PublishingContentItemFormData {
+  name: string;
+}
+
+/**
  * All state that represents a change pending submission.
  */
 export interface PublishingStatePending {
   data: PendingDataState;
+  contentItemFormData: PublishingContentItemFormData;
   statusTries: number;
 }
 /**
