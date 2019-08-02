@@ -155,27 +155,37 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               <>
                 <CardButton
                   color={'green'}
-                  tooltip={'Cancel'}
+                  tooltip={'Approve'}
                   onClick={() => alert('Go Live Preview')}
                   icon={'checkmark'}
                 />
               </>
-            ) : (
-              <>
-                <CardButton
-                  color={'red'}
-                  tooltip={'Cancel'}
-                  onClick={() => alert('delete')}
-                  icon={'delete'}
-                />
-                <CardButton
-                  color={'green'}
-                  tooltip={'Save changes'}
-                  onClick={() => alert('upload')}
-                  icon={'edit'}
-                />
-              </>
-            );
+            ) : entity.status.requestStatus === PublicationStatus.Queued
+              || entity.status.requestStatus === PublicationStatus.Validating ? (
+                <>
+                  <CardButton
+                    color={'red'}
+                    tooltip={'Cancel'}
+                    onClick={() => alert('cancel')}
+                    icon={'cancel'}
+                  />
+                </>
+              ) : (
+                <>
+                  <CardButton
+                    color={'red'}
+                    tooltip={'Delete'}
+                    onClick={() => alert('delete')}
+                    icon={'delete'}
+                  />
+                  <CardButton
+                    color={'green'}
+                    tooltip={'Edit'}
+                    onClick={() => alert('upload')}
+                    icon={'edit'}
+                  />
+                </>
+              );
           return (
             <Card
               key={key}
