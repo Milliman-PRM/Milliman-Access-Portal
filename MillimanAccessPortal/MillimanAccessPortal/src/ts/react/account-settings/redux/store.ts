@@ -53,6 +53,7 @@ export interface AccountState {
   pending: AccountStatePending;
   form: AccountStateForm;
   toastr: toastr.ToastrState;
+  selectedSection: string; 
 }
 
 const sagaMiddleware = createSagaMiddleware();
