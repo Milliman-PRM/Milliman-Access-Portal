@@ -9,6 +9,7 @@ import { isPublicationActive } from '../../view-models/content-publishing';
 import {
     Client, ClientWithStats, RootContentItem, RootContentItemWithPublication,
 } from '../models';
+import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import {
     PanelSectionToolbar, PanelSectionToolbarButtons,
@@ -136,6 +137,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 
   private renderItemPanel() {
     const { activeSelectedClient: activeClient, items, selected, filters, pending } = this.props;
+    const createNewContentItemIcon = (
+      <ActionIcon
+        label="New Content Item"
+        icon="add"
+        action={() => { alert('Create New Content Item'); }}
+      />
+    );
     return activeClient && (
       <CardPanel
         entities={items}
@@ -168,6 +176,20 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             </CardSectionMain>
           </Card>
         )}
+        renderNewEntityButton={() => (
+          <div className="card-container action-card-container" onClick={() => alert('Content Item Created')}>
+            <div className="admin-panel-content">
+              <div className="card-body-container card-100 action-card">
+                <h2 className="card-body-primary-text">
+                  <svg className="action-card-icon">
+                    <use href="#add" />
+                  </svg>
+                  <span>CREATE CONTENT ITEM</span>
+                </h2>
+              </div>
+            </div>
+          </div>
+        )}
       >
         <h3 className="admin-panel-header">Content Items</h3>
         <PanelSectionToolbar>
@@ -177,7 +199,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             filterText={filters.item.text}
           />
           <PanelSectionToolbarButtons>
-            <div id="icons" />
+            {createNewContentItemIcon}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
       </CardPanel>
