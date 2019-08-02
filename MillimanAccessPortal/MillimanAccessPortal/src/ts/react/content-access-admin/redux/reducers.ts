@@ -334,6 +334,10 @@ const pendingDeleteGroup = createReducer<Guid>(null, {
 });
 
 const data = createReducer<AccessStateData>(_initialData, {
+  FETCH_GLOBAL_DATA_SUCCEEDED: (state, action: AccessActions.FetchGlobalDataSucceeded) => ({
+    ...state,
+    contentTypes: action.response.contentTypes,
+  }),
   FETCH_CLIENTS_SUCCEEDED: (state, action: AccessActions.FetchClientsSucceeded) => ({
     ...state,
     clients: {
@@ -343,11 +347,10 @@ const data = createReducer<AccessStateData>(_initialData, {
     users: action.response.users,
   }),
   FETCH_ITEMS_SUCCEEDED: (state, action: AccessActions.FetchItemsSucceeded) => {
-    const { contentItems, contentTypes, publications, publicationQueue, clientStats } = action.response;
+    const { contentItems, publications, publicationQueue, clientStats } = action.response;
     return {
       ...state,
       items: contentItems,
-      contentTypes,
       publications,
       publicationQueue,
       clients: {

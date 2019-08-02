@@ -39,6 +39,7 @@ const takeEveryToast = createTakeEveryToast<AccessAction, ResponseAccessAction>(
  */
 export default function* rootSaga() {
   // API requests
+  yield takeLatestRequest('FETCH_GLOBAL_DATA', api.fetchGlobalData);
   yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
   yield takeLatestRequest('FETCH_ITEMS', api.fetchItems);
   yield takeLatestRequest('FETCH_GROUPS', api.fetchGroups);
@@ -100,6 +101,7 @@ export default function* rootSaga() {
   yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',
     'Please refresh the page to update reduction status.', 'warning');
   yield takeEveryToast<ErrorAccessAction>([
+    'FETCH_GLOBAL_DATA_FAILED',
     'FETCH_CLIENTS_FAILED',
     'FETCH_ITEMS_FAILED',
     'FETCH_GROUPS_FAILED',

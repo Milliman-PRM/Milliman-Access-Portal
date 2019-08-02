@@ -91,6 +91,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
   public componentDidMount() {
+    this.props.fetchGlobalData({});
     this.props.fetchClients({});
     this.props.scheduleStatusRefresh({ delay: 0 });
     this.props.scheduleSessionCheck({ delay: 0 });
