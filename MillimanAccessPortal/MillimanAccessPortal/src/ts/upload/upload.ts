@@ -89,29 +89,29 @@ export class Upload {
         return this.onError('File contents do not match extension.');
       }
 
-      const messageDigest = forge.md.sha1.create();
-      this.scanner.open(file);
-      this.monitor = new ProgressMonitor(
-        () => this.scanner.progress,
-        this.onChecksumProgress,
-        file.size,
-      );
-      this.monitor.activate();
+      // const messageDigest = forge.md.sha1.create();
+      // this.scanner.open(file);
+      // this.monitor = new ProgressMonitor(
+      //   () => this.scanner.progress,
+      //   this.onChecksumProgress,
+      //   file.size,
+      // );
+      // this.monitor.activate();
 
-      try {
-        await this.scanner.scan(messageDigest.update);
-      } catch {
-        // Upload was canceled
-        return;
-      }
-      this.setChecksum(messageDigest.digest().toHex());
+      // try {
+      //   await this.scanner.scan(messageDigest.update);
+      // } catch {
+      //   // Upload was canceled
+      //   return;
+      // }
+      // this.setChecksum(messageDigest.digest().toHex());
 
-      this.monitor = new ProgressMonitor(
-        () => this.resumable.progress(),
-        this.onUploadProgress,
-        file.size,
-      );
-      this.monitor.activate();
+      // this.monitor = new ProgressMonitor(
+      //   () => this.resumable.progress(),
+      //   this.onUploadProgress,
+      //   file.size,
+      // );
+      // this.monitor.activate();
 
       this.resumable.upload();
     });
