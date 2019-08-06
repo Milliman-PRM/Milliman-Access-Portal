@@ -6,11 +6,16 @@ import { StatusMonitor } from '../../status-monitor';
 import { FileScanner } from '../../upload/file-scanner';
 import { FileSniffer } from '../../upload/file-sniffer';
 import { ProgressMonitor, ProgressSummary } from '../../upload/progress-monitor';
-import { FileUploadStatus } from '../../upload/upload';
 
 import forge = require('node-forge');
 const resumable = require('resumablejs');
 import Resumable = require('resumablejs');
+
+export enum FileUploadStatus {
+  InProgress = 0,
+  Complete = 1,
+  Error = 2,
+}
 
 interface ResumableInfo {
   ChunkNumber: number;

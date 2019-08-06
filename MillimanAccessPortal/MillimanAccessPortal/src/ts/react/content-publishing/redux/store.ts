@@ -3,7 +3,6 @@ import { applyMiddleware, createStore } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
 
-import { Upload } from '../../../upload/upload';
 import {
     ClientWithStats, ContentAssociatedFileType, ContentPublicationRequest, ContentReductionTask,
     ContentType, Guid, PublicationQueueDetails, ReductionQueueDetails, RootContentItemWithStats,
@@ -11,6 +10,7 @@ import {
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState } from '../../shared-components/redux/store';
+import { ProgressSummary } from '../../upload/progress-monitor';
 import { contentPublishing } from './reducers';
 import sagas from './sagas';
 
@@ -56,10 +56,9 @@ export interface PublishingStateCardAttributes {
  * Uploads
  */
 export interface PublishingUploadState {
-  upload: Upload;
   isActive: boolean;
-  checksumProgress: number;
-  uploadProgress: number;
+  checksumProgress: ProgressSummary;
+  uploadProgress: ProgressSummary;
 }
 
 /**

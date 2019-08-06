@@ -15,12 +15,6 @@ export enum UploadComponent {
   ReleaseNotes = 'ReleaseNotes',
 }
 
-export enum FileUploadStatus {
-  InProgress = 0,
-  Complete = 1,
-  Error = 2,
-}
-
 interface FileUpload {
   id: string;
   initiatedDateTimeUtc: string;
