@@ -10,6 +10,7 @@ import { ProgressMonitor, ProgressSummary } from '../../upload/progress-monitor'
 import forge = require('node-forge');
 const resumable = require('resumablejs');
 import Resumable = require('resumablejs');
+import { randomBytes } from 'crypto';
 
 export enum FileUploadStatus {
   InProgress = 0,
@@ -75,18 +76,25 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
 
   protected statusMonitor: StatusMonitor<any>;
 
+  protected uniqueId: string;
+
+  protected generateUniqueId() {
+    this.uniqueId = `publication-${this.props.purpose}-${randomBytes(8).toString('hex')}`;
+  }
+
   constructor(props: FileUploadInputProps) {
     super(props);
     this.uploadRef = React.createRef();
   }
 
   public componentDidMount() {
+    this.generateUniqueId();
     this.resumableHeaders = {
       RequestVerificationToken: (document.getElementsByName('__RequestVerificationToken')[0] as HTMLInputElement).value,
     };
     this.resumable = new resumable(Object.assign({}, resumableOptions, {
       generateUniqueIdentifier: () => {
-        return `publication-${this.props.purpose}${this.props.token ? '-' + this.props.token : ''}`;
+        return this.uniqueId;
       },
       headers: () => this.resumableHeaders,
       query: () => this.resumableFormData,
