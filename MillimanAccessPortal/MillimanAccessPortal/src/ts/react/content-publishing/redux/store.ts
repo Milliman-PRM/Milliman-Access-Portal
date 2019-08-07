@@ -11,7 +11,7 @@ import {
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState } from '../../shared-components/redux/store';
 import { contentPublishing } from './reducers';
-import { UploadPending, UploadState } from '../../../upload/Redux/store';
+import { UploadState } from '../../../upload/Redux/store';
 import sagas from './sagas';
 
 /**
@@ -22,7 +22,6 @@ export interface PendingDataState {
   clients: boolean;
   items: boolean;
   contentItemDetail: boolean;
-  uploads: Dict<UploadPending>;
 }
 
 /**
@@ -67,6 +66,7 @@ export interface PublishingStatePending {
   data: PendingDataState;
   contentItemFormData: PublishingContentItemFormData;
   statusTries: number;
+  uploads: Dict<UploadStatus>;
 }
 /**
  * All filter state.
@@ -84,6 +84,7 @@ export interface PublishingState {
   selected: PublishingStateSelected;
   cardAttributes: PublishingStateCardAttributes;
   pending: PublishingStatePending;
+  uploads: Dict<UploadState>
   filters: PublishingStateFilters;
   toastr: toastr.ToastrState;
 }

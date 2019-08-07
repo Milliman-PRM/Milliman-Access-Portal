@@ -17,7 +17,7 @@ const _initialUpload: UploadState = {
 
 const createReducer = createReducerCreator<UploadActions.PageUploadAction>();
 
-export const UploadStatusState = createReducer<Dict<UploadState>>({},
+export const uploadStatus = createReducer<Dict<UploadState>>({},
   {
     BEGIN_FILE_UPLOAD: (state, { uploadId }: UploadActions.BeginFileUpload) => ({
       ...state,
@@ -59,22 +59,6 @@ export const UploadStatusState = createReducer<Dict<UploadState>>({},
         errorMsg: errorMsg,
         checksumProgress: ProgressSummary.empty(),
         uploadProgress: ProgressSummary.empty(),
-      },
-    }),
-    CANCEL_FILE_UPLOAD: (state, { uploadId }: UploadActions.CancelFileUpload) => {
-      const Uploads = { ...state };
-      delete Uploads[uploadId];
-      return Uploads;
-    },
-  },
-);
-
-export const UploadPendingState = createReducer<Dict<UploadPending>>({},
-  {
-    BEGIN_FILE_UPLOAD: (state, { uploadId }: UploadActions.BeginFileUpload) => ({
-      ...state,
-      [uploadId]: {
-        uploadInProgress: true,
       },
     }),
     CANCEL_FILE_UPLOAD: (state, { uploadId }: UploadActions.CancelFileUpload) => {

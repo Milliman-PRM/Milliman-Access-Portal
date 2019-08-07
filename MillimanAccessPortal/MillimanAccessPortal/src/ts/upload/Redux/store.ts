@@ -10,11 +10,3 @@ export interface UploadState {
   checksumProgress: ProgressSummary;
   uploadProgress: ProgressSummary;
 }
-
-/**
- * Pending Upload
- */
-export interface UploadPending {
-  uploadInProgress: boolean;
-}
-
