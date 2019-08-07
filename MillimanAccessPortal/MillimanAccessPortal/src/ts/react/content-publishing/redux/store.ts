@@ -10,8 +10,8 @@ import {
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState } from '../../shared-components/redux/store';
-import { ProgressSummary } from '../../upload/progress-monitor';
 import { contentPublishing } from './reducers';
+import { UploadPending, UploadState } from '../../../upload/Redux/store';
 import sagas from './sagas';
 
 /**
@@ -22,6 +22,7 @@ export interface PendingDataState {
   clients: boolean;
   items: boolean;
   contentItemDetail: boolean;
+  uploads: Dict<UploadPending>;
 }
 
 /**
@@ -50,15 +51,6 @@ export interface PublishingStateSelected {
 export interface PublishingStateCardAttributes {
   client: Dict<CardAttributes>;
   item: Dict<CardAttributes>;
-}
-
-/**
- * Uploads
- */
-export interface PublishingUploadState {
-  isActive: boolean;
-  checksumProgress: ProgressSummary;
-  uploadProgress: ProgressSummary;
 }
 
 /**
