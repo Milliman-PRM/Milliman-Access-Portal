@@ -8,6 +8,7 @@ import { Dict, FilterState } from '../../shared-components/redux/store';
 import * as PublishingActions from './actions';
 import { FilterPublishingAction, PublishingAction } from './actions';
 import { PendingDataState, PublishingStateData, PublishingStateSelected } from './store';
+import { uploadStatus } from '../../../upload/Redux/reducers';
 
 const _initialData: PublishingStateData = {
   clients: {},
@@ -172,6 +173,7 @@ const cardAttributes = combineReducers({
 const pending = combineReducers({
   data: pendingData,
   statusTries: pendingStatusTries,
+  uploads: uploadStatus,
 });
 
 const filters = combineReducers({
