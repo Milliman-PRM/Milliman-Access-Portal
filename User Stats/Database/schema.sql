@@ -516,7 +516,7 @@ CREATE OR REPLACE VIEW public."NYExportCounts" AS
      JOIN "Client" cl ON rci."ClientId" = cl."Id"
      JOIN "ClientInProfitCenter" cpc ON cl."Id" = cpc."ClientId"
      JOIN "ProfitCenter" pc ON cpc."ProfitCenterId" = pc."Id"
-  WHERE cpc."EndDate" = '9999-12-31'::date AND qva."Message" ~~* 'action(11)%'::text
+  WHERE cpc."EndDate" = '9999-12-31'::date AND strpos(qva."Message", 'action(11)') > 0
   GROUP BY pc."Name", cl."Name", rci."ContentName", qvs."Username", (date_part('month'::text, qva."Timestamp")), (date_part('year'::text, qva."Timestamp"));
 
 ALTER TABLE public."NYExportCounts"
