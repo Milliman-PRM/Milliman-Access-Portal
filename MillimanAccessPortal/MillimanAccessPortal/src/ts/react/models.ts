@@ -49,6 +49,55 @@ export interface RootContentItemWithStats extends RootContentItem {
   selectionGroupCount: number;
   assignedUserCount: number;
 }
+export interface ContentItemDetail {
+  clientId: Guid;
+  contentDisclaimer: string;
+  contentName: string;
+  contentTypeId: Guid;
+  contentDescription: string;
+  doesReduce: boolean;
+  id: Guid;
+  isSuspended: boolean;
+  contentNotes: string;
+  relatedFiles: {
+    masterContent: {
+      checksum: string;
+      fileOriginalName: string;
+    },
+    thumbnail: {
+      checksum: string;
+      fileOriginalName: string;
+    },
+    userGuide: {
+      checksum: string;
+      fileOriginalName: string;
+    },
+    releaseNotes: {
+      checksum: string;
+      fileOriginalName: string;
+    },
+  };
+  associatedContent: [
+    {
+      checksum: string;
+      contentAssociatedFileTypeId: Guid;
+      displayName: string;
+      fileOriginalName: string;
+      sortOrder: string;
+    }
+  ];
+  typeSpecificDetailObject: {
+    bookmarksPaneEnabled?: boolean;
+    filterPaneEnabled?: boolean;
+    liveEmbedUrl?: string;
+    liveReportId?: Guid;
+    liveWorkspaceId?: Guid;
+    navigationPaneEnabled?: boolean;
+    previewEmbedUrl?: string;
+    previewReportId?: Guid;
+    previewWorkspaceId?: Guid;
+  };
+}
 export interface RootContentItemWithPublication extends RootContentItemWithStats {
   status: PublicationWithQueueDetails;
 }
