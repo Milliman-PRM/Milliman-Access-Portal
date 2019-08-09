@@ -1,9 +1,9 @@
+import { PageUploadAction } from '../../../upload/Redux/actions';
 import {
     ClientWithEligibleUsers, ClientWithStats, ContentAssociatedFileType, ContentPublicationRequest,
     ContentReductionTask, ContentType, Guid, PublicationQueueDetails, ReductionQueueDetails,
     RootContentItem, RootContentItemWithStats, SelectionGroup, User,
 } from '../../models';
-import { PageUploadAction } from '../../../upload/Redux/actions';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
 

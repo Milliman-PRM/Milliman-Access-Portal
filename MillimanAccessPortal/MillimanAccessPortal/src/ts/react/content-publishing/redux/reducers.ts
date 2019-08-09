@@ -2,13 +2,13 @@ import * as _ from 'lodash';
 import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
+import { uploadStatus } from '../../../upload/Redux/reducers';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { Dict, FilterState } from '../../shared-components/redux/store';
 import * as PublishingActions from './actions';
 import { FilterPublishingAction, PublishingAction } from './actions';
 import { PendingDataState, PublishingStateData, PublishingStateSelected } from './store';
-import { uploadStatus } from '../../../upload/Redux/reducers';
 
 const _initialData: PublishingStateData = {
   clients: {},

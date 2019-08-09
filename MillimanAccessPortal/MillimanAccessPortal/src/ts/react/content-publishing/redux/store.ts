@@ -3,6 +3,7 @@ import { applyMiddleware, createStore } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
 
+import { UploadState } from '../../../upload/Redux/store';
 import {
     ClientWithStats, ContentAssociatedFileType, ContentPublicationRequest, ContentReductionTask,
     ContentType, Guid, PublicationQueueDetails, ReductionQueueDetails, RootContentItemWithStats,
@@ -11,7 +12,6 @@ import {
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState } from '../../shared-components/redux/store';
 import { contentPublishing } from './reducers';
-import { UploadState } from '../../../upload/Redux/store';
 import sagas from './sagas';
 
 /**
@@ -66,7 +66,7 @@ export interface PublishingStatePending {
   data: PendingDataState;
   contentItemFormData: PublishingContentItemFormData;
   statusTries: number;
-  uploads: Dict<UploadStatus>;
+  uploads: Dict<UploadState>;
 }
 /**
  * All filter state.
@@ -84,7 +84,7 @@ export interface PublishingState {
   selected: PublishingStateSelected;
   cardAttributes: PublishingStateCardAttributes;
   pending: PublishingStatePending;
-  uploads: Dict<UploadState>
+  uploads: Dict<UploadState>;
   filters: PublishingStateFilters;
   toastr: toastr.ToastrState;
 }

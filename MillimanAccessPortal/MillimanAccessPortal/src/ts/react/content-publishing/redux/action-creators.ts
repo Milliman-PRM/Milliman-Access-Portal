@@ -1,3 +1,4 @@
+import * as UploadActionCreators from '../../../upload/Redux/action-creators';
 import {
     createActionCreator, createRequestActionCreator,
 } from '../../shared-components/redux/action-creators';
@@ -37,3 +38,13 @@ export const decrementStatusRefreshAttempts =
   createActionCreator<PublishActions.DecrementStatusRefreshAttempts>('DECREMENT_STATUS_REFRESH_ATTEMPTS');
 export const scheduleSessionCheck =
   createActionCreator<PublishActions.ScheduleSessionCheck>('SCHEDULE_SESSION_CHECK');
+
+// Upload Action Creators
+export const beginFileUpload = UploadActionCreators.beginFileUpload;
+export const updateChecksumProgress = UploadActionCreators.updateChecksumProgress;
+export const updateUploadProgress = UploadActionCreators.updateUploadProgress;
+export const setChecksumValue = UploadActionCreators.setChecksumValue;
+export const setUploadCancelable = UploadActionCreators.setUploadCancelable;
+export const setUploadError = UploadActionCreators.setUploadError;
+export const cancelFileUpload = UploadActionCreators.cancelFileUpload;
+export const finalizeUpload = UploadActionCreators.finalizeUpload;
