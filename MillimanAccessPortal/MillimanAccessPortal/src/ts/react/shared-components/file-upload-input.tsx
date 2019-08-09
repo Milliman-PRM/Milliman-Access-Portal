@@ -9,8 +9,6 @@ import { ProgressMonitor, ProgressSummary } from '../../upload/progress-monitor'
 
 import forge = require('node-forge');
 const resumable = require('resumablejs');
-import Resumable = require('resumablejs');
-import { randomBytes } from 'crypto';
 
 export enum FileUploadStatus {
   InProgress = 0,
@@ -38,49 +36,37 @@ interface FileUpload {
 }
 
 interface FileUploadInputProps {
-  associatedContentIndex: number;
   name: string;
   label: string;
   value: string;
-  purpose: 'masterContent' | 'thumbnail' | 'userGuide' | 'releaseNotes' | 'associatedContent';
-  onClick?: (currentTarget: React.FormEvent<HTMLInputElement> | null) => void;
   error: string;
   placeholderText?: string;
-  readOnly?: boolean;
   hidden?: boolean;
   cancelable: boolean;
-  checksum: string;
+  cancelFileUpload: (uploadId: string) => void;
   checksumProgress: ProgressSummary;
-  uploadProgress: ProgressSummary;
-  uploadId: string;
+  finalizeUpload: (uploadId: string, fileName: string, Guid: string) => void;
+  purpose: 'masterContent' | 'thumbnail' | 'userGuide' | 'releaseNotes' | 'associatedContent';
   setChecksum: (uploadId: string, checksum: string) => void;
   setCancelable: (uploadId: string, cancelable: boolean) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
-  token?: string;
+  uploadProgress: ProgressSummary;
+  uploadId: string;
   updateChecksumProgress: (uploadId: string, progress: ProgressSummary) => void;
   updateUploadProgress: (uploadId: string, progress: ProgressSummary) => void;
 }
 
 export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
-  protected uploadRef: React.RefObject<HTMLInputElement>;
-
-  protected resumable: Resumable.Resumable;
-
-  protected resumableFormData: { Checksum: string };
-
-  protected resumableHeaders: { RequestVerificationToken: string };
-
-  protected scanner: FileScanner;
-
+  protected checksum: string;
   protected progressMonitor: ProgressMonitor;
-
+  protected resumable: Resumable.Resumable;
+  protected resumableFormData: { Checksum: string };
+  protected resumableHeaders: { RequestVerificationToken: string } = {
+    RequestVerificationToken: (document.getElementsByName('__RequestVerificationToken')[0] as HTMLInputElement).value,
+  };
+  protected scanner: FileScanner;
   protected statusMonitor: StatusMonitor<any>;
-
-  protected uniqueId: string;
-
-  protected generateUniqueId() {
-    this.uniqueId = `publication-${this.props.purpose}-${randomBytes(8).toString('hex')}`;
-  }
+  protected uploadRef: React.RefObject<HTMLInputElement>;
 
   constructor(props: FileUploadInputProps) {
     super(props);
@@ -88,21 +74,19 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
   }
 
   public componentDidMount() {
-    this.generateUniqueId();
-    this.resumableHeaders = {
-      RequestVerificationToken: (document.getElementsByName('__RequestVerificationToken')[0] as HTMLInputElement).value,
-    };
+    // Instantiate the resumable object and configure the upload chunks
     this.resumable = new resumable(Object.assign({}, resumableOptions, {
-      generateUniqueIdentifier: () => {
-        return this.uniqueId;
-      },
+      generateUniqueIdentifier: (_: File, __: Event) => this.props.uploadId,
       headers: () => this.resumableHeaders,
       query: () => this.resumableFormData,
       target: '/FileUpload/UploadChunk',
     }));
+
     // Hook up the file upload input
     this.resumable.assignBrowse(this.uploadRef.current, false);
     this.resumable.assignDrop(this.uploadRef.current);
+
+    // Define the process after a file is selected
     this.resumable.on('fileAdded', async (resumableFile: Resumable.ResumableFile) => {
       const file: File = resumableFile.file;
 
@@ -113,7 +97,9 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
         return false;
       }
 
+      // Begin the process of creating a checksum and monitoring the progress
       const messageDigest = forge.md.sha1.create();
+      this.scanner = new FileScanner();
       this.scanner.open(file);
       this.progressMonitor = new ProgressMonitor(
         () => this.scanner.progress,
@@ -123,14 +109,18 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
       );
       this.progressMonitor.activate();
 
+      // Wait until the scan process is finished then update the checksum
       try {
         await this.scanner.scan(messageDigest.update);
       } catch {
         // Upload was canceled
         return;
       }
-      this.props.setChecksum(this.props.uploadId, messageDigest.digest().toHex());
+      this.checksum = messageDigest.digest().toHex();
+      this.resumableFormData = { Checksum: this.checksum };
+      this.props.setChecksum(this.props.uploadId, this.checksum);
 
+      // Start the monitor for the upload chunking progress
       this.progressMonitor = new ProgressMonitor(
         () => this.resumable.progress(),
         this.props.updateUploadProgress,
@@ -139,14 +129,19 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
       );
       this.progressMonitor.activate();
 
+      // Begin the upload process
       this.resumable.upload();
     });
 
+    // Define the process after a file is successfully uploaded
     this.resumable.on('fileSuccess', (resumableFile: Resumable.ResumableFile) => {
+      // Make sure the upload can't be canceled any more and set the upload progress to 100%
       this.props.setCancelable(this.props.uploadId, false);
       this.props.updateUploadProgress(this.props.uploadId, ProgressSummary.full());
+
+      // Define the information that needs to be sent with the Finalize Upload POST request
       const finalizeInfo: ResumableInfo = {
-        Checksum: this.props.checksum,
+        Checksum: this.checksum,
         ChunkNumber: 0,
         ChunkSize: this.resumable.opts.chunkSize,
         FileName: resumableFile.fileName,
@@ -155,49 +150,52 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
         Type: '',
         UID: resumableFile.uniqueIdentifier,
       };
+
+      // Make the FinalizeUpload POST request to begin the backend process of assembling the file
       fetch('FileUpload/FinalizeUpload', {
         method: 'POST',
-        headers: this.resumableHeaders,
+        headers: Object.assign({}, this.resumableHeaders, {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }),
         body: JSON.stringify(finalizeInfo),
       })
         .then((response) => response.json())
-        .then((response: { uploadId: string }) => {
-          // Begin polling for status of asynchronous data finalization
+        .then((fileGUID: string) => {
+          // Start a monitor that polls for status of asynchronous backend data finalization
           this.statusMonitor = new StatusMonitor<{}>(
-            `/FileUpload/FinalizeUpload?fileUploadId=${response.uploadId}`,
+            `/FileUpload/FinalizeUpload?fileUploadId=${fileGUID}`,
             (fileUpload: FileUpload) => {
               if (fileUpload.status === FileUploadStatus.Complete) {
                 this.progressMonitor.deactivate();
-                this.props.updateUploadProgress(this.props.uploadId, ProgressSummary.full());
-                // this.setFileGUID(uploadId);
-                // this.onFileSuccess(this.fileGUID);
-                this.props.setChecksum(this.props.uploadId, null);
+                this.props.finalizeUpload(this.props.uploadId, resumableFile.fileName, fileGUID);
+                alert('upload succeeded!');
                 this.statusMonitor.stop();
               } else if (fileUpload.status === FileUploadStatus.Error) {
-                this.props.setCancelable(this.props.uploadId, true);
                 this.props.setUploadError(
                   this.props.uploadId,
                   fileUpload.statusMessage || 'Something went wrong during upload. Please try again.',
                 );
-                this.props.setChecksum(this.props.uploadId, null);
                 this.statusMonitor.stop();
               }
             });
           setTimeout(() => this.statusMonitor.start(), 1000);
-        }).catch((response) => {
-          this.props.setCancelable(this.props.uploadId, true);
+        })
+        .catch((response) => {
+          // Pass back the error message if something failed
           this.props.setUploadError(
             this.props.uploadId,
             response.getResponseHeader('Warning') || 'Something went wrong during upload. Please try again.',
           );
-          this.props.setChecksum(this.props.uploadId, null);
         });
     });
 
+    // Define the process if an upload is canceled
     this.resumable.on('beforeCancel', () => {
+      // Define the information that needs to be sent with the Finalize Upload POST request
       this.resumable.files.forEach((file: any) => {
         const cancelInfo: ResumableInfo = {
-          Checksum: this.props.checksum,
+          Checksum: this.checksum,
           ChunkNumber: 0,
           ChunkSize: this.resumable.opts.chunkSize,
           FileName: file.fileName,
@@ -206,13 +204,15 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
           Type: '',
           UID: file.uniqueIdentifier,
         };
+
+        // Make the CancelUpload POST request to cancel the upload process
         fetch('FileUpload/CancelUpload', {
           method: 'POST',
           headers: this.resumableHeaders,
           body: JSON.stringify(cancelInfo),
         })
           .then(() => {
-            this.props.setChecksum(this.props.uploadId, null);
+            this.props.cancelFileUpload(this.props.uploadId);
           })
           .catch((response) => {
             this.props.setUploadError(
@@ -232,9 +232,9 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
   }
 
   public render() {
-    const { name, label, error, placeholderText, children, readOnly, hidden, ...rest } = this.props;
+    const { name, label, error, placeholderText, children, hidden, ...rest } = this.props;
     return (
-      <div className={`form-element-container ${readOnly ? ' disabled' : ''}${hidden ? ' hidden' : ''}`}>
+      <div className={`form-element-container${hidden ? ' hidden' : ''}`}>
         <div className={`form-element-input ${error ? ' error' : ''}`}>
           <div className="form-input-container">
             <input
@@ -244,8 +244,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
               name={name}
               id={name}
               placeholder={placeholderText || 'Upload ' + label}
-              readOnly={readOnly}
-              {...rest}
+              readOnly={true}
             />
             <label className="form-input-label" htmlFor={name}>{label}</label>
           </div>

@@ -3,9 +3,9 @@ import { reducer as toastrReducer } from 'react-redux-toastr';
 
 import { createReducerCreator } from '../../react/shared-components/redux/reducers';
 import { Dict, FilterState } from '../../react/shared-components/redux/store';
-import * as UploadActions from './actions';
-import { UploadPending, UploadState } from './store';
 import { ProgressSummary } from '../progress-monitor';
+import * as UploadActions from './actions';
+import { UploadState } from './store';
 
 const _initialUpload: UploadState = {
   cancelable: false,
@@ -27,14 +27,14 @@ export const uploadStatus = createReducer<Dict<UploadState>>({},
       ...state,
       [uploadId]: {
         ...state[uploadId],
-        cancelable: cancelable,
+        cancelable,
       },
     }),
     SET_CHECKSUM_VALUE: (state, { uploadId, checksum }: UploadActions.SetChecksumValue) => ({
       ...state,
       [uploadId]: {
         ...state[uploadId],
-        checksum: checksum,
+        checksum,
       },
     }),
     UPDATE_CHECKSUM_PROGRESS: (state, { uploadId, progress }: UploadActions.UpdateChecksumProgress) => ({
@@ -56,7 +56,7 @@ export const uploadStatus = createReducer<Dict<UploadState>>({},
       [uploadId]: {
         cancelable: true,
         checksum: null,
-        errorMsg: errorMsg,
+        errorMsg,
         checksumProgress: ProgressSummary.empty(),
         uploadProgress: ProgressSummary.empty(),
       },

@@ -2,19 +2,19 @@ import { createActionCreator } from '../../react/shared-components/redux/action-
 import * as UploadActions from './actions';
 
 // File Upload Actions
-export const BeginFileUpload =
+export const beginFileUpload =
   createActionCreator<UploadActions.BeginFileUpload>('BEGIN_FILE_UPLOAD');
-export const UpdateChecksumProgress =
+export const updateChecksumProgress =
   createActionCreator<UploadActions.UpdateChecksumProgress>('UPDATE_CHECKSUM_PROGRESS');
-export const UpdateUploadProgress =
+export const updateUploadProgress =
   createActionCreator<UploadActions.UpdateUploadProgress>('UPDATE_UPLOAD_PROGRESS');
-export const SetChecksumValue =
+export const setChecksumValue =
   createActionCreator<UploadActions.SetChecksumValue>('SET_CHECKSUM_VALUE');
-export const SetUploadCancelable =
+export const setUploadCancelable =
   createActionCreator<UploadActions.SetUploadCancelable>('SET_UPLOAD_CANCELABLE');
-export const SetUploadError =
+export const setUploadError =
   createActionCreator<UploadActions.SetUploadError>('SET_UPLOAD_ERROR');
-export const CancelFileUpload =
+export const cancelFileUpload =
   createActionCreator<UploadActions.CancelFileUpload>('CANCEL_FILE_UPLOAD');
-export const FinalizeUpload =
+export const finalizeUpload =
   createActionCreator<UploadActions.FinalizeUpload>('FINALIZE_UPLOAD');

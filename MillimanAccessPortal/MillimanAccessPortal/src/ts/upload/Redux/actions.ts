@@ -46,6 +46,8 @@ export interface CancelFileUpload {
 export interface FinalizeUpload {
   type: 'FINALIZE_UPLOAD';
   uploadId: string;
+  filename: string;
+  Guid: string;
 }
 
 // ~~ Action unions ~~
