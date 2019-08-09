@@ -20,8 +20,8 @@ import {
    CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
-import { ColumnSpinner } from '../shared-components/column-spinner';
 import { ContentPanel } from '../shared-components/content-panel/content-panel';
+import { FileUploadInput } from '../shared-components/file-upload-input';
 import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
 import * as PublishingActionCreators from './redux/action-creators';
@@ -194,6 +194,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               key={key}
               selected={selected.item === entity.id}
               onSelect={() => {
+                if (selected.item !== entity.id) {
+                  this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
+                }
                 this.props.selectItem({ id: entity.id });
               }}
               suspended={entity.isSuspended}
@@ -272,6 +275,25 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             {contentItemFormButtons}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
+        <FileUploadInput
+          name="Test"
+          label="Upload Test"
+          value=""
+          error=""
+          placeholderText="Master Content File"
+          cancelable={false}
+          cancelFileUpload={(uploadId) => this.props.cancelFileUpload({ uploadId })}
+          checksumProgress={null}
+          finalizeUpload={(uploadId, filename, Guid) => this.props.finalizeUpload({ uploadId, filename, Guid })}
+          purpose="masterContent"
+          setChecksum={(uploadId, checksum) => this.props.setChecksumValue({ uploadId, checksum })}
+          setCancelable={(uploadId, cancelable) => this.props.setUploadCancelable({ uploadId, cancelable })}
+          setUploadError={(uploadId, errorMsg) => this.props.setUploadError({ uploadId, errorMsg })}
+          uploadProgress={null}
+          uploadId="abc123"
+          updateChecksumProgress={(uploadId, progress) => this.props.updateChecksumProgress({ uploadId, progress })}
+          updateUploadProgress={(uploadId, progress) => this.props.updateUploadProgress({ uploadId, progress })}
+        />
       </ContentPanel>
     );
   }
