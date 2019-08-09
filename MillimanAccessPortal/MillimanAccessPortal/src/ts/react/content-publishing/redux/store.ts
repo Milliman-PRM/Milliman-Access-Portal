@@ -5,9 +5,9 @@ import createSagaMiddleware from 'redux-saga';
 
 import { UploadState } from '../../../upload/Redux/store';
 import {
-    ClientWithStats, ContentAssociatedFileType, ContentPublicationRequest, ContentReductionTask,
-    ContentType, Guid, PublicationQueueDetails, ReductionQueueDetails, RootContentItemWithStats,
-    User,
+    ClientWithStats, ContentAssociatedFileType, ContentItemDetail, ContentPublicationRequest,
+    ContentReductionTask, ContentType, Guid, PublicationQueueDetails, ReductionQueueDetails,
+    RootContentItemWithStats, User,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState } from '../../shared-components/redux/store';
@@ -30,6 +30,7 @@ export interface PendingDataState {
 export interface PublishingStateData {
   clients: Dict<ClientWithStats>;
   items: Dict<RootContentItemWithStats>;
+  contentItemDetail: ContentItemDetail | null;
   contentTypes: Dict<ContentType>;
   contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
   publications: Dict<ContentPublicationRequest>;

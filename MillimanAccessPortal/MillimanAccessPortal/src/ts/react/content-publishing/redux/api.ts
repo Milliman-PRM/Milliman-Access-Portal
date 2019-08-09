@@ -21,6 +21,10 @@ export const fetchItems =
   createJsonRequestor<PublishingActions.FetchItems, PublishingActions.FetchItemsSucceeded>
     ('GET', '/ContentPublishing/ContentItems');
 
+export const fetchContentItemDetail =
+  createJsonRequestor<PublishingActions.FetchContentItemDetail, PublishingActions.FetchContentItemDetailSucceeded>
+    ('GET', '/ContentPublishing/RootContentItemDetail');
+
 export const fetchStatusRefresh =
   createJsonRequestor<PublishingActions.FetchStatusRefresh, PublishingActions.FetchStatusRefreshSucceeded>
     ('GET', '/ContentPublishing/Status');

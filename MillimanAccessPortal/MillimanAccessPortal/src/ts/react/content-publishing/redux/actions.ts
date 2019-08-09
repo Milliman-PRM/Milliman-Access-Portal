@@ -122,6 +122,30 @@ export interface FetchItemsFailed {
 
 /**
  * GET:
+ *   content item detail;
+ */
+export interface FetchContentItemDetail {
+  type: 'FETCH_CONTENT_ITEM_DETAIL';
+  request: {
+    rootContentItemId: Guid;
+  };
+}
+export interface FetchContentItemDetailSucceeded {
+  type: 'FETCH_CONTENT_ITEM_DETAIL_SUCCEEDED';
+  response: {
+    clientStats: ClientWithStats;
+    contentItems: Dict<RootContentItemWithStats>;
+    publications: Dict<ContentPublicationRequest>;
+    publicationQueue: Dict<PublicationQueueDetails>;
+  };
+}
+export interface FetchContentItemDetailFailed {
+  type: 'FETCH_CONTENT_ITEM_DETAIL_FAILED';
+  error: TSError;
+}
+
+/**
+ * GET:
  *   content items for the selected client;
  *   publications for the selected client;
  *   publication queue information for those publications;
@@ -215,6 +239,7 @@ export type RequestPublishingAction =
   | FetchGlobalData
   | FetchClients
   | FetchItems
+  | FetchContentItemDetail
   | FetchStatusRefresh
   | FetchSessionCheck
   ;
@@ -226,6 +251,7 @@ export type ResponsePublishingAction =
   | FetchGlobalDataSucceeded
   | FetchClientsSucceeded
   | FetchItemsSucceeded
+  | FetchContentItemDetailSucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   ;
@@ -237,6 +263,7 @@ export type ErrorPublishingAction =
   | FetchGlobalDataFailed
   | FetchClientsFailed
   | FetchItemsFailed
+  | FetchContentItemDetailFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   ;

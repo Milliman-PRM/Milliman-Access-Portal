@@ -41,6 +41,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_GLOBAL_DATA', api.fetchGlobalData);
   yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
   yield takeLatestRequest('FETCH_ITEMS', api.fetchItems);
+  yield takeLatestRequest('FETCH_CONTENT_ITEM_DETAIL', api.fetchContentItemDetail);
   yield takeLatestRequest('FETCH_STATUS_REFRESH', api.fetchStatusRefresh);
   yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);
 
@@ -75,6 +76,7 @@ export default function* rootSaga() {
     'FETCH_GLOBAL_DATA_FAILED',
     'FETCH_CLIENTS_FAILED',
     'FETCH_ITEMS_FAILED',
+    'FETCH_CONTENT_ITEM_DETAIL_FAILED',
     'FETCH_SESSION_CHECK_FAILED',
   ], ({ message }) => message === 'sessionExpired'
     ? 'Your session has expired. Please refresh the page.'
