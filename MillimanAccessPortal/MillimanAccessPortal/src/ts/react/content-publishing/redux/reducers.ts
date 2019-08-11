@@ -2,7 +2,9 @@ import * as _ from 'lodash';
 import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
+import { generateUniqueId } from '../../../upload/generate-unique-identifier';
 import { uploadStatus } from '../../../upload/Redux/reducers';
+import { AssociatedContentItemUpload } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { Dict, FilterState } from '../../shared-components/redux/store';
@@ -125,6 +127,47 @@ const data = createReducer<PublishingStateData>(_initialData, {
         [clientStats.id]: {
           ...state.clients[clientStats.id],
           ...clientStats,
+        },
+      },
+    };
+  },
+  FETCH_CONTENT_ITEM_DETAIL_SUCCEEDED: (state, action: PublishingActions.FetchContentItemDetailSucceeded) => {
+    const keys = Object.keys({ ...action.response.associatedFiles });
+    const associatedContentItems: Dict<AssociatedContentItemUpload> = {};
+
+    for (const key of keys) {
+      if (action.response.associatedFiles.hasOwnProperty(key)) {
+        associatedContentItems[key] = {
+          ...action.response.associatedFiles[key],
+          uniqueUploadId: generateUniqueId('associatedContent'),
+        };
+      }
+    }
+
+    return {
+      ...state,
+      contentItemDetail: {
+        ...action.response,
+        relatedFiles: {
+          MasterContent: {
+            ...action.response.relatedFiles.MasterContent,
+            uniqueUploadId: generateUniqueId('masterContent'),
+          },
+          Thumbnail: {
+            ...action.response.relatedFiles.Thumbnail,
+            uniqueUploadId: generateUniqueId('thumbnail'),
+          },
+          UserGuide: {
+            ...action.response.relatedFiles.UserGuide,
+            uniqueUploadId: generateUniqueId('userGuide'),
+          },
+          ReleaseNotes: {
+            ...action.response.relatedFiles.ReleaseNotes,
+            uniqueUploadId: generateUniqueId('releaseNotes'),
+          },
+        },
+        associatedFiles: {
+          ...associatedContentItems,
         },
       },
     };

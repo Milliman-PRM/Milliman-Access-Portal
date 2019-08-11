@@ -1,8 +1,8 @@
 import { PageUploadAction } from '../../../upload/Redux/actions';
 import {
-    ClientWithEligibleUsers, ClientWithStats, ContentAssociatedFileType, ContentPublicationRequest,
-    ContentReductionTask, ContentType, Guid, PublicationQueueDetails, ReductionQueueDetails,
-    RootContentItem, RootContentItemWithStats, SelectionGroup, User,
+    ClientWithEligibleUsers, ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
+    ContentPublicationRequest, ContentReductionTask, ContentType, Guid, PublicationQueueDetails,
+    ReductionQueueDetails, RootContentItem, RootContentItemWithStats, SelectionGroup, User,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -132,12 +132,7 @@ export interface FetchContentItemDetail {
 }
 export interface FetchContentItemDetailSucceeded {
   type: 'FETCH_CONTENT_ITEM_DETAIL_SUCCEEDED';
-  response: {
-    clientStats: ClientWithStats;
-    contentItems: Dict<RootContentItemWithStats>;
-    publications: Dict<ContentPublicationRequest>;
-    publicationQueue: Dict<PublicationQueueDetails>;
-  };
+  response: ContentItemDetail;
 }
 export interface FetchContentItemDetailFailed {
   type: 'FETCH_CONTENT_ITEM_DETAIL_FAILED';

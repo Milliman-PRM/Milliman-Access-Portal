@@ -1,4 +1,5 @@
 import { PublicationStatus, ReductionStatus } from '../view-models/content-publishing';
+import { Dict } from './shared-components/redux/store';
 
 export type Guid = string;
 
@@ -49,6 +50,28 @@ export interface RootContentItemWithStats extends RootContentItem {
   selectionGroupCount: number;
   assignedUserCount: number;
 }
+
+export interface RelatedFile {
+  checksum: string;
+  filePurpose: string;
+  fileOriginalName: string;
+}
+export interface RelatedFileUpload extends RelatedFile {
+  uniqueUploadId?: string;
+}
+
+export interface AssociatedContentItem {
+  id: Guid;
+  checksum: string;
+  fileType: number;
+  displayName: string;
+  fileOriginalName: string;
+  sortOrder: string;
+}
+export interface AssociatedContentItemUpload extends AssociatedContentItem {
+  uniqueUploadId: string;
+}
+
 export interface ContentItemDetail {
   clientId: Guid;
   contentDisclaimer: string;
@@ -60,32 +83,12 @@ export interface ContentItemDetail {
   isSuspended: boolean;
   contentNotes: string;
   relatedFiles: {
-    masterContent: {
-      checksum: string;
-      fileOriginalName: string;
-    },
-    thumbnail: {
-      checksum: string;
-      fileOriginalName: string;
-    },
-    userGuide: {
-      checksum: string;
-      fileOriginalName: string;
-    },
-    releaseNotes: {
-      checksum: string;
-      fileOriginalName: string;
-    },
+    MasterContent: RelatedFileUpload,
+    Thumbnail?: RelatedFileUpload,
+    UserGuide?: RelatedFileUpload,
+    ReleaseNotes?: RelatedFileUpload,
   };
-  associatedContent: [
-    {
-      checksum: string;
-      contentAssociatedFileTypeId: Guid;
-      displayName: string;
-      fileOriginalName: string;
-      sortOrder: string;
-    }
-  ];
+  associatedFiles: Dict<AssociatedContentItemUpload>;
   typeSpecificDetailObject: {
     bookmarksPaneEnabled?: boolean;
     filterPaneEnabled?: boolean;
