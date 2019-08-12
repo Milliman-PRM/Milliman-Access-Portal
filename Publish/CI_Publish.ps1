@@ -89,26 +89,8 @@ function create_db { # Attempt to create a database by copying another one; retr
 }
 #endregion
 
-#region Decide to publish or cleanup
-$Action = $env:action
-$IsMerged = $env:IsMerged
-log_statement "Action is $Action, IsMerged is $IsMerged"
-
-if ($Action.ToLower() -eq 'closed') {
-    log_statement "PR has been merged, run CI Cleanup"
-    & ((Get-Location).Path + "\Publish\CI_Cleanup.ps1")
-    if ($LASTEXITCODE -ne 0) {
-        log_statement "ERROR: Call to cleanup script failed"
-        log_statement "errorlevel was $LASTEXITCODE"
-    }
-    exit $LASTEXITCODE
-} else {
-    log_statement "Building CI normally"
-}
-#endregion
-
 #region Configure environment properties
-$BranchName = $env:git_branch_name # Will be used in the version string of the octopus package & appended to database names
+$BranchName = $env:GITHUB_PR_SOURCE_BRANCH # Will be used in the version string of the octopus package & appended to database names
 
 $buildType = if($BranchName -eq 'develop' -or $BranchName -eq 'master' -or $BranchName.ToLower() -like 'pre-release*' -or $BranchName.ToLower() -like "*hotfix*") {"Release"} Else {"Debug"}
 log_statement "Building configuration: $buildType"
