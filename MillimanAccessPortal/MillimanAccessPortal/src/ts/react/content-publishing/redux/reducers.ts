@@ -3,23 +3,32 @@ import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
 import { generateUniqueId } from '../../../upload/generate-unique-identifier';
+import { ProgressSummary } from '../../../upload/progress-monitor';
 import { uploadStatus } from '../../../upload/Redux/reducers';
+import { UploadState } from '../../../upload/Redux/store';
 import { AssociatedContentItemUpload } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { Dict, FilterState } from '../../shared-components/redux/store';
 import * as PublishingActions from './actions';
 import { FilterPublishingAction, PublishingAction } from './actions';
-import { PendingDataState, PublishingStateData, PublishingStateSelected } from './store';
+import {
+  PendingDataState, PublishingFormData, PublishingState, PublishingStateData,
+  PublishingStateSelected,
+} from './store';
 
 const _initialData: PublishingStateData = {
   clients: {},
   items: {},
-  contentItemDetail: null,
   contentTypes: {},
   contentAssociatedFileTypes: {},
   publications: {},
   publicationQueue: {},
+};
+const _initialFormData: PublishingFormData = {
+  originalData: {},
+  formData: {},
+  uploads: {},
 };
 const _initialPendingData: PendingDataState = {
   globalData: false,
@@ -131,47 +140,6 @@ const data = createReducer<PublishingStateData>(_initialData, {
       },
     };
   },
-  FETCH_CONTENT_ITEM_DETAIL_SUCCEEDED: (state, action: PublishingActions.FetchContentItemDetailSucceeded) => {
-    const keys = Object.keys({ ...action.response.associatedFiles });
-    const associatedContentItems: Dict<AssociatedContentItemUpload> = {};
-
-    for (const key of keys) {
-      if (action.response.associatedFiles.hasOwnProperty(key)) {
-        associatedContentItems[key] = {
-          ...action.response.associatedFiles[key],
-          uniqueUploadId: generateUniqueId('associatedContent'),
-        };
-      }
-    }
-
-    return {
-      ...state,
-      contentItemDetail: {
-        ...action.response,
-        relatedFiles: {
-          MasterContent: {
-            ...action.response.relatedFiles.MasterContent,
-            uniqueUploadId: generateUniqueId('masterContent'),
-          },
-          Thumbnail: {
-            ...action.response.relatedFiles.Thumbnail,
-            uniqueUploadId: generateUniqueId('thumbnail'),
-          },
-          UserGuide: {
-            ...action.response.relatedFiles.UserGuide,
-            uniqueUploadId: generateUniqueId('userGuide'),
-          },
-          ReleaseNotes: {
-            ...action.response.relatedFiles.ReleaseNotes,
-            uniqueUploadId: generateUniqueId('releaseNotes'),
-          },
-        },
-        associatedFiles: {
-          ...associatedContentItems,
-        },
-      },
-    };
-  },
   FETCH_STATUS_REFRESH_SUCCEEDED: (state, action: PublishingActions.FetchStatusRefreshSucceeded) => {
     const items = { ...state.items };
     _.forEach(items, (item, itemId) => {
@@ -188,6 +156,80 @@ const data = createReducer<PublishingStateData>(_initialData, {
       items,
       publications: action.response.publications,
       publicationQueue: action.response.publicationQueue,
+    };
+  },
+});
+
+const formData = createReducer<PublishingFormData>(_initialFormData, {
+  FETCH_CONTENT_ITEM_DETAIL_SUCCEEDED: (_state, action: PublishingActions.FetchContentItemDetailSucceeded) => {
+    const keys = Object.keys({ ...action.response.associatedFiles });
+    const associatedContentItems: Dict<AssociatedContentItemUpload> = {};
+
+    for (const key of keys) {
+      if (action.response.associatedFiles.hasOwnProperty(key)) {
+        associatedContentItems[key] = {
+          ...action.response.associatedFiles[key],
+          uniqueUploadId: generateUniqueId('associatedContent'),
+        };
+      }
+    }
+
+    const contentItemDetail = {
+      ...action.response,
+      relatedFiles: {
+        MasterContent: {
+          ...action.response.relatedFiles.MasterContent,
+          uniqueUploadId: generateUniqueId('masterContent'),
+        },
+        Thumbnail: {
+          ...action.response.relatedFiles.Thumbnail,
+          uniqueUploadId: generateUniqueId('thumbnail'),
+        },
+        UserGuide: {
+          ...action.response.relatedFiles.UserGuide,
+          uniqueUploadId: generateUniqueId('userGuide'),
+        },
+        ReleaseNotes: {
+          ...action.response.relatedFiles.ReleaseNotes,
+          uniqueUploadId: generateUniqueId('releaseNotes'),
+        },
+      },
+      associatedFiles: {
+        ...associatedContentItems,
+      },
+    };
+
+    const newUpload: UploadState = {
+      cancelable: false,
+      checksum: null,
+      errorMsg: null,
+      checksumProgress: ProgressSummary.empty(),
+      uploadProgress: ProgressSummary.empty(),
+    };
+
+    const uploads: Dict<UploadState> = {
+      [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+    };
+
+    for (const key of keys) {
+      if (action.response.associatedFiles.hasOwnProperty(key)) {
+        uploads[contentItemDetail.associatedFiles[key].uniqueUploadId] = newUpload;
+      }
+    }
+
+    return {
+      uploads: {
+        ...uploads,
+      },
+      originalData: {
+        ...contentItemDetail,
+      },
+      formData: {
+        ...contentItemDetail,
+      },
     };
   },
 });
@@ -227,6 +269,7 @@ const filters = combineReducers({
 
 export const contentPublishing = combineReducers({
   data,
+  formData,
   selected,
   cardAttributes,
   pending,

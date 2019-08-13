@@ -30,7 +30,6 @@ export interface PendingDataState {
 export interface PublishingStateData {
   clients: Dict<ClientWithStats>;
   items: Dict<RootContentItemWithStats>;
-  contentItemDetail: ContentItemDetail | null;
   contentTypes: Dict<ContentType>;
   contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
   publications: Dict<ContentPublicationRequest>;
@@ -54,21 +53,13 @@ export interface PublishingStateCardAttributes {
 }
 
 /**
- * Content Item Form
- */
-export interface PublishingContentItemFormData {
-  name: string;
-}
-
-/**
  * All state that represents a change pending submission.
  */
 export interface PublishingStatePending {
   data: PendingDataState;
-  contentItemFormData: PublishingContentItemFormData;
   statusTries: number;
-  uploads: Dict<UploadState>;
 }
+
 /**
  * All filter state.
  */
@@ -78,14 +69,23 @@ export interface PublishingStateFilters {
 }
 
 /**
+ * Form data
+ */
+export interface PublishingFormData {
+  originalData: ContentItemDetail | {};
+  formData: ContentItemDetail | {};
+  uploads: Dict<UploadState>;
+}
+
+/**
  * All content access admin state.
  */
 export interface PublishingState {
   data: PublishingStateData;
+  formData: PublishingFormData;
   selected: PublishingStateSelected;
   cardAttributes: PublishingStateCardAttributes;
   pending: PublishingStatePending;
-  uploads: Dict<UploadState>;
   filters: PublishingStateFilters;
   toastr: toastr.ToastrState;
 }
