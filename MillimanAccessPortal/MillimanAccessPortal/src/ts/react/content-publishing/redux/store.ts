@@ -5,9 +5,8 @@ import createSagaMiddleware from 'redux-saga';
 
 import { UploadState } from '../../../upload/Redux/store';
 import {
-    ClientWithStats, ContentAssociatedFileType, ContentItemDetail, ContentPublicationRequest,
-    ContentReductionTask, ContentType, Guid, PublicationQueueDetails, ReductionQueueDetails,
-    RootContentItemWithStats, User,
+  ClientWithStats, ContentAssociatedFileType, ContentItemDetail, ContentItemFormErrors,
+  ContentPublicationRequest, ContentType, Guid, PublicationQueueDetails, RootContentItemWithStats,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState } from '../../shared-components/redux/store';
@@ -72,8 +71,9 @@ export interface PublishingStateFilters {
  * Form data
  */
 export interface PublishingFormData {
-  originalData: ContentItemDetail | {};
-  formData: ContentItemDetail | {};
+  originalData: ContentItemDetail;
+  formData: ContentItemDetail;
+  formErrors: ContentItemFormErrors;
   uploads: Dict<UploadState>;
 }
 

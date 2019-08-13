@@ -52,7 +52,6 @@ export interface RootContentItemWithStats extends RootContentItem {
 }
 
 export interface RelatedFile {
-  checksum: string;
   filePurpose: string;
   fileOriginalName: string;
 }
@@ -62,7 +61,6 @@ export interface RelatedFileUpload extends RelatedFile {
 
 export interface AssociatedContentItem {
   id: Guid;
-  checksum: string;
   fileType: number;
   displayName: string;
   fileOriginalName: string;
@@ -83,10 +81,10 @@ export interface ContentItemDetail {
   isSuspended: boolean;
   contentNotes: string;
   relatedFiles: {
-    MasterContent: RelatedFileUpload,
-    Thumbnail?: RelatedFileUpload,
-    UserGuide?: RelatedFileUpload,
-    ReleaseNotes?: RelatedFileUpload,
+    MasterContent: RelatedFileUpload;
+    Thumbnail?: RelatedFileUpload;
+    UserGuide?: RelatedFileUpload;
+    ReleaseNotes?: RelatedFileUpload;
   };
   associatedFiles: Dict<AssociatedContentItemUpload>;
   typeSpecificDetailObject: {
@@ -101,9 +99,43 @@ export interface ContentItemDetail {
     previewWorkspaceId?: Guid;
   };
 }
+
+export interface ContentItemFormErrors {
+  clientId?: string;
+  contentDisclaimer?: string;
+  contentName?: string;
+  contentTypeId?: string;
+  contentDescription?: string;
+  doesReduce?: string;
+  id?: string;
+  isSuspended?: string;
+  contentNotes?: string;
+  relatedFiles?: {
+    MasterContent?: string;
+    Thumbnail?: string;
+    UserGuide?: string;
+    ReleaseNotes?: string;
+  };
+  associatedFiles?: {
+    [uniqueId: string]: string;
+  };
+  typeSpecificDetailObject?: {
+    bookmarksPaneEnabled?: string;
+    filterPaneEnabled?: string;
+    liveEmbedUrl?: string;
+    liveReportId?: string;
+    liveWorkspaceId?: string;
+    navigationPaneEnabled?: string;
+    previewEmbedUrl?: string;
+    previewReportId?: string;
+    previewWorkspaceId?: string;
+  };
+}
+
 export interface RootContentItemWithPublication extends RootContentItemWithStats {
   status: PublicationWithQueueDetails;
 }
+
 export interface SelectionGroup {
   id: Guid;
   rootContentItemId?: Guid;
@@ -113,23 +145,28 @@ export interface SelectionGroup {
   isMaster: boolean;
   name: string;
 }
+
 export interface SelectionGroupWithAssignedUsers extends SelectionGroup {
   assignedUsers: Guid[];
 }
+
 export interface SelectionGroupWithStatus extends SelectionGroup {
   status: ReductionWithQueueDetails;
 }
+
 export interface ReductionField {
   id: Guid;
   rootContentItemId?: Guid;
   fieldName: string;
   displayName: string;
 }
+
 export interface ReductionFieldValue {
   id: Guid;
   reductionFieldId?: Guid;
   value: string;
 }
+
 export interface ContentPublicationRequest {
   id: Guid;
   rootContentItemId: Guid;
@@ -137,6 +174,7 @@ export interface ContentPublicationRequest {
   createDateTimeUtc: string;
   requestStatus: PublicationStatus;
 }
+
 export interface ContentReductionTask {
   id: Guid;
   contentPublicationRequestId?: Guid;
@@ -147,6 +185,7 @@ export interface ContentReductionTask {
   taskStatus: ReductionStatus;
   taskStatusMessage: string;
 }
+
 export interface ContentType {
   id: Guid;
   canReduce: boolean;
@@ -171,24 +210,29 @@ export interface PublicationQueueDetails {
   reductionsCompleted?: number;
   reductionsTotal?: number;
 }
+
 export interface ReductionQueueDetails {
   reductionId: Guid;
   queuePosition: number;
 }
+
 export interface PublicationWithQueueDetails extends ContentPublicationRequest {
   queueDetails: PublicationQueueDetails;
   applicationUser: User;
   requestStatusName: string;
 }
+
 export interface ReductionWithQueueDetails extends ContentReductionTask {
   queueDetails: ReductionQueueDetails;
   applicationUser: User;
   taskStatusName: string;
 }
+
 export function isPublicationRequest(request: ContentPublicationRequest | ContentReductionTask)
     : request is ContentPublicationRequest {
   return request && (request as ContentPublicationRequest).rootContentItemId !== undefined;
 }
+
 export function isReductionTask(request: ContentPublicationRequest | ContentReductionTask)
     : request is ContentReductionTask {
   return request && (request as ContentReductionTask).selectionGroupId !== undefined;

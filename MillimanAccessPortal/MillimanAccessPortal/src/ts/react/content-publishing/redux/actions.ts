@@ -140,6 +140,22 @@ export interface FetchContentItemDetailFailed {
 }
 
 /**
+ * Set the value of a form inputs
+ */
+
+export interface SetPublishingFormTextInputValue {
+  type: 'SET_PENDING_TEXT_INPUT_VALUE';
+  inputName: 'contentDisclaimer' | 'contentName' | 'contentTypeId' | 'contentDescription' | 'contentNotes';
+  value: string;
+}
+
+export interface SetPublishingFormBooleanInputValue {
+  type: 'SET_PENDING_BOOLEAN_INPUT_VALUE';
+  inputName: 'doesReduce' | 'isSuspended';
+  value: boolean;
+}
+
+/**
  * GET:
  *   content items for the selected client;
  *   publications for the selected client;
@@ -215,6 +231,8 @@ export type PagePublishingAction =
   | SelectItem
   | SetFilterTextClient
   | SetFilterTextItem
+  | SetPublishingFormTextInputValue
+  | SetPublishingFormBooleanInputValue
   | PromptStatusRefreshStopped
   | DecrementStatusRefreshAttempts
   ;

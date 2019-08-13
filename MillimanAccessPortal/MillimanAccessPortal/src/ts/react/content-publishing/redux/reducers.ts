@@ -6,7 +6,7 @@ import { generateUniqueId } from '../../../upload/generate-unique-identifier';
 import { ProgressSummary } from '../../../upload/progress-monitor';
 import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
-import { AssociatedContentItemUpload } from '../../models';
+import { AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { Dict, FilterState } from '../../shared-components/redux/store';
@@ -25,11 +25,52 @@ const _initialData: PublishingStateData = {
   publications: {},
   publicationQueue: {},
 };
+
+const emptyContentItemDetail: ContentItemDetail = {
+  clientId: '',
+  contentDisclaimer: '',
+  contentName: '',
+  contentTypeId: '',
+  contentDescription: '',
+  doesReduce: false,
+  id: '',
+  isSuspended: false,
+  contentNotes: '',
+  relatedFiles: {
+    MasterContent: {
+      filePurpose: '',
+      fileOriginalName: '',
+      uniqueUploadId: '',
+    },
+  },
+  associatedFiles: {},
+  typeSpecificDetailObject: {},
+};
+
+const emptyContentItemErrors: ContentItemFormErrors = {
+  clientId: '',
+  contentDisclaimer: '',
+  contentName: '',
+  contentTypeId: '',
+  contentDescription: '',
+  doesReduce: '',
+  id: '',
+  isSuspended: '',
+  contentNotes: '',
+  relatedFiles: {
+    MasterContent: '',
+  },
+  associatedFiles: {},
+  typeSpecificDetailObject: {},
+};
+
 const _initialFormData: PublishingFormData = {
-  originalData: {},
-  formData: {},
+  originalData: emptyContentItemDetail,
+  formData: emptyContentItemDetail,
+  formErrors: emptyContentItemErrors,
   uploads: {},
 };
+
 const _initialPendingData: PendingDataState = {
   globalData: false,
   clients: false,
@@ -221,17 +262,32 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     }
 
     return {
-      uploads: {
-        ...uploads,
-      },
       originalData: {
         ...contentItemDetail,
       },
       formData: {
         ...contentItemDetail,
       },
+      formErrors: {},
+      uploads: {
+        ...uploads,
+      },
     };
   },
+  SET_PENDING_TEXT_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormTextInputValue) => ({
+    ...state,
+    formData: {
+      ...state.formData,
+      [action.inputName]: action.value,
+    },
+  }),
+  SET_PENDING_BOOLEAN_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormBooleanInputValue) => ({
+    ...state,
+    formData: {
+      ...state.formData,
+      [action.inputName]: action.value,
+    },
+  }),
 });
 
 const selected = createReducer<PublishingStateSelected>(

@@ -23,13 +23,15 @@ import { CardStat } from '../shared-components/card/card-stat';
 import { ContentPanel } from '../shared-components/content-panel/content-panel';
 import { FileUploadInput } from '../shared-components/file-upload-input';
 import { Filter } from '../shared-components/filter';
+import { FormInputContainer, FormSection, FormSectionContainer  } from '../shared-components/form/form-elements';
+import { Input } from '../shared-components/input';
 import { NavBar } from '../shared-components/navbar';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
-    activeSelectedClient, activeSelectedItem, clientEntities, itemEntities, selectedItem,
+  activeSelectedClient, activeSelectedItem, clientEntities, itemEntities, selectedItem,
 } from './redux/selectors';
 import {
-    PublishingState, PublishingStateCardAttributes, PublishingStateFilters,
+    PublishingFormData, PublishingState, PublishingStateCardAttributes, PublishingStateFilters,
     PublishingStatePending, PublishingStateSelected,
 } from './redux/store';
 
@@ -41,6 +43,7 @@ interface RootContentItemEntity extends RootContentItemWithPublication {
 interface ContentPublishingProps {
   clients: ClientEntity[];
   items: RootContentItemEntity[];
+  formData: PublishingFormData;
   selected: PublishingStateSelected;
   cardAttributes: PublishingStateCardAttributes;
   pending: PublishingStatePending;
@@ -75,7 +78,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         />
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
-        {this.renderItemPanel()}
+        {this.props.selected.client && this.renderItemPanel()}
         {this.props.selected.item && this.renderContentItemForm()}
       </>
     );
@@ -258,8 +261,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderContentItemForm() {
-    // const { activeSelectedItem: selectedItem, pending } = this.props;
-    const { pending } = this.props;
+    const { formData: dataForForm, pending } = this.props;
+    const { formErrors, formData } = dataForForm;
     const contentItemFormButtons = (
       <ActionIcon
         label="Close Form"
@@ -275,25 +278,27 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             {contentItemFormButtons}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
-        <FileUploadInput
-          name="Test"
-          label="Upload Test"
-          value=""
-          error=""
-          placeholderText="Master Content File"
-          cancelable={false}
-          cancelFileUpload={(uploadId) => this.props.cancelFileUpload({ uploadId })}
-          checksumProgress={null}
-          finalizeUpload={(uploadId, filename, Guid) => this.props.finalizeUpload({ uploadId, filename, Guid })}
-          purpose="masterContent"
-          setChecksum={(uploadId, checksum) => this.props.setChecksumValue({ uploadId, checksum })}
-          setCancelable={(uploadId, cancelable) => this.props.setUploadCancelable({ uploadId, cancelable })}
-          setUploadError={(uploadId, errorMsg) => this.props.setUploadError({ uploadId, errorMsg })}
-          uploadProgress={null}
-          uploadId="abc123"
-          updateChecksumProgress={(uploadId, progress) => this.props.updateChecksumProgress({ uploadId, progress })}
-          updateUploadProgress={(uploadId, progress) => this.props.updateUploadProgress({ uploadId, progress })}
-        />
+        <FormSectionContainer>
+          <FormSection title="Content Item Information">
+            <FormInputContainer flexPhone={12}>
+              <Input
+                autoFocus={true}
+                error={formErrors.contentName}
+                label="Content Name"
+                name="contentName"
+                onBlur={() => false}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.props.setPublishingFormTextInputValue({
+                    inputName: 'contentName',
+                    value: target.value,
+                  });
+                }}
+                type="text"
+                value={formData.contentName}
+              />
+            </FormInputContainer>
+          </FormSection>
+        </FormSectionContainer>
       </ContentPanel>
     );
   }
@@ -301,10 +306,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 }
 
 function mapStateToProps(state: PublishingState): ContentPublishingProps {
-  const { data, selected, cardAttributes, pending, filters } = state;
+  const { formData, selected, cardAttributes, pending, filters } = state;
   return {
     clients: clientEntities(state),
     items: itemEntities(state),
+    formData,
     selected,
     cardAttributes,
     pending,
