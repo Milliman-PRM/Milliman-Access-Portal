@@ -59,15 +59,18 @@ export interface RelatedFileUpload extends RelatedFile {
   uniqueUploadId?: string;
 }
 
-export interface AssociatedContentItem {
+export interface AssociatedFileModel {
   id: Guid;
   fileType: number;
   displayName: string;
   fileOriginalName: string;
   sortOrder: string;
 }
-export interface AssociatedContentItemUpload extends AssociatedContentItem {
+export interface AssociatedContentItemUpload extends AssociatedFileModel {
   uniqueUploadId: string;
+}
+export interface AssociatedFilePreviewSummary extends AssociatedFileModel {
+  link: string;
 }
 
 export interface ContentItemDetail {
