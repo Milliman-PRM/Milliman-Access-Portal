@@ -147,8 +147,8 @@ namespace MillimanAccessPortal
                         throw new NotSupportedException($"Publication request cannot be created for unsupported ContentType {rootContentItem.ContentType.TypeEnum.ToString()}");
                 }
 
-                List<RequestedAssociatedFile> associatedFiles = publicationRequest.RequestedAssociatedFileList;
-                foreach (RequestedAssociatedFile UploadedFileRef in associatedFiles)
+                List<AssociatedFileModel> associatedFiles = publicationRequest.RequestedAssociatedFileList;
+                foreach (AssociatedFileModel UploadedFileRef in associatedFiles)
                 {
                     // move uploaded file(s) to content folder with temporary name(s)
                     ContentAssociatedFile Caf = HandleAssociatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath);
@@ -257,7 +257,7 @@ namespace MillimanAccessPortal
             return ReturnObj;
         }
 
-        private static ContentAssociatedFile HandleAssociatedFile(ApplicationDbContext Db, RequestedAssociatedFile uploadedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
+        private static ContentAssociatedFile HandleAssociatedFile(ApplicationDbContext Db, AssociatedFileModel uploadedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
         {
             ContentAssociatedFile ReturnObj = null;
 

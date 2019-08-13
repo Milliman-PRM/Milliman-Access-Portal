@@ -291,7 +291,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValueSelection> PendingSelections { get; set; }
     }
 
-    public class AssociatedFilePreviewSummary : RequestedAssociatedFile
+    public class AssociatedFilePreviewSummary : AssociatedFileModel
     {
         public string Link { get; set; } = string.Empty;
 

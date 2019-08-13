@@ -234,13 +234,13 @@ namespace MapDbContextLib.Context
         /// </summary>
         /// <remarks>This field is expected to be empty once uploaded files have been processed.</remarks>
         [NotMapped]
-        public List<RequestedAssociatedFile> RequestedAssociatedFileList
+        public List<AssociatedFileModel> RequestedAssociatedFileList
         {
             get
             {
                 return string.IsNullOrWhiteSpace(RequestedAssociatedFiles)
-                    ? new List<RequestedAssociatedFile>()
-                    : JsonConvert.DeserializeObject<List<RequestedAssociatedFile>>(RequestedAssociatedFiles);
+                    ? new List<AssociatedFileModel>()
+                    : JsonConvert.DeserializeObject<List<AssociatedFileModel>>(RequestedAssociatedFiles);
             }
             set
             {

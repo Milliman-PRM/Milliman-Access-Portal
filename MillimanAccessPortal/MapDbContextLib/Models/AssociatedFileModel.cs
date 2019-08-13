@@ -8,7 +8,7 @@ using System;
 
 namespace MapDbContextLib.Models
 {
-    public class RequestedAssociatedFile
+    public class AssociatedFileModel
     {
         public Guid Id { get; set; }
 
@@ -20,7 +20,7 @@ namespace MapDbContextLib.Models
 
         public ContentAssociatedFileType FileType { get; set; } = ContentAssociatedFileType.Unknown;
 
-        public RequestedAssociatedFile(ContentAssociatedFile source)
+        public AssociatedFileModel(ContentAssociatedFile source)
         {
             Id = source.Id;
             FileType = source.FileType;
