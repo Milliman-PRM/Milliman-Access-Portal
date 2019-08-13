@@ -40,7 +40,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy { get; set; }
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; }
-        public List<AssociatedFileSummary> AssociatedFiles { get; set; } = new List<AssociatedFileSummary>();
+        public List<AssociatedFilePreviewSummary> AssociatedFiles { get; set; } = new List<AssociatedFilePreviewSummary>();
 
         public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
         {
@@ -168,14 +168,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
             foreach (var associatedFile in PubRequest.LiveReadyAssociatedFilesList)
             {
-                var summary = new AssociatedFileSummary
-                {
-                    Id = associatedFile.Id,
-                    DisplayName = associatedFile.DisplayName,
-                    FileOriginalName = associatedFile.FileOriginalName,
-                    FileType = associatedFile.FileType,
-                    SortOrder = associatedFile.SortOrder,
-                };
+                var summary = new AssociatedFilePreviewSummary(associatedFile);
                 UriBuilder builder = new UriBuilder
                 {
                     Scheme = Context.Request.Scheme,
@@ -298,26 +291,14 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValueSelection> PendingSelections { get; set; }
     }
 
-    public class AssociatedFileSummary
+    public class AssociatedFilePreviewSummary : RequestedAssociatedFile
     {
-        public Guid Id { get; set; }
-        public string DisplayName { get; set; } = string.Empty;
-        public string FileOriginalName { get; set; }
-        public string SortOrder { get; set; } = null;
-        public ContentAssociatedFileType FileType { get; set; } = ContentAssociatedFileType.Unknown;
         public string Link { get; set; } = string.Empty;
 
-        public static explicit operator AssociatedFileSummary(ContentAssociatedFile source)
+        public AssociatedFilePreviewSummary(ContentAssociatedFile source)
+            : base(source)
         {
-            return new AssociatedFileSummary
-            {
-                Id = source.Id,
-                DisplayName = source.DisplayName,
-                FileOriginalName = source.FileOriginalName,
-                FileType = source.FileType,
-                SortOrder = source.SortOrder,
-                Link = string.Empty,
-            };
+            Link = string.Empty;
         }
     }
 }

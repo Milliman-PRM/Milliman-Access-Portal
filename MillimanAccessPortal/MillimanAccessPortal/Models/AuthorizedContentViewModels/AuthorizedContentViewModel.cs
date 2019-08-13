@@ -104,7 +104,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                             : null,
                         AssociatedFiles = sg.RootContentItem.AssociatedFilesList.Select(af =>
                         {
-                            AssociatedFileSummary summary = (AssociatedFileSummary)af;
+                            AssociatedFilePreviewSummary summary = new AssociatedFilePreviewSummary(af);
                             UriBuilder uri = new UriBuilder
                             {
                                 Scheme = Context.Request.Scheme,
@@ -141,6 +141,6 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
         public string ContentURL { get; set; }
         public string UserguideURL { get; set; }
         public string ReleaseNotesURL { get; set; }
-        public List<AssociatedFileSummary> AssociatedFiles { get; set; }
+        public List<AssociatedFilePreviewSummary> AssociatedFiles { get; set; }
     }
 }

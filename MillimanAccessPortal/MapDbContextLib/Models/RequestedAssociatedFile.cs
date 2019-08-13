@@ -19,5 +19,14 @@ namespace MapDbContextLib.Models
         public string SortOrder { get; set; } = string.Empty;
 
         public ContentAssociatedFileType FileType { get; set; } = ContentAssociatedFileType.Unknown;
+
+        public RequestedAssociatedFile(ContentAssociatedFile source)
+        {
+            Id = source.Id;
+            FileType = source.FileType;
+            DisplayName = source.DisplayName;
+            FileOriginalName = source.FileOriginalName;
+            SortOrder = source.SortOrder;
+        }
     }
 }

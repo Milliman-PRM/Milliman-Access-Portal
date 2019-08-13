@@ -187,7 +187,7 @@ namespace MillimanAccessPortal.DataQueries
                 ContentTypeId = rootContentItem.ContentTypeId,
                 DoesReduce = rootContentItem.DoesReduce,
                 RelatedFiles = relatedFiles.ToDictionary(f => f.FilePurpose),
-                AssociatedFiles = rootContentItem.AssociatedFilesList.ConvertAll(f => new ContentAssociatedFileModel(f)).ToDictionary(f => f.Id),
+                AssociatedFiles = rootContentItem.AssociatedFilesList.ConvertAll(f => new RequestedAssociatedFile(f)).ToDictionary(f => f.Id),
                 ContentDescription = rootContentItem.Description,
                 ContentNotes = rootContentItem.Notes,
                 ContentDisclaimer = rootContentItem.ContentDisclaimer,
