@@ -8,8 +8,8 @@ import * as Yup from 'yup';
 import { postJsonData } from '../../../shared';
 import { Guid } from '../../shared-components/interfaces';
 
-import { BaseFormState, Form } from '../../shared-components/form';
-import { Input, TextAreaInput } from '../../shared-components/input';
+import { BaseFormState, Form } from '../../shared-components/form/form';
+import { Input, TextAreaInput } from '../../shared-components/form/input';
 
 export interface SetDomainLimitClientModalProps extends Modal.Props {
   clientId: Guid;

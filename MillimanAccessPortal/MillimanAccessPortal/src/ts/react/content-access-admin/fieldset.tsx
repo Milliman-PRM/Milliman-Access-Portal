@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Checkbox, CheckboxData } from '../shared-components/checkbox';
+import { Checkbox, CheckboxData } from '../shared-components/form/checkbox';
 
 export interface FieldsetData {
   name: string;

@@ -3,8 +3,8 @@ import '../../../scss/react/shared-components/form-elements.scss';
 import * as React from 'react';
 import * as Yup from 'yup';
 
-import { BaseFormState, Form } from '../shared-components/form';
-import { Input } from '../shared-components/input';
+import { BaseFormState, Form } from '../shared-components/form/form';
+import { Input } from '../shared-components/form/input';
 
 import { PasswordValidation } from '../../../ts/react/models';
 import { postJsonData } from '../../../ts/shared';

@@ -1,4 +1,4 @@
-﻿import '../../../scss/react/shared-components/form-elements.scss';
+﻿import '../../../../scss/react/shared-components/form-elements.scss';
 
 import * as React from 'react';
 

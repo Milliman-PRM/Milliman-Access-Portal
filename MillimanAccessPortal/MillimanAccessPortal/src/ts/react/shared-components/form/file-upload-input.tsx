@@ -1,11 +1,11 @@
-﻿import '../../../scss/react/shared-components/form-elements.scss';
+﻿import '../../../../scss/react/shared-components/form-elements.scss';
 
 import * as React from 'react';
-import { resumableOptions } from '../../lib-options';
-import { StatusMonitor } from '../../status-monitor';
-import { FileScanner } from '../../upload/file-scanner';
-import { FileSniffer } from '../../upload/file-sniffer';
-import { ProgressMonitor, ProgressSummary } from '../../upload/progress-monitor';
+import { resumableOptions } from '../../../lib-options';
+import { StatusMonitor } from '../../../status-monitor';
+import { FileScanner } from '../../../upload/file-scanner';
+import { FileSniffer } from '../../../upload/file-sniffer';
+import { ProgressMonitor, ProgressSummary } from '../../../upload/progress-monitor';
 
 import forge = require('node-forge');
 const resumable = require('resumablejs');
