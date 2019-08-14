@@ -247,6 +247,17 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
           </div>
           {children}
         </div>
+        {
+          !upload.cancelable &&
+          <div className="progress-bars">
+            {!errorMsg &&
+              <div className="progress-bar-checksum" style={{ width: upload.checksumProgress.percentage }} />}
+            {!errorMsg &&
+              <div className="progress-bar-upload" style={{ width: upload.uploadProgress.percentage }} />}
+            {errorMsg &&
+              <div className="progress-bar-error" style={{ width: '100%' }} />}
+          </div>
+        }
         {errorMsg && <div className="error-message">{errorMsg}</div>}
       </div>
     );
