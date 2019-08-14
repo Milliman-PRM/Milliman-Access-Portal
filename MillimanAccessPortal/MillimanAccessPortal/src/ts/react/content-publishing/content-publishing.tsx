@@ -21,10 +21,10 @@ import {
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
 import { ContentPanel } from '../shared-components/content-panel/content-panel';
-import { FileUploadInput } from '../shared-components/file-upload-input';
 import { Filter } from '../shared-components/filter';
+import { FileUploadInput } from '../shared-components/form/file-upload-input';
 import { FormInputContainer, FormSection, FormSectionContainer  } from '../shared-components/form/form-elements';
-import { Input } from '../shared-components/input';
+import { Input } from '../shared-components/form/input';
 import { NavBar } from '../shared-components/navbar';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
@@ -79,7 +79,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
         {this.props.selected.client && this.renderItemPanel()}
-        {this.props.selected.item && this.renderContentItemForm()}
+        {this.props.selected.item && this.props.formData.formData.clientId && this.renderContentItemForm()}
       </>
     );
   }
@@ -262,7 +262,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 
   private renderContentItemForm() {
     const { formData: dataForForm, pending } = this.props;
-    const { formErrors, formData } = dataForForm;
+    const { formErrors, formData, uploads } = dataForForm;
     const contentItemFormButtons = (
       <ActionIcon
         label="Close Form"
@@ -295,6 +295,76 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 }}
                 type="text"
                 value={formData.contentName}
+              />
+              <FormInputContainer contentItemFlex={1}>
+                <FileUploadInput
+                  cancelFileUpload={() => false}
+                  finalizeUpload={() => alert('upload succeeded')}
+                  label="Master Content"
+                  name="masterContent"
+                  placeholderText="Upload Master Content"
+                  setCancelable={() => false}
+                  setChecksum={() => false}
+                  setUploadError={() => alert('error!')}
+                  updateChecksumProgress={() => false}
+                  updateUploadProgress={() => false}
+                  upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
+                  uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
+                  value={formData.relatedFiles.MasterContent.fileOriginalName}
+                />
+              </FormInputContainer>
+            </FormInputContainer>
+          </FormSection>
+        </FormSectionContainer>
+        <FormSectionContainer>
+          <FormSection title="Content Related Files">
+            <FormInputContainer flexPhone={5}>
+              <FileUploadInput
+                cancelFileUpload={() => false}
+                finalizeUpload={() => alert('upload succeeded')}
+                label="Thumbnail"
+                name="thumbnail"
+                placeholderText="Upload Thumbnail"
+                setCancelable={() => false}
+                setChecksum={() => false}
+                setUploadError={() => alert('error!')}
+                updateChecksumProgress={() => false}
+                updateUploadProgress={() => false}
+                upload={uploads[formData.relatedFiles.Thumbnail.uniqueUploadId]}
+                uploadId={formData.relatedFiles.Thumbnail.uniqueUploadId}
+                value={formData.relatedFiles.Thumbnail.fileOriginalName}
+              />
+            </FormInputContainer>
+            <FormInputContainer flexPhone={7}>
+              <FileUploadInput
+                cancelFileUpload={() => false}
+                finalizeUpload={() => alert('upload succeeded')}
+                label="User Guide"
+                name="userGuide"
+                placeholderText="Upload User Guide"
+                setCancelable={() => false}
+                setChecksum={() => false}
+                setUploadError={() => alert('error!')}
+                updateChecksumProgress={() => false}
+                updateUploadProgress={() => false}
+                upload={uploads[formData.relatedFiles.UserGuide.uniqueUploadId]}
+                uploadId={formData.relatedFiles.UserGuide.uniqueUploadId}
+                value={formData.relatedFiles.UserGuide.fileOriginalName}
+              />
+              <FileUploadInput
+                cancelFileUpload={() => false}
+                finalizeUpload={() => alert('upload succeeded')}
+                label="Release Notes"
+                name="releaseNotes"
+                placeholderText="Upload Release Notes"
+                setCancelable={() => false}
+                setChecksum={() => false}
+                setUploadError={() => alert('error!')}
+                updateChecksumProgress={() => false}
+                updateUploadProgress={() => false}
+                upload={uploads[formData.relatedFiles.ReleaseNotes.uniqueUploadId]}
+                uploadId={formData.relatedFiles.ReleaseNotes.uniqueUploadId}
+                value={formData.relatedFiles.ReleaseNotes.fileOriginalName}
               />
             </FormInputContainer>
           </FormSection>
