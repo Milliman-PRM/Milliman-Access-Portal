@@ -6,6 +6,7 @@ import { StatusMonitor } from '../../../status-monitor';
 import { FileScanner } from '../../../upload/file-scanner';
 import { FileSniffer } from '../../../upload/file-sniffer';
 import { ProgressMonitor, ProgressSummary } from '../../../upload/progress-monitor';
+import { UploadState } from '../../../upload/Redux/store';
 
 import forge = require('node-forge');
 const resumable = require('resumablejs');
@@ -39,21 +40,16 @@ interface FileUploadInputProps {
   name: string;
   label: string;
   value: string;
-  error: string;
   placeholderText?: string;
-  hidden?: boolean;
-  cancelable: boolean;
   cancelFileUpload: (uploadId: string) => void;
-  checksumProgress: ProgressSummary;
   finalizeUpload: (uploadId: string, fileName: string, Guid: string) => void;
-  purpose: 'masterContent' | 'thumbnail' | 'userGuide' | 'releaseNotes' | 'associatedContent';
   setChecksum: (uploadId: string, checksum: string) => void;
   setCancelable: (uploadId: string, cancelable: boolean) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
-  uploadProgress: ProgressSummary;
-  uploadId: string;
   updateChecksumProgress: (uploadId: string, progress: ProgressSummary) => void;
   updateUploadProgress: (uploadId: string, progress: ProgressSummary) => void;
+  uploadId: string;
+  upload: UploadState;
 }
 
 export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
@@ -169,7 +165,6 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
               if (fileUpload.status === FileUploadStatus.Complete) {
                 this.progressMonitor.deactivate();
                 this.props.finalizeUpload(this.props.uploadId, resumableFile.fileName, fileGUID);
-                alert('upload succeeded!');
                 this.statusMonitor.stop();
               } else if (fileUpload.status === FileUploadStatus.Error) {
                 this.props.setUploadError(
@@ -232,10 +227,11 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
   }
 
   public render() {
-    const { name, label, error, placeholderText, children, hidden, ...rest } = this.props;
+    const { name, label, placeholderText, upload, value, children } = this.props;
+    const { checksumProgress, uploadProgress, cancelable, errorMsg } = upload;
     return (
-      <div className={`form-element-container${hidden ? ' hidden' : ''}`}>
-        <div className={`form-element-input ${error ? ' error' : ''}`}>
+      <div className="form-element-container">
+        <div className={`form-element-input ${errorMsg ? ' error' : ''}`}>
           <div className="form-input-container">
             <input
               ref={this.uploadRef}
@@ -244,13 +240,14 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
               name={name}
               id={name}
               placeholder={placeholderText || 'Upload ' + label}
+              value={value}
               readOnly={true}
             />
             <label className="form-input-label" htmlFor={name}>{label}</label>
           </div>
           {children}
         </div>
-        {error && <div className="error-message">{error}</div>}
+        {errorMsg && <div className="error-message">{errorMsg}</div>}
       </div>
     );
   }
