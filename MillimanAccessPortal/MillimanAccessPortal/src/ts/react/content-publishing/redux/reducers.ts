@@ -42,6 +42,21 @@ const emptyContentItemDetail: ContentItemDetail = {
       fileOriginalName: '',
       uniqueUploadId: '',
     },
+    Thumbnail: {
+      filePurpose: '',
+      fileOriginalName: '',
+      uniqueUploadId: '',
+    },
+    UserGuide: {
+      filePurpose: '',
+      fileOriginalName: '',
+      uniqueUploadId: '',
+    },
+    ReleaseNotes: {
+      filePurpose: '',
+      fileOriginalName: '',
+      uniqueUploadId: '',
+    },
   },
   associatedFiles: {},
   typeSpecificDetailObject: {},
@@ -59,6 +74,9 @@ const emptyContentItemErrors: ContentItemFormErrors = {
   contentNotes: '',
   relatedFiles: {
     MasterContent: '',
+    Thumbnail: '',
+    UserGuide: '',
+    ReleaseNotes: '',
   },
   associatedFiles: {},
   typeSpecificDetailObject: {},
@@ -215,23 +233,31 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       }
     }
 
+    const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
+      return (purpose !== undefined) && purpose.hasOwnProperty(value) ? purpose[value] : defaultValue;
+    };
+
     const contentItemDetail = {
       ...action.response,
       relatedFiles: {
         MasterContent: {
-          ...action.response.relatedFiles.MasterContent,
+          filePurpose: defaultIfUndefined(action.response.relatedFiles.MasterContent, 'filePurpose'),
+          fileOriginalName: defaultIfUndefined(action.response.relatedFiles.MasterContent, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('masterContent'),
         },
         Thumbnail: {
-          ...action.response.relatedFiles.Thumbnail,
+          filePurpose: defaultIfUndefined(action.response.relatedFiles.Thumbnail, 'filePurpose'),
+          fileOriginalName: defaultIfUndefined(action.response.relatedFiles.Thumbnail, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('thumbnail'),
         },
         UserGuide: {
-          ...action.response.relatedFiles.UserGuide,
+          filePurpose: defaultIfUndefined(action.response.relatedFiles.UserGuide, 'filePurpose'),
+          fileOriginalName: defaultIfUndefined(action.response.relatedFiles.UserGuide, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('userGuide'),
         },
         ReleaseNotes: {
-          ...action.response.relatedFiles.ReleaseNotes,
+          filePurpose: defaultIfUndefined(action.response.relatedFiles.ReleaseNotes, 'filePurpose'),
+          fileOriginalName: defaultIfUndefined(action.response.relatedFiles.ReleaseNotes, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('releaseNotes'),
         },
       },
