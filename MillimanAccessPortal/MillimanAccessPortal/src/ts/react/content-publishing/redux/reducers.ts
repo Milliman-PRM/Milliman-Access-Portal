@@ -4,6 +4,7 @@ import { combineReducers } from 'redux';
 
 import { generateUniqueId } from '../../../upload/generate-unique-identifier';
 import { ProgressSummary } from '../../../upload/progress-monitor';
+import * as UploadActions from '../../../upload/Redux/actions';
 import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
 import { AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors } from '../../models';
@@ -312,6 +313,26 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     formData: {
       ...state.formData,
       [action.inputName]: action.value,
+    },
+  }),
+  UPDATE_CHECKSUM_PROGRESS: (state, action: UploadActions.UpdateChecksumProgress) => ({
+    ...state,
+    uploads: {
+      ...state.uploads,
+     [action.uploadId]: {
+        ...state.uploads[action.uploadId],
+        checksumProgress: action.progress,
+      },
+    },
+  }),
+  UPDATE_UPLOAD_PROGRESS: (state, action: UploadActions.UpdateUploadProgress) => ({
+    ...state,
+    uploads: {
+      ...state.uploads,
+      [action.uploadId]: {
+        ...state.uploads[action.uploadId],
+        uploadProgress: action.progress,
+      },
     },
   }),
 });

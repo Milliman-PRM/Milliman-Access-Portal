@@ -306,8 +306,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   setCancelable={() => false}
                   setChecksum={() => false}
                   setUploadError={() => alert('error!')}
-                  updateChecksumProgress={() => false}
-                  updateUploadProgress={() => false}
+                  updateChecksumProgress={(uploadId, progress) =>
+                    this.props.updateChecksumProgress({ uploadId, progress })}
+                  updateUploadProgress={(uploadId, progress) =>
+                    this.props.updateUploadProgress({ uploadId, progress })}
                   upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
                   uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
                   value={formData.relatedFiles.MasterContent.fileOriginalName}
@@ -328,8 +330,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 setCancelable={() => false}
                 setChecksum={() => false}
                 setUploadError={() => alert('error!')}
-                updateChecksumProgress={() => false}
-                updateUploadProgress={() => false}
+                updateChecksumProgress={(uploadId, progress) =>
+                  this.props.updateChecksumProgress({ uploadId, progress })}
+                updateUploadProgress={(uploadId, progress) =>
+                  this.props.updateUploadProgress({ uploadId, progress })}
                 upload={uploads[formData.relatedFiles.Thumbnail.uniqueUploadId]}
                 uploadId={formData.relatedFiles.Thumbnail.uniqueUploadId}
                 value={formData.relatedFiles.Thumbnail.fileOriginalName}
@@ -345,8 +349,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 setCancelable={() => false}
                 setChecksum={() => false}
                 setUploadError={() => alert('error!')}
-                updateChecksumProgress={() => false}
-                updateUploadProgress={() => false}
+                updateChecksumProgress={(uploadId, progress) =>
+                  this.props.updateChecksumProgress({ uploadId, progress })}
+                updateUploadProgress={(uploadId, progress) =>
+                  this.props.updateUploadProgress({ uploadId, progress })}
                 upload={uploads[formData.relatedFiles.UserGuide.uniqueUploadId]}
                 uploadId={formData.relatedFiles.UserGuide.uniqueUploadId}
                 value={formData.relatedFiles.UserGuide.fileOriginalName}
@@ -360,8 +366,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 setCancelable={() => false}
                 setChecksum={() => false}
                 setUploadError={() => alert('error!')}
-                updateChecksumProgress={() => false}
-                updateUploadProgress={() => false}
+                updateChecksumProgress={(uploadId, progress) =>
+                  this.props.updateChecksumProgress({ uploadId, progress })}
+                updateUploadProgress={(uploadId, progress) =>
+                  this.props.updateUploadProgress({ uploadId, progress })}
                 upload={uploads[formData.relatedFiles.ReleaseNotes.uniqueUploadId]}
                 uploadId={formData.relatedFiles.ReleaseNotes.uniqueUploadId}
                 value={formData.relatedFiles.ReleaseNotes.fileOriginalName}
