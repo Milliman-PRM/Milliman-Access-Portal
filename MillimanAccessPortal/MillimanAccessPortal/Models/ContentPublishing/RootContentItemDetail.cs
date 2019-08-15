@@ -33,8 +33,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public List<ContentRelatedFile> RelatedFiles { get; set; }
 
-        public List<ContentAssociatedFile> AssociatedFiles { get; set; }
-
         public string Description { get; set; }
 
         public string Notes { get; set; }
@@ -76,7 +74,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ContentTypeId = rootContentItem.ContentTypeId,
                 DoesReduce = rootContentItem.DoesReduce,
                 RelatedFiles = relatedFiles,
-                AssociatedFiles = rootContentItem.AssociatedFilesList,
                 Description = rootContentItem.Description,
                 Notes = rootContentItem.Notes,
                 ContentDisclaimer = rootContentItem.ContentDisclaimer,

@@ -197,7 +197,3 @@ At this time, an email should be sent informing all interested parties (manageme
 #### Post Deployment
 
 Once the new release has been deployed, someone should log in to ensure that the new features, or fixes, have been properly applied in the application.  If serious issues are found, it may be necessary to revert the deployment, and this will need to be coordinated with the person performing the deployment.
-
-#### Schedule Next Retrospective
-
-After the new release has been deployed, set up the next 1 hour retrospective meeting with the hosting team. Try to set up the next meeting relatively close to the release date so that the team is able to speak to the release in the retrospective.
