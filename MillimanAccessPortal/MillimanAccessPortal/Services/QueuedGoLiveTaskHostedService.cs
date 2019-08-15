@@ -315,8 +315,8 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             .Intersect(AllRemainingFieldValues).ToArray();
                     }
 
-                    // 2 Move new master content and related files (not reduced content) into live file names,
-                    //   removing any existing copies of previous version
+                    // 2 Move new files into live file names, removing any existing copies of previous version
+                    #region 2.1 Master content (not reduced content) and Content Related Files
                     List<ContentRelatedFile> UpdatedContentFilesList = publicationRequest.RootContentItem.ContentFilesList;
                     foreach (ContentRelatedFile Crf in publicationRequest.LiveReadyFilesObj)
                     {
@@ -424,6 +424,80 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         }
                     }
                     publicationRequest.RootContentItem.ContentFilesList = UpdatedContentFilesList;
+                    #endregion
+
+                    #region 2.2 Content Associated Files
+                    var associatedFileIdComparer = new IdPropertyComparer<ContentAssociatedFile>();
+
+                    List<ContentAssociatedFile> updatedAssociatedFilesList = publicationRequest.RootContentItem.AssociatedFilesList
+                        .Intersect(publicationRequest.LiveReadyAssociatedFilesList, associatedFileIdComparer)
+                        .ToList();
+
+                    //      - for any previous id that is not in the new list, remove from storage
+                    List<ContentAssociatedFile> ExpiringAssociatedFilesList = publicationRequest.RootContentItem.AssociatedFilesList
+                        .Except(publicationRequest.LiveReadyAssociatedFilesList, associatedFileIdComparer)
+                        .ToList();
+                    foreach (ContentAssociatedFile Caf in ExpiringAssociatedFilesList)
+                    {
+                        // Move any existing live file of this name to backed up name
+                        if (File.Exists(Caf.FullPath))
+                        {
+                            string BackupFilePath = Caf.FullPath + ".bak";
+                            if (File.Exists(BackupFilePath))
+                            {
+                                File.Delete(BackupFilePath);
+                            }
+                            File.Move(Caf.FullPath, BackupFilePath);
+
+                            successActionList.Add(new Action(() => {
+                                File.Delete(BackupFilePath);
+                            }));
+                            failureRecoveryActionList.Add(new Action(() => {
+                                if (File.Exists(Caf.FullPath))
+                                {
+                                    File.Delete(Caf.FullPath);
+                                }
+                                File.Move(BackupFilePath, Caf.FullPath);
+                            }));
+                        }
+                    }
+
+                    //      - for any new id that is not in the previous list, add to storage
+                    List<ContentAssociatedFile> newAssociatedFilesList = publicationRequest.LiveReadyAssociatedFilesList
+                        .Except(publicationRequest.RootContentItem.AssociatedFilesList, new IdPropertyComparer<ContentAssociatedFile>())
+                        .ToList();
+                    foreach (ContentAssociatedFile Caf in newAssociatedFilesList)
+                    {
+                        // This assignment defines the live file name
+                        string TargetFileName = ContentTypeSpecificApiBase.GenerateLiveAssociatedFileName(
+                            Caf.Id, goLiveViewModel.RootContentItemId, Path.GetExtension(Caf.FullPath));
+
+                        string TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
+                                                             goLiveViewModel.RootContentItemId.ToString(),
+                                                             TargetFileName);
+
+                        // Can move since files are on the same volume
+                        if (File.Exists(TargetFilePath))
+                        {
+                            File.Delete(TargetFilePath);
+                        }
+                        File.Move(Caf.FullPath, TargetFilePath);
+                        ContentAssociatedFile newLiveFile = Caf;
+                        newLiveFile.FullPath = TargetFilePath;
+                        updatedAssociatedFilesList.Add(newLiveFile);
+
+                        failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
+                            if (File.Exists(Caf.FullPath))
+                            {
+                                File.Delete(Caf.FullPath);
+                            }
+                            File.Move(TargetFilePath, Caf.FullPath);
+                        }));
+                    }
+
+                    //      - store the new list in the RootContentItem
+                    publicationRequest.RootContentItem.AssociatedFilesList = updatedAssociatedFilesList.OrderBy(f => f.SortOrder).ToList();
+                    #endregion
 
                     // 3 Rename reduced content files to live names
                     foreach (var ThisTask in relatedReductionTasks.Where(t => t.SelectionGroupId.HasValue).Where(t => !t.SelectionGroup.IsMaster))
@@ -527,8 +601,9 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                string msg = ex.Message;
                 // reset publication status to Processed so the user can retry the preview and go-live
                 dbContext.Entry(publicationRequest).State = EntityState.Detached;  // force update from db on next query
                 publicationRequest = dbContext.ContentPublicationRequest

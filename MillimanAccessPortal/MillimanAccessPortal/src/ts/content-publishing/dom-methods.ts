@@ -24,9 +24,11 @@ import {
 import { setUnloadAlert } from '../unload-alerts';
 import { UploadComponent } from '../upload/upload';
 import {
-  BasicNode, ClientSummary, ClientTree, ContentReductionHierarchy, ContentType, ContentTypeEnum, isSelection,
-    PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue, RootContentItemDetail,
-    RootContentItemList, RootContentItemSummary, RootContentItemSummaryAndDetail,
+  BasicNode, ClientSummary, ClientTree, ContentAssociatedFileTypeEnum,
+  ContentReductionHierarchy, ContentType, ContentTypeEnum, isSelection,
+  PreLiveContentValidationSummary, PublishRequest, ReductionFieldValue,
+  RootContentItemDetail, RootContentItemList, RootContentItemSummary,
+  RootContentItemSummaryAndDetail,
 } from '../view-models/content-publishing';
 import { PublicationStatusMonitor } from './publication-status-monitor';
 
@@ -144,6 +146,7 @@ export function openNewRootContentItemForm() {
     notes: '',
     contentDisclaimer: '',
     relatedFiles: [],
+    associatedFiles: [],
     isSuspended: false,
   });
   setFormNew();
@@ -584,7 +587,8 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
           .siblings('label').find('.file-upload')
           .data('originalName', relatedFile.fileOriginalName);
       });
-    }
+      }
+      // TODO deal with new property associatedFiles
 
     const $doesReduceToggle = $rootContentItemForm.find('#DoesReduce');
     $doesReduceToggle.prop('checked', item.doesReduce);
@@ -691,7 +695,24 @@ function renderRootContentItemForm(item?: RootContentItemDetail, ignoreFiles: bo
           .filter((file) => file.fileUploadId && file.fileUploadId !== 'delete'),
         deleteFilePurposes: fileChanges
           .filter((file) => file.fileUploadId && file.fileUploadId === 'delete')
-          .map((file) => file.filePurpose),
+            .map((file) => file.filePurpose),
+        associatedFiles: [
+          // TODO temporary hack, make this right.
+          {
+            id: '20000000-0000-0000-0000-000000000000',
+            displayName: 'two',
+            fileOriginalName: 'two.xls',
+            sortOrder: '2',
+            fileType: ContentAssociatedFileTypeEnum.FileDownload,
+          },
+          {
+            id: '10000000-0000-0000-0000-000000000000',
+            displayName: 'one',
+            fileOriginalName: 'one.xls',
+            sortOrder: '1',
+            fileType: ContentAssociatedFileTypeEnum.FileDownload,
+          },
+        ],
         rootContentItemId: dataArray.Id,
       };
       return publishRequest;
