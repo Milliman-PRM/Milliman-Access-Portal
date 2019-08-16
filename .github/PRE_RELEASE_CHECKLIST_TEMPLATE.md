@@ -74,7 +74,6 @@ Completed by: ___________
 - [ ] Merge into Master and promote released code base
 - [ ] Tag release
 - [ ] Merge into Develop to make sure warm changes are propagated
-- [ ] Schedule a Hosting retrospective meeting
 
 ##### Assertions
 

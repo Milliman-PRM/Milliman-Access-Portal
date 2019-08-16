@@ -602,8 +602,7 @@ namespace MillimanAccessPortal.Controllers
                     RootContentItemId = ContentItem.Id,
                     LiveReadyFilesObj = new List<ContentRelatedFile>(),
                     ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
-                    UploadedRelatedFilesObj = request.NewRelatedFiles,
-                    RequestedAssociatedFileList = request.AssociatedFiles,
+                    UploadedRelatedFilesObj = request.NewRelatedFiles.ToList(),
                 };
                 DbContext.ContentPublicationRequest.Add(NewContentPublicationRequest);
 

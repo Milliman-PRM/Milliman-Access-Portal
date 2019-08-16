@@ -577,7 +577,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// Handles a request to display a content item's related thumbnail 
+        /// Handles a request to display a content items associated thumbnail 
         /// </summary>
         /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
@@ -642,7 +642,7 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>
         /// Handles a request to display a pre-production thumbnail 
         /// </summary>
-        /// <param name="publicationRequestId">The primary key value of the ContentPublicationRequest for this action</param>
+        /// <param name="publicationRequestId">The primary key value of the ContentPublicationRequest associated with this request</param>
         /// <returns>A View (and model) that displays the requested content</returns>
         public IActionResult ThumbnailPreview(Guid publicationRequestId)
         {
@@ -943,150 +943,6 @@ namespace MillimanAccessPortal.Controllers
                           + $"for publication request {PubRequest.Id}, aborting");
                 Response.Headers.Add("Warning", "Failed to load requested master file download for preview");
                 return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        }
-
-        /// <summary>
-        /// Handles a request to preview a ContentAssociatedFile
-        /// </summary>
-        /// <param name="publicationRequestId"></param>
-        /// <returns></returns>
-        public async Task<IActionResult> AssociatedFilePreview(Guid publicationRequestId, Guid fileId)
-        {
-            Log.Verbose($"Entered AuthorizedContentController.AssociatedFilePreview action: user {User.Identity.Name}, "
-                      + $"publicationRequestId {publicationRequestId}, fileId {fileId}");
-
-            var PubRequest = await DataContext.ContentPublicationRequest.SingleOrDefaultAsync(r => r.Id == publicationRequestId);
-
-            #region Preliminary validation
-            if (PubRequest == null)
-            {
-                string Msg = $"Failed to obtain the requested publication request";
-                Log.Error($"In AuthorizedContentController.AssociatedFilePreview action: {Msg}, aborting");
-                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
-            }
-            #endregion
-
-            #region Authorization
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
-                User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
-            if (!Result1.Succeeded)
-            {
-                Log.Verbose($"In AuthorizedContentController.AssociatedFilePreview action: authorization failed "
-                          + $"for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, "
-                          + $"role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
-
-                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
-                return Unauthorized();
-            }
-            #endregion
-
-            ContentAssociatedFile caf = PubRequest.LiveReadyAssociatedFilesList.SingleOrDefault(f => f.Id == fileId);
-
-            #region Validation
-            if (caf == null)
-            {
-                Log.Error($"In AuthorizedContentController.AssociatedFilePreview: error, no file with the requested id, aborting");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-            if (!System.IO.File.Exists(caf.FullPath) ||
-                !caf.ValidateChecksum())
-            {
-                Log.Error($"In AuthorizedContentController.AssociatedFilePreview: error, file {caf.FullPath} not found or failed checksum, aborting");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-            #endregion
-
-            Log.Verbose($"In AuthorizedContentController.AssociatedFilePreview action: returning file {caf.FullPath}");
-            switch (caf.FileType)
-            {
-                case ContentAssociatedFileType.Html:
-                    return PhysicalFile(caf.FullPath, "text/html");
-
-                case ContentAssociatedFileType.Pdf:
-                    return PhysicalFile(caf.FullPath, "application/pdf");
-
-                case ContentAssociatedFileType.FileDownload:
-                    return PhysicalFile(caf.FullPath, "application/octet-stream", caf.FileOriginalName);
-
-                default:
-                    string Msg = $"Request was for associated file of unsupported type {caf.FileType} ({caf.FileType.ToString()})";
-                    Log.Error($"In AuthorizedContentController.AssociatedFilePreview action: {Msg}, aborting");
-                    return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        }
-
-        /// <summary>
-        /// Handles a request to view a live ContentAssociatedFile
-        /// </summary>
-        /// <param name="itemId"></param>
-        /// <returns></returns>
-        public async Task<IActionResult> AssociatedFile(Guid selectionGroupId, Guid fileId)
-        {
-            Log.Verbose($"Entered AuthorizedContentController.AssociatedFile action: user {User.Identity.Name}, "
-                      + $"selectionGroupId {selectionGroupId}, fileId {fileId}");
-
-            RootContentItem contentItem = await DataContext.SelectionGroup
-                .Where(g => g.Id == selectionGroupId)
-                .Select(sg => sg.RootContentItem)
-                .SingleOrDefaultAsync();
-
-            #region Preliminary validation
-            if (contentItem == null)
-            {
-                string Msg = $"Failed to find the requested content item";
-                Log.Error($"In AuthorizedContentController.AssociatedFile action: {Msg}, aborting");
-                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
-            }
-            #endregion
-
-            #region Authorization
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
-                User, null, new UserInSelectionGroupRequirement(selectionGroupId));
-            if (!Result1.Succeeded)
-            {
-                Log.Verbose($"In AuthorizedContentController.AssociatedFile action: authorization failed "
-                          + $"for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
-
-                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
-                return Unauthorized();
-            }
-            #endregion
-
-            ContentAssociatedFile caf = contentItem.AssociatedFilesList.SingleOrDefault(f => f.Id == fileId);
-
-            #region Validation
-            if (caf == null)
-            {
-                Log.Error($"In AuthorizedContentController.AssociatedFile: error, no file with the requested id, aborting");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-            if (!System.IO.File.Exists(caf.FullPath) ||
-                !caf.ValidateChecksum())
-            {
-                Log.Error($"In AuthorizedContentController.AssociatedFile: error, file {caf.FullPath} not found or failed checksum, aborting");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-            #endregion
-
-            Log.Verbose($"In AuthorizedContentController.AssociatedFile action: returning file {caf.FullPath}");
-            switch (caf.FileType)
-            {
-                case ContentAssociatedFileType.Html:
-                    return PhysicalFile(caf.FullPath, "text/html");
-
-                case ContentAssociatedFileType.Pdf:
-                    return PhysicalFile(caf.FullPath, "application/pdf");
-
-                case ContentAssociatedFileType.FileDownload:
-                    return PhysicalFile(caf.FullPath, "application/octet-stream", caf.FileOriginalName);
-
-                default:
-                    string Msg = $"Request was for associated file of unsupported type {caf.FileType} ({caf.FileType.ToString()})";
-                    Log.Error($"In AuthorizedContentController.AssociatedFile action: {Msg}, aborting");
-                    return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
     }

@@ -40,7 +40,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy { get; set; }
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; }
-        public List<AssociatedFileSummary> AssociatedFiles { get; set; } = new List<AssociatedFileSummary>();
 
         public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
         {
@@ -166,73 +165,79 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 }
             }
 
-            foreach (var associatedFile in PubRequest.LiveReadyAssociatedFilesList)
-            {
-                var summary = new AssociatedFileSummary
-                {
-                    Id = associatedFile.Id,
-                    DisplayName = associatedFile.DisplayName,
-                    FileOriginalName = associatedFile.FileOriginalName,
-                    FileType = associatedFile.FileType,
-                    SortOrder = associatedFile.SortOrder,
-                };
-                UriBuilder builder = new UriBuilder
-                {
-                    Scheme = Context.Request.Scheme,
-                    Host = Context.Request.Host.Host,
-                    Port = Context.Request.Host.Port ?? -1,
-                    Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.AssociatedFilePreview)}",
-                    Query = $"publicationRequestId={PubRequest.Id}&fileId={associatedFile.Id}",
-                };
-                summary.Link = builder.Uri.AbsoluteUri;
-                ReturnObj.AssociatedFiles.Add(summary);
-            }
-
-            string ContentRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
+            string ContentRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");            
             foreach (ContentRelatedFile RelatedFile in PubRequest.LiveReadyFilesObj)
             {
                 string Link = Path.GetRelativePath(ContentRootPath, RelatedFile.FullPath);
-                UriBuilder contentUri = new UriBuilder
-                {
-                    Scheme = Context.Request.Scheme,
-                    Host = Context.Request.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
-                    Port = Context.Request.Host.Port ?? -1,
-                };
-
                 switch (RelatedFile.FilePurpose.ToLower())
                 {
                     case "mastercontent":
                         switch (PubRequest.RootContentItem.ContentType.TypeEnum)
                         {
                             case ContentTypeEnum.PowerBi:
-                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}";
-                                contentUri.Query = $"request={PubRequest.Id}";
+                                string[] QueryStringItems = new string[]
+                                {
+                                    $"request={PubRequest.Id}",
+                                };
 
-                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                UriBuilder powerBiContentUri = new UriBuilder
+                                {
+                                    Scheme = Context.Request.Scheme,
+                                    Host = Context.Request.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}",
+                                    Query = string.Join("&", QueryStringItems),
+                                };
+
+                                ReturnObj.MasterContentLink = powerBiContentUri.Uri.AbsoluteUri;
                                 break;
 
                             case ContentTypeEnum.Qlikview:
-                                contentUri.Path = "/AuthorizedContent/QvwPreview";
-                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
-                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                UriBuilder qvwUrlBuilder = new UriBuilder
+                                {
+                                    Host = Context.Request.Host.Host,
+                                    Scheme = Context.Request.Scheme,
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = "/AuthorizedContent/QvwPreview",
+                                    Query = $"publicationRequestId={PubRequest.Id}",
+                                };
+                                ReturnObj.MasterContentLink = qvwUrlBuilder.Uri.AbsoluteUri;
                                 break;
 
                             case ContentTypeEnum.Pdf:
-                                contentUri.Path = "/AuthorizedContent/PdfPreview";
-                                contentUri.Query = $"purpose=mastercontent&publicationRequestId={PubRequest.Id}";
-                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                UriBuilder pdfUrlBuilder = new UriBuilder
+                                {
+                                    Host = Context.Request.Host.Host,
+                                    Scheme = Context.Request.Scheme,
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = "/AuthorizedContent/PdfPreview",
+                                    Query = $"purpose=mastercontent&publicationRequestId={PubRequest.Id}",
+                                };
+                                ReturnObj.MasterContentLink = pdfUrlBuilder.Uri.AbsoluteUri;
                                 break;
 
                             case ContentTypeEnum.Html:
-                                contentUri.Path = "/AuthorizedContent/HtmlPreview";
-                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
-                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                UriBuilder HtmlUri = new UriBuilder
+                                {
+                                    Scheme = Context.Request.Scheme,
+                                    Host = Context.Request.Host.Host,
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = "/AuthorizedContent/HtmlPreview",
+                                    Query = $"publicationRequestId={PubRequest.Id}",
+                                };
+                                ReturnObj.MasterContentLink = HtmlUri.Uri.AbsoluteUri;
                                 break;
 
                             case ContentTypeEnum.FileDownload:
-                                contentUri.Path = "/AuthorizedContent/FileDownloadPreview";
-                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
-                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                UriBuilder FileDownloadUri = new UriBuilder
+                                {
+                                    Scheme = Context.Request.Scheme,
+                                    Host = Context.Request.Host.Host,
+                                    Port = Context.Request.Host.Port ?? -1,
+                                    Path = "/AuthorizedContent/FileDownloadPreview",
+                                    Query = $"publicationRequestId={PubRequest.Id}",
+                                };
+                                ReturnObj.MasterContentLink = FileDownloadUri.Uri.AbsoluteUri;
                                 break;
 
                             default:
@@ -241,22 +246,40 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         break;
 
                     case "thumbnail":
-                        contentUri.Path = "/AuthorizedContent/ThumbnailPreview";
-                        contentUri.Query = $"publicationRequestId={PubRequest.Id}";
+                        UriBuilder thumbnailUrlBuilder = new UriBuilder
+                        {
+                            Host = Context.Request.Host.Host,
+                            Scheme = Context.Request.Scheme,
+                            Port = Context.Request.Host.Port ?? -1,
+                            Path = "/AuthorizedContent/ThumbnailPreview",
+                            Query = $"publicationRequestId={PubRequest.Id}",
+                        };
                         // this doesn't happen
-                        ReturnObj.ThumbnailLink = contentUri.Uri.AbsoluteUri;
+                        ReturnObj.ThumbnailLink = thumbnailUrlBuilder.Uri.AbsoluteUri;
                         break;
 
                     case "userguide":
-                        contentUri.Path = "/AuthorizedContent/PdfPreview";
-                        contentUri.Query = $"purpose=userguide&publicationRequestId={PubRequest.Id}";
-                        ReturnObj.UserGuideLink = contentUri.Uri.AbsoluteUri;
+                        UriBuilder userGuideUrlBuilder = new UriBuilder
+                        {
+                            Host = Context.Request.Host.Host,
+                            Scheme = Context.Request.Scheme,
+                            Port = Context.Request.Host.Port ?? -1,
+                            Path = "/AuthorizedContent/PdfPreview",
+                            Query = $"purpose=userguide&publicationRequestId={PubRequest.Id}",
+                        };
+                        ReturnObj.UserGuideLink = userGuideUrlBuilder.Uri.AbsoluteUri;
                         break;
 
                     case "releasenotes":
-                        contentUri.Path = "/AuthorizedContent/PdfPreview";
-                        contentUri.Query = $"purpose=releasenotes&publicationRequestId={PubRequest.Id}";
-                        ReturnObj.ReleaseNotesLink = contentUri.Uri.AbsoluteUri;
+                        UriBuilder releaseNotesUrlBuilder = new UriBuilder
+                        {
+                            Host = Context.Request.Host.Host,
+                            Scheme = Context.Request.Scheme,
+                            Port = Context.Request.Host.Port ?? -1,
+                            Path = "/AuthorizedContent/PdfPreview",
+                            Query = $"purpose=releasenotes&publicationRequestId={PubRequest.Id}",
+                        };
+                        ReturnObj.ReleaseNotesLink = releaseNotesUrlBuilder.Uri.AbsoluteUri;
                         break;
                 }
             }
@@ -296,28 +319,5 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string InactiveReason { get; set; } = null;
         public ContentReductionHierarchy<ReductionFieldValueSelection> LiveSelections { get; set; }
         public ContentReductionHierarchy<ReductionFieldValueSelection> PendingSelections { get; set; }
-    }
-
-    public class AssociatedFileSummary
-    {
-        public Guid Id { get; set; }
-        public string DisplayName { get; set; } = string.Empty;
-        public string FileOriginalName { get; set; }
-        public string SortOrder { get; set; } = null;
-        public ContentAssociatedFileType FileType { get; set; } = ContentAssociatedFileType.Unknown;
-        public string Link { get; set; } = string.Empty;
-
-        public static explicit operator AssociatedFileSummary(ContentAssociatedFile source)
-        {
-            return new AssociatedFileSummary
-            {
-                Id = source.Id,
-                DisplayName = source.DisplayName,
-                FileOriginalName = source.FileOriginalName,
-                FileType = source.FileType,
-                SortOrder = source.SortOrder,
-                Link = string.Empty,
-            };
-        }
     }
 }

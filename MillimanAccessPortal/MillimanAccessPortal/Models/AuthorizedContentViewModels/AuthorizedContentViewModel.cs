@@ -1,7 +1,5 @@
 ﻿using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
-using MillimanAccessPortal.Models.ContentPublishing;
-using MillimanAccessPortal.Controllers;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
@@ -102,20 +100,6 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                         ReleaseNotesURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "releasenotes"))
                             ? $"{releaseNotesUrlBuilder.Uri.AbsoluteUri}{sg.Id}"
                             : null,
-                        AssociatedFiles = sg.RootContentItem.AssociatedFilesList.Select(af =>
-                        {
-                            AssociatedFileSummary summary = (AssociatedFileSummary)af;
-                            UriBuilder uri = new UriBuilder
-                            {
-                                Scheme = Context.Request.Scheme,
-                                Host = Context.Request.Host.Host,
-                                Port = Context.Request.Host.Port ?? -1,
-                                Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.AssociatedFile)}",
-                                Query = $"selectionGroupId={sg.Id}&fileId={af.Id}",
-                            };
-                            summary.Link = uri.Uri.AbsoluteUri;
-                            return summary;
-                        }).OrderBy(f => f.SortOrder).ToList(),
                     }).OrderBy(contentItem => contentItem.Name).ToList(),
                 }).OrderBy(group => group.Name).ToList(),
             };
@@ -141,6 +125,5 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
         public string ContentURL { get; set; }
         public string UserguideURL { get; set; }
         public string ReleaseNotesURL { get; set; }
-        public List<AssociatedFileSummary> AssociatedFiles { get; set; }
     }
 }
