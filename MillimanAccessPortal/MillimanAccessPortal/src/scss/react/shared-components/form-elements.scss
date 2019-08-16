@@ -1,5 +1,17 @@
 ﻿@import "../../map_modules/variables";
 
+.form-section-container {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: stretch;
+    align-content: stretch;
+}
+
+.form-section-divider {
+    display: flex;
+    flex-flow: row wrap;
+}
+
 .form-content-container {
     display: flex;
     flex-flow: column nowrap;
@@ -10,8 +22,11 @@
 }
 
 .form-section-title {
+    width: 100%;
+    border-bottom: 2px solid $charcoal;
+    font-weight: bold;
+    text-transform: uppercase;
     margin-bottom: 1em;
-    border-bottom: 1px solid $charcoal;
 }
 
 .form-element-container {
@@ -97,10 +112,11 @@
         .form-input-container,
         .form-select-container {
             flex: 1 0 auto;
+            align-items: flex-start;
             position: relative;
             border: 1px solid $charcoal;
             background-color: $white;
-
+            margin: 0;
 
             input.form-input,
             textarea.form-input,
@@ -203,8 +219,12 @@
 
     .progress-bar-error {
         background-color: $red;
+        width: 100%;
     }
 }
+
+/* Form Sections */
+
 
 
 .error-message {
