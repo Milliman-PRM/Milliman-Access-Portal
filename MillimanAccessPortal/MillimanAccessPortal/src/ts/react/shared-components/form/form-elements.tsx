@@ -1,7 +1,13 @@
 import * as React from 'react';
 
 export const FormSectionContainer: React.SFC = (props) => (
-  <form className="form-section-container" autoComplete="off">
+  <div className="form-section-container">
+    {props.children}
+  </div>
+);
+
+export const FormSectionDivider: React.SFC = (props) => (
+  <form className="form-section-divider" autoComplete="off">
     {props.children}
   </form>
 );
@@ -18,7 +24,7 @@ export const FormSection: React.SFC<FormSectionProps> = (props) => (
 );
 
 interface FormInputContainerProps {
-  alignSelf?: 'start' | 'end';
+  alignItems?: 'flex-start' | 'flex-end';
   contentItemFlex?: 'none' | 1 | 2;
   flex?: boolean;
   flexPhone?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
@@ -26,17 +32,17 @@ interface FormInputContainerProps {
   flexDesktop?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 }
 
-export const FormInputContainer: React.SFC<FormInputContainerProps> = (props) => (
-  <div
-    className={`
-      form-input-container
-      ${(props.flexPhone) ? ` flex-item-${props.flexPhone}-12` : ''}
-      ${(props.flexTablet) ? ` flex-item-for-tablet-up-${props.flexTablet}-12` : ''}
-      ${(props.flexDesktop) ? ` flex-item-for-desktop-up-${props.flexDesktop}-12` : ''}
-      ${(props.flex) ? ' form-input-flex' : ''}
-      ${(props.contentItemFlex) ? ` content-item-flex-${props.contentItemFlex}` : ''}
-    `}
-  >
-    {props.children}
-  </div>
-);
+export const FormInputContainer: React.SFC<FormInputContainerProps> = (props) => {
+  const cssAlign = (props.alignItems) ? `${props.alignItems}` : '';
+  const cssPhone = (props.flexPhone) ? ` flex-item-${props.flexPhone}-12` : '';
+  const cssTablet = (props.flexTablet) ? ` flex-item-for-tablet-up-${props.flexTablet}-12` : '';
+  const cssDesktop = (props.flexDesktop) ? ` flex-item-for-desktop-up-${props.flexDesktop}-12` : '';
+  const cssFlex = (props.flex) ? ' form-input-flex' : '';
+  const cssCIFlex = (props.contentItemFlex) ? ` content-item-flex-${props.contentItemFlex}` : '';
+
+  return (
+    <div className={`form-input-container${cssAlign}${cssPhone}${cssTablet}${cssDesktop}${cssFlex}${cssCIFlex}`}>
+      {props.children}
+    </div>
+  );
+};
