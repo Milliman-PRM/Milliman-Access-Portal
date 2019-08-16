@@ -37,18 +37,20 @@ interface FileUpload {
 }
 
 interface FileUploadInputProps {
-  name: string;
+  fileExtensions: string[];
   label: string;
-  value: string;
+  name: string;
   placeholderText?: string;
+  readOnly?: boolean;
+  uploadId: string;
+  upload: UploadState;
+  value: string;
+  beginUpload: (uploadId: string, fileName: string) => void;
   cancelFileUpload: (uploadId: string) => void;
   finalizeUpload: (uploadId: string, fileName: string, Guid: string) => void;
-  setCancelable: (uploadId: string, cancelable: boolean) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
   updateChecksumProgress: (uploadId: string, progress: ProgressSummary) => void;
   updateUploadProgress: (uploadId: string, progress: ProgressSummary) => void;
-  uploadId: string;
-  upload: UploadState;
 }
 
 export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
@@ -68,10 +70,19 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
     this.uploadRef = React.createRef();
   }
 
+  public componentDidUpdate(prevProps: FileUploadInputProps) {
+    if (this.props.fileExtensions !== prevProps.fileExtensions) {
+      this.resumable.opts.fileType = this.props.fileExtensions;
+    }
+  }
+
   public componentDidMount() {
     // Instantiate the resumable object and configure the upload chunks
     this.resumable = new resumable(Object.assign({}, resumableOptions, {
       generateUniqueIdentifier: (_: File, __: Event) => this.props.uploadId,
+      fileType: this.props.fileExtensions,
+      fileTypeErrorCallback: () =>
+        this.props.setUploadError(this.props.uploadId, 'File contents do not match extension.'),
       headers: () => this.resumableHeaders,
       query: () => this.resumableFormData,
       target: '/FileUpload/UploadChunk',
@@ -85,12 +96,25 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
     this.resumable.on('fileAdded', async (resumableFile: Resumable.ResumableFile) => {
       const file: File = resumableFile.file;
 
+      // Ensure that the uploaded file type matches the expected
+      if (this.props.fileExtensions) {
+        const fileParts: string[] = file.name.toLowerCase().split('.');
+        const fileExtension: string = fileParts[fileParts.length - 1];
+        if (this.props.fileExtensions.indexOf(fileExtension) === -1) {
+          this.props.setUploadError(this.props.uploadId, 'File extension not supported.');
+          return false;
+        }
+      }
+
       // Make sure the file matches the expected magic numbers
       const sniffer = new FileSniffer(file);
       if (!await sniffer.extensionMatchesInitialBytes()) {
         this.props.setUploadError(this.props.uploadId, 'File contents do not match extension.');
         return false;
       }
+
+      // Send the filename to the Redux store
+      this.props.beginUpload(this.props.uploadId, file.name);
 
       // Begin the process of creating a checksum and monitoring the progress
       const messageDigest = forge.md.sha1.create();
@@ -130,7 +154,6 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
     // Define the process after a file is successfully uploaded
     this.resumable.on('fileSuccess', (resumableFile: Resumable.ResumableFile) => {
       // Make sure the upload can't be canceled any more and set the upload progress to 100%
-      this.props.setCancelable(this.props.uploadId, false);
       this.props.updateUploadProgress(this.props.uploadId, ProgressSummary.full());
 
       // Define the information that needs to be sent with the Finalize Upload POST request
@@ -225,43 +248,46 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
   }
 
   public render() {
-    const { name, label, placeholderText, upload, value, children } = this.props;
+    const { label, name, placeholderText, readOnly, upload, value, children } = this.props;
     const { checksumProgress, uploadProgress, cancelable, errorMsg } = upload;
+    const checksumEasing =
+      (checksumProgress.percentage === '0%' || checksumProgress.percentage === '100%') ? '' : ' progress-easing';
+    const uploadEasing =
+      (uploadProgress.percentage === '0%' || uploadProgress.percentage === '100%') ? '' : ' progress-easing';
     return (
       <div className="form-element-container">
-        <div className={`form-element-input ${errorMsg ? ' error' : ''}`}>
+        <div className={`form-element-input ${errorMsg ? ' error' : ''}`} ref={this.uploadRef}>
           <div className="form-input-container">
             <input
-              ref={this.uploadRef}
               type="text"
               className="form-input"
               name={name}
               id={name}
               placeholder={placeholderText || 'Upload ' + label}
               value={value}
-              readOnly={true}
+              onChange={() => false}
+              readOnly={readOnly}
             />
             <label className="form-input-label" htmlFor={name}>{label}</label>
           </div>
           {children}
         </div>
         {
-          !upload.cancelable &&
+          upload.cancelable &&
           <div className="progress-bars">
             {!errorMsg &&
               <div
-                className="progress-bar-checksum progress-easing"
-                style={{ width: upload.checksumProgress.percentage }}
+                className={`progress-bar-checksum${checksumEasing}`}
+                style={{ width: checksumProgress.percentage }}
               />}
             {!errorMsg &&
               <div
-                className="progress-bar-upload progress-easing"
-                style={{ width: upload.uploadProgress.percentage }}
+                className={`progress-bar-upload${uploadEasing}`}
+                style={{ width: uploadProgress.percentage }}
               />}
             {errorMsg &&
               <div
                 className="progress-bar-error progress-easing"
-                style={{ width: '100%' }}
               />}
           </div>
         }

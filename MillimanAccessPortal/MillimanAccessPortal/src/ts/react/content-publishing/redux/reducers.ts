@@ -7,7 +7,9 @@ import { ProgressSummary } from '../../../upload/progress-monitor';
 import * as UploadActions from '../../../upload/Redux/actions';
 import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
-import { AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors } from '../../models';
+import {
+  AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors, RelatedFiles,
+} from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { Dict, FilterState } from '../../shared-components/redux/store';
@@ -244,22 +246,22 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         MasterContent: {
           filePurpose: defaultIfUndefined(action.response.relatedFiles.MasterContent, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.MasterContent, 'fileOriginalName'),
-          uniqueUploadId: generateUniqueId('masterContent'),
+          uniqueUploadId: generateUniqueId('MasterContent'),
         },
         Thumbnail: {
           filePurpose: defaultIfUndefined(action.response.relatedFiles.Thumbnail, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.Thumbnail, 'fileOriginalName'),
-          uniqueUploadId: generateUniqueId('thumbnail'),
+          uniqueUploadId: generateUniqueId('Thumbnail'),
         },
         UserGuide: {
           filePurpose: defaultIfUndefined(action.response.relatedFiles.UserGuide, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.UserGuide, 'fileOriginalName'),
-          uniqueUploadId: generateUniqueId('userGuide'),
+          uniqueUploadId: generateUniqueId('UserGuide'),
         },
         ReleaseNotes: {
           filePurpose: defaultIfUndefined(action.response.relatedFiles.ReleaseNotes, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.ReleaseNotes, 'fileOriginalName'),
-          uniqueUploadId: generateUniqueId('releaseNotes'),
+          uniqueUploadId: generateUniqueId('ReleaseNotes'),
         },
       },
       associatedFiles: {
@@ -314,6 +316,55 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       [action.inputName]: action.value,
     },
   }),
+  BEGIN_FILE_UPLOAD: (state, action: UploadActions.BeginFileUpload) => {
+    const relatedFiles: RelatedFiles = { ...state.formData.relatedFiles };
+    const associatedFiles: Dict<AssociatedContentItemUpload> = { ...state.formData.associatedFiles };
+
+    if (action.fileName.split('-')[0] !== 'associatedContent') {
+      const relatedFilesKeys = Object.keys(state.formData.relatedFiles);
+      for (const key of relatedFilesKeys) {
+        if (relatedFiles.hasOwnProperty(key) &&
+          relatedFiles[key].uniqueUploadId === action.uploadId) {
+          relatedFiles[key] = {
+            ...relatedFiles[key],
+            fileOriginalName: action.fileName,
+          };
+        }
+      }
+    } else {
+      const associatedContentKeys = Object.keys(state.formData.associatedFiles);
+      for (const key of associatedContentKeys) {
+        if (associatedFiles.hasOwnProperty(key) &&
+          associatedFiles[key].uniqueUploadId === action.uploadId) {
+          associatedFiles[key] = {
+            ...associatedFiles[key],
+            fileOriginalName: action.fileName,
+          };
+        }
+      }
+    }
+
+    return {
+      ...state,
+      formData: {
+        ...state.formData,
+        relatedFiles: {
+          ...relatedFiles,
+        },
+        associatedFiles: {
+          ...associatedFiles,
+        },
+      },
+      uploads: {
+        ...state.uploads,
+        [action.uploadId]: {
+          ...state.uploads[action.uploadId],
+          errorMsg: '',
+          cancelable: true,
+        },
+      },
+    };
+  },
   UPDATE_CHECKSUM_PROGRESS: (state, action: UploadActions.UpdateChecksumProgress) => ({
     ...state,
     uploads: {
@@ -331,6 +382,16 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       [action.uploadId]: {
         ...state.uploads[action.uploadId],
         uploadProgress: action.progress,
+      },
+    },
+  }),
+  SET_UPLOAD_ERROR: (state, action: UploadActions.SetUploadError) => ({
+    ...state,
+    uploads: {
+      ...state.uploads,
+      [action.uploadId]: {
+        ...state.uploads[action.uploadId],
+        errorMsg: action.errorMsg,
       },
     },
   }),

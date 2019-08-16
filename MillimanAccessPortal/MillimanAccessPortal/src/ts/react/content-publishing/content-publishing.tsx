@@ -5,9 +5,12 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
-import { isPublicationActive, PublicationStatus } from '../../view-models/content-publishing';
 import {
-    Client, ClientWithStats, RootContentItem, RootContentItemWithPublication,
+  isPublicationActive, PublicationStatus,
+} from '../../view-models/content-publishing';
+import {
+  Client, ClientWithStats, ContentAssociatedFileType, RootContentItem,
+  RootContentItemWithPublication,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
@@ -23,7 +26,9 @@ import { CardStat } from '../shared-components/card/card-stat';
 import { ContentPanel } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
 import { FileUploadInput } from '../shared-components/form/file-upload-input';
-import { FormInputContainer, FormSection, FormSectionContainer  } from '../shared-components/form/form-elements';
+import {
+  FormInputContainer, FormSection, FormSectionContainer, FormSectionDivider,
+} from '../shared-components/form/form-elements';
 import { Input } from '../shared-components/form/input';
 import { NavBar } from '../shared-components/navbar';
 import * as PublishingActionCreators from './redux/action-creators';
@@ -278,105 +283,120 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             {contentItemFormButtons}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
-        <FormSectionContainer>
-          <FormSection title="Content Item Information">
-            <FormInputContainer flexPhone={12}>
-              <Input
-                autoFocus={true}
-                error={formErrors.contentName}
-                label="Content Name"
-                name="contentName"
-                onBlur={() => false}
-                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-                  this.props.setPublishingFormTextInputValue({
-                    inputName: 'contentName',
-                    value: target.value,
-                  });
-                }}
-                type="text"
-                value={formData.contentName}
-              />
-              <FormInputContainer contentItemFlex={1}>
-                <FileUploadInput
-                  cancelFileUpload={() => false}
-                  finalizeUpload={() => alert('upload succeeded')}
-                  label="Master Content"
-                  name="masterContent"
-                  placeholderText="Upload Master Content"
-                  setCancelable={() => false}
-                  setChecksum={() => false}
-                  setUploadError={() => alert('error!')}
-                  updateChecksumProgress={(uploadId, progress) =>
-                    this.props.updateChecksumProgress({ uploadId, progress })}
-                  updateUploadProgress={(uploadId, progress) =>
-                    this.props.updateUploadProgress({ uploadId, progress })}
-                  upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
-                  uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
-                  value={formData.relatedFiles.MasterContent.fileOriginalName}
-                />
-              </FormInputContainer>
-            </FormInputContainer>
-          </FormSection>
-        </FormSectionContainer>
-        <FormSectionContainer>
-          <FormSection title="Content Related Files">
-            <FormInputContainer flexPhone={5}>
-              <FileUploadInput
-                cancelFileUpload={() => false}
-                finalizeUpload={() => alert('upload succeeded')}
-                label="Thumbnail"
-                name="thumbnail"
-                placeholderText="Upload Thumbnail"
-                setCancelable={() => false}
-                setChecksum={() => false}
-                setUploadError={() => alert('error!')}
-                updateChecksumProgress={(uploadId, progress) =>
-                  this.props.updateChecksumProgress({ uploadId, progress })}
-                updateUploadProgress={(uploadId, progress) =>
-                  this.props.updateUploadProgress({ uploadId, progress })}
-                upload={uploads[formData.relatedFiles.Thumbnail.uniqueUploadId]}
-                uploadId={formData.relatedFiles.Thumbnail.uniqueUploadId}
-                value={formData.relatedFiles.Thumbnail.fileOriginalName}
-              />
-            </FormInputContainer>
-            <FormInputContainer flexPhone={7}>
-              <FileUploadInput
-                cancelFileUpload={() => false}
-                finalizeUpload={() => alert('upload succeeded')}
-                label="User Guide"
-                name="userGuide"
-                placeholderText="Upload User Guide"
-                setCancelable={() => false}
-                setChecksum={() => false}
-                setUploadError={() => alert('error!')}
-                updateChecksumProgress={(uploadId, progress) =>
-                  this.props.updateChecksumProgress({ uploadId, progress })}
-                updateUploadProgress={(uploadId, progress) =>
-                  this.props.updateUploadProgress({ uploadId, progress })}
-                upload={uploads[formData.relatedFiles.UserGuide.uniqueUploadId]}
-                uploadId={formData.relatedFiles.UserGuide.uniqueUploadId}
-                value={formData.relatedFiles.UserGuide.fileOriginalName}
-              />
-              <FileUploadInput
-                cancelFileUpload={() => false}
-                finalizeUpload={() => alert('upload succeeded')}
-                label="Release Notes"
-                name="releaseNotes"
-                placeholderText="Upload Release Notes"
-                setCancelable={() => false}
-                setChecksum={() => false}
-                setUploadError={() => alert('error!')}
-                updateChecksumProgress={(uploadId, progress) =>
-                  this.props.updateChecksumProgress({ uploadId, progress })}
-                updateUploadProgress={(uploadId, progress) =>
-                  this.props.updateUploadProgress({ uploadId, progress })}
-                upload={uploads[formData.relatedFiles.ReleaseNotes.uniqueUploadId]}
-                uploadId={formData.relatedFiles.ReleaseNotes.uniqueUploadId}
-                value={formData.relatedFiles.ReleaseNotes.fileOriginalName}
-              />
-            </FormInputContainer>
-          </FormSection>
-        </FormSectionContainer>
+        <form autoComplete="off">
+          <FormSectionContainer>
+            <FormSection title="Content Item Information">
+              <FormSectionDivider>
+                <FormInputContainer flexPhone={12}>
+                  <Input
+                    autoFocus={true}
+                    error={formErrors.contentName}
+                    label="Content Name"
+                    name="contentName"
+                    onBlur={() => false}
+                    onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                      this.props.setPublishingFormTextInputValue({
+                        inputName: 'contentName',
+                        value: target.value,
+                      });
+                    }}
+                    type="text"
+                    value={formData.contentName}
+                  />
+                  <FormInputContainer contentItemFlex={1}>
+                    <FileUploadInput
+                      fileExtensions={['qvw', 'pbix', 'pdf']}
+                      label="Master Content"
+                      name="masterContent"
+                      placeholderText="Upload Master Content"
+                      beginUpload={(uploadId, fileName) =>
+                        this.props.beginFileUpload({ uploadId, fileName })}
+                      cancelFileUpload={() => false}
+                      finalizeUpload={() => alert('upload succeeded')}
+                      setUploadError={(uploadId, errorMsg) =>
+                        this.props.setUploadError({ uploadId, errorMsg })}
+                      updateChecksumProgress={(uploadId, progress) =>
+                        this.props.updateChecksumProgress({ uploadId, progress })}
+                      updateUploadProgress={(uploadId, progress) =>
+                        this.props.updateUploadProgress({ uploadId, progress })}
+                      upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
+                      uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
+                      value={formData.relatedFiles.MasterContent.fileOriginalName}
+                    />
+                  </FormInputContainer>
+                </FormInputContainer>
+              </FormSectionDivider>
+            </FormSection>
+          </FormSectionContainer>
+          <FormSectionContainer>
+            <FormSection title="Content Related Files">
+              <FormSectionDivider>
+                <FormInputContainer flexPhone={5}>
+                  <FileUploadInput
+                    fileExtensions={['image/*']}
+                    label="Thumbnail"
+                    name="thumbnail"
+                    placeholderText="Upload Thumbnail"
+                    beginUpload={(uploadId, fileName) =>
+                      this.props.beginFileUpload({ uploadId, fileName })}
+                    cancelFileUpload={() => false}
+                    finalizeUpload={() => alert('upload succeeded')}
+                    setUploadError={(uploadId, errorMsg) =>
+                      this.props.setUploadError({ uploadId, errorMsg })}
+                    updateChecksumProgress={(uploadId, progress) =>
+                      this.props.updateChecksumProgress({ uploadId, progress })}
+                    updateUploadProgress={(uploadId, progress) =>
+                      this.props.updateUploadProgress({ uploadId, progress })}
+                    upload={uploads[formData.relatedFiles.Thumbnail.uniqueUploadId]}
+                    uploadId={formData.relatedFiles.Thumbnail.uniqueUploadId}
+                    value={formData.relatedFiles.Thumbnail.fileOriginalName}
+                  />
+                </FormInputContainer>
+                <FormInputContainer flexPhone={7}>
+                  <FileUploadInput
+                    fileExtensions={['pdf']}
+                    label="User Guide"
+                    name="userGuide"
+                    placeholderText="Upload User Guide"
+                    beginUpload={(uploadId, fileName) =>
+                      this.props.beginFileUpload({ uploadId, fileName })}
+                    cancelFileUpload={() => false}
+                    finalizeUpload={() => alert('upload succeeded')}
+                    setUploadError={(uploadId, errorMsg) =>
+                      this.props.setUploadError({ uploadId, errorMsg })}
+                    updateChecksumProgress={(uploadId, progress) =>
+                      this.props.updateChecksumProgress({ uploadId, progress })}
+                    updateUploadProgress={(uploadId, progress) =>
+                      this.props.updateUploadProgress({ uploadId, progress })}
+                    upload={uploads[formData.relatedFiles.UserGuide.uniqueUploadId]}
+                    uploadId={formData.relatedFiles.UserGuide.uniqueUploadId}
+                    value={formData.relatedFiles.UserGuide.fileOriginalName}
+                  />
+                  <FileUploadInput
+                    fileExtensions={['pdf']}
+                    label="Release Notes"
+                    name="releaseNotes"
+                    placeholderText="Upload Release Notes"
+                    readOnly={true}
+                    beginUpload={(uploadId, fileName) =>
+                      this.props.beginFileUpload({ uploadId, fileName })}
+                    cancelFileUpload={() => false}
+                    finalizeUpload={() => alert('upload succeeded')}
+                    setUploadError={(uploadId, errorMsg) =>
+                      this.props.setUploadError({ uploadId, errorMsg })}
+                    updateChecksumProgress={(uploadId, progress) =>
+                      this.props.updateChecksumProgress({ uploadId, progress })}
+                    updateUploadProgress={(uploadId, progress) =>
+                      this.props.updateUploadProgress({ uploadId, progress })}
+                    upload={uploads[formData.relatedFiles.ReleaseNotes.uniqueUploadId]}
+                    uploadId={formData.relatedFiles.ReleaseNotes.uniqueUploadId}
+                    value={formData.relatedFiles.ReleaseNotes.fileOriginalName}
+                  />
+                </FormInputContainer>
+              </FormSectionDivider>
+            </FormSection>
+          </FormSectionContainer>
+        </form>
       </ContentPanel>
     );
   }

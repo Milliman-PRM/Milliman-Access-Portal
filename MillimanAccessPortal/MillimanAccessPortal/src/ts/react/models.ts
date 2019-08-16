@@ -73,6 +73,14 @@ export interface AssociatedFilePreviewSummary extends AssociatedFileModel {
   link: string;
 }
 
+export interface RelatedFiles {
+  MasterContent: RelatedFileUpload;
+  Thumbnail?: RelatedFileUpload;
+  UserGuide?: RelatedFileUpload;
+  ReleaseNotes?: RelatedFileUpload;
+  [key: string]: RelatedFileUpload;
+}
+
 export interface ContentItemDetail {
   clientId: Guid;
   contentDisclaimer: string;
@@ -83,12 +91,7 @@ export interface ContentItemDetail {
   id: Guid;
   isSuspended: boolean;
   contentNotes: string;
-  relatedFiles: {
-    MasterContent: RelatedFileUpload;
-    Thumbnail?: RelatedFileUpload;
-    UserGuide?: RelatedFileUpload;
-    ReleaseNotes?: RelatedFileUpload;
-  };
+  relatedFiles: RelatedFiles;
   associatedFiles: Dict<AssociatedContentItemUpload>;
   typeSpecificDetailObject: {
     bookmarksPaneEnabled?: boolean;

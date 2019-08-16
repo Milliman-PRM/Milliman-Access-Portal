@@ -6,6 +6,7 @@ import { ProgressSummary } from '../progress-monitor';
 export interface BeginFileUpload {
   type: 'BEGIN_FILE_UPLOAD';
   uploadId: string;
+  fileName: string;
 }
 
 export interface UpdateChecksumProgress {
