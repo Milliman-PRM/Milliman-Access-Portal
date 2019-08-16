@@ -5,7 +5,6 @@ import { ProgressSummary } from '../progress-monitor';
  */
 export interface UploadState {
   cancelable: boolean;
-  checksum: string;
   errorMsg: string;
   checksumProgress: ProgressSummary;
   uploadProgress: ProgressSummary;

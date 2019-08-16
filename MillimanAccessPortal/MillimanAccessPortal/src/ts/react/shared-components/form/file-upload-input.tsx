@@ -43,7 +43,6 @@ interface FileUploadInputProps {
   placeholderText?: string;
   cancelFileUpload: (uploadId: string) => void;
   finalizeUpload: (uploadId: string, fileName: string, Guid: string) => void;
-  setChecksum: (uploadId: string, checksum: string) => void;
   setCancelable: (uploadId: string, cancelable: boolean) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
   updateChecksumProgress: (uploadId: string, progress: ProgressSummary) => void;
@@ -114,7 +113,6 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
       }
       this.checksum = messageDigest.digest().toHex();
       this.resumableFormData = { Checksum: this.checksum };
-      this.props.setChecksum(this.props.uploadId, this.checksum);
 
       // Start the monitor for the upload chunking progress
       this.progressMonitor = new ProgressMonitor(

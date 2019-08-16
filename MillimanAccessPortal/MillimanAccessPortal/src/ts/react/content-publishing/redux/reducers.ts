@@ -269,7 +269,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 
     const newUpload: UploadState = {
       cancelable: false,
-      checksum: null,
       errorMsg: null,
       checksumProgress: ProgressSummary.empty(),
       uploadProgress: ProgressSummary.empty(),

@@ -50,7 +50,6 @@ export const scheduleSessionCheck =
 export const beginFileUpload = UploadActionCreators.beginFileUpload;
 export const updateChecksumProgress = UploadActionCreators.updateChecksumProgress;
 export const updateUploadProgress = UploadActionCreators.updateUploadProgress;
-export const setChecksumValue = UploadActionCreators.setChecksumValue;
 export const setUploadCancelable = UploadActionCreators.setUploadCancelable;
 export const setUploadError = UploadActionCreators.setUploadError;
 export const cancelFileUpload = UploadActionCreators.cancelFileUpload;

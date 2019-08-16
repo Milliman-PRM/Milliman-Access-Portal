@@ -8,8 +8,6 @@ export const updateChecksumProgress =
   createActionCreator<UploadActions.UpdateChecksumProgress>('UPDATE_CHECKSUM_PROGRESS');
 export const updateUploadProgress =
   createActionCreator<UploadActions.UpdateUploadProgress>('UPDATE_UPLOAD_PROGRESS');
-export const setChecksumValue =
-  createActionCreator<UploadActions.SetChecksumValue>('SET_CHECKSUM_VALUE');
 export const setUploadCancelable =
   createActionCreator<UploadActions.SetUploadCancelable>('SET_UPLOAD_CANCELABLE');
 export const setUploadError =

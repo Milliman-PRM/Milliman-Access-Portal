@@ -9,7 +9,6 @@ import { UploadState } from './store';
 
 const _initialUpload: UploadState = {
   cancelable: false,
-  checksum: null,
   errorMsg: null,
   checksumProgress: ProgressSummary.empty(),
   uploadProgress: ProgressSummary.empty(),
@@ -30,13 +29,6 @@ export const uploadStatus = createReducer<Dict<UploadState>>({},
         cancelable,
       },
     }),
-    SET_CHECKSUM_VALUE: (state, { uploadId, checksum }: UploadActions.SetChecksumValue) => ({
-      ...state,
-      [uploadId]: {
-        ...state[uploadId],
-        checksum,
-      },
-    }),
     UPDATE_CHECKSUM_PROGRESS: (state, { uploadId, progress }: UploadActions.UpdateChecksumProgress) => ({
       ...state,
       [uploadId]: {
@@ -55,7 +47,6 @@ export const uploadStatus = createReducer<Dict<UploadState>>({},
       ...state,
       [uploadId]: {
         cancelable: true,
-        checksum: null,
         errorMsg,
         checksumProgress: ProgressSummary.empty(),
         uploadProgress: ProgressSummary.empty(),

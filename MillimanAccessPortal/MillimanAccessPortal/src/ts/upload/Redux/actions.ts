@@ -20,12 +20,6 @@ export interface UpdateUploadProgress {
   progress: ProgressSummary;
 }
 
-export interface SetChecksumValue {
-  type: 'SET_CHECKSUM_VALUE';
-  uploadId: string;
-  checksum: string;
-}
-
 export interface SetUploadCancelable {
   type: 'SET_UPLOAD_CANCELABLE';
   uploadId: string;
@@ -59,7 +53,6 @@ export type PageUploadAction =
   | BeginFileUpload
   | UpdateChecksumProgress
   | UpdateUploadProgress
-  | SetChecksumValue
   | SetUploadCancelable
   | SetUploadError
   | CancelFileUpload
