@@ -318,11 +318,81 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
   }),
   RESET_CONTENT_ITEM_FORM: (state) => {
     const { originalData } = state;
+
+    const keys = Object.keys({ ...originalData.associatedFiles });
+    const associatedContentItems: Dict<AssociatedContentItemUpload> = {};
+
+    for (const key of keys) {
+      if (originalData.associatedFiles.hasOwnProperty(key)) {
+        associatedContentItems[key] = {
+          ...originalData.associatedFiles[key],
+          uniqueUploadId: generateUniqueId('associatedContent'),
+        };
+      }
+    }
+
+    const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
+      return (purpose !== undefined) && purpose.hasOwnProperty(value) ? purpose[value] : defaultValue;
+    };
+
+    const contentItemDetail = {
+      ...originalData,
+      relatedFiles: {
+        MasterContent: {
+          filePurpose: defaultIfUndefined(originalData.relatedFiles.MasterContent, 'filePurpose'),
+          fileOriginalName: defaultIfUndefined(originalData.relatedFiles.MasterContent, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('MasterContent'),
+        },
+        Thumbnail: {
+          filePurpose: defaultIfUndefined(originalData.relatedFiles.Thumbnail, 'filePurpose'),
+          fileOriginalName: defaultIfUndefined(originalData.relatedFiles.Thumbnail, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('Thumbnail'),
+        },
+        UserGuide: {
+          filePurpose: defaultIfUndefined(originalData.relatedFiles.UserGuide, 'filePurpose'),
+          fileOriginalName: defaultIfUndefined(originalData.relatedFiles.UserGuide, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('UserGuide'),
+        },
+        ReleaseNotes: {
+          filePurpose: defaultIfUndefined(originalData.relatedFiles.ReleaseNotes, 'filePurpose'),
+          fileOriginalName: defaultIfUndefined(originalData.relatedFiles.ReleaseNotes, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ReleaseNotes'),
+        },
+      },
+      associatedFiles: {
+        ...associatedContentItems,
+      },
+    };
+
+    const newUpload: UploadState = {
+      cancelable: false,
+      errorMsg: null,
+      checksumProgress: ProgressSummary.empty(),
+      uploadProgress: ProgressSummary.empty(),
+    };
+
+    const uploads: Dict<UploadState> = {
+      [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+    };
+
+    for (const key of keys) {
+      if (originalData.associatedFiles.hasOwnProperty(key)) {
+        uploads[contentItemDetail.associatedFiles[key].uniqueUploadId] = newUpload;
+      }
+    }
+
     return {
       ...state,
-      formData: {
-        ...originalData,
+      originalData: {
+        ...contentItemDetail,
       },
+      formData: {
+        ...contentItemDetail,
+      },
+      uploads,
     };
   },
   BEGIN_FILE_UPLOAD: (state, action: UploadActions.BeginFileUpload) => {
