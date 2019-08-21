@@ -70,7 +70,9 @@ export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, BaseInputProp
             readOnly={readOnly}
             data-input-value={value}
             {...rest}
-          />
+          >
+            {value}
+          </textarea>
           <label className="form-input-label" htmlFor={name}>{label}</label>
         </div>
         {children}
