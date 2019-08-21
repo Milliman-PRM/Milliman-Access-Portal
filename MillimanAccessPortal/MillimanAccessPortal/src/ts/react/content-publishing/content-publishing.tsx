@@ -315,7 +315,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       error={dataForForm.formErrors.contentTypeId}
                       label="Content Type"
                       name="contentType"
-                      onChange={() => false}
+                      onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                        this.props.setPublishingFormTextInputValue({
+                          inputName: 'contentTypeId',
+                          value: target.value,
+                        });
+                      }}
                       placeholderText="Choose Content Type"
                       value={dataForForm.formData.contentTypeId}
                       values={contentTypes}
