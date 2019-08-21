@@ -486,6 +486,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 </FormSectionDivider>
               </FormSection>
             </FormSectionContainer>
+            <button
+              onClick={(event: any) => {
+                event.preventDefault();
+                this.props.resetContentItemForm({});
+              }}
+            >
+              Reset Form
+            </button>
           </form>
         </ContentPanelSectionContent>
       </ContentPanel>

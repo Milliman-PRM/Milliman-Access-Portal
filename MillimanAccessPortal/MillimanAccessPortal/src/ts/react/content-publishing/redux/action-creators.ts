@@ -18,6 +18,8 @@ export const setPublishingFormTextInputValue =
   createActionCreator<PublishActions.SetPublishingFormTextInputValue>('SET_PENDING_TEXT_INPUT_VALUE');
 export const setPublishingFormBooleanInputValue =
   createActionCreator<PublishActions.SetPublishingFormBooleanInputValue>('SET_PENDING_BOOLEAN_INPUT_VALUE');
+export const resetContentItemForm =
+  createActionCreator<PublishActions.ResetContentItemForm>('RESET_CONTENT_ITEM_FORM');
 
 export const promptStatusRefreshStopped =
   createActionCreator<PublishActions.PromptStatusRefreshStopped>('PROMPT_STATUS_REFRESH_STOPPED');

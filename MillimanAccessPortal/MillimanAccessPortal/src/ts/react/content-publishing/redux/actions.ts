@@ -155,6 +155,10 @@ export interface SetPublishingFormBooleanInputValue {
   value: boolean;
 }
 
+export interface ResetContentItemForm {
+  type: 'RESET_CONTENT_ITEM_FORM';
+}
+
 /**
  * GET:
  *   content items for the selected client;
@@ -233,6 +237,7 @@ export type PagePublishingAction =
   | SetFilterTextItem
   | SetPublishingFormTextInputValue
   | SetPublishingFormBooleanInputValue
+  | ResetContentItemForm
   | PromptStatusRefreshStopped
   | DecrementStatusRefreshAttempts
   ;

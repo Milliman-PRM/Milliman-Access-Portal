@@ -316,6 +316,15 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       [action.inputName]: action.value,
     },
   }),
+  RESET_CONTENT_ITEM_FORM: (state) => {
+    const { originalData } = state;
+    return {
+      ...state,
+      formData: {
+        ...originalData,
+      },
+    };
+  },
   BEGIN_FILE_UPLOAD: (state, action: UploadActions.BeginFileUpload) => {
     const relatedFiles: RelatedFiles = { ...state.formData.relatedFiles };
     const associatedFiles: Dict<AssociatedContentItemUpload> = { ...state.formData.associatedFiles };
