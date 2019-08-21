@@ -30,7 +30,7 @@
 }
 
 .form-element-container {
-    margin-bottom: 1.5em;
+    margin-bottom: .5em;
     opacity: 1;
     width: 100%;
 
@@ -178,6 +178,11 @@
                 opacity: 0;
                 pointer-events: none;
             }
+
+            textarea.form-input + .form-input-label {
+                width: 97%;
+                background-color: inherit;
+            }
         }
     }
 
@@ -193,11 +198,15 @@
 
 /* File Upload Component */
 
+.file-upload-input {
+    cursor: pointer;
+}
+
 .progress-bars {
     position: relative;
     display: block;
     height: .35em;
-    margin: -1rem -.5em 0;
+    margin: -.5em 0;
 
     [class*="progress-bar-"] {
         position: absolute;
