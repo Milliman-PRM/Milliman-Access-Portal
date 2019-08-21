@@ -33,7 +33,8 @@ import { Input } from '../shared-components/form/input';
 import { NavBar } from '../shared-components/navbar';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
-  activeSelectedClient, activeSelectedItem, clientEntities, itemEntities, selectedItem,
+  activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
+  availableContentTypes, clientEntities, itemEntities, selectedItem,
 } from './redux/selectors';
 import {
     PublishingFormData, PublishingState, PublishingStateCardAttributes, PublishingStateFilters,
@@ -48,6 +49,8 @@ interface RootContentItemEntity extends RootContentItemWithPublication {
 interface ContentPublishingProps {
   clients: ClientEntity[];
   items: RootContentItemEntity[];
+  contentTypes: Array<{ selectionValue: string | number, selectionLabel: string }>;
+  associatedContentTypes: Array<{ selectionValue: string | number, selectionLabel: string }>;
   formData: PublishingFormData;
   selected: PublishingStateSelected;
   cardAttributes: PublishingStateCardAttributes;
@@ -266,7 +269,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderContentItemForm() {
-    const { formData: dataForForm, pending } = this.props;
+    const { contentTypes, associatedContentTypes, formData: dataForForm, pending } = this.props;
     const { formErrors, formData, uploads } = dataForForm;
     const contentItemFormButtons = (
       <ActionIcon
@@ -408,6 +411,8 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
   return {
     clients: clientEntities(state),
     items: itemEntities(state),
+    contentTypes: availableContentTypes(state),
+    associatedContentTypes: availableAssociatedContentTypes(state),
     formData,
     selected,
     cardAttributes,

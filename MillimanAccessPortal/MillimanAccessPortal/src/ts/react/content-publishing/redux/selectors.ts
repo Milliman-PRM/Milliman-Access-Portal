@@ -211,3 +211,35 @@ export function activeSelectedItem(state: PublishingState) {
 export function remainingStatusRefreshAttempts(state: PublishingState) {
   return state.pending.statusTries;
 }
+
+/**
+ * Select the Content Types
+ * @param state Redux store
+ */
+export function availableContentTypes(state: PublishingState) {
+  const { contentTypes } = state.data;
+  const contentTypesArray: Array<{ selectionValue: string | number, selectionLabel: string }> = [];
+  for (const contentType in contentTypes) {
+    contentTypesArray.push({
+      selectionValue: contentTypes[contentType].id,
+      selectionLabel: contentTypes[contentType].displayName,
+    });
+  }
+  return contentTypesArray.sort((a, b) => (a.selectionValue > b.selectionValue) ? 1 : -1);
+}
+
+/**
+ * Select the Associated Content Types
+ * @param state Redux store
+ */
+export function availableAssociatedContentTypes(state: PublishingState) {
+  const { contentAssociatedFileTypes } = state.data;
+  const AssociatedContentTypesArray: Array<{ selectionValue: string | number, selectionLabel: string }> = [];
+  for (const contentType in contentAssociatedFileTypes) {
+    AssociatedContentTypesArray.push({
+      selectionValue: contentAssociatedFileTypes[contentType].typeEnum,
+      selectionLabel: contentAssociatedFileTypes[contentType].displayName,
+    });
+  }
+  return AssociatedContentTypesArray.sort((a, b) => (a.selectionValue > b.selectionValue) ? 1 : -1);
+}
