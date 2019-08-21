@@ -7,9 +7,9 @@ export const FormSectionContainer: React.SFC = (props) => (
 );
 
 export const FormSectionDivider: React.SFC = (props) => (
-  <form className="form-section-divider" autoComplete="off">
+  <div className="form-section-divider">
     {props.children}
-  </form>
+  </div>
 );
 
 interface FormSectionProps {
