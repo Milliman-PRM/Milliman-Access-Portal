@@ -260,7 +260,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
           <div className="form-input-container">
             <input
               type="text"
-              className="form-input"
+              className="form-input file-upload-input"
               name={name}
               id={name}
               placeholder={placeholderText || 'Upload ' + label}
