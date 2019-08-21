@@ -311,6 +311,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       type="text"
                       value={formData.contentName}
                     />
+                  </FormInputContainer>
+                  <FormInputContainer flexPhone={12} flexTablet={4}>
                     <Select
                       error={dataForForm.formErrors.contentTypeId}
                       label="Content Type"
@@ -325,27 +327,27 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       value={dataForForm.formData.contentTypeId}
                       values={contentTypes}
                     />
-                    <FormInputContainer contentItemFlex={1}>
-                      <FileUploadInput
-                        fileExtensions={['qvw', 'pbix', 'pdf']}
-                        label="Master Content"
-                        name="masterContent"
-                        placeholderText="Upload Master Content"
-                        beginUpload={(uploadId, fileName) =>
-                          this.props.beginFileUpload({ uploadId, fileName })}
-                        cancelFileUpload={() => false}
-                        finalizeUpload={() => alert('upload succeeded')}
-                        setUploadError={(uploadId, errorMsg) =>
-                          this.props.setUploadError({ uploadId, errorMsg })}
-                        updateChecksumProgress={(uploadId, progress) =>
-                          this.props.updateChecksumProgress({ uploadId, progress })}
-                        updateUploadProgress={(uploadId, progress) =>
-                          this.props.updateUploadProgress({ uploadId, progress })}
-                        upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
-                        uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
-                        value={formData.relatedFiles.MasterContent.fileOriginalName}
-                      />
-                    </FormInputContainer>
+                  </FormInputContainer>
+                  <FormInputContainer flexPhone={12} flexTablet={8}>
+                    <FileUploadInput
+                      fileExtensions={['qvw', 'pbix', 'pdf']}
+                      label="Master Content"
+                      name="masterContent"
+                      placeholderText="Upload Master Content"
+                      beginUpload={(uploadId, fileName) =>
+                        this.props.beginFileUpload({ uploadId, fileName })}
+                      cancelFileUpload={() => false}
+                      finalizeUpload={() => alert('upload succeeded')}
+                      setUploadError={(uploadId, errorMsg) =>
+                        this.props.setUploadError({ uploadId, errorMsg })}
+                      updateChecksumProgress={(uploadId, progress) =>
+                        this.props.updateChecksumProgress({ uploadId, progress })}
+                      updateUploadProgress={(uploadId, progress) =>
+                        this.props.updateUploadProgress({ uploadId, progress })}
+                      upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
+                      uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
+                      value={formData.relatedFiles.MasterContent.fileOriginalName}
+                    />
                   </FormInputContainer>
                 </FormSectionDivider>
               </FormSection>
