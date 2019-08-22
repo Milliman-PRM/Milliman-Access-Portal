@@ -6,7 +6,7 @@ The purpose of this document is to detail the process by which User Agreement la
 
 ## Deciding on Changes
 
-Once a need for an update to the existing User Agreement language has been identified, the scope of the changes should be defined in consultation with any interested parties and someone from GCS Legal that will be drafting the changes. Once all parties are in agreement in regards to the proposed changes, the process of drafting the changes should begin.
+Once a need for an update to the existing User Agreement language has been identified, the scope of the changes should be defined by the MAP product owner in consultation with any interested parties and a representative from GCS Legal that will be drafting the actual changes. Once all parties are in agreement in regards to the proposed changes, the process of drafting the changes should begin.
 
 ## Drafting Process
 
