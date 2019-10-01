@@ -1007,7 +1007,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else if (result.Errors.Any())
                 {
-                    Log.Information($"In AccountController.ResetPassword POST action: errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    Log.Information($"In AccountController.ResetPassword POST action: user: {user.UserName}, errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                 }
 
                 AddErrors(result);
