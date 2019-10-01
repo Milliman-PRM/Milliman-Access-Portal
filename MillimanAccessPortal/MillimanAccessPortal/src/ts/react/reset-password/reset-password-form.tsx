@@ -75,6 +75,9 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
     const email = document
       .querySelector('input[name="__Email"]')
       .getAttribute('value');
+    const newPassword = document
+      .querySelector('input[name="__Message"]')
+      .getAttribute('value');
     this.setState({
       requestVerificationToken,
       data: {
@@ -82,6 +85,9 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
         passwordResetToken,
         newPassword: this.state.data.newPassword,
         confirmNewPassword: this.state.data.confirmNewPassword,
+      },
+      errors: {
+        newPassword,
       },
     });
   }
