@@ -75,7 +75,7 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
     const email = document
       .querySelector('input[name="__Email"]')
       .getAttribute('value');
-    const newPassword = document
+    const serverSideErrorMessage = document
       .querySelector('input[name="__Message"]')
       .getAttribute('value');
     this.setState({
@@ -87,7 +87,7 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
         confirmNewPassword: this.state.data.confirmNewPassword,
       },
       errors: {
-        newPassword,
+        newPassword: serverSideErrorMessage,
       },
     });
   }
