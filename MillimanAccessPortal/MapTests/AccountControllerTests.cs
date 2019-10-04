@@ -515,24 +515,6 @@ namespace MapTests
             #endregion
         }
 
-        [Fact]
-        public async Task UsernameInPasswordNotAllowed()
-        {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordIsNotEmailValidator<ApplicationUser>();
-            #endregion
-
-            #region Act
-            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, AppUser.UserName);
-            #endregion
-
-            #region Assert
-            Assert.False(result.Succeeded);
-            #endregion
-        }
-
         /// <summary>
         /// Verify that PasswordContainsCommonWordsValidator will not allow passwords that contain a banned word or phrase
         /// </summary>
