@@ -503,7 +503,7 @@ namespace MapTests
             #region Arrange
             AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordIsNotEmailOrUsernameValidator<ApplicationUser>();
+            var validator = new PasswordIsNotEmailValidator<ApplicationUser>();
             #endregion
 
             #region Act
@@ -521,7 +521,7 @@ namespace MapTests
             #region Arrange
             AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordIsNotEmailOrUsernameValidator<ApplicationUser>();
+            var validator = new PasswordIsNotEmailValidator<ApplicationUser>();
             #endregion
 
             #region Act
