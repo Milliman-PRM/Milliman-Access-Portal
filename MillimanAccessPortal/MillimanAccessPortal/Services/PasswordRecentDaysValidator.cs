@@ -35,7 +35,7 @@ namespace MillimanAccessPortal.Services
                 var result = IdentityResult.Failed(new IdentityError
                 {
                     Code = "Password Reuse",
-                    Description = $"You cannot reuse any password created in the last {numberOfDays} days"
+                    Description = $"You cannot reuse any password from the last {numberOfDays} days"
                 });
 
                 return Task.FromResult(result);
