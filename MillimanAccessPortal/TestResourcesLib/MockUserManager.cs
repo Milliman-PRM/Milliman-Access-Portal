@@ -54,6 +54,9 @@ namespace TestResourcesLib
             ReturnMockUserManager.Setup(m => m.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>())).Returns(async (ApplicationUser user, IEnumerable<Claim> claims) => await Task.FromResult(RemoveClaims(UserStore.Object, user, claims)));
             ReturnMockUserManager.Setup(m => m.GetUsersForClaimAsync(It.IsAny<Claim>())).Returns(async (Claim claim) => await UserStore.Object.GetUsersForClaimAsync(claim, CancellationToken.None));
 
+            // General purpose methods
+            ReturnMockUserManager.Setup(m => m.NormalizeKey(It.IsAny<string>())).Returns<string>(k => k.ToUpper());
+
             // Password-related methods
             // Return true if the password is not null
             // As of 8/2018 there is no password validation built into anthing in this class so tests should no rely on it.

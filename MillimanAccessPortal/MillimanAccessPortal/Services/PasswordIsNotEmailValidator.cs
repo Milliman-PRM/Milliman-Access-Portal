@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Services
 {
-    public class PasswordIsNotEmailOrUsernameValidator<TUser> : IPasswordValidator<TUser>
+    public class PasswordIsNotEmailValidator<TUser> : IPasswordValidator<TUser>
         where TUser : ApplicationUser
     {
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
@@ -18,28 +18,28 @@ namespace MillimanAccessPortal.Services
                 return Task.FromResult(IdentityResult.Success);
             }
 
-            string upperPassword = password.ToUpper();
+            string normalizedPassword = manager.NormalizeKey(password);
             
             // This case covers the user's initial password - May only be used by ~/Account/CreateInitialUser
-            if (string.IsNullOrWhiteSpace(user.NormalizedEmail) || string.IsNullOrWhiteSpace(user.NormalizedUserName))
+            if (string.IsNullOrWhiteSpace(user.NormalizedEmail))
             {
-                if (upperPassword.Contains(user.Email.ToUpper()))
+                if (normalizedPassword.Contains(manager.NormalizeKey(user.Email)))
                 {
                     var result = IdentityResult.Failed(new IdentityError
                     {
-                        Code = "Password Contains Email or Username",
-                        Description = $"Your password cannot contain your email address or username"
+                        Code = "Password Contains Email",
+                        Description = $"Your password cannot contain your email address"
                     });
 
                     return Task.FromResult(result);
                 }
             }
-            else if (upperPassword.Contains(user.NormalizedEmail) || upperPassword.Contains(user.NormalizedUserName))
+            else if (normalizedPassword.Contains(user.NormalizedEmail))
             {
                 var result = IdentityResult.Failed(new IdentityError
                 {
-                    Code = "Password Contains Email or Username",
-                    Description = $"Your password cannot contain your email address or username"
+                    Code = "Password Contains Email",
+                    Description = $"Your password cannot contain your email address"
                 });
 
                 return Task.FromResult(result);

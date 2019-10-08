@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+#### v1.7.1
+
+- Improved feedback to user on password reset failure
+
 ### v1.7.0
 
 - Added a User Agreement
