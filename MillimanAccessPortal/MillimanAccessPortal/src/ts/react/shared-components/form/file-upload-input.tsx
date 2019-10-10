@@ -71,12 +71,15 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
   }
 
   public componentDidUpdate(prevProps: FileUploadInputProps) {
-    if (this.props.fileExtensions !== prevProps.fileExtensions) {
+    if (this.props.fileExtensions.toString() !== prevProps.fileExtensions.toString()) {
       this.resumable.opts.fileType = this.props.fileExtensions;
+      const newFileExtensions = this.props.fileExtensions.map((ext) => `.${ext}`).join(',');
+      const resumableInput: HTMLInputElement = this.uploadRef.current.querySelector('input[type="file"]');
+      resumableInput.setAttribute('accept', newFileExtensions);
     }
   }
 
-  public componentDidMount() {
+  public setupResumable() {
     // Instantiate the resumable object and configure the upload chunks
     this.resumable = new resumable(Object.assign({}, resumableOptions, {
       generateUniqueIdentifier: (_: File, __: Event) => this.props.uploadId,
@@ -245,6 +248,10 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
     this.resumable.on('error', () => {
       this.props.setUploadError(this.props.uploadId, 'An error occurred during upload.');
     });
+  }
+
+  public componentDidMount() {
+    this.setupResumable();
   }
 
   public render() {
