@@ -302,7 +302,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
-          <ContentPanelForm>
+          <ContentPanelForm
+            readOnly={dataForForm.formState === 'read'}
+          >
             <FormSection title="Content Item Information">
               <FormSectionRow>
                 <FormFlexContainer flexPhone={12}>
@@ -320,6 +322,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     }}
                     type="text"
                     value={formData.contentName}
+                    readOnly={dataForForm.formState === 'read'}
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={12} flexTablet={5}>
@@ -336,6 +339,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     placeholderText="Choose Content Type"
                     value={dataForForm.formData.contentTypeId}
                     values={this.props.contentTypesList}
+                    readOnly={dataForForm.formState === 'read'}
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={12} flexTablet={7}>
@@ -361,6 +365,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
                     uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
                     value={formData.relatedFiles.MasterContent.fileOriginalName}
+                    readOnly={dataForForm.formState === 'read'}
                   />
                 </FormFlexContainer>
               </FormSectionRow>
@@ -386,6 +391,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     upload={uploads[formData.relatedFiles.Thumbnail.uniqueUploadId]}
                     uploadId={formData.relatedFiles.Thumbnail.uniqueUploadId}
                     value={formData.relatedFiles.Thumbnail.fileOriginalName}
+                    readOnly={dataForForm.formState === 'read'}
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={7}>
@@ -407,6 +413,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     upload={uploads[formData.relatedFiles.UserGuide.uniqueUploadId]}
                     uploadId={formData.relatedFiles.UserGuide.uniqueUploadId}
                     value={formData.relatedFiles.UserGuide.fileOriginalName}
+                    readOnly={dataForForm.formState === 'read'}
                   />
                   <FileUploadInput
                     fileExtensions={['pdf']}
@@ -426,6 +433,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     upload={uploads[formData.relatedFiles.ReleaseNotes.uniqueUploadId]}
                     uploadId={formData.relatedFiles.ReleaseNotes.uniqueUploadId}
                     value={formData.relatedFiles.ReleaseNotes.fileOriginalName}
+                    readOnly={dataForForm.formState === 'read'}
                   />
                 </FormFlexContainer>
               </FormSectionRow>
@@ -446,6 +454,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     }}
                     placeholderText="Content Description..."
                     value={dataForForm.formData.contentDescription}
+                    readOnly={dataForForm.formState === 'read'}
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={12}>
@@ -462,6 +471,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     }}
                     placeholderText="Custom Disclaimer Text..."
                     value={dataForForm.formData.contentDisclaimer}
+                    readOnly={dataForForm.formState === 'read'}
                   />
                 </FormFlexContainer>
               </FormSectionRow>
@@ -487,18 +497,22 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     }}
                     placeholderText="Notes..."
                     value={dataForForm.formData.contentNotes}
+                    readOnly={dataForForm.formState === 'read'}
                   />
                 </FormFlexContainer>
               </FormSectionRow>
             </FormSection>
-            <button
-              onClick={(event: any) => {
-                event.preventDefault();
-                this.props.resetContentItemForm({});
-              }}
-            >
-              Reset Form
-            </button>
+            {
+              dataForForm.formState === 'write' &&
+              <button
+                onClick={(event: any) => {
+                  event.preventDefault();
+                  this.props.resetContentItemForm({});
+                }}
+              >
+                Reset Form
+              </button>
+            }
           </ContentPanelForm>
         </ContentPanelSectionContent>
       </ContentPanel>

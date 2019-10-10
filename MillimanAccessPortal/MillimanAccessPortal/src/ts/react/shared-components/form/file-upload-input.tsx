@@ -71,12 +71,14 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
   }
 
   public componentDidUpdate(prevProps: FileUploadInputProps) {
+    const resumableInput: HTMLInputElement = this.uploadRef.current.querySelector('input[type="file"]');
     if (this.props.fileExtensions.toString() !== prevProps.fileExtensions.toString()) {
       this.resumable.opts.fileType = this.props.fileExtensions;
       const newFileExtensions = this.props.fileExtensions.map((ext) => `.${ext}`).join(',');
-      const resumableInput: HTMLInputElement = this.uploadRef.current.querySelector('input[type="file"]');
       resumableInput.setAttribute('accept', newFileExtensions);
     }
+    resumableInput.disabled = this.props.readOnly;
+    // resumableInput.setAttribute('disabled', `${this.props.readOnly}`);
   }
 
   public setupResumable() {
@@ -252,6 +254,8 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
 
   public componentDidMount() {
     this.setupResumable();
+    const resumableInput: HTMLInputElement = this.uploadRef.current.querySelector('input[type="file"]');
+    resumableInput.disabled = this.props.readOnly;
   }
 
   public render() {

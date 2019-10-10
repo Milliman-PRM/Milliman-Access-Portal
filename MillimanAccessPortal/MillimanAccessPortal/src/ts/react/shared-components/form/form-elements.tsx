@@ -1,7 +1,11 @@
 import * as React from 'react';
 
-export const ContentPanelForm: React.SFC = (props) => (
-  <form autoComplete="off">
+interface ContentPanelFormProps {
+  readOnly?: boolean;
+}
+
+export const ContentPanelForm: React.SFC<ContentPanelFormProps> = (props) => (
+  <form autoComplete="off" className={`${props.readOnly ? 'form-disabled' : ''}`}>
     {props.children}
   </form>
 );
