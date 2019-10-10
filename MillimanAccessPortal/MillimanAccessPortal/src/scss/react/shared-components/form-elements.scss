@@ -7,6 +7,11 @@
     align-content: stretch;
 }
 
+.form-section-row {
+    display: flex;
+    flex-flow: row wrap;
+}
+
 .form-section-divider {
     display: flex;
     flex-flow: row wrap;
@@ -30,7 +35,7 @@
 }
 
 .form-element-container {
-    margin-bottom: .5em;
+    margin: .25em .5em .5em;
     opacity: 1;
     width: 100%;
 
@@ -230,6 +235,10 @@
         background-color: $red;
         width: 100%;
     }
+}
+
+.hidden-input {
+    display: none;
 }
 
 /* Form Sections */
