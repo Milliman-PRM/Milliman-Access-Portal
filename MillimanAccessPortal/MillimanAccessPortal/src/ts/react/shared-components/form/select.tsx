@@ -23,7 +23,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>((props, r
   return (
     <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
       <div className={'form-element-select' + (error ? ' error' : '')}>
-        <div className="form-select-container">
+        <div className="form-input-container">
           <select
             name={name}
             id={name}

@@ -266,7 +266,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
     const uploadEasing =
       (uploadProgress.percentage === '0%' || uploadProgress.percentage === '100%') ? '' : ' progress-easing';
     return (
-      <div className="form-element-container">
+      <div className={`form-element-container ${readOnly ? 'disabled' : ''}`}>
         <div className={`form-element-input ${errorMsg ? ' error' : ''}`} ref={this.uploadRef}>
           <div className="form-input-container">
             <input
