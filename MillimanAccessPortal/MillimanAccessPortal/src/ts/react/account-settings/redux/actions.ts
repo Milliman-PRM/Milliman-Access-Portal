@@ -136,6 +136,15 @@ export interface ValidateInputPasswordFailed {
   inputName?: UserInputName;
 }
 
+
+/**
+ * Select which section is currently being viewed
+ */
+export interface SelectSection {
+  type: 'SELECT_SECTION';
+  selectedSection: string;
+}
+
 /**
  * An action that changes the state of the page.
  */

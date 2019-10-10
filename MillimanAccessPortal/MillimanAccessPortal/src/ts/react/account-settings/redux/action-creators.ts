@@ -21,3 +21,6 @@ export const validateInputUser =
   createActionCreator<AccountActions.ValidateInputUser>('VALIDATE_INPUT_USER');
 export const validateInputPassword =
   createActionCreator<AccountActions.ValidateInputPassword>('VALIDATE_INPUT_PASSWORD');
+
+export const selectSection =
+  createActionCreator<AccountActions.SelectSection>('SELECT_SECTION');
