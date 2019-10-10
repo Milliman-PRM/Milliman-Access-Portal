@@ -8,6 +8,8 @@ export const selectClient =
   createActionCreator<PublishActions.SelectClient>('SELECT_CLIENT');
 export const selectItem =
   createActionCreator<PublishActions.SelectItem>('SELECT_ITEM');
+export const setContentItemFormState =
+  createActionCreator<PublishActions.SetContentItemFormState>('SET_CONTENT_ITEM_FORM_STATE');
 
 export const setFilterTextClient =
   createActionCreator<PublishActions.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');

@@ -201,7 +201,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   <CardButton
                     color={'green'}
                     tooltip={'Edit'}
-                    onClick={() => alert('upload')}
+                    onClick={() => {
+                      if (selected.item !== entity.id) {
+                        this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
+                        this.props.selectItem({ id: entity.id });
+                      }
+                      this.props.setContentItemFormState({ formState: 'write' });
+                      }
+                    }
                     icon={'edit'}
                   />
                 </>
@@ -215,6 +222,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
                 }
                 this.props.selectItem({ id: entity.id });
+                this.props.setContentItemFormState({ formState: 'read' });
               }}
               suspended={entity.isSuspended}
               status={entity.status}

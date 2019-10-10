@@ -28,6 +28,15 @@ export interface SelectItem {
 }
 
 /**
+ * Set the Content Item form read/write state
+ * 'read' = read-only | 'write' = write
+ */
+export interface SetContentItemFormState {
+  type: 'SET_CONTENT_ITEM_FORM_STATE';
+  formState: 'read' | 'write';
+}
+
+/**
  * Set filter text for the client card filter.
  */
 export interface SetFilterTextClient {
@@ -233,6 +242,7 @@ export interface ScheduleSessionCheck {
 export type PagePublishingAction =
   | SelectClient
   | SelectItem
+  | SetContentItemFormState
   | SetFilterTextClient
   | SetFilterTextItem
   | SetPublishingFormTextInputValue

@@ -75,6 +75,7 @@ export interface PublishingFormData {
   formData: ContentItemDetail;
   formErrors: ContentItemFormErrors;
   uploads: Dict<UploadState>;
+  formState: 'read' | 'write';
 }
 
 /**

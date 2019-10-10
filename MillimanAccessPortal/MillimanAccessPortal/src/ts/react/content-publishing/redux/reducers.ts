@@ -90,6 +90,7 @@ const _initialFormData: PublishingFormData = {
   formData: emptyContentItemDetail,
   formErrors: emptyContentItemErrors,
   uploads: {},
+  formState: 'read',
 };
 
 const _initialPendingData: PendingDataState = {
@@ -223,7 +224,7 @@ const data = createReducer<PublishingStateData>(_initialData, {
 });
 
 const formData = createReducer<PublishingFormData>(_initialFormData, {
-  FETCH_CONTENT_ITEM_DETAIL_SUCCEEDED: (_state, action: PublishingActions.FetchContentItemDetailSucceeded) => {
+  FETCH_CONTENT_ITEM_DETAIL_SUCCEEDED: (state, action: PublishingActions.FetchContentItemDetailSucceeded) => {
     const keys = Object.keys({ ...action.response.associatedFiles });
     const associatedContentItems: Dict<AssociatedContentItemUpload> = {};
 
@@ -300,6 +301,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       uploads: {
         ...uploads,
       },
+      formState: state.formState,
     };
   },
   SET_PENDING_TEXT_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormTextInputValue) => ({
@@ -308,6 +310,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       ...state.formData,
       [action.inputName]: action.value,
     },
+  }),
+  SET_CONTENT_ITEM_FORM_STATE: (state, action: PublishingActions.SetContentItemFormState) => ({
+    ...state,
+    formState: action.formState,
   }),
   SET_PENDING_BOOLEAN_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormBooleanInputValue) => ({
     ...state,
