@@ -9,8 +9,8 @@ import {
   isPublicationActive, PublicationStatus,
 } from '../../view-models/content-publishing';
 import {
-  Client, ClientWithStats, ContentAssociatedFileType, RootContentItem,
-  RootContentItemWithPublication,
+  Client, ClientWithStats, ContentAssociatedFileType, ContentType,
+  RootContentItem, RootContentItemWithPublication,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
@@ -29,11 +29,12 @@ import {
 import { Filter } from '../shared-components/filter';
 import { FileUploadInput } from '../shared-components/form/file-upload-input';
 import {
-  FormInputContainer, FormSection, FormSectionContainer, FormSectionDivider,
+  ContentPanelForm, FormFlexContainer, FormSection, FormSectionRow,
 } from '../shared-components/form/form-elements';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { Select } from '../shared-components/form/select';
 import { NavBar } from '../shared-components/navbar';
+import { Dict } from '../shared-components/redux/store';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
@@ -52,8 +53,10 @@ interface RootContentItemEntity extends RootContentItemWithPublication {
 interface ContentPublishingProps {
   clients: ClientEntity[];
   items: RootContentItemEntity[];
-  contentTypes: Array<{ selectionValue: string | number, selectionLabel: string }>;
-  associatedContentTypes: Array<{ selectionValue: string | number, selectionLabel: string }>;
+  contentTypes: Dict<ContentType>;
+  contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
+  contentTypesList: Array<{ selectionValue: string | number, selectionLabel: string }>;
+  associatedContentTypesList: Array<{ selectionValue: string | number, selectionLabel: string }>;
   formData: PublishingFormData;
   selected: PublishingStateSelected;
   cardAttributes: PublishingStateCardAttributes;
@@ -272,7 +275,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderContentItemForm() {
-    const { contentTypes, associatedContentTypes, formData: dataForForm, pending } = this.props;
+    const { contentTypes, formData: dataForForm, pending } = this.props;
     const { formErrors, formData, uploads } = dataForForm;
     const contentItemFormButtons = (
       <ActionIcon
@@ -291,201 +294,195 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
-          <form autoComplete="off">
-            <FormSectionContainer>
-              <FormSection title="Content Item Information">
-                <FormSectionDivider>
-                  <FormInputContainer flexPhone={12}>
-                    <Input
-                      autoFocus={true}
-                      error={formErrors.contentName}
-                      label="Content Name"
-                      name="contentName"
-                      onBlur={() => false}
-                      onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-                        this.props.setPublishingFormTextInputValue({
-                          inputName: 'contentName',
-                          value: target.value,
-                        });
-                      }}
-                      type="text"
-                      value={formData.contentName}
-                    />
-                  </FormInputContainer>
-                  <FormInputContainer flexPhone={12} flexTablet={4}>
-                    <Select
-                      error={dataForForm.formErrors.contentTypeId}
-                      label="Content Type"
-                      name="contentType"
-                      onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
-                        this.props.setPublishingFormTextInputValue({
-                          inputName: 'contentTypeId',
-                          value: target.value,
-                        });
-                      }}
-                      placeholderText="Choose Content Type"
-                      value={dataForForm.formData.contentTypeId}
-                      values={contentTypes}
-                    />
-                  </FormInputContainer>
-                  <FormInputContainer flexPhone={12} flexTablet={8}>
-                    <FileUploadInput
-                      fileExtensions={['qvw', 'pbix', 'pdf']}
-                      label="Master Content"
-                      name="masterContent"
-                      placeholderText="Upload Master Content"
-                      beginUpload={(uploadId, fileName) =>
-                        this.props.beginFileUpload({ uploadId, fileName })}
-                      cancelFileUpload={() => false}
-                      finalizeUpload={() => alert('upload succeeded')}
-                      setUploadError={(uploadId, errorMsg) =>
-                        this.props.setUploadError({ uploadId, errorMsg })}
-                      updateChecksumProgress={(uploadId, progress) =>
-                        this.props.updateChecksumProgress({ uploadId, progress })}
-                      updateUploadProgress={(uploadId, progress) =>
-                        this.props.updateUploadProgress({ uploadId, progress })}
-                      upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
-                      uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
-                      value={formData.relatedFiles.MasterContent.fileOriginalName}
-                    />
-                  </FormInputContainer>
-                </FormSectionDivider>
-              </FormSection>
-            </FormSectionContainer>
-            <FormSectionContainer>
-              <FormSection title="Content Related Files">
-                <FormSectionDivider>
-                  <FormInputContainer flexPhone={4}>
-                    <FileUploadInput
-                      fileExtensions={['image/*']}
-                      label="Thumbnail"
-                      name="thumbnail"
-                      placeholderText="Upload Thumbnail"
-                      beginUpload={(uploadId, fileName) =>
-                        this.props.beginFileUpload({ uploadId, fileName })}
-                      cancelFileUpload={() => false}
-                      finalizeUpload={() => alert('upload succeeded')}
-                      setUploadError={(uploadId, errorMsg) =>
-                        this.props.setUploadError({ uploadId, errorMsg })}
-                      updateChecksumProgress={(uploadId, progress) =>
-                        this.props.updateChecksumProgress({ uploadId, progress })}
-                      updateUploadProgress={(uploadId, progress) =>
-                        this.props.updateUploadProgress({ uploadId, progress })}
-                      upload={uploads[formData.relatedFiles.Thumbnail.uniqueUploadId]}
-                      uploadId={formData.relatedFiles.Thumbnail.uniqueUploadId}
-                      value={formData.relatedFiles.Thumbnail.fileOriginalName}
-                    />
-                  </FormInputContainer>
-                  <FormInputContainer flexPhone={8}>
-                    <FileUploadInput
-                      fileExtensions={['pdf']}
-                      label="User Guide"
-                      name="userGuide"
-                      placeholderText="Upload User Guide"
-                      beginUpload={(uploadId, fileName) =>
-                        this.props.beginFileUpload({ uploadId, fileName })}
-                      cancelFileUpload={() => false}
-                      finalizeUpload={() => alert('upload succeeded')}
-                      setUploadError={(uploadId, errorMsg) =>
-                        this.props.setUploadError({ uploadId, errorMsg })}
-                      updateChecksumProgress={(uploadId, progress) =>
-                        this.props.updateChecksumProgress({ uploadId, progress })}
-                      updateUploadProgress={(uploadId, progress) =>
-                        this.props.updateUploadProgress({ uploadId, progress })}
-                      upload={uploads[formData.relatedFiles.UserGuide.uniqueUploadId]}
-                      uploadId={formData.relatedFiles.UserGuide.uniqueUploadId}
-                      value={formData.relatedFiles.UserGuide.fileOriginalName}
-                    />
-                    <FileUploadInput
-                      fileExtensions={['pdf']}
-                      label="Release Notes"
-                      name="releaseNotes"
-                      placeholderText="Upload Release Notes"
-                      beginUpload={(uploadId, fileName) =>
-                        this.props.beginFileUpload({ uploadId, fileName })}
-                      cancelFileUpload={() => false}
-                      finalizeUpload={() => alert('upload succeeded')}
-                      setUploadError={(uploadId, errorMsg) =>
-                        this.props.setUploadError({ uploadId, errorMsg })}
-                      updateChecksumProgress={(uploadId, progress) =>
-                        this.props.updateChecksumProgress({ uploadId, progress })}
-                      updateUploadProgress={(uploadId, progress) =>
-                        this.props.updateUploadProgress({ uploadId, progress })}
-                      upload={uploads[formData.relatedFiles.ReleaseNotes.uniqueUploadId]}
-                      uploadId={formData.relatedFiles.ReleaseNotes.uniqueUploadId}
-                      value={formData.relatedFiles.ReleaseNotes.fileOriginalName}
-                    />
-                  </FormInputContainer>
-                </FormSectionDivider>
-              </FormSection>
-            </FormSectionContainer>
-            <FormSectionContainer>
-              <FormSection title="Content Description">
-                <FormSectionDivider>
-                  <FormInputContainer flexPhone={12}>
-                    <TextAreaInput
-                      error={dataForForm.formErrors.contentDescription}
-                      label="Content Description"
-                      name="contentDescription"
-                      onBlur={() => false}
-                      onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
-                        this.props.setPublishingFormTextInputValue({
-                          inputName: 'contentDescription',
-                          value: target.value,
-                        });
-                      }}
-                      placeholderText="Content Description..."
-                      value={dataForForm.formData.contentDescription}
-                    />
-                  </FormInputContainer>
-                  <FormInputContainer flexPhone={12}>
-                    <TextAreaInput
-                      error={dataForForm.formErrors.contentDisclaimer}
-                      label="Custom Disclaimer Text"
-                      name="contentDisclaimer"
-                      onBlur={() => false}
-                      onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
-                        this.props.setPublishingFormTextInputValue({
-                          inputName: 'contentDisclaimer',
-                          value: target.value,
-                        });
-                      }}
-                      placeholderText="Custom Disclaimer Text..."
-                      value={dataForForm.formData.contentDisclaimer}
-                    />
-                  </FormInputContainer>
-                </FormSectionDivider>
-              </FormSection>
-            </FormSectionContainer>
-            <FormSectionContainer>
-              <FormSection title="Associated Content">
-                <FormSectionDivider>
-                  {associatedContent}
-                </FormSectionDivider>
-              </FormSection>
-            </FormSectionContainer>
-            <FormSectionContainer>
-              <FormSection title="Internale Notes (Not Shown To End Users)">
-                <FormSectionDivider>
-                  <FormInputContainer flexPhone={12}>
-                    <TextAreaInput
-                      error={dataForForm.formErrors.contentNotes}
-                      label="Notes"
-                      name="contentDisclaimer"
-                      onBlur={() => false}
-                      onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
-                        this.props.setPublishingFormTextInputValue({
-                          inputName: 'contentNotes',
-                          value: target.value,
-                        });
-                      }}
-                      placeholderText="Notes..."
-                      value={dataForForm.formData.contentNotes}
-                    />
-                  </FormInputContainer>
-                </FormSectionDivider>
-              </FormSection>
-            </FormSectionContainer>
+          <ContentPanelForm>
+            <FormSection title="Content Item Information">
+              <FormSectionRow>
+                <FormFlexContainer flexPhone={12}>
+                  <Input
+                    autoFocus={true}
+                    error={formErrors.contentName}
+                    label="Content Name"
+                    name="contentName"
+                    onBlur={() => false}
+                    onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                      this.props.setPublishingFormTextInputValue({
+                        inputName: 'contentName',
+                        value: target.value,
+                      });
+                    }}
+                    type="text"
+                    value={formData.contentName}
+                  />
+                </FormFlexContainer>
+                <FormFlexContainer flexPhone={12} flexTablet={5}>
+                  <Select
+                    error={dataForForm.formErrors.contentTypeId}
+                    label="Content Type"
+                    name="contentType"
+                    onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                      this.props.setPublishingFormTextInputValue({
+                        inputName: 'contentTypeId',
+                        value: target.value,
+                      });
+                    }}
+                    placeholderText="Choose Content Type"
+                    value={dataForForm.formData.contentTypeId}
+                    values={this.props.contentTypesList}
+                  />
+                </FormFlexContainer>
+                <FormFlexContainer flexPhone={12} flexTablet={7}>
+                  <FileUploadInput
+                    fileExtensions={
+                      dataForForm.formData.contentTypeId
+                        ? contentTypes[dataForForm.formData.contentTypeId].fileExtensions
+                        : null
+                    }
+                    label="Master Content"
+                    name="masterContent"
+                    placeholderText="Upload Master Content"
+                    beginUpload={(uploadId, fileName) =>
+                      this.props.beginFileUpload({ uploadId, fileName })}
+                    cancelFileUpload={() => false}
+                    finalizeUpload={() => alert('upload succeeded')}
+                    setUploadError={(uploadId, errorMsg) =>
+                      this.props.setUploadError({ uploadId, errorMsg })}
+                    updateChecksumProgress={(uploadId, progress) =>
+                      this.props.updateChecksumProgress({ uploadId, progress })}
+                    updateUploadProgress={(uploadId, progress) =>
+                      this.props.updateUploadProgress({ uploadId, progress })}
+                    upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
+                    uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
+                    value={formData.relatedFiles.MasterContent.fileOriginalName}
+                  />
+                </FormFlexContainer>
+              </FormSectionRow>
+            </FormSection>
+            <FormSection title="Content Related Files">
+              <FormSectionRow>
+                <FormFlexContainer flexPhone={5}>
+                  <FileUploadInput
+                    fileExtensions={['image/*']}
+                    label="Thumbnail"
+                    name="thumbnail"
+                    placeholderText="Upload Thumbnail"
+                    beginUpload={(uploadId, fileName) =>
+                      this.props.beginFileUpload({ uploadId, fileName })}
+                    cancelFileUpload={() => false}
+                    finalizeUpload={() => alert('upload succeeded')}
+                    setUploadError={(uploadId, errorMsg) =>
+                      this.props.setUploadError({ uploadId, errorMsg })}
+                    updateChecksumProgress={(uploadId, progress) =>
+                      this.props.updateChecksumProgress({ uploadId, progress })}
+                    updateUploadProgress={(uploadId, progress) =>
+                      this.props.updateUploadProgress({ uploadId, progress })}
+                    upload={uploads[formData.relatedFiles.Thumbnail.uniqueUploadId]}
+                    uploadId={formData.relatedFiles.Thumbnail.uniqueUploadId}
+                    value={formData.relatedFiles.Thumbnail.fileOriginalName}
+                  />
+                </FormFlexContainer>
+                <FormFlexContainer flexPhone={7}>
+                  <FileUploadInput
+                    fileExtensions={['pdf']}
+                    label="User Guide"
+                    name="userGuide"
+                    placeholderText="Upload User Guide"
+                    beginUpload={(uploadId, fileName) =>
+                      this.props.beginFileUpload({ uploadId, fileName })}
+                    cancelFileUpload={() => false}
+                    finalizeUpload={() => alert('upload succeeded')}
+                    setUploadError={(uploadId, errorMsg) =>
+                      this.props.setUploadError({ uploadId, errorMsg })}
+                    updateChecksumProgress={(uploadId, progress) =>
+                      this.props.updateChecksumProgress({ uploadId, progress })}
+                    updateUploadProgress={(uploadId, progress) =>
+                      this.props.updateUploadProgress({ uploadId, progress })}
+                    upload={uploads[formData.relatedFiles.UserGuide.uniqueUploadId]}
+                    uploadId={formData.relatedFiles.UserGuide.uniqueUploadId}
+                    value={formData.relatedFiles.UserGuide.fileOriginalName}
+                  />
+                  <FileUploadInput
+                    fileExtensions={['pdf']}
+                    label="Release Notes"
+                    name="releaseNotes"
+                    placeholderText="Upload Release Notes"
+                    beginUpload={(uploadId, fileName) =>
+                      this.props.beginFileUpload({ uploadId, fileName })}
+                    cancelFileUpload={() => false}
+                    finalizeUpload={() => alert('upload succeeded')}
+                    setUploadError={(uploadId, errorMsg) =>
+                      this.props.setUploadError({ uploadId, errorMsg })}
+                    updateChecksumProgress={(uploadId, progress) =>
+                      this.props.updateChecksumProgress({ uploadId, progress })}
+                    updateUploadProgress={(uploadId, progress) =>
+                      this.props.updateUploadProgress({ uploadId, progress })}
+                    upload={uploads[formData.relatedFiles.ReleaseNotes.uniqueUploadId]}
+                    uploadId={formData.relatedFiles.ReleaseNotes.uniqueUploadId}
+                    value={formData.relatedFiles.ReleaseNotes.fileOriginalName}
+                  />
+                </FormFlexContainer>
+              </FormSectionRow>
+            </FormSection>
+            <FormSection title="Content Description">
+              <FormSectionRow>
+                <FormFlexContainer flexPhone={12}>
+                  <TextAreaInput
+                    error={dataForForm.formErrors.contentDescription}
+                    label="Content Description"
+                    name="contentDescription"
+                    onBlur={() => false}
+                    onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                      this.props.setPublishingFormTextInputValue({
+                        inputName: 'contentDescription',
+                        value: target.value,
+                      });
+                    }}
+                    placeholderText="Content Description..."
+                    value={dataForForm.formData.contentDescription}
+                  />
+                </FormFlexContainer>
+                <FormFlexContainer flexPhone={12}>
+                  <TextAreaInput
+                    error={dataForForm.formErrors.contentDisclaimer}
+                    label="Custom Disclaimer Text"
+                    name="contentDisclaimer"
+                    onBlur={() => false}
+                    onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                      this.props.setPublishingFormTextInputValue({
+                        inputName: 'contentDisclaimer',
+                        value: target.value,
+                      });
+                    }}
+                    placeholderText="Custom Disclaimer Text..."
+                    value={dataForForm.formData.contentDisclaimer}
+                  />
+                </FormFlexContainer>
+              </FormSectionRow>
+            </FormSection>
+            <FormSection title="Associated Content">
+              <FormSectionRow>
+                {associatedContent}
+              </FormSectionRow>
+            </FormSection>
+            <FormSection title="Internal Notes (Not Shown To End Users)">
+              <FormSectionRow>
+                <FormFlexContainer flexPhone={12}>
+                  <TextAreaInput
+                    error={dataForForm.formErrors.contentNotes}
+                    label="Notes"
+                    name="contentDisclaimer"
+                    onBlur={() => false}
+                    onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                      this.props.setPublishingFormTextInputValue({
+                        inputName: 'contentNotes',
+                        value: target.value,
+                      });
+                    }}
+                    placeholderText="Notes..."
+                    value={dataForForm.formData.contentNotes}
+                  />
+                </FormFlexContainer>
+              </FormSectionRow>
+            </FormSection>
             <button
               onClick={(event: any) => {
                 event.preventDefault();
@@ -494,7 +491,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             >
               Reset Form
             </button>
-          </form>
+          </ContentPanelForm>
         </ContentPanelSectionContent>
       </ContentPanel>
     );
@@ -503,12 +500,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 }
 
 function mapStateToProps(state: PublishingState): ContentPublishingProps {
-  const { formData, selected, cardAttributes, pending, filters } = state;
+  const { data, formData, selected, cardAttributes, pending, filters } = state;
   return {
     clients: clientEntities(state),
     items: itemEntities(state),
-    contentTypes: availableContentTypes(state),
-    associatedContentTypes: availableAssociatedContentTypes(state),
+    contentTypes: data.contentTypes,
+    contentAssociatedFileTypes: data.contentAssociatedFileTypes,
+    contentTypesList: availableContentTypes(state),
+    associatedContentTypesList: availableAssociatedContentTypes(state),
     formData,
     selected,
     cardAttributes,
