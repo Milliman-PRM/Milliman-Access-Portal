@@ -503,29 +503,11 @@ namespace MapTests
             #region Arrange
             AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordIsNotEmailOrUsernameValidator<ApplicationUser>();
+            var validator = new PasswordIsNotEmailValidator<ApplicationUser>();
             #endregion
 
             #region Act
             IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, AppUser.Email);
-            #endregion
-
-            #region Assert
-            Assert.False(result.Succeeded);
-            #endregion
-        }
-
-        [Fact]
-        public async Task UsernameInPasswordNotAllowed()
-        {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordIsNotEmailOrUsernameValidator<ApplicationUser>();
-            #endregion
-
-            #region Act
-            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, AppUser.UserName);
             #endregion
 
             #region Assert

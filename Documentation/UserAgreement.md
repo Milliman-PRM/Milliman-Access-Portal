@@ -13,7 +13,10 @@ Except as expressly stated herein, you are not licensed or permitted to do any o
 
 (i) attempt to access any other Milliman systems, websites, or programs or data that are not made available for public use; or
 
-(ii) copy, reproduce, republish, upload, post, transmit, resell or distribute in any way the material from MAP.
+(ii) copy, reproduce, republish, upload, post, transmit, resell or distribute in any way the the MAP system.
+
+This License Grant is only specific to the MAP system itself, and does not control your use of deliverables provided to you via MAP, which continue to be governed by the applicable agreement between Milliman and the receiving entity.
+
 
 **2. Use of Service.**    ANY USE OF MAP IS PROVIDED FOR INFORMATIONAL PURPOSES ONLY AND USED AT YOUR OWN RISK.  
 
@@ -23,7 +26,7 @@ Except as expressly stated herein, you are not licensed or permitted to do any o
 
 You are responsible for protecting the information on your computer such as by installing anti-virus software, updating your software, password protecting your files, and not permitting third party access to your computer.
 
-You may not (1) use MAP for the benefit of third parties; (2) license, rent, lease, sell, assign, or otherwise transfer or convey MAP or the license grants contained herein to any third parties; (3) disclose or provide access to any part of MAP to any third party without Milliman’s prior written consent; (4) alter, merge, modify or adapt MAP or the Documentation in any way; (5) use MAP to provide services which are competitive in nature to Milliman’s services; or (6) share or disclose MAP with any third party without Milliman’s prior written consent.
+You may not (1) use MAP for the benefit of third parties; (2) license, rent, lease, sell, assign, or otherwise transfer or convey MAP or the license grants contained herein to any third parties; (3) disclose or provide access to any part of MAP to any third party without Milliman’s prior written consent; (4) alter, merge, modify or adapt MAP or the Documentation in any way; (5) use MAP to provide services which are competitive in nature to Milliman’s services; or (6) share or disclose MAP with any third party without Milliman’s prior written consent. Notwithstanding the above, your ability to use or disclose the content contained within MAP shall continue to be governed by your agreement with Milliman.
 
 You acknowledge and agree that MAP is proprietary and confidential to, and a valuable trade secret of, Milliman.  You agree to maintain MAP in strictest confidence.  You agree that you will not disclose, proliferate, or copy MAP except as expressly allowed in this Agreement.  You will ensure that any employee or agent with access to MAP is (i) fully apprised of the terms under which such employee may use MAP and (ii) contractually bound to comply with such terms.  You agree that you will not use, or allow others to use, MAP for any purpose other than those contemplated by this Agreement.
 

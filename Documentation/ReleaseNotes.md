@@ -2,9 +2,9 @@
 
 ## Release Notes
 
-### v1.8.0
+#### v1.7.1
 
-- Fixed a bug that could lead to a misleading message after a password reset
+- Improved feedback to user on password reset failure
 
 ### v1.7.0
 

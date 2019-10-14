@@ -99,7 +99,7 @@ namespace MillimanAccessPortal
                 .AddDefaultTokenProviders()
                 .AddTop100000PasswordValidator<ApplicationUser>()
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
-                .AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
+                .AddPasswordValidator<PasswordIsNotEmailValidator<ApplicationUser>>()
                 .AddCommonWordsValidator<ApplicationUser>(commonWords)
                 .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName)
                 ;
