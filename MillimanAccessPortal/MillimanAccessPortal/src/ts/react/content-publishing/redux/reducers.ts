@@ -98,6 +98,7 @@ const _initialPendingData: PendingDataState = {
   clients: false,
   items: false,
   contentItemDetail: false,
+  formSubmit: false,
 };
 
 /**

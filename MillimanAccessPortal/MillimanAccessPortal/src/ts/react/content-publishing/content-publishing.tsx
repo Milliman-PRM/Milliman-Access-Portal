@@ -13,6 +13,7 @@ import {
   RootContentItem, RootContentItemWithPublication,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { ButtonSpinner } from '../shared-components/button-spinner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import {
     PanelSectionToolbar, PanelSectionToolbarButtons,
@@ -39,6 +40,7 @@ import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
   availableContentTypes, clientEntities, itemEntities, selectedItem,
+  submitButtonIsActive,
 } from './redux/selectors';
 import {
     PublishingFormData, PublishingState, PublishingStateCardAttributes, PublishingStateFilters,
@@ -66,6 +68,7 @@ interface ContentPublishingProps {
   selectedItem: RootContentItem;
   activeSelectedClient: Client;
   activeSelectedItem: RootContentItem;
+  formCanSubmit: boolean;
 }
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
@@ -504,14 +507,29 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             </FormSection>
             {
               dataForForm.formState === 'write' &&
-              <button
-                onClick={(event: any) => {
-                  event.preventDefault();
-                  this.props.resetContentItemForm({});
-                }}
-              >
-                Reset Form
-              </button>
+              <div className="button-container">
+                <button
+                  className="link-button"
+                  type="button"
+                  onClick={(event: any) => {
+                    event.preventDefault();
+                    this.props.resetContentItemForm({});
+                  }}
+                >
+                  Undo Changes
+                </button>
+                <button
+                  type="submit"
+                  className={`blue-button${this.props.formCanSubmit ? '' : ' disabled'}`}
+                  disabled={!this.props.formCanSubmit}
+                >
+                  {`${dataForForm.formData.id ? 'Update' : 'Create'} Content Item`}
+                  {this.props.pending.data.formSubmit
+                    ? <ButtonSpinner version="circle" />
+                    : null
+                  }
+                </button>
+              </div>
             }
           </ContentPanelForm>
         </ContentPanelSectionContent>
@@ -538,6 +556,7 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     selectedItem: selectedItem(state),
     activeSelectedClient: activeSelectedClient(state),
     activeSelectedItem: activeSelectedItem(state),
+    formCanSubmit: submitButtonIsActive(state),
   };
 }
 

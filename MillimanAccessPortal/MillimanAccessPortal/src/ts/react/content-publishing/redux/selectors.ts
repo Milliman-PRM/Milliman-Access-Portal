@@ -243,3 +243,12 @@ export function availableAssociatedContentTypes(state: PublishingState) {
   }
   return AssociatedContentTypesArray.sort((a, b) => (a.selectionValue > b.selectionValue) ? 1 : -1);
 }
+
+/**
+ * Determine if the Content Item form submit button should be enabled
+ * @param state Redux store
+ */
+export function submitButtonIsActive(state: PublishingState) {
+  const formChanged = !_.isEqual(state.formData.formData, state.formData.originalData);
+  return formChanged;
+}
