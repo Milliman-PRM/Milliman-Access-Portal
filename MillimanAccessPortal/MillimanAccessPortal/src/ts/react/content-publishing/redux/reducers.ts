@@ -496,7 +496,6 @@ const selected = createReducer<PublishingStateSelected>(
     SELECT_ITEM: (state, action: PublishingActions.SelectItem) => ({
       ...state,
       item: action.id === state.item ? null : action.id,
-      group: null,
     }),
   },
 );
