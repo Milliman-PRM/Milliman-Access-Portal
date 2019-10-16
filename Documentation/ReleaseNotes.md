@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+#### v1.7.2
+
+- Prevent accidental submission of multiple selection group reductions in the Content Access Admin view
+
 #### v1.7.1
 
 - Improved feedback to user on password reset failure
