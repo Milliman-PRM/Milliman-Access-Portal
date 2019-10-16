@@ -287,10 +287,17 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 
   private renderContentItemForm() {
     const { contentTypes, formData: dataForForm, pending } = this.props;
-    const contentItemFormButtons = (
     const { formErrors, formData, formState, uploads } = dataForForm;
+    const editFormButton = (
       <ActionIcon
-        label="Close Form"
+        label="Edit Content Item"
+        icon="edit"
+        action={() => { this.props.setContentItemFormState({ formState: 'write' }); }}
+      />
+    );
+    const closeFormButton = (
+      <ActionIcon
+        label="Close Content Item"
         icon="cancel"
         action={() => { this.props.selectItem({ id: null }); }}
       />
@@ -301,7 +308,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <h3 className="admin-panel-header">Content Item</h3>
         <PanelSectionToolbar>
           <PanelSectionToolbarButtons>
-            {contentItemFormButtons}
+            {formState === 'read' &&
+              editFormButton
+            }
+            {closeFormButton}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
