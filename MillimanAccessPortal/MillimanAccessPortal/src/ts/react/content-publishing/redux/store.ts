@@ -41,7 +41,7 @@ export interface PublishingStateData {
  */
 export interface PublishingStateSelected {
   client: Guid;
-  item: Guid;
+  item: Guid | 'NEW CONTENT ITEM';
 }
 
 /**

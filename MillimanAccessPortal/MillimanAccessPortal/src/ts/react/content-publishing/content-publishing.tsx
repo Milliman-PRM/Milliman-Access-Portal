@@ -165,7 +165,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       <ActionIcon
         label="New Content Item"
         icon="add"
-        action={() => { alert('Create New Content Item'); }}
+        action={() => { this.props.selectItem({ id: 'NEW CONTENT ITEM' }); }}
       />
     );
     return activeClient && (
@@ -256,9 +256,19 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             );
         }}
         renderNewEntityButton={() => (
-          <div className="card-container action-card-container" onClick={() => alert('Content Item Created')}>
+          <div
+            className="card-container action-card-container"
+            onClick={() => this.props.selectItem({ id: 'NEW CONTENT ITEM' })}
+          >
             <div className="admin-panel-content">
-              <div className="card-body-container card-100 action-card">
+              <div
+                className={
+                  `
+                    card-body-container card-100 action-card
+                    ${this.props.selected.item === 'NEW CONTENT ITEM' ? 'selected' : ''}
+                  `
+                }
+              >
                 <h2 className="card-body-primary-text">
                   <svg className="action-card-icon">
                     <use href="#add" />
