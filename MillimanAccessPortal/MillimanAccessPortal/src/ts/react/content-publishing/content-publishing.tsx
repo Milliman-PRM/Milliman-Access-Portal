@@ -292,7 +292,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       <ActionIcon
         label="Close Form"
         icon="cancel"
-        action={() => { alert('Cancel Form'); }}
+        action={() => { this.props.selectItem({ id: null }); }}
       />
     );
     const associatedContent = <div>Add Associated Content</div>;
