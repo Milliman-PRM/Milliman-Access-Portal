@@ -7,6 +7,7 @@
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib.ActionFilters;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -26,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
@@ -494,7 +496,7 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary validation
             if (selectionGroup == null)
             {
-                Log.Debug($"In ContentAccessAdminController.UpdateSelections action: selection group not found, aborting");
+                Log.Warning($"In ContentAccessAdminController.UpdateSelections action: selection group not found, aborting");
                 Response.Headers.Add("Warning", "The requested selection group does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -504,7 +506,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
             if (!roleInRootContentItemResult.Succeeded)
             {
-                Log.Debug($"In ContentAccessAdminController.UpdateSelections action: authorization failure, user {User.Identity.Name}, content item {selectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}, aborting");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections action: authorization failure, user {User.Identity.Name}, content item {selectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
@@ -518,14 +520,14 @@ namespace MillimanAccessPortal.Controllers
                 .Any(pr => pr.RequestStatus.IsActive());
             if (blockedByPendingPublication)
             {
-                Log.Debug($"In ContentAccessAdminController.UpdateSelections action: action blocked by pending publication, aborting");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections action: action blocked by pending publication, aborting");
                 Response.Headers.Add("Warning", "Selections may not be updated while this content item has a pending publication.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             if (!selectionGroup.RootContentItem.DoesReduce)
             {
-                Log.Debug($"In ContentAccessAdminController.UpdateSelections action: action invoked for non-reducing content item, aborting");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections action: action invoked for non-reducing content item, aborting");
                 Response.Headers.Add("Warning", "The requested selection group belongs to a content item that cannot be reduced.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -536,7 +538,7 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault();
             if (currentLivePublication == null)
             {
-                Log.Debug($"In ContentAccessAdminController.UpdateSelections action: action invoked for non-live content item, aborting");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections action: action invoked for non-live content item, aborting");
                 Response.Headers.Add("Warning", "There is no live content for the requested selection group.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -547,7 +549,7 @@ namespace MillimanAccessPortal.Controllers
                 .Where(task => task.CreateDateTimeUtc > currentLivePublication.CreateDateTimeUtc)
                 .Any(task => task.ReductionStatus.IsActive()))
             {
-                Log.Debug($"In ContentAccessAdminController.UpdateSelections action: action blocked due to a pending reduction task, aborting");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections action: action blocked due to a pending reduction task, aborting");
                 Response.Headers.Add("Warning", "An unresolved publication or selection change prevents this action.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -556,7 +558,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 if (selectionGroup.IsMaster)
                 {
-                    Log.Debug($"In ContentAccessAdminController.UpdateSelections action: request to make selection group {selectionGroup.Id} master but it is already master, aborting");
+                    Log.Information($"In ContentAccessAdminController.UpdateSelections action: request to make selection group {selectionGroup.Id} master but it is already master, aborting");
                     Response.Headers.Add("Warning", "The specified selection group already has master content access.");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
@@ -570,7 +572,7 @@ namespace MillimanAccessPortal.Controllers
                                                    .Count();
                 if (validSelectionCount < selections.Count())
                 {
-                    Log.Debug($"In ContentAccessAdminController.UpdateSelections action: request to update selection group {selectionGroup.Id} using invalid selection value(s), aborting");
+                    Log.Information($"In ContentAccessAdminController.UpdateSelections action: request to update selection group {selectionGroup.Id} using invalid selection value(s), aborting");
                     Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified content item.");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
@@ -580,7 +582,7 @@ namespace MillimanAccessPortal.Controllers
                     // The requested selections must be modified from the live selections for this SelectionGroup
                     if (selections.ToHashSet().SetEquals(selectionGroup.SelectedHierarchyFieldValueList))
                     {
-                        Log.Debug($"In ContentAccessAdminController.UpdateSelections action: request to update selection group {selectionGroup.Id} with unchanged selections, aborting");
+                        Log.Information($"In ContentAccessAdminController.UpdateSelections action: request to update selection group {selectionGroup.Id} with unchanged selections, aborting");
                         Response.Headers.Add("Warning", "The requested selections are not different from the active document.");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
@@ -592,7 +594,7 @@ namespace MillimanAccessPortal.Controllers
             if (LiveMasterFile == null 
              || !System.IO.File.Exists(LiveMasterFile.FullPath))
             {
-                Log.Debug($"In ContentAccessAdminController.UpdateSelections action: request to update selection group {selectionGroup.Id} but master content file for the content item {selectionGroup.RootContentItemId} is not found");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections action: request to update selection group {selectionGroup.Id} but master content file for the content item {selectionGroup.RootContentItemId} is not found");
                 Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -656,15 +658,17 @@ namespace MillimanAccessPortal.Controllers
 
                     DbContext.SaveChanges();
 
-                    Log.Debug($"In ContentAccessAdminController.UpdateSelections action: request to update selection group {selectionGroup.Id} with no selections, cannot be processed, aborting");
+                    Log.Information($"In ContentAccessAdminController.UpdateSelections action: request to update selection group {selectionGroup.Id} with no selections, cannot be processed, aborting");
                 }
                 else
                 {
-                    // Stage the master file in a task folder in the file exchange share
+                    CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+                    CancellationToken cancellationToken = cancellationTokenSource.Token;
+
+                    // The master file will be copied to a task folder in the file exchange share
                     string TaskFolderPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:MapPublishingServerExchangePath"), NewTaskGuid.ToString("D"));
                     Directory.CreateDirectory(TaskFolderPath);
                     string MasterFileCopyTarget = Path.Combine(TaskFolderPath, Path.GetFileName(LiveMasterFile.FullPath));
-                    System.IO.File.Copy(LiveMasterFile.FullPath, MasterFileCopyTarget);
 
                     var contentReductionTask = new ContentReductionTask
                     {
@@ -675,14 +679,18 @@ namespace MillimanAccessPortal.Controllers
                         MasterContentChecksum = LiveMasterFile.Checksum,
                         ContentPublicationRequest = null,
                         SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections),
-                        ReductionStatus = ReductionStatusEnum.Queued,
+                        ReductionStatus = ReductionStatusEnum.Validating,
                         CreateDateTimeUtc = DateTime.UtcNow,
                         TaskAction = TaskActionEnum.HierarchyAndReduction,
                     };
                     DbContext.ContentReductionTask.Add(contentReductionTask);
                     DbContext.SaveChanges();
+                    GlobalFunctions.IssueLog(IssueLogEnum.LongRunningSelectionGroupProcessing, $"Reduction task {contentReductionTask.Id} submitted.  Background processing will continue.");
 
                     string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
+
+                    Task DontAwaitThisTask = ContentAccessSupport.LongRunningUpdateSelectionCodeAsync(CxnString, LiveMasterFile.FullPath, MasterFileCopyTarget, contentReductionTask, cancellationTokenSource);
+
                     string ContentItemRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
 
                     object ContentTypeConfigObj = null;
@@ -700,7 +708,7 @@ namespace MillimanAccessPortal.Controllers
                             // should never get here because non-reducible content types are blocked in validation above
                             break;
                     }
-                    ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath, ContentTypeConfigObj)));
+                    ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath, ContentTypeConfigObj, cancellationTokenSource.Token), cancellationTokenSource.Token));
 
                     AuditLogger.Log(AuditEventType.SelectionChangeReductionQueued.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentReductionTask));
                 }
