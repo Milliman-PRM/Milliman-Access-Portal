@@ -37,6 +37,15 @@ export interface SetContentItemFormState {
 }
 
 /**
+ * Setup an empty content item form for creating
+ * a new Content Item
+ */
+export interface SetFormForNewContentItem {
+  type: 'SET_FORM_FOR_NEW_CONTENT_ITEM';
+  clientId: Guid;
+}
+
+/**
  * Set filter text for the client card filter.
  */
 export interface SetFilterTextClient {
@@ -243,6 +252,7 @@ export type PagePublishingAction =
   | SelectClient
   | SelectItem
   | SetContentItemFormState
+  | SetFormForNewContentItem
   | SetFilterTextClient
   | SetFilterTextItem
   | SetPublishingFormTextInputValue

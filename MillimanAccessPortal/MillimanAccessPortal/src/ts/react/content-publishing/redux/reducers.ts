@@ -305,6 +305,45 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       formState: state.formState,
     };
   },
+  SET_FORM_FOR_NEW_CONTENT_ITEM: (_state, action: PublishingActions.SetFormForNewContentItem) => {
+    const contentItemDetail: ContentItemDetail = emptyContentItemDetail;
+
+    contentItemDetail.clientId = action.clientId;
+    contentItemDetail.relatedFiles.MasterContent.uniqueUploadId = generateUniqueId('MasterContent');
+    contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId = generateUniqueId('Thumbnail');
+    contentItemDetail.relatedFiles.UserGuide.uniqueUploadId = generateUniqueId('UserGuide');
+    contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId = generateUniqueId('ReleaseNotes');
+
+    const newUpload: UploadState = {
+      cancelable: false,
+      errorMsg: null,
+      checksumProgress: ProgressSummary.empty(),
+      uploadProgress: ProgressSummary.empty(),
+    };
+
+    const uploads: Dict<UploadState> = {
+      [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+    };
+
+    const emptyContentItemFormData: PublishingFormData = {
+      originalData: {
+        ...contentItemDetail,
+      },
+      formData: {
+        ...contentItemDetail,
+      },
+      formErrors: {},
+      uploads: {
+        ...uploads,
+      },
+      formState: 'write',
+    };
+
+    return emptyContentItemFormData;
+  },
   SET_PENDING_TEXT_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormTextInputValue) => ({
     ...state,
     formData: {
@@ -496,6 +535,10 @@ const selected = createReducer<PublishingStateSelected>(
     SELECT_ITEM: (state, action: PublishingActions.SelectItem) => ({
       ...state,
       item: action.id === state.item ? null : action.id,
+    }),
+    SET_FORM_FOR_NEW_CONTENT_ITEM: (state) => ({
+      ...state,
+      item: state.item === 'NEW CONTENT ITEM' ? null : 'NEW CONTENT ITEM',
     }),
   },
 );

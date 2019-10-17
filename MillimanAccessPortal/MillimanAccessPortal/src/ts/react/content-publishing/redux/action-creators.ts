@@ -10,6 +10,8 @@ export const selectItem =
   createActionCreator<PublishActions.SelectItem>('SELECT_ITEM');
 export const setContentItemFormState =
   createActionCreator<PublishActions.SetContentItemFormState>('SET_CONTENT_ITEM_FORM_STATE');
+export const setFormForNewContentItem =
+  createActionCreator<PublishActions.SetFormForNewContentItem>('SET_FORM_FOR_NEW_CONTENT_ITEM');
 
 export const setFilterTextClient =
   createActionCreator<PublishActions.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');

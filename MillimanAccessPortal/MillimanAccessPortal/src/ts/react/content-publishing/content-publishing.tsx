@@ -165,7 +165,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       <ActionIcon
         label="New Content Item"
         icon="add"
-        action={() => { this.props.selectItem({ id: 'NEW CONTENT ITEM' }); }}
+        action={() => { this.props.setFormForNewContentItem({ clientId: selected.client }); }}
       />
     );
     return activeClient && (
@@ -258,7 +258,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         renderNewEntityButton={() => (
           <div
             className="card-container action-card-container"
-            onClick={() => this.props.selectItem({ id: 'NEW CONTENT ITEM' })}
+            onClick={() => this.props.setFormForNewContentItem({ clientId: selected.client })}
           >
             <div className="admin-panel-content">
               <div
