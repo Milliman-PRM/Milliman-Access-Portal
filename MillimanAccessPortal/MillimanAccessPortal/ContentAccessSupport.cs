@@ -255,19 +255,18 @@ namespace MillimanAccessPortal
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Failed to complete ContentAccessSupport.LongRunningUpdateSelectionCodeAsync()");
+                Log.Error(ex, $"Failed to complete ContentAccessSupport.LongRunningUpdateSelectionCodeAsync() processing for reduction task {reductionTask.Id}");
                 cancellationTokenSource.Cancel();  // signal to this.MonitorReductionTaskForGoLive()
             }
 
             // update the status reflecting the outcome
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
-                Db.Update(reductionTask);
+                GlobalFunctions.IssueLog(IssueLogEnum.LongRunningSelectionGroupProcessing, $"LongRunningUpdateSelectionCodeAsync updating status of reduction task {reductionTask.Id.ToString()} to {ContentReductionTask.ReductionStatusDisplayNames[resultingStatus]}");
+                reductionTask = Db.ContentReductionTask.Find(reductionTask.Id);
                 reductionTask.ReductionStatus = resultingStatus;
                 Db.SaveChanges();
             }
-
-            GlobalFunctions.IssueLog(IssueLogEnum.LongRunningSelectionGroupProcessing, $"LongRunningUpdateSelectionCodeAsync finished for reduction task {reductionTask.Id.ToString()}");
 
             return;
         }
