@@ -5,6 +5,8 @@
 #### v1.7.2
 
 - Prevent accidental submission of multiple selection group reductions in the Content Access Admin view
+- The response to a selection change request for reduced content is much faster to provide timely user feedback
+- A new status (Validating) has been added to selection change logic, before Queued.  For smaller content, the user may see the status change directly to Queued since validation will be fast
 
 #### v1.7.1
 

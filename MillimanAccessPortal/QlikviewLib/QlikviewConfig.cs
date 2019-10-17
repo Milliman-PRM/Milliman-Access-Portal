@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Configuration parameters related to Qlikview server
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,7 +26,7 @@ namespace QlikviewLib
 
         public string QvServerAdminUserPassword { get; set; }
         /// <summary>
-        /// URL of the QlikView Management Service (QMS) API on the content publishing server
+        /// URL of the QMS API on the distribution server (QDS)
         /// </summary>
         public string QdsQmsApiUrl { get; set; }
 
