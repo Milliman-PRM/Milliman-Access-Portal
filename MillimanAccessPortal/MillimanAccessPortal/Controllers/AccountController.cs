@@ -83,7 +83,6 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/Login
         [HttpGet]
         [AllowAnonymous]
-        //[LogTiming]
         public async Task<IActionResult> Login(string returnUrl = null)
         {
             if (string.IsNullOrWhiteSpace(User.Identity.Name) && !User.Identity.IsAuthenticated)
@@ -1436,7 +1435,6 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpGet]
         [PreventAuthRefresh]
-        //[LogTiming]
         public IActionResult SessionStatus()
         {
             return Json(new { });
