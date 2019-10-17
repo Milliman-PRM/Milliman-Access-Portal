@@ -370,7 +370,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     fileExtensions={
                       dataForForm.formData.contentTypeId
                         ? contentTypes[dataForForm.formData.contentTypeId].fileExtensions
-                        : null
+                        : []
                     }
                     label="Master Content"
                     name="masterContent"
