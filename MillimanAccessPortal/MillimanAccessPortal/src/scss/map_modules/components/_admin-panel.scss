@@ -85,11 +85,7 @@
                 text-align: center;
                 height: 5.25em;
                 text-transform: uppercase;
-
-                &:hover {
-                    color: lighten($charcoal, 20%);
-                }
-
+                
                 &[selected] {
                     &:hover {
                         color: $white;
