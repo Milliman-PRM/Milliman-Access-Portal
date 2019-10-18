@@ -312,7 +312,6 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         action={() => { this.props.selectItem({ id: null }); }}
       />
     );
-    const associatedContent = <div>Add Associated Content</div>;
     return (
       <ContentPanel loading={pending.data.contentItemDetail}>
         <h3 className="admin-panel-header">Content Item</h3>
@@ -497,11 +496,6 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
-              </FormSectionRow>
-            </FormSection>
-            <FormSection title="Associated Content">
-              <FormSectionRow>
-                {associatedContent}
               </FormSectionRow>
             </FormSection>
             <FormSection title="Internal Notes (Not Shown To End Users)">
