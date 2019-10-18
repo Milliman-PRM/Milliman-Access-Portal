@@ -87,11 +87,13 @@ export default function* rootSaga() {
       `Selection group ${isSuspended ? '' : 'un'}suspended.`);
   yield takeEveryToast<AccessActions.UpdateSelectionsSucceeded>
     ('UPDATE_SELECTIONS_SUCCEEDED', ({ reduction, group }) =>
-      reduction && reduction.taskStatus === 10
-        ? 'Reduction queued.'
-        : group && group.isMaster
-          ? 'Unrestricted access granted.'
-          : 'Group inactivated.');
+      reduction && reduction.taskStatus === 9
+        ? 'Reduction validating.'
+        : reduction && reduction.taskStatus === 10
+          ? 'Reduction queued.'
+          : group && group.isMaster
+            ? 'Unrestricted access granted.'
+            : 'Group inactivated.');
   yield takeEveryToast('CANCEL_REDUCTION_SUCCEEDED', 'Reduction canceled.');
   yield takeEveryToast('PROMPT_GROUP_EDITING',
     'Please finish editing the current selection group before performing this action.', 'warning');
