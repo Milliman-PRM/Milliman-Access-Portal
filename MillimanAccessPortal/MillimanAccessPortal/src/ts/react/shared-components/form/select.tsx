@@ -32,7 +32,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>((props, r
             disabled={readOnly}
             {...rest}
           >
-            <option>{placeholderText || 'Select a ' + label}</option>
+            <option value="">{placeholderText || 'Select a ' + label}</option>
             {options}
           </select>
           <label className="form-input-label" htmlFor={name}>{label}</label>
