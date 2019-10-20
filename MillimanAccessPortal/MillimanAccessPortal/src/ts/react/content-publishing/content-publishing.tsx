@@ -377,7 +377,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={() => false}
-                    finalizeUpload={() => alert('upload succeeded')}
+                    finalizeUpload={(uploadId, fileName, Guid) =>
+                      this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
                       this.props.setUploadError({ uploadId, errorMsg })}
                     updateChecksumProgress={(uploadId, progress) =>
@@ -403,7 +404,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={() => false}
-                    finalizeUpload={() => alert('upload succeeded')}
+                    finalizeUpload={(uploadId, fileName, Guid) =>
+                      this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
                       this.props.setUploadError({ uploadId, errorMsg })}
                     updateChecksumProgress={(uploadId, progress) =>
@@ -425,7 +427,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={() => false}
-                    finalizeUpload={() => alert('upload succeeded')}
+                    finalizeUpload={(uploadId, fileName, Guid) =>
+                      this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
                       this.props.setUploadError({ uploadId, errorMsg })}
                     updateChecksumProgress={(uploadId, progress) =>
@@ -445,7 +448,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={() => false}
-                    finalizeUpload={() => alert('upload succeeded')}
+                    finalizeUpload={(uploadId, fileName, Guid) =>
+                      this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
                       this.props.setUploadError({ uploadId, errorMsg })}
                     updateChecksumProgress={(uploadId, progress) =>
