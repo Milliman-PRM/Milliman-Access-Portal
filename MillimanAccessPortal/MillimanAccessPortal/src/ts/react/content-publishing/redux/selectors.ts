@@ -249,7 +249,11 @@ export function availableAssociatedContentTypes(state: PublishingState) {
  * @param state Redux store
  */
 export function submitButtonIsActive(state: PublishingState) {
+  const { formData } = state.formData;
   const formChanged = !_.isEqual(state.formData.formData, state.formData.originalData);
   const noActiveUpload = _.size(state.pending.uploads) === 0;
-  return formChanged && noActiveUpload;
+  const formValid = formData.clientId
+    && formData.contentTypeId
+    && formData.relatedFiles.MasterContent.fileOriginalName.length > 0;
+  return formChanged && noActiveUpload && formValid;
 }
