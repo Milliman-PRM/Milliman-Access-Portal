@@ -58,6 +58,7 @@ export interface PublishingStateCardAttributes {
 export interface PublishingStatePending {
   data: PendingDataState;
   statusTries: number;
+  uploads: Dict<UploadState>;
 }
 
 /**
