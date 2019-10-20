@@ -367,7 +367,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 <FormFlexContainer flexPhone={12} flexTablet={7}>
                   <FileUploadInput
                     fileExtensions={
-                      dataForForm.formData.contentTypeId
+                      contentTypes[dataForForm.formData.contentTypeId] !== undefined
                         ? contentTypes[dataForForm.formData.contentTypeId].fileExtensions
                         : []
                     }
