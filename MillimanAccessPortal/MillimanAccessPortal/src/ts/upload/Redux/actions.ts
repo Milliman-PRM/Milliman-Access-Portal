@@ -41,7 +41,7 @@ export interface CancelFileUpload {
 export interface FinalizeUpload {
   type: 'FINALIZE_UPLOAD';
   uploadId: string;
-  filename: string;
+  fileName: string;
   Guid: string;
 }
 
