@@ -250,5 +250,6 @@ export function availableAssociatedContentTypes(state: PublishingState) {
  */
 export function submitButtonIsActive(state: PublishingState) {
   const formChanged = !_.isEqual(state.formData.formData, state.formData.originalData);
-  return formChanged;
+  const noActiveUpload = _.size(state.pending.uploads) === 0;
+  return formChanged && noActiveUpload;
 }
