@@ -158,6 +158,32 @@ export interface FetchContentItemDetailFailed {
 }
 
 /**
+ * POST:
+ *   Create a new Content Item;
+ */
+export interface CreateNewContentItem {
+  type: 'CREATE_NEW_CONTENT_ITEM';
+  request: {
+    Id: 0;
+    ClientId: Guid;
+    ContentName: string;
+    ContentTypeId: Guid;
+    Description: string;
+    Notes: string;
+    ContentDisclaimer: string;
+    DoesReduce: boolean;
+  };
+}
+export interface CreateNewContentItemSucceeded {
+  type: 'CREATE_NEW_CONTENT_ITEM_SUCCEEDED';
+  response: ContentItemDetail;
+}
+export interface CreateNewContentItemFailed {
+  type: 'CREATE_NEW_CONTENT_ITEM_FAILED';
+  error: TSError;
+}
+
+/**
  * Set the value of a form inputs
  */
 
