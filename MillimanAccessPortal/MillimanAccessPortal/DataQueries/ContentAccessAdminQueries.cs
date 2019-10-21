@@ -286,7 +286,7 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="isMaster">Master status</param>
         /// <param name="selections">List of selections</param>
         /// <returns>Response model</returns>
-        public SingleReductionModel UpdateSelections(Guid selectionGroupId, bool isMaster, List<Guid> selections)
+        public SingleReductionModel GetUpdateSelectionsModel(Guid selectionGroupId, bool isMaster, List<Guid> selections)
         {
             // use code in the controller for now
 
@@ -313,18 +313,17 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="groupId">Selected selection group</param>
         /// <returns>Response model</returns>
-        public SingleReductionModel CancelReduction(Guid groupId)
+        public SingleReductionModel GetCanceledSingleReductionModel(Guid groupId)
         {
             // use code in the controller for now
 
             var group = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(groupId);
-            var reduction = _publicationQueries
-                .SelectReductionsWhereSelectionGroupIn(new List<Guid> { groupId }).SingleOrDefault();
-            var reductionQueue = _publicationQueries
-                .SelectQueueDetailsWhereReductionIn(reduction == null
-                    ? new List<Guid> { }
-                    : new List<Guid> { reduction.Id }
-                    ).SingleOrDefault();
+            var reduction = _publicationQueries.SelectReductionsWhereSelectionGroupIn(new List<Guid> { groupId }).SingleOrDefault();
+            var reductionQueue = _publicationQueries.SelectQueueDetailsWhereReductionIn(
+                reduction == null
+                ? new List<Guid> { }
+                : new List<Guid> { reduction.Id }
+                ).SingleOrDefault();
 
             return new SingleReductionModel
             {

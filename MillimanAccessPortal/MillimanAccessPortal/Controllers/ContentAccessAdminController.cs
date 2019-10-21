@@ -650,7 +650,6 @@ namespace MillimanAccessPortal.Controllers
                 else
                 {
                     CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-                    CancellationToken cancellationToken = cancellationTokenSource.Token;
 
                     // The master file will be copied to a task folder in the file exchange share
                     string TaskFolderPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:MapPublishingServerExchangePath"), NewTaskGuid.ToString("D"));
@@ -672,13 +671,12 @@ namespace MillimanAccessPortal.Controllers
                     };
                     DbContext.ContentReductionTask.Add(contentReductionTask);
                     DbContext.SaveChanges();
-                    GlobalFunctions.IssueLog(IssueLogEnum.LongRunningSelectionGroupProcessing, $"Reduction task {contentReductionTask.Id} submitted.  Background processing will continue.");
 
                     string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
 
                     Task DontAwaitThisTask = ContentAccessSupport.LongRunningUpdateSelectionCodeAsync(CxnString, LiveMasterFile.FullPath, MasterFileCopyTarget, contentReductionTask, cancellationTokenSource);
 
-                    string ContentItemRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
+                    Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: reduction task {contentReductionTask.Id} submitted with status {contentReductionTask.ReductionStatus.ToString()}.  Background processing will continue.");
 
                     object ContentTypeConfigObj = null;
                     switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
@@ -695,13 +693,16 @@ namespace MillimanAccessPortal.Controllers
                             // should never get here because non-reducible content types are blocked in validation above
                             break;
                     }
+                    string ContentItemRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
                     ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath, ContentTypeConfigObj, cancellationTokenSource.Token), cancellationTokenSource.Token));
 
                     AuditLogger.Log(AuditEventType.SelectionChangeReductionQueued.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentReductionTask));
                 }
             }
-            //SelectionsDetail model = SelectionsDetail.Build(DbContext, _standardQueries, selectionGroup);
-            var model = _queries.UpdateSelections(selectionGroupId, isMaster, selections.ToList());
+
+            var model = _queries.GetUpdateSelectionsModel(selectionGroupId, isMaster, selections.ToList());
+
+            Log.Debug($"Action {ControllerContext.ActionDescriptor.DisplayName}: succeeded for selection group {selectionGroupId}");
 
             return Json(model);
         }
@@ -757,14 +758,13 @@ namespace MillimanAccessPortal.Controllers
             }
             DbContext.SaveChanges();
 
-            Log.Debug($"In action {ControllerContext.ActionDescriptor.DisplayName}: reduction tasks cancelled: {string.Join(", ", UpdatedTasks.Select(t=>t.Id.ToString()))}");
+            Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: reduction task(s) cancelled: {string.Join(", ", UpdatedTasks.Select(t=>t.Id.ToString()))}");
             foreach (var Task in UpdatedTasks)
             {
                 AuditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(SelectionGroup, SelectionGroup.RootContentItem, SelectionGroup.RootContentItem.Client, Task));
             }
 
-            //SelectionsDetail Model = SelectionsDetail.Build(DbContext, _standardQueries, SelectionGroup);
-            var model = _queries.CancelReduction(SelectionGroupId);
+            var model = _queries.GetCanceledSingleReductionModel(SelectionGroupId);
 
             return Json(model);
         }
