@@ -16,8 +16,7 @@
 
   <PropertyGroup>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
-    <Version>1.7.1</Version>
-    <AssemblyVersion>1.7.1.0</AssemblyVersion>
+    <Version>1.7.2</Version>
     <Company>Milliman Inc.</Company>
     <Authors>Milliman PRM Analytics Team</Authors>
     <LangVersion>latest</LangVersion>
