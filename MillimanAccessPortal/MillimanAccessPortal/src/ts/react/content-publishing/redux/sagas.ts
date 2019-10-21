@@ -4,7 +4,7 @@ import { ClientWithEligibleUsers, RootContentItemWithStats } from '../../models'
 import {
   createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
 } from '../../shared-components/redux/sagas';
-import * as AccessActionCreators from './action-creators';
+import * as ContentPublishingActionCreators from './action-creators';
 import {
   ErrorPublishingAction, PublishingAction, RequestPublishingAction, ResponsePublishingAction,
 } from './actions';
@@ -49,24 +49,24 @@ export default function* rootSaga() {
   yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
     const client: ClientWithEligibleUsers = yield select(selectedClient);
     return client
-      ? AccessActionCreators.fetchStatusRefresh({
+      ? ContentPublishingActionCreators.fetchStatusRefresh({
         clientId: client.id,
       })
-      : AccessActionCreators.scheduleStatusRefresh({ delay: 5000 });
+      : ContentPublishingActionCreators.scheduleStatusRefresh({ delay: 5000 });
   });
   yield takeLatestSchedule('FETCH_STATUS_REFRESH_SUCCEEDED',
-    () => AccessActionCreators.scheduleStatusRefresh({ delay: 5000 }));
+    () => ContentPublishingActionCreators.scheduleStatusRefresh({ delay: 5000 }));
   yield takeLatestSchedule('FETCH_STATUS_REFRESH_FAILED',
-    () => AccessActionCreators.decrementStatusRefreshAttempts({}));
+    () => ContentPublishingActionCreators.decrementStatusRefreshAttempts({}));
   yield takeLatestSchedule('DECREMENT_STATUS_REFRESH_ATTEMPTS', function*() {
     const retriesLeft: number = yield select(remainingStatusRefreshAttempts);
     return retriesLeft
-      ? AccessActionCreators.scheduleStatusRefresh({ delay: 5000 })
-      : AccessActionCreators.promptStatusRefreshStopped({});
+      ? ContentPublishingActionCreators.scheduleStatusRefresh({ delay: 5000 })
+      : ContentPublishingActionCreators.promptStatusRefreshStopped({});
   });
-  yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessActionCreators.fetchSessionCheck({}));
+  yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => ContentPublishingActionCreators.fetchSessionCheck({}));
   yield takeLatestSchedule('FETCH_SESSION_CHECK_SUCCEEDED',
-    () => AccessActionCreators.scheduleSessionCheck({ delay: 60000 }));
+    () => ContentPublishingActionCreators.scheduleSessionCheck({ delay: 60000 }));
   yield takeLatest('FETCH_SESSION_CHECK_FAILED', function*() { yield window.location.reload(); });
 
   // Toasts
