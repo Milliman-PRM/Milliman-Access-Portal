@@ -12,7 +12,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
@@ -33,6 +33,14 @@ namespace QvReportReductionGui
             Trace.AutoFlush = true;
 
             InitializeComponent();
+
+            Assembly processAssembly = Assembly.GetEntryAssembly();
+            FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
+            Trace.WriteLine($"Process launched:{Environment.NewLine}" +
+                            $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
+                            $"\tAssembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
+                            $"\tAssembly location <{processAssembly.Location}>{Environment.NewLine}" +
+                            $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");
 
             timer1.Interval = 1000;
             timer1.Start();

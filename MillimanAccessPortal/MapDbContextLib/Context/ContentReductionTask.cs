@@ -22,7 +22,7 @@ namespace MapDbContextLib.Context
         Unspecified = 0,    // Default unknown state
         Canceled = 1,       // The task was canceled before the reduction server began processing
         Rejected = 2,       // The task was completed by the reduction server, but a user did not publish the reduced document
-        Validating = 11,    // The task is awaiting content validation (e.g. virus scan)
+        Validating = 9,     // The task is awaiting content validation (e.g. long running preparations)
         Queued = 10,        // The task is in queue for reduction
         Reducing = 20,      // The reduction server is currently processing the reduction task
         Reduced = 30,       // The reduction server has completed the reduction task, but no user has pushed the reduced document
