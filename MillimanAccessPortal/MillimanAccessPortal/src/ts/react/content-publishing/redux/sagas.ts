@@ -44,6 +44,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_CONTENT_ITEM_DETAIL', api.fetchContentItemDetail);
   yield takeLatestRequest('FETCH_STATUS_REFRESH', api.fetchStatusRefresh);
   yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);
+  yield takeLatestRequest('CREATE_NEW_CONTENT_ITEM', api.createNewContentItem);
 
   // Scheduled actions
   yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {

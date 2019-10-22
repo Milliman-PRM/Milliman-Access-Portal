@@ -32,3 +32,7 @@ export const fetchStatusRefresh =
 export const fetchSessionCheck =
   createJsonRequestor<PublishingActions.FetchSessionCheck, PublishingActions.FetchSessionCheckSucceeded>
     ('GET', '/Account/SessionStatus');
+
+export const createNewContentItem =
+  createJsonRequestor<PublishingActions.CreateNewContentItem, PublishingActions.CreateNewContentItemSucceeded>
+    ('POST', '/ContentPublishing/CreateRootContentItem');

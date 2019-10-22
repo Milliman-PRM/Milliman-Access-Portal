@@ -1,4 +1,5 @@
 import { PageUploadAction } from '../../../upload/Redux/actions';
+import { RootContentItemSummaryAndDetail } from '../../../view-models/content-publishing';
 import {
     ClientWithEligibleUsers, ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
     ContentPublicationRequest, ContentReductionTask, ContentType, Guid, PublicationQueueDetails,
@@ -176,7 +177,7 @@ export interface CreateNewContentItem {
 }
 export interface CreateNewContentItemSucceeded {
   type: 'CREATE_NEW_CONTENT_ITEM_SUCCEEDED';
-  response: ContentItemDetail;
+  response: RootContentItemSummaryAndDetail;
 }
 export interface CreateNewContentItemFailed {
   type: 'CREATE_NEW_CONTENT_ITEM_FAILED';
@@ -306,6 +307,7 @@ export type RequestPublishingAction =
   | FetchContentItemDetail
   | FetchStatusRefresh
   | FetchSessionCheck
+  | CreateNewContentItem
   ;
 
 /**
@@ -318,6 +320,7 @@ export type ResponsePublishingAction =
   | FetchContentItemDetailSucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
+  | CreateNewContentItemSucceeded
   ;
 
 /**
