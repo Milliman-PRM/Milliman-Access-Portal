@@ -41,24 +41,24 @@ const emptyContentItemDetail: ContentItemDetail = {
   contentNotes: '',
   relatedFiles: {
     MasterContent: {
-      filePurpose: '',
       fileOriginalName: '',
       uniqueUploadId: '',
+      fileUploadId: '',
     },
     Thumbnail: {
-      filePurpose: '',
       fileOriginalName: '',
       uniqueUploadId: '',
+      fileUploadId: '',
     },
     UserGuide: {
-      filePurpose: '',
       fileOriginalName: '',
       uniqueUploadId: '',
+      fileUploadId: '',
     },
     ReleaseNotes: {
-      filePurpose: '',
       fileOriginalName: '',
       uniqueUploadId: '',
+      fileUploadId: '',
     },
   },
   associatedFiles: {},
@@ -246,24 +246,24 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       ...action.response,
       relatedFiles: {
         MasterContent: {
-          filePurpose: defaultIfUndefined(action.response.relatedFiles.MasterContent, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.MasterContent, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('MasterContent'),
+          fileUploadId: '',
         },
         Thumbnail: {
-          filePurpose: defaultIfUndefined(action.response.relatedFiles.Thumbnail, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.Thumbnail, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('Thumbnail'),
+          fileUploadId: '',
         },
         UserGuide: {
-          filePurpose: defaultIfUndefined(action.response.relatedFiles.UserGuide, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.UserGuide, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('UserGuide'),
+          fileUploadId: '',
         },
         ReleaseNotes: {
-          filePurpose: defaultIfUndefined(action.response.relatedFiles.ReleaseNotes, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.ReleaseNotes, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
+          fileUploadId: '',
         },
       },
       associatedFiles: {
@@ -385,24 +385,24 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       ...originalData,
       relatedFiles: {
         MasterContent: {
-          filePurpose: defaultIfUndefined(originalData.relatedFiles.MasterContent, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(originalData.relatedFiles.MasterContent, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('MasterContent'),
+          fileUploadId: '',
         },
         Thumbnail: {
-          filePurpose: defaultIfUndefined(originalData.relatedFiles.Thumbnail, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(originalData.relatedFiles.Thumbnail, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('Thumbnail'),
+          fileUploadId: '',
         },
         UserGuide: {
-          filePurpose: defaultIfUndefined(originalData.relatedFiles.UserGuide, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(originalData.relatedFiles.UserGuide, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('UserGuide'),
+          fileUploadId: '',
         },
         ReleaseNotes: {
-          filePurpose: defaultIfUndefined(originalData.relatedFiles.ReleaseNotes, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(originalData.relatedFiles.ReleaseNotes, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
+          fileUploadId: '',
         },
       },
       associatedFiles: {
