@@ -1,5 +1,5 @@
 import { PageUploadAction } from '../../../upload/Redux/actions';
-import { RootContentItemSummaryAndDetail } from '../../../view-models/content-publishing';
+import { PublishRequest, RootContentItemSummaryAndDetail } from '../../../view-models/content-publishing';
 import {
     ClientWithEligibleUsers, ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
     ContentPublicationRequest, ContentReductionTask, ContentType, Guid, PublicationQueueDetails,
@@ -185,6 +185,23 @@ export interface CreateNewContentItemFailed {
 }
 
 /**
+ * POST:
+ *   Publish content files to Content Item;
+ */
+export interface PublishContentFiles {
+  type: 'PUBLISH_CONTENT_FILES';
+  request: PublishRequest;
+}
+export interface PublishContentFilesSucceeded {
+  type: 'PUBLISH_CONTENT_FILES_SUCCEEDED';
+  response: ContentItemDetail;
+}
+export interface PublishContentFilesFailed {
+  type: 'PUBLISH_CONTENT_FILES_FAILED';
+  error: TSError;
+}
+
+/**
  * Set the value of a form inputs
  */
 
@@ -308,6 +325,7 @@ export type RequestPublishingAction =
   | FetchStatusRefresh
   | FetchSessionCheck
   | CreateNewContentItem
+  | PublishContentFiles
   ;
 
 /**
@@ -321,6 +339,7 @@ export type ResponsePublishingAction =
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   | CreateNewContentItemSucceeded
+  | PublishContentFilesSucceeded
   ;
 
 /**
@@ -333,6 +352,7 @@ export type ErrorPublishingAction =
   | FetchContentItemDetailFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
+  | PublishContentFilesFailed
   ;
 
 /**

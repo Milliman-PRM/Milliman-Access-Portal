@@ -43,6 +43,10 @@ export const fetchSessionCheck =
   createRequestActionCreator<PublishActions.FetchSessionCheck>('FETCH_SESSION_CHECK');
 
 // Updates
+export const createNewContentItem =
+  createRequestActionCreator<PublishActions.CreateNewContentItem>('CREATE_NEW_CONTENT_ITEM');
+export const publishContentFiles =
+  createRequestActionCreator<PublishActions.PublishContentFiles>('PUBLISH_CONTENT_FILES');
 
 // Scheduled actions
 export const scheduleStatusRefresh =
