@@ -510,6 +510,22 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
     },
   }),
+  FINALIZE_UPLOAD: (state, action: UploadActions.FinalizeUpload) => {
+    const fileUploads = { ...state.formData.relatedFiles };
+    for (const key in fileUploads) {
+      if (fileUploads[key].uniqueUploadId === action.uploadId) {
+        fileUploads[key].fileUploadId = action.Guid;
+      }
+    }
+
+    return {
+      ...state,
+      formData: {
+        ...state.formData,
+        relatedFiles: fileUploads,
+      },
+    };
+  },
   SET_UPLOAD_ERROR: (state, action: UploadActions.SetUploadError) => ({
     ...state,
     uploads: {
