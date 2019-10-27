@@ -540,6 +540,21 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   type="submit"
                   className={`blue-button${this.props.formCanSubmit ? '' : ' disabled'}`}
                   disabled={!this.props.formCanSubmit}
+                  onClick={(event: React.MouseEvent) => {
+                    event.preventDefault();
+                    if (!dataForForm.formData.id) {
+                      this.props.createNewContentItem({
+                        Id: 0,
+                        ClientId: dataForForm.formData.clientId,
+                        ContentName: dataForForm.formData.contentName,
+                        ContentTypeId: dataForForm.formData.contentTypeId,
+                        DoesReduce: dataForForm.formData.doesReduce,
+                        Description: dataForForm.formData.contentDescription,
+                        ContentDisclaimer: dataForForm.formData.contentDisclaimer,
+                        Notes: dataForForm.formData.contentNotes,
+                      });
+                    }
+                  }}
                 >
                   {`${dataForForm.formData.id ? 'Update' : 'Create'} Content Item`}
                   {this.props.pending.data.formSubmit
