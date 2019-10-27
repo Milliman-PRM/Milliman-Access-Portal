@@ -1,10 +1,12 @@
-import { select, takeLatest } from 'redux-saga/effects';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
 
-import { ClientWithEligibleUsers, RootContentItemWithStats } from '../../models';
+import { createErrorActionCreator, createResponseActionCreator } from '../../shared-components/redux/action-creators';
+import { ErrorAction } from '../../shared-components/redux/actions';
 import {
   createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
 } from '../../shared-components/redux/sagas';
 import * as ContentPublishingActionCreators from './action-creators';
+import * as ContentPublishingActions from './actions';
 import {
   ErrorPublishingAction, PublishingAction, RequestPublishingAction, ResponsePublishingAction,
 } from './actions';
@@ -44,7 +46,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_CONTENT_ITEM_DETAIL', api.fetchContentItemDetail);
   yield takeLatestRequest('FETCH_STATUS_REFRESH', api.fetchStatusRefresh);
   yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);
-  yield takeLatestRequest('CREATE_NEW_CONTENT_ITEM', api.createNewContentItem);
+  yield takeLatest('CREATE_NEW_CONTENT_ITEM', createNewContentItem);
 
   // Scheduled actions
   yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
@@ -85,4 +87,32 @@ export default function* rootSaga() {
       ? message
       : 'An unexpected error has occurred.',
     'error');
+}
+
+function* createNewContentItem(action: ContentPublishingActions.CreateNewContentItem) {
+  /**
+   * Make an asynchronous call to create a new root content item and then publish files
+   * @param apiCall API method to invoke
+   * @param action the request action that caused this saga to fire
+   */
+  try {
+    const newContentItem = yield call(api.createNewContentItem, action.request);
+    yield put(
+      createResponseActionCreator(
+        'CREATE_NEW_CONTENT_ITEM_SUCCEEDED' as ContentPublishingActions.CreateNewContentItem['type'],
+      )(newContentItem),
+    );
+    try {
+      const filesToPublish = yield call(api.createNewContentItem, newContentItem.response.detail.id);
+      yield put(
+        createResponseActionCreator(
+          'PUBLISH_CONTENT_FILES' as ContentPublishingActions.PublishContentFiles['type'],
+        )(filesToPublish),
+      );
+    } catch (error) {
+      yield put(createErrorActionCreator('PUBLISH_CONTENT_FILES_FAILED' as ErrorAction['type'])(error));
+    }
+  } catch (error) {
+    yield put(createErrorActionCreator('CREATE_NEW_CONTENT_ITEM_FAILED' as ErrorAction['type'])(error));
+  }
 }
