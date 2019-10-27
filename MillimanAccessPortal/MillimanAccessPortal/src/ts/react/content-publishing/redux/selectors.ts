@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as moment from 'moment';
 
-import { publicationStatusNames } from '../../../view-models/content-publishing';
+import { publicationStatusNames, PublishRequest, UploadedRelatedFile } from '../../../view-models/content-publishing';
 import {
   ClientWithStats, ContentPublicationRequest, ContentReductionTask,
     Guid, RootContentItemWithStats,
@@ -256,4 +256,31 @@ export function submitButtonIsActive(state: PublishingState) {
     && formData.contentTypeId
     && formData.relatedFiles.MasterContent.fileOriginalName.length > 0;
   return formChanged && noActiveUpload && formValid;
+}
+
+/**
+ * Return the related files for publishing
+ * @param state Redux store
+ */
+export function filesForPublishing(state: PublishingState, rootContentItemId: Guid): PublishRequest {
+  const { relatedFiles } = state.formData.formData;
+  const filesToPublish: UploadedRelatedFile[] = [];
+  for (const key in relatedFiles) {
+    if (relatedFiles[key].uniqueUploadId) {
+      filesToPublish.push({
+        filePurpose: key,
+        fileOriginalName: relatedFiles[key].fileOriginalName,
+        fileUploadId: relatedFiles[key].fileUploadId,
+      });
+    }
+  }
+
+  // TODO: Implement file deletion...
+
+  return {
+    rootContentItemId,
+    newRelatedFiles: filesToPublish,
+    associatedFiles: [],
+    deleteFilePurposes: [],
+  };
 }
