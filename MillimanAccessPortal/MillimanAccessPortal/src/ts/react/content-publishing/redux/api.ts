@@ -36,3 +36,7 @@ export const fetchSessionCheck =
 export const createNewContentItem =
   createJsonRequestor<PublishingActions.CreateNewContentItem, PublishingActions.CreateNewContentItemSucceeded>
     ('POST', '/ContentPublishing/CreateRootContentItem');
+
+export const publishContentFiles =
+  createJsonRequestor<PublishingActions.PublishContentFiles, PublishingActions.PublishContentFilesSucceeded>
+    ('POST', '/ContentPublishing/Publish');
