@@ -165,7 +165,6 @@ export interface FetchContentItemDetailFailed {
 export interface CreateNewContentItem {
   type: 'CREATE_NEW_CONTENT_ITEM';
   request: {
-    Id: 0;
     ClientId: Guid;
     ContentName: string;
     ContentTypeId: Guid;
@@ -173,6 +172,10 @@ export interface CreateNewContentItem {
     Notes: string;
     ContentDisclaimer: string;
     DoesReduce: boolean;
+    // PowerBi specific:
+    FilterPaneEnabled?: boolean;
+    NavigationPaneEnabled?: boolean;
+    BookmarksPaneEnabled?: boolean;
   };
 }
 export interface CreateNewContentItemSucceeded {

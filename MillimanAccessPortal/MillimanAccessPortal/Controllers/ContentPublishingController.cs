@@ -26,6 +26,7 @@ using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
+using Newtonsoft.Json.Linq;
 using PowerBiLib;
 using QlikviewLib;
 using Serilog;
@@ -34,6 +35,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
@@ -219,9 +222,17 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateRootContentItem([ModelBinder(BinderType = typeof(RootContentItemBinder))] RootContentItem rootContentItem)
+        public async Task<IActionResult> CreateRootContentItem([FromBody] JObject rootContentItemJobject)
         {
-            Log.Verbose($"Entered ContentPublishingController.CreateRootContentItem action with root content item {{@RootContentItem}}", rootContentItem);
+            RootContentItem rootContentItem = await JsonToRootContentItemAsync(rootContentItemJobject);
+            if (rootContentItem == null)
+            {
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} action: failed to bind adequate root content item parameter, aborting");
+                Response.Headers.Add("Warning", "Error interpreting the requested new content item.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action with root content item {{@RootContentItem}}", rootContentItem);
 
             #region Preliminary validation
             var client = _dbContext.Client
@@ -229,7 +240,7 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault();
             if (client == null)
             {
-                Log.Debug($"In ContentPublishingController.CreateRootContentItem action: client {rootContentItem.ClientId} not found, aborting");
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} action: client {rootContentItem.ClientId} not found, aborting");
                 Response.Headers.Add("Warning", "The associated client does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -239,7 +250,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole, rootContentItem.ClientId));
             if (!roleInClientResult.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.CreateRootContentItem action: authorization failure, user {User.Identity.Name}, client {rootContentItem.ClientId}, role {requiredRole.ToString()}, aborting");
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failure, user {User.Identity.Name}, client {rootContentItem.ClientId}, role {requiredRole.ToString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", "You are not authorized to create content items for the specified client.");
                 return Unauthorized();
@@ -249,21 +260,21 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (!_dbContext.ContentType.Any(c => c.Id == rootContentItem.ContentTypeId))
             {
-                Log.Debug($"In ContentPublishingController.CreateRootContentItem action: content type for content item {rootContentItem.Id} not found, aborting");
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} action: content type for content item {rootContentItem.Id} not found, aborting");
                 Response.Headers.Add("Warning", "The associated content type does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             if (!_dbContext.Client.Any(c => c.Id == rootContentItem.ClientId))
             {
-                Log.Debug($"In ContentPublishingController.CreateRootContentItem action: client for content item {rootContentItem.Id} not found, aborting");
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} action: client for content item {rootContentItem.Id} not found, aborting");
                 Response.Headers.Add("Warning", "The associated client does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             if (string.IsNullOrWhiteSpace(rootContentItem.ContentName))
             {
-                Log.Debug($"In ContentPublishingController.CreateRootContentItem action: content name is required and not provided, aborting");
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} action: content name is required and not provided, aborting");
                 Response.Headers.Add("Warning", "You must supply a name for the content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -298,7 +309,7 @@ namespace MillimanAccessPortal.Controllers
                 DbTransaction.Commit();
             }
 
-            Log.Verbose($"In ContentPublishingController.CreateRootContentItem action: success");
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success");
             AuditLogger.Log(AuditEventType.RootContentItemCreated.ToEvent(rootContentItem, client));
 
             RootContentItemSummary summary = RootContentItemSummary.Build(_dbContext, rootContentItem);
@@ -309,8 +320,16 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateRootContentItem([ModelBinder(BinderType = typeof(RootContentItemBinder))] RootContentItem rootContentItem)
+        public async Task<IActionResult> UpdateRootContentItem([FromBody] JObject rootContentItemJobject)
         {
+            RootContentItem rootContentItem = await JsonToRootContentItemAsync(rootContentItemJobject);
+            if (rootContentItem == null)
+            {
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} action: failed to bind adequate root content item parameter, aborting");
+                Response.Headers.Add("Warning", "Error interpreting the requested new content item.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             Log.Verbose($"Entered ContentPublishingController.UpdateRootContentItem action with root content item {{@RootContentItem}}", rootContentItem);
 
             #region Preliminary validation
@@ -1039,6 +1058,45 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.ContentPublicationRejected.ToEvent(rootContentItem, rootContentItem.Client, pubRequest));
 
             return Ok();
+        }
+
+        private async Task<RootContentItem> JsonToRootContentItemAsync(JObject jObject)
+        {
+            RootContentItem model = default;
+            try
+            {
+                model = jObject.ToObject<RootContentItem>();
+            }
+            catch (Exception ex)
+            {
+                var x = ex;
+                return null;
+            }
+
+            #region Handle type specific properties
+            ContentTypeEnum requestedContentType = (await _dbContext.ContentType.SingleOrDefaultAsync(ct => ct.Id == model.ContentTypeId))?.TypeEnum ?? ContentTypeEnum.Unknown;
+            switch (requestedContentType)
+            {
+                case ContentTypeEnum.PowerBi:
+                    var properties = new PowerBiContentItemProperties();
+
+                    // "FilterPaneEnabled"
+                    // "NavigationPaneEnabled");
+                    // "BookmarksPaneEnabled");
+                    break;
+
+                case ContentTypeEnum.Qlikview:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.FileDownload:
+                default:
+                    break;
+            }
+            #endregion
+
+            // TODO Validate that the model is adequate
+
+            return model;
         }
     }
 }

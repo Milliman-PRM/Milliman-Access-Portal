@@ -544,7 +544,6 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     event.preventDefault();
                     if (!dataForForm.formData.id) {
                       this.props.createNewContentItem({
-                        Id: 0,
                         ClientId: dataForForm.formData.clientId,
                         ContentName: dataForForm.formData.contentName,
                         ContentTypeId: dataForForm.formData.contentTypeId,

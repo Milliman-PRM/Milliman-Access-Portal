@@ -1,5 +1,6 @@
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 
+import { ClientWithEligibleUsers } from '../../models';
 import { createErrorActionCreator, createResponseActionCreator } from '../../shared-components/redux/action-creators';
 import { ErrorAction } from '../../shared-components/redux/actions';
 import {
