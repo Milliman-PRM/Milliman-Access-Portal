@@ -1078,11 +1078,24 @@ namespace MillimanAccessPortal.Controllers
             switch (requestedContentType)
             {
                 case ContentTypeEnum.PowerBi:
-                    var properties = new PowerBiContentItemProperties();
+                    var pbiProperties = new PowerBiContentItemProperties();
 
-                    // "FilterPaneEnabled"
-                    // "NavigationPaneEnabled");
-                    // "BookmarksPaneEnabled");
+                    if (jObject.TryGetValue("FilterPaneEnabled", StringComparison.InvariantCultureIgnoreCase, out JToken filterPaneEnabledToken))
+                    {
+                        pbiProperties.FilterPaneEnabled = filterPaneEnabledToken.Value<bool>();
+                    }
+
+                    if (jObject.TryGetValue("NavigationPaneEnabled", StringComparison.InvariantCultureIgnoreCase, out JToken navigationPaneEnabledToken))
+                    {
+                        pbiProperties.NavigationPaneEnabled = navigationPaneEnabledToken.Value<bool>();
+                    }
+
+                    if (jObject.TryGetValue("BookmarksPaneEnabled", StringComparison.InvariantCultureIgnoreCase, out JToken bookmarksPaneEnabledToken))
+                    {
+                        pbiProperties.BookmarksPaneEnabled = bookmarksPaneEnabledToken.Value<bool>();
+                    }
+
+                    model.TypeSpecificDetailObject = pbiProperties;
                     break;
 
                 case ContentTypeEnum.Qlikview:
