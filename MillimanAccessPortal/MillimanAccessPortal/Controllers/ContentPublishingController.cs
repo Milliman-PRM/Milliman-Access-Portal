@@ -535,7 +535,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Publish(PublishRequest request)
+        public async Task<IActionResult> Publish([FromBody] PublishRequest request)
         {
             Log.Verbose($"Entered ContentPublishingController.Publish action with {{@PublishRequest}}", request);
 
