@@ -104,8 +104,8 @@ function* createNewContentItem(action: ContentPublishingActions.CreateNewContent
       )(newContentItem),
     );
     try {
-      const publishingPayload = yield select(filesForPublishing, newContentItem.response.detail.id);
-      const filesToPublish = yield call(api.createNewContentItem, publishingPayload);
+      const publishingPayload = yield select(filesForPublishing, newContentItem.detail.id);
+      const filesToPublish = yield call(api.publishContentFiles, publishingPayload);
       yield put(
         createResponseActionCreator(
           'PUBLISH_CONTENT_FILES' as ContentPublishingActions.PublishContentFiles['type'],
