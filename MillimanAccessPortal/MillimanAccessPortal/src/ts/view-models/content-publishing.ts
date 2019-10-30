@@ -197,9 +197,9 @@ export interface RequestedAssociatedFile {
 }
 export interface PublishRequest {
   rootContentItemId: Guid;
-  newRelatedFiles: UploadedRelatedFile[];
-  associatedFiles: RequestedAssociatedFile[];
-  deleteFilePurposes: string[];
+  newRelatedFiles?: UploadedRelatedFile[];
+  associatedFiles?: RequestedAssociatedFile[];
+  deleteFilePurposes?: string[];
 }
 
 export interface PreLiveContentValidationSummary {
