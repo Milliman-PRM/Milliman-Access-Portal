@@ -266,7 +266,7 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
   const { relatedFiles } = state.formData.formData;
   const filesToPublish: UploadedRelatedFile[] = [];
   for (const key in relatedFiles) {
-    if (relatedFiles[key].uniqueUploadId) {
+    if (relatedFiles[key].fileUploadId) {
       filesToPublish.push({
         filePurpose: key,
         fileOriginalName: relatedFiles[key].fileOriginalName,
