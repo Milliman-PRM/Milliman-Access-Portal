@@ -165,6 +165,30 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     items: false,
   }),
+  CREATE_NEW_CONTENT_ITEM: (state) => ({
+    ...state,
+    formSubmit: true,
+  }),
+  CREATE_NEW_CONTENT_ITEM_SUCCEEDED: (state) => ({
+    ...state,
+    formSubmit: false,
+  }),
+  CREATE_NEW_CONTENT_ITEM_FAILED: (state) => ({
+    ...state,
+    formSubmit: false,
+  }),
+  PUBLISH_CONTENT_FILES: (state) => ({
+    ...state,
+    formSubmit: true,
+  }),
+  PUBLISH_CONTENT_FILES_SUCCEEDED: (state) => ({
+    ...state,
+    formSubmit: false,
+  }),
+  PUBLISH_CONTENT_FILES_FAILED: (state) => ({
+    ...state,
+    formSubmit: false,
+  }),
 });
 
 const pendingStatusTries = createReducer<number>(5, {
@@ -220,6 +244,25 @@ const data = createReducer<PublishingStateData>(_initialData, {
       items,
       publications: action.response.publications,
       publicationQueue: action.response.publicationQueue,
+    };
+  },
+  CREATE_NEW_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.CreateNewContentItemSucceeded) => {
+    const { detail, summary } = action.response;
+    return {
+      ...state,
+      items: {
+        ...state.items,
+        [detail.id]: {
+          id: detail.id,
+          clientId: detail.clientId,
+          name: detail.contentName,
+          contentTypeId: detail.contentTypeId,
+          doesReduce: detail.doesReduce,
+          isSuspended: detail.isSuspended,
+          assignedUserCount: summary.assignedUserCount,
+          selectionGroupCount: summary.groupCount,
+        },
+      },
     };
   },
 });
@@ -536,6 +579,25 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
     },
   }),
+  CREATE_NEW_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.CreateNewContentItemSucceeded) => {
+    const { detail } = action.response;
+    return {
+      ...state,
+      originalData: {
+        ...state.originalData,
+        id: detail.id,
+      },
+      formData: {
+        ...state.formData,
+        id: detail.id,
+      },
+    };
+  },
+  PUBLISH_CONTENT_FILES_SUCCEEDED: (state, _action: PublishingActions.PublishContentFilesSucceeded) => {
+    return {
+      ...state,
+    };
+  },
 });
 
 const selected = createReducer<PublishingStateSelected>(
