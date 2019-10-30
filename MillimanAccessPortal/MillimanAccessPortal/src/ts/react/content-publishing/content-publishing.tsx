@@ -198,7 +198,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   <CardButton
                     color={'red'}
                     tooltip={'Delete'}
-                    onClick={() => alert('delete')}
+                    onClick={() => this.props.deleteContentItem(entity.id)}
                     icon={'delete'}
                   />
                   <CardButton

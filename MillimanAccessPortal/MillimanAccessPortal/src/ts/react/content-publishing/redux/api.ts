@@ -40,3 +40,7 @@ export const createNewContentItem =
 export const publishContentFiles =
   createJsonRequestor<PublishingActions.PublishContentFiles, PublishingActions.PublishContentFilesSucceeded>
     ('POST', '/ContentPublishing/Publish');
+
+export const deleteContentItem =
+  createJsonRequestor<PublishingActions.DeleteContentItem, PublishingActions.DeleteContentItemSucceeded>
+    ('DELETE', '/ContentPublishing/DeleteRootContentItem');

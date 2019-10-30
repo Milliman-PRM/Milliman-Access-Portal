@@ -47,6 +47,8 @@ export const createNewContentItem =
   createRequestActionCreator<PublishActions.CreateNewContentItem>('CREATE_NEW_CONTENT_ITEM');
 export const publishContentFiles =
   createRequestActionCreator<PublishActions.PublishContentFiles>('PUBLISH_CONTENT_FILES');
+export const deleteContentItem =
+  createRequestActionCreator<PublishActions.DeleteContentItem>('DELETE_CONTENT_ITEM');
 
 // Scheduled actions
 export const scheduleStatusRefresh =

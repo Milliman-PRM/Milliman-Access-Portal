@@ -431,7 +431,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId)
+        public async Task<IActionResult> DeleteRootContentItem([FromBody] Guid rootContentItemId)
         {
             Log.Verbose($"Entered ContentPublishingController.DeleteRootContentItem action with root content item id {rootContentItemId} and password");
 

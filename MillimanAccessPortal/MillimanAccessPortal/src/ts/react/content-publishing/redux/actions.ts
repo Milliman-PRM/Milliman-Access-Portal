@@ -205,6 +205,23 @@ export interface PublishContentFilesFailed {
 }
 
 /**
+ * POST:
+ *   Delete a Content Item;
+ */
+export interface DeleteContentItem {
+  type: 'DELETE_CONTENT_ITEM';
+  request: Guid;
+}
+export interface DeleteContentItemSucceeded {
+  type: 'DELETE_CONTENT_ITEM_SUCCEEDED';
+  response: ContentItemDetail;
+}
+export interface DeleteContentItemFailed {
+  type: 'DELETE_CONTENT_ITEM_FAILED';
+  error: TSError;
+}
+
+/**
  * Set the value of a form inputs
  */
 
@@ -330,6 +347,7 @@ export type RequestPublishingAction =
   | FetchSessionCheck
   | CreateNewContentItem
   | PublishContentFiles
+  | DeleteContentItem
   ;
 
 /**
@@ -344,6 +362,7 @@ export type ResponsePublishingAction =
   | FetchSessionCheckSucceeded
   | CreateNewContentItemSucceeded
   | PublishContentFilesSucceeded
+  | DeleteContentItemSucceeded
   ;
 
 /**
@@ -358,6 +377,7 @@ export type ErrorPublishingAction =
   | FetchSessionCheckFailed
   | CreateNewContentItemFailed
   | PublishContentFilesFailed
+  | DeleteContentItemFailed
   ;
 
 /**

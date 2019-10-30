@@ -21,6 +21,7 @@ export interface PendingDataState {
   clients: boolean;
   items: boolean;
   contentItemDetail: boolean;
+  contentItemDeletion: boolean;
   formSubmit: boolean;
 }
 

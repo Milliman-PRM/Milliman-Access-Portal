@@ -98,6 +98,7 @@ const _initialPendingData: PendingDataState = {
   clients: false,
   items: false,
   contentItemDetail: false,
+  contentItemDeletion: false,
   formSubmit: false,
 };
 
@@ -189,6 +190,18 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     formSubmit: false,
   }),
+  DELETE_CONTENT_ITEM: (state) => ({
+    ...state,
+    contentItemDeletion: true,
+  }),
+  DELETE_CONTENT_ITEM_SUCCEEDED: (state) => ({
+    ...state,
+    contentItemDeletion: false,
+  }),
+  DELETE_CONTENT_ITEM_FAILED: (state) => ({
+    ...state,
+    contentItemDeletion: false,
+  }),
 });
 
 const pendingStatusTries = createReducer<number>(5, {
@@ -263,6 +276,16 @@ const data = createReducer<PublishingStateData>(_initialData, {
           selectionGroupCount: summary.groupCount,
         },
       },
+    };
+  },
+  DELETE_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.DeleteContentItemSucceeded) => {
+    const { id } = action.response;
+    const items = { ...state.items };
+    delete items[action.response.id];
+
+    return {
+      ...state,
+      items,
     };
   },
 });
@@ -618,6 +641,13 @@ const selected = createReducer<PublishingStateSelected>(
       ...state,
       item: state.item === 'NEW CONTENT ITEM' ? null : 'NEW CONTENT ITEM',
     }),
+    DELETE_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.DeleteContentItemSucceeded) => {
+      const item = (state.item === action.response.id) ? null : state.item;
+      return {
+        ...state,
+        item,
+      };
+    },
   },
 );
 
