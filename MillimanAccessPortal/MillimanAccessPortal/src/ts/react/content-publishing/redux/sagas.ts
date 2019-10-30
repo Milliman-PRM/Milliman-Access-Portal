@@ -62,6 +62,14 @@ export default function* rootSaga() {
       })
       : ContentPublishingActionCreators.scheduleStatusRefresh({ delay: 5000 });
   });
+  yield takeLatestSchedule('PUBLISH_CONTENT_FILES_SUCCEEDED', function*() {
+    const client: ClientWithEligibleUsers = yield select(selectedClient);
+    if (client.id) {
+      ContentPublishingActionCreators.fetchStatusRefresh({
+        clientId: client.id,
+      });
+    }
+  });
   yield takeLatestSchedule('FETCH_STATUS_REFRESH_SUCCEEDED',
     () => ContentPublishingActionCreators.scheduleStatusRefresh({ delay: 5000 }));
   yield takeLatestSchedule('FETCH_STATUS_REFRESH_FAILED',

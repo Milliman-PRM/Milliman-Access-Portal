@@ -307,6 +307,7 @@ export type PagePublishingAction =
   | ResetContentItemForm
   | PromptStatusRefreshStopped
   | DecrementStatusRefreshAttempts
+  | PublishContentFilesSucceeded
   ;
 
 /**
