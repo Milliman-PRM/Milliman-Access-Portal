@@ -355,6 +355,7 @@ export type ErrorPublishingAction =
   | FetchContentItemDetailFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
+  | CreateNewContentItemFailed
   | PublishContentFilesFailed
   ;
 
