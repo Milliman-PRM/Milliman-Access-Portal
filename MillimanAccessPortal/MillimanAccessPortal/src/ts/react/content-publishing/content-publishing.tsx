@@ -189,7 +189,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   <CardButton
                     color={'red'}
                     tooltip={'Cancel'}
-                    onClick={() => alert('cancel')}
+                    onClick={() => this.props.cancelPublicationRequest(entity.id)}
                     icon={'cancel'}
                   />
                 </>

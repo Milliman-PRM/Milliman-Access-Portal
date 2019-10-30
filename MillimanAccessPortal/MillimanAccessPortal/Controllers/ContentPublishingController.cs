@@ -680,7 +680,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelContentPublicationRequest(Guid rootContentItemId)
+        public async Task<IActionResult> CancelContentPublicationRequest([FromBody] Guid rootContentItemId)
         {
             Log.Verbose($"Entered ContentPublishingController.CancelContentPublicationRequest action with content item {rootContentItemId}");
 

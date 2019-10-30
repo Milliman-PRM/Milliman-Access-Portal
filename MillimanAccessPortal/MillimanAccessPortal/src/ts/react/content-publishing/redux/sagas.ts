@@ -50,6 +50,7 @@ export default function* rootSaga() {
   yield takeLatest('CREATE_NEW_CONTENT_ITEM', createNewContentItem);
   yield takeLatestRequest('PUBLISH_CONTENT_FILES', api.publishContentFiles);
   yield takeLatestRequest('DELETE_CONTENT_ITEM', api.deleteContentItem);
+  yield takeLatestRequest('CANCEL_PUBLICATION_REQUEST', api.cancelPublicationRequest);
 
   yield takeLatestRequest('FETCH_STATUS_REFRESH', api.fetchStatusRefresh);
   yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);

@@ -288,6 +288,16 @@ const data = createReducer<PublishingStateData>(_initialData, {
       items,
     };
   },
+  CANCEL_PUBLICATION_REQUEST_SUCCEEDED: (state, action: PublishingActions.CancelPublicationRequestSucceeded) => {
+    const { publications, publicationQueue, contentItems: items } = action.response;
+
+    return {
+      ...state,
+      items,
+      publications,
+      publicationQueue,
+    };
+  },
 });
 
 const formData = createReducer<PublishingFormData>(_initialFormData, {

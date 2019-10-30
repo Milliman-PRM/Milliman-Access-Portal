@@ -44,3 +44,7 @@ export const publishContentFiles =
 export const deleteContentItem =
   createJsonRequestor<PublishingActions.DeleteContentItem, PublishingActions.DeleteContentItemSucceeded>
     ('DELETE', '/ContentPublishing/DeleteRootContentItem');
+
+export const cancelPublicationRequest =
+  createJsonRequestor<PublishingActions.CancelPublicationRequest, PublishingActions.CancelPublicationRequestSucceeded>
+    ('POST', '/ContentPublishing/CancelContentPublicationRequest');

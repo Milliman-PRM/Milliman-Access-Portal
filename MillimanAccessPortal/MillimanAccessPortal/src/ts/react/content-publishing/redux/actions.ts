@@ -205,7 +205,7 @@ export interface PublishContentFilesFailed {
 }
 
 /**
- * POST:
+ * DELETE:
  *   Delete a Content Item;
  */
 export interface DeleteContentItem {
@@ -218,6 +218,27 @@ export interface DeleteContentItemSucceeded {
 }
 export interface DeleteContentItemFailed {
   type: 'DELETE_CONTENT_ITEM_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Cancel a Content Publication Request;
+ */
+export interface CancelPublicationRequest {
+  type: 'CANCEL_PUBLICATION_REQUEST';
+  request: Guid;
+}
+export interface CancelPublicationRequestSucceeded {
+  type: 'CANCEL_PUBLICATION_REQUEST_SUCCEEDED';
+  response: {
+    contentItems: Dict<RootContentItemWithStats>;
+    publications: Dict<ContentPublicationRequest>;
+    publicationQueue: Dict<PublicationQueueDetails>;
+  };
+}
+export interface CancelPublicationRequestFailed {
+  type: 'CANCEL_PUBLICATION_REQUEST_FAILED';
   error: TSError;
 }
 
@@ -348,6 +369,7 @@ export type RequestPublishingAction =
   | CreateNewContentItem
   | PublishContentFiles
   | DeleteContentItem
+  | CancelPublicationRequest
   ;
 
 /**
@@ -363,6 +385,7 @@ export type ResponsePublishingAction =
   | CreateNewContentItemSucceeded
   | PublishContentFilesSucceeded
   | DeleteContentItemSucceeded
+  | CancelPublicationRequestSucceeded
   ;
 
 /**
@@ -378,6 +401,7 @@ export type ErrorPublishingAction =
   | CreateNewContentItemFailed
   | PublishContentFilesFailed
   | DeleteContentItemFailed
+  | CancelPublicationRequestFailed
   ;
 
 /**

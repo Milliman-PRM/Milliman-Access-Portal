@@ -49,6 +49,8 @@ export const publishContentFiles =
   createRequestActionCreator<PublishActions.PublishContentFiles>('PUBLISH_CONTENT_FILES');
 export const deleteContentItem =
   createRequestActionCreator<PublishActions.DeleteContentItem>('DELETE_CONTENT_ITEM');
+export const cancelPublicationRequest =
+  createRequestActionCreator<PublishActions.CancelPublicationRequest>('CANCEL_PUBLICATION_REQUEST');
 
 // Scheduled actions
 export const scheduleStatusRefresh =
