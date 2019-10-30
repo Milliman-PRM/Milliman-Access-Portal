@@ -535,6 +535,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Publish([FromBody] PublishRequest request)
         {
             Log.Verbose($"Entered ContentPublishingController.Publish action with {{@PublishRequest}}", request);
