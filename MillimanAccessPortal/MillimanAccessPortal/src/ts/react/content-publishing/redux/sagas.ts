@@ -12,7 +12,7 @@ import {
   ErrorPublishingAction, PublishingAction, RequestPublishingAction, ResponsePublishingAction,
 } from './actions';
 import * as api from './api';
-import { remainingStatusRefreshAttempts, selectedClient, selectedItem } from './selectors';
+import { filesForPublishing, remainingStatusRefreshAttempts, selectedClient, selectedItem } from './selectors';
 
 /**
  * Custom effect for handling request actions.
@@ -104,7 +104,8 @@ function* createNewContentItem(action: ContentPublishingActions.CreateNewContent
       )(newContentItem),
     );
     try {
-      const filesToPublish = yield call(api.createNewContentItem, newContentItem.response.detail.id);
+      const publishingPayload = yield select(filesForPublishing, newContentItem.response.detail.id);
+      const filesToPublish = yield call(api.createNewContentItem, publishingPayload);
       yield put(
         createResponseActionCreator(
           'PUBLISH_CONTENT_FILES' as ContentPublishingActions.PublishContentFiles['type'],
