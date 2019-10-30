@@ -1,7 +1,9 @@
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 
 import { ClientWithEligibleUsers } from '../../models';
-import { createErrorActionCreator, createResponseActionCreator } from '../../shared-components/redux/action-creators';
+import {
+  createErrorActionCreator, createRequestActionCreator, createResponseActionCreator,
+} from '../../shared-components/redux/action-creators';
 import { ErrorAction } from '../../shared-components/redux/actions';
 import {
   createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
@@ -45,9 +47,11 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
   yield takeLatestRequest('FETCH_ITEMS', api.fetchItems);
   yield takeLatestRequest('FETCH_CONTENT_ITEM_DETAIL', api.fetchContentItemDetail);
+  yield takeLatest('CREATE_NEW_CONTENT_ITEM', createNewContentItem);
+  yield takeLatestRequest('PUBLISH_CONTENT_FILES', api.publishContentFiles);
+
   yield takeLatestRequest('FETCH_STATUS_REFRESH', api.fetchStatusRefresh);
   yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);
-  yield takeLatest('CREATE_NEW_CONTENT_ITEM', createNewContentItem);
 
   // Scheduled actions
   yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
@@ -105,11 +109,10 @@ function* createNewContentItem(action: ContentPublishingActions.CreateNewContent
     );
     try {
       const publishingPayload = yield select(filesForPublishing, newContentItem.detail.id);
-      const filesToPublish = yield call(api.publishContentFiles, publishingPayload);
       yield put(
-        createResponseActionCreator(
+        createRequestActionCreator(
           'PUBLISH_CONTENT_FILES' as ContentPublishingActions.PublishContentFiles['type'],
-        )(filesToPublish),
+        )(publishingPayload),
       );
     } catch (error) {
       yield put(createErrorActionCreator('PUBLISH_CONTENT_FILES_FAILED' as ErrorAction['type'])(error));
