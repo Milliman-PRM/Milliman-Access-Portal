@@ -253,6 +253,7 @@ export function submitButtonIsActive(state: PublishingState) {
   const formChanged = !_.isEqual(state.formData.formData, state.formData.originalData);
   const noActiveUpload = _.size(state.pending.uploads) === 0;
   const formValid = formData.clientId
+    && formData.contentName
     && formData.contentTypeId
     && formData.relatedFiles.MasterContent.fileOriginalName.length > 0;
   return formChanged && noActiveUpload && formValid;
