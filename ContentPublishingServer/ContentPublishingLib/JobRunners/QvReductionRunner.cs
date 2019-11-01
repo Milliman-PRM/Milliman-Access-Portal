@@ -729,17 +729,34 @@ namespace ContentPublishingLib.JobRunners
         private async Task RunQdsTask(DocumentTask DocTask, int? timeoutMinutes = null)
         {
             var defaultTimeout = int.Parse(Configuration.ApplicationConfiguration["DefaultQdsTaskTimeoutMinutes"]);
-            TimeSpan MaxStartDelay = new TimeSpan(0, 5, 0);
-            TimeSpan MaxElapsedRun = new TimeSpan(0, timeoutMinutes ?? defaultTimeout, 0);
-            int PublisherPollingIntervalMs = 1000;
+            TimeSpan MaxStartDelay = new TimeSpan(0, 0, 5, 0);
+            TimeSpan MaxElapsedRun = new TimeSpan(0, 0, timeoutMinutes ?? defaultTimeout, 0);
+            TimeSpan TaskStartPollingInterval = new TimeSpan(0, 0, 0, 2);
+            TimeSpan PublisherPollingInterval = new TimeSpan(0, 0, 0, 1);
 
             QlikviewLib.Qms.TaskStatus Status;
 
             // Save the task to Qlikview server
             DateTime SaveStartTime = DateTime.Now;
             IQMS QmsClient = await QmsClientCreator.New(QmsUrl);
-            await QmsClient.SaveDocumentTaskAsync(DocTask);
-            TaskInfo TInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName);
+            try
+            {
+                await QmsClient.SaveDocumentTaskAsync(DocTask);
+            }
+            catch (System.Exception ex)
+            {
+                throw new ApplicationException("QmsClient.SaveDocumentTaskAsync exception", ex);
+            }
+
+            TaskInfo TInfo = default;
+            try
+            {
+                TInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName);
+            }
+            catch (System.Exception ex)
+            {
+                throw new ApplicationException("After saving task, QmsClient.FindTaskAsync exception", ex);
+            }
             Guid TaskIdGuid = TInfo.ID;
             GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} successfully saved after {DateTime.Now - SaveStartTime}");
 
@@ -756,10 +773,24 @@ namespace ContentPublishingLib.JobRunners
                     }
 
                     QmsClient = await QmsClientCreator.New(QmsUrl);
-                    await QmsClient.RunTaskAsync(TaskIdGuid);
-                    Thread.Sleep(PublisherPollingIntervalMs);
+                    try
+                    {
+                        await QmsClient.RunTaskAsync(TaskIdGuid);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        throw new ApplicationException("QmsClient.RunTaskAsync exception", ex);
+                    }
+                    Thread.Sleep(TaskStartPollingInterval);
 
-                    Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                    try
+                    {
+                        Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        throw new ApplicationException("QmsClient.GetTaskStatusAsync (polling while trying to start task) exception", ex);
+                    }
                 } while (Status == null || Status.Extended == null || !(DateTime.TryParse(Status.Extended.StartTime, out _) || DateTime.TryParse(Status.Extended.FinishedTime, out _)));
                 GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} started running after {DateTime.Now - RunStartTime}");
 
@@ -773,10 +804,17 @@ namespace ContentPublishingLib.JobRunners
                         throw new System.Exception($"Qlikview publisher failed to finish task {TaskIdGuid.ToString("D")} before timeout");
                     }
 
-                    Thread.Sleep(PublisherPollingIntervalMs);
+                    Thread.Sleep(PublisherPollingInterval);
 
                     QmsClient = await QmsClientCreator.New(QmsUrl);
-                    Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                    try
+                    {
+                        Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        throw new ApplicationException("QmsClient.GetTaskStatusAsync (polling while waiting for task to finish) exception", ex);
+                    }
                 } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
                 GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} finished running after {DateTime.Now - RunningStartTime}");
 
@@ -805,12 +843,26 @@ namespace ContentPublishingLib.JobRunners
             {
                 // Clean up
                 QmsClient = await QmsClientCreator.New(QmsUrl);
-                Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                try
+                {
+                    Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                }
+                catch (System.Exception ex)
+                {
+                    throw new ApplicationException("QmsClient.GetTaskStatusAsync (in final cleanup) exception", ex);
+                }
 
                 // null would indicate that the task doesn't exist
                 if (Status != null)
                 {
-                    await QmsClient.DeleteTaskAsync(TaskIdGuid, TInfo.Type);
+                    try
+                    {
+                        await QmsClient.DeleteTaskAsync(TaskIdGuid, TInfo.Type);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        throw new ApplicationException("QmsClient.DeleteTaskAsync exception", ex);
+                    }
                 }
             }
         }
