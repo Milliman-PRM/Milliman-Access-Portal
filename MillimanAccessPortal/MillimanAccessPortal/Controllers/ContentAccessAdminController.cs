@@ -518,9 +518,12 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
+            // There should always be 1 live publication but this query is designed to tolerate error conditions
             var currentLivePublication = DbContext.ContentPublicationRequest
                 .Where(request => request.RootContentItemId == selectionGroup.RootContentItemId)
                 .Where(request => request.RequestStatus == PublicationStatus.Confirmed)
+                .OrderBy(request => request.CreateDateTimeUtc)
+                .Take(1)
                 .SingleOrDefault();
             if (currentLivePublication == null)
             {
