@@ -57,6 +57,7 @@ namespace MapDbContextLib.Models
     {
         public Guid ReductionTaskId { get; set; }
         public TimeSpan ElapsedTime { get; set; } = TimeSpan.Zero;
+        public DateTime? ProcessingStarted { get; set; } = null;
         public MapDbReductionTaskOutcomeReason OutcomeReason { get; set; } = MapDbReductionTaskOutcomeReason.Default;
     }
 }

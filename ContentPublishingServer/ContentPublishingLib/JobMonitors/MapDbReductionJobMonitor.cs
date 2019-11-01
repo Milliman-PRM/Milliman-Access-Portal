@@ -248,8 +248,11 @@ namespace ContentPublishingLib.JobMonitors
                                                                                  .ToList();
                     if (TopItems.Count > 0)
                     {
-                        TopItems.ForEach(rt => rt.ReductionStatus = ReductionStatusEnum.Reducing);
-                        Db.ContentReductionTask.UpdateRange(TopItems);
+                        TopItems.ForEach(rt =>
+                        {
+                            rt.ReductionStatus = ReductionStatusEnum.Reducing;
+                            rt.ProcessingStartDateTimeUtc = DateTime.UtcNow;
+                        });
                         Db.SaveChanges();
                         Transaction.Commit();
                     }
@@ -298,6 +301,7 @@ namespace ContentPublishingLib.JobMonitors
                     {
                         ReductionTaskId = JobDetail.TaskId,
                         ElapsedTime = JobDetail.Result.ProcessingDuration,
+                        ProcessingStarted = DbTask.ProcessingStartDateTimeUtc,
                         OutcomeReason = MapDbReductionTaskOutcomeReason.Default,
                     };
 

@@ -105,6 +105,11 @@ namespace MapDbContextLib.Context
         // Default value is enforced in ApplicationDbContext.OnModelCreating()
         public DateTime CreateDateTimeUtc { get; set; }
 
+        /// <summary>
+        /// Will be set by ContentPublishingServer when the task starts
+        /// </summary>
+        public DateTime ProcessingStartDateTimeUtc { get; set; }
+
         [Required]
         public ReductionStatusEnum ReductionStatus { get; set; }
 
