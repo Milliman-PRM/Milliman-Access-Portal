@@ -377,7 +377,6 @@ namespace ContentPublishingLib.JobMonitors
 
                     DbRequest.StatusMessage = JobDetail.Result.StatusMessage;
 
-                    Db.ContentPublicationRequest.Update(DbRequest);
                     Db.SaveChanges();
                     Transaction.Commit();
                 }

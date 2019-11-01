@@ -42,7 +42,7 @@ namespace ContentPublishingLib.JobRunners
             }
         }
 
-        internal TimeSpan TimeLimit { get; set; } = new TimeSpan(6, 0, 0);
+        internal TimeSpan TimeLimit { get; set; } = new TimeSpan(6, 0, 0);  // TODO adjust this value inside the Execute method based on characteristics of the request
 
         /// <summary>
         /// Initializes data used to construct database context instances.
@@ -104,7 +104,7 @@ namespace ContentPublishingLib.JobRunners
             MethodBase Method = MethodBase.GetCurrentMethod();
 
             JobDetail.Result.StartDateTime = DateTime.UtcNow;
-            DateTime WaitEndUtc = DateTime.UtcNow + TimeLimit;
+            DateTime StartUtc = DateTime.UtcNow;
 
             _CancellationToken = cancellationToken;
             // AuditLog would not be null during a test run where it may be initialized earlier
@@ -123,7 +123,7 @@ namespace ContentPublishingLib.JobRunners
                 // Wait for any/all related reduction tasks to complete
                 for (int PendingTaskCount = await CountPendingReductionTasks(); PendingTaskCount > 0; PendingTaskCount = await CountPendingReductionTasks())
                 {
-                    if (DateTime.UtcNow > WaitEndUtc)
+                    if (DateTime.UtcNow > StartUtc + TimeLimit)
                     {
                         using (ApplicationDbContext Db = GetDbContext())
                         {
