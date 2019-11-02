@@ -37,6 +37,10 @@ export const createNewContentItem =
   createJsonRequestor<PublishingActions.CreateNewContentItem, PublishingActions.CreateNewContentItemSucceeded>
     ('POST', '/ContentPublishing/CreateRootContentItem');
 
+export const updateContentItem =
+  createJsonRequestor<PublishingActions.UpdateContentItem, PublishingActions.UpdateContentItemSucceeded>
+    ('POST', '/ContentPublishing/UpdateRootContentItem');
+
 export const publishContentFiles =
   createJsonRequestor<PublishingActions.PublishContentFiles, PublishingActions.PublishContentFilesSucceeded>
     ('POST', '/ContentPublishing/Publish');

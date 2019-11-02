@@ -45,6 +45,8 @@ export const fetchSessionCheck =
 // Updates
 export const createNewContentItem =
   createRequestActionCreator<PublishActions.CreateNewContentItem>('CREATE_NEW_CONTENT_ITEM');
+export const updateContentItem =
+  createRequestActionCreator<PublishActions.UpdateContentItem>('UPDATE_CONTENT_ITEM');
 export const publishContentFiles =
   createRequestActionCreator<PublishActions.PublishContentFiles>('PUBLISH_CONTENT_FILES');
 export const deleteContentItem =

@@ -100,6 +100,7 @@ const _initialPendingData: PendingDataState = {
   contentItemDetail: false,
   contentItemDeletion: false,
   formSubmit: false,
+  publishing: false,
 };
 
 /**
@@ -178,17 +179,29 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     formSubmit: false,
   }),
-  PUBLISH_CONTENT_FILES: (state) => ({
+  UPDATE_CONTENT_ITEM: (state) => ({
     ...state,
     formSubmit: true,
   }),
-  PUBLISH_CONTENT_FILES_SUCCEEDED: (state) => ({
+  UPDATE_CONTENT_ITEM_SUCCEEDED: (state) => ({
     ...state,
     formSubmit: false,
   }),
-  PUBLISH_CONTENT_FILES_FAILED: (state) => ({
+  UPDATE_CONTENT_ITEM_FAILED: (state) => ({
     ...state,
     formSubmit: false,
+  }),
+  PUBLISH_CONTENT_FILES: (state) => ({
+    ...state,
+    publishing: true,
+  }),
+  PUBLISH_CONTENT_FILES_SUCCEEDED: (state) => ({
+    ...state,
+    publishing: false,
+  }),
+  PUBLISH_CONTENT_FILES_FAILED: (state) => ({
+    ...state,
+    publishing: false,
   }),
   DELETE_CONTENT_ITEM: (state) => ({
     ...state,
@@ -278,8 +291,26 @@ const data = createReducer<PublishingStateData>(_initialData, {
       },
     };
   },
+  UPDATE_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.UpdateContentItemSucceeded) => {
+    const { detail, summary } = action.response;
+    return {
+      ...state,
+      items: {
+        ...state.items,
+        [detail.id]: {
+          id: detail.id,
+          clientId: detail.clientId,
+          name: detail.contentName,
+          contentTypeId: detail.contentTypeId,
+          doesReduce: detail.doesReduce,
+          isSuspended: detail.isSuspended,
+          assignedUserCount: summary.assignedUserCount,
+          selectionGroupCount: summary.groupCount,
+        },
+      },
+    };
+  },
   DELETE_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.DeleteContentItemSucceeded) => {
-    const { id } = action.response;
     const items = { ...state.items };
     delete items[action.response.id];
 
@@ -619,16 +650,112 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       originalData: {
         ...state.originalData,
         id: detail.id,
+        clientId: detail.clientId,
+        contentName: detail.contentName,
+        contentTypeId: detail.contentTypeId,
+        contentDescription: detail.description,
+        contentDisclaimer: detail.contentDisclaimer,
+        contentNotes: detail.notes,
+        doesReduce: detail.doesReduce,
+        typeSpecificDetailObject: detail.typeSpecificDetailObject,
       },
       formData: {
         ...state.formData,
         id: detail.id,
+        clientId: detail.clientId,
+        contentName: detail.contentName,
+        contentTypeId: detail.contentTypeId,
+        contentDescription: detail.description,
+        contentDisclaimer: detail.contentDisclaimer,
+        contentNotes: detail.notes,
+        doesReduce: detail.doesReduce,
+        typeSpecificDetailObject: detail.typeSpecificDetailObject,
       },
+      formState: 'read',
     };
   },
-  PUBLISH_CONTENT_FILES_SUCCEEDED: (state, _action: PublishingActions.PublishContentFilesSucceeded) => {
+  UPDATE_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.UpdateContentItemSucceeded) => {
+    const { detail } = action.response;
     return {
       ...state,
+      originalData: {
+        ...state.originalData,
+        id: detail.id,
+        clientId: detail.clientId,
+        contentName: detail.contentName,
+        contentTypeId: detail.contentTypeId,
+        contentDescription: detail.description,
+        contentDisclaimer: detail.contentDisclaimer,
+        contentNotes: detail.notes,
+        doesReduce: detail.doesReduce,
+        typeSpecificDetailObject: detail.typeSpecificDetailObject,
+      },
+      formData: {
+        ...state.formData,
+        id: detail.id,
+        clientId: detail.clientId,
+        contentName: detail.contentName,
+        contentTypeId: detail.contentTypeId,
+        contentDescription: detail.description,
+        contentDisclaimer: detail.contentDisclaimer,
+        contentNotes: detail.notes,
+        doesReduce: detail.doesReduce,
+        typeSpecificDetailObject: detail.typeSpecificDetailObject,
+      },
+      formState: 'read',
+    };
+  },
+  PUBLISH_CONTENT_FILES_SUCCEEDED: (state, action: PublishingActions.PublishContentFilesSucceeded) => {
+    const { relatedFiles } = action.response;
+    return {
+      ...state,
+      originalData: {
+        ...state.originalData,
+        relatedFiles: {
+          ...state.originalData.relatedFiles,
+          MasterContent: {
+            ...state.originalData.relatedFiles.MasterContent,
+            fileOriginalName: relatedFiles.MasterContent.fileOriginalName,
+          },
+          Thumbnail: {
+            ...state.originalData.relatedFiles.Thumbnail,
+            fileOriginalName: relatedFiles.Thumbnail.fileOriginalName,
+          },
+          ReleaseNotes: {
+            ...state.originalData.relatedFiles.ReleaseNotes,
+            fileOriginalName: relatedFiles.ReleaseNotes.fileOriginalName,
+          },
+          UserGuide: {
+            ...state.originalData.relatedFiles.UserGuide,
+            fileOriginalName: relatedFiles.UserGuide.fileOriginalName,
+          },
+        },
+        associatedFiles: action.response.associatedFiles,
+      },
+      formData: {
+        ...state.formData,
+        relatedFiles: {
+          ...state.originalData.relatedFiles,
+          MasterContent: {
+            ...state.originalData.relatedFiles.MasterContent,
+            fileOriginalName: relatedFiles.MasterContent.fileOriginalName,
+          },
+          Thumbnail: {
+            ...state.originalData.relatedFiles.Thumbnail,
+            fileOriginalName: relatedFiles.Thumbnail.fileOriginalName,
+          },
+          ReleaseNotes: {
+            ...state.originalData.relatedFiles.ReleaseNotes,
+            fileOriginalName: relatedFiles.ReleaseNotes.fileOriginalName,
+          },
+          UserGuide: {
+            ...state.originalData.relatedFiles.UserGuide,
+            fileOriginalName: relatedFiles.UserGuide.fileOriginalName,
+          },
+        },
+        associatedFiles: action.response.associatedFiles,
+      },
+      formState: 'read',
     };
   },
 });

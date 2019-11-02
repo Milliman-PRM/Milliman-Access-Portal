@@ -189,6 +189,36 @@ export interface CreateNewContentItemFailed {
 
 /**
  * POST:
+ *   Update a Content Item;
+ */
+export interface UpdateContentItem {
+  type: 'UPDATE_CONTENT_ITEM';
+  request: {
+    Id: Guid;
+    ClientId: Guid;
+    ContentName: string;
+    ContentTypeId: Guid;
+    Description: string;
+    Notes: string;
+    ContentDisclaimer: string;
+    DoesReduce: boolean;
+    // PowerBi specific:
+    FilterPaneEnabled?: boolean;
+    NavigationPaneEnabled?: boolean;
+    BookmarksPaneEnabled?: boolean;
+  };
+}
+export interface UpdateContentItemSucceeded {
+  type: 'UPDATE_CONTENT_ITEM_SUCCEEDED';
+  response: RootContentItemSummaryAndDetail;
+}
+export interface UpdateContentItemFailed {
+  type: 'UPDATE_CONTENT_ITEM_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
  *   Publish content files to Content Item;
  */
 export interface PublishContentFiles {
@@ -367,6 +397,7 @@ export type RequestPublishingAction =
   | FetchStatusRefresh
   | FetchSessionCheck
   | CreateNewContentItem
+  | UpdateContentItem
   | PublishContentFiles
   | DeleteContentItem
   | CancelPublicationRequest
@@ -383,6 +414,7 @@ export type ResponsePublishingAction =
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   | CreateNewContentItemSucceeded
+  | UpdateContentItemSucceeded
   | PublishContentFilesSucceeded
   | DeleteContentItemSucceeded
   | CancelPublicationRequestSucceeded
@@ -399,6 +431,7 @@ export type ErrorPublishingAction =
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   | CreateNewContentItemFailed
+  | UpdateContentItemFailed
   | PublishContentFilesFailed
   | DeleteContentItemFailed
   | CancelPublicationRequestFailed

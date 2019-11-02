@@ -260,6 +260,33 @@ export function submitButtonIsActive(state: PublishingState) {
 }
 
 /**
+ * Determine if there are uploads pending publishing
+ * @param state Redux store
+ */
+export function uploadChangesPending(state: PublishingState) {
+  const { formData, originalData } = state.formData;
+  const changesPending = !_.isEqual(formData.relatedFiles, originalData.relatedFiles);
+  return changesPending;
+}
+
+/**
+ * Determine if there are pending form changes
+ * @param state Redux store
+ */
+export function formChangesPending(state: PublishingState) {
+  const { formData, originalData } = state.formData;
+  const changesPending = (formData.id !== originalData.id)
+    || (formData.clientId !== originalData.clientId)
+    || (formData.contentName !== originalData.contentName)
+    || (formData.contentDescription !== originalData.contentDescription)
+    || (formData.contentDisclaimer !== originalData.contentDisclaimer)
+    || (formData.contentNotes !== originalData.contentNotes)
+    || (formData.doesReduce !== originalData.doesReduce)
+    || !_.isEqual(formData.typeSpecificDetailObject, originalData.typeSpecificDetailObject);
+  return changesPending;
+}
+
+/**
  * Return the related files for publishing
  * @param state Redux store
  */

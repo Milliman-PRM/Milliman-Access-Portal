@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
 import {
-  isPublicationActive, PublicationStatus,
+  isPublicationActive, PublicationStatus, PublishRequest,
 } from '../../view-models/content-publishing';
 import {
   Client, ClientWithStats, ContentAssociatedFileType, ContentType,
@@ -39,8 +39,8 @@ import { Dict } from '../shared-components/redux/store';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
-  availableContentTypes, clientEntities, itemEntities, selectedItem,
-  submitButtonIsActive,
+  availableContentTypes, clientEntities, filesForPublishing, formChangesPending,
+  itemEntities, selectedItem, submitButtonIsActive, uploadChangesPending,
 } from './redux/selectors';
 import {
     PublishingFormData, PublishingState, PublishingStateCardAttributes, PublishingStateFilters,
@@ -69,6 +69,9 @@ interface ContentPublishingProps {
   activeSelectedClient: Client;
   activeSelectedItem: RootContentItem;
   formCanSubmit: boolean;
+  formChangesPending: boolean;
+  uploadChangesPending: boolean;
+  filesForPublishing: PublishRequest;
 }
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
@@ -537,8 +540,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   Undo Changes
                 </button>
                 <button
-                  type="submit"
-                  className={`blue-button${this.props.formCanSubmit ? '' : ' disabled'}`}
+                  type="button"
+                  className={`green-button${this.props.formCanSubmit ? '' : ' disabled'}`}
                   disabled={!this.props.formCanSubmit}
                   onClick={(event: React.MouseEvent) => {
                     event.preventDefault();
@@ -552,6 +555,22 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         ContentDisclaimer: dataForForm.formData.contentDisclaimer,
                         Notes: dataForForm.formData.contentNotes,
                       });
+                    } else {
+                      if (this.props.formChangesPending) {
+                        this.props.updateContentItem({
+                          Id: dataForForm.formData.id,
+                          ClientId: dataForForm.formData.clientId,
+                          ContentName: dataForForm.formData.contentName,
+                          ContentTypeId: dataForForm.formData.contentTypeId,
+                          DoesReduce: dataForForm.formData.doesReduce,
+                          Description: dataForForm.formData.contentDescription,
+                          ContentDisclaimer: dataForForm.formData.contentDisclaimer,
+                          Notes: dataForForm.formData.contentNotes,
+                        });
+                      }
+                      if (this.props.uploadChangesPending) {
+                        this.props.publishContentFiles(this.props.filesForPublishing);
+                      }
                     }
                   }}
                 >
@@ -573,6 +592,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 
 function mapStateToProps(state: PublishingState): ContentPublishingProps {
   const { data, formData, selected, cardAttributes, pending, filters } = state;
+  const { id: rootContentItemId } = formData.formData;
   return {
     clients: clientEntities(state),
     items: itemEntities(state),
@@ -589,6 +609,9 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     activeSelectedClient: activeSelectedClient(state),
     activeSelectedItem: activeSelectedItem(state),
     formCanSubmit: submitButtonIsActive(state),
+    formChangesPending: formChangesPending(state),
+    uploadChangesPending: uploadChangesPending(state),
+    filesForPublishing: filesForPublishing(state, rootContentItemId),
   };
 }
 
