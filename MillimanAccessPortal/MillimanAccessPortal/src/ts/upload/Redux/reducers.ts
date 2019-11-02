@@ -62,5 +62,14 @@ export const uploadStatus = createReducer<Dict<UploadState>>({},
       delete Uploads[uploadId];
       return Uploads;
     },
+    CREATE_NEW_CONTENT_ITEM_SUCCEEDED: () => {
+      return {};
+    },
+    UPDATE_CONTENT_ITEM_SUCCEEDED: () => {
+      return {};
+    },
+    PUBLISH_CONTENT_FILES_SUCCEEDED: () => {
+      return {};
+    },
   },
 );

@@ -1,3 +1,4 @@
+import * as ContentPublishingActions from '../../react/content-publishing/redux/actions';
 import { ProgressSummary } from '../progress-monitor';
 
 /**
@@ -58,4 +59,7 @@ export type PageUploadAction =
   | SetUploadError
   | CancelFileUpload
   | FinalizeUpload
+  | ContentPublishingActions.CreateNewContentItemSucceeded
+  | ContentPublishingActions.UpdateContentItemSucceeded
+  | ContentPublishingActions.PublishContentFilesSucceeded
   ;
