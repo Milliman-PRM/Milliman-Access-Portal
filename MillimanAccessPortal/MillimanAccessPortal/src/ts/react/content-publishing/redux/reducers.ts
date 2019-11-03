@@ -20,6 +20,10 @@ import {
   PublishingStateSelected,
 } from './store';
 
+const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
+  return (purpose !== undefined) && purpose.hasOwnProperty(value) ? purpose[value] : defaultValue;
+};
+
 const _initialData: PublishingStateData = {
   clients: {},
   items: {},
@@ -345,10 +349,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       }
     }
 
-    const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
-      return (purpose !== undefined) && purpose.hasOwnProperty(value) ? purpose[value] : defaultValue;
-    };
-
     const contentItemDetail = {
       ...action.response,
       relatedFiles: {
@@ -483,10 +483,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         };
       }
     }
-
-    const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
-      return (purpose !== undefined) && purpose.hasOwnProperty(value) ? purpose[value] : defaultValue;
-    };
 
     const contentItemDetail = {
       ...originalData,
@@ -715,19 +711,19 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           ...state.originalData.relatedFiles,
           MasterContent: {
             ...state.originalData.relatedFiles.MasterContent,
-            fileOriginalName: relatedFiles.MasterContent.fileOriginalName,
-          },
+            fileOriginalName: defaultIfUndefined(relatedFiles.MasterContent, 'fileOriginalName'),
+         },
           Thumbnail: {
             ...state.originalData.relatedFiles.Thumbnail,
-            fileOriginalName: relatedFiles.Thumbnail.fileOriginalName,
+            fileOriginalName: defaultIfUndefined(relatedFiles.Thumbnail, 'fileOriginalName'),
           },
           ReleaseNotes: {
             ...state.originalData.relatedFiles.ReleaseNotes,
-            fileOriginalName: relatedFiles.ReleaseNotes.fileOriginalName,
+            fileOriginalName: defaultIfUndefined(relatedFiles.ReleaseNotes, 'fileOriginalName'),
           },
           UserGuide: {
             ...state.originalData.relatedFiles.UserGuide,
-            fileOriginalName: relatedFiles.UserGuide.fileOriginalName,
+            fileOriginalName: defaultIfUndefined(relatedFiles.UserGuide, 'fileOriginalName'),
           },
         },
         associatedFiles: action.response.associatedFiles,
@@ -738,24 +734,27 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           ...state.originalData.relatedFiles,
           MasterContent: {
             ...state.originalData.relatedFiles.MasterContent,
-            fileOriginalName: relatedFiles.MasterContent.fileOriginalName,
+            fileOriginalName: defaultIfUndefined(relatedFiles.MasterContent, 'fileOriginalName'),
           },
           Thumbnail: {
             ...state.originalData.relatedFiles.Thumbnail,
-            fileOriginalName: relatedFiles.Thumbnail.fileOriginalName,
+            fileOriginalName: defaultIfUndefined(relatedFiles.Thumbnail, 'fileOriginalName'),
           },
           ReleaseNotes: {
             ...state.originalData.relatedFiles.ReleaseNotes,
-            fileOriginalName: relatedFiles.ReleaseNotes.fileOriginalName,
+            fileOriginalName: defaultIfUndefined(relatedFiles.ReleaseNotes, 'fileOriginalName'),
           },
           UserGuide: {
             ...state.originalData.relatedFiles.UserGuide,
-            fileOriginalName: relatedFiles.UserGuide.fileOriginalName,
+            fileOriginalName: defaultIfUndefined(relatedFiles.UserGuide, 'fileOriginalName'),
           },
         },
         associatedFiles: action.response.associatedFiles,
       },
       formState: 'read',
+      uploads: {
+        ...state.uploads,
+      }
     };
   },
 });
