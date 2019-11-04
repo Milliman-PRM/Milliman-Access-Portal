@@ -739,7 +739,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ContentPublishingController.CancelContentPublicationRequest action: success");
             AuditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(rootContentItem, rootContentItem.Client, contentPublicationRequest));
 
-            var rootContentItemStatusList = _publishingQueries.SelectStatus(await _userManager.GetUserAsync(User), rootContentItem.Client.Id);
+            var rootContentItemStatusList = _publishingQueries.SelectCancelContentPublicationRequest(await _userManager.GetUserAsync(User), rootContentItem);
 
             return new JsonResult(rootContentItemStatusList);
         }
