@@ -734,7 +734,7 @@ namespace ContentPublishingLib.JobRunners
             TimeSpan TaskStartPollingInterval = new TimeSpan(0, 0, 0, 2);
             TimeSpan PublisherPollingInterval = new TimeSpan(0, 0, 0, 1);
 
-            QlikviewLib.Qms.TaskStatus Status;
+            QlikviewLib.Qms.TaskStatus Status = default;
 
             // Save the task to Qlikview server
             DateTime SaveStartTime = DateTime.Now;
@@ -758,11 +758,12 @@ namespace ContentPublishingLib.JobRunners
                 throw new ApplicationException("After saving task, QmsClient.FindTaskAsync exception", ex);
             }
             Guid TaskIdGuid = TInfo.ID;
-            GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} successfully saved after {DateTime.Now - SaveStartTime}");
+            GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() successfully saved task {TaskIdGuid.ToString("D")}, and retrieved task info, after {DateTime.Now - SaveStartTime}");
 
             try
             {
                 DateTime RunStartTime = DateTime.Now;
+                int pollTaskStartRetryCount = 3;
                 // Get the task started, this generally requires more than one call to RunTaskAsync
                 do
                 {
@@ -789,6 +790,11 @@ namespace ContentPublishingLib.JobRunners
                     }
                     catch (System.Exception ex)
                     {
+                        if (pollTaskStartRetryCount-- > 0)
+                        {
+                            GlobalFunctions.TraceWriteLine(GlobalFunctions.LoggableExceptionString(ex, "About to retry. Exception while polling for task completion"));
+                            continue;
+                        }
                         throw new ApplicationException("QmsClient.GetTaskStatusAsync (polling while trying to start task) exception", ex);
                     }
                 } while (Status == null || Status.Extended == null || !(DateTime.TryParse(Status.Extended.StartTime, out _) || DateTime.TryParse(Status.Extended.FinishedTime, out _)));
@@ -796,6 +802,7 @@ namespace ContentPublishingLib.JobRunners
 
                 // Wait for started task to finish
                 DateTime RunningStartTime = DateTime.Now;
+                int pollTaskFinishRetryCount = 3;
                 do
                 {
                     if (DateTime.Now - RunningStartTime > MaxElapsedRun)
@@ -813,6 +820,11 @@ namespace ContentPublishingLib.JobRunners
                     }
                     catch (System.Exception ex)
                     {
+                        if (pollTaskFinishRetryCount-- > 0)
+                        {
+                            GlobalFunctions.TraceWriteLine(GlobalFunctions.LoggableExceptionString(ex, "About to retry. Exception while polling for task completion"));
+                            continue;
+                        }
                         throw new ApplicationException("QmsClient.GetTaskStatusAsync (polling while waiting for task to finish) exception", ex);
                     }
                 } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
