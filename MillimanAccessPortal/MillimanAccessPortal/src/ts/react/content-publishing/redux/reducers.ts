@@ -324,7 +324,7 @@ const data = createReducer<PublishingStateData>(_initialData, {
     };
   },
   CANCEL_PUBLICATION_REQUEST_SUCCEEDED: (state, action: PublishingActions.CancelPublicationRequestSucceeded) => {
-    const { publications, publicationQueue, contentItems: items } = action.response;
+    const { publications, publicationQueue, contentItems: items } = action.response.statusResponseModel;
 
     return {
       ...state,
@@ -759,6 +759,84 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         ...uploads,
       },
       formState: 'read',
+    };
+  },
+  CANCEL_PUBLICATION_REQUEST_SUCCEEDED: (state, action: PublishingActions.CancelPublicationRequestSucceeded) => {
+    const { rootContentItemDetail: detail } = action.response;
+
+    const keys = Object.keys({ ...detail.associatedFiles });
+    const associatedContentItems: Dict<AssociatedContentItemUpload> = {};
+
+    for (const key of keys) {
+      if (detail.associatedFiles.hasOwnProperty(key)) {
+        associatedContentItems[key] = {
+          ...detail.associatedFiles[key],
+          uniqueUploadId: generateUniqueId('associatedContent'),
+        };
+      }
+    }
+
+    const contentItemDetail = {
+      ...state.formData,
+      relatedFiles: {
+        MasterContent: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.MasterContent, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('MasterContent'),
+          fileUploadId: '',
+        },
+        Thumbnail: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.Thumbnail, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('Thumbnail'),
+          fileUploadId: '',
+        },
+        UserGuide: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.UserGuide, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('UserGuide'),
+          fileUploadId: '',
+        },
+        ReleaseNotes: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.ReleaseNotes, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ReleaseNotes'),
+          fileUploadId: '',
+        },
+      },
+      associatedFiles: {
+        ...associatedContentItems,
+      },
+    };
+
+    const newUpload: UploadState = {
+      cancelable: false,
+      errorMsg: null,
+      checksumProgress: ProgressSummary.empty(),
+      uploadProgress: ProgressSummary.empty(),
+    };
+
+    const uploads: Dict<UploadState> = {
+      [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+    };
+
+    for (const key of keys) {
+      if (detail.associatedFiles.hasOwnProperty(key)) {
+        uploads[contentItemDetail.associatedFiles[key].uniqueUploadId] = newUpload;
+      }
+    }
+
+    return {
+      ...state,
+      originalData: {
+        ...contentItemDetail,
+      },
+      formData: {
+        ...contentItemDetail,
+      },
+      formErrors: {},
+      uploads: {
+        ...uploads,
+      },
     };
   },
 });

@@ -262,9 +262,12 @@ export interface CancelPublicationRequest {
 export interface CancelPublicationRequestSucceeded {
   type: 'CANCEL_PUBLICATION_REQUEST_SUCCEEDED';
   response: {
-    contentItems: Dict<RootContentItemWithStats>;
-    publications: Dict<ContentPublicationRequest>;
-    publicationQueue: Dict<PublicationQueueDetails>;
+    statusResponseModel: {
+      contentItems: Dict<RootContentItemWithStats>;
+      publications: Dict<ContentPublicationRequest>;
+      publicationQueue: Dict<PublicationQueueDetails>;
+    },
+    rootContentItemDetail: ContentItemDetail,
   };
 }
 export interface CancelPublicationRequestFailed {
