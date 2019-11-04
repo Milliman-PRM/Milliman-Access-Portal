@@ -1,4 +1,8 @@
+import {
+  AssociatedContentItemUpload, ContentItemDetail, RelatedFiles,
+} from '../react/models';
 import { Guid } from '../react/shared-components/interfaces';
+import { Dict } from '../react/shared-components/redux/store';
 
 export interface Nestable {
   id: Guid;
@@ -152,31 +156,10 @@ export interface ContentAssociatedFile {
   sortOrder: string;
   checksum: string;
 }
-export interface RootContentItemDetail {
-  id: Guid;
-  clientId: Guid;
-  contentName: string;
-  contentTypeId: Guid;
-  doesReduce: boolean;
-  filterPaneEnabled?: boolean;
-  navigationPaneEnabled?: boolean;
-  bookmarksPaneEnabled?: boolean;
-  relatedFiles: ContentRelatedFile[];
-  associatedFiles: ContentAssociatedFile[];
-  description: string;
-  notes: string;
-  contentDisclaimer: string;
-  isSuspended: boolean;
-  typeSpecificDetailObject?: {
-    filterPaneEnabled?: boolean;
-    navigationPaneEnabled?: boolean;
-    bookmarksPaneEnabled?: boolean;
-  };
-}
 
 export interface RootContentItemSummaryAndDetail {
   summary: RootContentItemSummary;
-  detail: RootContentItemDetail;
+  detail: ContentItemDetail;
 }
 
 export interface RootContentItemStatus {
