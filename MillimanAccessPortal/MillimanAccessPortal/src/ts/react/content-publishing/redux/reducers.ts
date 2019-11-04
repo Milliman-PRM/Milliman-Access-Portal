@@ -641,120 +641,124 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
   }),
   CREATE_NEW_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.CreateNewContentItemSucceeded) => {
     const { detail } = action.response;
+    const newContentItemData: ContentItemDetail = {
+      ...state.originalData,
+      id: detail.id,
+      clientId: detail.clientId,
+      contentName: detail.contentName,
+      contentTypeId: detail.contentTypeId,
+      doesReduce: detail.doesReduce,
+      contentDescription: detail.contentDescription,
+      contentDisclaimer: detail.contentDisclaimer,
+      contentNotes: detail.contentNotes,
+      typeSpecificDetailObject: detail.typeSpecificDetailObject,
+    };
+
     return {
       ...state,
-      originalData: {
-        ...state.originalData,
-        id: detail.id,
-        clientId: detail.clientId,
-        contentName: detail.contentName,
-        contentTypeId: detail.contentTypeId,
-        contentDescription: detail.description,
-        contentDisclaimer: detail.contentDisclaimer,
-        contentNotes: detail.notes,
-        doesReduce: detail.doesReduce,
-        typeSpecificDetailObject: detail.typeSpecificDetailObject,
-      },
-      formData: {
-        ...state.formData,
-        id: detail.id,
-        clientId: detail.clientId,
-        contentName: detail.contentName,
-        contentTypeId: detail.contentTypeId,
-        contentDescription: detail.description,
-        contentDisclaimer: detail.contentDisclaimer,
-        contentNotes: detail.notes,
-        doesReduce: detail.doesReduce,
-        typeSpecificDetailObject: detail.typeSpecificDetailObject,
-      },
+      originalData: newContentItemData,
+      formData: newContentItemData,
       formState: 'read',
     };
   },
   UPDATE_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.UpdateContentItemSucceeded) => {
     const { detail } = action.response;
+    const updatedContentItemData: ContentItemDetail = {
+      ...state.originalData,
+      id: detail.id,
+      clientId: detail.clientId,
+      contentName: detail.contentName,
+      contentTypeId: detail.contentTypeId,
+      doesReduce: detail.doesReduce,
+      contentDescription: detail.contentDescription,
+      contentDisclaimer: detail.contentDisclaimer,
+      contentNotes: detail.contentNotes,
+      typeSpecificDetailObject: detail.typeSpecificDetailObject,
+    };
+
     return {
       ...state,
-      originalData: {
-        ...state.originalData,
-        id: detail.id,
-        clientId: detail.clientId,
-        contentName: detail.contentName,
-        contentTypeId: detail.contentTypeId,
-        contentDescription: detail.description,
-        contentDisclaimer: detail.contentDisclaimer,
-        contentNotes: detail.notes,
-        doesReduce: detail.doesReduce,
-        typeSpecificDetailObject: detail.typeSpecificDetailObject,
-      },
-      formData: {
-        ...state.formData,
-        id: detail.id,
-        clientId: detail.clientId,
-        contentName: detail.contentName,
-        contentTypeId: detail.contentTypeId,
-        contentDescription: detail.description,
-        contentDisclaimer: detail.contentDisclaimer,
-        contentNotes: detail.notes,
-        doesReduce: detail.doesReduce,
-        typeSpecificDetailObject: detail.typeSpecificDetailObject,
-      },
+      originalData: updatedContentItemData,
+      formData: updatedContentItemData,
       formState: 'read',
     };
   },
   PUBLISH_CONTENT_FILES_SUCCEEDED: (state, action: PublishingActions.PublishContentFilesSucceeded) => {
-    const { relatedFiles } = action.response;
-    return {
-      ...state,
-      originalData: {
-        ...state.originalData,
-        relatedFiles: {
-          ...state.originalData.relatedFiles,
-          MasterContent: {
-            ...state.originalData.relatedFiles.MasterContent,
-            fileOriginalName: defaultIfUndefined(relatedFiles.MasterContent, 'fileOriginalName'),
-         },
-          Thumbnail: {
-            ...state.originalData.relatedFiles.Thumbnail,
-            fileOriginalName: defaultIfUndefined(relatedFiles.Thumbnail, 'fileOriginalName'),
-          },
-          ReleaseNotes: {
-            ...state.originalData.relatedFiles.ReleaseNotes,
-            fileOriginalName: defaultIfUndefined(relatedFiles.ReleaseNotes, 'fileOriginalName'),
-          },
-          UserGuide: {
-            ...state.originalData.relatedFiles.UserGuide,
-            fileOriginalName: defaultIfUndefined(relatedFiles.UserGuide, 'fileOriginalName'),
-          },
+    const { response: detail } = action;
+
+    const keys = Object.keys({ ...detail.associatedFiles });
+    const associatedContentItems: Dict<AssociatedContentItemUpload> = {};
+
+    for (const key of keys) {
+      if (detail.associatedFiles.hasOwnProperty(key)) {
+        associatedContentItems[key] = {
+          ...detail.associatedFiles[key],
+          uniqueUploadId: generateUniqueId('associatedContent'),
+        };
+      }
+    }
+
+    const contentItemDetail = {
+      ...state.formData,
+      relatedFiles: {
+        MasterContent: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.MasterContent, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('MasterContent'),
+          fileUploadId: '',
         },
-        associatedFiles: action.response.associatedFiles,
+        Thumbnail: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.Thumbnail, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('Thumbnail'),
+          fileUploadId: '',
+        },
+        UserGuide: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.UserGuide, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('UserGuide'),
+          fileUploadId: '',
+        },
+        ReleaseNotes: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.ReleaseNotes, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ReleaseNotes'),
+          fileUploadId: '',
+        },
+      },
+      associatedFiles: {
+        ...associatedContentItems,
+      },
+    };
+
+    const newUpload: UploadState = {
+      cancelable: false,
+      errorMsg: null,
+      checksumProgress: ProgressSummary.empty(),
+      uploadProgress: ProgressSummary.empty(),
+    };
+
+    const uploads: Dict<UploadState> = {
+      [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+    };
+
+    for (const key of keys) {
+      if (detail.associatedFiles.hasOwnProperty(key)) {
+        uploads[contentItemDetail.associatedFiles[key].uniqueUploadId] = newUpload;
+      }
+    }
+
+    return {
+      originalData: {
+        ...contentItemDetail,
       },
       formData: {
-        ...state.formData,
-        relatedFiles: {
-          ...state.originalData.relatedFiles,
-          MasterContent: {
-            ...state.originalData.relatedFiles.MasterContent,
-            fileOriginalName: defaultIfUndefined(relatedFiles.MasterContent, 'fileOriginalName'),
-          },
-          Thumbnail: {
-            ...state.originalData.relatedFiles.Thumbnail,
-            fileOriginalName: defaultIfUndefined(relatedFiles.Thumbnail, 'fileOriginalName'),
-          },
-          ReleaseNotes: {
-            ...state.originalData.relatedFiles.ReleaseNotes,
-            fileOriginalName: defaultIfUndefined(relatedFiles.ReleaseNotes, 'fileOriginalName'),
-          },
-          UserGuide: {
-            ...state.originalData.relatedFiles.UserGuide,
-            fileOriginalName: defaultIfUndefined(relatedFiles.UserGuide, 'fileOriginalName'),
-          },
-        },
-        associatedFiles: action.response.associatedFiles,
+        ...contentItemDetail,
+      },
+      formErrors: {},
+      uploads: {
+        ...uploads,
       },
       formState: 'read',
-      uploads: {
-        ...state.uploads,
-      }
     };
   },
 });
