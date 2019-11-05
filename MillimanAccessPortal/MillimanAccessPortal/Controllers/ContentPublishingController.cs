@@ -1074,37 +1074,30 @@ namespace MillimanAccessPortal.Controllers
                 return null;
             }
 
-            #region Handle type specific properties
-            ContentTypeEnum requestedContentType = (await _dbContext.ContentType.SingleOrDefaultAsync(ct => ct.Id == model.ContentTypeId))?.TypeEnum ?? ContentTypeEnum.Unknown;
-            switch (requestedContentType)
+            #region Handle type specific properties, if any
+            if (jObject.TryGetValue("TypeSpecificDetailObject", StringComparison.InvariantCultureIgnoreCase, out JToken typeSpecificDetailObjectToken))
             {
-                case ContentTypeEnum.PowerBi:
-                    var pbiProperties = new PowerBiContentItemProperties();
+                ContentTypeEnum requestedContentType = (await _dbContext.ContentType.SingleOrDefaultAsync(ct => ct.Id == model.ContentTypeId))?.TypeEnum ?? ContentTypeEnum.Unknown;
+                switch (requestedContentType)
+                {
+                    case ContentTypeEnum.PowerBi:
+                        var pbiProperties = new PowerBiContentItemProperties
+                        {
+                            FilterPaneEnabled = typeSpecificDetailObjectToken.Value<bool>("FilterPaneEnabled"),
+                            NavigationPaneEnabled = typeSpecificDetailObjectToken.Value<bool>("NavigationPaneEnabled"),
+                            BookmarksPaneEnabled = typeSpecificDetailObjectToken.Value<bool>("BookmarksPaneEnabled"),
+                        };
 
-                    if (jObject.TryGetValue("FilterPaneEnabled", StringComparison.InvariantCultureIgnoreCase, out JToken filterPaneEnabledToken))
-                    {
-                        pbiProperties.FilterPaneEnabled = filterPaneEnabledToken.Value<bool>();
-                    }
+                        model.TypeSpecificDetailObject = pbiProperties;
+                        break;
 
-                    if (jObject.TryGetValue("NavigationPaneEnabled", StringComparison.InvariantCultureIgnoreCase, out JToken navigationPaneEnabledToken))
-                    {
-                        pbiProperties.NavigationPaneEnabled = navigationPaneEnabledToken.Value<bool>();
-                    }
-
-                    if (jObject.TryGetValue("BookmarksPaneEnabled", StringComparison.InvariantCultureIgnoreCase, out JToken bookmarksPaneEnabledToken))
-                    {
-                        pbiProperties.BookmarksPaneEnabled = bookmarksPaneEnabledToken.Value<bool>();
-                    }
-
-                    model.TypeSpecificDetailObject = pbiProperties;
-                    break;
-
-                case ContentTypeEnum.Qlikview:
-                case ContentTypeEnum.Pdf:
-                case ContentTypeEnum.Html:
-                case ContentTypeEnum.FileDownload:
-                default:
-                    break;
+                    case ContentTypeEnum.Qlikview:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.FileDownload:
+                    default:
+                        break;
+                }
             }
             #endregion
 
