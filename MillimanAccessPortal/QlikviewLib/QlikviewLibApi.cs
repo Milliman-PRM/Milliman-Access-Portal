@@ -22,17 +22,22 @@ namespace QlikviewLib
     {
         QlikviewConfig _config;
 
+        private IQMS _newQmsClient
+        {
+            get => QmsClientCreator.New(_config?.QvsQmsApiUrl);
+        }
+
         public QlikviewLibApi (QlikviewConfig configArg)
         {
             _config = configArg;
         }
 
-        public async Task<ServiceInfo> SafeGetServiceInfo(IQMS Client, ServiceTypes Type, int Index = 0)
+        public async Task<ServiceInfo> SafeGetServiceInfo(ServiceTypes Type, int Index = 0)
         {
             ServiceInfo ServiceInfo = null;
             try
             {
-                ServiceInfo[] Services = await Client.GetServicesAsync(Type);
+                ServiceInfo[] Services = await _newQmsClient.GetServicesAsync(Type);
                 ServiceInfo = Services[Index];
             }
             catch (System.Exception)
@@ -41,13 +46,13 @@ namespace QlikviewLib
             return ServiceInfo;
         }
 
-        public async Task<(ServiceInfo, DocumentFolder)> SafeGetUserDocFolder(IQMS Client, int ServiceIndex = 0)
+        public async Task<(ServiceInfo, DocumentFolder)> SafeGetUserDocFolder(int ServiceIndex = 0)
         {
-            ServiceInfo SvcInfo = await SafeGetServiceInfo(Client, ServiceTypes.QlikViewServer, ServiceIndex);
+            ServiceInfo SvcInfo = await SafeGetServiceInfo(ServiceTypes.QlikViewServer, ServiceIndex);
             DocumentFolder QvsUserDocFolder = null;
             try
             {
-                DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(SvcInfo.ID, DocumentFolderScope.General);
+                DocumentFolder[] QvsUserDocFolders = await _newQmsClient.GetUserDocumentFoldersAsync(SvcInfo.ID, DocumentFolderScope.General);
                 QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == _config.QvServerContentUriSubfolder);
             }
             catch (System.Exception)
@@ -119,16 +124,14 @@ namespace QlikviewLib
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
-            IQMS Client = await QmsClientCreator.New(_config.QvsQmsApiUrl);
-
-            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, 0);
+            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(0);
             if (QvsUserDocFolder == null)
             {
                 return false;
             }
 
             // If user has an available named CAL then don't allocate a document CAL.
-            CALConfiguration CalConfig = await Client.GetCALConfigurationAsync(SvcInfo.ID, CALConfigurationScope.NamedCALs);
+            CALConfiguration CalConfig = await _newQmsClient.GetCALConfigurationAsync(SvcInfo.ID, CALConfigurationScope.NamedCALs);
             if (CalConfig.NamedCALs.AssignedCALs.Any(c => string.Compare(c.UserName, UserName, true) == 0 
                                                        && c.QuarantinedUntil == DateTime.MinValue))
             {
@@ -152,7 +155,7 @@ namespace QlikviewLib
                         List<AssignedNamedCAL> NamedCalList = CalConfig.NamedCALs.AssignedCALs.ToList();
                         NamedCalList.Add(NewCal);
                         CalConfig.NamedCALs.AssignedCALs = NamedCalList.ToArray();
-                        await Client.SaveCALConfigurationAsync(CalConfig);
+                        await _newQmsClient.SaveCALConfigurationAsync(CalConfig);
                         Log.Information($"Assigned Qlikview named CAL to user {UserName}, there are now {CalConfig.NamedCALs.AssignedCALs.Length} assigned named CALs");
                         return true;
                     }
@@ -170,7 +173,7 @@ namespace QlikviewLib
             DocumentNode RequestedDocNode = null;
             try
             {
-                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                DocumentNode[] AllDocNodesInRequestedFolder = await _newQmsClient.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
                 RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
             }
             catch (System.Exception)
@@ -183,7 +186,7 @@ namespace QlikviewLib
                 return false;
             }
 
-            DocumentMetaData DocMetadata = await Client.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
+            DocumentMetaData DocMetadata = await _newQmsClient.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
             List<AssignedNamedCAL> CurrentDocCals = DocMetadata.Licensing.AssignedCALs.ToList();
 
             if (CurrentDocCals.Any(c => string.Compare(c.UserName, UserName, true) == 0
@@ -204,7 +207,7 @@ namespace QlikviewLib
 
             try
             {
-                await Client.SaveDocumentMetaDataAsync(DocMetadata);
+                await _newQmsClient.SaveDocumentMetaDataAsync(DocMetadata);
                 Log.Information($"Assigned Qlikview document CAL to user {UserName}");
             }
             catch (System.Exception e)
@@ -233,9 +236,7 @@ namespace QlikviewLib
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
-            IQMS Client = await QmsClientCreator.New(_config.QvsQmsApiUrl);
-
-            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, 0);
+            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(0);
             if (QvsUserDocFolder == null)
             {
                 return false;
@@ -244,7 +245,7 @@ namespace QlikviewLib
             DocumentNode RequestedDocNode = null;
             try
             {
-                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                DocumentNode[] AllDocNodesInRequestedFolder = await _newQmsClient.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
                 RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
             }
             catch (System.Exception)
@@ -257,11 +258,12 @@ namespace QlikviewLib
                 return false;
             }
 
-            DocumentMetaData DocMetadata = await Client.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
+            DocumentMetaData DocMetadata = await _newQmsClient.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
             DocMetadata.Licensing.RemovedAssignedCALs = DocMetadata.Licensing.AssignedCALs.ToList().ToArray();
             DocMetadata.Licensing.AssignedCALs = new AssignedNamedCAL[0];
             DocMetadata.Licensing.CALsAllocated = 0;
-            await Client.SaveDocumentMetaDataAsync(DocMetadata);
+
+            await _newQmsClient.SaveDocumentMetaDataAsync(DocMetadata);
 
             return true;
         }
@@ -278,9 +280,7 @@ namespace QlikviewLib
             string DocumentRelativeFolderPath = Path.GetDirectoryName(DocumentFilePathRelativeToStorageContentRoot);
             string DocumentFileName = Path.GetFileName(DocumentFilePathRelativeToStorageContentRoot);
 
-            IQMS Client = await QmsClientCreator.New(_config.QvsQmsApiUrl);
-
-            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(Client, 0);
+            (ServiceInfo SvcInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder(0);
             if (QvsUserDocFolder == null)
             {
                 return false;
@@ -289,7 +289,7 @@ namespace QlikviewLib
             DocumentNode RequestedDocNode = null;
             try
             {
-                DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                DocumentNode[] AllDocNodesInRequestedFolder = await _newQmsClient.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
                 RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.ToLower() == DocumentFileName.ToLower());
             }
             catch (System.Exception)
@@ -302,7 +302,7 @@ namespace QlikviewLib
                 return false;
             }
 
-            DocumentMetaData DocMetadata = await Client.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
+            DocumentMetaData DocMetadata = await _newQmsClient.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
             List<AssignedNamedCAL> CurrentDocCals = DocMetadata.Licensing.AssignedCALs.ToList();
             List<AssignedNamedCAL> RemovableCALs = new List<AssignedNamedCAL>();
 
@@ -320,7 +320,7 @@ namespace QlikviewLib
             DocMetadata.Licensing.AssignedCALs = CurrentDocCals.ToArray();
             DocMetadata.Licensing.RemovedAssignedCALs = RemovableCALs.ToArray();
 
-            await Client.SaveDocumentMetaDataAsync(DocMetadata);
+            await _newQmsClient.SaveDocumentMetaDataAsync(DocMetadata);
 
             return ReturnBool;
         }
@@ -335,23 +335,21 @@ namespace QlikviewLib
         /// <returns></returns>
         public async Task AuthorizeUserDocumentsInFolderAsync(string ContentPathRelativeToNamedUserDocFolder, string SpecificFileName = null)
         {
-            IQMS Client = await QmsClientCreator.New(_config.QvsQmsApiUrl);
-
-            ServiceInfo[] QvsServicesArrray = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
+            ServiceInfo[] QvsServicesArrray = await _newQmsClient.GetServicesAsync(ServiceTypes.QlikViewServer);
             ServiceInfo QvsServiceInfo = QvsServicesArrray[0];
 
-            DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
-            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == _config.QvServerContentUriSubfolder);
+            DocumentFolder[] QvsUserDocFolders = await _newQmsClient.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
+            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path.Equals(_config.QvServerContentUriSubfolder, StringComparison.InvariantCultureIgnoreCase));
 
-            await Client.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList);  // Is this really needed?
+            await _newQmsClient.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList);  // Is this really needed?
 
-            DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToNamedUserDocFolder);
+            DocumentNode[] AllDocNodesInRequestedFolder = await _newQmsClient.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToNamedUserDocFolder);
             foreach (DocumentNode DocNode in AllDocNodesInRequestedFolder.Where(n => !n.IsSubFolder))
             {
                 if (!string.IsNullOrEmpty(SpecificFileName) && DocNode.Name != SpecificFileName)
                     continue;
 
-                var DocAuthorizationMetadata = await Client.GetDocumentMetaDataAsync(DocNode, DocumentMetaDataScope.Authorization);
+                var DocAuthorizationMetadata = await _newQmsClient.GetDocumentMetaDataAsync(DocNode, DocumentMetaDataScope.Authorization);
 
                 if (!DocAuthorizationMetadata.Authorization.Access.Any(a => a.UserName == ""))
                 {
@@ -363,7 +361,7 @@ namespace QlikviewLib
                         DayOfWeekConstraints = new DayOfWeek[0],
                     });
                     DocAuthorizationMetadata.Authorization.Access = DAL.ToArray();
-                    await Client.SaveDocumentMetaDataAsync(DocAuthorizationMetadata);
+                    await _newQmsClient.SaveDocumentMetaDataAsync(DocAuthorizationMetadata);
                 }
             }
         }

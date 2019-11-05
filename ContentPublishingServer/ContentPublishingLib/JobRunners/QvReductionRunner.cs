@@ -23,6 +23,11 @@ namespace ContentPublishingLib.JobRunners
     {
         private string QmsUrl = null;
 
+        private IQMS _newQmsClient
+        {
+            get => QmsClientCreator.New(QmsUrl);
+        }
+
         /// <summary>
         /// Constructor, sets up starting conditions that are associated with the system configuration rather than this specific task.
         /// </summary>
@@ -33,12 +38,11 @@ namespace ContentPublishingLib.JobRunners
 
             Task initTask = Task.Run(async () =>
             {
-                IQMS Client = await QmsClientCreator.New(QmsUrl);
-                ServiceInfo[] services = await Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
+                ServiceInfo[] services = await _newQmsClient.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
                 QdsServiceInfo = services[0];
 
                 // Qv can have 0 or more configured source document folders, need to find the right one. 
-                var GetDocFolderTask = await Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
+                var GetDocFolderTask = await _newQmsClient.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
                 foreach (DocumentFolder DocFolder in GetDocFolderTask)
                 {
                     // eliminate any trailing slash issue
@@ -538,14 +542,12 @@ namespace ContentPublishingLib.JobRunners
         {
             DocumentNode DocNode = null;
 
-            IQMS QmsClient = await QmsClientCreator.New(QmsUrl);
-
             DocumentNode[] AllDocNodes = new DocumentNode[0];
             DateTime Start = DateTime.Now;
             while (DocNode == null && (DateTime.Now - Start) < new TimeSpan(0, 1, 10))  // QV server seems to poll for files every minute
             {
                 Thread.Sleep(500);
-                AllDocNodes = await QmsClient.GetSourceDocumentNodesAsync(QdsServiceInfo.ID, SourceDocFolder.ID, RequestedRelativeFolder);
+                AllDocNodes = await _newQmsClient.GetSourceDocumentNodesAsync(QdsServiceInfo.ID, SourceDocFolder.ID, RequestedRelativeFolder);
                 DocNode = AllDocNodes.SingleOrDefault(dn => dn.FolderID == SourceDocFolder.ID
                                                             && dn.Name == RequestedFileName
                                                             && dn.RelativePath == RequestedRelativeFolder);
@@ -731,17 +733,16 @@ namespace ContentPublishingLib.JobRunners
             var defaultTimeout = int.Parse(Configuration.ApplicationConfiguration["DefaultQdsTaskTimeoutMinutes"]);
             TimeSpan MaxStartDelay = new TimeSpan(0, 0, 5, 0);
             TimeSpan MaxElapsedRun = new TimeSpan(0, 0, timeoutMinutes ?? defaultTimeout, 0);
-            TimeSpan TaskStartPollingInterval = new TimeSpan(0, 0, 0, 2);
+            TimeSpan TaskStartPollingInterval = new TimeSpan(0, 0, 0, 10);
             TimeSpan PublisherPollingInterval = new TimeSpan(0, 0, 0, 1);
 
             QlikviewLib.Qms.TaskStatus Status = default;
 
             // Save the task to Qlikview server
             DateTime SaveStartTime = DateTime.Now;
-            IQMS QmsClient = await QmsClientCreator.New(QmsUrl);
             try
             {
-                await QmsClient.SaveDocumentTaskAsync(DocTask);
+                await _newQmsClient.SaveDocumentTaskAsync(DocTask);
             }
             catch (System.Exception ex)
             {
@@ -751,7 +752,7 @@ namespace ContentPublishingLib.JobRunners
             TaskInfo TInfo = default;
             try
             {
-                TInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName);
+                TInfo = await _newQmsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName);
             }
             catch (System.Exception ex)
             {
@@ -773,20 +774,20 @@ namespace ContentPublishingLib.JobRunners
                         throw new System.Exception($"Qlikview publisher failed to start task {TaskIdGuid.ToString("D")} before timeout");
                     }
 
-                    QmsClient = await QmsClientCreator.New(QmsUrl);
                     try
                     {
-                        await QmsClient.RunTaskAsync(TaskIdGuid);
+                        await _newQmsClient.RunTaskAsync(TaskIdGuid);
                     }
                     catch (System.Exception ex)
                     {
                         throw new ApplicationException("QmsClient.RunTaskAsync exception", ex);
                     }
+
                     Thread.Sleep(TaskStartPollingInterval);
 
                     try
                     {
-                        Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                        Status = await _newQmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
                     }
                     catch (System.Exception ex)
                     {
@@ -813,10 +814,9 @@ namespace ContentPublishingLib.JobRunners
 
                     Thread.Sleep(PublisherPollingInterval);
 
-                    QmsClient = await QmsClientCreator.New(QmsUrl);
                     try
                     {
-                        Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                        Status = await _newQmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
                     }
                     catch (System.Exception ex)
                     {
@@ -854,10 +854,9 @@ namespace ContentPublishingLib.JobRunners
             finally
             {
                 // Clean up
-                QmsClient = await QmsClientCreator.New(QmsUrl);
                 try
                 {
-                    Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                    Status = await _newQmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
                 }
                 catch (System.Exception ex)
                 {
@@ -869,7 +868,7 @@ namespace ContentPublishingLib.JobRunners
                 {
                     try
                     {
-                        await QmsClient.DeleteTaskAsync(TaskIdGuid, TInfo.Type);
+                        await _newQmsClient.DeleteTaskAsync(TaskIdGuid, TInfo.Type);
                     }
                     catch (System.Exception ex)
                     {
