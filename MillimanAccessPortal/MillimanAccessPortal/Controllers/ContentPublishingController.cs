@@ -115,7 +115,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole));
             if (!RoleInClientResult.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.PageGlobalData action: authorization failure, user {User.Identity.Name}, global role {requiredRole.ToString()}");
+                Log.Debug($"In ContentPublishingController.PageGlobalData action: authorization failure, user {User.Identity.Name}, role {requiredRole.ToString()}");
                 Response.Headers.Add("Warning", "You are not authorized to publish content.");
                 return Unauthorized();
             }
@@ -135,7 +135,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole));
             if (!RoleInClientResult.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.Clients action: authorization failure, user {User.Identity.Name}, global role {requiredRole.ToString()}");
+                Log.Debug($"In ContentPublishingController.Clients action: authorization failure, user {User.Identity.Name}, role {requiredRole.ToString()}");
                 Response.Headers.Add("Warning", "You are not authorized to publish content.");
                 return Unauthorized();
             }

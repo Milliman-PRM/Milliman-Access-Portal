@@ -1,5 +1,5 @@
 ﻿/*
- * CODE OWNERS: Joseph Sweeney, Tom Puckett
+ * CODE OWNERS: Tom Puckett
  * OBJECTIVE:
  * DEVELOPER NOTES:
  */

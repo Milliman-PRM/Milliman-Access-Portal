@@ -18,12 +18,21 @@ namespace MillimanAccessPortal.Authorization
         private RoleEnum RoleEnum { get; set; }
         private Guid RootContentItemId { get; set; } = Guid.Empty;
 
+        /// <summary>
+        /// User this constructor overload to evaluate whether the user is authorized with the specified role for any RootContentItem
+        /// </summary>
+        /// <param name="RoleEnumArg"></param>
         public RoleInRootContentItemRequirement(RoleEnum RoleEnumArg)
         {
             EvaluateAny = true;
             RoleEnum = RoleEnumArg;
         }
 
+        /// <summary>
+        /// User this constructor overload to evaluate whether the user is authorized with the specified role for the specified RootContentItem
+        /// </summary>
+        /// <param name="RoleEnumArg"></param>
+        /// <param name="RootContentItemIdArg"></param>
         public RoleInRootContentItemRequirement(RoleEnum RoleEnumArg, Guid? RootContentItemIdArg)
         {
             EvaluateAny = false;
