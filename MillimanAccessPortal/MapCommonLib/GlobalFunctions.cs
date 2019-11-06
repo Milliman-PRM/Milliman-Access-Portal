@@ -177,7 +177,7 @@ namespace MapCommonLib
     /// </summary>
     public enum IssueLogEnum
     {
-        QueuePostProcessing
+        LongRunningSelectionGroupProcessing
     }
 
 }

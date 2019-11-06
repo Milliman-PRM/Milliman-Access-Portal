@@ -54,7 +54,7 @@ export enum ReductionStatus {
   Unspecified = 0,
   Canceled = 1,
   Rejected = 2,
-  Validating = 11,
+  Validating = 9,
   Queued = 10,
   Reducing = 20,
   Reduced = 30,
@@ -70,6 +70,7 @@ export const publicationStatusNames: { [status: number]: string; } = {
   90: 'Error',
 };
 export const reductionStatusNames: { [status: number]: string; } = {
+   9: 'Validating',
   10: 'Queued',
   20: 'Reducing',
   30: 'Reduced',

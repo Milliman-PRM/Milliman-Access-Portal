@@ -167,7 +167,6 @@ namespace MillimanAccessPortal
                 {
                     Db.SaveChanges();
                     postProcessingTaskQueue.QueuePublicationPostProcess(publicationRequest.Id);
-                    GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"ContentPublishSupport.MonitorPublicationRequestForQueueing: completed queuing of publication Id <{publicationRequest.Id}> to postProcessingTaskQueue");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
