@@ -47,6 +47,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
   yield takeLatestRequest('FETCH_ITEMS', api.fetchItems);
   yield takeLatestRequest('FETCH_CONTENT_ITEM_DETAIL', api.fetchContentItemDetail);
+  yield takeLatestRequest('FETCH_GO_LIVE_SUMMARY', api.fetchGoLiveSummary);
   yield takeLatest('CREATE_NEW_CONTENT_ITEM', createNewContentItem);
   yield takeLatestRequest('UPDATE_CONTENT_ITEM', api.updateContentItem);
   yield takeLatestRequest('PUBLISH_CONTENT_FILES', api.publishContentFiles);

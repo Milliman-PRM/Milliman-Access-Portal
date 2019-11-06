@@ -37,6 +37,8 @@ export const fetchItems =
   createRequestActionCreator<PublishActions.FetchItems>('FETCH_ITEMS');
 export const fetchContentItemDetail =
   createRequestActionCreator<PublishActions.FetchContentItemDetail>('FETCH_CONTENT_ITEM_DETAIL');
+export const fetchGoLiveSummary =
+  createRequestActionCreator<PublishActions.FetchGoLiveSummary>('FETCH_GO_LIVE_SUMMARY');
 export const fetchStatusRefresh =
   createRequestActionCreator<PublishActions.FetchStatusRefresh>('FETCH_STATUS_REFRESH');
 export const fetchSessionCheck =

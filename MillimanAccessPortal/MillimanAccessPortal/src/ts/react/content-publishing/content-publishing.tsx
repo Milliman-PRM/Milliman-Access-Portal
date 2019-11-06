@@ -43,8 +43,8 @@ import {
   itemEntities, selectedItem, submitButtonIsActive, uploadChangesPending,
 } from './redux/selectors';
 import {
-    PublishingFormData, PublishingState, PublishingStateCardAttributes, PublishingStateFilters,
-    PublishingStatePending, PublishingStateSelected,
+  GoLiveSummaryData, PublishingFormData, PublishingState, PublishingStateCardAttributes,
+  PublishingStateFilters, PublishingStatePending, PublishingStateSelected,
 } from './redux/store';
 
 type ClientEntity = (ClientWithStats & { indent: 1 | 2 }) | 'divider';
@@ -60,6 +60,7 @@ interface ContentPublishingProps {
   contentTypesList: Array<{ selectionValue: string | number, selectionLabel: string }>;
   associatedContentTypesList: Array<{ selectionValue: string | number, selectionLabel: string }>;
   formData: PublishingFormData;
+  goLiveSummary: GoLiveSummaryData;
   selected: PublishingStateSelected;
   cardAttributes: PublishingStateCardAttributes;
   pending: PublishingStatePending;
@@ -182,7 +183,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 <CardButton
                   color={'green'}
                   tooltip={'Approve'}
-                  onClick={() => alert('Go Live Preview')}
+                  onClick={() => this.props.fetchGoLiveSummary({ rootContentItemId: entity.id })}
                   icon={'checkmark'}
                 />
               </>
@@ -591,7 +592,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 }
 
 function mapStateToProps(state: PublishingState): ContentPublishingProps {
-  const { data, formData, selected, cardAttributes, pending, filters } = state;
+  const { data, formData, goLiveSummary, selected, cardAttributes, pending, filters } = state;
   const { id: rootContentItemId } = formData.formData;
   return {
     clients: clientEntities(state),
@@ -601,6 +602,7 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     contentTypesList: availableContentTypes(state),
     associatedContentTypesList: availableAssociatedContentTypes(state),
     formData,
+    goLiveSummary,
     selected,
     cardAttributes,
     pending,

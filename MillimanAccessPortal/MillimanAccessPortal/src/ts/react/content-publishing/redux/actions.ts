@@ -1,5 +1,7 @@
 import { PageUploadAction } from '../../../upload/Redux/actions';
-import { PublishRequest, RootContentItemSummaryAndDetail } from '../../../view-models/content-publishing';
+import {
+  PreLiveContentValidationSummary, PublishRequest, RootContentItemSummaryAndDetail,
+} from '../../../view-models/content-publishing';
 import {
     ClientWithEligibleUsers, ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
     ContentPublicationRequest, ContentReductionTask, ContentType, Guid, PublicationQueueDetails,
@@ -155,6 +157,25 @@ export interface FetchContentItemDetailSucceeded {
 }
 export interface FetchContentItemDetailFailed {
   type: 'FETCH_CONTENT_ITEM_DETAIL_FAILED';
+  error: TSError;
+}
+
+/**
+ * GET:
+ *   Content Item Go Live Summary data;
+ */
+export interface FetchGoLiveSummary {
+  type: 'FETCH_GO_LIVE_SUMMARY';
+  request: {
+    rootContentItemId: Guid;
+  };
+}
+export interface FetchGoLiveSummarySucceeded {
+  type: 'FETCH_GO_LIVE_SUMMARY_SUCCEEDED';
+  response: PreLiveContentValidationSummary;
+}
+export interface FetchGoLiveSummaryFailed {
+  type: 'FETCH_GO_LIVE_SUMMARY_FAILED';
   error: TSError;
 }
 
@@ -397,6 +418,7 @@ export type RequestPublishingAction =
   | FetchClients
   | FetchItems
   | FetchContentItemDetail
+  | FetchGoLiveSummary
   | FetchStatusRefresh
   | FetchSessionCheck
   | CreateNewContentItem
@@ -414,6 +436,7 @@ export type ResponsePublishingAction =
   | FetchClientsSucceeded
   | FetchItemsSucceeded
   | FetchContentItemDetailSucceeded
+  | FetchGoLiveSummarySucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   | CreateNewContentItemSucceeded
@@ -431,6 +454,7 @@ export type ErrorPublishingAction =
   | FetchClientsFailed
   | FetchItemsFailed
   | FetchContentItemDetailFailed
+  | FetchGoLiveSummaryFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   | CreateNewContentItemFailed

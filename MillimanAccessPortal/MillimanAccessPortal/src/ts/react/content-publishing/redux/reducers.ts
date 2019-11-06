@@ -177,6 +177,18 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     items: false,
   }),
+  FETCH_GO_LIVE_SUMMARY: (state) => ({
+    ...state,
+    goLiveSummary: true,
+  }),
+  FETCH_GO_LIVE_SUMMARY_SUCCEEDED: (state) => ({
+    ...state,
+    goLiveSummary: false,
+  }),
+  FETCH_GO_LIVE_SUMMARY_FAILED: (state) => ({
+    ...state,
+    goLiveSummary: false,
+  }),
   CREATE_NEW_CONTENT_ITEM: (state) => ({
     ...state,
     formSubmit: true,
@@ -848,6 +860,18 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 });
 
 const goLiveSummaryData = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
+  FETCH_GO_LIVE_SUMMARY: (_state, action: PublishingActions.FetchGoLiveSummary) => ({
+    rootContentItemId: action.request.rootContentItemId,
+    goLiveSummary: null,
+  }),
+  FETCH_GO_LIVE_SUMMARY_SUCCEEDED: (state, action: PublishingActions.FetchGoLiveSummarySucceeded) => ({
+    ...state,
+    goLiveSummary: action.response,
+  }),
+  FETCH_GO_LIVE_SUMMARY_FAILED: () => ({
+    rootContentItemId: null,
+    goLiveSummary: null,
+  }),
 });
 
 const selected = createReducer<PublishingStateSelected>(
