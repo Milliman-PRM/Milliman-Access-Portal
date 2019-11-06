@@ -16,8 +16,8 @@ import { Dict, FilterState } from '../../shared-components/redux/store';
 import * as PublishingActions from './actions';
 import { FilterPublishingAction, PublishingAction } from './actions';
 import {
-  PendingDataState, PublishingFormData, PublishingState, PublishingStateData,
-  PublishingStateSelected,
+  GoLiveSummaryData, PendingDataState, PublishingFormData, PublishingState,
+  PublishingStateData, PublishingStateSelected,
 } from './store';
 
 const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
@@ -97,11 +97,17 @@ const _initialFormData: PublishingFormData = {
   formState: 'read',
 };
 
+const _initialGoLiveData: GoLiveSummaryData = {
+  rootContentItemId: null,
+  goLiveSummary: null,
+};
+
 const _initialPendingData: PendingDataState = {
   globalData: false,
   clients: false,
   items: false,
   contentItemDetail: false,
+  goLiveSummary: false,
   contentItemDeletion: false,
   formSubmit: false,
   publishing: false,
@@ -841,6 +847,9 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
   },
 });
 
+const goLiveSummaryData = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
+});
+
 const selected = createReducer<PublishingStateSelected>(
   {
     client: null,
@@ -887,6 +896,7 @@ const filters = combineReducers({
 export const contentPublishing = combineReducers({
   data,
   formData,
+  goLiveSummaryData,
   selected,
   cardAttributes,
   pending,
