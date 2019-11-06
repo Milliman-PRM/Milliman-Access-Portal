@@ -23,7 +23,7 @@ namespace ContentPublishingLib.JobRunners
     {
         private string QmsUrl = null;
 
-        private IQMS _newQmsClient
+        private IQMS _newQdsClient
         {
             get => QmsClientCreator.New(QmsUrl);
         }
@@ -38,11 +38,11 @@ namespace ContentPublishingLib.JobRunners
 
             Task initTask = Task.Run(async () =>
             {
-                ServiceInfo[] services = await _newQmsClient.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
+                ServiceInfo[] services = await _newQdsClient.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
                 QdsServiceInfo = services[0];
 
                 // Qv can have 0 or more configured source document folders, need to find the right one. 
-                var GetDocFolderTask = await _newQmsClient.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
+                var GetDocFolderTask = await _newQdsClient.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
                 foreach (DocumentFolder DocFolder in GetDocFolderTask)
                 {
                     // eliminate any trailing slash issue
@@ -547,7 +547,7 @@ namespace ContentPublishingLib.JobRunners
             while (DocNode == null && (DateTime.Now - Start) < new TimeSpan(0, 1, 10))  // QV server seems to poll for files every minute
             {
                 Thread.Sleep(500);
-                AllDocNodes = await _newQmsClient.GetSourceDocumentNodesAsync(QdsServiceInfo.ID, SourceDocFolder.ID, RequestedRelativeFolder);
+                AllDocNodes = await _newQdsClient.GetSourceDocumentNodesAsync(QdsServiceInfo.ID, SourceDocFolder.ID, RequestedRelativeFolder);
                 DocNode = AllDocNodes.SingleOrDefault(dn => dn.FolderID == SourceDocFolder.ID
                                                             && dn.Name == RequestedFileName
                                                             && dn.RelativePath == RequestedRelativeFolder);
@@ -742,7 +742,7 @@ namespace ContentPublishingLib.JobRunners
             DateTime SaveStartTime = DateTime.Now;
             try
             {
-                await _newQmsClient.SaveDocumentTaskAsync(DocTask);
+                await _newQdsClient.SaveDocumentTaskAsync(DocTask);
             }
             catch (System.Exception ex)
             {
@@ -752,7 +752,7 @@ namespace ContentPublishingLib.JobRunners
             TaskInfo TInfo = default;
             try
             {
-                TInfo = await _newQmsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName);
+                TInfo = await _newQdsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName);
             }
             catch (System.Exception ex)
             {
@@ -776,7 +776,7 @@ namespace ContentPublishingLib.JobRunners
 
                     try
                     {
-                        await _newQmsClient.RunTaskAsync(TaskIdGuid);
+                        await _newQdsClient.RunTaskAsync(TaskIdGuid);
                     }
                     catch (System.Exception ex)
                     {
@@ -787,7 +787,7 @@ namespace ContentPublishingLib.JobRunners
 
                     try
                     {
-                        Status = await _newQmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                        Status = await _newQdsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
                     }
                     catch (System.Exception ex)
                     {
@@ -816,7 +816,7 @@ namespace ContentPublishingLib.JobRunners
 
                     try
                     {
-                        Status = await _newQmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                        Status = await _newQdsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
                     }
                     catch (System.Exception ex)
                     {
@@ -856,7 +856,7 @@ namespace ContentPublishingLib.JobRunners
                 // Clean up
                 try
                 {
-                    Status = await _newQmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                    Status = await _newQdsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
                 }
                 catch (System.Exception ex)
                 {
@@ -868,7 +868,7 @@ namespace ContentPublishingLib.JobRunners
                 {
                     try
                     {
-                        await _newQmsClient.DeleteTaskAsync(TaskIdGuid, TInfo.Type);
+                        await _newQdsClient.DeleteTaskAsync(TaskIdGuid, TInfo.Type);
                     }
                     catch (System.Exception ex)
                     {
