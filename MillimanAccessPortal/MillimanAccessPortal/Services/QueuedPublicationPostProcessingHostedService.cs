@@ -116,7 +116,7 @@ namespace MillimanAccessPortal.Services
                     dbContext.Entry(thisPubRequest).State = EntityState.Detached;  // force update from db
                     thisPubRequest = dbContext.ContentPublicationRequest.Find(thisPubRequest.Id);
                 }
-                GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.PostProcess: after polling loop completed, request object is: {{@thisPubRequest}}", Serilog.Events.LogEventLevel.Information, thisPubRequest);
+
                 // Ensure that the request is ready for post-processing
                 if (thisPubRequest.RequestStatus != PublicationStatus.PostProcessReady)
                 {
@@ -145,8 +145,6 @@ namespace MillimanAccessPortal.Services
                     .Where(t => !t.SelectionGroup.IsMaster)
                     .Where(t => t.OutcomeMetadataObj.OutcomeReason != MapDbReductionTaskOutcomeReason.Success)
                     .ToList();
-
-                GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.PostProcess: Related reduction tasks queried: {AllRelatedReductionTasks.Count} total, {SuccessfulReductionTasks.Count} successful, {UnsuccessfulReductionTasks.Count} unsuccessful");
 
                 #region Validation
                 // Validate the existence and checksum of each uploaded (non-reduced) file
@@ -187,14 +185,11 @@ namespace MillimanAccessPortal.Services
                         throw new ApplicationException(Msg);
                     }
                 }
-                GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.PostProcess: validation block completed for request Id <{thisPubRequest.Id}>");
                 #endregion
 
                 // update pub status to PostProcessing
                 thisPubRequest.RequestStatus = PublicationStatus.PostProcessing;
                 dbContext.SaveChanges();
-
-                GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"QueuedPublicationPostProcessingHostedService.PostProcess: status updated to `PostProcessing` for request Id <{thisPubRequest.Id}>");
 
                 string tempContentDestinationFolder = Path.Combine(configuration.GetValue<string>("Storage:ContentItemRootPath"),
                                                                    thisPubRequest.RootContentItemId.ToString(),

@@ -10,8 +10,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
 using Serilog;
-using System.Security.Cryptography.X509Certificates;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal
@@ -48,6 +50,14 @@ namespace MillimanAccessPortal
                     .ReadFrom.Configuration(Configuration)
                     .CreateLogger();
                 #endregion
+
+                Assembly processAssembly = Assembly.GetEntryAssembly();
+                FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
+                Log.Information($"Process launched:{Environment.NewLine}" +
+                                $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
+                                $"\tAssembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
+                                $"\tAssembly location <{processAssembly.Location}>{Environment.NewLine}" +
+                                $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");
 
                 try
                 {
