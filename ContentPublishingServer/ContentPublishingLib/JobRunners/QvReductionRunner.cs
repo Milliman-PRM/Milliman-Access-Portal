@@ -396,7 +396,7 @@ namespace ContentPublishingLib.JobRunners
             }
             catch (System.Exception e)
             {
-                GlobalFunctions.TraceWriteLine($"Error converting file {ReductionSchemeFilePath} to json output.  Details:" + Environment.NewLine + e.Message);
+                GlobalFunctions.TraceWriteLine(GlobalFunctions.LoggableExceptionString(e, $"Error converting file {ReductionSchemeFilePath} to json output.", IncludeStackTrace: true));
 
                 object DetailObj = new {
                     ReductionJobId = JobDetail.TaskId.ToString(),
