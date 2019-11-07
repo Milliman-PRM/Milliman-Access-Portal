@@ -100,7 +100,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
         {this.props.selected.client && this.renderItemPanel()}
-        {this.props.selected.item && this.props.formData.formData.clientId && this.renderContentItemForm()}
+        {(this.props.goLiveSummary.rootContentItemId)
+          ? this.renderGoLiveSummary()
+          : (this.props.selected.item
+            && this.props.formData.formData.clientId) ? this.renderContentItemForm() : null
+        }
       </>
     );
   }
@@ -589,6 +593,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
     );
   }
 
+  private renderGoLiveSummary() {
+    return (
+      <h1>GO LIVE!</h1>
+    );
+  }
 }
 
 function mapStateToProps(state: PublishingState): ContentPublishingProps {
