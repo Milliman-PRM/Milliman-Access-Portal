@@ -120,12 +120,12 @@ namespace ContentPublishingLib.JobRunners
                 }
 
                 int PendingTaskCount = await CountPendingReductionTasks();
-                TimeSpan _timeLimit = TimeSpan.FromTicks(limitTicksPerReductionTask * PendingTaskCount);
+                TimeSpan timeLimit = TimeSpan.FromTicks(limitTicksPerReductionTask * PendingTaskCount);
 
                 // Wait for any/all related reduction tasks to complete
                 for ( ; PendingTaskCount > 0; PendingTaskCount = await CountPendingReductionTasks())
                 {
-                    if (DateTime.UtcNow > StartUtc + _timeLimit)
+                    if (DateTime.UtcNow > StartUtc + timeLimit)
                     {
                         using (ApplicationDbContext Db = GetDbContext())
                         {
