@@ -42,8 +42,6 @@ namespace ContentPublishingLib.JobRunners
             }
         }
 
-        internal TimeSpan TimeLimit { get; set; } = new TimeSpan(6, 0, 0);  // TODO adjust this value inside the Execute method based on characteristics of the request
-
         /// <summary>
         /// Initializes data used to construct database context instances.
         /// </summary>
@@ -101,6 +99,7 @@ namespace ContentPublishingLib.JobRunners
         /// <returns></returns>
         public async Task<PublishJobDetail> Execute(CancellationToken cancellationToken)
         {
+            long limitTicksPerReductionTask = new TimeSpan(0, 10, 0).Ticks;
             MethodBase Method = MethodBase.GetCurrentMethod();
 
             JobDetail.Result.StartDateTime = DateTime.UtcNow;
@@ -120,10 +119,13 @@ namespace ContentPublishingLib.JobRunners
                     QueueReductionActivity(JobDetail.Request.MasterContentFile);
                 }
 
+                int PendingTaskCount = await CountPendingReductionTasks();
+                TimeSpan _timeLimit = TimeSpan.FromTicks(limitTicksPerReductionTask * PendingTaskCount);
+
                 // Wait for any/all related reduction tasks to complete
-                for (int PendingTaskCount = await CountPendingReductionTasks(); PendingTaskCount > 0; PendingTaskCount = await CountPendingReductionTasks())
+                for ( ; PendingTaskCount > 0; PendingTaskCount = await CountPendingReductionTasks())
                 {
-                    if (DateTime.UtcNow > StartUtc + TimeLimit)
+                    if (DateTime.UtcNow > StartUtc + _timeLimit)
                     {
                         using (ApplicationDbContext Db = GetDbContext())
                         {
