@@ -859,7 +859,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
   },
 });
 
-const goLiveSummaryData = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
+const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
   FETCH_GO_LIVE_SUMMARY: (_state, action: PublishingActions.FetchGoLiveSummary) => ({
     rootContentItemId: action.request.rootContentItemId,
     goLiveSummary: null,
@@ -920,7 +920,7 @@ const filters = combineReducers({
 export const contentPublishing = combineReducers({
   data,
   formData,
-  goLiveSummaryData,
+  goLiveSummary,
   selected,
   cardAttributes,
   pending,
