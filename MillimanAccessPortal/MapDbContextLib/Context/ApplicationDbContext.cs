@@ -138,6 +138,7 @@ namespace MapDbContextLib.Context
             builder.Entity<ContentReductionTask>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.Property(x => x.ProcessingStartDateTimeUtc).HasDefaultValue(new DateTime(DateTime.MinValue.Ticks, DateTimeKind.Utc));
                 b.Property(x => x.ReductionStatus).HasDefaultValue(ReductionStatusEnum.Unspecified);
                 b.HasOne(x => x.ContentPublicationRequest).WithMany().OnDelete(DeleteBehavior.Cascade);
                 b.HasOne(x => x.SelectionGroup).WithMany().OnDelete(DeleteBehavior.Cascade);
