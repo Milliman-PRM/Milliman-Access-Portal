@@ -447,7 +447,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            return Json(selectionGroup);
+            return Json(selectionGroupModel);
         }
 
         /// <summary>
