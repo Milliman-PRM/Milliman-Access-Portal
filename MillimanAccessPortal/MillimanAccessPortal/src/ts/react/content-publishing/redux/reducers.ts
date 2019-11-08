@@ -872,6 +872,10 @@ const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
     rootContentItemId: null,
     goLiveSummary: null,
   }),
+  SELECT_ITEM: () => ({
+    rootContentItemId: null,
+    goLiveSummary: null,
+  }),
 });
 
 const selected = createReducer<PublishingStateSelected>(
@@ -899,6 +903,10 @@ const selected = createReducer<PublishingStateSelected>(
         item,
       };
     },
+    FETCH_GO_LIVE_SUMMARY: (state, action: PublishingActions.FetchGoLiveSummary) => ({
+        ...state,
+        item: action.request.rootContentItemId,
+    }),
   },
 );
 
