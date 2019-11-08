@@ -405,7 +405,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               <FormSectionRow>
                 <FormFlexContainer flexPhone={5}>
                   <FileUploadInput
-                    fileExtensions={['image/*']}
+                    fileExtensions={['jpg', 'jpeg', 'gif', 'png']}
                     label="Thumbnail"
                     name="thumbnail"
                     placeholderText="Upload Thumbnail"
