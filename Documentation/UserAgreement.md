@@ -13,7 +13,7 @@ Except as expressly stated herein, you are not licensed or permitted to do any o
 
 (i) attempt to access any other Milliman systems, websites, or programs or data that are not made available for public use; or
 
-(ii) copy, reproduce, republish, upload, post, transmit, resell or distribute in any way the the MAP system.
+(ii) copy, reproduce, republish, upload, post, transmit, resell or distribute in any way the MAP system.
 
 This License Grant is only specific to the MAP system itself, and does not control your use of deliverables provided to you via MAP, which continue to be governed by the applicable agreement between Milliman and the receiving entity.
 
