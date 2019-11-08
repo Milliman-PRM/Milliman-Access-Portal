@@ -43,6 +43,7 @@ namespace ContentPublishingService
                 Assembly processAssembly = Assembly.GetAssembly(typeof(ContentPublishingService));
                 FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
                 GlobalFunctions.TraceWriteLine($"Process launched:{Environment.NewLine}" +
+                                               $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
                                                $"\tassembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" + 
                                                $"\tassembly location <{processAssembly.Location}>{Environment.NewLine}" +
                                                $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");

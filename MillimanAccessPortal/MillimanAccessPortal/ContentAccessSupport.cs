@@ -6,11 +6,13 @@
 
 using AuditLogLib;
 using AuditLogLib.Event;
+using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using QlikviewLib;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,19 +43,17 @@ namespace MillimanAccessPortal
         {
             lock(RunningReductionMonitors)
             {
-                int CompletedTask = Task.WaitAny(RunningReductionMonitors.ToArray(), 10);
-                if (CompletedTask == -1)
-                {
-                    return;
-                }
+                int CompletedTaskIndex = Task.WaitAny(RunningReductionMonitors.ToArray(), 10);
 
-                // A task is completed
-                RunningReductionMonitors.RemoveAt(CompletedTask);
-
-                if (RunningReductionMonitors.Count == 0)
+                if (CompletedTaskIndex > -1)
                 {
-                    CleanupTimer.Dispose();
-                    CleanupTimer = null;
+                    RunningReductionMonitors.RemoveAt(CompletedTaskIndex);
+
+                    if (RunningReductionMonitors.Count == 0)
+                    {
+                        CleanupTimer.Dispose();
+                        CleanupTimer = null;
+                    }
                 }
             }
         }
@@ -63,7 +63,9 @@ namespace MillimanAccessPortal
         /// </summary>
         /// <param name="TaskGuid"></param>
         /// <param name="connectionString"></param>
-        internal static async Task MonitorReductionTaskForGoLive(Guid TaskGuid, string connectionString, string contentRootFolder, object ContentTypeConfig = null)
+        /// <param name="contentRootFolder"></param>
+        /// <param name="ContentTypeConfig"></param>
+        internal static async Task MonitorReductionTaskForGoLive(Guid TaskGuid, string connectionString, string contentRootFolder, object ContentTypeConfig, CancellationToken cancellationToken)
         {
             ContentReductionTask thisContentReductionTask = null;
 
@@ -72,14 +74,21 @@ namespace MillimanAccessPortal
 
             do
             {
+                Thread.Sleep(2000);
+
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     thisContentReductionTask = Db.ContentReductionTask.Find(TaskGuid);
                 }
-
-                Thread.Sleep(1000);
             }
-            while (thisContentReductionTask.ReductionStatus == ReductionStatusEnum.Queued);
+            while (thisContentReductionTask.ReductionStatus.IsCancelable());
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                // token can be cancelled in ContentAccessSupport.LongRunningUpdateSelectionCodeAsync()
+                Log.Information($"ContentAccessSupport.MonitorReductionTaskForGoLive() returning because the CancellationToken was canceled, reduction task {TaskGuid.ToString()}");
+                return;
+            }
 
             // Do not enforce a timeout - instead, rely on the publishing service to time out properly.
             while (thisContentReductionTask.ReductionStatus != ReductionStatusEnum.Reduced)
@@ -215,6 +224,51 @@ namespace MillimanAccessPortal
                 .ToEvent(usersInGroup, reductionTask.SelectionGroup.RootContentItem, reductionTask.SelectionGroup.RootContentItem.Client, ContentDisclaimerResetReason.ContentSelectionsModified));
 
             return FilesToDelete;
+        }
+
+        /// <summary>
+        /// Asynchronous handling of operations associated with the UpdateSelections action that could run long enough to delay an HTTP response if run synchronously
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="CopySource"></param>
+        /// <param name="CopyTarget"></param>
+        /// <param name="reductionTask"></param>
+        /// <param name="cancellationTokenSource"></param>
+        /// <returns></returns>
+        internal static async Task LongRunningUpdateSelectionCodeAsync(string connectionString, string CopySource, string CopyTarget, ContentReductionTask reductionTask, CancellationTokenSource cancellationTokenSource)
+        {
+            GlobalFunctions.IssueLog(IssueLogEnum.LongRunningSelectionGroupProcessing, $"LongRunningUpdateSelectionCodeAsync  started for reduction task {reductionTask.Id.ToString()}");
+
+            DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString);
+            DbContextOptions<ApplicationDbContext> ContextOptions = ContextBuilder.Options;
+
+            ReductionStatusEnum resultingStatus = ReductionStatusEnum.Error;  // initialize
+            try
+            {
+                Task copyTask =Task.Run(() => File.Copy(CopySource, CopyTarget), cancellationTokenSource.Token);
+                await copyTask;
+
+                if (copyTask.IsCompletedSuccessfully)
+                {
+                    resultingStatus = ReductionStatusEnum.Queued;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Failed to complete ContentAccessSupport.LongRunningUpdateSelectionCodeAsync() processing for reduction task {reductionTask.Id}");
+                cancellationTokenSource.Cancel();  // signal to this.MonitorReductionTaskForGoLive()
+            }
+
+            // update the status reflecting the outcome
+            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+            {
+                GlobalFunctions.IssueLog(IssueLogEnum.LongRunningSelectionGroupProcessing, $"LongRunningUpdateSelectionCodeAsync updating status of reduction task {reductionTask.Id.ToString()} to {ContentReductionTask.ReductionStatusDisplayNames[resultingStatus]}");
+                reductionTask = Db.ContentReductionTask.Find(reductionTask.Id);
+                reductionTask.ReductionStatus = resultingStatus;
+                Db.SaveChanges();
+            }
+
+            return;
         }
     }
 }

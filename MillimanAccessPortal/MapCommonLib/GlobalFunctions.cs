@@ -28,8 +28,6 @@ namespace MapCommonLib
         public static readonly int fallbackAccountActivationTokenTimespanDays = 7;
         public static readonly int fallbackPasswordResetTokenTimespanHours = 4;
 
-        private static readonly string _DefaultErrorLogPath = ".";
-
         static Regex EmailAddressValidationRegex = new Regex (EmailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
         public static bool IsValidEmail(string TestAddress)
@@ -179,7 +177,7 @@ namespace MapCommonLib
     /// </summary>
     public enum IssueLogEnum
     {
-        QueuePostProcessing
+        LongRunningSelectionGroupProcessing
     }
 
 }

@@ -83,7 +83,6 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/Login
         [HttpGet]
         [AllowAnonymous]
-        [LogTiming]
         public async Task<IActionResult> Login(string returnUrl = null)
         {
             if (string.IsNullOrWhiteSpace(User.Identity.Name) && !User.Identity.IsAuthenticated)
@@ -946,7 +945,7 @@ namespace MillimanAccessPortal.Controllers
             }
             using (var Txn = DbContext.Database.BeginTransaction())
             {
-                var result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.NewPassword);
+                IdentityResult result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.NewPassword);
                 if (result.Succeeded)
                 {
                     // Save password hash in history
@@ -1005,6 +1004,11 @@ namespace MillimanAccessPortal.Controllers
                     }
                     return View("Message", UserMsg);
                 }
+                else if (result.Errors.Any())
+                {
+                    Log.Information($"In AccountController.ResetPassword POST action: user: {user.UserName}, errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                }
+
                 AddErrors(result);
             }
             model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
@@ -1431,7 +1435,6 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpGet]
         [PreventAuthRefresh]
-        [LogTiming]
         public IActionResult SessionStatus()
         {
             return Json(new { });
