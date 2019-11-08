@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using AuditLogLib;
 using MapCommonLib;
@@ -38,7 +39,7 @@ namespace ContentPublishingLib.JobRunners
         {
             set
             {
-                ConnectionString = Configuration.GetConnectionString(value);
+                ConnectionString = Configuration.ApplicationConfiguration.GetConnectionString(value);
             }
         }
 
@@ -114,7 +115,7 @@ namespace ContentPublishingLib.JobRunners
 
             try
             {
-                if (JobDetail.Request.MasterContentFile != null)
+                if (JobDetail.Request.MasterContentFile != null && !JobDetail.Request.SkipReductionTaskQueueing)
                 {
                     QueueReductionActivity(JobDetail.Request.MasterContentFile);
                 }
@@ -305,6 +306,7 @@ namespace ContentPublishingLib.JobRunners
             // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
             using (ApplicationDbContext Db = GetDbContext())
             {
+                // if there are no selection groups for this content, create a master group
                 if (!Db.SelectionGroup.Any(sg => sg.RootContentItemId == JobDetail.Request.RootContentId))
                 {
                     SelectionGroup NewMasterSelectionGroup = new SelectionGroup

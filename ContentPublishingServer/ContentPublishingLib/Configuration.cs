@@ -64,20 +64,10 @@ namespace ContentPublishingLib
             }
             #endregion
 
-            ApplicationConfiguration = CfgBuilder.Build();
+            ApplicationConfiguration = CfgBuilder.Build() as ConfigurationRoot;
 
         }
 
-        public static IConfigurationRoot ApplicationConfiguration { get; set; } = null;
-
-        public static string GetConfigurationValue(string Key)
-        {
-            return ApplicationConfiguration[Key];
-        }
-
-        public static string GetConnectionString(string CxnStringName)
-        {
-            return ApplicationConfiguration.GetConnectionString(CxnStringName);
-        }
+        public static ConfigurationRoot ApplicationConfiguration { get; set; } = null;
     }
 }

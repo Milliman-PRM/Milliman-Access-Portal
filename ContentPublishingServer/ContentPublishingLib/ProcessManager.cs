@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -41,7 +42,7 @@ namespace ContentPublishingLib
             AuditEventTypeBase.SetPathToRemove();
 
             AuditLogger.Config = new AuditLoggerConfiguration {
-                AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString"),
+                AuditLogConnectionString = Configuration.ApplicationConfiguration.GetConnectionString("AuditLogConnectionString"),
             };
 
             ServiceName = ServiceNameArg;

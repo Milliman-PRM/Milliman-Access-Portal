@@ -13,6 +13,7 @@ using System.ServiceProcess;
 using System.Threading;
 using ContentPublishingLib;
 using MapCommonLib;
+using Microsoft.Extensions.Configuration;
 
 namespace ContentPublishingService
 {
@@ -32,11 +33,8 @@ namespace ContentPublishingService
             {
                 Configuration.LoadConfiguration();
 
-                string ServiceLaunchDelaySecString = Configuration.GetConfigurationValue("ServiceLaunchDelaySec");
-                if (!string.IsNullOrWhiteSpace(ServiceLaunchDelaySecString) && int.TryParse(ServiceLaunchDelaySecString, out int ServiceLaunchDelaySec))
-                {
-                     Thread.Sleep(ServiceLaunchDelaySec * 1000);
-                }
+                int ServiceLaunchDelaySec = Configuration.ApplicationConfiguration.GetValue("ServiceLaunchDelaySec", 0);
+                Thread.Sleep(ServiceLaunchDelaySec * 1000);
 
                 InitiateTraceLogging();
 
@@ -73,16 +71,7 @@ namespace ContentPublishingService
                 EventLogEntryType EvtType = EventLogEntryType.Information;
                 string EvtMsg = string.Empty;
 
-                string TraceLogDirectory = Configuration.GetConfigurationValue("TraceLogDirectory");
-                if (!Directory.Exists(TraceLogDirectory))
-                {
-                    EvtMsg += $"No configured Tracelog directory, or directory {TraceLogDirectory} does not exist. ";
-                    EvtType = EventLogEntryType.Warning;
-
-                    // Get the full path of the assembly in which ContentPublishingService is declared
-                    string fullPath = System.Reflection.Assembly.GetAssembly(typeof(ContentPublishingService)).Location;
-                    TraceLogDirectory = Path.GetDirectoryName(fullPath);
-                }
+                string TraceLogDirectory = Configuration.ApplicationConfiguration.GetValue("TraceLogDirectory", Path.GetDirectoryName(Assembly.GetAssembly(typeof(ContentPublishingService)).Location));
 
                 string TraceLogFilePath = Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")}.txt");
                 EvtMsg += $"Using Trace logging file {Environment.NewLine}    {TraceLogFilePath}";

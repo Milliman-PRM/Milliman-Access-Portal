@@ -52,7 +52,7 @@ namespace ContentPublishingLib.JobMonitors
         {
             set
             {
-                ConnectionString = Configuration.GetConnectionString(value);
+                ConnectionString = Configuration.ApplicationConfiguration.GetConnectionString(value);
             }
         }
 
@@ -80,6 +80,8 @@ namespace ContentPublishingLib.JobMonitors
             {
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
+
+            CleanupOnStart();
 
             return Task.Run(() => JobMonitorThreadMain(Token), Token);
         }
@@ -375,5 +377,50 @@ namespace ContentPublishingLib.JobMonitors
                 return false;
             }
         }
+
+        public override void CleanupOnStart()
+        {
+            int maxRetries = Configuration.ApplicationConfiguration.GetValue("MaxReductionRetries", 2);
+            const string retryStatusMessagePrefix = "Retry: ";
+
+            lock (_CleanupOnStartLockObj)  // The lock object is declared / initialized in the base class
+            {
+                using (ApplicationDbContext Db = IsTestMode
+                                                 ? MockContext.Object
+                                                 : new ApplicationDbContext(ContextOptions))
+                {
+                    List<ContentReductionTask> inProgressReductionTasks = Db.ContentReductionTask
+                                                                            .Where(t => t.ReductionStatus == ReductionStatusEnum.Reducing)
+                                                                            .Where(t => t.ContentPublicationRequestId == null)
+                                                                            .ToList();
+                    GlobalFunctions.TraceWriteLine($"CleanupOnStart(), reduction job monitor, found {inProgressReductionTasks.Count} reductions tasks in progress");
+
+                    foreach (ContentReductionTask task in inProgressReductionTasks)
+                    {
+                        // Don't retry forever
+                        int nextRetry = !string.IsNullOrWhiteSpace(task.ReductionStatusMessage) && task.ReductionStatusMessage.StartsWith(retryStatusMessagePrefix)
+                            ? int.Parse(task.ReductionStatusMessage.Replace(retryStatusMessagePrefix, "")) + 1
+                            : 1;
+
+                        if (nextRetry > maxRetries)
+                        {
+                            task.ReductionStatusMessage = $"This reduction task has exceeded the retry limit of {maxRetries}";
+                            task.ReductionStatus = ReductionStatusEnum.Error;
+
+                            GlobalFunctions.TraceWriteLine($"CleanupOnStart(), reduction job monitor, reduction task {task.Id} has exceeded the max retry limit, setting Error status");
+                        }
+                        else
+                        {
+                            task.ReductionStatusMessage = $"{retryStatusMessagePrefix}{nextRetry}";
+                            task.ReductionStatus = ReductionStatusEnum.Queued;
+
+                            GlobalFunctions.TraceWriteLine($"CleanupOnStart(), reduction job monitor, reduction task {task.Id} will be retried, setting Queued status");
+                        }
+                        Db.SaveChanges();
+                    }
+                }
+            }
+        }
+
     }
 }
