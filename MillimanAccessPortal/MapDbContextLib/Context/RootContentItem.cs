@@ -106,8 +106,27 @@ namespace MapDbContextLib.Context
                     : JsonConvert.SerializeObject(value);
             }
         }
-    }
 
+        [Column(TypeName = "jsonb")]
+        public string AssociatedFiles { get; set; } = "[]";
+
+        [NotMapped]
+        public List<ContentAssociatedFile> AssociatedFilesList
+        {
+            get
+            {
+                return string.IsNullOrEmpty(AssociatedFiles)
+                    ? new List<ContentAssociatedFile>()
+                    : JsonConvert.DeserializeObject<List<ContentAssociatedFile>>(AssociatedFiles);
+            }
+            set
+            {
+                AssociatedFiles = value == null
+                    ? "[]"
+                    : JsonConvert.SerializeObject(value);
+            }
+        }
+    }
 
     /// <summary>
     /// Comparer for the above entity class, used to ensure proper operation of `.distinct()` function

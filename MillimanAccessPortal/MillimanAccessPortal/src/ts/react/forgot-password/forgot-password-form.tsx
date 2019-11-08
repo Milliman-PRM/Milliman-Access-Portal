@@ -5,8 +5,8 @@ import '../../../images/icons/user.svg';
 import * as React from 'react';
 import * as Yup from 'yup';
 
-import { BaseFormState, Form } from '../shared-components/form';
-import { Input } from '../shared-components/input';
+import { BaseFormState, Form } from '../shared-components/form/form';
+import { Input } from '../shared-components/form/input';
 
 interface ForgotPasswordState extends BaseFormState {
   requestVerificationToken: string;

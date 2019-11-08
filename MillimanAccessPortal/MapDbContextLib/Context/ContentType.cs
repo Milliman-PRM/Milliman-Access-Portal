@@ -15,11 +15,17 @@ namespace MapDbContextLib.Context
 {
     public enum ContentTypeEnum
     {
+        [Display(Name = "Unknown")]
         Unknown = 0,
+        [Display(Name = "QlikView")]
         Qlikview,
+        [Display(Name = "HTML")]
         Html,
+        [Display(Name = "PDF")]
         Pdf,
+        [Display(Name = "File Download")]
         FileDownload,
+        [Display(Name = "Power BI")]
         PowerBi,
     }
 
@@ -33,17 +39,6 @@ namespace MapDbContextLib.Context
 
     public class ContentType
     {
-        [NotMapped]
-        public static Dictionary<ContentTypeEnum, string> ContentTypeString = new Dictionary<ContentTypeEnum, string>
-        {
-            { ContentTypeEnum.Unknown, "Unknown" },
-            { ContentTypeEnum.Qlikview, "QlikView" },
-            { ContentTypeEnum.Html, "HTML" },
-            { ContentTypeEnum.Pdf, "PDF" },
-            { ContentTypeEnum.FileDownload, "File Download" },
-            { ContentTypeEnum.PowerBi, "Power BI" }
-        };
-
         [Key]
         public Guid Id { get; set; }
 
@@ -83,7 +78,7 @@ namespace MapDbContextLib.Context
         public string DefaultIconName { get; set; }
 
         [Required]
-        public string[] FileExtensions { get; set; } = new string[0];
+        public List<string> FileExtensions { get; set; } = new List<string>();
 
         #region Database Initialization
         /// <summary>
@@ -99,31 +94,31 @@ namespace MapDbContextLib.Context
                     TypeEnum = ContentTypeEnum.Qlikview,
                     CanReduce = true,
                     DefaultIconName = "QlikView_Icon.png",
-                    FileExtensions = new string[] { "qvw" },
+                    FileExtensions = new List<string> { "qvw" },
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.Html,
                     CanReduce = false,
                     DefaultIconName = "HTML_Icon.png",
-                    FileExtensions = new string[] { "html", "htm" },
+                    FileExtensions = new List<string> { "html", "htm" },
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.Pdf,
                     CanReduce = false,
                     DefaultIconName = "PDF_Icon.png",
-                    FileExtensions = new string[] { "pdf" },
+                    FileExtensions = new List<string> { "pdf" },
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.FileDownload,
                     CanReduce = false,
                     DefaultIconName = "FileDownload_Icon.png",
-                    FileExtensions = new string[] { },
+                    FileExtensions = new List<string> { },
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.PowerBi,
                     CanReduce = false,
                     DefaultIconName = "PowerBI_Icon.png",
-                    FileExtensions = new string[] { "pbix" },
+                    FileExtensions = new List<string> { "pbix" },
                 },
             };
 

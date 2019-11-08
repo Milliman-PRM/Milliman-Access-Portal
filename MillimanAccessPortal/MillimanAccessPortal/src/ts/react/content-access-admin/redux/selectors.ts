@@ -217,7 +217,7 @@ export function filteredItems(state: AccessState) {
     || item.name.toLowerCase().indexOf(filterTextLower) !== -1
     || (
       state.data.contentTypes[item.contentTypeId]
-      && state.data.contentTypes[item.contentTypeId].name.toLowerCase().indexOf(filterTextLower) !== -1)
+      && state.data.contentTypes[item.contentTypeId].displayName.toLowerCase().indexOf(filterTextLower) !== -1)
   ));
 }
 
@@ -312,7 +312,6 @@ export function activeItemsWithStatus(state: AccessState) {
       ...i,
       status: {
         ...publication,
-        applicationUser: publication && state.data.users[publication.applicationUserId],
         requestStatusName: publication && publicationStatusNames[publication.requestStatus],
       },
     };
@@ -363,7 +362,6 @@ export function activeGroupsWithStatus(state: AccessState) {
       assignedUserCount: g.assignedUsers.length,
       status: {
         ...reduction,
-        applicationUser: reduction && state.data.users[reduction.applicationUserId],
         taskStatusName: reduction && reductionStatusNames[reduction.taskStatus],
       },
     };
@@ -489,7 +487,7 @@ export function itemEntities(state: AccessState) {
   return activeItemsWithStatus(state).map((i) => {
     return {
       ...i,
-      contentTypeName: state.data.contentTypes[i.contentTypeId].name,
+      contentTypeName: state.data.contentTypes[i.contentTypeId].displayName,
     };
   });
 }

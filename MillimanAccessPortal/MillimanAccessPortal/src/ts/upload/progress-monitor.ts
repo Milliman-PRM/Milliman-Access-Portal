@@ -33,7 +33,8 @@ export class ProgressMonitor {
 
   constructor(
     readonly progressCallback: () => number,
-    readonly renderCallback: (s: ProgressSummary) => void,
+    readonly renderCallback: (uploadId: string, s: ProgressSummary) => void,
+    readonly uploadId: string,
     readonly fileSize: number,
   ) {
     this.snapshot = new RetainedValue(8);
@@ -60,7 +61,7 @@ export class ProgressMonitor {
       this.update(progress, now);
 
       const summary = this.render();
-      this.renderCallback(summary);
+      this.renderCallback(this.uploadId, summary);
 
       // stop monitoring if monitored callback has finished
       this.active = (progress < 1);

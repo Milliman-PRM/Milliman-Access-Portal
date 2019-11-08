@@ -2,8 +2,8 @@ import '../../../scss/react/system-admin/detail-panel.scss';
 
 import * as React from 'react';
 
+import { Toggle } from '../shared-components/form/toggle';
 import { QueryFilter } from '../shared-components/interfaces';
-import { Toggle } from '../shared-components/toggle';
 import { ClientDetail, PrimaryDetail, ProfitCenterDetail, UserDetail } from './interfaces';
 import { SystemAdminColumn } from './system-admin';
 

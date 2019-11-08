@@ -35,12 +35,14 @@ namespace MillimanAccessPortal.Controllers
     [LogActionBeforeAfter]
     public class ContentAccessAdminController : Controller
     {
+        private readonly RoleEnum requiredRole = RoleEnum.ContentAccessAdmin;
+
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
         private readonly IConfiguration ApplicationConfig;
         private readonly ApplicationDbContext DbContext;
         private readonly StandardQueries _standardQueries;
-        private readonly ContentAccessAdminQueries _queries;
+        private readonly ContentAccessAdminQueries _accessAdminQueries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly QlikviewConfig QvConfig;
 
@@ -49,7 +51,7 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext DbContextArg,
             StandardQueries QueriesArg,
-            ContentAccessAdminQueries queries,
+            ContentAccessAdminQueries accessAdminQueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
             IOptions<QlikviewConfig> QvConfigArg
@@ -59,7 +61,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationService = AuthorizationServiceArg;
             DbContext = DbContextArg;
             _standardQueries = QueriesArg;
-            _queries = queries;
+            _accessAdminQueries = accessAdminQueriesArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
             QvConfig = QvConfigArg.Value;
@@ -72,8 +74,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Index()
         {
             #region Authorization
-            AuthorizationResult roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin));
+            AuthorizationResult roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -86,14 +87,35 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
+        /// Global constant data that is relevant at the page level
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> PageGlobalData()
+        {
+            #region Authorization
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole));
+            if (!RoleInClientResult.Succeeded)
+            {
+                Log.Debug($"In ContentAccessAdminController.PageGlobalData action: authorization failure, user {User.Identity.Name}, role {requiredRole.ToString()}");
+                Response.Headers.Add("Warning", "You are not authorized to manage content access.");
+                return Unauthorized();
+            }
+            #endregion
+
+            ContentAccessAdminPageGlobalModel model = _accessAdminQueries.BuildAccessAdminPageGlobalModel();
+
+            return Json(model);
+        }
+
+        /// <summary>
         /// GET clients authorized to the current user
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Clients()
         {
             #region Authorization
-            var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin));
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -103,7 +125,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var clients = _queries.SelectClients(currentUser);
+            var clients = _accessAdminQueries.SelectClients(currentUser);
 
             return Json(clients);
         }
@@ -116,8 +138,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> ContentItems([EmitBeforeAfterLog] Guid clientId)
         {
             #region Authorization
-            var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, clientId));
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole, clientId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -127,7 +148,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var contentItems = _queries.SelectContentItems(currentUser, clientId);
+            var contentItems = _accessAdminQueries.SelectContentItems(currentUser, clientId);
 
             return Json(contentItems);
         }
@@ -140,8 +161,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> SelectionGroups([EmitBeforeAfterLog] Guid contentItemId)
         {
             #region Authorization
-            var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, contentItemId));
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -150,7 +170,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selectionGroups = _queries.SelectSelectionGroups(contentItemId);
+            var selectionGroups = _accessAdminQueries.SelectSelectionGroups(contentItemId);
 
             return Json(selectionGroups);
         }
@@ -168,8 +188,7 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault();
 
             #region Authorization
-            var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, contentItemId));
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -178,7 +197,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selections = _queries.SelectSelections(groupId);
+            var selections = _accessAdminQueries.SelectSelections(groupId);
 
             return Json(selections);
         }
@@ -194,7 +213,7 @@ namespace MillimanAccessPortal.Controllers
             [EmitBeforeAfterLog] Guid clientId, [EmitBeforeAfterLog] Guid contentItemId)
         {
             var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var status = _queries.SelectStatus(currentUser, clientId, contentItemId);
+            var status = _accessAdminQueries.SelectStatus(currentUser, clientId, contentItemId);
 
             return Json(status);
         }
@@ -213,9 +232,7 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault();
 
             #region Authorization
-            var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(
-                    RoleEnum.ContentAccessAdmin, model.ContentItemId));
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, model.ContentItemId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -251,8 +268,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var selectionGroups = contentItem.DoesReduce
-                ? _queries.CreateReducingGroup(model.ContentItemId, model.Name)
-                : _queries.CreateMasterGroup(model.ContentItemId, model.Name);
+                ? _accessAdminQueries.CreateReducingGroup(model.ContentItemId, model.Name)
+                : _accessAdminQueries.CreateMasterGroup(model.ContentItemId, model.Name);
 
             return Json(selectionGroups);
         }
@@ -273,8 +290,7 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault();
 
             #region Authorization
-            var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, contentItemId));
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -318,7 +334,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 #endregion
 
-                var group = _queries.UpdateGroup(model.GroupId, model.Name, model.Users);
+                var group = _accessAdminQueries.UpdateGroup(model.GroupId, model.Name, model.Users);
 
                 return Json(group);
             }
@@ -341,7 +357,7 @@ namespace MillimanAccessPortal.Controllers
             Guid contentItemId = sg.RootContentItemId;
 
             #region Authorization
-            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, contentItemId));
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -350,7 +366,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var group = _queries.SetGroupSuspended(model.GroupId, model.IsSuspended);
+            var group = _accessAdminQueries.SetGroupSuspended(model.GroupId, model.IsSuspended);
 
             return Json(group);
         }
@@ -368,9 +384,7 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault(sg => sg.Id == model.GroupId);
 
             #region Authorization
-            var roleResult = await AuthorizationService
-                .AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(
-                    RoleEnum.ContentAccessAdmin, selectionGroup?.RootContentItemId));
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, selectionGroup?.RootContentItemId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -405,7 +419,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selectionGroups = _queries.DeleteGroup(model.GroupId);
+            var selectionGroups = _accessAdminQueries.DeleteGroup(model.GroupId);
 
             #region file cleanup
             // ContentType specific handling after successful transaction
@@ -489,11 +503,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
+            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, selectionGroup.RootContentItemId));
             if (!roleInRootContentItemResult.Succeeded)
             {
-                Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: authorization failure, user {User.Identity.Name}, content item {selectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
+                Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: authorization failure, user {User.Identity.Name}, content item {selectionGroup.RootContentItemId}, role {requiredRole.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
@@ -700,7 +714,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            var model = _queries.GetUpdateSelectionsModel(selectionGroupId, isMaster, selections.ToList());
+            var model = _accessAdminQueries.GetUpdateSelectionsModel(selectionGroupId, isMaster, selections.ToList());
 
             Log.Debug($"Action {ControllerContext.ActionDescriptor.DisplayName}: succeeded for selection group {selectionGroupId}");
 
@@ -726,11 +740,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, SelectionGroup.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
-                Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: authorization failure, user {User.Identity.Name}, content item {SelectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
+                Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: authorization failure, user {User.Identity.Name}, content item {SelectionGroup.RootContentItemId}, role {requiredRole.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
@@ -764,7 +778,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(SelectionGroup, SelectionGroup.RootContentItem, SelectionGroup.RootContentItem.Client, Task));
             }
 
-            var model = _queries.GetCanceledSingleReductionModel(SelectionGroupId);
+            var model = _accessAdminQueries.GetCanceledSingleReductionModel(SelectionGroupId);
 
             return Json(model);
         }

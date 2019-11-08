@@ -1,5 +1,22 @@
 ﻿@import "../../map_modules/variables";
 
+.form-section-container {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: stretch;
+    align-content: stretch;
+}
+
+.form-section-row {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.form-section-divider {
+    display: flex;
+    flex-flow: row wrap;
+}
+
 .form-content-container {
     display: flex;
     flex-flow: column nowrap;
@@ -10,13 +27,17 @@
 }
 
 .form-section-title {
+    width: 100%;
+    border-bottom: 2px solid $charcoal;
+    font-weight: bold;
+    text-transform: uppercase;
     margin-bottom: 1em;
-    border-bottom: 1px solid $charcoal;
 }
 
 .form-element-container {
-    margin-bottom: 1.5em;
+    margin: .25em .5em .5em;
     opacity: 1;
+    width: 100%;
 
     &.disabled {
 
@@ -34,7 +55,8 @@
 
 
     .form-element-input,
-    .form-element-textarea {
+    .form-element-textarea,
+    .form-element-select {
         position: relative;
         display: flex;
         flex-flow: row nowrap;
@@ -94,13 +116,15 @@
 
         .form-input-container {
             flex: 1 0 auto;
+            align-items: flex-start;
             position: relative;
             border: 1px solid $charcoal;
             background-color: $white;
-
+            margin: 0;
 
             input.form-input,
-            textarea.form-input {
+            textarea.form-input,
+            select.form-input {
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -122,6 +146,7 @@
 
                 &[value]:not([value='']),
                 &[data-input-value]:not([data-input-value='']),
+                &.item-selected,
                 &:focus {
                     padding: 1.25rem .5rem .1rem;
                 }
@@ -129,6 +154,7 @@
                 &[readonly] + .form-input-label,
                 &[disabled] + .form-input-label,
                 &[value]:not([value='']) + .form-input-label,
+                &.item-selected + .form-input-label,
                 &[data-input-value]:not([data-input-value='']) + .form-input-label,
                 &:focus + .form-input-label {
                     top: 0;
@@ -156,10 +182,16 @@
                 opacity: 0;
                 pointer-events: none;
             }
+
+            textarea.form-input + .form-input-label {
+                width: 97%;
+                background-color: inherit;
+            }
         }
     }
 
-    .form-element-input {
+    .form-element-input,
+    .form-element-select {
         height: 3.5rem;
     }
 
@@ -167,6 +199,50 @@
         min-height: 10rem;
     }
 }
+
+/* File Upload Component */
+
+.file-upload-input {
+    cursor: pointer;
+}
+
+.progress-bars {
+    position: relative;
+    display: block;
+    height: .35em;
+    margin: -.5em 0;
+
+    [class*="progress-bar-"] {
+        position: absolute;
+        width: 0;
+        height: 100%;
+    }
+
+    .progress-easing {
+        transition: 1.0s linear;
+    }
+
+    .progress-bar-checksum {
+        background-color: $blue;
+    }
+
+    .progress-bar-upload {
+        background-color: $green;
+    }
+
+    .progress-bar-error {
+        background-color: $red;
+        width: 100%;
+    }
+}
+
+.hidden-input {
+    display: none;
+}
+
+/* Form Sections */
+
+
 
 .error-message {
     display: block;

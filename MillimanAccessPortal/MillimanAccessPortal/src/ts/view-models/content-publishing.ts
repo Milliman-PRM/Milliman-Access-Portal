@@ -124,6 +124,12 @@ export enum ContentTypeEnum {
   FileDownload = 4,
   PowerBi = 5,
 }
+export enum ContentAssociatedFileTypeEnum {
+    Unknown = 0,
+    Pdf = 1,
+    Html = 2,
+    FileDownload = 3,
+}
 
 export interface ContentType {
   id: Guid;
@@ -134,6 +140,19 @@ export interface ContentType {
   fileExtensions: string[];
 }
 
+export interface ContentRelatedFile {
+  fullPath: string;
+  filePurpose: string;
+  fileOriginalName: string;
+  checksum: string;
+}
+export interface ContentAssociatedFile {
+  id: Guid;
+  displayName: string;
+  fileOriginalName: string;
+  sortOrder: string;
+  checksum: string;
+}
 export interface RootContentItemDetail {
   id: Guid;
   clientId: Guid;
@@ -144,6 +163,7 @@ export interface RootContentItemDetail {
   navigationPaneEnabled?: boolean;
   bookmarksPaneEnabled?: boolean;
   relatedFiles: ContentRelatedFile[];
+  associatedFiles: ContentAssociatedFile[];
   description: string;
   notes: string;
   contentDisclaimer: string;
@@ -164,14 +184,22 @@ export interface RootContentItemStatus {
   status: PublicationSummary[];
 }
 
-export interface ContentRelatedFile {
+export interface UploadedRelatedFile {
   fileOriginalName: string;
   filePurpose: string;
   fileUploadId: Guid;
 }
+export interface RequestedAssociatedFile {
+    id: Guid;
+    fileOriginalName: string;
+    displayName: string;
+    sortOrder: string;
+    fileType: ContentAssociatedFileTypeEnum;
+}
 export interface PublishRequest {
   rootContentItemId: Guid;
-  newRelatedFiles: ContentRelatedFile[];
+  newRelatedFiles: UploadedRelatedFile[];
+  associatedFiles: RequestedAssociatedFile[];
   deleteFilePurposes: string[];
 }
 
@@ -192,6 +220,7 @@ export interface PreLiveContentValidationSummary {
   liveHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   newHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   selectionGroups: SelectionGroupSummary[];
+  associatedFiles: AssociatedFileSummary[];
 }
 export interface SelectionGroupSummary {
   id: Guid;
@@ -204,6 +233,14 @@ export interface SelectionGroupSummary {
   inactiveReason?: string;
   liveSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
   pendingSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
+}
+export interface AssociatedFileSummary {
+  id: Guid;
+  displayName: string;
+  fileOriginalName: string;
+  sortOrder: string;
+  fileType: ContentAssociatedFileTypeEnum;
+  link: string;
 }
 
 export interface ContentReductionHierarchy<T extends ReductionFieldValue> {
