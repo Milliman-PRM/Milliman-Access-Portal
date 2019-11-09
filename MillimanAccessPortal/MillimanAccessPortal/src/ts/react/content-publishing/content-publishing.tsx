@@ -1,3 +1,5 @@
+import '../../../scss/react/content-publishing/content-publishing.scss';
+
 import '../../../images/icons/add.svg';
 import '../../../images/icons/user.svg';
 
