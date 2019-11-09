@@ -1,6 +1,7 @@
 import '../../../scss/react/content-publishing/content-publishing.scss';
 
 import '../../../images/icons/add.svg';
+import '../../../images/icons/expand-frame.svg';
 import '../../../images/icons/user.svg';
 
 import * as React from 'react';
@@ -10,6 +11,7 @@ import ReduxToastr from 'react-redux-toastr';
 import {
   isPublicationActive, PublicationStatus, PublishRequest,
 } from '../../view-models/content-publishing';
+import { ContentCard } from '../authorized-content/content-card';
 import {
   Client, ClientWithStats, ContentAssociatedFileType, ContentType,
   RootContentItem, RootContentItemWithPublication,
@@ -26,6 +28,7 @@ import {
    CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
+import { ContentContainer, contentTypeMap } from '../shared-components/content-container';
 import {
   ContentPanel, ContentPanelSectionContent,
 } from '../shared-components/content-panel/content-panel';
@@ -596,8 +599,60 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderGoLiveSummary() {
+    const { goLiveSummary } = this.props.goLiveSummary;
+    const contentCardPreview = goLiveSummary && (
+      <ContentCard
+        id={this.props.goLiveSummary.rootContentItemId}
+        name={goLiveSummary.rootContentName}
+        contentTypeEnum={contentTypeMap[goLiveSummary.contentTypeName]}
+        description={goLiveSummary.contentDescription}
+        contentURL={goLiveSummary.masterContentLink}
+        imageURL={goLiveSummary.thumbnailLink}
+        userguideURL={goLiveSummary.userGuideLink}
+        releaseNotesURL={goLiveSummary.releaseNotesLink}
+        selectContent={() => false}
+      />
+    );
+    const masterContentPreview = goLiveSummary && goLiveSummary.masterContentLink ?
+      (goLiveSummary.contentTypeName === 'FileDownload') ? (
+        <a href={goLiveSummary.masterContentLink} download={true}>
+          Click to Download
+        </a>
+      ) : (
+        <ContentContainer
+          contentType={contentTypeMap[goLiveSummary.contentTypeName]}
+          contentURL={goLiveSummary.masterContentLink}
+        >
+          <a
+            href={goLiveSummary.masterContentLink}
+            className="new-tab-icon"
+            target="_blank"
+            title="Open in new tab"
+          >
+            <svg className="action-icon-expand-frame action-icon tooltip">
+              <use xlinkHref="#expand-frame" />
+            </svg>
+          </a>
+        </ContentContainer>
+      ) : null;
     return (
-      <h1>GO LIVE!</h1>
+      <ContentPanel loading={this.props.pending.data.goLiveSummary}>
+        <h3 className="admin-panel-header">Pre-Live Summary</h3>
+        <PanelSectionToolbar>
+          <PanelSectionToolbarButtons>
+            <ActionIcon
+              label="Close Pre-Live Summary"
+              icon="cancel"
+              action={() => { this.props.selectItem({ id: null }); }}
+            />
+          </PanelSectionToolbarButtons>
+        </PanelSectionToolbar>
+        <ContentPanelSectionContent>
+          <h2>{goLiveSummary && goLiveSummary.rootContentName}</h2>
+          {contentCardPreview}
+          {masterContentPreview}
+        </ContentPanelSectionContent>
+      </ContentPanel>
     );
   }
 }
