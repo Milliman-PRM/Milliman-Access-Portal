@@ -17,6 +17,10 @@ export const setFilterTextClient =
   createActionCreator<PublishActions.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');
 export const setFilterTextItem =
   createActionCreator<PublishActions.SetFilterTextItem>('SET_FILTER_TEXT_ITEM');
+export const toggleGoLiveConfirmationCheckbox =
+  createActionCreator<PublishActions.ToggleGoLiveConfirmationCheckbox>(
+    'TOGGLE_GO_LIVE_CONFIRMATION_CHECKBOX',
+  );
 
 export const setPublishingFormTextInputValue =
   createActionCreator<PublishActions.SetPublishingFormTextInputValue>('SET_PENDING_TEXT_INPUT_VALUE');

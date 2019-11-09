@@ -16,8 +16,8 @@ import { Dict, FilterState } from '../../shared-components/redux/store';
 import * as PublishingActions from './actions';
 import { FilterPublishingAction, PublishingAction } from './actions';
 import {
-  GoLiveSummaryData, PendingDataState, PublishingFormData, PublishingState,
-  PublishingStateData, PublishingStateSelected,
+  ElementsToConfirm, GoLiveSummaryData, PendingDataState, PublishingFormData,
+  PublishingState, PublishingStateData, PublishingStateSelected,
 } from './store';
 
 const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
@@ -100,6 +100,7 @@ const _initialFormData: PublishingFormData = {
 const _initialGoLiveData: GoLiveSummaryData = {
   rootContentItemId: null,
   goLiveSummary: null,
+  elementsToConfirm: null,
 };
 
 const _initialPendingData: PendingDataState = {
@@ -863,19 +864,56 @@ const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
   FETCH_GO_LIVE_SUMMARY: (_state, action: PublishingActions.FetchGoLiveSummary) => ({
     rootContentItemId: action.request.rootContentItemId,
     goLiveSummary: null,
+    elementsToConfirm: null,
   }),
-  FETCH_GO_LIVE_SUMMARY_SUCCEEDED: (state, action: PublishingActions.FetchGoLiveSummarySucceeded) => ({
-    ...state,
-    goLiveSummary: action.response,
-  }),
+  FETCH_GO_LIVE_SUMMARY_SUCCEEDED: (state, action: PublishingActions.FetchGoLiveSummarySucceeded) => {
+    const elementsToConfirm: ElementsToConfirm = {};
+    if (action.response.masterContentLink) {
+      elementsToConfirm.masterContent = false;
+    }
+    if (action.response.thumbnailLink) {
+      elementsToConfirm.thumbnail = false;
+    }
+    if (action.response.userGuideLink) {
+      elementsToConfirm.userguide = false;
+    }
+    if (action.response.releaseNotesLink) {
+      elementsToConfirm.releaseNotes = false;
+    }
+    if (action.response.liveHierarchy && action.response.newHierarchy) {
+      elementsToConfirm.hierarchyChanges = false;
+    }
+    if (action.response.selectionGroups) {
+      elementsToConfirm.selectionGroups = false;
+    }
+
+    return {
+      ...state,
+      goLiveSummary: action.response,
+      elementsToConfirm,
+    };
+  },
   FETCH_GO_LIVE_SUMMARY_FAILED: () => ({
     rootContentItemId: null,
     goLiveSummary: null,
+    elementsToConfirm: null,
   }),
   SELECT_ITEM: () => ({
     rootContentItemId: null,
     goLiveSummary: null,
+    elementsToConfirm: null,
   }),
+  TOGGLE_GO_LIVE_CONFIRMATION_CHECKBOX: (
+    state, action: PublishingActions.ToggleGoLiveConfirmationCheckbox,
+  ) => {
+    return {
+      ...state,
+      elementsToConfirm: {
+        ...state.elementsToConfirm,
+        [action.target]: action.status,
+      },
+    };
+  },
 });
 
 const selected = createReducer<PublishingStateSelected>(

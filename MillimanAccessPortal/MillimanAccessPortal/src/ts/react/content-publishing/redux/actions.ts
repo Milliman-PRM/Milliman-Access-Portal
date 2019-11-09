@@ -64,6 +64,20 @@ export interface SetFilterTextItem {
   text: string;
 }
 
+/*
+ * Toggle confirmation checkboxes in Go-Live Summary
+ */
+export interface ToggleGoLiveConfirmationCheckbox {
+  type: 'TOGGLE_GO_LIVE_CONFIRMATION_CHECKBOX';
+  target: 'masterContent'
+  | 'thumbnail'
+  | 'releaseNotes'
+  | 'userguide'
+  | 'hierarchyChanges'
+  | 'selectionGroups';
+  status: boolean;
+}
+
 /**
  * Display a toast indicating that the status refresh polling has stopped
  */
@@ -394,6 +408,7 @@ export type PagePublishingAction =
   | SetFormForNewContentItem
   | SetFilterTextClient
   | SetFilterTextItem
+  | ToggleGoLiveConfirmationCheckbox
   | SetPublishingFormTextInputValue
   | SetPublishingFormBooleanInputValue
   | ResetContentItemForm
