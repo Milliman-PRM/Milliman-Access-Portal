@@ -35,21 +35,26 @@ namespace MillimanAccessPortal.Services
 
         public QueuedPublicationPostProcessingHostedService(
             IServiceProvider services,
-            IPublicationPostProcessingTaskQueue taskQueue)
+            IPublicationPostProcessingTaskQueue taskQueue,
+            IConfiguration config)
         {
-            Services = services;
-            TaskQueue = taskQueue;
+            _services = services;
+            _taskQueue = taskQueue;
+            _appConfig = config;
         }
 
-        public IServiceProvider Services { get; }
-        public IPublicationPostProcessingTaskQueue TaskQueue { get; }
+        public IServiceProvider _services { get; }
+        public IPublicationPostProcessingTaskQueue _taskQueue { get; }
+        public IConfiguration _appConfig { get; }
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            RecoverOrphanPublications();
+
             while (!cancellationToken.IsCancellationRequested)
             {
                 // Retrieve the id of a new publication request to post-process
-                Guid publicationRequestId = await TaskQueue.DequeueAsync(cancellationToken, 2_000);
+                Guid publicationRequestId = await _taskQueue.DequeueAsync(cancellationToken, 2_000);
 
                 if (publicationRequestId != Guid.Empty)
                 {
@@ -63,7 +68,7 @@ namespace MillimanAccessPortal.Services
                     {
                         Log.Error(kvpWithException.Value.Exception, "QueuedPublicationPostProcessingHostedService.ExecuteAsync, Exception thrown during QueuedPublicationPostProcessingHostedService processing");
 
-                        using (var scope = Services.CreateScope())
+                        using (var scope = _services.CreateScope())
                         {
                             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                             ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == kvpWithException.Key);
@@ -95,7 +100,7 @@ namespace MillimanAccessPortal.Services
         {
             await Task.Yield();
 
-            using (var scope = Services.CreateScope())
+            using (var scope = _services.CreateScope())
             {
                 var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -286,5 +291,50 @@ namespace MillimanAccessPortal.Services
             }
         }
 
+        protected void RecoverOrphanPublications()
+        {
+            int publishingRecoveryLookbackHours = _appConfig.GetValue("PublishingRecoveryLookbackHours", 24*7);
+
+            using (var scope = _services.CreateScope())
+            {
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                // First handle requests with Validating status
+                string CxnString = _appConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
+                string rootPath = _appConfig.GetSection("Storage")["ContentItemRootPath"];
+                string exchangePath = _appConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
+
+                List<ContentPublicationRequest> validatingRequests = dbContext.ContentPublicationRequest
+                    .Where(r => r.RequestStatus == PublicationStatus.Validating)
+                    .Where(r => r.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromHours(publishingRecoveryLookbackHours))
+                    .ToList();
+                foreach (ContentPublicationRequest request in validatingRequests)
+                {
+                    ContentPublishSupport.MonitorPublicationRequestForQueueing(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
+                }
+
+                // Second prepare to postprocess requests that publishing server could be working with or finished with
+                List<PublicationStatus> handlableStatusList = new List<PublicationStatus>
+                {
+                    PublicationStatus.Queued,
+                    PublicationStatus.Processing,
+                    PublicationStatus.PostProcessReady,
+                };
+
+                List<ContentPublicationRequest> recentOrphanedRequests = dbContext.ContentPublicationRequest
+                    .Where(r => handlableStatusList.Contains(r.RequestStatus))
+                    .Where(r => r.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromHours(publishingRecoveryLookbackHours))
+                    .ToList();
+
+                var latestOrphanedRequests = recentOrphanedRequests
+                    .GroupBy(keySelector: r => r.RootContentItemId, 
+                             resultSelector: (rcid, group) => group.Aggregate(seed: group.First(), func: (prev,next) => prev.CreateDateTimeUtc > next.CreateDateTimeUtc ? prev : next))
+                    .ToList();
+                foreach (var request in latestOrphanedRequests)
+                {
+                    _taskQueue.QueuePublicationPostProcess(request.Id);
+                }
+            }
+        }
     }
 }
