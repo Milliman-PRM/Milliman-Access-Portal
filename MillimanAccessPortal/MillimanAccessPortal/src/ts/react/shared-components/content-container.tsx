@@ -10,7 +10,14 @@ import * as React from 'react';
 import { ContentTypeEnum } from '../../view-models/content-publishing';
 import { ContentContainerProps } from './interfaces';
 
-export class ContentContainer extends React.Component<ContentContainerProps, {}> {
+export const contentTypeMap: { [name: string]: ContentTypeEnum } = {
+  Qlikview: ContentTypeEnum.Qlikview,
+  Html: ContentTypeEnum.Html,
+  Pdf: ContentTypeEnum.Pdf,
+  FileDownload: ContentTypeEnum.FileDownload,
+  PowerBi: ContentTypeEnum.PowerBi,
+};
+
 
   public constructor(props: ContentContainerProps) {
     super(props);
