@@ -650,6 +650,7 @@ namespace MillimanAccessPortal.Controllers
 
             var PubRequest = DataContext.ContentPublicationRequest
                                         .Include(r => r.RootContentItem)
+                                            .ThenInclude(c => c.ContentType)
                                         .FirstOrDefault(r => r.Id == publicationRequestId);
 
             #region Validation
