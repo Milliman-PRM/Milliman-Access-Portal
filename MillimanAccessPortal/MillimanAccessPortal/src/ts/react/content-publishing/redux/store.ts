@@ -90,6 +90,19 @@ export interface PublishingFormData {
 export interface GoLiveSummaryData {
   rootContentItemId: Guid;
   goLiveSummary: PreLiveContentValidationSummary;
+  elementsToConfirm: ElementsToConfirm;
+}
+
+/**
+ * All elements that need to be confirmed during Go-Live process
+ */
+export interface ElementsToConfirm {
+  masterContent?: boolean;
+  thumbnail?: boolean;
+  userguide?: boolean;
+  releaseNotes?: boolean;
+  hierarchyChanges?: boolean;
+  selectionGroups?: boolean;
 }
 
 /**
