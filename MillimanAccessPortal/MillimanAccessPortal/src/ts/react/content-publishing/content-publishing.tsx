@@ -33,6 +33,7 @@ import {
   ContentPanel, ContentPanelSectionContent,
 } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
+import { Checkbox } from '../shared-components/form/checkbox';
 import { FileUploadInput } from '../shared-components/form/file-upload-input';
 import {
   ContentPanelForm, FormFlexContainer, FormSection, FormSectionRow,
@@ -599,7 +600,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderGoLiveSummary() {
-    const { goLiveSummary } = this.props.goLiveSummary;
+    const { elementsToConfirm, goLiveSummary } = this.props.goLiveSummary;
     const contentCardPreview = goLiveSummary && (
       <ContentCard
         id={this.props.goLiveSummary.rootContentItemId}
@@ -619,21 +620,32 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           Click to Download
         </a>
       ) : (
-        <ContentContainer
-          contentType={contentTypeMap[goLiveSummary.contentTypeName]}
-          contentURL={goLiveSummary.masterContentLink}
-        >
-          <a
-            href={goLiveSummary.masterContentLink}
-            className="new-tab-icon"
-            target="_blank"
-            title="Open in new tab"
+        <div>
+          <ContentContainer
+            contentType={contentTypeMap[goLiveSummary.contentTypeName]}
+            contentURL={goLiveSummary.masterContentLink}
           >
-            <svg className="action-icon-expand-frame action-icon tooltip">
-              <use xlinkHref="#expand-frame" />
-            </svg>
-          </a>
-        </ContentContainer>
+            <a
+              href={goLiveSummary.masterContentLink}
+              className="new-tab-icon"
+              target="_blank"
+              title="Open in new tab"
+            >
+              <svg className="action-icon-expand-frame action-icon tooltip">
+                <use xlinkHref="#expand-frame" />
+              </svg>
+            </a>
+          </ContentContainer>
+          <Checkbox
+            name="Master Content is as expected"
+            selected={elementsToConfirm.masterContent}
+            onChange={(status) => this.props.toggleGoLiveConfirmationCheckbox({
+              target: 'masterContent',
+              status,
+            })}
+            readOnly={false}
+          />
+        </div>
       ) : null;
     return (
       <ContentPanel loading={this.props.pending.data.goLiveSummary}>
