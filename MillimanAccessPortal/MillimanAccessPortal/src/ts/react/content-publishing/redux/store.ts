@@ -23,6 +23,8 @@ export interface PendingDataState {
   items: boolean;
   contentItemDetail: boolean;
   goLiveSummary: boolean;
+  goLiveApproval: boolean;
+  goLiveRejection: boolean;
   contentItemDeletion: boolean;
   formSubmit: boolean;
   publishing: boolean;

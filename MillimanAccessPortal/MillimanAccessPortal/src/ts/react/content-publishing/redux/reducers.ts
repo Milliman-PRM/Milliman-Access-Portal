@@ -7,6 +7,7 @@ import { ProgressSummary } from '../../../upload/progress-monitor';
 import * as UploadActions from '../../../upload/Redux/actions';
 import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
+import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
   AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors, RelatedFiles,
 } from '../../models';
@@ -109,6 +110,8 @@ const _initialPendingData: PendingDataState = {
   items: false,
   contentItemDetail: false,
   goLiveSummary: false,
+  goLiveApproval: false,
+  goLiveRejection: false,
   contentItemDeletion: false,
   formSubmit: false,
   publishing: false,
@@ -189,6 +192,30 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   FETCH_GO_LIVE_SUMMARY_FAILED: (state) => ({
     ...state,
     goLiveSummary: false,
+  }),
+  APPROVE_GO_LIVE_SUMMARY: (state) => ({
+    ...state,
+    goLiveApproval: true,
+  }),
+  APPROVE_GO_LIVE_SUMMARY_SUCCEEDED: (state) => ({
+    ...state,
+    goLiveApproval: false,
+  }),
+  APPROVE_GO_LIVE_SUMMARY_FAILED: (state) => ({
+    ...state,
+    goLiveApproval: false,
+  }),
+  REJECT_GO_LIVE_SUMMARY: (state) => ({
+    ...state,
+    goLiveRejection: true,
+  }),
+  REJECT_GO_LIVE_SUMMARY_SUCCEEDED: (state) => ({
+    ...state,
+    goLiveRejection: false,
+  }),
+  REJECT_GO_LIVE_SUMMARY_FAILED: (state) => ({
+    ...state,
+    goLiveRejection: false,
   }),
   CREATE_NEW_CONTENT_ITEM: (state) => ({
     ...state,
@@ -352,6 +379,33 @@ const data = createReducer<PublishingStateData>(_initialData, {
       publicationQueue,
     };
   },
+  APPROVE_GO_LIVE_SUMMARY_SUCCEEDED: (state, action: PublishingActions.ApproveGoLiveSummarySucceeded) => {
+    const { publicationRequestId } = action.response;
+    return {
+      ...state,
+      publications: {
+        ...state.publications,
+        [publicationRequestId]: {
+          ...state.publications[publicationRequestId],
+          requestStatus: PublicationStatus.Confirming,
+        },
+      },
+    };
+  },
+  REJECT_GO_LIVE_SUMMARY_SUCCEEDED: (state, action: PublishingActions.RejectGoLiveSummarySucceeded) => {
+    const { publicationRequestId } = action.response;
+    return {
+      ...state,
+      publications: {
+        ...state.publications,
+        [publicationRequestId]: {
+          ...state.publications[publicationRequestId],
+          requestStatus: PublicationStatus.Rejected,
+        },
+      },
+    };
+  },
+
 });
 
 const formData = createReducer<PublishingFormData>(_initialFormData, {
@@ -898,6 +952,16 @@ const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
     goLiveSummary: null,
     elementsToConfirm: null,
   }),
+  APPROVE_GO_LIVE_SUMMARY_SUCCEEDED: () => ({
+    rootContentItemId: null,
+    goLiveSummary: null,
+    elementsToConfirm: null,
+  }),
+  REJECT_GO_LIVE_SUMMARY_SUCCEEDED: () => ({
+    rootContentItemId: null,
+    goLiveSummary: null,
+    elementsToConfirm: null,
+  }),
   SELECT_ITEM: () => ({
     rootContentItemId: null,
     goLiveSummary: null,
@@ -942,8 +1006,16 @@ const selected = createReducer<PublishingStateSelected>(
       };
     },
     FETCH_GO_LIVE_SUMMARY: (state, action: PublishingActions.FetchGoLiveSummary) => ({
-        ...state,
-        item: action.request.rootContentItemId,
+      ...state,
+      item: action.request.rootContentItemId,
+    }),
+    APPROVE_GO_LIVE_SUMMARY_SUCCEEDED: (state) => ({
+      ...state,
+      item: null,
+    }),
+    REJECT_GO_LIVE_SUMMARY_SUCCEEDED: (state) => ({
+      ...state,
+      item: null,
     }),
   },
 );
