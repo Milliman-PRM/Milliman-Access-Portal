@@ -106,6 +106,12 @@ export interface ContentItemDetail {
   };
 }
 
+export interface GoLiveViewModel {
+  rootContentItemId: Guid;
+  publicationRequestId: Guid;
+  validationSummaryId: Guid;
+}
+
 export interface ContentItemFormErrors {
   clientId?: string;
   contentDisclaimer?: string;
