@@ -793,7 +793,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GoLive(GoLiveViewModel goLiveViewModel)
+        public async Task<IActionResult> GoLive([FromBody] GoLiveViewModel goLiveViewModel)
         {
             Log.Verbose(
                 "Entered ContentPublishingController.GoLive action with model {@GoLiveViewModel}",
@@ -945,20 +945,20 @@ namespace MillimanAccessPortal.Controllers
 
             _goLiveTaskQueue.QueueGoLive(goLiveViewModel);
 
-            return Ok();
+            return Json(new { publicationRequestId = goLiveViewModel.PublicationRequestId });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Reject(Guid rootContentItemId, Guid publicationRequestId)
+        public async Task<IActionResult> Reject([FromBody] GoLiveViewModel goLiveViewModel)
         {
-            Log.Verbose($"Entered ContentPublishingController.Reject action with content item {rootContentItemId}, publication request {publicationRequestId}");
+            Log.Verbose($"Entered ContentPublishingController.Reject action with content item {goLiveViewModel.RootContentItemId}, publication request {goLiveViewModel.PublicationRequestId}");
 
             #region Authorization
-            AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, rootContentItemId));
+            AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, goLiveViewModel.RootContentItemId));
             if (!authorization.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.Reject action, authorization failure, user {User.Identity.Name}, content item {rootContentItemId}, role {requiredRole.ToString()}, aborting");
+                Log.Debug($"In ContentPublishingController.Reject action, authorization failure, user {User.Identity.Name}, content item {goLiveViewModel.RootContentItemId}, role {requiredRole.ToString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", "You are not authorized to publish content for this content item.");
                 return Unauthorized();
@@ -968,22 +968,22 @@ namespace MillimanAccessPortal.Controllers
             RootContentItem rootContentItem = _dbContext.RootContentItem
                                                 .Include(c => c.ContentType)
                                                 .Include(c => c.Client)
-                                                .Single(c => c.Id == rootContentItemId);
-            ContentPublicationRequest pubRequest = _dbContext.ContentPublicationRequest.Find(publicationRequestId);
+                                                .Single(c => c.Id == goLiveViewModel.RootContentItemId);
+            ContentPublicationRequest pubRequest = _dbContext.ContentPublicationRequest.Find(goLiveViewModel.PublicationRequestId);
 
             #region Validation
             // the rootContentItem already exists because the authorization check passed above
 
-            if (pubRequest == null || pubRequest.RootContentItemId != rootContentItemId)
+            if (pubRequest == null || pubRequest.RootContentItemId != goLiveViewModel.RootContentItemId)
             {
-                Log.Debug($"In ContentPublishingController.Reject action, publication request {publicationRequestId} not found, or associated content item, aborting");
+                Log.Debug($"In ContentPublishingController.Reject action, publication request {goLiveViewModel.PublicationRequestId} not found, or associated content item, aborting");
                 Response.Headers.Add("Warning", "The requested publication request does not exist.");
                 return BadRequest();
             }
 
             if (pubRequest.RequestStatus != PublicationStatus.Processed)
             {
-                Log.Debug($"In ContentPublishingController.Reject action, publication request {publicationRequestId} is not ready to go live, status = {pubRequest.RequestStatus.ToString()}, aborting");
+                Log.Debug($"In ContentPublishingController.Reject action, publication request {goLiveViewModel.PublicationRequestId} is not ready to go live, status = {pubRequest.RequestStatus.ToString()}, aborting");
                 Response.Headers.Add("Warning", "The specified publication request is not currently processed.");
                 return BadRequest();
             }
@@ -995,7 +995,7 @@ namespace MillimanAccessPortal.Controllers
                 pubRequest.RequestStatus = PublicationStatus.Rejected;
                 _dbContext.ContentPublicationRequest.Update(pubRequest);
 
-                List<ContentReductionTask> RelatedTasks = _dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == publicationRequestId).ToList();
+                List<ContentReductionTask> RelatedTasks = _dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == goLiveViewModel.PublicationRequestId).ToList();
                 foreach (ContentReductionTask relatedTask in RelatedTasks)
                 {
                     relatedTask.ReductionStatus = ReductionStatusEnum.Rejected;
@@ -1048,8 +1048,8 @@ namespace MillimanAccessPortal.Controllers
 
             // Delete pre-live folder
             string PreviewFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"],
-                                                rootContentItemId.ToString(),
-                                                publicationRequestId.ToString());
+                                                goLiveViewModel.RootContentItemId.ToString(),
+                                                goLiveViewModel.PublicationRequestId.ToString());
             if (Directory.Exists(PreviewFolder))
             {
                 Directory.Delete(PreviewFolder, true);
@@ -1058,7 +1058,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ContentPublishingController.Reject action, success");
             AuditLogger.Log(AuditEventType.ContentPublicationRejected.ToEvent(rootContentItem, rootContentItem.Client, pubRequest));
 
-            return Ok();
+            return Json(new { publicationRequestId = goLiveViewModel.PublicationRequestId });
         }
 
         private async Task<RootContentItem> JsonToRootContentItemAsync(JObject jObject)
