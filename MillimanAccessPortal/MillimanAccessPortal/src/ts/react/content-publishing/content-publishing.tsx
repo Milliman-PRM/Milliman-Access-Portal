@@ -602,7 +602,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderGoLiveSummary() {
-    const { elementsToConfirm, goLiveSummary } = this.props.goLiveSummary;
+    const { elementsToConfirm, goLiveSummary, rootContentItemId } = this.props.goLiveSummary;
     const contentCardPreview = goLiveSummary && (
       <ContentCard
         id={this.props.goLiveSummary.rootContentItemId}
@@ -618,9 +618,20 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
     );
     const masterContentPreview = goLiveSummary && goLiveSummary.masterContentLink ?
       (goLiveSummary.contentTypeName === 'FileDownload') ? (
-        <a href={goLiveSummary.masterContentLink} download={true}>
-          Click to Download
-        </a>
+        <div>
+          <a href={goLiveSummary.masterContentLink} download={true}>
+            Click to Download
+          </a>
+          <Checkbox
+            name="Master Content is as expected"
+            selected={elementsToConfirm.masterContent}
+            onChange={(status) => this.props.toggleGoLiveConfirmationCheckbox({
+              target: 'masterContent',
+              status,
+            })}
+            readOnly={false}
+          />
+        </div>
       ) : (
           <div>
             <ContentContainer
@@ -744,12 +755,34 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           {attestationLanguage}
         </ContentPanelSectionContent>
         <div className="go-live-button-container">
-          <button className="red-button">Reject</button>
+          <button
+            className="red-button"
+            onClick={() => this.props.rejectGoLiveSummary({
+              rootContentItemId,
+              publicationRequestId: goLiveSummary.publicationRequestId,
+              validationSummaryId: goLiveSummary.validationSummaryId,
+            })}
+          >
+            Reject
+            {this.props.pending.data.goLiveRejection
+              ? <ButtonSpinner version="circle" />
+              : null
+            }
+          </button>
           <button
             className="green-button"
             disabled={!this.props.goLiveApproveButtonIsActive}
+            onClick={() => this.props.approveGoLiveSummary({
+              rootContentItemId,
+              publicationRequestId: goLiveSummary.publicationRequestId,
+              validationSummaryId: goLiveSummary.validationSummaryId,
+            })}
           >
             Approve
+            {this.props.pending.data.goLiveApproval
+              ? <ButtonSpinner version="circle" />
+              : null
+            }
           </button>
         </div>
       </ContentPanel>
