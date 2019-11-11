@@ -293,27 +293,13 @@ namespace MillimanAccessPortal.Services
 
         protected void RecoverOrphanPublications()
         {
-            int publishingRecoveryLookbackHours = _appConfig.GetValue("PublishingRecoveryLookbackHours", 24*7);
+            int publishingRecoveryLookbackHours = _appConfig.GetValue("PublishingRecoveryLookbackHours", 24 * 7);
 
             using (var scope = _services.CreateScope())
             {
                 ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                // First handle requests with Validating status
-                string CxnString = _appConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
-                string rootPath = _appConfig.GetSection("Storage")["ContentItemRootPath"];
-                string exchangePath = _appConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
-
-                List<ContentPublicationRequest> validatingRequests = dbContext.ContentPublicationRequest
-                    .Where(r => r.RequestStatus == PublicationStatus.Validating)
-                    .Where(r => r.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromHours(publishingRecoveryLookbackHours))
-                    .ToList();
-                foreach (ContentPublicationRequest request in validatingRequests)
-                {
-                    ContentPublishSupport.MonitorPublicationRequestForQueueing(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
-                }
-
-                // Second prepare to postprocess requests that publishing server could be working with or finished with
+                // 1) prepare to postprocess publication requests that publishing server could be working with or finished with
                 List<PublicationStatus> handlableStatusList = new List<PublicationStatus>
                 {
                     PublicationStatus.Queued,
@@ -327,13 +313,28 @@ namespace MillimanAccessPortal.Services
                     .ToList();
 
                 var latestOrphanedRequests = recentOrphanedRequests
-                    .GroupBy(keySelector: r => r.RootContentItemId, 
-                             resultSelector: (rcid, group) => group.Aggregate(seed: group.First(), func: (prev,next) => prev.CreateDateTimeUtc > next.CreateDateTimeUtc ? prev : next))
+                    .GroupBy(keySelector: r => r.RootContentItemId,
+                             resultSelector: (rcid, group) => group.Aggregate(seed: group.First(), func: (prev, next) => prev.CreateDateTimeUtc > next.CreateDateTimeUtc ? prev : next))
                     .ToList();
                 foreach (var request in latestOrphanedRequests)
                 {
                     _taskQueue.QueuePublicationPostProcess(request.Id);
                 }
+
+                // 2) handle publication requests with Validating status
+                string CxnString = _appConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
+                string rootPath = _appConfig.GetSection("Storage")["ContentItemRootPath"];
+                string exchangePath = _appConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
+
+                List<ContentPublicationRequest> validatingRequests = dbContext.ContentPublicationRequest
+                    .Where(r => r.RequestStatus == PublicationStatus.Validating)
+                    .Where(r => r.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromHours(publishingRecoveryLookbackHours))
+                    .ToList();
+                foreach (ContentPublicationRequest request in validatingRequests)
+                {
+                    ContentPublishSupport.MonitorPublicationRequestForQueueing(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
+                }
+
             }
         }
     }
