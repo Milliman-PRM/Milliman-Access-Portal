@@ -97,6 +97,7 @@ export interface GoLiveSummaryData {
  * All elements that need to be confirmed during Go-Live process
  */
 export interface ElementsToConfirm {
+  [key: string]: boolean;
   masterContent?: boolean;
   thumbnail?: boolean;
   userguide?: boolean;

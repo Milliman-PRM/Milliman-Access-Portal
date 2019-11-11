@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
 import {
-  isPublicationActive, PublicationStatus, PublishRequest,
+  ContentTypeEnum, isPublicationActive, PublicationStatus, PublishRequest,
 } from '../../view-models/content-publishing';
 import { ContentCard } from '../authorized-content/content-card';
 import {
@@ -46,7 +46,8 @@ import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
   availableContentTypes, clientEntities, filesForPublishing, formChangesPending,
-  itemEntities, selectedItem, submitButtonIsActive, uploadChangesPending,
+  goLiveApproveButtonIsActive, itemEntities, selectedItem, submitButtonIsActive,
+  uploadChangesPending,
 } from './redux/selectors';
 import {
   GoLiveSummaryData, PublishingFormData, PublishingState, PublishingStateCardAttributes,
@@ -75,10 +76,11 @@ interface ContentPublishingProps {
   selectedItem: RootContentItem;
   activeSelectedClient: Client;
   activeSelectedItem: RootContentItem;
+  filesForPublishing: PublishRequest;
   formCanSubmit: boolean;
   formChangesPending: boolean;
+  goLiveApproveButtonIsActive: boolean;
   uploadChangesPending: boolean;
-  filesForPublishing: PublishRequest;
 }
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
@@ -620,33 +622,106 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           Click to Download
         </a>
       ) : (
-        <div>
-          <ContentContainer
-            contentType={contentTypeMap[goLiveSummary.contentTypeName]}
-            contentURL={goLiveSummary.masterContentLink}
-          >
-            <a
-              href={goLiveSummary.masterContentLink}
-              className="new-tab-icon"
-              target="_blank"
-              title="Open in new tab"
+          <div>
+            <ContentContainer
+              contentType={contentTypeMap[goLiveSummary.contentTypeName]}
+              contentURL={goLiveSummary.masterContentLink}
             >
-              <svg className="action-icon-expand-frame action-icon tooltip">
-                <use xlinkHref="#expand-frame" />
-              </svg>
-            </a>
-          </ContentContainer>
-          <Checkbox
-            name="Master Content is as expected"
-            selected={elementsToConfirm.masterContent}
-            onChange={(status) => this.props.toggleGoLiveConfirmationCheckbox({
-              target: 'masterContent',
-              status,
-            })}
-            readOnly={false}
-          />
-        </div>
-      ) : null;
+              <a
+                href={goLiveSummary.masterContentLink}
+                className="new-tab-icon"
+                target="_blank"
+                title="Open in new tab"
+              >
+                <svg className="action-icon-expand-frame action-icon tooltip">
+                  <use xlinkHref="#expand-frame" />
+                </svg>
+              </a>
+            </ContentContainer>
+            <Checkbox
+              name="Master Content is as expected"
+              selected={elementsToConfirm.masterContent}
+              onChange={(status) => this.props.toggleGoLiveConfirmationCheckbox({
+                target: 'masterContent',
+                status,
+              })}
+              readOnly={false}
+            />
+          </div>
+        ) : null;
+    const thumbnailPreview = goLiveSummary && goLiveSummary.thumbnailLink && (
+      <div>
+        <img src={goLiveSummary.thumbnailLink} />
+        <Checkbox
+          name="Thumbnail is as expected"
+          selected={elementsToConfirm.thumbnail}
+          onChange={(status) => this.props.toggleGoLiveConfirmationCheckbox({
+            target: 'thumbnail',
+            status,
+          })}
+          readOnly={false}
+        />
+      </div>
+    );
+    const userGuidePreview = goLiveSummary && goLiveSummary.userGuideLink && (
+      <div>
+        <ContentContainer
+          contentType={ContentTypeEnum.Pdf}
+          contentURL={goLiveSummary.userGuideLink}
+        >
+          <a
+            href={goLiveSummary.userGuideLink}
+            className="new-tab-icon"
+            target="_blank"
+            title="Open in new tab"
+          >
+            <svg className="action-icon-expand-frame action-icon tooltip">
+              <use xlinkHref="#expand-frame" />
+            </svg>
+          </a>
+        </ContentContainer>
+        <Checkbox
+          name="User Guide is as expected"
+          selected={elementsToConfirm.userguide}
+          onChange={(status) => this.props.toggleGoLiveConfirmationCheckbox({
+            target: 'userguide',
+            status,
+          })}
+          readOnly={false}
+        />
+      </div>
+    );
+    const releaseNotesPreview = goLiveSummary && goLiveSummary.releaseNotesLink && (
+      <div>
+        <ContentContainer
+          contentType={ContentTypeEnum.Pdf}
+          contentURL={goLiveSummary.releaseNotesLink}
+        >
+          <a
+            href={goLiveSummary.releaseNotesLink}
+            className="new-tab-icon"
+            target="_blank"
+            title="Open in new tab"
+          >
+            <svg className="action-icon-expand-frame action-icon tooltip">
+              <use xlinkHref="#expand-frame" />
+            </svg>
+          </a>
+        </ContentContainer>
+        <Checkbox
+          name="Release Notes are as expected"
+          selected={elementsToConfirm.releaseNotes}
+          onChange={(status) => this.props.toggleGoLiveConfirmationCheckbox({
+            target: 'releaseNotes',
+            status,
+          })}
+          readOnly={false}
+        />
+      </div>
+    );
+    const attestationLanguage = goLiveSummary && goLiveSummary.attestationLanguage && (
+      <div dangerouslySetInnerHTML={{ __html: goLiveSummary.attestationLanguage }} />
+    );
     return (
       <ContentPanel loading={this.props.pending.data.goLiveSummary}>
         <h3 className="admin-panel-header">Pre-Live Summary</h3>
@@ -663,7 +738,20 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           <h2>{goLiveSummary && goLiveSummary.rootContentName}</h2>
           {contentCardPreview}
           {masterContentPreview}
+          {thumbnailPreview}
+          {userGuidePreview}
+          {releaseNotesPreview}
+          {attestationLanguage}
         </ContentPanelSectionContent>
+        <div className="go-live-button-container">
+          <button className="red-button">Reject</button>
+          <button
+            className="green-button"
+            disabled={!this.props.goLiveApproveButtonIsActive}
+          >
+            Approve
+          </button>
+        </div>
       </ContentPanel>
     );
   }
@@ -688,10 +776,11 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     selectedItem: selectedItem(state),
     activeSelectedClient: activeSelectedClient(state),
     activeSelectedItem: activeSelectedItem(state),
+    filesForPublishing: filesForPublishing(state, rootContentItemId),
     formCanSubmit: submitButtonIsActive(state),
     formChangesPending: formChangesPending(state),
+    goLiveApproveButtonIsActive: goLiveApproveButtonIsActive(state),
     uploadChangesPending: uploadChangesPending(state),
-    filesForPublishing: filesForPublishing(state, rootContentItemId),
   };
 }
 

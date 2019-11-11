@@ -312,3 +312,13 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
     deleteFilePurposes: [],
   };
 }
+
+export function goLiveApproveButtonIsActive(state: PublishingState): boolean {
+  if (state.goLiveSummary && state.goLiveSummary.elementsToConfirm) {
+    const { elementsToConfirm } = state.goLiveSummary;
+    const allChecksApproved = Object.keys(elementsToConfirm).every((key) => elementsToConfirm[key] === true);
+    return allChecksApproved;
+  } else {
+    return false;
+  }
+}
