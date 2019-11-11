@@ -59,6 +59,10 @@ export const deleteContentItem =
   createRequestActionCreator<PublishActions.DeleteContentItem>('DELETE_CONTENT_ITEM');
 export const cancelPublicationRequest =
   createRequestActionCreator<PublishActions.CancelPublicationRequest>('CANCEL_PUBLICATION_REQUEST');
+export const approveGoLiveSummary =
+  createRequestActionCreator<PublishActions.ApproveGoLiveSummary>('APPROVE_GO_LIVE_SUMMARY');
+export const rejectGoLiveSummary =
+  createRequestActionCreator<PublishActions.RejectGoLiveSummary>('REJECT_GO_LIVE_SUMMARY');
 
 // Scheduled actions
 export const scheduleStatusRefresh =

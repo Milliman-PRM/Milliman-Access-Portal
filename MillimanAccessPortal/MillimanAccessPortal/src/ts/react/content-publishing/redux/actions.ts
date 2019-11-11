@@ -3,9 +3,10 @@ import {
   PreLiveContentValidationSummary, PublishRequest, RootContentItemSummaryAndDetail,
 } from '../../../view-models/content-publishing';
 import {
-    ClientWithEligibleUsers, ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
-    ContentPublicationRequest, ContentReductionTask, ContentType, Guid, PublicationQueueDetails,
-    ReductionQueueDetails, RootContentItem, RootContentItemWithStats, SelectionGroup, User,
+  ClientWithEligibleUsers, ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
+  ContentPublicationRequest, ContentReductionTask, ContentType, GoLiveViewModel, Guid,
+  PublicationQueueDetails, ReductionQueueDetails, RootContentItem, RootContentItemWithStats,
+  SelectionGroup, User,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -190,6 +191,44 @@ export interface FetchGoLiveSummarySucceeded {
 }
 export interface FetchGoLiveSummaryFailed {
   type: 'FETCH_GO_LIVE_SUMMARY_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Approve the Go-Live Summary;
+ */
+export interface ApproveGoLiveSummary {
+  type: 'APPROVE_GO_LIVE_SUMMARY';
+  request: GoLiveViewModel;
+}
+export interface ApproveGoLiveSummarySucceeded {
+  type: 'APPROVE_GO_LIVE_SUMMARY_SUCCEEDED';
+  response: {
+    publicationRequestId: Guid;
+  };
+}
+export interface ApproveGoLiveSummaryFailed {
+  type: 'APPROVE_GO_LIVE_SUMMARY_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Reject the Go-Live Summary;
+ */
+export interface RejectGoLiveSummary {
+  type: 'REJECT_GO_LIVE_SUMMARY';
+  request: GoLiveViewModel;
+}
+export interface RejectGoLiveSummarySucceeded {
+  type: 'REJECT_GO_LIVE_SUMMARY_SUCCEEDED';
+  response: {
+    publicationRequestId: Guid;
+  };
+}
+export interface RejectGoLiveSummaryFailed {
+  type: 'REJECT_GO_LIVE_SUMMARY_FAILED';
   error: TSError;
 }
 
@@ -434,6 +473,8 @@ export type RequestPublishingAction =
   | FetchItems
   | FetchContentItemDetail
   | FetchGoLiveSummary
+  | ApproveGoLiveSummary
+  | RejectGoLiveSummary
   | FetchStatusRefresh
   | FetchSessionCheck
   | CreateNewContentItem
@@ -452,6 +493,8 @@ export type ResponsePublishingAction =
   | FetchItemsSucceeded
   | FetchContentItemDetailSucceeded
   | FetchGoLiveSummarySucceeded
+  | ApproveGoLiveSummarySucceeded
+  | RejectGoLiveSummarySucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   | CreateNewContentItemSucceeded
@@ -470,6 +513,8 @@ export type ErrorPublishingAction =
   | FetchItemsFailed
   | FetchContentItemDetailFailed
   | FetchGoLiveSummaryFailed
+  | ApproveGoLiveSummaryFailed
+  | RejectGoLiveSummaryFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   | CreateNewContentItemFailed

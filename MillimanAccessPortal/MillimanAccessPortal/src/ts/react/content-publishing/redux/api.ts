@@ -29,6 +29,14 @@ export const fetchGoLiveSummary =
   createJsonRequestor<PublishingActions.FetchGoLiveSummary, PublishingActions.FetchGoLiveSummarySucceeded>
     ('GET', '/ContentPublishing/PreLiveSummary');
 
+export const approveGoLiveSummary =
+  createJsonRequestor<PublishingActions.ApproveGoLiveSummary, PublishingActions.ApproveGoLiveSummarySucceeded>
+    ('POST', '/ContentPublishing/GoLive');
+
+export const rejectGoLiveSummary =
+  createJsonRequestor<PublishingActions.RejectGoLiveSummary, PublishingActions.RejectGoLiveSummarySucceeded>
+    ('POST', '/ContentPublishing/Reject');
+
 export const fetchStatusRefresh =
   createJsonRequestor<PublishingActions.FetchStatusRefresh, PublishingActions.FetchStatusRefreshSucceeded>
     ('GET', '/ContentPublishing/Status');
