@@ -97,7 +97,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole));
             if (!RoleInClientResult.Succeeded)
             {
-                Log.Debug($"In ContentAccessAdminController.PageGlobalData action: authorization failure, user {User.Identity.Name}, global role {requiredRole.ToString()}");
+                Log.Debug($"In ContentAccessAdminController.PageGlobalData action: authorization failure, user {User.Identity.Name}, role {requiredRole.ToString()}");
                 Response.Headers.Add("Warning", "You are not authorized to manage content access.");
                 return Unauthorized();
             }

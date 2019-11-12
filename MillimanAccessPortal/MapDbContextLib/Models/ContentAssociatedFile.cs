@@ -1,7 +1,8 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: <What and WHY.>
- * DEVELOPER NOTES: <What future developers need to know.>
+ * OBJECTIVE: Represents the properties of a MAP content related file
+ * DEVELOPER NOTES: An associated file is one that is uploaded in the context of a content item and available for access by authorized users of that content item, 
+ *                  and that is not one of the standard "related" files (icon, release notes, user guide). 
  */
 
 using MapCommonLib;
