@@ -1,7 +1,9 @@
 import * as _ from 'lodash';
 import * as moment from 'moment';
 
-import { publicationStatusNames, PublishRequest, UploadedRelatedFile } from '../../../view-models/content-publishing';
+import {
+  publicationStatusNames, PublishRequest, UploadedRelatedFile,
+} from '../../../view-models/content-publishing';
 import {
   ClientWithStats, ContentPublicationRequest, ContentReductionTask,
     Guid, RootContentItemWithStats,

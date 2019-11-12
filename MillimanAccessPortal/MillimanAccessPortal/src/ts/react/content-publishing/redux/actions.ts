@@ -3,10 +3,9 @@ import {
   PreLiveContentValidationSummary, PublishRequest, RootContentItemSummaryAndDetail,
 } from '../../../view-models/content-publishing';
 import {
-  ClientWithEligibleUsers, ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
-  ContentPublicationRequest, ContentReductionTask, ContentType, GoLiveViewModel, Guid,
-  PublicationQueueDetails, ReductionQueueDetails, RootContentItem, RootContentItemWithStats,
-  SelectionGroup, User,
+  ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
+  ContentPublicationRequest, ContentType, GoLiveViewModel, Guid,
+  PublicationQueueDetails, RootContentItem, RootContentItemWithStats,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';

@@ -1,8 +1,5 @@
-import {
-  AssociatedContentItemUpload, ContentItemDetail, RelatedFiles,
-} from '../react/models';
+import { ContentItemDetail } from '../react/models';
 import { Guid } from '../react/shared-components/interfaces';
-import { Dict } from '../react/shared-components/redux/store';
 
 export interface Nestable {
   id: Guid;

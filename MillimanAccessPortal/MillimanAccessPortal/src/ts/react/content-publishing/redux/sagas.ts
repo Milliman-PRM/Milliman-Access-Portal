@@ -14,7 +14,7 @@ import {
   ErrorPublishingAction, PublishingAction, RequestPublishingAction, ResponsePublishingAction,
 } from './actions';
 import * as api from './api';
-import { filesForPublishing, remainingStatusRefreshAttempts, selectedClient, selectedItem } from './selectors';
+import { filesForPublishing, remainingStatusRefreshAttempts, selectedClient } from './selectors';
 
 /**
  * Custom effect for handling request actions.

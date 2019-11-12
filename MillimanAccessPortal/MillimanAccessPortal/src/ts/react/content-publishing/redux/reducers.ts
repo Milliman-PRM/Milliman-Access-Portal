@@ -18,7 +18,7 @@ import * as PublishingActions from './actions';
 import { FilterPublishingAction, PublishingAction } from './actions';
 import {
   ElementsToConfirm, GoLiveSummaryData, PendingDataState, PublishingFormData,
-  PublishingState, PublishingStateData, PublishingStateSelected,
+  PublishingStateData, PublishingStateSelected,
 } from './store';
 
 const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {

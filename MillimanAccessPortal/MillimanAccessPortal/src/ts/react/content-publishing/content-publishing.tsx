@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
 import {
-  ContentTypeEnum, isPublicationActive, PublicationStatus, PublishRequest,
+  ContentTypeEnum, PublicationStatus, PublishRequest,
 } from '../../view-models/content-publishing';
 import { ContentCard } from '../authorized-content/content-card';
 import {
@@ -33,7 +33,6 @@ import {
   ContentPanel, ContentPanelSectionContent,
 } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
-import { Checkbox } from '../shared-components/form/checkbox';
 import { FileUploadInput } from '../shared-components/form/file-upload-input';
 import {
   ContentPanelForm, FormFlexContainer, FormSection, FormSectionRow,
