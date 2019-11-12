@@ -37,9 +37,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string UserGuideLink { get; set; }
         public string ReleaseNotesLink { get; set; }
         public string ThumbnailLink { get; set; }
-        public ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy { get; set; }
-        public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
-        public List<SelectionGroupSummary> SelectionGroups { get; set; }
+        public ContentReductionHierarchy<ReductionFieldValueChange> ReductionHierarchy { get; set; }
+        public List<SelectionGroupSummary> SelectionGroups { get; set; } = null;
         public List<AssociatedFilePreviewSummary> AssociatedFiles { get; set; } = new List<AssociatedFilePreviewSummary>();
 
         public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
@@ -79,9 +78,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ThumbnailLink = null,
             };
 
-            ReturnObj.LiveHierarchy = null;
-            ReturnObj.NewHierarchy = null;
-            ReturnObj.SelectionGroups = null;
             if (PubRequest.RootContentItem.DoesReduce)
             {
                 // retrieve all reduction tasks for this publication, filtering out the request
@@ -106,7 +102,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 {
                     newHierarchy.Sort();
 
-                    var selectionGroups = new List<SelectionGroupSummary>();
+                    ReturnObj.SelectionGroups = new List<SelectionGroupSummary>();
                     foreach (var task in AllTasks)
                     {
                         var selectionGroupUsers = new List<UserInfoViewModel>();
@@ -139,7 +135,14 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 break;
                         }
 
-                        selectionGroups.Add(new SelectionGroupSummary
+                        var liveSelections = task.SelectionGroup.IsMaster
+                            ? null
+                            : ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId.Value);
+                        var pendingSelections = task.SelectionGroup.IsMaster
+                            ? null
+                            : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(task.MasterContentHierarchyObj, task.SelectionCriteriaObj);
+
+                        ReturnObj.SelectionGroups.Add(new SelectionGroupSummary
                         {
                             Id = task.SelectionGroup.Id,
                             Name = task.SelectionGroup.GroupName,
@@ -149,20 +152,88 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             WasInactive = task.SelectionGroup.ContentInstanceUrl == null,
                             IsInactive = task.ReductionStatus != ReductionStatusEnum.Reduced,
                             InactiveReason = errorMessage,
-                            LiveSelections = task.SelectionGroup.IsMaster
+                            SelectionChanges = task.SelectionGroup.IsMaster
                                 ? null
-                                : ContentReductionHierarchy<ReductionFieldValueSelection>
-                                    .GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId.Value),
-                            PendingSelections = task.SelectionGroup.IsMaster
-                                ? null
-                                : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(
-                                    task.MasterContentHierarchyObj, task.SelectionCriteriaObj),
+                                : new ContentReductionHierarchy<ReductionFieldValueChange>
+                                {
+                                    RootContentItemId = RootContentItemId,
+                                    Fields = task.SelectionCriteriaObj.Fields.Select(f =>
+                                    {
+                                        var addedValues = pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus).Except(
+                                            liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus), new ReductionFieldValueComparer());
+
+                                        var removedValues = liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus).Except(
+                                            pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus), new ReductionFieldValueComparer());
+
+                                        var unchangedValues = liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus).Intersect(
+                                            pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus), new ReductionFieldValueComparer());
+
+                                        return new ReductionField<ReductionFieldValueChange>
+                                        {
+                                            FieldName = f.FieldName,
+                                            DisplayName = f.DisplayName,
+                                            Id = f.Id,
+                                            StructureType = f.StructureType,
+                                            ValueDelimiter = f.ValueDelimiter,
+                                            Values = addedValues.Select(v => new ReductionFieldValueChange
+                                            {
+                                                Value = v.Value,
+                                                Id = v.Id,
+                                                ValueChange = FieldValueChange.Added,
+                                            })
+                                            .Concat(removedValues.Select(v => new ReductionFieldValueChange
+                                            {
+                                                Value = v.Value,
+                                                Id = v.Id,
+                                                ValueChange = FieldValueChange.Removed,
+                                            }))
+                                            // No unchanged values in this part of the model.  If desired, use .Concat(...) here like above.
+                                            .ToList()
+                                        };
+                                    })
+                                    .ToList(),
+                                }
                         });
                     }
 
-                    ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
-                    ReturnObj.NewHierarchy = newHierarchy;
-                    ReturnObj.SelectionGroups = selectionGroups;
+                    ReturnObj.ReductionHierarchy = new ContentReductionHierarchy<ReductionFieldValueChange> { RootContentItemId = RootContentItemId };
+                    var liveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
+
+                    foreach (var field in newHierarchy.Fields)
+                    {
+                        var addedValues = field.Values.Except(liveHierarchy.Fields.Single(f => f.FieldName == field.FieldName).Values, new ReductionFieldValueComparer());
+                        var removedValues = liveHierarchy.Fields.Single(f => f.FieldName == field.FieldName).Values.Except(field.Values, new ReductionFieldValueComparer());
+                        var sameValues = liveHierarchy.Fields.Single(f => f.FieldName == field.FieldName).Values.Intersect(field.Values, new ReductionFieldValueComparer());
+
+                        ReturnObj.ReductionHierarchy.Fields.Add(new ReductionField<ReductionFieldValueChange>
+                            {
+                                Id = field.Id,
+                                DisplayName = field.DisplayName,
+                                FieldName = field.FieldName,
+                                StructureType = field.StructureType,
+                                ValueDelimiter = field.ValueDelimiter,
+                                Values = addedValues.Select(v => new ReductionFieldValueChange
+                                    {
+                                        Id = v.Id,
+                                        Value = v.Value,
+                                        ValueChange = FieldValueChange.Added,
+                                    })
+                                    .Concat(removedValues.Select(v => new ReductionFieldValueChange
+                                    {
+                                        Id = v.Id,
+                                        Value = v.Value,
+                                        ValueChange = FieldValueChange.Removed,
+                                    }))
+                                    .Concat(sameValues.Select(v => new ReductionFieldValueChange
+                                    {
+                                        Id = v.Id,
+                                        Value = v.Value,
+                                        ValueChange = FieldValueChange.NoChange,
+                                    }))
+                                    .OrderBy(v => v.Value)
+                                    .ToList(),
+                            });
+                    }
                 }
             }
 
@@ -268,8 +339,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 RootContentId = source.RootContentId,
                 RootContentName = source.RootContentName,
                 ContentTypeName = source.ContentTypeName,
-                LiveHierarchy = source.LiveHierarchy,
-                NewHierarchy = source.NewHierarchy,
+                HierarchyComparison = source.ReductionHierarchy,
                 DoesReduce = source.DoesReduce,
                 ClientId = source.ClientId,
                 ClientName = source.ClientName,
@@ -287,8 +357,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public bool WasInactive { get; set; }
         public bool IsInactive { get; set; }
         public string InactiveReason { get; set; } = null;
-        public ContentReductionHierarchy<ReductionFieldValueSelection> LiveSelections { get; set; }
-        public ContentReductionHierarchy<ReductionFieldValueSelection> PendingSelections { get; set; }
+        public ContentReductionHierarchy<ReductionFieldValueChange> SelectionChanges { get; set; }
     }
 
     public class AssociatedFilePreviewSummary : AssociatedFileModel
@@ -301,4 +370,5 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             Link = string.Empty;
         }
     }
+
 }

@@ -18,8 +18,7 @@ namespace AuditLogLib.Models
         public Guid RootContentId;
         public string RootContentName;
         public string ContentTypeName;
-        public ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy;
-        public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy;
+        public ContentReductionHierarchy<ReductionFieldValueChange> HierarchyComparison;
         public bool  DoesReduce;
         public Guid ClientId;
         public string ClientName;

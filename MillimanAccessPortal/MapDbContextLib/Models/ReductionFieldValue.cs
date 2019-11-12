@@ -6,7 +6,7 @@ namespace MapDbContextLib.Models
 {
     public class ReductionFieldValue
     {
-        public virtual bool HasSelectionStatus { get { return false; } }
+        public virtual bool HasSelectionStatus { get => false; }
         public Guid Id { get; set; }
         public string Value { get; set; }
 
@@ -22,5 +22,17 @@ namespace MapDbContextLib.Models
             Value = Arg;
         }
 
+    }
+
+    public class ReductionFieldValueComparer : IEqualityComparer<ReductionFieldValue>
+    {
+        public bool Equals(ReductionFieldValue x, ReductionFieldValue y)
+        {
+            return x.Value == y.Value;
+        }
+        public int GetHashCode(ReductionFieldValue obj)
+        {
+            return obj.Value.GetHashCode();
+        }
     }
 }
