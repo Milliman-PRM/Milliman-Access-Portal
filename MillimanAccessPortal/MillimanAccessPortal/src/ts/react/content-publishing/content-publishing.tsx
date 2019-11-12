@@ -42,6 +42,7 @@ import { Input, TextAreaInput } from '../shared-components/form/input';
 import { Select } from '../shared-components/form/select';
 import { NavBar } from '../shared-components/navbar';
 import { Dict } from '../shared-components/redux/store';
+import { GoLiveSection } from './go-live-section';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
@@ -616,66 +617,56 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         selectContent={() => false}
       />
     );
-    const masterContentPreview = goLiveSummary && goLiveSummary.masterContentLink ?
-      (goLiveSummary.contentTypeName === 'FileDownload') ? (
-        <div>
+    const masterContentPreview = goLiveSummary && goLiveSummary.masterContentLink && (
+      <GoLiveSection
+        title="Master Content"
+        checkboxLabel="Master Content is as expected"
+        checkboxTarget="masterContent"
+        checkboxSelectedValue={elementsToConfirm.masterContent}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
+        {(goLiveSummary.contentTypeName === 'FileDownload') ? (
           <a href={goLiveSummary.masterContentLink} download={true}>
             Click to Download
           </a>
-          <Checkbox
-            name="Master Content is as expected"
-            selected={elementsToConfirm.masterContent}
-            onChange={(status) => this.props.toggleGoLiveConfirmationCheckbox({
-              target: 'masterContent',
-              status,
-            })}
-            readOnly={false}
-          />
-        </div>
-      ) : (
-          <div>
-            <ContentContainer
-              contentType={contentTypeMap[goLiveSummary.contentTypeName]}
-              contentURL={goLiveSummary.masterContentLink}
+        ) : (
+          <ContentContainer
+            contentType={contentTypeMap[goLiveSummary.contentTypeName]}
+            contentURL={goLiveSummary.masterContentLink}
+          >
+            <a
+              href={goLiveSummary.masterContentLink}
+              className="new-tab-icon"
+              target="_blank"
+              title="Open in new tab"
             >
-              <a
-                href={goLiveSummary.masterContentLink}
-                className="new-tab-icon"
-                target="_blank"
-                title="Open in new tab"
-              >
-                <svg className="action-icon-expand-frame action-icon tooltip">
-                  <use xlinkHref="#expand-frame" />
-                </svg>
-              </a>
-            </ContentContainer>
-            <Checkbox
-              name="Master Content is as expected"
-              selected={elementsToConfirm.masterContent}
-              onChange={(status) => this.props.toggleGoLiveConfirmationCheckbox({
-                target: 'masterContent',
-                status,
-              })}
-              readOnly={false}
-            />
-          </div>
-        ) : null;
+              <svg className="action-icon-expand-frame action-icon tooltip">
+                <use xlinkHref="#expand-frame" />
+              </svg>
+            </a>
+          </ContentContainer>
+        )}
+      </GoLiveSection>
+    );
     const thumbnailPreview = goLiveSummary && goLiveSummary.thumbnailLink && (
-      <div>
+      <GoLiveSection
+        title="Thumbnail"
+        checkboxLabel="Thumbnail is as expected"
+        checkboxTarget="thumbnail"
+        checkboxSelectedValue={elementsToConfirm.thumbnail}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
         <img src={goLiveSummary.thumbnailLink} />
-        <Checkbox
-          name="Thumbnail is as expected"
-          selected={elementsToConfirm.thumbnail}
-          onChange={(status) => this.props.toggleGoLiveConfirmationCheckbox({
-            target: 'thumbnail',
-            status,
-          })}
-          readOnly={false}
-        />
-      </div>
+      </GoLiveSection>
     );
     const userGuidePreview = goLiveSummary && goLiveSummary.userGuideLink && (
-      <div>
+      <GoLiveSection
+        title="User Guide"
+        checkboxLabel="User Guide is as expected"
+        checkboxTarget="userguide"
+        checkboxSelectedValue={elementsToConfirm.userguide}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
         <ContentContainer
           contentType={ContentTypeEnum.Pdf}
           contentURL={goLiveSummary.userGuideLink}
@@ -691,19 +682,16 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             </svg>
           </a>
         </ContentContainer>
-        <Checkbox
-          name="User Guide is as expected"
-          selected={elementsToConfirm.userguide}
-          onChange={(status) => this.props.toggleGoLiveConfirmationCheckbox({
-            target: 'userguide',
-            status,
-          })}
-          readOnly={false}
-        />
-      </div>
+      </GoLiveSection>
     );
     const releaseNotesPreview = goLiveSummary && goLiveSummary.releaseNotesLink && (
-      <div>
+      <GoLiveSection
+        title="Release Notes"
+        checkboxLabel="Release Notes are as expected"
+        checkboxTarget="releaseNotes"
+        checkboxSelectedValue={elementsToConfirm.releaseNotes}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
         <ContentContainer
           contentType={ContentTypeEnum.Pdf}
           contentURL={goLiveSummary.releaseNotesLink}
@@ -719,16 +707,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             </svg>
           </a>
         </ContentContainer>
-        <Checkbox
-          name="Release Notes are as expected"
-          selected={elementsToConfirm.releaseNotes}
-          onChange={(status) => this.props.toggleGoLiveConfirmationCheckbox({
-            target: 'releaseNotes',
-            status,
-          })}
-          readOnly={false}
-        />
-      </div>
+      </GoLiveSection>
     );
     const attestationLanguage = goLiveSummary && goLiveSummary.attestationLanguage && (
       <div dangerouslySetInnerHTML={{ __html: goLiveSummary.attestationLanguage }} />
