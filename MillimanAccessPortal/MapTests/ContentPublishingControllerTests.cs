@@ -466,10 +466,16 @@ namespace MapTests
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("user3");
+            var goLiveViewModel = new GoLiveViewModel
+            {
+                RootContentItemId = TestUtil.MakeTestGuid(1),
+                PublicationRequestId = TestUtil.MakeTestGuid(1),
+                ValidationSummaryId = "",
+            };
             #endregion
 
             #region Act
-            var view = await controller.Reject(TestUtil.MakeTestGuid(1), TestUtil.MakeTestGuid(1));
+            var view = await controller.Reject(goLiveViewModel);
             #endregion
 
             #region Assert
@@ -492,10 +498,16 @@ namespace MapTests
                 pubRequest.RootContentItem = TestResources.DbContextObject.RootContentItem.SingleOrDefault(rc => rc.Id == TestUtil.MakeTestGuid(rootContentItemId));
                 pubRequest.RequestStatus = initialPubRequestStatus;
             }
+            var goLiveViewModel = new GoLiveViewModel
+            {
+                RootContentItemId = TestUtil.MakeTestGuid(rootContentItemId),
+                PublicationRequestId = TestUtil.MakeTestGuid(pubRequestId),
+                ValidationSummaryId = "",
+            };
             #endregion
 
             #region Act
-            var view = await controller.Reject(TestUtil.MakeTestGuid(rootContentItemId), TestUtil.MakeTestGuid(pubRequestId));
+            var view = await controller.Reject(goLiveViewModel);
             #endregion
 
             #region Assert
