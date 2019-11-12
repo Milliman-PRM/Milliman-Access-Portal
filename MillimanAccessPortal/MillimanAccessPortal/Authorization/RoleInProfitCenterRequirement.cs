@@ -18,12 +18,21 @@ namespace MillimanAccessPortal.Authorization
         private RoleEnum RoleEnum { get; set; }
         private Guid ProfitCenterId { get; set; } = Guid.Empty;
 
+        /// <summary>
+        /// User this constructor overload to evaluate whether the user is authorized with the specified role for any ProfitCenter
+        /// </summary>
+        /// <param name="RoleEnumArg"></param>
         public RoleInProfitCenterRequirement(RoleEnum RoleEnumArg)
         {
             EvaluateAny = true;
             RoleEnum = RoleEnumArg;
         }
 
+        /// <summary>
+        /// User this constructor overload to evaluate whether the user is authorized with the specified role for the specified ProfitCenter
+        /// </summary>
+        /// <param name="RoleEnumArg"></param>
+        /// <param name="ProfitCenterIdArg"></param>
         public RoleInProfitCenterRequirement(RoleEnum RoleEnumArg, Guid? ProfitCenterIdArg)
         {
             EvaluateAny = false;

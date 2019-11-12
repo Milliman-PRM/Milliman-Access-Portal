@@ -19,12 +19,21 @@ namespace MillimanAccessPortal.Authorization
         private RoleEnum RoleEnum { get; set; }
         private Guid ClientId { get; set; } = Guid.Empty;
 
+        /// <summary>
+        /// User this constructor overload to evaluate whether the user is authorized with the specified role for any Client
+        /// </summary>
+        /// <param name="RoleEnumArg"></param>
         public RoleInClientRequirement(RoleEnum RoleEnumArg)
         {
             EvaluateAny = true;
             RoleEnum = RoleEnumArg;
         }
 
+        /// <summary>
+        /// User this constructor overload to evaluate whether the user is authorized with the specified role for the specified Client
+        /// </summary>
+        /// <param name="RoleEnumArg"></param>
+        /// <param name="ClientIdArg"></param>
         public RoleInClientRequirement(RoleEnum RoleEnumArg, Guid? ClientIdArg)
         {
             EvaluateAny = false;
