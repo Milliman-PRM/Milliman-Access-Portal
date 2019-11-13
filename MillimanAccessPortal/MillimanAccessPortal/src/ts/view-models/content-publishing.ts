@@ -197,8 +197,7 @@ export interface PreLiveContentValidationSummary {
   userGuideLink: string;
   releaseNotesLink: string;
   thumbnailLink: string;
-  liveHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
-  newHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
+  ReductionHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   selectionGroups: SelectionGroupSummary[];
   associatedFiles: AssociatedFileSummary[];
 }
