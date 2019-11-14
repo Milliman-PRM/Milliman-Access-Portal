@@ -124,7 +124,7 @@ if ($sessionFileCount -gt 0)
           
 
            # Convert session start time to a DateTime object - Custom format is required because .NET doesn't understand the QlikView timestamp format by default.
-           $dateparse = [DateTime]::TryParseExact( $session.'Session Start', "yyyyMMddTHHmmss.fff-0500", [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref]$sessionStartTime)
+           $dateparse = [System.DateTimeOffset]::TryParseExact( $session.'Session Start', "yyyyMMddTHHmmss.fffzzz", [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref]$sessionStartTime)
            
            $sessionEndTime = $sessionStartTime.AddSeconds($duration.TotalSeconds)
 
