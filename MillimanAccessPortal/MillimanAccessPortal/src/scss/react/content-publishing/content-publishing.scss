@@ -30,3 +30,29 @@
         }
     }
 }
+
+.hierarchy-diffs {
+    
+    table {
+        width: 100%;
+        background-color: $white;
+        border: 1px solid $charcoal;
+
+        th {
+            border-bottom: 1px solid $charcoal;
+            font-weight: bold;
+        }
+
+        tr.status-1 {   // Added
+            background-color: rgba($green, .3);
+        }
+
+        tr.status-2 {   // Removed
+            background-color: rgba($red, .3);
+        }
+    }
+}
+
+.go-live-button-container {
+    text-align: center;
+}
