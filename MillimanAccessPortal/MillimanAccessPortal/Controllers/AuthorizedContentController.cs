@@ -506,6 +506,88 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
+        /// Preview a reduced QVW file
+        /// </summary>
+        /// <param name="publicationRequestId"></param>
+        /// <param name="reductionTaskId"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> ReducedQvwPreview(Guid publicationRequestId, Guid reductionTaskId)
+        {
+            Log.Verbose($"Entered AuthorizedContentController.ReducedQvwPreview action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}, reductionTaskId {reductionTaskId}");
+
+            var ReductionTask = DataContext.ContentReductionTask.FirstOrDefault(t => t.Id == reductionTaskId);
+            var PublicationRequest = DataContext.ContentPublicationRequest.FirstOrDefault(r => r.Id == publicationRequestId);
+
+            #region Validation
+            if (ReductionTask == null)
+            {
+                string Msg = $"Failed to obtain the requested reduction task";
+                Log.Error($"{ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, reduction task {reductionTaskId} not found, aborting");
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            if (PublicationRequest == null)
+            {
+                string Msg = $"Failed to obtain the requested publication request";
+                Log.Error($"{ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, publication request {publicationRequestId} not found, aborting");
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            if (ReductionTask.ContentPublicationRequestId != PublicationRequest.Id)
+            {
+                string Msg = $"The requested publication request is not related to the requested reduction task";
+                Log.Error($"{ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, requested publication request {publicationRequestId} is not related to the requested reduction task {reductionTaskId}, aborting");
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            if (ReductionTask.ReductionStatus != ReductionStatusEnum.Reduced)  // could also validate pub request status, maybe too much?
+            {
+                string Msg = $"The requested reduction task does not have the appropriate status for preview";
+                Log.Error($"{ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, requested reduction task {reductionTaskId} does not have the appropriate status for preview, aborting");
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
+                User, null, new RoleInRootContentItemRequirement(
+                    RoleEnum.ContentPublisher, PublicationRequest.RootContentItemId));
+            if (!Result1.Succeeded)
+            {
+                Log.Debug($"{ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, "
+                    + $"content item {PublicationRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            try
+            {
+                string ContentRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
+                string FullFilePath = ReductionTask.ResultFilePath;
+                if (!Path.GetExtension(FullFilePath).Equals(".qvw", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Log.Error($"{ControllerContext.ActionDescriptor.DisplayName} action: Error, requested QVW file {FullFilePath} has unexpected extension, aborting");
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+
+                string Link = Path.GetRelativePath(ContentRootPath, FullFilePath);
+                await new QlikviewLibApi(QlikviewConfig).AuthorizeUserDocumentsInFolderAsync(Path.GetDirectoryName(Link), Path.GetFileName(Link));
+
+                UriBuilder QvwUri = await new QlikviewLibApi(QlikviewConfig).GetContentUri(Link, User.Identity.Name, Request);
+
+                Log.Verbose($"{ControllerContext.ActionDescriptor.DisplayName} action: success, redirecting");
+
+                return Redirect(QvwUri.Uri.AbsoluteUri);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"{ControllerContext.ActionDescriptor.DisplayName} action: exception while redirecting for reduction task {ReductionTask.Id}, aborting");
+                Response.Headers.Add("Warning", "Failed to load requested reduced QVW file for preview");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        /// <summary>
         /// Preview the master content QVW file
         /// </summary>
         /// <param name="publicationRequestId"></param>
@@ -532,10 +614,8 @@ namespace MillimanAccessPortal.Controllers
                     RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose("In AuthorizedContentController.QvwPreview action: "
-                    + $"authorization failed for user {User.Identity.Name}, "
-                    + $"content item {PubRequest.RootContentItemId}, "
-                    + $"role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                Log.Verbose($"In AuthorizedContentController.QvwPreview action: authorization failed for user {User.Identity.Name}, "
+                    + $"content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
@@ -549,19 +629,16 @@ namespace MillimanAccessPortal.Controllers
                 string FullFilePath = PubRequest.LiveReadyFilesObj
                     .Single(f => f.FilePurpose.ToLower() == "mastercontent")
                     .FullPath;
-                if (Path.GetExtension(FullFilePath).ToLower() != ".qvw")
+                if (!Path.GetExtension(FullFilePath).Equals(".qvw", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    Log.Error("In AuthorizedContentController.QvwPreview action: "
-                        + $"Error, requested QVW file {FullFilePath} has unexpected extension, aborting");
+                    Log.Error($"In AuthorizedContentController.QvwPreview action: Error, requested QVW file {FullFilePath} has unexpected extension, aborting");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
 
                 string Link = Path.GetRelativePath(ContentRootPath, FullFilePath);
-                await new QlikviewLibApi(QlikviewConfig).AuthorizeUserDocumentsInFolderAsync(
-                        Path.GetDirectoryName(Link), Path.GetFileName(Link));
+                await new QlikviewLibApi(QlikviewConfig).AuthorizeUserDocumentsInFolderAsync(Path.GetDirectoryName(Link), Path.GetFileName(Link));
 
-                UriBuilder QvwUri = await new QlikviewLibApi(QlikviewConfig).GetContentUri(
-                    Link, User.Identity.Name, Request);
+                UriBuilder QvwUri = await new QlikviewLibApi(QlikviewConfig).GetContentUri(Link, User.Identity.Name, Request);
 
                 Log.Verbose("In AuthorizedContentController.QvwPreview action: success, redirecting");
 
@@ -569,9 +646,8 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception e)
             {
-                Log.Error(e, "In AuthorizedContentController.QvwPreview action: "
-                    + $"exception while redirecting for publication request {PubRequest.Id}, aborting");
-                Response.Headers.Add("Warning", "Failed to load requested master HTML file for preview");
+                Log.Error(e, $"In AuthorizedContentController.QvwPreview action: exception while redirecting for publication request {PubRequest.Id}, aborting");
+                Response.Headers.Add("Warning", "Failed to load requested master qvw file for preview");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

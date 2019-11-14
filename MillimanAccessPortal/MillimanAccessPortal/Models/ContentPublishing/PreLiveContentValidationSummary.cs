@@ -78,10 +78,80 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ThumbnailLink = null,
             };
 
+            foreach (ContentRelatedFile RelatedFile in PubRequest.LiveReadyFilesObj)
+            {
+                UriBuilder contentUri = new UriBuilder
+                {
+                    Scheme = Context.Request.Scheme,
+                    Host = Context.Request.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
+                    Port = Context.Request.Host.Port ?? -1,
+                };
+
+                switch (RelatedFile.FilePurpose.ToLower())
+                {
+                    case "mastercontent":
+                        switch (PubRequest.RootContentItem.ContentType.TypeEnum)
+                        {
+                            case ContentTypeEnum.PowerBi:
+                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}";
+                                contentUri.Query = $"request={PubRequest.Id}";
+
+                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                break;
+
+                            case ContentTypeEnum.Qlikview:
+                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.QvwPreview)}";
+                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
+                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                break;
+
+                            case ContentTypeEnum.Pdf:
+                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PdfPreview)}";
+                                contentUri.Query = $"purpose=mastercontent&publicationRequestId={PubRequest.Id}";
+                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                break;
+
+                            case ContentTypeEnum.Html:
+                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.HtmlPreview)}";
+                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
+                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                break;
+
+                            case ContentTypeEnum.FileDownload:
+                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.FileDownloadPreview)}";
+                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
+                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                break;
+
+                            default:
+                                break;
+                        }
+                        break;
+
+                    case "thumbnail":
+                        contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ThumbnailPreview)}";
+                        contentUri.Query = $"publicationRequestId={PubRequest.Id}";
+                        // this doesn't happen
+                        ReturnObj.ThumbnailLink = contentUri.Uri.AbsoluteUri;
+                        break;
+
+                    case "userguide":
+                        contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PdfPreview)}";
+                        contentUri.Query = $"purpose=userguide&publicationRequestId={PubRequest.Id}";
+                        ReturnObj.UserGuideLink = contentUri.Uri.AbsoluteUri;
+                        break;
+
+                    case "releasenotes":
+                        contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PdfPreview)}";
+                        contentUri.Query = $"purpose=releasenotes&publicationRequestId={PubRequest.Id}";
+                        ReturnObj.ReleaseNotesLink = contentUri.Uri.AbsoluteUri;
+                        break;
+                }
+            }
+
             if (PubRequest.RootContentItem.DoesReduce)
             {
-                // retrieve all reduction tasks for this publication, filtering out the request
-                // responsible for extracting the new hierarchy
+                // retrieve all reduction tasks for this publication (not including the task responsible for extracting the new hierarchy)
                 List<ContentReductionTask> AllTasks = Db.ContentReductionTask
                                                         .Include(t => t.SelectionGroup)
                                                         .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
@@ -96,8 +166,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 }
                 #endregion
 
-                var newHierarchy = AllTasks.FirstOrDefault()?.MasterContentHierarchyObj;
-
+                ContentReductionHierarchy<ReductionFieldValue> newHierarchy = AllTasks.FirstOrDefault()?.MasterContentHierarchyObj;
                 if (newHierarchy != null)
                 {
                     newHierarchy.Sort();
@@ -142,6 +211,18 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             ? null
                             : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(task.MasterContentHierarchyObj, task.SelectionCriteriaObj);
 
+                        UriBuilder reducedLinkBuilder = 
+                            task.SelectionGroup.IsMaster
+                            ? new UriBuilder(ReturnObj.MasterContentLink)
+                            : new UriBuilder
+                            {
+                                Scheme = Context.Request.Scheme,
+                                Host = Context.Request.Host.Host,
+                                Port = Context.Request.Host.Port ?? -1,
+                                Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ReducedQvwPreview)}",
+                                Query = $"publicationRequestId={PubRequest.Id}&reductionTaskId={task.Id}",
+                            };
+
                         ReturnObj.SelectionGroups.Add(new SelectionGroupSummary
                         {
                             Id = task.SelectionGroup.Id,
@@ -152,6 +233,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             WasInactive = task.SelectionGroup.ContentInstanceUrl == null,
                             IsInactive = task.ReductionStatus != ReductionStatusEnum.Reduced,
                             InactiveReason = errorMessage,
+                            PreviewLink = reducedLinkBuilder.Uri.AbsoluteUri,
                             SelectionChanges = task.SelectionGroup.IsMaster
                                 ? null
                                 : new ContentReductionHierarchy<ReductionFieldValueChange>
@@ -258,79 +340,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ReturnObj.AssociatedFiles.Add(summary);
             }
 
-            string ContentRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
-            foreach (ContentRelatedFile RelatedFile in PubRequest.LiveReadyFilesObj)
-            {
-                string Link = Path.GetRelativePath(ContentRootPath, RelatedFile.FullPath);
-                UriBuilder contentUri = new UriBuilder
-                {
-                    Scheme = Context.Request.Scheme,
-                    Host = Context.Request.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
-                    Port = Context.Request.Host.Port ?? -1,
-                };
-
-                switch (RelatedFile.FilePurpose.ToLower())
-                {
-                    case "mastercontent":
-                        switch (PubRequest.RootContentItem.ContentType.TypeEnum)
-                        {
-                            case ContentTypeEnum.PowerBi:
-                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}";
-                                contentUri.Query = $"request={PubRequest.Id}";
-
-                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
-                                break;
-
-                            case ContentTypeEnum.Qlikview:
-                                contentUri.Path = "/AuthorizedContent/QvwPreview";
-                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
-                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
-                                break;
-
-                            case ContentTypeEnum.Pdf:
-                                contentUri.Path = "/AuthorizedContent/PdfPreview";
-                                contentUri.Query = $"purpose=mastercontent&publicationRequestId={PubRequest.Id}";
-                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
-                                break;
-
-                            case ContentTypeEnum.Html:
-                                contentUri.Path = "/AuthorizedContent/HtmlPreview";
-                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
-                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
-                                break;
-
-                            case ContentTypeEnum.FileDownload:
-                                contentUri.Path = "/AuthorizedContent/FileDownloadPreview";
-                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
-                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
-                                break;
-
-                            default:
-                                break;
-                        }
-                        break;
-
-                    case "thumbnail":
-                        contentUri.Path = "/AuthorizedContent/ThumbnailPreview";
-                        contentUri.Query = $"publicationRequestId={PubRequest.Id}";
-                        // this doesn't happen
-                        ReturnObj.ThumbnailLink = contentUri.Uri.AbsoluteUri;
-                        break;
-
-                    case "userguide":
-                        contentUri.Path = "/AuthorizedContent/PdfPreview";
-                        contentUri.Query = $"purpose=userguide&publicationRequestId={PubRequest.Id}";
-                        ReturnObj.UserGuideLink = contentUri.Uri.AbsoluteUri;
-                        break;
-
-                    case "releasenotes":
-                        contentUri.Path = "/AuthorizedContent/PdfPreview";
-                        contentUri.Query = $"purpose=releasenotes&publicationRequestId={PubRequest.Id}";
-                        ReturnObj.ReleaseNotesLink = contentUri.Uri.AbsoluteUri;
-                        break;
-                }
-            }
-
             return ReturnObj;
         }
 
@@ -364,6 +373,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public bool IsInactive { get; set; }
         public string InactiveReason { get; set; } = null;
         public ContentReductionHierarchy<ReductionFieldValueChange> SelectionChanges { get; set; }
+        public string PreviewLink { get; set; } = null;
     }
 
     public class AssociatedFilePreviewSummary : AssociatedFileModel
