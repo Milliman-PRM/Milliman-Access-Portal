@@ -12,9 +12,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
+using Newtonsoft.Json.Linq;
 using Serilog;
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -184,9 +184,12 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             selectionGroupUsers.Add(userInfo); 
                         }
 
-                        string errorMessage;
+                        string errorMessage = null;
                         switch (task.OutcomeMetadataObj.OutcomeReason)
                         {
+                            case MapDbReductionTaskOutcomeReason.Success:
+                            case MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned:
+                                break;
                             case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
                                 errorMessage = "This group has no selections.";
                                 break;
@@ -194,13 +197,10 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 errorMessage = "None of this group's selections are in the new hierarchy.";
                                 break;
                             case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
-                                errorMessage = "The reduction did not produce an output file. "
-                                    + "This could be caused by selections that result in no matching data.";
+                                errorMessage = "The reduction did not produce an output file. This could be caused by selections that result in no matching data.";
                                 break;
                             default:
-                                errorMessage = null;
-                                Log.Warning("Unexpected outcome reason in go live preview "
-                                    + $"for reduction task {task.Id}: {task.OutcomeMetadataObj.OutcomeReason}");
+                                Log.Warning($"Unexpected outcome reason in go live preview for reduction task {task.Id}: {task.OutcomeMetadataObj.OutcomeReason}");
                                 break;
                         }
 
@@ -345,6 +345,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public static explicit operator PreLiveContentValidationSummaryLogModel(PreLiveContentValidationSummary source)
         {
+            var x = JArray.FromObject(source.SelectionGroups);
+
             return new PreLiveContentValidationSummaryLogModel
             {
                 ValidationSummaryId = source.ValidationSummaryId,
@@ -358,6 +360,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 DoesReduce = source.DoesReduce,
                 ClientId = source.ClientId,
                 ClientName = source.ClientName,
+                ClientCode = source.ClientCode,
+                SelectionGroupSummary = JArray.FromObject(source.SelectionGroups),
             };
         }
     }

@@ -762,7 +762,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> PreLiveSummary(Guid RootContentItemId)
         {
-            Log.Verbose($"Entered ContentPublishingController.PreLiveSummary action with content item {RootContentItemId}");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action with content item {RootContentItemId}");
 
             #region Authorization
             AuthorizationResult roleInRootContentItem = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, RootContentItemId));
@@ -785,7 +785,7 @@ namespace MillimanAccessPortal.Controllers
 
             PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(_dbContext, RootContentItemId, ApplicationConfig, HttpContext);
 
-            Log.Verbose($"In ContentPublishingController.PreLiveSummary action: success, returning summary {ReturnObj.ValidationSummaryId}");
+            Log.Debug($"{ControllerContext.ActionDescriptor.DisplayName} action: success, returning summary {ReturnObj.ValidationSummaryId}");
             AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent((PreLiveContentValidationSummaryLogModel)ReturnObj));
 
             return new JsonResult(ReturnObj);
