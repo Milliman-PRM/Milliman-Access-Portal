@@ -934,8 +934,8 @@ const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
     if (action.response.releaseNotesLink) {
       elementsToConfirm.releaseNotes = false;
     }
-    if (action.response.liveHierarchy && action.response.newHierarchy) {
-      elementsToConfirm.hierarchyChanges = false;
+    if (action.response.reductionHierarchy) {
+      elementsToConfirm.reductionHierarchy = false;
     }
     if (action.response.selectionGroups) {
       elementsToConfirm.selectionGroups = false;
