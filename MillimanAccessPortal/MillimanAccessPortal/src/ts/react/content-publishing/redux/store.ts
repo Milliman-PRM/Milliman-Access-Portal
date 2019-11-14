@@ -104,7 +104,7 @@ export interface ElementsToConfirm {
   thumbnail?: boolean;
   userguide?: boolean;
   releaseNotes?: boolean;
-  hierarchyChanges?: boolean;
+  reductionHierarchy?: boolean;
   selectionGroups?: boolean;
 }
 
