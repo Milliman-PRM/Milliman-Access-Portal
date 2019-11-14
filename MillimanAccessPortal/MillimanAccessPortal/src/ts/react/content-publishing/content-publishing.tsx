@@ -42,6 +42,7 @@ import { Select } from '../shared-components/form/select';
 import { NavBar } from '../shared-components/navbar';
 import { Dict } from '../shared-components/redux/store';
 import { GoLiveSection } from './go-live-section';
+import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
@@ -629,22 +630,22 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             Click to Download
           </a>
         ) : (
-          <ContentContainer
-            contentType={contentTypeMap[goLiveSummary.contentTypeName]}
-            contentURL={goLiveSummary.masterContentLink}
-          >
-            <a
-              href={goLiveSummary.masterContentLink}
-              className="new-tab-icon"
-              target="_blank"
-              title="Open in new tab"
+            <ContentContainer
+              contentType={contentTypeMap[goLiveSummary.contentTypeName]}
+              contentURL={goLiveSummary.masterContentLink}
             >
-              <svg className="action-icon-expand-frame action-icon tooltip">
-                <use xlinkHref="#expand-frame" />
-              </svg>
-            </a>
-          </ContentContainer>
-        )}
+              <a
+                href={goLiveSummary.masterContentLink}
+                className="new-tab-icon"
+                target="_blank"
+                title="Open in new tab"
+              >
+                <svg className="action-icon-expand-frame action-icon tooltip">
+                  <use xlinkHref="#expand-frame" />
+                </svg>
+              </a>
+            </ContentContainer>
+          )}
       </GoLiveSection>
     );
     const thumbnailPreview = goLiveSummary && goLiveSummary.thumbnailLink && (
@@ -708,6 +709,31 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         </ContentContainer>
       </GoLiveSection>
     );
+    const hierarchyValues = goLiveSummary && goLiveSummary.reductionHierarchy && (
+      <GoLiveSection
+        title="Hierarchy Changes"
+        checkboxLabel="All hierarchy changes are as expected"
+        checkboxTarget="reductionHierarchy"
+        checkboxSelectedValue={elementsToConfirm.reductionHierarchy}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
+        <HierarchyDiffs
+          changedOnly={false}
+          hierarchy={goLiveSummary.reductionHierarchy}
+        />
+      </GoLiveSection>
+    );
+    const selectionGroups = goLiveSummary && goLiveSummary.selectionGroups && (
+      <GoLiveSection
+        title="Selection Groups"
+        checkboxLabel="All reductions are as expected"
+        checkboxTarget="selectionGroups"
+        checkboxSelectedValue={elementsToConfirm.selectionGroups}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
+        <div>Selection Groups go here...</div>
+      </GoLiveSection>
+    );
     const attestationLanguage = goLiveSummary && goLiveSummary.attestationLanguage && (
       <div dangerouslySetInnerHTML={{ __html: goLiveSummary.attestationLanguage }} />
     );
@@ -725,11 +751,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
           <h2>{goLiveSummary && goLiveSummary.rootContentName}</h2>
-          {contentCardPreview}
           {masterContentPreview}
           {thumbnailPreview}
           {userGuidePreview}
           {releaseNotesPreview}
+          {hierarchyValues}
+          {selectionGroups}
           {attestationLanguage}
         </ContentPanelSectionContent>
         <div className="go-live-button-container">
@@ -765,6 +792,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         </div>
       </ContentPanel>
     );
+
   }
 }
 
