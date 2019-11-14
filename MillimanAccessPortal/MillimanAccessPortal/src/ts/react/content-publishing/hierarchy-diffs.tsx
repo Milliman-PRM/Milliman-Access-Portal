@@ -1,22 +1,59 @@
 import * as React from 'react';
 
+import {
+  ContentReductionHierarchy, FieldValueChange, FieldValueChangeName, ReductionField,
+  ReductionFieldValue,
+} from '../../view-models/content-publishing';
+
 interface HierarchyDiffsProps {
   changedOnly: boolean;
-  hierarchy: []
-}
-
-enum FieldValueChange {
-  noChange = 0,
-  added = 1,
-  removed = 2,
+  hierarchy: ContentReductionHierarchy<ReductionFieldValue>;
 }
 
 export class HierarchyDiffs extends React.Component<HierarchyDiffsProps, {}> {
+
   public render() {
-    const { changedOnly, hierarchy } = this.props;
+    const { hierarchy } = this.props;
+    const hierarchyValues = hierarchy.fields.map((item) => (
+      <>
+        {this.renderFieldValues(item)}
+      </>
+    ));
     return (
       <div className="hierarchy-diffs">
+        {hierarchyValues}
       </div>
     );
   }
+
+  private renderFieldValues(field: ReductionField<ReductionFieldValue>) {
+    const fieldValues = (this.props.changedOnly)
+      ? field.values.map((item, key) =>
+        item.valueChange !== FieldValueChange.noChange && (
+          <tr key={key} className={`status-${item.valueChange}`}>
+            <td>{FieldValueChangeName[item.valueChange]}</td>
+            <td>{item.value}</td>
+          </tr>),
+      )
+      : field.values.map((item, key) => (
+        <tr key={key} className={`status-${item.valueChange}`}>
+          <td>{FieldValueChangeName[item.valueChange]}</td>
+          <td>{item.value}</td>
+        </tr>),
+      );
+
+    return (
+      <>
+        <h4>{field.displayName}</h4>
+        <table>
+          <tr>
+            <th>Status</th>
+            <th>Value</th>
+          </tr>
+          {fieldValues}
+        </table>
+      </>
+    );
+  }
+
 }
