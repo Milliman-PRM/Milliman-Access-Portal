@@ -187,7 +187,13 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                                 Id = v.Id,
                                                 ValueChange = FieldValueChange.Removed,
                                             }))
-                                            // No unchanged values in this part of the model.  If desired, use .Concat(...) here like above.
+                                            .Concat(unchangedValues.Select(v => new ReductionFieldValueChange
+                                            {
+                                                Value = v.Value,
+                                                Id = v.Id,
+                                                ValueChange = FieldValueChange.NoChange,
+                                            }))
+                                            .OrderBy(v => v.Value)
                                             .ToList()
                                         };
                                     })
