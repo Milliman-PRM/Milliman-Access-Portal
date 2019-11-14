@@ -128,6 +128,14 @@ if ($sessionFileCount -gt 0)
            
            $sessionEndTime = $sessionStartTime.AddSeconds($duration.TotalSeconds)
 
+           if ($sessionEndTime -lt $sessionStartTime)
+           {
+               write-output "$(get-date) ERROR: Calculated sessionEndTime is before the sessionStartTime"
+               write-output "Start time was $sessionStartTime"
+               write-output "End time was calculated as $sessionEndTime"
+               exit -42
+           }
+
            $sessionValues += "('$($session.Timestamp)', '$($session.Document)', '$($session.'Exit Reason')', '$($session.'Session Start')', '$duration', '$($sessionEndTime.ToString())', '$($session.'Authenticated user')', '$($session.'Cal Type')', '', '$($session.Session)', '$($file.Name)', $lineNumber)"
            $lineNumber++
         }
