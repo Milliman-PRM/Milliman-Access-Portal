@@ -39,6 +39,7 @@ import {
 } from '../shared-components/form/form-elements';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { Select } from '../shared-components/form/select';
+import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { Dict } from '../shared-components/redux/store';
 import { GoLiveSection } from './go-live-section';
@@ -54,6 +55,7 @@ import {
   GoLiveSummaryData, PublishingFormData, PublishingState, PublishingStateCardAttributes,
   PublishingStateFilters, PublishingStatePending, PublishingStateSelected,
 } from './redux/store';
+import { SelectionGroupDetails } from './selection-group-summary';
 
 type ClientEntity = (ClientWithStats & { indent: 1 | 2 }) | 'divider';
 interface RootContentItemEntity extends RootContentItemWithPublication {
@@ -603,7 +605,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderGoLiveSummary() {
-    const { elementsToConfirm, goLiveSummary, rootContentItemId } = this.props.goLiveSummary;
+    const {
+      elementsToConfirm, goLiveSummary, rootContentItemId, onlyChangesShown,
+    } = this.props.goLiveSummary;
     const contentCardPreview = goLiveSummary && (
       <ContentCard
         id={this.props.goLiveSummary.rootContentItemId}
@@ -717,8 +721,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         checkboxSelectedValue={elementsToConfirm.reductionHierarchy}
         checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
       >
+        <Toggle
+          label="Show only changed values"
+          checked={onlyChangesShown}
+          onClick={() => this.props.toggleShowOnlyChanges({})}
+        />
         <HierarchyDiffs
-          changedOnly={false}
+          changedOnly={onlyChangesShown}
           hierarchy={goLiveSummary.reductionHierarchy}
         />
       </GoLiveSection>
