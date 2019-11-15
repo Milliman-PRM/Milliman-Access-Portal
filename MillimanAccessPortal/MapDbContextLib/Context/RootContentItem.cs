@@ -52,10 +52,7 @@ namespace MapDbContextLib.Context
                 {
                     case ContentTypeEnum.PowerBi:
                         return JsonConvert.DeserializeObject<PowerBiContentItemProperties>(TypeSpecificDetail, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Include });
-                    case ContentTypeEnum.Qlikview:
-                    case ContentTypeEnum.Pdf:
-                    case ContentTypeEnum.Html:
-                    case ContentTypeEnum.FileDownload:
+
                     default:
                         return null;
                 }
@@ -73,6 +70,25 @@ namespace MapDbContextLib.Context
                     case ContentTypeEnum.FileDownload:
                     default:
                         break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the Type of the TypeSpecificDetailObject property, which depends on the ContentType navigation property
+        /// </summary>
+        [NotMapped]
+        public Type TypeSpecificDetailObjectType
+        {
+            get
+            {
+                switch (ContentType?.TypeEnum ?? ContentTypeEnum.Unknown)
+                {
+                    case ContentTypeEnum.PowerBi:
+                        return typeof(PowerBiContentItemProperties);
+
+                    default:
+                        return null;
                 }
             }
         }

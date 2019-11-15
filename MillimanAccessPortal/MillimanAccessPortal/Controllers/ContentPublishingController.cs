@@ -1067,6 +1067,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 model = jObject.ToObject<RootContentItem>();
+                model.ContentType = await _dbContext.ContentType.SingleOrDefaultAsync(ct => ct.Id == model.ContentTypeId);
             }
             catch (Exception ex)
             {
@@ -1074,32 +1075,11 @@ namespace MillimanAccessPortal.Controllers
                 return null;
             }
 
-            #region Handle type specific properties, if any
+            // Handle type specific properties, if any
             if (jObject.TryGetValue("TypeSpecificDetailObject", StringComparison.InvariantCultureIgnoreCase, out JToken typeSpecificDetailObjectToken))
             {
-                ContentTypeEnum requestedContentType = (await _dbContext.ContentType.SingleOrDefaultAsync(ct => ct.Id == model.ContentTypeId))?.TypeEnum ?? ContentTypeEnum.Unknown;
-                switch (requestedContentType)
-                {
-                    case ContentTypeEnum.PowerBi:
-                        var pbiProperties = new PowerBiContentItemProperties
-                        {
-                            FilterPaneEnabled = typeSpecificDetailObjectToken.Value<bool>("FilterPaneEnabled"),
-                            NavigationPaneEnabled = typeSpecificDetailObjectToken.Value<bool>("NavigationPaneEnabled"),
-                            BookmarksPaneEnabled = typeSpecificDetailObjectToken.Value<bool>("BookmarksPaneEnabled"),
-                        };
-
-                        model.TypeSpecificDetailObject = pbiProperties;
-                        break;
-
-                    case ContentTypeEnum.Qlikview:
-                    case ContentTypeEnum.Pdf:
-                    case ContentTypeEnum.Html:
-                    case ContentTypeEnum.FileDownload:
-                    default:
-                        break;
-                }
+                model.TypeSpecificDetailObject = (TypeSpecificContentItemProperties)typeSpecificDetailObjectToken.ToObject(model.TypeSpecificDetailObjectType);
             }
-            #endregion
 
             // TODO Validate that the model is adequate
 
