@@ -31,8 +31,28 @@
     }
 }
 
+.go-live-section {
+    margin-bottom: 2em;
+
+    #iframe-container,
+    .download-preview,
+    .thumbnailPreview {
+        padding: 1em;
+    }
+
+    .thumbnailContainer {
+        text-align: center;
+
+        .thumbnailPreview {
+            max-width: 70%;
+            max-height: 15em;
+        }
+    }
+}
+
 .hierarchy-diffs {
-    
+    padding: 0 0 0 1em;
+
     table {
         width: 100%;
         background-color: $white;
@@ -47,23 +67,30 @@
             }
         }
 
-        tr.status-1 {   // Added
+        tr.status-1 { // Added
             background-color: rgba($green, .3);
         }
 
-        tr.status-2 {   // Removed
+        tr.status-2 { // Removed
             background-color: rgba($red, .3);
         }
     }
 }
 
 .selection-group-detail {
+    padding: 1em;
+    margin: 1em 1em 1em 2em;
+    border: 1px solid $charcoal;
+    background-color: $white;
+
     span.status {
         font-size: .75em;
     }
+
     span.inactive-status {
         color: $red;
     }
+
     span.active-status {
         color: $green;
     }

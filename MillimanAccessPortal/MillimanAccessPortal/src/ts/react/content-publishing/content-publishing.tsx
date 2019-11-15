@@ -630,9 +630,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
       >
         {(goLiveSummary.contentTypeName === 'FileDownload') ? (
-          <a href={goLiveSummary.masterContentLink} download={true}>
-            Click to Download
-          </a>
+          <div className="download-preview">
+            <a href={goLiveSummary.masterContentLink} download={true}>
+              Click to Download
+            </a>
+          </div>
         ) : (
             <ContentContainer
               contentType={contentTypeMap[goLiveSummary.contentTypeName]}
@@ -660,7 +662,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         checkboxSelectedValue={elementsToConfirm.thumbnail}
         checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
       >
-        <img src={goLiveSummary.thumbnailLink} />
+        <div className="thumbnailContainer">
+          <img className="thumbnailPreview" src={goLiveSummary.thumbnailLink} />
+        </div>
       </GoLiveSection>
     );
     const userGuidePreview = goLiveSummary && goLiveSummary.userGuideLink && (
@@ -752,7 +756,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       </GoLiveSection>
     );
     const attestationLanguage = goLiveSummary && goLiveSummary.attestationLanguage && (
-      <div dangerouslySetInnerHTML={{ __html: goLiveSummary.attestationLanguage }} />
+      <>
+        <h3>Attestation</h3>
+        <div dangerouslySetInnerHTML={{ __html: goLiveSummary.attestationLanguage }} />
+      </>
     );
     return (
       <ContentPanel loading={this.props.pending.data.goLiveSummary}>
