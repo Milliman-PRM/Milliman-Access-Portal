@@ -102,6 +102,7 @@ const _initialGoLiveData: GoLiveSummaryData = {
   rootContentItemId: null,
   goLiveSummary: null,
   elementsToConfirm: null,
+  onlyChangesShown: false,
 };
 
 const _initialPendingData: PendingDataState = {
@@ -919,6 +920,7 @@ const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
     rootContentItemId: action.request.rootContentItemId,
     goLiveSummary: null,
     elementsToConfirm: null,
+    onlyChangesShown: false,
   }),
   FETCH_GO_LIVE_SUMMARY_SUCCEEDED: (state, action: PublishingActions.FetchGoLiveSummarySucceeded) => {
     const elementsToConfirm: ElementsToConfirm = {};
@@ -951,21 +953,29 @@ const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
     rootContentItemId: null,
     goLiveSummary: null,
     elementsToConfirm: null,
+    onlyChangesShown: false,
   }),
   APPROVE_GO_LIVE_SUMMARY_SUCCEEDED: () => ({
     rootContentItemId: null,
     goLiveSummary: null,
     elementsToConfirm: null,
+    onlyChangesShown: false,
   }),
   REJECT_GO_LIVE_SUMMARY_SUCCEEDED: () => ({
     rootContentItemId: null,
     goLiveSummary: null,
     elementsToConfirm: null,
+    onlyChangesShown: false,
   }),
   SELECT_ITEM: () => ({
     rootContentItemId: null,
     goLiveSummary: null,
     elementsToConfirm: null,
+    onlyChangesShown: false,
+  }),
+  TOGGLE_SHOW_ONLY_CHANGES: (state) => ({
+    ...state,
+    onlyChangesShown: !state.onlyChangesShown,
   }),
   TOGGLE_GO_LIVE_CONFIRMATION_CHECKBOX: (
     state, action: PublishingActions.ToggleGoLiveConfirmationCheckbox,

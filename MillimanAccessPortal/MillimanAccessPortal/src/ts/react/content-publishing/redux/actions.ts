@@ -79,6 +79,13 @@ export interface ToggleGoLiveConfirmationCheckbox {
 }
 
 /**
+ * Set filter text for the content item card filter.
+ */
+export interface ToggleShowOnlyChanges {
+  type: 'TOGGLE_SHOW_ONLY_CHANGES';
+}
+
+/**
  * Display a toast indicating that the status refresh polling has stopped
  */
 export interface PromptStatusRefreshStopped {
@@ -446,6 +453,7 @@ export type PagePublishingAction =
   | SetFormForNewContentItem
   | SetFilterTextClient
   | SetFilterTextItem
+  | ToggleShowOnlyChanges
   | ToggleGoLiveConfirmationCheckbox
   | SetPublishingFormTextInputValue
   | SetPublishingFormBooleanInputValue

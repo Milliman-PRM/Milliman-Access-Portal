@@ -17,6 +17,8 @@ export const setFilterTextClient =
   createActionCreator<PublishActions.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');
 export const setFilterTextItem =
   createActionCreator<PublishActions.SetFilterTextItem>('SET_FILTER_TEXT_ITEM');
+export const toggleShowOnlyChanges =
+  createActionCreator<PublishActions.ToggleShowOnlyChanges>('TOGGLE_SHOW_ONLY_CHANGES');
 export const toggleGoLiveConfirmationCheckbox =
   createActionCreator<PublishActions.ToggleGoLiveConfirmationCheckbox>(
     'TOGGLE_GO_LIVE_CONFIRMATION_CHECKBOX',

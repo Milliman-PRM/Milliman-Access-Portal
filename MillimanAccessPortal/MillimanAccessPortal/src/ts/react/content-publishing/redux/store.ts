@@ -93,6 +93,7 @@ export interface GoLiveSummaryData {
   rootContentItemId: Guid;
   goLiveSummary: PreLiveContentValidationSummary;
   elementsToConfirm: ElementsToConfirm;
+  onlyChangesShown: boolean;
 }
 
 /**
