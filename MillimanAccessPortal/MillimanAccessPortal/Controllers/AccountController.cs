@@ -22,6 +22,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AccountViewModels;
+using MillimanAccessPortal.Models.SharedModels;
 using MillimanAccessPortal.Services;
 using AuditLogLib;
 using AuditLogLib.Event;
@@ -217,7 +218,7 @@ namespace MillimanAccessPortal.Controllers
 
                 if (user == null)
                 {
-                    Log.Debug($"User {model.Username} not found, local login rejected");
+                    Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} not found, local login rejected");
                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
                     Response.Headers.Add("Warning", "Invalid login attempt.");
                     return Ok();
@@ -226,7 +227,7 @@ namespace MillimanAccessPortal.Controllers
                 if (user.IsSuspended)
                 {
                     _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName));
-                    Log.Debug($"User {user.UserName} suspended, local login rejected");
+                    Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, User {user.UserName} suspended, local login rejected");
 
                     Response.Headers.Add("Warning", "This account is currently suspended.  Please contact your Milliman consultant, or email map.support@milliman.com");
                     return Ok();
@@ -409,7 +410,7 @@ namespace MillimanAccessPortal.Controllers
             // If any users exist, return 404. We don't want to even hint that this URL is valid.
             if (_userManager.Users.Any())
             {
-                Log.Debug($"CreateInitialUser unsuccessful, user(s) already exist");
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, unsuccessful, some user(s) already exist");
                 return NotFound();
             }
 
@@ -466,7 +467,7 @@ namespace MillimanAccessPortal.Controllers
             }
             await _signInManager.SignOutAsync();
 
-            Log.Verbose($"In AccountController.Logout action: user {appUser?.UserName ?? "<unknown>"} logged out.");
+            Log.Debug($"In AccountController.Logout action: user {appUser?.UserName ?? "<unknown>"} logged out.");
             _auditLogger.Log(AuditEventType.Logout.ToEvent(), appUser?.UserName);
 
             Response.Cookies.Delete(SessionDefaults.CookieName);
@@ -663,19 +664,19 @@ namespace MillimanAccessPortal.Controllers
 
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(code))
             {
-                Log.Debug("In AccountController.EnableAccount GET action: invalid argument(s), aborting");
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: missing argument(s), aborting");
                 return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
             }
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                Log.Debug($"In AccountController.EnableAccount GET action: user {userId} not found, aborting");
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: user {userId} not found, aborting");
                 return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
             }
 
             if (user.EmailConfirmed)  // Account is already activated
             {
-                Log.Debug($"In AccountController.EnableAccount GET action: user {userId} account is already enabled, aborting");
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: user {userId} account is already enabled, aborting");
                 return RedirectToAction(nameof(Login));
             }
 
@@ -727,13 +728,13 @@ namespace MillimanAccessPortal.Controllers
             var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null)
             {
-                Log.Debug($"In AccountController.EnableAccount POST action: user {model.Id} no found, aborting");
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user {model.Id} not found, aborting");
                 return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
             }
 
             if (user.EmailConfirmed)  // Account is already activated
             {
-                Log.Debug($"In AccountController.EnableAccount POST action: user {model.Id} account is already activated, aborting");
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user {model.Id} account is already activated, aborting");
                 return RedirectToAction(nameof(Login));
             }
 
@@ -836,7 +837,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
-            Log.Verbose("Entered AccountController.ForgotPassword post action with {@ForgotPasswordViewModel}", model);
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} POST action with {{@ForgotPasswordViewModel}}", model);
 
             // Sends an email with password reset link to the requested user
             // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
@@ -848,18 +849,18 @@ namespace MillimanAccessPortal.Controllers
                     if (await _userManager.IsEmailConfirmedAsync(user))
                     {
                         await RequestPasswordReset(user, PasswordResetRequestReason.UserInitiated, Request.Scheme, Request.Host);
-                        Log.Verbose($"In AccountController.ForgotPassword post action: user email address <{model.Email}> reset succeeded");
+                        Log.Verbose($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user email address <{model.Email}> reset succeeded");
                     }
                     else
                     {
                         string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
                         Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, EmailBodyText));
-                        Log.Debug($"In AccountController.ForgotPassword post action: unconfirmed user email address <{model.Email}> requested, welcome email sent.");
+                        Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: unconfirmed user email address <{model.Email}> requested, welcome email sent.");
                     }
                 }
                 else
                 {
-                    Log.Debug($"In AccountController.ForgotPassword post action: user email address <{model.Email}> not found");
+                    Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user email address <{model.Email}> not found");
                     _auditLogger.Log(AuditEventType.PasswordResetRequestedForInvalidEmail.ToEvent(model.Email));
                 }
             }
@@ -870,18 +871,39 @@ namespace MillimanAccessPortal.Controllers
             return View("Message", passwordConfirmationMessage);
         }
 
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPasswordRequest(string userEmail, string passwordResetToken)
+        {
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} POST action");
+
+            ApplicationUser user = await _userManager.FindByEmailAsync(userEmail);
+            if (user == null)
+            {
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: user <{userEmail}> not found, aborting");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Password Reset Error"));
+            }
+
+            await RequestPasswordReset(user, PasswordResetRequestReason.PasswordResetTokenInvalid, Request.Scheme, Request.Host);
+            Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: new password reset requested for user {user.UserName}, previous link was expired");
+
+            string UserMsg = $"Thank you.  A new password reset email has been sent to {user.Email}.";
+            return View("Message", UserMsg);
+        }
+
         //
         // GET: /Account/ResetPassword
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> ResetPassword(string userEmail, string passwordResetToken)
         {
-            Log.Information("Entered AccountController.ResetPassword GET action with query string {@QueryString},", Request.QueryString);
+            Log.Information($"Entered {ControllerContext.ActionDescriptor.DisplayName} GET action with query string {{@QueryString}},", Request.QueryString);
 
             ApplicationUser user = await _userManager.FindByEmailAsync(userEmail);
             if (user == null)
             {
-                Log.Debug($"In AccountController.ResetPassword GET action: user <{userEmail}> not found, aborting");
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: user <{userEmail}> not found, aborting");
                 return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Password Reset Error"));
             }
 
@@ -890,23 +912,45 @@ namespace MillimanAccessPortal.Controllers
 
             if (!tokenIsValid)
             {
-                string UserMsg = "";
                 if (await _userManager.IsEmailConfirmedAsync(user))
                 {
-                    await RequestPasswordReset(user, PasswordResetRequestReason.PasswordResetTokenInvalid, Request.Scheme, Request.Host);
+                    Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: requested for user {user.UserName} having expired or invalid reset token");
 
-                    Log.Debug($"ResetPassword GET action requested for user {user.UserName} having expired or invalid reset token, new password reset email sent");
-                    UserMsg = "Your password reset link is invalid or expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
+                    var messageModel = new MessageWithButtons
+                    {
+                        Message = $"Your password reset link is invalid or expired.  Please click \"Reset Password\"  below to request an email with a new password reset link.",
+                        Buttons = new List<ConfiguredButton>
+                        {
+                            new ConfiguredButton
+                            {
+                                Value = "Reset Password",
+                                Action = nameof(ResetPasswordRequest),
+                                Controller = nameof(AccountController).Replace("Controller", ""),
+                                RouteData = new Dictionary<string, string>
+                                {
+                                    { nameof(userEmail), userEmail },
+                                    { nameof(passwordResetToken), passwordResetToken }
+                                }
+                            },
+                            new ConfiguredButton
+                            {
+                                Value = "Cancel",
+                                Action = nameof(Login),
+                                Controller = nameof(AccountController).Replace("Controller", ""),
+                                Method = "get",
+                            },
+                        }
+                    };
+                    return View("MessageWithButtons", messageModel);
                 }
                 else
                 {
                     string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
                     Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, EmailBodyText));
 
-                    Log.Debug($"ResetPassword GET action requested for user {user.UserName} with expired password reset token, new password reset email sent");
-                    UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
+                    Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}  GET action: requested for user {user.UserName} with unconfirmed account, new welcome user email sent");
+                    return View("Message", "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.");
                 }
-                return View("Message", UserMsg);
             }
 
             ResetPasswordViewModel model = new ResetPasswordViewModel
@@ -931,7 +975,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (!ModelState.IsValid)
             {
-                Log.Debug($"In AccountController.ResetPassword POST action: invalid ModelState, errors {string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}, aborting");
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: invalid ModelState, errors {string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}, aborting");
                 model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
                 return View(model);
             }
@@ -940,7 +984,7 @@ namespace MillimanAccessPortal.Controllers
             if (user == null)
             {
                 // Don't reveal that the user does not exist
-                Log.Debug($"In AccountController.ResetPassword POST action: requested user with email {model.Email} not found, current user will not be informed of the issue, aborting");
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: requested user with email {model.Email} not found, current user will not be informed of the issue, aborting");
                 return View("Message", passwordResetErrorMessage);
             }
             using (var Txn = DbContext.Database.BeginTransaction())
@@ -975,7 +1019,7 @@ namespace MillimanAccessPortal.Controllers
                     if (unlock.Succeeded && resetFailedCount.Succeeded && addHistoryResult.Succeeded)
                     {
                         Txn.Commit();
-                        Log.Debug($"In AccountController.ResetPassword POST action: succeeded for user {user.UserName }");
+                        Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: succeeded for user {user.UserName }");
                         _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user));
                         return View("Message", "Your password has been reset. <a href=\"/Account/Login\">Click here to log in</a>.");
                     }
@@ -991,7 +1035,7 @@ namespace MillimanAccessPortal.Controllers
                     if (await _userManager.IsEmailConfirmedAsync(user))
                     {
                         await RequestPasswordReset(user, PasswordResetRequestReason.PasswordResetTokenInvalid, Request.Scheme, Request.Host);
-                        Log.Debug($"In AccountController.ResetPassword POST action: for user {user.UserName}, expired reset token, new password reset email sent, aborting");
+                        Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: for user {user.UserName}, expired reset token, new password reset email sent, aborting");
                         UserMsg = "Your password reset link is invalid or expired.  A new password reset email is being sent to you now.  Please use the link in that email to reset your password.";
                     }
                     else
@@ -999,7 +1043,7 @@ namespace MillimanAccessPortal.Controllers
                         string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
                         Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, EmailBodyText));
 
-                        Log.Debug($"In AccountController.ResetPassword POST action: for user {user.UserName}, the account is not enabled, new welcome email sent, aborting");
+                        Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: for user {user.UserName}, the account is not enabled, new welcome email sent, aborting");
                         UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
                     }
                     return View("Message", UserMsg);
@@ -1356,8 +1400,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
             if (user == null)
             {
-                Log.Debug("In AccountController.UpdateAccount POST action: "
-                       + $"user {User.Identity.Name} not found, aborting");
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user {User.Identity.Name} not found, aborting");
                 return BadRequest();
             }
 
@@ -1376,16 +1419,14 @@ namespace MillimanAccessPortal.Controllers
                     bool currentPasswordIsCorrect = await _userManager.CheckPasswordAsync(user, model.Password.Current);
                     if (!currentPasswordIsCorrect)
                     {
-                        Log.Debug("In AccountController.UpdateAccount POST action: "
-                               + $"user {User.Identity.Name} Current Password incorrect");
+                        Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user {User.Identity.Name} Current Password incorrect");
                         Response.Headers.Add("warning", "The Current Password provided was incorrect");
                         return BadRequest();
                     }
 
                     if (model.Password.New != model.Password.Confirm)
                     {
-                        Log.Debug("In AccountController.UpdateAccount POST action: "
-                               + $"user {User.Identity.Name} New Password != Password");
+                        Log.Debug($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user {User.Identity.Name} New Password != Confirm Password");
                         Response.Headers.Add("warning", "New Password and Confirm Password must match");
                         return BadRequest();
                     }
