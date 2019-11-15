@@ -24,12 +24,23 @@ export class SelectionGroupDetails extends React.Component<SelectionGroupDetails
     return (
       <div key={key} className="selection-group-detail">
         <h3>{selectionGroup.name} {statusDetail}</h3>
+        <h4>Authorized Users:</h4>
+        <ul>
+          {
+            selectionGroup.users && selectionGroup.users.length > 0
+              ? selectionGroup.users.map((user, i) => <li key={i}>{user}</li>)
+              : <li><i>No Authorized Users</i></li>
+          }
+        </ul>
         {
           selectionGroup.selectionChanges && (
-            <HierarchyDiffs
-              hierarchy={selectionGroup.selectionChanges}
-              changedOnly={changedOnly}
-            />
+            <>
+              <h4>Reduction Value Changes:</h4>
+              <HierarchyDiffs
+                hierarchy={selectionGroup.selectionChanges}
+                changedOnly={changedOnly}
+              />
+            </>
           )
         }
       </div>
