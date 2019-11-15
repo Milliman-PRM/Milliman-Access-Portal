@@ -10,6 +10,8 @@ export const selectItem =
   createActionCreator<PublishActions.SelectItem>('SELECT_ITEM');
 export const setContentItemFormState =
   createActionCreator<PublishActions.SetContentItemFormState>('SET_CONTENT_ITEM_FORM_STATE');
+export const setFormForNewContentItem =
+  createActionCreator<PublishActions.SetFormForNewContentItem>('SET_FORM_FOR_NEW_CONTENT_ITEM');
 
 export const setFilterTextClient =
   createActionCreator<PublishActions.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');
@@ -41,6 +43,16 @@ export const fetchSessionCheck =
   createRequestActionCreator<PublishActions.FetchSessionCheck>('FETCH_SESSION_CHECK');
 
 // Updates
+export const createNewContentItem =
+  createRequestActionCreator<PublishActions.CreateNewContentItem>('CREATE_NEW_CONTENT_ITEM');
+export const updateContentItem =
+  createRequestActionCreator<PublishActions.UpdateContentItem>('UPDATE_CONTENT_ITEM');
+export const publishContentFiles =
+  createRequestActionCreator<PublishActions.PublishContentFiles>('PUBLISH_CONTENT_FILES');
+export const deleteContentItem =
+  createRequestActionCreator<PublishActions.DeleteContentItem>('DELETE_CONTENT_ITEM');
+export const cancelPublicationRequest =
+  createRequestActionCreator<PublishActions.CancelPublicationRequest>('CANCEL_PUBLICATION_REQUEST');
 
 // Scheduled actions
 export const scheduleStatusRefresh =

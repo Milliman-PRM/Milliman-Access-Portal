@@ -1,15 +1,20 @@
-import { select, takeLatest } from 'redux-saga/effects';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
 
-import { ClientWithEligibleUsers, RootContentItemWithStats } from '../../models';
+import { ClientWithEligibleUsers } from '../../models';
+import {
+  createErrorActionCreator, createRequestActionCreator, createResponseActionCreator,
+} from '../../shared-components/redux/action-creators';
+import { ErrorAction } from '../../shared-components/redux/actions';
 import {
   createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
 } from '../../shared-components/redux/sagas';
-import * as AccessActionCreators from './action-creators';
+import * as ContentPublishingActionCreators from './action-creators';
+import * as ContentPublishingActions from './actions';
 import {
   ErrorPublishingAction, PublishingAction, RequestPublishingAction, ResponsePublishingAction,
 } from './actions';
 import * as api from './api';
-import { remainingStatusRefreshAttempts, selectedClient, selectedItem } from './selectors';
+import { filesForPublishing, remainingStatusRefreshAttempts, selectedClient, selectedItem } from './selectors';
 
 /**
  * Custom effect for handling request actions.
@@ -42,6 +47,12 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
   yield takeLatestRequest('FETCH_ITEMS', api.fetchItems);
   yield takeLatestRequest('FETCH_CONTENT_ITEM_DETAIL', api.fetchContentItemDetail);
+  yield takeLatest('CREATE_NEW_CONTENT_ITEM', createNewContentItem);
+  yield takeLatestRequest('UPDATE_CONTENT_ITEM', api.updateContentItem);
+  yield takeLatestRequest('PUBLISH_CONTENT_FILES', api.publishContentFiles);
+  yield takeLatestRequest('DELETE_CONTENT_ITEM', api.deleteContentItem);
+  yield takeLatestRequest('CANCEL_PUBLICATION_REQUEST', api.cancelPublicationRequest);
+
   yield takeLatestRequest('FETCH_STATUS_REFRESH', api.fetchStatusRefresh);
   yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);
 
@@ -49,24 +60,32 @@ export default function* rootSaga() {
   yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
     const client: ClientWithEligibleUsers = yield select(selectedClient);
     return client
-      ? AccessActionCreators.fetchStatusRefresh({
+      ? ContentPublishingActionCreators.fetchStatusRefresh({
         clientId: client.id,
       })
-      : AccessActionCreators.scheduleStatusRefresh({ delay: 5000 });
+      : ContentPublishingActionCreators.scheduleStatusRefresh({ delay: 5000 });
+  });
+  yield takeLatestSchedule('PUBLISH_CONTENT_FILES_SUCCEEDED', function*() {
+    const client: ClientWithEligibleUsers = yield select(selectedClient);
+    if (client.id) {
+      ContentPublishingActionCreators.fetchStatusRefresh({
+        clientId: client.id,
+      });
+    }
   });
   yield takeLatestSchedule('FETCH_STATUS_REFRESH_SUCCEEDED',
-    () => AccessActionCreators.scheduleStatusRefresh({ delay: 5000 }));
+    () => ContentPublishingActionCreators.scheduleStatusRefresh({ delay: 5000 }));
   yield takeLatestSchedule('FETCH_STATUS_REFRESH_FAILED',
-    () => AccessActionCreators.decrementStatusRefreshAttempts({}));
+    () => ContentPublishingActionCreators.decrementStatusRefreshAttempts({}));
   yield takeLatestSchedule('DECREMENT_STATUS_REFRESH_ATTEMPTS', function*() {
     const retriesLeft: number = yield select(remainingStatusRefreshAttempts);
     return retriesLeft
-      ? AccessActionCreators.scheduleStatusRefresh({ delay: 5000 })
-      : AccessActionCreators.promptStatusRefreshStopped({});
+      ? ContentPublishingActionCreators.scheduleStatusRefresh({ delay: 5000 })
+      : ContentPublishingActionCreators.promptStatusRefreshStopped({});
   });
-  yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessActionCreators.fetchSessionCheck({}));
+  yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => ContentPublishingActionCreators.fetchSessionCheck({}));
   yield takeLatestSchedule('FETCH_SESSION_CHECK_SUCCEEDED',
-    () => AccessActionCreators.scheduleSessionCheck({ delay: 60000 }));
+    () => ContentPublishingActionCreators.scheduleSessionCheck({ delay: 60000 }));
   yield takeLatest('FETCH_SESSION_CHECK_FAILED', function*() { yield window.location.reload(); });
 
   // Toasts
@@ -84,4 +103,32 @@ export default function* rootSaga() {
       ? message
       : 'An unexpected error has occurred.',
     'error');
+}
+
+function* createNewContentItem(action: ContentPublishingActions.CreateNewContentItem) {
+  /**
+   * Make an asynchronous call to create a new root content item and then publish files
+   * @param apiCall API method to invoke
+   * @param action the request action that caused this saga to fire
+   */
+  try {
+    const newContentItem = yield call(api.createNewContentItem, action.request);
+    yield put(
+      createResponseActionCreator(
+        'CREATE_NEW_CONTENT_ITEM_SUCCEEDED' as ContentPublishingActions.CreateNewContentItem['type'],
+      )(newContentItem),
+    );
+    try {
+      const publishingPayload = yield select(filesForPublishing, newContentItem.detail.id);
+      yield put(
+        createRequestActionCreator(
+          'PUBLISH_CONTENT_FILES' as ContentPublishingActions.PublishContentFiles['type'],
+        )(publishingPayload),
+      );
+    } catch (error) {
+      yield put(createErrorActionCreator('PUBLISH_CONTENT_FILES_FAILED' as ErrorAction['type'])(error));
+    }
+  } catch (error) {
+    yield put(createErrorActionCreator('CREATE_NEW_CONTENT_ITEM_FAILED' as ErrorAction['type'])(error));
+  }
 }

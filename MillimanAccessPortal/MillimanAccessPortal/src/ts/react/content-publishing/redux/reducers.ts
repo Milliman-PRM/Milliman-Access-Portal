@@ -20,6 +20,10 @@ import {
   PublishingStateSelected,
 } from './store';
 
+const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
+  return (purpose !== undefined) && purpose.hasOwnProperty(value) ? purpose[value] : defaultValue;
+};
+
 const _initialData: PublishingStateData = {
   clients: {},
   items: {},
@@ -41,24 +45,24 @@ const emptyContentItemDetail: ContentItemDetail = {
   contentNotes: '',
   relatedFiles: {
     MasterContent: {
-      filePurpose: '',
       fileOriginalName: '',
       uniqueUploadId: '',
+      fileUploadId: '',
     },
     Thumbnail: {
-      filePurpose: '',
       fileOriginalName: '',
       uniqueUploadId: '',
+      fileUploadId: '',
     },
     UserGuide: {
-      filePurpose: '',
       fileOriginalName: '',
       uniqueUploadId: '',
+      fileUploadId: '',
     },
     ReleaseNotes: {
-      filePurpose: '',
       fileOriginalName: '',
       uniqueUploadId: '',
+      fileUploadId: '',
     },
   },
   associatedFiles: {},
@@ -98,6 +102,9 @@ const _initialPendingData: PendingDataState = {
   clients: false,
   items: false,
   contentItemDetail: false,
+  contentItemDeletion: false,
+  formSubmit: false,
+  publishing: false,
 };
 
 /**
@@ -164,6 +171,54 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     items: false,
   }),
+  CREATE_NEW_CONTENT_ITEM: (state) => ({
+    ...state,
+    formSubmit: true,
+  }),
+  CREATE_NEW_CONTENT_ITEM_SUCCEEDED: (state) => ({
+    ...state,
+    formSubmit: false,
+  }),
+  CREATE_NEW_CONTENT_ITEM_FAILED: (state) => ({
+    ...state,
+    formSubmit: false,
+  }),
+  UPDATE_CONTENT_ITEM: (state) => ({
+    ...state,
+    formSubmit: true,
+  }),
+  UPDATE_CONTENT_ITEM_SUCCEEDED: (state) => ({
+    ...state,
+    formSubmit: false,
+  }),
+  UPDATE_CONTENT_ITEM_FAILED: (state) => ({
+    ...state,
+    formSubmit: false,
+  }),
+  PUBLISH_CONTENT_FILES: (state) => ({
+    ...state,
+    publishing: true,
+  }),
+  PUBLISH_CONTENT_FILES_SUCCEEDED: (state) => ({
+    ...state,
+    publishing: false,
+  }),
+  PUBLISH_CONTENT_FILES_FAILED: (state) => ({
+    ...state,
+    publishing: false,
+  }),
+  DELETE_CONTENT_ITEM: (state) => ({
+    ...state,
+    contentItemDeletion: true,
+  }),
+  DELETE_CONTENT_ITEM_SUCCEEDED: (state) => ({
+    ...state,
+    contentItemDeletion: false,
+  }),
+  DELETE_CONTENT_ITEM_FAILED: (state) => ({
+    ...state,
+    contentItemDeletion: false,
+  }),
 });
 
 const pendingStatusTries = createReducer<number>(5, {
@@ -221,6 +276,63 @@ const data = createReducer<PublishingStateData>(_initialData, {
       publicationQueue: action.response.publicationQueue,
     };
   },
+  CREATE_NEW_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.CreateNewContentItemSucceeded) => {
+    const { detail, summary } = action.response;
+    return {
+      ...state,
+      items: {
+        ...state.items,
+        [detail.id]: {
+          id: detail.id,
+          clientId: detail.clientId,
+          name: detail.contentName,
+          contentTypeId: detail.contentTypeId,
+          doesReduce: detail.doesReduce,
+          isSuspended: detail.isSuspended,
+          assignedUserCount: summary.assignedUserCount,
+          selectionGroupCount: summary.groupCount,
+        },
+      },
+    };
+  },
+  UPDATE_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.UpdateContentItemSucceeded) => {
+    const { detail, summary } = action.response;
+    return {
+      ...state,
+      items: {
+        ...state.items,
+        [detail.id]: {
+          id: detail.id,
+          clientId: detail.clientId,
+          name: detail.contentName,
+          contentTypeId: detail.contentTypeId,
+          doesReduce: detail.doesReduce,
+          isSuspended: detail.isSuspended,
+          assignedUserCount: summary.assignedUserCount,
+          selectionGroupCount: summary.groupCount,
+        },
+      },
+    };
+  },
+  DELETE_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.DeleteContentItemSucceeded) => {
+    const items = { ...state.items };
+    delete items[action.response.id];
+
+    return {
+      ...state,
+      items,
+    };
+  },
+  CANCEL_PUBLICATION_REQUEST_SUCCEEDED: (state, action: PublishingActions.CancelPublicationRequestSucceeded) => {
+    const { publications, publicationQueue, contentItems: items } = action.response.statusResponseModel;
+
+    return {
+      ...state,
+      items,
+      publications,
+      publicationQueue,
+    };
+  },
 });
 
 const formData = createReducer<PublishingFormData>(_initialFormData, {
@@ -237,32 +349,28 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       }
     }
 
-    const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
-      return (purpose !== undefined) && purpose.hasOwnProperty(value) ? purpose[value] : defaultValue;
-    };
-
     const contentItemDetail = {
       ...action.response,
       relatedFiles: {
         MasterContent: {
-          filePurpose: defaultIfUndefined(action.response.relatedFiles.MasterContent, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.MasterContent, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('MasterContent'),
+          fileUploadId: '',
         },
         Thumbnail: {
-          filePurpose: defaultIfUndefined(action.response.relatedFiles.Thumbnail, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.Thumbnail, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('Thumbnail'),
+          fileUploadId: '',
         },
         UserGuide: {
-          filePurpose: defaultIfUndefined(action.response.relatedFiles.UserGuide, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.UserGuide, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('UserGuide'),
+          fileUploadId: '',
         },
         ReleaseNotes: {
-          filePurpose: defaultIfUndefined(action.response.relatedFiles.ReleaseNotes, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.ReleaseNotes, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
+          fileUploadId: '',
         },
       },
       associatedFiles: {
@@ -304,6 +412,45 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       formState: state.formState,
     };
   },
+  SET_FORM_FOR_NEW_CONTENT_ITEM: (_state, action: PublishingActions.SetFormForNewContentItem) => {
+    const contentItemDetail: ContentItemDetail = emptyContentItemDetail;
+
+    contentItemDetail.clientId = action.clientId;
+    contentItemDetail.relatedFiles.MasterContent.uniqueUploadId = generateUniqueId('MasterContent');
+    contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId = generateUniqueId('Thumbnail');
+    contentItemDetail.relatedFiles.UserGuide.uniqueUploadId = generateUniqueId('UserGuide');
+    contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId = generateUniqueId('ReleaseNotes');
+
+    const newUpload: UploadState = {
+      cancelable: false,
+      errorMsg: null,
+      checksumProgress: ProgressSummary.empty(),
+      uploadProgress: ProgressSummary.empty(),
+    };
+
+    const uploads: Dict<UploadState> = {
+      [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+    };
+
+    const emptyContentItemFormData: PublishingFormData = {
+      originalData: {
+        ...contentItemDetail,
+      },
+      formData: {
+        ...contentItemDetail,
+      },
+      formErrors: {},
+      uploads: {
+        ...uploads,
+      },
+      formState: 'write',
+    };
+
+    return emptyContentItemFormData;
+  },
   SET_PENDING_TEXT_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormTextInputValue) => ({
     ...state,
     formData: {
@@ -337,32 +484,28 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       }
     }
 
-    const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
-      return (purpose !== undefined) && purpose.hasOwnProperty(value) ? purpose[value] : defaultValue;
-    };
-
     const contentItemDetail = {
       ...originalData,
       relatedFiles: {
         MasterContent: {
-          filePurpose: defaultIfUndefined(originalData.relatedFiles.MasterContent, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(originalData.relatedFiles.MasterContent, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('MasterContent'),
+          fileUploadId: '',
         },
         Thumbnail: {
-          filePurpose: defaultIfUndefined(originalData.relatedFiles.Thumbnail, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(originalData.relatedFiles.Thumbnail, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('Thumbnail'),
+          fileUploadId: '',
         },
         UserGuide: {
-          filePurpose: defaultIfUndefined(originalData.relatedFiles.UserGuide, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(originalData.relatedFiles.UserGuide, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('UserGuide'),
+          fileUploadId: '',
         },
         ReleaseNotes: {
-          filePurpose: defaultIfUndefined(originalData.relatedFiles.ReleaseNotes, 'filePurpose'),
           fileOriginalName: defaultIfUndefined(originalData.relatedFiles.ReleaseNotes, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
+          fileUploadId: '',
         },
       },
       associatedFiles: {
@@ -470,6 +613,22 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
     },
   }),
+  FINALIZE_UPLOAD: (state, action: UploadActions.FinalizeUpload) => {
+    const fileUploads = { ...state.formData.relatedFiles };
+    for (const key in fileUploads) {
+      if (fileUploads[key].uniqueUploadId === action.uploadId) {
+        fileUploads[key].fileUploadId = action.Guid;
+      }
+    }
+
+    return {
+      ...state,
+      formData: {
+        ...state.formData,
+        relatedFiles: fileUploads,
+      },
+    };
+  },
   SET_UPLOAD_ERROR: (state, action: UploadActions.SetUploadError) => ({
     ...state,
     uploads: {
@@ -480,6 +639,206 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
     },
   }),
+  CREATE_NEW_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.CreateNewContentItemSucceeded) => {
+    const { detail } = action.response;
+    const newContentItemData: ContentItemDetail = {
+      ...state.originalData,
+      id: detail.id,
+      clientId: detail.clientId,
+      contentName: detail.contentName,
+      contentTypeId: detail.contentTypeId,
+      doesReduce: detail.doesReduce,
+      contentDescription: detail.contentDescription,
+      contentDisclaimer: detail.contentDisclaimer,
+      contentNotes: detail.contentNotes,
+      typeSpecificDetailObject: detail.typeSpecificDetailObject,
+    };
+
+    return {
+      ...state,
+      originalData: newContentItemData,
+      formData: newContentItemData,
+      formState: 'read',
+    };
+  },
+  UPDATE_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.UpdateContentItemSucceeded) => {
+    const { detail } = action.response;
+    const updatedContentItemData: ContentItemDetail = {
+      ...state.originalData,
+      id: detail.id,
+      clientId: detail.clientId,
+      contentName: detail.contentName,
+      contentTypeId: detail.contentTypeId,
+      doesReduce: detail.doesReduce,
+      contentDescription: detail.contentDescription,
+      contentDisclaimer: detail.contentDisclaimer,
+      contentNotes: detail.contentNotes,
+      typeSpecificDetailObject: detail.typeSpecificDetailObject,
+    };
+
+    return {
+      ...state,
+      originalData: updatedContentItemData,
+      formData: updatedContentItemData,
+      formState: 'read',
+    };
+  },
+  PUBLISH_CONTENT_FILES_SUCCEEDED: (state, action: PublishingActions.PublishContentFilesSucceeded) => {
+    const { response: detail } = action;
+
+    const keys = Object.keys({ ...detail.associatedFiles });
+    const associatedContentItems: Dict<AssociatedContentItemUpload> = {};
+
+    for (const key of keys) {
+      if (detail.associatedFiles.hasOwnProperty(key)) {
+        associatedContentItems[key] = {
+          ...detail.associatedFiles[key],
+          uniqueUploadId: generateUniqueId('associatedContent'),
+        };
+      }
+    }
+
+    const contentItemDetail = {
+      ...state.formData,
+      relatedFiles: {
+        MasterContent: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.MasterContent, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('MasterContent'),
+          fileUploadId: '',
+        },
+        Thumbnail: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.Thumbnail, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('Thumbnail'),
+          fileUploadId: '',
+        },
+        UserGuide: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.UserGuide, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('UserGuide'),
+          fileUploadId: '',
+        },
+        ReleaseNotes: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.ReleaseNotes, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ReleaseNotes'),
+          fileUploadId: '',
+        },
+      },
+      associatedFiles: {
+        ...associatedContentItems,
+      },
+    };
+
+    const newUpload: UploadState = {
+      cancelable: false,
+      errorMsg: null,
+      checksumProgress: ProgressSummary.empty(),
+      uploadProgress: ProgressSummary.empty(),
+    };
+
+    const uploads: Dict<UploadState> = {
+      [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+    };
+
+    for (const key of keys) {
+      if (detail.associatedFiles.hasOwnProperty(key)) {
+        uploads[contentItemDetail.associatedFiles[key].uniqueUploadId] = newUpload;
+      }
+    }
+
+    return {
+      originalData: {
+        ...contentItemDetail,
+      },
+      formData: {
+        ...contentItemDetail,
+      },
+      formErrors: {},
+      uploads: {
+        ...uploads,
+      },
+      formState: 'read',
+    };
+  },
+  CANCEL_PUBLICATION_REQUEST_SUCCEEDED: (state, action: PublishingActions.CancelPublicationRequestSucceeded) => {
+    const { rootContentItemDetail: detail } = action.response;
+
+    const keys = Object.keys({ ...detail.associatedFiles });
+    const associatedContentItems: Dict<AssociatedContentItemUpload> = {};
+
+    for (const key of keys) {
+      if (detail.associatedFiles.hasOwnProperty(key)) {
+        associatedContentItems[key] = {
+          ...detail.associatedFiles[key],
+          uniqueUploadId: generateUniqueId('associatedContent'),
+        };
+      }
+    }
+
+    const contentItemDetail = {
+      ...state.formData,
+      relatedFiles: {
+        MasterContent: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.MasterContent, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('MasterContent'),
+          fileUploadId: '',
+        },
+        Thumbnail: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.Thumbnail, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('Thumbnail'),
+          fileUploadId: '',
+        },
+        UserGuide: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.UserGuide, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('UserGuide'),
+          fileUploadId: '',
+        },
+        ReleaseNotes: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.ReleaseNotes, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ReleaseNotes'),
+          fileUploadId: '',
+        },
+      },
+      associatedFiles: {
+        ...associatedContentItems,
+      },
+    };
+
+    const newUpload: UploadState = {
+      cancelable: false,
+      errorMsg: null,
+      checksumProgress: ProgressSummary.empty(),
+      uploadProgress: ProgressSummary.empty(),
+    };
+
+    const uploads: Dict<UploadState> = {
+      [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+    };
+
+    for (const key of keys) {
+      if (detail.associatedFiles.hasOwnProperty(key)) {
+        uploads[contentItemDetail.associatedFiles[key].uniqueUploadId] = newUpload;
+      }
+    }
+
+    return {
+      ...state,
+      originalData: {
+        ...contentItemDetail,
+      },
+      formData: {
+        ...contentItemDetail,
+      },
+      formErrors: {},
+      uploads: {
+        ...uploads,
+      },
+    };
+  },
 });
 
 const selected = createReducer<PublishingStateSelected>(
@@ -495,8 +854,18 @@ const selected = createReducer<PublishingStateSelected>(
     SELECT_ITEM: (state, action: PublishingActions.SelectItem) => ({
       ...state,
       item: action.id === state.item ? null : action.id,
-      group: null,
     }),
+    SET_FORM_FOR_NEW_CONTENT_ITEM: (state) => ({
+      ...state,
+      item: state.item === 'NEW CONTENT ITEM' ? null : 'NEW CONTENT ITEM',
+    }),
+    DELETE_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.DeleteContentItemSucceeded) => {
+      const item = (state.item === action.response.id) ? null : state.item;
+      return {
+        ...state,
+        item,
+      };
+    },
   },
 );
 

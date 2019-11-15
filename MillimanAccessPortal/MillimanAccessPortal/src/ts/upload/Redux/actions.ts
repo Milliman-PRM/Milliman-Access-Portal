@@ -1,3 +1,4 @@
+import * as ContentPublishingActions from '../../react/content-publishing/redux/actions';
 import { ProgressSummary } from '../progress-monitor';
 
 /**
@@ -41,7 +42,7 @@ export interface CancelFileUpload {
 export interface FinalizeUpload {
   type: 'FINALIZE_UPLOAD';
   uploadId: string;
-  filename: string;
+  fileName: string;
   Guid: string;
 }
 
@@ -58,4 +59,7 @@ export type PageUploadAction =
   | SetUploadError
   | CancelFileUpload
   | FinalizeUpload
+  | ContentPublishingActions.CreateNewContentItemSucceeded
+  | ContentPublishingActions.UpdateContentItemSucceeded
+  | ContentPublishingActions.PublishContentFilesSucceeded
   ;

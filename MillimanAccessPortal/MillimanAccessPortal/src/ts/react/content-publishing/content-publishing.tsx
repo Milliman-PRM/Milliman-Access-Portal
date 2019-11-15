@@ -6,13 +6,14 @@ import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
 import {
-  isPublicationActive, PublicationStatus,
+  isPublicationActive, PublicationStatus, PublishRequest,
 } from '../../view-models/content-publishing';
 import {
   Client, ClientWithStats, ContentAssociatedFileType, ContentType,
   RootContentItem, RootContentItemWithPublication,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { ButtonSpinner } from '../shared-components/button-spinner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import {
     PanelSectionToolbar, PanelSectionToolbarButtons,
@@ -38,7 +39,8 @@ import { Dict } from '../shared-components/redux/store';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
-  availableContentTypes, clientEntities, itemEntities, selectedItem,
+  availableContentTypes, clientEntities, filesForPublishing, formChangesPending,
+  itemEntities, selectedItem, submitButtonIsActive, uploadChangesPending,
 } from './redux/selectors';
 import {
     PublishingFormData, PublishingState, PublishingStateCardAttributes, PublishingStateFilters,
@@ -66,6 +68,10 @@ interface ContentPublishingProps {
   selectedItem: RootContentItem;
   activeSelectedClient: Client;
   activeSelectedItem: RootContentItem;
+  formCanSubmit: boolean;
+  formChangesPending: boolean;
+  uploadChangesPending: boolean;
+  filesForPublishing: PublishRequest;
 }
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
@@ -162,7 +168,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       <ActionIcon
         label="New Content Item"
         icon="add"
-        action={() => { alert('Create New Content Item'); }}
+        action={() => { this.props.setFormForNewContentItem({ clientId: selected.client }); }}
       />
     );
     return activeClient && (
@@ -186,7 +192,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   <CardButton
                     color={'red'}
                     tooltip={'Cancel'}
-                    onClick={() => alert('cancel')}
+                    onClick={() => this.props.cancelPublicationRequest(entity.id)}
                     icon={'cancel'}
                   />
                 </>
@@ -195,7 +201,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   <CardButton
                     color={'red'}
                     tooltip={'Delete'}
-                    onClick={() => alert('delete')}
+                    onClick={() => this.props.deleteContentItem(entity.id)}
                     icon={'delete'}
                   />
                   <CardButton
@@ -253,9 +259,19 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             );
         }}
         renderNewEntityButton={() => (
-          <div className="card-container action-card-container" onClick={() => alert('Content Item Created')}>
+          <div
+            className="card-container action-card-container"
+            onClick={() => this.props.setFormForNewContentItem({ clientId: selected.client })}
+          >
             <div className="admin-panel-content">
-              <div className="card-body-container card-100 action-card">
+              <div
+                className={
+                  `
+                    card-body-container card-100 action-card
+                    ${this.props.selected.item === 'NEW CONTENT ITEM' ? 'selected' : ''}
+                  `
+                }
+              >
                 <h2 className="card-body-primary-text">
                   <svg className="action-card-icon">
                     <use href="#add" />
@@ -284,26 +300,35 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 
   private renderContentItemForm() {
     const { contentTypes, formData: dataForForm, pending } = this.props;
-    const { formErrors, formData, uploads } = dataForForm;
-    const contentItemFormButtons = (
+    const { formErrors, formData, formState, uploads } = dataForForm;
+    const editFormButton = (
       <ActionIcon
-        label="Close Form"
-        icon="cancel"
-        action={() => { alert('Cancel Form'); }}
+        label="Edit Content Item"
+        icon="edit"
+        action={() => { this.props.setContentItemFormState({ formState: 'write' }); }}
       />
     );
-    const associatedContent = <div>Add Associated Content</div>;
+    const closeFormButton = (
+      <ActionIcon
+        label="Close Content Item"
+        icon="cancel"
+        action={() => { this.props.selectItem({ id: null }); }}
+      />
+    );
     return (
       <ContentPanel loading={pending.data.contentItemDetail}>
         <h3 className="admin-panel-header">Content Item</h3>
         <PanelSectionToolbar>
           <PanelSectionToolbarButtons>
-            {contentItemFormButtons}
+            {formState === 'read' &&
+              editFormButton
+            }
+            {closeFormButton}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
           <ContentPanelForm
-            readOnly={dataForForm.formState === 'read'}
+            readOnly={formState === 'read'}
           >
             <FormSection title="Content Item Information">
               <FormSectionRow>
@@ -322,7 +347,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     }}
                     type="text"
                     value={formData.contentName}
-                    readOnly={dataForForm.formState === 'read'}
+                    readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={12} flexTablet={5}>
@@ -339,15 +364,15 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     placeholderText="Choose Content Type"
                     value={dataForForm.formData.contentTypeId}
                     values={this.props.contentTypesList}
-                    readOnly={dataForForm.formState === 'read'}
+                    readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={12} flexTablet={7}>
                   <FileUploadInput
                     fileExtensions={
-                      dataForForm.formData.contentTypeId
+                      contentTypes[dataForForm.formData.contentTypeId] !== undefined
                         ? contentTypes[dataForForm.formData.contentTypeId].fileExtensions
-                        : null
+                        : []
                     }
                     label="Master Content"
                     name="masterContent"
@@ -355,7 +380,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={() => false}
-                    finalizeUpload={() => alert('upload succeeded')}
+                    finalizeUpload={(uploadId, fileName, Guid) =>
+                      this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
                       this.props.setUploadError({ uploadId, errorMsg })}
                     updateChecksumProgress={(uploadId, progress) =>
@@ -365,7 +391,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
                     uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
                     value={formData.relatedFiles.MasterContent.fileOriginalName}
-                    readOnly={dataForForm.formState === 'read'}
+                    readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
               </FormSectionRow>
@@ -381,7 +407,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={() => false}
-                    finalizeUpload={() => alert('upload succeeded')}
+                    finalizeUpload={(uploadId, fileName, Guid) =>
+                      this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
                       this.props.setUploadError({ uploadId, errorMsg })}
                     updateChecksumProgress={(uploadId, progress) =>
@@ -391,7 +418,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     upload={uploads[formData.relatedFiles.Thumbnail.uniqueUploadId]}
                     uploadId={formData.relatedFiles.Thumbnail.uniqueUploadId}
                     value={formData.relatedFiles.Thumbnail.fileOriginalName}
-                    readOnly={dataForForm.formState === 'read'}
+                    readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={7}>
@@ -403,7 +430,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={() => false}
-                    finalizeUpload={() => alert('upload succeeded')}
+                    finalizeUpload={(uploadId, fileName, Guid) =>
+                      this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
                       this.props.setUploadError({ uploadId, errorMsg })}
                     updateChecksumProgress={(uploadId, progress) =>
@@ -413,7 +441,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     upload={uploads[formData.relatedFiles.UserGuide.uniqueUploadId]}
                     uploadId={formData.relatedFiles.UserGuide.uniqueUploadId}
                     value={formData.relatedFiles.UserGuide.fileOriginalName}
-                    readOnly={dataForForm.formState === 'read'}
+                    readOnly={formState === 'read'}
                   />
                   <FileUploadInput
                     fileExtensions={['pdf']}
@@ -423,7 +451,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={() => false}
-                    finalizeUpload={() => alert('upload succeeded')}
+                    finalizeUpload={(uploadId, fileName, Guid) =>
+                      this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
                       this.props.setUploadError({ uploadId, errorMsg })}
                     updateChecksumProgress={(uploadId, progress) =>
@@ -433,7 +462,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     upload={uploads[formData.relatedFiles.ReleaseNotes.uniqueUploadId]}
                     uploadId={formData.relatedFiles.ReleaseNotes.uniqueUploadId}
                     value={formData.relatedFiles.ReleaseNotes.fileOriginalName}
-                    readOnly={dataForForm.formState === 'read'}
+                    readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
               </FormSectionRow>
@@ -454,7 +483,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     }}
                     placeholderText="Content Description..."
                     value={dataForForm.formData.contentDescription}
-                    readOnly={dataForForm.formState === 'read'}
+                    readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={12}>
@@ -471,14 +500,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     }}
                     placeholderText="Custom Disclaimer Text..."
                     value={dataForForm.formData.contentDisclaimer}
-                    readOnly={dataForForm.formState === 'read'}
+                    readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
-              </FormSectionRow>
-            </FormSection>
-            <FormSection title="Associated Content">
-              <FormSectionRow>
-                {associatedContent}
               </FormSectionRow>
             </FormSection>
             <FormSection title="Internal Notes (Not Shown To End Users)">
@@ -497,21 +521,66 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     }}
                     placeholderText="Notes..."
                     value={dataForForm.formData.contentNotes}
-                    readOnly={dataForForm.formState === 'read'}
+                    readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
               </FormSectionRow>
             </FormSection>
             {
-              dataForForm.formState === 'write' &&
-              <button
-                onClick={(event: any) => {
-                  event.preventDefault();
-                  this.props.resetContentItemForm({});
-                }}
-              >
-                Reset Form
-              </button>
+              formState === 'write' &&
+              <div className="button-container">
+                <button
+                  className="link-button"
+                  type="button"
+                  onClick={(event: any) => {
+                    event.preventDefault();
+                    this.props.resetContentItemForm({});
+                  }}
+                >
+                  Undo Changes
+                </button>
+                <button
+                  type="button"
+                  className={`green-button${this.props.formCanSubmit ? '' : ' disabled'}`}
+                  disabled={!this.props.formCanSubmit}
+                  onClick={(event: React.MouseEvent) => {
+                    event.preventDefault();
+                    if (!dataForForm.formData.id) {
+                      this.props.createNewContentItem({
+                        ClientId: dataForForm.formData.clientId,
+                        ContentName: dataForForm.formData.contentName,
+                        ContentTypeId: dataForForm.formData.contentTypeId,
+                        DoesReduce: dataForForm.formData.doesReduce,
+                        Description: dataForForm.formData.contentDescription,
+                        ContentDisclaimer: dataForForm.formData.contentDisclaimer,
+                        Notes: dataForForm.formData.contentNotes,
+                      });
+                    } else {
+                      if (this.props.formChangesPending) {
+                        this.props.updateContentItem({
+                          Id: dataForForm.formData.id,
+                          ClientId: dataForForm.formData.clientId,
+                          ContentName: dataForForm.formData.contentName,
+                          ContentTypeId: dataForForm.formData.contentTypeId,
+                          DoesReduce: dataForForm.formData.doesReduce,
+                          Description: dataForForm.formData.contentDescription,
+                          ContentDisclaimer: dataForForm.formData.contentDisclaimer,
+                          Notes: dataForForm.formData.contentNotes,
+                        });
+                      }
+                      if (this.props.uploadChangesPending) {
+                        this.props.publishContentFiles(this.props.filesForPublishing);
+                      }
+                    }
+                  }}
+                >
+                  {`${dataForForm.formData.id ? 'Update' : 'Create'} Content Item`}
+                  {this.props.pending.data.formSubmit
+                    ? <ButtonSpinner version="circle" />
+                    : null
+                  }
+                </button>
+              </div>
             }
           </ContentPanelForm>
         </ContentPanelSectionContent>
@@ -523,6 +592,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 
 function mapStateToProps(state: PublishingState): ContentPublishingProps {
   const { data, formData, selected, cardAttributes, pending, filters } = state;
+  const { id: rootContentItemId } = formData.formData;
   return {
     clients: clientEntities(state),
     items: itemEntities(state),
@@ -538,6 +608,10 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     selectedItem: selectedItem(state),
     activeSelectedClient: activeSelectedClient(state),
     activeSelectedItem: activeSelectedItem(state),
+    formCanSubmit: submitButtonIsActive(state),
+    formChangesPending: formChangesPending(state),
+    uploadChangesPending: uploadChangesPending(state),
+    filesForPublishing: filesForPublishing(state, rootContentItemId),
   };
 }
 

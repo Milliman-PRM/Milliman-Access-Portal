@@ -6,9 +6,9 @@ import { RequestAction, ResponseAction } from './actions';
  */
 export function createJsonRequestorCreator<TReq extends RequestAction, TRes extends ResponseAction>() {
   return <TReqAction extends TReq, TResAction extends TRes>
-  (method: 'GET' | 'POST', url: string) =>
+  (method: 'GET' | 'POST' | 'DELETE', url: string) =>
   async (requestModel: TReqAction['request']) =>
     method === 'GET'
       ? await getJsonData<TResAction['response']>(url, requestModel)
-      : await postJsonData<TResAction['response']>(url, requestModel);
+      : await postJsonData<TResAction['response']>(url, requestModel, method);
 }

@@ -21,6 +21,9 @@ export interface PendingDataState {
   clients: boolean;
   items: boolean;
   contentItemDetail: boolean;
+  contentItemDeletion: boolean;
+  formSubmit: boolean;
+  publishing: boolean;
 }
 
 /**
@@ -40,7 +43,7 @@ export interface PublishingStateData {
  */
 export interface PublishingStateSelected {
   client: Guid;
-  item: Guid;
+  item: Guid | 'NEW CONTENT ITEM';
 }
 
 /**
@@ -57,6 +60,7 @@ export interface PublishingStateCardAttributes {
 export interface PublishingStatePending {
   data: PendingDataState;
   statusTries: number;
+  uploads: Dict<UploadState>;
 }
 
 /**

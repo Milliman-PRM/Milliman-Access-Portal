@@ -1,4 +1,5 @@
 import { PageUploadAction } from '../../../upload/Redux/actions';
+import { PublishRequest, RootContentItemSummaryAndDetail } from '../../../view-models/content-publishing';
 import {
     ClientWithEligibleUsers, ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
     ContentPublicationRequest, ContentReductionTask, ContentType, Guid, PublicationQueueDetails,
@@ -34,6 +35,15 @@ export interface SelectItem {
 export interface SetContentItemFormState {
   type: 'SET_CONTENT_ITEM_FORM_STATE';
   formState: 'read' | 'write';
+}
+
+/**
+ * Setup an empty content item form for creating
+ * a new Content Item
+ */
+export interface SetFormForNewContentItem {
+  type: 'SET_FORM_FOR_NEW_CONTENT_ITEM';
+  clientId: Guid;
 }
 
 /**
@@ -149,6 +159,123 @@ export interface FetchContentItemDetailFailed {
 }
 
 /**
+ * POST:
+ *   Create a new Content Item;
+ */
+export interface CreateNewContentItem {
+  type: 'CREATE_NEW_CONTENT_ITEM';
+  request: {
+    ClientId: Guid;
+    ContentName: string;
+    ContentTypeId: Guid;
+    Description: string;
+    Notes: string;
+    ContentDisclaimer: string;
+    DoesReduce: boolean;
+    // PowerBi specific:
+    FilterPaneEnabled?: boolean;
+    NavigationPaneEnabled?: boolean;
+    BookmarksPaneEnabled?: boolean;
+  };
+}
+export interface CreateNewContentItemSucceeded {
+  type: 'CREATE_NEW_CONTENT_ITEM_SUCCEEDED';
+  response: RootContentItemSummaryAndDetail;
+}
+export interface CreateNewContentItemFailed {
+  type: 'CREATE_NEW_CONTENT_ITEM_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Update a Content Item;
+ */
+export interface UpdateContentItem {
+  type: 'UPDATE_CONTENT_ITEM';
+  request: {
+    Id: Guid;
+    ClientId: Guid;
+    ContentName: string;
+    ContentTypeId: Guid;
+    Description: string;
+    Notes: string;
+    ContentDisclaimer: string;
+    DoesReduce: boolean;
+    // PowerBi specific:
+    FilterPaneEnabled?: boolean;
+    NavigationPaneEnabled?: boolean;
+    BookmarksPaneEnabled?: boolean;
+  };
+}
+export interface UpdateContentItemSucceeded {
+  type: 'UPDATE_CONTENT_ITEM_SUCCEEDED';
+  response: RootContentItemSummaryAndDetail;
+}
+export interface UpdateContentItemFailed {
+  type: 'UPDATE_CONTENT_ITEM_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Publish content files to Content Item;
+ */
+export interface PublishContentFiles {
+  type: 'PUBLISH_CONTENT_FILES';
+  request: PublishRequest;
+}
+export interface PublishContentFilesSucceeded {
+  type: 'PUBLISH_CONTENT_FILES_SUCCEEDED';
+  response: ContentItemDetail;
+}
+export interface PublishContentFilesFailed {
+  type: 'PUBLISH_CONTENT_FILES_FAILED';
+  error: TSError;
+}
+
+/**
+ * DELETE:
+ *   Delete a Content Item;
+ */
+export interface DeleteContentItem {
+  type: 'DELETE_CONTENT_ITEM';
+  request: Guid;
+}
+export interface DeleteContentItemSucceeded {
+  type: 'DELETE_CONTENT_ITEM_SUCCEEDED';
+  response: ContentItemDetail;
+}
+export interface DeleteContentItemFailed {
+  type: 'DELETE_CONTENT_ITEM_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Cancel a Content Publication Request;
+ */
+export interface CancelPublicationRequest {
+  type: 'CANCEL_PUBLICATION_REQUEST';
+  request: Guid;
+}
+export interface CancelPublicationRequestSucceeded {
+  type: 'CANCEL_PUBLICATION_REQUEST_SUCCEEDED';
+  response: {
+    statusResponseModel: {
+      contentItems: Dict<RootContentItemWithStats>;
+      publications: Dict<ContentPublicationRequest>;
+      publicationQueue: Dict<PublicationQueueDetails>;
+    },
+    rootContentItemDetail: ContentItemDetail,
+  };
+}
+export interface CancelPublicationRequestFailed {
+  type: 'CANCEL_PUBLICATION_REQUEST_FAILED';
+  error: TSError;
+}
+
+/**
  * Set the value of a form inputs
  */
 
@@ -243,6 +370,7 @@ export type PagePublishingAction =
   | SelectClient
   | SelectItem
   | SetContentItemFormState
+  | SetFormForNewContentItem
   | SetFilterTextClient
   | SetFilterTextItem
   | SetPublishingFormTextInputValue
@@ -250,6 +378,7 @@ export type PagePublishingAction =
   | ResetContentItemForm
   | PromptStatusRefreshStopped
   | DecrementStatusRefreshAttempts
+  | PublishContentFilesSucceeded
   ;
 
 /**
@@ -270,6 +399,11 @@ export type RequestPublishingAction =
   | FetchContentItemDetail
   | FetchStatusRefresh
   | FetchSessionCheck
+  | CreateNewContentItem
+  | UpdateContentItem
+  | PublishContentFiles
+  | DeleteContentItem
+  | CancelPublicationRequest
   ;
 
 /**
@@ -282,6 +416,11 @@ export type ResponsePublishingAction =
   | FetchContentItemDetailSucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
+  | CreateNewContentItemSucceeded
+  | UpdateContentItemSucceeded
+  | PublishContentFilesSucceeded
+  | DeleteContentItemSucceeded
+  | CancelPublicationRequestSucceeded
   ;
 
 /**
@@ -294,6 +433,11 @@ export type ErrorPublishingAction =
   | FetchContentItemDetailFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
+  | CreateNewContentItemFailed
+  | UpdateContentItemFailed
+  | PublishContentFilesFailed
+  | DeleteContentItemFailed
+  | CancelPublicationRequestFailed
   ;
 
 /**

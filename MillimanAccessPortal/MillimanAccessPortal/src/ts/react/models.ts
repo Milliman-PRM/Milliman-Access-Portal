@@ -52,11 +52,11 @@ export interface RootContentItemWithStats extends RootContentItem {
 }
 
 export interface RelatedFile {
-  filePurpose: string;
   fileOriginalName: string;
 }
 export interface RelatedFileUpload extends RelatedFile {
   uniqueUploadId?: string;
+  fileUploadId: Guid;
 }
 
 export interface AssociatedFileModel {
@@ -75,9 +75,9 @@ export interface AssociatedFilePreviewSummary extends AssociatedFileModel {
 
 export interface RelatedFiles {
   MasterContent: RelatedFileUpload;
-  Thumbnail?: RelatedFileUpload;
-  UserGuide?: RelatedFileUpload;
-  ReleaseNotes?: RelatedFileUpload;
+  Thumbnail: RelatedFileUpload;
+  UserGuide: RelatedFileUpload;
+  ReleaseNotes: RelatedFileUpload;
   [key: string]: RelatedFileUpload;
 }
 

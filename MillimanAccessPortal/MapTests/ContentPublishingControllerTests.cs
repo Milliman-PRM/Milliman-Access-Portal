@@ -17,6 +17,8 @@ using System.Linq;
 using System.Reflection;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MapTests
 {
@@ -101,11 +103,12 @@ namespace MapTests
             {
                 validRootContentItem.ContentName = "CreateRootContentItem_ErrorInvalid";
             }
+            var jObject = JObject.FromObject(validRootContentItem, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.CreateRootContentItem(validRootContentItem);
+            var view = await controller.CreateRootContentItem(jObject);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -131,11 +134,12 @@ namespace MapTests
                 ContentName = "",
                 DoesReduce = false,
             };
+            var jObject = JObject.FromObject(validRootContentItem, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.CreateRootContentItem(validRootContentItem);
+            var view = await controller.CreateRootContentItem(jObject);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -157,10 +161,11 @@ namespace MapTests
                 ContentName = "CreateRootContentItem_ReturnsJson",
                 DoesReduce = false,
             };
+            var jObject = JObject.FromObject(validRootContentItem, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             #endregion
 
             #region Act
-            var view = await controller.CreateRootContentItem(validRootContentItem);
+            var view = await controller.CreateRootContentItem(jObject);
             #endregion
 
             #region Assert
@@ -185,11 +190,12 @@ namespace MapTests
                 ContentName = "CreateRootContentItem_Success",
                 DoesReduce = false,
             };
+            var jObject = JObject.FromObject(validRootContentItem, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.CreateRootContentItem(validRootContentItem);
+            var view = await controller.CreateRootContentItem(jObject);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -512,11 +518,12 @@ namespace MapTests
                 ContentName = dbItem.ContentName,
                 Notes = "This note is added",
             };
+            var jObject = JObject.FromObject(updateModel, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             Assert.Null(dbItem.Notes);
             #endregion
 
             #region Act
-            var view = await controller.UpdateRootContentItem(updateModel);
+            var view = await controller.UpdateRootContentItem(jObject);
             #endregion
 
             #region Assert
@@ -541,11 +548,12 @@ namespace MapTests
                 ContentName = dbItem.ContentName,
                 Notes = "This note is added",
             };
+            var jObject = JObject.FromObject(updateModel, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             Assert.Null(dbItem.Notes);
             #endregion
 
             #region Act
-            var view = await controller.UpdateRootContentItem(updateModel);
+            var view = await controller.UpdateRootContentItem(jObject);
             #endregion
 
             #region Assert
@@ -576,10 +584,11 @@ namespace MapTests
                 ContentName = dbItem.ContentName,
             };
             updateModel.TypeSpecificDetailObject = props;
+            var jObject = JObject.FromObject(updateModel, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             #endregion
 
             #region Act
-            var view = await controller.UpdateRootContentItem(updateModel);
+            var view = await controller.UpdateRootContentItem(jObject);
             #endregion
 
             #region Assert

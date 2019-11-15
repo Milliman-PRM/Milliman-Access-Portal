@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as moment from 'moment';
 
-import { publicationStatusNames } from '../../../view-models/content-publishing';
+import { publicationStatusNames, PublishRequest, UploadedRelatedFile } from '../../../view-models/content-publishing';
 import {
   ClientWithStats, ContentPublicationRequest, ContentReductionTask,
     Guid, RootContentItemWithStats,
@@ -242,4 +242,73 @@ export function availableAssociatedContentTypes(state: PublishingState) {
     });
   }
   return AssociatedContentTypesArray.sort((a, b) => (a.selectionValue > b.selectionValue) ? 1 : -1);
+}
+
+/**
+ * Determine if the Content Item form submit button should be enabled
+ * @param state Redux store
+ */
+export function submitButtonIsActive(state: PublishingState) {
+  const { formData } = state.formData;
+  const formChanged = !_.isEqual(state.formData.formData, state.formData.originalData);
+  const noActiveUpload = _.size(state.pending.uploads) === 0;
+  const formValid = formData.clientId
+    && formData.contentName
+    && formData.contentTypeId
+    && formData.relatedFiles.MasterContent.fileOriginalName.length > 0;
+  return formChanged && noActiveUpload && formValid;
+}
+
+/**
+ * Determine if there are uploads pending publishing
+ * @param state Redux store
+ */
+export function uploadChangesPending(state: PublishingState) {
+  const { formData, originalData } = state.formData;
+  const changesPending = !_.isEqual(formData.relatedFiles, originalData.relatedFiles);
+  return changesPending;
+}
+
+/**
+ * Determine if there are pending form changes
+ * @param state Redux store
+ */
+export function formChangesPending(state: PublishingState) {
+  const { formData, originalData } = state.formData;
+  const changesPending = (formData.id !== originalData.id)
+    || (formData.clientId !== originalData.clientId)
+    || (formData.contentName !== originalData.contentName)
+    || (formData.contentDescription !== originalData.contentDescription)
+    || (formData.contentDisclaimer !== originalData.contentDisclaimer)
+    || (formData.contentNotes !== originalData.contentNotes)
+    || (formData.doesReduce !== originalData.doesReduce)
+    || !_.isEqual(formData.typeSpecificDetailObject, originalData.typeSpecificDetailObject);
+  return changesPending;
+}
+
+/**
+ * Return the related files for publishing
+ * @param state Redux store
+ */
+export function filesForPublishing(state: PublishingState, rootContentItemId: Guid): PublishRequest {
+  const { relatedFiles } = state.formData.formData;
+  const filesToPublish: UploadedRelatedFile[] = [];
+  for (const key in relatedFiles) {
+    if (relatedFiles[key].fileUploadId) {
+      filesToPublish.push({
+        filePurpose: key,
+        fileOriginalName: relatedFiles[key].fileOriginalName,
+        fileUploadId: relatedFiles[key].fileUploadId,
+      });
+    }
+  }
+
+  // TODO: Implement file deletion...
+
+  return {
+    rootContentItemId,
+    newRelatedFiles: filesToPublish,
+    associatedFiles: [],
+    deleteFilePurposes: [],
+  };
 }

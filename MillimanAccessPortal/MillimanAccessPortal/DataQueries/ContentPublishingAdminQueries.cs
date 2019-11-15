@@ -210,6 +210,17 @@ namespace MillimanAccessPortal.DataQueries
             return model;
         }
 
+        internal CancelPublicationModel SelectCancelContentPublicationRequest(ApplicationUser user, RootContentItem rootContentItem)
+        {
+            var model = new CancelPublicationModel
+            {
+                StatusResponseModel = SelectStatus(user, rootContentItem.ClientId),
+                RootContentItemDetail = BuildContentItemDetailModel(rootContentItem),
+            };
+
+            return model;
+        }
+
         /// <summary>
         /// Select the publishing page status model
         /// </summary>

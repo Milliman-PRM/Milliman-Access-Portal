@@ -32,3 +32,23 @@ export const fetchStatusRefresh =
 export const fetchSessionCheck =
   createJsonRequestor<PublishingActions.FetchSessionCheck, PublishingActions.FetchSessionCheckSucceeded>
     ('GET', '/Account/SessionStatus');
+
+export const createNewContentItem =
+  createJsonRequestor<PublishingActions.CreateNewContentItem, PublishingActions.CreateNewContentItemSucceeded>
+    ('POST', '/ContentPublishing/CreateRootContentItem');
+
+export const updateContentItem =
+  createJsonRequestor<PublishingActions.UpdateContentItem, PublishingActions.UpdateContentItemSucceeded>
+    ('POST', '/ContentPublishing/UpdateRootContentItem');
+
+export const publishContentFiles =
+  createJsonRequestor<PublishingActions.PublishContentFiles, PublishingActions.PublishContentFilesSucceeded>
+    ('POST', '/ContentPublishing/Publish');
+
+export const deleteContentItem =
+  createJsonRequestor<PublishingActions.DeleteContentItem, PublishingActions.DeleteContentItemSucceeded>
+    ('DELETE', '/ContentPublishing/DeleteRootContentItem');
+
+export const cancelPublicationRequest =
+  createJsonRequestor<PublishingActions.CancelPublicationRequest, PublishingActions.CancelPublicationRequestSucceeded>
+    ('POST', '/ContentPublishing/CancelContentPublicationRequest');
