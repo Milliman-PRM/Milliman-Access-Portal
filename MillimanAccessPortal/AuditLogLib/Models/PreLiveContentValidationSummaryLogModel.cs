@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Newtonsoft.Json.Linq;
 using System;
 using MapDbContextLib.Models;
 
@@ -22,5 +23,7 @@ namespace AuditLogLib.Models
         public bool  DoesReduce;
         public Guid ClientId;
         public string ClientName;
+        public string ClientCode;
+        public JArray SelectionGroupSummary;
     }
 }
