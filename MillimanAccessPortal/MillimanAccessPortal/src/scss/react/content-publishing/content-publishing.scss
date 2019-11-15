@@ -41,6 +41,10 @@
         th {
             border-bottom: 1px solid $charcoal;
             font-weight: bold;
+
+            &.header-status {
+                width: 7em;
+            }
         }
 
         tr.status-1 {   // Added
@@ -50,6 +54,18 @@
         tr.status-2 {   // Removed
             background-color: rgba($red, .3);
         }
+    }
+}
+
+.selection-group-detail {
+    span.status {
+        font-size: .75em;
+    }
+    span.inactive-status {
+        color: $red;
+    }
+    span.active-status {
+        color: $green;
     }
 }
 
