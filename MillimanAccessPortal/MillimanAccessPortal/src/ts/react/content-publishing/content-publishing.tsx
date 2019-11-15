@@ -731,7 +731,15 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         checkboxSelectedValue={elementsToConfirm.selectionGroups}
         checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
       >
-        <div>Selection Groups go here...</div>
+        {
+          goLiveSummary.selectionGroups.map((sG, key) => (
+            <SelectionGroupDetails
+              selectionGroup={sG}
+              changedOnly={onlyChangesShown}
+              key={key}
+            />
+          ),
+        )}
       </GoLiveSection>
     );
     const attestationLanguage = goLiveSummary && goLiveSummary.attestationLanguage && (
