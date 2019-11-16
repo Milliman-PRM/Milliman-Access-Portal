@@ -55,7 +55,7 @@ import {
   GoLiveSummaryData, PublishingFormData, PublishingState, PublishingStateCardAttributes,
   PublishingStateFilters, PublishingStatePending, PublishingStateSelected,
 } from './redux/store';
-import { SelectionGroupDetails } from './selection-group-summary';
+import { SelectionGroupDetails } from './selection-group-detail';
 
 type ClientEntity = (ClientWithStats & { indent: 1 | 2 }) | 'divider';
 interface RootContentItemEntity extends RootContentItemWithPublication {
