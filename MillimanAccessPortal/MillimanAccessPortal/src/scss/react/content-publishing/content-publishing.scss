@@ -83,7 +83,11 @@
     border: 1px solid $charcoal;
     background-color: $white;
 
-    span.status {
+    &.inactive {
+        border: 2px solid $red;
+    }
+
+    span.preview-link {
         font-size: .75em;
     }
 
