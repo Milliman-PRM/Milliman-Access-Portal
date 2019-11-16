@@ -210,7 +210,7 @@ export interface SelectionGroupSummary {
   wasInactive: boolean;
   isInactive: boolean;
   inactiveReason?: string;
-  PreviewLink: string;
+  previewLink: string;
   selectionChanges: ContentReductionHierarchy<ReductionFieldValueSelection>;
 }
 export interface AssociatedFileSummary {
