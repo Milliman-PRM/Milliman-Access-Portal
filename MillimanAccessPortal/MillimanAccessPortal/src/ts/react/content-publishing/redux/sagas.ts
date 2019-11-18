@@ -100,6 +100,15 @@ export default function* rootSaga() {
     'FETCH_ITEMS_FAILED',
     'FETCH_CONTENT_ITEM_DETAIL_FAILED',
     'FETCH_SESSION_CHECK_FAILED',
+    'FETCH_STATUS_REFRESH_FAILED',
+    'FETCH_GO_LIVE_SUMMARY_FAILED',
+    'APPROVE_GO_LIVE_SUMMARY_FAILED',
+    'REJECT_GO_LIVE_SUMMARY_FAILED',
+    'CREATE_NEW_CONTENT_ITEM_FAILED',
+    'UPDATE_CONTENT_ITEM_FAILED',
+    'PUBLISH_CONTENT_FILES_FAILED',
+    'DELETE_CONTENT_ITEM_FAILED',
+    'CANCEL_PUBLICATION_REQUEST_FAILED',
   ], ({ message }) => message === 'sessionExpired'
     ? 'Your session has expired. Please refresh the page.'
     : isNaN(message)
