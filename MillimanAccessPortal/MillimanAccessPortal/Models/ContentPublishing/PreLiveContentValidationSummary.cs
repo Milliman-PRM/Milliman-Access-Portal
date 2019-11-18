@@ -345,8 +345,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public static explicit operator PreLiveContentValidationSummaryLogModel(PreLiveContentValidationSummary source)
         {
-            var x = JArray.FromObject(source.SelectionGroups);
-
             return new PreLiveContentValidationSummaryLogModel
             {
                 ValidationSummaryId = source.ValidationSummaryId,
@@ -361,7 +359,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ClientId = source.ClientId,
                 ClientName = source.ClientName,
                 ClientCode = source.ClientCode,
-                SelectionGroupSummary = JArray.FromObject(source.SelectionGroups),
+                SelectionGroupSummary = source.SelectionGroups != null
+                    ? JArray.FromObject(source.SelectionGroups)
+                    : null,
             };
         }
     }
