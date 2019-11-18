@@ -932,7 +932,7 @@ namespace MillimanAccessPortal.Controllers
                                 Controller = nameof(AccountController).Replace("Controller", ""),
                                 RouteData = new Dictionary<string, string>
                                 {
-                                    { nameof(passwordResetToken), passwordResetToken },
+                                    { nameof(userEmail), userEmail },
                                     { "confirmationMessage", $"Thank you.  A new password reset email has been sent to {user.Email}."}
                                 }
                             },
