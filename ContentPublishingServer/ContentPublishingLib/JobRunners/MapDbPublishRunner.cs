@@ -392,10 +392,12 @@ namespace ContentPublishingLib.JobRunners
                         {
                             NewTask.TaskAction = TaskActionEnum.HierarchyOnly;
                             NewTask.ReductionStatus = ReductionStatusEnum.Reduced;
+                            NewTask.ProcessingStartDateTimeUtc = DateTime.UtcNow;
                             NewTask.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
                             {
                                 OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
                                 ReductionTaskId = NewTask.Id,
+                                ProcessingStarted = DateTime.UtcNow,
                             };
                         }
                         else
