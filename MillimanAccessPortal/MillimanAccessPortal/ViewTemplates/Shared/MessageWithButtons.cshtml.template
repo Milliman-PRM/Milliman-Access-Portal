@@ -26,18 +26,18 @@
 	@{
 		foreach (var button in Model.Buttons) 
 		{
-            <form method="@button.Method">
+            <form style="display: inline" method="@button.Method">
 			@if (button.Method == "post")
 			{
 				@foreach (var kvp in @button.RouteData)
 				{
 					<input type="hidden" id="@kvp.Key" name="@kvp.Key" value="@kvp.Value">
 				}
-				<button asp-controller="@button.Controller" asp-action="@button.Action">@button.Value</button>
+				<button class="@button.ButtonClass" asp-controller="@button.Controller" asp-action="@button.Action">@button.Value</button>
 			}
 			else
 			{
-				<button asp-controller="@button.Controller" asp-action="@button.Action" asp-all-route-data="@button.RouteData">@button.Value</button>
+				<button class="@button.ButtonClass" asp-controller="@button.Controller" asp-action="@button.Action" asp-all-route-data="@button.RouteData">@button.Value</button>
 			}
             </form>
 		}

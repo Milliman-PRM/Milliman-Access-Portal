@@ -927,6 +927,14 @@ namespace MillimanAccessPortal.Controllers
                         {
                             new ConfiguredButton
                             {
+                                Value = "Cancel",
+                                Action = nameof(Login),
+                                Controller = nameof(AccountController).Replace("Controller", ""),
+                                Method = "get",
+                                ButtonClass = "link-button",
+                            },
+                            new ConfiguredButton
+                            {
                                 Value = "Reset Password",
                                 Action = nameof(ResetPasswordBecauseInvalidToken),
                                 Controller = nameof(AccountController).Replace("Controller", ""),
@@ -935,13 +943,6 @@ namespace MillimanAccessPortal.Controllers
                                     { nameof(userEmail), userEmail },
                                     { "confirmationMessage", $"Thank you.  A new password reset email has been sent to {user.Email}."}
                                 }
-                            },
-                            new ConfiguredButton
-                            {
-                                Value = "Cancel",
-                                Action = nameof(Login),
-                                Controller = nameof(AccountController).Replace("Controller", ""),
-                                Method = "get",
                             },
                         }
                     };

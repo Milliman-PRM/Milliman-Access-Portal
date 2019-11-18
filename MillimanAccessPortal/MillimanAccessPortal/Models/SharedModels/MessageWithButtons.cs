@@ -24,5 +24,6 @@ namespace MillimanAccessPortal.Models.SharedModels
         public string Action { get; set; }
         public Dictionary<string,string> RouteData { get; set; } = new Dictionary<string, string>();
         public string Method { get; set; } = "post";
+        public string ButtonClass { get; set; } = "blue-button";
     }
 }
