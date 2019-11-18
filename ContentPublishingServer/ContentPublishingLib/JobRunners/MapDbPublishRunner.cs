@@ -397,7 +397,7 @@ namespace ContentPublishingLib.JobRunners
                             {
                                 OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
                                 ReductionTaskId = NewTask.Id,
-                                ProcessingStarted = DateTime.UtcNow,
+                                ProcessingStartedUtc = DateTime.UtcNow,
                             };
                         }
                         else

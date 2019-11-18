@@ -303,7 +303,7 @@ namespace ContentPublishingLib.JobMonitors
                     {
                         ReductionTaskId = JobDetail.TaskId,
                         ElapsedTime = JobDetail.Result.ProcessingDuration,
-                        ProcessingStarted = DbTask.ProcessingStartDateTimeUtc,
+                        ProcessingStartedUtc = DbTask.ProcessingStartDateTimeUtc,
                         OutcomeReason = MapDbReductionTaskOutcomeReason.Default,
                     };
 
