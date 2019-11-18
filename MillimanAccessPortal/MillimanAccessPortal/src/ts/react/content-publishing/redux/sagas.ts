@@ -93,6 +93,7 @@ export default function* rootSaga() {
 
   // Toasts
   yield takeEveryToast('CREATE_NEW_CONTENT_ITEM_SUCCEEDED', 'New Content Item created successfully.');
+  yield takeEveryToast('UPDATE_CONTENT_ITEM_SUCCEEDED', 'Content Item updated successfully.');
   yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',
     'Please refresh the page to update reduction status.', 'warning');
   yield takeEveryToast<ErrorPublishingAction>([
