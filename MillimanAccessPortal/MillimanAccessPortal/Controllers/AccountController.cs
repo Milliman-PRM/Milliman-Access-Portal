@@ -879,7 +879,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetPasswordBecauseInvalidToken(string userEmail)
+        public async Task<IActionResult> ResetPasswordBecauseInvalidToken(string userEmail, string confirmationMessage)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} POST action");
 
@@ -893,8 +893,7 @@ namespace MillimanAccessPortal.Controllers
             await RequestPasswordReset(user, PasswordResetRequestReason.PasswordResetTokenInvalid, Request.Scheme, Request.Host);
             Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: new password reset requested for user {user.UserName}, previous link was expired or invalid");
 
-            string UserMsg = $"Thank you.  A new password reset email has been sent to {user.Email}.";
-            return View("Message", UserMsg);
+            return View("Message", confirmationMessage);
         }
 
         //
@@ -933,7 +932,8 @@ namespace MillimanAccessPortal.Controllers
                                 Controller = nameof(AccountController).Replace("Controller", ""),
                                 RouteData = new Dictionary<string, string>
                                 {
-                                    { nameof(passwordResetToken), passwordResetToken }
+                                    { nameof(passwordResetToken), passwordResetToken },
+                                    { "confirmationMessage", $"Thank you.  A new password reset email has been sent to {user.Email}."}
                                 }
                             },
                             new ConfiguredButton
