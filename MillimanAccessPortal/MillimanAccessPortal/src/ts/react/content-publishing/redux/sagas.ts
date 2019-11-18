@@ -98,6 +98,7 @@ export default function* rootSaga() {
   yield takeEveryToast('DELETE_CONTENT_ITEM_SUCCEEDED', 'Content Item successfully deleted.');
   yield takeEveryToast('CANCEL_PUBLICATION_REQUEST_SUCCEEDED', 'Publication canceled.');
   yield takeEveryToast('REJECT_GO_LIVE_SUMMARY_SUCCEEDED', 'Publication rejected.');
+  yield takeEveryToast('APPROVE_GO_LIVE_SUMMARY_SUCCEEDED', 'Publication approved.');
   yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',
     'Please refresh the page to update reduction status.', 'warning');
   yield takeEveryToast<ErrorPublishingAction>([
