@@ -9,7 +9,7 @@ import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
-  AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors, RelatedFiles,
+  AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -296,6 +296,12 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
 const pendingStatusTries = createReducer<number>(5, {
   DECREMENT_STATUS_REFRESH_ATTEMPTS: (state) => state ? state - 1 : 0,
   FETCH_STATUS_REFRESH_SUCCEEDED: () => 5,
+});
+
+const contentItemToDelete = createReducer<Guid>(null, {
+  OPEN_DELETE_CONTENT_ITEM_MODAL: (_state, action: PublishingActions.OpenDeleteContentItemModal) => action.id,
+  CLOSE_DELETE_CONTENT_ITEM_MODAL: () => null,
+  DELETE_CONTENT_ITEM_SUCCEEDED: () => null,
 });
 
 const data = createReducer<PublishingStateData>(_initialData, {
@@ -1071,6 +1077,7 @@ const pending = combineReducers({
   data: pendingData,
   statusTries: pendingStatusTries,
   uploads: uploadStatus,
+  contentItemToDelete,
 });
 
 const filters = combineReducers({

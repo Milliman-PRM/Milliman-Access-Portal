@@ -5,6 +5,7 @@ import '../../../images/icons/expand-frame.svg';
 import '../../../images/icons/user.svg';
 
 import * as React from 'react';
+import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
@@ -48,13 +49,13 @@ import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
-  availableContentTypes, clientEntities, filesForPublishing, formChangesPending,
-  goLiveApproveButtonIsActive, itemEntities, selectedItem, submitButtonIsActive,
-  uploadChangesPending,
+  availableContentTypes, clientEntities, contentItemToBeDeleted, filesForPublishing,
+  formChangesPending, goLiveApproveButtonIsActive, itemEntities, selectedItem,
+  submitButtonIsActive, uploadChangesPending,
 } from './redux/selectors';
 import {
   GoLiveSummaryData, PublishingFormData, PublishingState, PublishingStateCardAttributes,
-  PublishingStateFilters, PublishingStatePending, PublishingStateSelected,
+  PublishingStateFilters, PublishingStateModals, PublishingStatePending, PublishingStateSelected,
 } from './redux/store';
 import { SelectionGroupDetails } from './selection-group-detail';
 
@@ -76,11 +77,13 @@ interface ContentPublishingProps {
   cardAttributes: PublishingStateCardAttributes;
   pending: PublishingStatePending;
   filters: PublishingStateFilters;
+  modals: PublishingStateModals;
 
   selectedItem: RootContentItem;
   activeSelectedClient: Client;
   activeSelectedItem: RootContentItem;
   filesForPublishing: PublishRequest;
+  contentItemToBeDeleted: RootContentItem;
   formCanSubmit: boolean;
   formChangesPending: boolean;
   goLiveApproveButtonIsActive: boolean;
@@ -180,7 +183,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderItemPanel() {
-    const { activeSelectedClient: activeClient, items, selected, filters, pending } = this.props;
+    const {
+      activeSelectedClient: activeClient, items, selected, filters, pending, modals,
+    } = this.props;
     const createNewContentItemIcon = (
       <ActionIcon
         label="New Content Item"
@@ -218,7 +223,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   <CardButton
                     color={'red'}
                     tooltip={'Delete'}
-                    onClick={() => this.props.deleteContentItem(entity.id)}
+                    onClick={() => this.props.openDeleteContentItemModal({id: entity.id})}
                     icon={'delete'}
                   />
                   <CardButton
@@ -311,6 +316,46 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             {createNewContentItemIcon}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
+        <Modal
+          isOpen={modals.contentItemDeletion.isOpen}
+          onRequestClose={() => this.props.closeDeleteContentItemModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Delete Selection Group</h3>
+          <span className="modal-text">
+            Delete <strong>{
+              (this.props.contentItemToBeDeleted !== null)
+                ? this.props.contentItemToBeDeleted.name
+                : ''}</strong>?
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeDeleteContentItemModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (!this.props.pending.data.contentItemDeletion) {
+                  this.props.deleteContentItem(this.props.pending.contentItemToDelete);
+                }
+              }}
+            >
+              Delete
+              {this.props.pending.data.contentItemDeletion
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
+
       </CardPanel>
     );
   }
@@ -822,7 +867,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 }
 
 function mapStateToProps(state: PublishingState): ContentPublishingProps {
-  const { data, formData, goLiveSummary, selected, cardAttributes, pending, filters } = state;
+  const {
+    data, formData, goLiveSummary, selected, cardAttributes, pending, filters, modals,
+  } = state;
   const { id: rootContentItemId } = formData.formData;
   return {
     clients: clientEntities(state),
@@ -837,11 +884,13 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     cardAttributes,
     pending,
     filters,
+    modals,
     selectedItem: selectedItem(state),
     activeSelectedClient: activeSelectedClient(state),
     activeSelectedItem: activeSelectedItem(state),
     filesForPublishing: filesForPublishing(state, rootContentItemId),
     formCanSubmit: submitButtonIsActive(state),
+    contentItemToBeDeleted: contentItemToBeDeleted(state),
     formChangesPending: formChangesPending(state),
     goLiveApproveButtonIsActive: goLiveApproveButtonIsActive(state),
     uploadChangesPending: uploadChangesPending(state),

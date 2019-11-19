@@ -376,6 +376,21 @@ export interface ResetContentItemForm {
 }
 
 /**
+ * Open the modal used to confirm selection group deletion.
+ */
+export interface OpenDeleteContentItemModal {
+  type: 'OPEN_DELETE_CONTENT_ITEM_MODAL';
+  id: Guid;
+}
+
+/**
+ * Close the modal used to confirm selection group deletion.
+ */
+export interface CloseDeleteContentItemModal {
+  type: 'CLOSE_DELETE_CONTENT_ITEM_MODAL';
+}
+
+/**
  * GET:
  *   content items for the selected client;
  *   publications for the selected client;
@@ -461,6 +476,8 @@ export type PagePublishingAction =
   | PromptStatusRefreshStopped
   | DecrementStatusRefreshAttempts
   | PublishContentFilesSucceeded
+  | OpenDeleteContentItemModal
+  | CloseDeleteContentItemModal
   ;
 
 /**
@@ -549,4 +566,11 @@ export type PublishingAction =
 export type FilterPublishingAction =
   | SetFilterTextClient
   | SetFilterTextItem
+  ;
+
+/**
+ * An action that opens a modal.
+ */
+export type OpenModalAction =
+  | OpenDeleteContentItemModal
   ;
