@@ -376,7 +376,7 @@ export interface ResetContentItemForm {
 }
 
 /**
- * Open the modal used to confirm selection group deletion.
+ * Open the modal used to confirm content item deletion.
  */
 export interface OpenDeleteContentItemModal {
   type: 'OPEN_DELETE_CONTENT_ITEM_MODAL';
@@ -384,7 +384,7 @@ export interface OpenDeleteContentItemModal {
 }
 
 /**
- * Close the modal used to confirm selection group deletion.
+ * Close the modal used to confirm content item deletion.
  */
 export interface CloseDeleteContentItemModal {
   type: 'CLOSE_DELETE_CONTENT_ITEM_MODAL';
