@@ -10,7 +10,7 @@ import {
   ContentPublicationRequest, ContentType, Guid, PublicationQueueDetails, RootContentItemWithStats,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
-import { Dict, FilterState } from '../../shared-components/redux/store';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { contentPublishing } from './reducers';
 import sagas from './sagas';
 
@@ -65,6 +65,7 @@ export interface PublishingStatePending {
   data: PendingDataState;
   statusTries: number;
   uploads: Dict<UploadState>;
+  contentItemToDelete: Guid;
 }
 
 /**
@@ -110,7 +111,16 @@ export interface ElementsToConfirm {
 }
 
 /**
- * All content access admin state.
+ * All modal state.
+ */
+export interface PublishingStateModals {
+  formModified: ModalState;
+  goLiveRejection: ModalState;
+  contentItemDeletion: ModalState;
+}
+
+/**
+ * All content publishing state.
  */
 export interface PublishingState {
   data: PublishingStateData;
@@ -120,6 +130,7 @@ export interface PublishingState {
   cardAttributes: PublishingStateCardAttributes;
   pending: PublishingStatePending;
   filters: PublishingStateFilters;
+  modals: PublishingStateModals;
   toastr: toastr.ToastrState;
 }
 

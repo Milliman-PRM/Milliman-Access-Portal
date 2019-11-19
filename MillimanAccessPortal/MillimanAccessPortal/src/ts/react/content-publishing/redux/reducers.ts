@@ -12,10 +12,10 @@ import {
   AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
-import { createReducerCreator } from '../../shared-components/redux/reducers';
-import { Dict, FilterState } from '../../shared-components/redux/store';
+import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import * as PublishingActions from './actions';
-import { FilterPublishingAction, PublishingAction } from './actions';
+import { FilterPublishingAction, OpenModalAction, PublishingAction } from './actions';
 import {
   ElementsToConfirm, GoLiveSummaryData, PendingDataState, PublishingFormData,
   PublishingStateData, PublishingStateSelected,
@@ -136,6 +136,31 @@ const createFilterReducer = (actionType: FilterPublishingAction['type']) =>
       text: action.text,
     }),
   });
+
+/**
+ * Create a reducer for a modal
+ * @param openActions Actions that cause the modal to open
+ * @param closeActions Actions that cause the modal to close
+ */
+const createModalReducer = (
+  openActions: Array<OpenModalAction['type']>,
+  closeActions: Array<PublishingAction['type']>,
+) => {
+  const handlers: Handlers<ModalState, any> = {};
+  openActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: true,
+    });
+  });
+  closeActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: false,
+    });
+  });
+  return createReducer<ModalState>({ isOpen: false }, handlers);
+};
 
 const clientCardAttributes = createReducer<Dict<CardAttributes>>({},
   {
@@ -1030,6 +1055,14 @@ const selected = createReducer<PublishingStateSelected>(
   },
 );
 
+const modals = combineReducers({
+  contentItemDeletion: createModalReducer(['OPEN_DELETE_CONTENT_ITEM_MODAL'], [
+    'CLOSE_DELETE_CONTENT_ITEM_MODAL',
+    'DELETE_CONTENT_ITEM_SUCCEEDED',
+    'DELETE_CONTENT_ITEM_FAILED',
+  ]),
+});
+
 const cardAttributes = combineReducers({
   client: clientCardAttributes,
 });
@@ -1053,5 +1086,6 @@ export const contentPublishing = combineReducers({
   cardAttributes,
   pending,
   filters,
+  modals,
   toastr: toastrReducer,
 });
