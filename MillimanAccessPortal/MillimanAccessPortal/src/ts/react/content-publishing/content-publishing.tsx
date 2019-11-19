@@ -8,6 +8,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
+import { setUnloadAlert } from '../../unload-alerts';
 import {
   ContentTypeEnum, PublicationStatus, PublishRequest,
 } from '../../view-models/content-publishing';
@@ -95,7 +96,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
     this.props.fetchClients({});
     this.props.scheduleStatusRefresh({ delay: 0 });
     this.props.scheduleSessionCheck({ delay: 0 });
-    // setUnloadAlert(() => this.props.pending.item);
+    setUnloadAlert(() => this.props.formChangesPending || this.props.uploadChangesPending);
   }
 
   public render() {
