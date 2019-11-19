@@ -1067,6 +1067,11 @@ const modals = combineReducers({
     'DELETE_CONTENT_ITEM_SUCCEEDED',
     'DELETE_CONTENT_ITEM_FAILED',
   ]),
+  goLiveRejection: createModalReducer(['OPEN_GO_LIVE_REJECTION_MODAL'], [
+    'CLOSE_GO_LIVE_REJECTION_MODAL',
+    'REJECT_GO_LIVE_SUMMARY_SUCCEEDED',
+    'REJECT_GO_LIVE_SUMMARY_FAILED',
+  ]),
 });
 
 const cardAttributes = combineReducers({

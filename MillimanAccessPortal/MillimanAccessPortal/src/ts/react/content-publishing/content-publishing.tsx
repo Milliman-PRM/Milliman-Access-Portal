@@ -355,7 +355,48 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             </button>
           </div>
         </Modal>
-
+        <Modal
+          isOpen={modals.goLiveRejection.isOpen}
+          onRequestClose={() => this.props.closeGoLiveRejectionModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Reject Publication</h3>
+          <span className="modal-text">
+            Reject Publication of <strong>{
+              this.props.goLiveSummary.goLiveSummary && this.props.goLiveSummary.goLiveSummary.rootContentName
+            }</strong>?
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeGoLiveRejectionModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (!this.props.pending.data.goLiveRejection) {
+                  this.props.rejectGoLiveSummary({
+                    rootContentItemId: this.props.goLiveSummary.rootContentItemId,
+                    publicationRequestId: this.props.goLiveSummary.goLiveSummary.publicationRequestId,
+                    validationSummaryId: this.props.goLiveSummary.goLiveSummary.validationSummaryId,
+                  });
+                }
+              }}
+            >
+              Reject
+              {this.props.pending.data.contentItemDeletion
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
       </CardPanel>
     );
   }
@@ -832,11 +873,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <div className="go-live-button-container">
           <button
             className="red-button"
-            onClick={() => this.props.rejectGoLiveSummary({
-              rootContentItemId,
-              publicationRequestId: goLiveSummary.publicationRequestId,
-              validationSummaryId: goLiveSummary.validationSummaryId,
-            })}
+            onClick={() => this.props.openGoLiveRejectionModal({})}
           >
             Reject
             {this.props.pending.data.goLiveRejection

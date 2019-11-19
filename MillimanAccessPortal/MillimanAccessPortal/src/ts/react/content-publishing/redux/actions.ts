@@ -391,6 +391,20 @@ export interface CloseDeleteContentItemModal {
 }
 
 /**
+ * Open the modal used to confirm Go-Live rejection
+ */
+export interface OpenGoLiveRejectionModal {
+  type: 'OPEN_GO_LIVE_REJECTION_MODAL';
+}
+
+/**
+ * Close the modal used to confirm Go-Live rejection
+ */
+export interface CloseGoLiveRejectionModal {
+  type: 'CLOSE_GO_LIVE_REJECTION_MODAL';
+}
+
+/**
  * GET:
  *   content items for the selected client;
  *   publications for the selected client;
@@ -478,6 +492,8 @@ export type PagePublishingAction =
   | PublishContentFilesSucceeded
   | OpenDeleteContentItemModal
   | CloseDeleteContentItemModal
+  | OpenGoLiveRejectionModal
+  | CloseGoLiveRejectionModal
   ;
 
 /**
@@ -573,4 +589,5 @@ export type FilterPublishingAction =
  */
 export type OpenModalAction =
   | OpenDeleteContentItemModal
+  | OpenGoLiveRejectionModal
   ;

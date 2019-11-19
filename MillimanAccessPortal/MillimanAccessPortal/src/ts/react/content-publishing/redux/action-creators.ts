@@ -71,6 +71,10 @@ export const openDeleteContentItemModal =
   createActionCreator<PublishActions.OpenDeleteContentItemModal>('OPEN_DELETE_CONTENT_ITEM_MODAL');
 export const closeDeleteContentItemModal =
   createActionCreator<PublishActions.CloseDeleteContentItemModal>('CLOSE_DELETE_CONTENT_ITEM_MODAL');
+export const openGoLiveRejectionModal =
+  createActionCreator<PublishActions.OpenGoLiveRejectionModal>('OPEN_GO_LIVE_REJECTION_MODAL');
+export const closeGoLiveRejectionModal =
+  createActionCreator<PublishActions.CloseGoLiveRejectionModal>('CLOSE_GO_LIVE_REJECTION_MODAL');
 
 /**
  * Close the modal used to confirm selection group deletion.
