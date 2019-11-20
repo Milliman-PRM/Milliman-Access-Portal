@@ -75,6 +75,10 @@ export const openGoLiveRejectionModal =
   createActionCreator<PublishActions.OpenGoLiveRejectionModal>('OPEN_GO_LIVE_REJECTION_MODAL');
 export const closeGoLiveRejectionModal =
   createActionCreator<PublishActions.CloseGoLiveRejectionModal>('CLOSE_GO_LIVE_REJECTION_MODAL');
+export const openModifiedFormModal =
+  createActionCreator<PublishActions.OpenModifiedFormModal>('OPEN_MODIFIED_FORM_MODAL');
+export const closeModifiedFormModal =
+  createActionCreator<PublishActions.CloseModifiedFormModal>('CLOSE_MODIFIED_FORM_MODAL');
 
 /**
  * Close the modal used to confirm selection group deletion.

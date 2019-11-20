@@ -17,8 +17,8 @@ import { Dict, FilterState, ModalState } from '../../shared-components/redux/sto
 import * as PublishingActions from './actions';
 import { FilterPublishingAction, OpenModalAction, PublishingAction } from './actions';
 import {
-  ElementsToConfirm, GoLiveSummaryData, PendingDataState, PublishingFormData,
-  PublishingStateData, PublishingStateSelected,
+  AfterFormModal, ElementsToConfirm, GoLiveSummaryData, PendingDataState,
+  PublishingFormData, PublishingStateData, PublishingStateSelected,
 } from './store';
 
 const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
@@ -302,6 +302,49 @@ const contentItemToDelete = createReducer<Guid>(null, {
   OPEN_DELETE_CONTENT_ITEM_MODAL: (_state, action: PublishingActions.OpenDeleteContentItemModal) => action.id,
   CLOSE_DELETE_CONTENT_ITEM_MODAL: () => null,
   DELETE_CONTENT_ITEM_SUCCEEDED: () => null,
+});
+
+const afterFormModal = createReducer<AfterFormModal>({ entityToSelect: null, entityType: null }, {
+  OPEN_MODIFIED_FORM_MODAL: (_state, action: PublishingActions.OpenModifiedFormModal) => ({
+    entityToSelect: action.afterFormModal.entityToSelect,
+    entityType: action.afterFormModal.entityType,
+  }),
+  CLOSE_MODIFIED_FORM_MODAL: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  SELECT_CLIENT: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  SELECT_ITEM: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  DELETE_CONTENT_ITEM_SUCCEEDED: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  DELETE_CONTENT_ITEM_FAILED: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  FETCH_CONTENT_ITEM_DETAIL_SUCCEEDED: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  FETCH_CONTENT_ITEM_DETAIL_FAILED: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  SET_FORM_FOR_NEW_CONTENT_ITEM: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  RESET_CONTENT_ITEM_FORM: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
 });
 
 const data = createReducer<PublishingStateData>(_initialData, {
@@ -1072,6 +1115,16 @@ const modals = combineReducers({
     'REJECT_GO_LIVE_SUMMARY_SUCCEEDED',
     'REJECT_GO_LIVE_SUMMARY_FAILED',
   ]),
+  formModified: createModalReducer(['OPEN_MODIFIED_FORM_MODAL'], [
+    'CLOSE_MODIFIED_FORM_MODAL',
+    'SELECT_CLIENT',
+    'SELECT_ITEM',
+    'OPEN_DELETE_CONTENT_ITEM_MODAL',
+    'FETCH_CONTENT_ITEM_DETAIL',
+    'RESET_CONTENT_ITEM_FORM',
+    'SET_FORM_FOR_NEW_CONTENT_ITEM',
+    'FETCH_GO_LIVE_SUMMARY',
+  ]),
 });
 
 const cardAttributes = combineReducers({
@@ -1083,6 +1136,7 @@ const pending = combineReducers({
   statusTries: pendingStatusTries,
   uploads: uploadStatus,
   contentItemToDelete,
+  afterFormModal,
 });
 
 const filters = combineReducers({

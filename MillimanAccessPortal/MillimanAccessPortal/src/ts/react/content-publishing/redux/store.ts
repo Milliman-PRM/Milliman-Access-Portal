@@ -66,6 +66,19 @@ export interface PublishingStatePending {
   statusTries: number;
   uploads: Dict<UploadState>;
   contentItemToDelete: Guid;
+  afterFormModal: AfterFormModal;
+}
+
+export interface AfterFormModal {
+  entityToSelect: Guid;
+  entityType:
+  | 'Select Client'
+  | 'Select Content Item'
+  | 'Delete Content Item'
+  | 'Edit Content Item'
+  | 'New Content Item'
+  | 'Undo Changes'
+  | 'Go Live Summary';
 }
 
 /**

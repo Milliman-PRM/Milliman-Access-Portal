@@ -9,6 +9,7 @@ import {
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
+import { AfterFormModal } from './store';
 
 // ~~ Page actions ~~
 
@@ -405,6 +406,21 @@ export interface CloseGoLiveRejectionModal {
 }
 
 /**
+ * Open the modal used to confirm navigation away from a modified form
+ */
+export interface OpenModifiedFormModal {
+  type: 'OPEN_MODIFIED_FORM_MODAL';
+  afterFormModal: AfterFormModal;
+}
+
+/**
+ * Close the modal used to confirm navigation away from a modified form
+ */
+export interface CloseModifiedFormModal {
+  type: 'CLOSE_MODIFIED_FORM_MODAL';
+}
+
+/**
  * GET:
  *   content items for the selected client;
  *   publications for the selected client;
@@ -494,6 +510,8 @@ export type PagePublishingAction =
   | CloseDeleteContentItemModal
   | OpenGoLiveRejectionModal
   | CloseGoLiveRejectionModal
+  | OpenModifiedFormModal
+  | CloseModifiedFormModal
   ;
 
 /**
@@ -590,4 +608,5 @@ export type FilterPublishingAction =
 export type OpenModalAction =
   | OpenDeleteContentItemModal
   | OpenGoLiveRejectionModal
+  | OpenModifiedFormModal
   ;
