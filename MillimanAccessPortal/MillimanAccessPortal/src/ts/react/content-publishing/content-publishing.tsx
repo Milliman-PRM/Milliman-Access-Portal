@@ -103,6 +103,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   public render() {
+    const { modals, selected, formData, goLiveSummary, pending } = this.props;
     return (
       <>
         <ReduxToastr
@@ -114,208 +115,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         />
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
-        {this.props.selected.client && this.renderItemPanel()}
-        {(this.props.goLiveSummary.rootContentItemId)
+        {selected.client && this.renderItemPanel()}
+        {(goLiveSummary.rootContentItemId)
           ? this.renderGoLiveSummary()
-          : (this.props.selected.item
-            && this.props.formData.formData.clientId) ? this.renderContentItemForm() : null
+          : (selected.item
+            && formData.formData.clientId) ? this.renderContentItemForm() : null
         }
-      </>
-    );
-  }
-
-  private renderClientPanel() {
-    const { clients, selected, filters, pending, cardAttributes } = this.props;
-    return (
-      <CardPanel
-        entities={clients}
-        loading={pending.data.clients}
-        renderEntity={(entity, key) => {
-          if (entity === 'divider') {
-            return <div className="hr" key={key} />;
-          }
-          const card = cardAttributes.client[entity.id];
-          return (
-            <Card
-              key={key}
-              selected={selected.client === entity.id}
-              disabled={card.disabled}
-              onSelect={() => {
-                if (selected.client !== entity.id) {
-                  this.props.fetchItems({ clientId: entity.id });
-                }
-                this.props.selectClient({ id: entity.id });
-              }}
-              indentation={entity.indent}
-            >
-              <CardSectionMain>
-                <CardText text={entity.name} subtext={entity.code} />
-                <CardSectionStats>
-                  <CardStat
-                    name={'Reports'}
-                    value={entity.contentItemCount}
-                    icon={'reports'}
-                  />
-                  <CardStat
-                    name={'Users'}
-                    value={entity.userCount}
-                    icon={'user'}
-                  />
-                </CardSectionStats>
-              </CardSectionMain>
-            </Card>
-          );
-        }}
-      >
-        <h3 className="admin-panel-header">Clients</h3>
-        <PanelSectionToolbar>
-          <Filter
-            placeholderText={'Filter clients...'}
-            setFilterText={(text) => this.props.setFilterTextClient({ text })}
-            filterText={filters.client.text}
-          />
-          <PanelSectionToolbarButtons>
-            <div id="icons" />
-          </PanelSectionToolbarButtons>
-        </PanelSectionToolbar>
-      </CardPanel>
-    );
-  }
-
-  private renderItemPanel() {
-    const {
-      activeSelectedClient: activeClient, items, selected, filters, pending, modals,
-    } = this.props;
-    const createNewContentItemIcon = (
-      <ActionIcon
-        label="New Content Item"
-        icon="add"
-        action={() => { this.props.setFormForNewContentItem({ clientId: selected.client }); }}
-      />
-    );
-    return activeClient && (
-      <CardPanel
-        entities={items}
-        loading={pending.data.items}
-        renderEntity={(entity, key) => {
-          const cardButtons = entity.status.requestStatus === PublicationStatus.Processed ?
-            (
-              <>
-                <CardButton
-                  color={'green'}
-                  tooltip={'Approve'}
-                  onClick={() => this.props.fetchGoLiveSummary({ rootContentItemId: entity.id })}
-                  icon={'checkmark'}
-                />
-              </>
-            ) : entity.status.requestStatus === PublicationStatus.Queued
-              || entity.status.requestStatus === PublicationStatus.Validating ? (
-                <>
-                  <CardButton
-                    color={'red'}
-                    tooltip={'Cancel'}
-                    onClick={() => this.props.cancelPublicationRequest(entity.id)}
-                    icon={'cancel'}
-                  />
-                </>
-              ) : (
-                <>
-                  <CardButton
-                    color={'red'}
-                    tooltip={'Delete'}
-                    onClick={() => this.props.openDeleteContentItemModal({id: entity.id})}
-                    icon={'delete'}
-                  />
-                  <CardButton
-                    color={'green'}
-                    tooltip={'Edit'}
-                    onClick={() => {
-                      if (selected.item !== entity.id) {
-                        this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
-                        this.props.selectItem({ id: entity.id });
-                      }
-                      this.props.setContentItemFormState({ formState: 'write' });
-                      }
-                    }
-                    icon={'edit'}
-                  />
-                </>
-              );
-          return (
-            <Card
-              key={key}
-              selected={selected.item === entity.id}
-              onSelect={() => {
-                if (selected.item !== entity.id) {
-                  this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
-                }
-                this.props.selectItem({ id: entity.id });
-                this.props.setContentItemFormState({ formState: 'read' });
-              }}
-              suspended={entity.isSuspended}
-              status={entity.status}
-            >
-              <CardSectionMain>
-                <CardText
-                  text={entity.name}
-                  textSuffix={entity.isSuspended ? '[Suspended]' : ''}
-                  subtext={entity.contentTypeName}
-                />
-                <CardSectionStats>
-                  <CardStat
-                    name={'Selection groups'}
-                    value={entity.selectionGroupCount}
-                    icon={'group'}
-                  />
-                  <CardStat
-                    name={'Assigned users'}
-                    value={entity.assignedUserCount}
-                    icon={'user'}
-                  />
-                </CardSectionStats>
-                <CardSectionButtons>
-                  {cardButtons}
-                </CardSectionButtons>
-              </CardSectionMain>
-            </Card>
-            );
-        }}
-        renderNewEntityButton={() => (
-          <div
-            className="card-container action-card-container"
-            onClick={() => this.props.setFormForNewContentItem({ clientId: selected.client })}
-          >
-            <div className="admin-panel-content">
-              <div
-                className={
-                  `
-                    card-body-container card-100 action-card
-                    ${this.props.selected.item === 'NEW CONTENT ITEM' ? 'selected' : ''}
-                  `
-                }
-              >
-                <h2 className="card-body-primary-text">
-                  <svg className="action-card-icon">
-                    <use href="#add" />
-                  </svg>
-                  <span>CREATE CONTENT ITEM</span>
-                </h2>
-              </div>
-            </div>
-          </div>
-        )}
-      >
-        <h3 className="admin-panel-header">Content Items</h3>
-        <PanelSectionToolbar>
-          <Filter
-            placeholderText={'Filter content items...'}
-            setFilterText={(text) => this.props.setFilterTextItem({ text })}
-            filterText={filters.item.text}
-          />
-          <PanelSectionToolbarButtons>
-            {createNewContentItemIcon}
-          </PanelSectionToolbarButtons>
-        </PanelSectionToolbar>
         <Modal
           isOpen={modals.contentItemDeletion.isOpen}
           onRequestClose={() => this.props.closeDeleteContentItemModal({})}
@@ -397,6 +202,341 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             </button>
           </div>
         </Modal>
+        <Modal
+          isOpen={modals.formModified.isOpen}
+          onRequestClose={() => this.props.closeModifiedFormModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Discard Changes</h3>
+          <span className="modal-text">Would you like to discard unsaved changes?</span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeModifiedFormModal({})}
+            >
+              Continue Editing
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                const { entityToSelect, entityType } = pending.afterFormModal;
+                this.props.resetContentItemForm({});
+                switch (entityType) {
+                  case 'Select Client':
+                    if (selected.client !== entityToSelect) {
+                      this.props.fetchItems({ clientId: entityToSelect });
+                    }
+                    this.props.selectClient({ id: entityToSelect });
+                    break;
+                  case 'Select Content Item':
+                    if (selected.item !== entityToSelect && entityToSelect !== null) {
+                      this.props.fetchContentItemDetail({ rootContentItemId: entityToSelect });
+                    }
+                    this.props.selectItem({ id: entityToSelect });
+                    this.props.setContentItemFormState({ formState: 'read' });
+                    break;
+                  case 'Delete Content Item':
+                    // Add a slight pause to make it obvious that you've switched modals
+                    setTimeout(() => this.props.openDeleteContentItemModal({ id: entityToSelect }), 400);
+                    break;
+                  case 'Edit Content Item':
+                    this.props.fetchContentItemDetail({ rootContentItemId: entityToSelect });
+                    this.props.selectItem({ id: entityToSelect });
+                    this.props.setContentItemFormState({ formState: 'write' });
+                    break;
+                  case 'New Content Item':
+                    this.props.setFormForNewContentItem({ clientId: selected.client });
+                    break;
+                  case 'Undo Changes':
+                    // This action is triggered for every outcome
+                    break;
+                  case 'Go Live Summary':
+                    this.props.fetchGoLiveSummary({ rootContentItemId: entityToSelect });
+                    break;
+                }
+              }}
+            >
+              Discard
+            </button>
+          </div>
+        </Modal>
+      </>
+    );
+  }
+
+  private renderClientPanel() {
+    const { clients, selected, filters, pending, cardAttributes } = this.props;
+    return (
+      <CardPanel
+        entities={clients}
+        loading={pending.data.clients}
+        renderEntity={(entity, key) => {
+          if (entity === 'divider') {
+            return <div className="hr" key={key} />;
+          }
+          const card = cardAttributes.client[entity.id];
+          return (
+            <Card
+              key={key}
+              selected={selected.client === entity.id}
+              disabled={card.disabled}
+              onSelect={() => {
+                if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                  this.props.openModifiedFormModal({
+                    afterFormModal:
+                    {
+                      entityToSelect: entity.id,
+                      entityType: 'Select Client',
+                    },
+                  });
+                } else {
+                  if (selected.client !== entity.id) {
+                    this.props.fetchItems({ clientId: entity.id });
+                  }
+                  this.props.selectClient({ id: entity.id });
+                }
+              }}
+              indentation={entity.indent}
+            >
+              <CardSectionMain>
+                <CardText text={entity.name} subtext={entity.code} />
+                <CardSectionStats>
+                  <CardStat
+                    name={'Reports'}
+                    value={entity.contentItemCount}
+                    icon={'reports'}
+                  />
+                  <CardStat
+                    name={'Users'}
+                    value={entity.userCount}
+                    icon={'user'}
+                  />
+                </CardSectionStats>
+              </CardSectionMain>
+            </Card>
+          );
+        }}
+      >
+        <h3 className="admin-panel-header">Clients</h3>
+        <PanelSectionToolbar>
+          <Filter
+            placeholderText={'Filter clients...'}
+            setFilterText={(text) => this.props.setFilterTextClient({ text })}
+            filterText={filters.client.text}
+          />
+          <PanelSectionToolbarButtons>
+            <div id="icons" />
+          </PanelSectionToolbarButtons>
+        </PanelSectionToolbar>
+      </CardPanel>
+    );
+  }
+
+  private renderItemPanel() {
+    const {
+      activeSelectedClient: activeClient, items, selected, filters, pending, modals,
+    } = this.props;
+    const createNewContentItemIcon = (
+      <ActionIcon
+        label="New Content Item"
+        icon="add"
+        action={() => {
+          if (this.props.formChangesPending || this.props.uploadChangesPending) {
+            this.props.openModifiedFormModal({
+              afterFormModal:
+              {
+                entityToSelect: null,
+                entityType: 'New Content Item',
+              },
+            });
+          } else {
+            this.props.setFormForNewContentItem({ clientId: selected.client });
+          }
+        }}
+      />
+    );
+    return activeClient && (
+      <CardPanel
+        entities={items}
+        loading={pending.data.items}
+        renderEntity={(entity, key) => {
+          const cardButtons = entity.status.requestStatus === PublicationStatus.Processed ?
+            (
+              <>
+                <CardButton
+                  color={'green'}
+                  tooltip={'Approve'}
+                  onClick={() => {
+                    if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                      this.props.openModifiedFormModal({
+                        afterFormModal:
+                        {
+                          entityToSelect: entity.id,
+                          entityType: 'Go Live Summary',
+                        },
+                      });
+                    } else {
+                      this.props.fetchGoLiveSummary({ rootContentItemId: entity.id });
+                    }
+                  }}
+                  icon={'checkmark'}
+                />
+              </>
+            ) : entity.status.requestStatus === PublicationStatus.Queued
+              || entity.status.requestStatus === PublicationStatus.Validating ? (
+                <>
+                  <CardButton
+                    color={'red'}
+                    tooltip={'Cancel'}
+                    onClick={() => this.props.cancelPublicationRequest(entity.id)}
+                    icon={'cancel'}
+                  />
+                </>
+              ) : (
+                <>
+                  <CardButton
+                    color={'red'}
+                    tooltip={'Delete'}
+                    onClick={() => {
+                      if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                        this.props.openModifiedFormModal({
+                          afterFormModal:
+                          {
+                            entityToSelect: entity.id,
+                            entityType: 'Delete Content Item',
+                          },
+                        });
+                      } else {
+                        this.props.openDeleteContentItemModal({ id: entity.id });
+                      }
+                    }}
+                    icon={'delete'}
+                  />
+                  <CardButton
+                    color={'green'}
+                    tooltip={'Edit'}
+                    onClick={() => {
+                      if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                        this.props.openModifiedFormModal({
+                          afterFormModal:
+                          {
+                            entityToSelect: entity.id,
+                            entityType: 'Edit Content Item',
+                          },
+                        });
+                      } else {
+                        if (selected.item !== entity.id) {
+                          this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
+                          this.props.selectItem({ id: entity.id });
+                        }
+                        this.props.setContentItemFormState({ formState: 'write' });
+                      }
+                    }}
+                    icon={'edit'}
+                  />
+                </>
+              );
+          return (
+            <Card
+              key={key}
+              selected={selected.item === entity.id}
+              onSelect={() => {
+                if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                  this.props.openModifiedFormModal({
+                    afterFormModal:
+                    {
+                      entityToSelect: entity.id,
+                      entityType: 'Select Content Item',
+                    },
+                  });
+                } else {
+                  if (selected.item !== entity.id) {
+                    this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
+                  }
+                  this.props.selectItem({ id: entity.id });
+                  this.props.setContentItemFormState({ formState: 'read' });
+                }
+              }}
+              suspended={entity.isSuspended}
+              status={entity.status}
+            >
+              <CardSectionMain>
+                <CardText
+                  text={entity.name}
+                  textSuffix={entity.isSuspended ? '[Suspended]' : ''}
+                  subtext={entity.contentTypeName}
+                />
+                <CardSectionStats>
+                  <CardStat
+                    name={'Selection groups'}
+                    value={entity.selectionGroupCount}
+                    icon={'group'}
+                  />
+                  <CardStat
+                    name={'Assigned users'}
+                    value={entity.assignedUserCount}
+                    icon={'user'}
+                  />
+                </CardSectionStats>
+                <CardSectionButtons>
+                  {cardButtons}
+                </CardSectionButtons>
+              </CardSectionMain>
+            </Card>
+            );
+        }}
+        renderNewEntityButton={() => (
+          <div
+            className="card-container action-card-container"
+            onClick={() => {
+              if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                this.props.openModifiedFormModal({
+                  afterFormModal:
+                  {
+                    entityToSelect: null,
+                    entityType: 'New Content Item',
+                  },
+                });
+              } else {
+                this.props.setFormForNewContentItem({ clientId: selected.client });
+              }
+            }}
+          >
+            <div className="admin-panel-content">
+              <div
+                className={
+                  `
+                    card-body-container card-100 action-card
+                    ${this.props.selected.item === 'NEW CONTENT ITEM' ? 'selected' : ''}
+                  `
+                }
+              >
+                <h2 className="card-body-primary-text">
+                  <svg className="action-card-icon">
+                    <use href="#add" />
+                  </svg>
+                  <span>CREATE CONTENT ITEM</span>
+                </h2>
+              </div>
+            </div>
+          </div>
+        )}
+      >
+        <h3 className="admin-panel-header">Content Items</h3>
+        <PanelSectionToolbar>
+          <Filter
+            placeholderText={'Filter content items...'}
+            setFilterText={(text) => this.props.setFilterTextItem({ text })}
+            filterText={filters.item.text}
+          />
+          <PanelSectionToolbarButtons>
+            {createNewContentItemIcon}
+          </PanelSectionToolbarButtons>
+        </PanelSectionToolbar>
       </CardPanel>
     );
   }
@@ -415,7 +555,19 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       <ActionIcon
         label="Close Content Item"
         icon="cancel"
-        action={() => { this.props.selectItem({ id: null }); }}
+        action={() => {
+          if (this.props.formChangesPending || this.props.uploadChangesPending) {
+            this.props.openModifiedFormModal({
+              afterFormModal:
+              {
+                entityToSelect: null,
+                entityType: 'Select Content Item',
+              },
+            });
+          } else {
+            this.props.selectItem({ id: null });
+          }
+        }}
       />
     );
     return (
@@ -630,14 +782,20 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               </FormSectionRow>
             </FormSection>
             {
-              formState === 'write' &&
+              formState === 'write' && (this.props.formChangesPending || this.props.uploadChangesPending) &&
               <div className="button-container">
                 <button
                   className="link-button"
                   type="button"
                   onClick={(event: any) => {
                     event.preventDefault();
-                    this.props.resetContentItemForm({});
+                    this.props.openModifiedFormModal({
+                      afterFormModal:
+                      {
+                        entityToSelect: null,
+                        entityType: 'Undo Changes',
+                      },
+                    });
                   }}
                 >
                   Undo Changes
