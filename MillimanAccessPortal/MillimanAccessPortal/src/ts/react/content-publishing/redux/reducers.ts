@@ -610,13 +610,28 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     ...state,
     formState: action.formState,
   }),
-  SET_PENDING_BOOLEAN_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormBooleanInputValue) => ({
-    ...state,
-    formData: {
-      ...state.formData,
-      [action.inputName]: action.value,
-    },
-  }),
+  SET_PENDING_BOOLEAN_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormBooleanInputValue) => {
+    if (action.inputName === 'doesReduce' || action.inputName === 'isSuspended') {
+      return {
+        ...state,
+        formData: {
+          ...state.formData,
+          [action.inputName]: action.value,
+        },
+      };
+    } else {
+      return {
+        ...state,
+        formData: {
+          ...state.formData,
+          typeSpecificDetailObject: {
+            ...state.formData.typeSpecificDetailObject,
+            [action.inputName]: action.value,
+          },
+        },
+      };
+    }
+  },
   RESET_CONTENT_ITEM_FORM: (state) => {
     const { originalData } = state;
 
