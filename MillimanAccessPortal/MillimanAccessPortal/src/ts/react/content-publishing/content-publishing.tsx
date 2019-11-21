@@ -35,6 +35,7 @@ import {
   ContentPanel, ContentPanelSectionContent,
 } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
+import { Checkbox } from '../shared-components/form/checkbox';
 import { FileUploadInput } from '../shared-components/form/file-upload-input';
 import {
   ContentPanelForm, FormFlexContainer, FormSection, FormSectionRow,
@@ -651,6 +652,61 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 </FormFlexContainer>
               </FormSectionRow>
             </FormSection>
+            {
+              dataForForm.formData && dataForForm.formData.contentTypeId &&
+              (
+                contentTypes[dataForForm.formData.contentTypeId].displayName === 'QlikView' ||
+                contentTypes[dataForForm.formData.contentTypeId].displayName === 'Power BI'
+              ) &&
+              <FormSection
+                title={`${contentTypes[dataForForm.formData.contentTypeId].displayName} Specific Settings`}
+              >
+                {
+                  contentTypes[dataForForm.formData.contentTypeId].displayName === 'QlikView' &&
+                  <Checkbox
+                    name="Reducible"
+                    selected={dataForForm.formData.doesReduce}
+                    onChange={(status) => this.props.setPublishingFormBooleanInputValue({
+                      inputName: 'doesReduce',
+                      value: status,
+                    })}
+                    readOnly={formState === 'read'}
+                  />
+                }
+                {
+                  contentTypes[dataForForm.formData.contentTypeId].displayName === 'Power BI' &&
+                  <>
+                    <Checkbox
+                      name="Navigation Pane"
+                      selected={dataForForm.formData.typeSpecificDetailObject.navigationPaneEnabled}
+                      onChange={(status) => this.props.setPublishingFormBooleanInputValue({
+                        inputName: 'navigationPaneEnabled',
+                        value: status,
+                      })}
+                      readOnly={formState === 'read'}
+                    />
+                    <Checkbox
+                      name="Filter Pane"
+                      selected={dataForForm.formData.typeSpecificDetailObject.filterPaneEnabled}
+                      onChange={(status) => this.props.setPublishingFormBooleanInputValue({
+                        inputName: 'filterPaneEnabled',
+                        value: status,
+                      })}
+                      readOnly={formState === 'read'}
+                    />
+                    <Checkbox
+                      name="Bookmark Pane"
+                      selected={dataForForm.formData.typeSpecificDetailObject.bookmarksPaneEnabled}
+                      onChange={(status) => this.props.setPublishingFormBooleanInputValue({
+                        inputName: 'bookmarksPaneEnabled',
+                        value: status,
+                      })}
+                      readOnly={formState === 'read'}
+                    />
+                  </>
+                }
+              </FormSection>
+            }
             <FormSection title="Content Related Files">
               <FormSectionRow>
                 <FormFlexContainer flexPhone={5}>
