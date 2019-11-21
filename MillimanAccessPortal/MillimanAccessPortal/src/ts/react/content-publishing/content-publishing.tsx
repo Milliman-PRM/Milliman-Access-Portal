@@ -620,7 +620,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     placeholderText="Choose Content Type"
                     value={dataForForm.formData.contentTypeId}
                     values={this.props.contentTypesList}
-                    readOnly={formState === 'read'}
+                    readOnly={formState === 'read' || dataForForm.originalData.id.length > 0}
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={12} flexTablet={7}>
@@ -670,7 +670,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       inputName: 'doesReduce',
                       value: status,
                     })}
-                    readOnly={formState === 'read'}
+                    readOnly={formState === 'read' || dataForForm.originalData.id.length > 0}
                   />
                 }
                 {
