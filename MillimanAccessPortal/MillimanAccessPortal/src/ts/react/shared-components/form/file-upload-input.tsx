@@ -102,7 +102,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
       const file: File = resumableFile.file;
 
       // Ensure that the uploaded file type matches the expected
-      if (this.props.fileExtensions) {
+      if (this.props.fileExtensions.length > 0) {
         const fileParts: string[] = file.name.toLowerCase().split('.');
         const fileExtension: string = fileParts[fileParts.length - 1];
         if (this.props.fileExtensions.indexOf(fileExtension) === -1) {
