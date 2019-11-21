@@ -368,7 +368,12 @@ export interface SetPublishingFormTextInputValue {
 
 export interface SetPublishingFormBooleanInputValue {
   type: 'SET_PENDING_BOOLEAN_INPUT_VALUE';
-  inputName: 'doesReduce' | 'isSuspended';
+  inputName:
+  | 'doesReduce'
+  | 'isSuspended'
+  | 'filterPaneEnabled'
+  | 'navigationPaneEnabled'
+  | 'bookmarksPaneEnabled';
   value: boolean;
 }
 
