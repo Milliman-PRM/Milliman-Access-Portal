@@ -47,10 +47,13 @@ namespace MillimanAccessPortal.Services
         public IPublicationPostProcessingTaskQueue _taskQueue { get; }
         public IConfiguration _appConfig { get; }
 
+        public async override Task StartAsync(CancellationToken cancellationToken)
+        {
+            await Task.Run(() => AdoptOrphanPublications());
+        }
+
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            RecoverOrphanPublications();
-
             while (!cancellationToken.IsCancellationRequested)
             {
                 // Retrieve the id of a new publication request to post-process
@@ -291,7 +294,7 @@ namespace MillimanAccessPortal.Services
             }
         }
 
-        protected void RecoverOrphanPublications()
+        protected void AdoptOrphanPublications()
         {
             int publishingRecoveryLookbackHours = _appConfig.GetValue("PublishingRecoveryLookbackHours", 24 * 7);
 
