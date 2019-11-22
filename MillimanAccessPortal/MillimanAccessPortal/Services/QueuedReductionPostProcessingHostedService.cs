@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using MillimanAccessPortal.Controllers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,15 +36,19 @@ namespace MillimanAccessPortal.Services
 
         public async override Task StartAsync(CancellationToken cancellationToken)
         {
-            await Task.Run(() => AdoptOrphanReductions());
+            await AdoptOrphanReductions();
         }
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            await Task.Yield();
+            while (true)
+            {
+                await Task.Yield();
+                Thread.Sleep(10_000);
+            }
         }
 
-        protected void AdoptOrphanReductions()
+        protected async Task AdoptOrphanReductions()
         {
             int publishingRecoveryLookbackHours = _appConfig.GetValue("publishingRecoveryLookbackHours", 24 * 7);
             DateTime minCreateDateTimeUtc = DateTime.UtcNow - TimeSpan.FromHours(publishingRecoveryLookbackHours);
@@ -54,6 +59,7 @@ namespace MillimanAccessPortal.Services
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 string dbCxnString = dbContext.Database.GetDbConnection().ConnectionString;
+                ContentAccessAdminController accessAdminController = scope.ServiceProvider.GetRequiredService<ContentAccessAdminController>();
 
                 // First setup a go-live handler for tasks already queued or beyond
                 var reducedTasks = dbContext.ContentReductionTask
@@ -64,7 +70,8 @@ namespace MillimanAccessPortal.Services
                     .Where(t => t.CreateDateTimeUtc > minCreateDateTimeUtc)
                     .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued
                              || t.ReductionStatus == ReductionStatusEnum.Reducing
-                             || t.ReductionStatus == ReductionStatusEnum.Reduced);
+                             || t.ReductionStatus == ReductionStatusEnum.Reduced)
+                    .ToList();
 
                 foreach (ContentReductionTask task in reducedTasks)
                 {
@@ -74,6 +81,13 @@ namespace MillimanAccessPortal.Services
                         case ContentTypeEnum.Qlikview:
                             contentTypeConfigObj = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
                             break;
+
+                        case ContentTypeEnum.Html:
+                        case ContentTypeEnum.Pdf:
+                        case ContentTypeEnum.FileDownload:
+                        case ContentTypeEnum.PowerBi:
+                        default:
+                            break;
                     }
 
                     CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
@@ -81,10 +95,31 @@ namespace MillimanAccessPortal.Services
                     ContentAccessSupport.AddReductionMonitor(
                         Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(task.Id, dbCxnString, ContentItemRootPath, contentTypeConfigObj, cancellationTokenSource.Token), cancellationTokenSource.Token));
 
-                    // Second, (if possible) perform long running processing for reductions that have not become queued yet
                 }
 
+                // Second, perform long running processing for reductions that have not become queued yet (probably orphaned while long running operations were incompleted)
+                List< ContentReductionTask> validatingTasks = dbContext.ContentReductionTask
+                    .Include(t => t.SelectionGroup)
+                        .ThenInclude(g => g.RootContentItem)
+                            .ThenInclude(c => c.ContentType)
+                    .Where(t => t.ContentPublicationRequestId == null)
+                    .Where(t => t.CreateDateTimeUtc > minCreateDateTimeUtc)
+                    .Where(t => t.ReductionStatus == ReductionStatusEnum.Validating)
+                    .ToList();
+
+                // Because it's difficult to resume from this status, just delete the reduction task and get a new one created
+                // There may be some abandoned files depending on when the application previously terminated
+                foreach (ContentReductionTask task in validatingTasks)
+                {
+                    dbContext.ContentReductionTask.Remove(task);
+                    dbContext.SaveChanges();
+
+                    await accessAdminController.UpdateSelectionsAsync(task.SelectionGroupId.Value, 
+                                                                      task.SelectionGroup.IsMaster, 
+                                                                      task.SelectionCriteriaObj.Fields.SelectMany(f => f.Values.Where(v => v.SelectionStatus).Select(v => v.Id)));
+                }
             }
         }
+
     }
 }
