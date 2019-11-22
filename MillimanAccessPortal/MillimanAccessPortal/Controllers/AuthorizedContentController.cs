@@ -89,14 +89,14 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>The view</returns>
         public IActionResult Index()
         {
-            Log.Verbose("Entered AuthorizedContentController.Index action");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
 
             return View();
         }
 
         public async Task<IActionResult> Content()
         {
-            Log.Verbose("Entered AuthorizedContentController.Content action");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
 
             var model = AuthorizedContentViewModel.Build(DataContext, await Queries.GetCurrentApplicationUser(User), HttpContext);
 
@@ -129,8 +129,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (selectionGroup?.RootContentItem == null)
             {
-                Log.Error("In AuthorizedContentController.ContentWrapper action, " + 
-                    "failed to obtain the requested selection group, content item, or content type: " +
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action, failed to obtain the requested selection group, content item, or content type: " +
                     $"user {User.Identity.Name}, selectionGroupId {selectionGroupId}, aborting");
 
                 var ErrMsg = new List<string>
@@ -145,7 +144,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(selectionGroupId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.ContentWrapper action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
                 var ErrMsg = new List<string>
@@ -223,7 +222,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>A View (and model) that displays the requested content</returns>
         public async Task<IActionResult> WebHostedContent(Guid selectionGroupId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.WebHostedContent action: user {User.Identity.Name}, selectionGroupId {selectionGroupId}");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, selectionGroupId {selectionGroupId}");
 
             var user = await Queries.GetCurrentApplicationUser(User);
             var userInSelectionGroup = DataContext.UserInSelectionGroup
@@ -244,8 +243,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (selectionGroup?.RootContentItem?.ContentType == null)
             {
-                Log.Error("In AuthorizedContentController.WebHostedContent action, " + 
-                    "failed to obtain the requested selection group, content item, or content type: " +
+                Log.Error("In {ControllerContext.ActionDescriptor.DisplayName} action, failed to obtain the requested selection group, content item, or content type: " +
                     $"user {User.Identity.Name}, selectionGroupId {selectionGroupId}, aborting");
 
                 var ErrMsg = new List<string>
@@ -260,7 +258,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(selectionGroupId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.WebHostedContent action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
                 var ErrMsg = new List<string>
@@ -297,7 +295,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     contentUrlBuilder.Query = Request.QueryString.Value.Substring(1);
                 }
-                Log.Warning($"From AuthorizedContentController.{nameof(WebHostedContent)}: Improper request not refered by AuthorizedContentController.{nameof(ContentWrapper)}, redirecting to {contentUrlBuilder.Uri.AbsoluteUri}");
+                Log.Warning($"From {ControllerContext.ActionDescriptor.DisplayName}: Improper request not refered by AuthorizedContentController.{nameof(ContentWrapper)}, redirecting to {contentUrlBuilder.Uri.AbsoluteUri}");
                 return Redirect(contentUrlBuilder.Uri.AbsoluteUri);
             }
             #endregion
@@ -323,8 +321,7 @@ namespace MillimanAccessPortal.Controllers
 
                 if (requestedContentFile == null)
                 {
-                    Log.Error("In AuthorizedContentController.WebHostedContent action: content file path not found " +
-                        $"for {(selectionGroup.IsMaster ? "master" : "reduced")} " +
+                    Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: content file path not found for {(selectionGroup.IsMaster ? "master" : "reduced")} " +
                         $"selection group {selectionGroupId}, aborting");
                     var ErrMsg = new List<string>
                 {
@@ -347,8 +344,8 @@ namespace MillimanAccessPortal.Controllers
                     var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
                     notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
-                    Log.Warning("In AuthorizedContentController.WebHostedContent action: checksum failure for ContentFile {@ContentFile}, aborting", requestedContentFile);
-                    AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, requestedContentFile, "AuthorizedContentController.WebHostedContent"));
+                    Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: checksum failure for ContentFile {{@ContentFile}}, aborting", requestedContentFile);
+                    AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, requestedContentFile, ControllerContext.ActionDescriptor.DisplayName));
                     return View("ContentMessage", ErrMsg);
                 }
             }
@@ -364,17 +361,17 @@ namespace MillimanAccessPortal.Controllers
             {
                 // Instantiate the right content handler class
                 ContentTypeSpecificApiBase ContentSpecificHandler = null;
-                Log.Verbose($"In AuthorizedContentController.WebHostedContent action, content type is <{selectionGroup.RootContentItem.ContentType.Name}>");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action, content type is <{selectionGroup.RootContentItem.ContentType.Name}>");
                 switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
                 {   // Never break out of this switch without a valid ContentSpecificHandler object
                     case ContentTypeEnum.Qlikview:
                         ContentSpecificHandler = new QlikviewLibApi(QlikviewConfig);
                         UriBuilder QvContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, HttpContext.Request);
-                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning Qlikview URI {QvContentUri.Uri.AbsoluteUri}");
+                        Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning Qlikview URI {QvContentUri.Uri.AbsoluteUri}");
                         return Redirect(QvContentUri.Uri.AbsoluteUri);
 
                     case ContentTypeEnum.FileDownload:
-                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning file {requestedContentFile.FullPath}");
+                        Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning file {requestedContentFile.FullPath}");
                         var contentDisposition = new ContentDisposition
                         {
                             FileName = requestedContentFile.FileOriginalName,
@@ -384,21 +381,21 @@ namespace MillimanAccessPortal.Controllers
                         return PhysicalFile(requestedContentFile.FullPath, "application/octet-stream");
 
                     case ContentTypeEnum.Pdf:
-                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning file {requestedContentFile.FullPath}");
+                        Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning file {requestedContentFile.FullPath}");
                         return PhysicalFile(requestedContentFile.FullPath, "application/pdf");
 
                     case ContentTypeEnum.Html:
-                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning file {requestedContentFile.FullPath}");
+                        Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning file {requestedContentFile.FullPath}");
                         return PhysicalFile(requestedContentFile.FullPath, "text/html");
 
                     case ContentTypeEnum.PowerBi:
                         ContentSpecificHandler = new PowerBiLibApi(_powerBiConfig);
                         UriBuilder pbiContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.Id.ToString(), HttpContext.User.Identity.Name, HttpContext.Request);
-                        Log.Verbose($"In AuthorizedContentController.WebHostedContent action: returning PowerBI URI {pbiContentUri.Uri.AbsoluteUri}");
+                        Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning PowerBI URI {pbiContentUri.Uri.AbsoluteUri}");
                         return Redirect(pbiContentUri.Uri.AbsoluteUri);
 
                     default:
-                        Log.Error($"In AuthorizedContentController.WebHostedContent action, unsupported content type <{selectionGroup.RootContentItem.ContentType.Name}>, aborting");
+                        Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action, unsupported content type <{selectionGroup.RootContentItem.ContentType.Name}>, aborting");
                         TempData["Message"] = $"Display of an unsupported ContentType was requested: {selectionGroup.RootContentItem.ContentType.Name}";
                         TempData["ReturnToController"] = "AuthorizedContent";
                         TempData["ReturnToAction"] = "Index";
@@ -408,7 +405,7 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (MapException e)
             {
-                Log.Error(e, $"In AuthorizedContentController.WebHostedContent action, failed to obtain content URI, aborting");
+                Log.Error(e, $"In {ControllerContext.ActionDescriptor.DisplayName} action, failed to obtain content URI, aborting");
                 TempData["Message"] = GlobalFunctions.LoggableExceptionString(e, "Exception:", true, true, true);
                 TempData["ReturnToController"] = "AuthorizedContent";
                 TempData["ReturnToAction"] = "Index";
@@ -431,10 +428,8 @@ namespace MillimanAccessPortal.Controllers
                     RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose("In AuthorizedContentController.PowerBiPreview action: "
-                    + $"authorization failed for user {User.Identity.Name}, "
-                    + $"content item {PubRequest.RootContentItemId}, "
-                    + $"role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, "
+                    + $"content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
@@ -475,7 +470,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(group));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.PowerBi action: authorization failed for user {User.Identity.Name}, selection group {group}, aborting");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {group}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
@@ -513,7 +508,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         public async Task<IActionResult> ReducedQvwPreview(Guid publicationRequestId, Guid reductionTaskId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.ReducedQvwPreview action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}, reductionTaskId {reductionTaskId}");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}, reductionTaskId {reductionTaskId}");
 
             var ReductionTask = DataContext.ContentReductionTask.FirstOrDefault(t => t.Id == reductionTaskId);
             var PublicationRequest = DataContext.ContentPublicationRequest.FirstOrDefault(r => r.Id == publicationRequestId);
@@ -594,7 +589,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         public async Task<IActionResult> QvwPreview(Guid publicationRequestId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.QvwPreview action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}");
 
             var PubRequest = DataContext.ContentPublicationRequest
                                         .FirstOrDefault(r => r.Id == publicationRequestId);
@@ -603,7 +598,7 @@ namespace MillimanAccessPortal.Controllers
             if (PubRequest == null)
             {
                 string Msg = $"Failed to obtain the requested publication request";
-                Log.Error($"In AuthorizedContentController.QvwPreview action: user {Msg}, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: user {Msg}, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -614,7 +609,7 @@ namespace MillimanAccessPortal.Controllers
                     RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.QvwPreview action: authorization failed for user {User.Identity.Name}, "
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, "
                     + $"content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
 
@@ -631,7 +626,7 @@ namespace MillimanAccessPortal.Controllers
                     .FullPath;
                 if (!Path.GetExtension(FullFilePath).Equals(".qvw", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    Log.Error($"In AuthorizedContentController.QvwPreview action: Error, requested QVW file {FullFilePath} has unexpected extension, aborting");
+                    Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: Error, requested QVW file {FullFilePath} has unexpected extension, aborting");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
 
@@ -640,13 +635,13 @@ namespace MillimanAccessPortal.Controllers
 
                 UriBuilder QvwUri = await new QlikviewLibApi(QlikviewConfig).GetContentUri(Link, User.Identity.Name, Request);
 
-                Log.Verbose("In AuthorizedContentController.QvwPreview action: success, redirecting");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success, redirecting");
 
                 return Redirect(QvwUri.Uri.AbsoluteUri);
             }
             catch (Exception e)
             {
-                Log.Error(e, $"In AuthorizedContentController.QvwPreview action: exception while redirecting for publication request {PubRequest.Id}, aborting");
+                Log.Error(e, $"In {ControllerContext.ActionDescriptor.DisplayName} action: exception while redirecting for publication request {PubRequest.Id}, aborting");
                 Response.Headers.Add("Warning", "Failed to load requested master qvw file for preview");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -655,33 +650,32 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>
         /// Handles a request to display a content item's related thumbnail 
         /// </summary>
-        /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
+        /// <param name="rootContentItemId">The primary key value of the RootContentItem</param>
         /// <returns>A View (and model) that displays the requested content</returns>
-        public IActionResult Thumbnail(Guid selectionGroupId)
+        public IActionResult Thumbnail(Guid rootContentItemId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.Thumbnail action: user {User.Identity.Name}, selectionGroupId {selectionGroupId}");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, rootContentItemId {rootContentItemId}");
 
-            var selectionGroup = DataContext.SelectionGroup
-                                            .Include(sg => sg.RootContentItem)
-                                                .ThenInclude(rc => rc.ContentType)
-                                            .FirstOrDefault(sg => sg.Id == selectionGroupId);
+            var rootContentItem = DataContext.RootContentItem
+                                            .Include(rc => rc.ContentType)
+                                            .FirstOrDefault(rc => rc.Id == rootContentItemId);
 
             #region Validation
-            if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
+            if (rootContentItem == null || rootContentItem.ContentType == null)
             {
-                string Msg = "Failed to obtain the requested selection group, content item, or content type";
-                Log.Error($"In AuthorizedContentController.Thumbnail action: {Msg}, aborting");
-                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+                string Msg = "Failed to obtain the requested content item or content type";
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: {Msg}, aborting");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, Msg);
             }
             #endregion
 
             try
             {
-                ContentRelatedFile contentRelatedThumbnail = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(cf => cf.FilePurpose.ToLower() == "thumbnail");
+                ContentRelatedFile contentRelatedThumbnail = rootContentItem.ContentFilesList.SingleOrDefault(cf => cf.FilePurpose.ToLower() == "thumbnail");
 
                 if (contentRelatedThumbnail != null && System.IO.File.Exists(contentRelatedThumbnail.FullPath))
                 {
-                    Log.Verbose($"In AuthorizedContentController.Thumbnail action: attempting to return image file <{contentRelatedThumbnail.FullPath}>");
+                    Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: attempting to return image file <{contentRelatedThumbnail.FullPath}>");
                     switch (Path.GetExtension(contentRelatedThumbnail.FullPath).ToLower())
                     {
                         case ".png":
@@ -695,23 +689,23 @@ namespace MillimanAccessPortal.Controllers
                             return PhysicalFile(contentRelatedThumbnail.FullPath, "image/jpeg");
 
                         default:
-                            Log.Error($"In AuthorizedContentController.Thumbnail action: unsupported file extension <{contentRelatedThumbnail.FullPath}> encountered, aborting");
+                            Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: unsupported file extension <{contentRelatedThumbnail.FullPath}> encountered, aborting");
                             throw new Exception();
                     }
                 }
                 else
                 {
                     // when a content item thumbnail file is specified but the file is not found, return the default image for the ContentType
-                    Log.Warning($"In AuthorizedContentController.Thumbnail action: specified image file <{contentRelatedThumbnail.FullPath}> not found, using default icon <{selectionGroup.RootContentItem.ContentType.DefaultIconName}> for content type <{selectionGroup.RootContentItem.ContentType.Name}>, aborting");
-                    return Redirect($"/images/{selectionGroup.RootContentItem.ContentType.DefaultIconName}");
+                    Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: specified image file <{contentRelatedThumbnail.FullPath}> not found, using default icon <{rootContentItem.ContentType.DefaultIconName}> for content type <{rootContentItem.ContentType.Name}>, aborting");
+                    return Redirect($"/images/{rootContentItem.ContentType.DefaultIconName}");
                 }
             }
             catch
             {
                 // ControllerBase.File does not throw, but the Stream can throw all sorts of things.
-                string ErrMsg = $"Failed to obtain image for SelectionGroup {selectionGroupId}";
-                Log.Error($"In AuthorizedContentController.Thumbnail action: {ErrMsg}, aborting");
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                string ErrMsg = $"Failed to obtain thumbnail for RootcontentItem {rootContentItemId}";
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: {ErrMsg}, aborting");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, ErrMsg);
             }
         }
 
@@ -722,7 +716,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>A View (and model) that displays the requested content</returns>
         public IActionResult ThumbnailPreview(Guid publicationRequestId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.ThumbnailPreview action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}");
 
             var PubRequest = DataContext.ContentPublicationRequest
                                         .Include(r => r.RootContentItem)
@@ -733,7 +727,7 @@ namespace MillimanAccessPortal.Controllers
             if (PubRequest == null || PubRequest.RootContentItem == null || PubRequest.RootContentItem.ContentType == null)
             {
                 string Msg = $"Failed to obtain the requested publication request, content item, or content type";
-                Log.Error($"In AuthorizedContentController.ThumbnailPreview action: {Msg}, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: {Msg}, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -744,7 +738,7 @@ namespace MillimanAccessPortal.Controllers
 
                 if (contentRelatedThumbnail != null && System.IO.File.Exists(contentRelatedThumbnail.FullPath))
                 {
-                    Log.Verbose($"In AuthorizedContentController.ThumbnailPreview action: attempting to return image file <{contentRelatedThumbnail.FullPath}>");
+                    Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: attempting to return image file <{contentRelatedThumbnail.FullPath}>");
                     switch (Path.GetExtension(contentRelatedThumbnail.FullPath).ToLower())
                     {
                         case ".png":
@@ -758,14 +752,14 @@ namespace MillimanAccessPortal.Controllers
                             return PhysicalFile(contentRelatedThumbnail.FullPath, "image/jpeg");
 
                         default:
-                            Log.Error($"In AuthorizedContentController.ThumbnailPreview action: unsupported file extension <{contentRelatedThumbnail.FullPath}> encountered, aborting");
+                            Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: unsupported file extension <{contentRelatedThumbnail.FullPath}> encountered, aborting");
                             throw new Exception();
                     }
                 }
                 else
                 {
                     // when the content item has no thumbnail, return the default image for the ContentType
-                    Log.Warning($"In AuthorizedContentController.ThumbnailPreview action: specified image file <{contentRelatedThumbnail.FullPath}> not found, using default icon <{PubRequest.RootContentItem.ContentType.DefaultIconName}> for content type <{PubRequest.RootContentItem.ContentType.Name}>, aborting");
+                    Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: specified image file <{contentRelatedThumbnail.FullPath}> not found, using default icon <{PubRequest.RootContentItem.ContentType.DefaultIconName}> for content type <{PubRequest.RootContentItem.ContentType.Name}>, aborting");
                     return Redirect($"/images/{PubRequest.RootContentItem.ContentType.DefaultIconName}");
                 }
             }
@@ -773,7 +767,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 // ControllerBase.File does not throw, but the Stream can throw all sorts of things.
                 string ErrMsg = $"Failed to obtain preview image for ContentPublicationRequest {publicationRequestId}";
-                Log.Error($"In AuthorizedContentController.Thumbnail action: {ErrMsg}, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: {ErrMsg}, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
         }
@@ -786,7 +780,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         public async Task<IActionResult> RelatedPdf(string purpose, Guid selectionGroupId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.RelatedPdf action: user {User.Identity.Name}, purpose {purpose}, selectionGroupId {selectionGroupId}");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, purpose {purpose}, selectionGroupId {selectionGroupId}");
 
             var selectionGroup = DataContext.SelectionGroup
                                             .Include(sg => sg.RootContentItem)
@@ -797,7 +791,7 @@ namespace MillimanAccessPortal.Controllers
             if (selectionGroup == null || selectionGroup.RootContentItem == null)
             {
                 string Msg = $"Failed to obtain the requested selection group or content item";
-                Log.Error($"In AuthorizedContentController.RelatedPdf action: {Msg}, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: {Msg}, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -806,7 +800,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(selectionGroupId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.RelatedPdf action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
@@ -829,8 +823,8 @@ namespace MillimanAccessPortal.Controllers
                 var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
                 notifier.sendSupportMail(MailMsg, $"Checksum verification ({purpose})");
-                Log.Error("In AuthorizedContentController.RelatedPdf action: file checksum failure, ContentRelatedFile {@ContentRelatedFile}, aborting", contentRelatedPdf);
-                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentRelatedPdf, "AuthorizedContentController.RelatedPdf"));
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: file checksum failure, ContentRelatedFile {{@ContentRelatedFile}}, aborting", contentRelatedPdf);
+                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentRelatedPdf, ControllerContext.ActionDescriptor.DisplayName));
                 return View("ContentMessage", ErrMsg);
             }
             #endregion
@@ -844,13 +838,13 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                Log.Verbose($"In AuthorizedContentController.RelatedPdf action: success, returning file {contentRelatedPdf.FullPath}");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success, returning file {contentRelatedPdf.FullPath}");
                 return PhysicalFile(contentRelatedPdf.FullPath, "application/pdf");
             }
             catch
             {
                 string ErrMsg = $"Failed to load requested {purpose} PDF {contentRelatedPdf.FullPath} for SelectionGroup {selectionGroupId}";
-                Log.Error($"In AuthorizedContentController.RelatedPdf action: {ErrMsg}, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: {ErrMsg}, aborting");
                 Response.Headers.Add("Warning", ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -863,7 +857,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         public async Task<IActionResult> PdfPreview(string purpose, Guid publicationRequestId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.PdfPreview action: user {User.Identity.Name}, purpose {purpose}, publicationRequestId {publicationRequestId}");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, purpose {purpose}, publicationRequestId {publicationRequestId}");
 
             var PubRequest = DataContext.ContentPublicationRequest
                                         .FirstOrDefault(r => r.Id == publicationRequestId);
@@ -872,7 +866,7 @@ namespace MillimanAccessPortal.Controllers
             if (PubRequest == null)
             {
                 string Msg = $"Failed to obtain the requested publication request";
-                Log.Error($"In AuthorizedContentController.PdfPreview action: user {Msg}, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: user {Msg}, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -881,7 +875,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.PdfPreview action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
@@ -894,17 +888,17 @@ namespace MillimanAccessPortal.Controllers
                 string FullFilePath = PubRequest.LiveReadyFilesObj.Single(f => f.FilePurpose.ToLower() == purpose).FullPath;
                 if (System.IO.Path.GetExtension(FullFilePath).ToLower() != ".pdf")
                 {
-                    Log.Error($"In AuthorizedContentController.PdfPreview action: Error, requested PDF file {FullFilePath} has unexpected extension, aborting");
+                    Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: Error, requested PDF file {FullFilePath} has unexpected extension, aborting");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
 
-                Log.Verbose($"In AuthorizedContentController.PdfPreview action: success, returning file {FullFilePath}");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success, returning file {FullFilePath}");
 
                 return PhysicalFile(FullFilePath, "application/pdf");
             }
             catch (Exception e)
             {
-                Log.Error(e, $"In AuthorizedContentController.PdfPreview action: exception while returning PhysicalFile for publication request {PubRequest.Id}, aborting");
+                Log.Error(e, $"In {ControllerContext.ActionDescriptor.DisplayName} action: exception while returning PhysicalFile for publication request {PubRequest.Id}, aborting");
                 Response.Headers.Add("Warning", "Failed to load requested master PDF file for preview");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -917,7 +911,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         public async Task<IActionResult> HtmlPreview(Guid publicationRequestId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.HtmlPreview action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}");
 
             var PubRequest = DataContext.ContentPublicationRequest
                                         .FirstOrDefault(r => r.Id == publicationRequestId);
@@ -926,7 +920,7 @@ namespace MillimanAccessPortal.Controllers
             if (PubRequest == null)
             {
                 string Msg = $"Failed to obtain the requested publication request";
-                Log.Error($"In AuthorizedContentController.HtmlPreview action: user {Msg}, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: user {Msg}, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -935,7 +929,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.HtmlPreview action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
@@ -949,17 +943,17 @@ namespace MillimanAccessPortal.Controllers
 
                 if (!System.IO.Path.GetExtension(FullFilePath).ToLower().Contains(".htm"))  // could be htm or html
                 {
-                    Log.Error($"In AuthorizedContentController.HtmlPreview action: Error, requested HTML file {FullFilePath} has unexpected extension, aborting");
+                    Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: Error, requested HTML file {FullFilePath} has unexpected extension, aborting");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
 
-                Log.Verbose($"In AuthorizedContentController.HtmlPreview action: success, returning file {FullFilePath}");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success, returning file {FullFilePath}");
 
                 return PhysicalFile(FullFilePath, "text/html");
             }
             catch (Exception e)
             {
-                Log.Error(e, $"In AuthorizedContentController.HtmlPreview action: exception while returning PhysicalFile for publication request {PubRequest.Id}, aborting");
+                Log.Error(e, $"In {ControllerContext.ActionDescriptor.DisplayName} action: exception while returning PhysicalFile for publication request {PubRequest.Id}, aborting");
                 Response.Headers.Add("Warning", "Failed to load requested master HTML file for preview");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -972,8 +966,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         public async Task<IActionResult> FileDownloadPreview(Guid publicationRequestId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.FileDownloadPreview action: user {User.Identity.Name}, "
-                      + $"publicationRequestId {publicationRequestId}");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}");
 
             var PubRequest = DataContext.ContentPublicationRequest
                                         .FirstOrDefault(r => r.Id == publicationRequestId);
@@ -982,7 +975,7 @@ namespace MillimanAccessPortal.Controllers
             if (PubRequest == null)
             {
                 string Msg = $"Failed to obtain the requested publication request";
-                Log.Error($"In AuthorizedContentController.FileDownloadPreview action: user {Msg}, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: user {Msg}, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -993,8 +986,7 @@ namespace MillimanAccessPortal.Controllers
                     RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.FileDownloadPreview action: authorization failed "
-                          + $"for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, "
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, "
                           + $"role {RoleEnum.ContentPublisher.ToString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
 
@@ -1008,16 +1000,13 @@ namespace MillimanAccessPortal.Controllers
                 var contentFile = PubRequest.LiveReadyFilesObj
                     .Single(f => f.FilePurpose.ToLower() == "mastercontent");
 
-                Log.Verbose($"In AuthorizedContentController.FileDownloadPreview action: success, "
-                          + $"returning file {contentFile.FullPath}");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success, returning file {contentFile.FullPath}");
 
                 return PhysicalFile(contentFile.FullPath, "application/octet-stream", contentFile.FileOriginalName);
             }
             catch (Exception e)
             {
-                Log.Error(e, "In AuthorizedContentController.FileDownloadPreview action: "
-                           + "exception while returning PhysicalFile "
-                          + $"for publication request {PubRequest.Id}, aborting");
+                Log.Error(e, $"In {ControllerContext.ActionDescriptor.DisplayName} action: exception while returning PhysicalFile for publication request {PubRequest.Id}, aborting");
                 Response.Headers.Add("Warning", "Failed to load requested master file download for preview");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -1030,8 +1019,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         public async Task<IActionResult> AssociatedFilePreview(Guid publicationRequestId, Guid fileId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.AssociatedFilePreview action: user {User.Identity.Name}, "
-                      + $"publicationRequestId {publicationRequestId}, fileId {fileId}");
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, publicationRequestId {publicationRequestId}, fileId {fileId}");
 
             var PubRequest = await DataContext.ContentPublicationRequest.SingleOrDefaultAsync(r => r.Id == publicationRequestId);
 
@@ -1039,7 +1027,7 @@ namespace MillimanAccessPortal.Controllers
             if (PubRequest == null)
             {
                 string Msg = $"Failed to obtain the requested publication request";
-                Log.Error($"In AuthorizedContentController.AssociatedFilePreview action: {Msg}, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: {Msg}, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -1049,8 +1037,7 @@ namespace MillimanAccessPortal.Controllers
                 User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.AssociatedFilePreview action: authorization failed "
-                          + $"for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, "
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, "
                           + $"role {RoleEnum.ContentPublisher.ToString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
 
@@ -1064,18 +1051,18 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (caf == null)
             {
-                Log.Error($"In AuthorizedContentController.AssociatedFilePreview: error, no file with the requested id, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName}: error, no file with the requested id, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
             if (!System.IO.File.Exists(caf.FullPath) ||
                 !caf.ValidateChecksum())
             {
-                Log.Error($"In AuthorizedContentController.AssociatedFilePreview: error, file {caf.FullPath} not found or failed checksum, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName}: error, file {caf.FullPath} not found or failed checksum, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
             #endregion
 
-            Log.Verbose($"In AuthorizedContentController.AssociatedFilePreview action: returning file {caf.FullPath}");
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning file {caf.FullPath}");
             switch (caf.FileType)
             {
                 case ContentAssociatedFileType.Html:
@@ -1089,7 +1076,7 @@ namespace MillimanAccessPortal.Controllers
 
                 default:
                     string Msg = $"Request was for associated file of unsupported type {caf.FileType} ({caf.FileType.ToString()})";
-                    Log.Error($"In AuthorizedContentController.AssociatedFilePreview action: {Msg}, aborting");
+                    Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: {Msg}, aborting");
                     return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -1101,7 +1088,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         public async Task<IActionResult> AssociatedFile(Guid selectionGroupId, Guid fileId)
         {
-            Log.Verbose($"Entered AuthorizedContentController.AssociatedFile action: user {User.Identity.Name}, "
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, "
                       + $"selectionGroupId {selectionGroupId}, fileId {fileId}");
 
             RootContentItem contentItem = await DataContext.SelectionGroup
@@ -1113,7 +1100,7 @@ namespace MillimanAccessPortal.Controllers
             if (contentItem == null)
             {
                 string Msg = $"Failed to find the requested content item";
-                Log.Error($"In AuthorizedContentController.AssociatedFile action: {Msg}, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: {Msg}, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
@@ -1123,8 +1110,7 @@ namespace MillimanAccessPortal.Controllers
                 User, null, new UserInSelectionGroupRequirement(selectionGroupId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In AuthorizedContentController.AssociatedFile action: authorization failed "
-                          + $"for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
@@ -1137,18 +1123,18 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (caf == null)
             {
-                Log.Error($"In AuthorizedContentController.AssociatedFile: error, no file with the requested id, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName}: error, no file with the requested id, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
             if (!System.IO.File.Exists(caf.FullPath) ||
                 !caf.ValidateChecksum())
             {
-                Log.Error($"In AuthorizedContentController.AssociatedFile: error, file {caf.FullPath} not found or failed checksum, aborting");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName}: error, file {caf.FullPath} not found or failed checksum, aborting");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
             #endregion
 
-            Log.Verbose($"In AuthorizedContentController.AssociatedFile action: returning file {caf.FullPath}");
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning file {caf.FullPath}");
             switch (caf.FileType)
             {
                 case ContentAssociatedFileType.Html:
@@ -1162,7 +1148,7 @@ namespace MillimanAccessPortal.Controllers
 
                 default:
                     string Msg = $"Request was for associated file of unsupported type {caf.FileType} ({caf.FileType.ToString()})";
-                    Log.Error($"In AuthorizedContentController.AssociatedFile action: {Msg}, aborting");
+                    Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: {Msg}, aborting");
                     return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

@@ -7,10 +7,12 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
-using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
+using Microsoft.AspNetCore.Http;
+using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ClientModels;
 using MillimanAccessPortal.Models.ContentPublishing;
+using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using System;
 using System.Collections.Generic;
@@ -156,7 +158,7 @@ namespace MillimanAccessPortal.DataQueries
             return model;
         }
 
-        internal RootContentItemDetail BuildContentItemDetailModel(RootContentItem rootContentItem)
+        internal RootContentItemDetail BuildContentItemDetailModel(RootContentItem rootContentItem, HttpRequest httpRequest)
         {
             var publicationRequest = _dbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
@@ -179,6 +181,15 @@ namespace MillimanAccessPortal.DataQueries
                 relatedFiles = newFiles;
             }
 
+            UriBuilder thumbnailUrlBuilder = new UriBuilder
+            {
+                Host = httpRequest.Host.Host,
+                Scheme = httpRequest.Scheme,
+                Port = httpRequest.Host.Port ?? -1,
+                Path = $"/{nameof(AuthorizedContentController).Replace("Controller", "")}/{nameof(AuthorizedContentController.Thumbnail)}",
+                Query = $"rootContentItemId=",
+            };
+
             var model = new RootContentItemDetail
             {
                 Id = rootContentItem.Id,
@@ -190,6 +201,9 @@ namespace MillimanAccessPortal.DataQueries
                 AssociatedFiles = rootContentItem.AssociatedFilesList.ConvertAll(f => new AssociatedFileModel(f)).ToDictionary(f => f.Id),
                 ContentDescription = rootContentItem.Description,
                 ContentNotes = rootContentItem.Notes,
+                ThumbnailLink = (rootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "thumbnail"))
+                            ? $"{thumbnailUrlBuilder.Uri.AbsoluteUri}{rootContentItem.Id}"
+                            : null,
                 ContentDisclaimer = rootContentItem.ContentDisclaimer,
                 IsSuspended = rootContentItem.IsSuspended,
                 TypeSpecificDetailObject = default,
@@ -210,12 +224,12 @@ namespace MillimanAccessPortal.DataQueries
             return model;
         }
 
-        internal CancelPublicationModel SelectCancelContentPublicationRequest(ApplicationUser user, RootContentItem rootContentItem)
+        internal CancelPublicationModel SelectCancelContentPublicationRequest(ApplicationUser user, RootContentItem rootContentItem, HttpRequest httpRequest)
         {
             var model = new CancelPublicationModel
             {
                 StatusResponseModel = SelectStatus(user, rootContentItem.ClientId),
-                RootContentItemDetail = BuildContentItemDetailModel(rootContentItem),
+                RootContentItemDetail = BuildContentItemDetailModel(rootContentItem, httpRequest),
             };
 
             return model;
