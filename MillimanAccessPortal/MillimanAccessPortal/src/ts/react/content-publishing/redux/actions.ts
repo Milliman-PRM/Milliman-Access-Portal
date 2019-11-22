@@ -421,6 +421,21 @@ export interface CloseModifiedFormModal {
 }
 
 /**
+ * Open the modal used to confirm cancelation of a publication
+ */
+export interface OpenCancelPublicationModal {
+  type: 'OPEN_CANCEL_PUBLICATION_MODAL';
+  id: Guid;
+}
+
+/**
+ * Close the modal used to confirm cancelation of a publication
+ */
+export interface CloseCancelPublicationModal {
+  type: 'CLOSE_CANCEL_PUBLICATION_MODAL';
+}
+
+/**
  * GET:
  *   content items for the selected client;
  *   publications for the selected client;
@@ -512,6 +527,8 @@ export type PagePublishingAction =
   | CloseGoLiveRejectionModal
   | OpenModifiedFormModal
   | CloseModifiedFormModal
+  | OpenCancelPublicationModal
+  | CloseCancelPublicationModal
   ;
 
 /**
@@ -609,4 +626,5 @@ export type OpenModalAction =
   | OpenDeleteContentItemModal
   | OpenGoLiveRejectionModal
   | OpenModifiedFormModal
+  | OpenCancelPublicationModal
   ;

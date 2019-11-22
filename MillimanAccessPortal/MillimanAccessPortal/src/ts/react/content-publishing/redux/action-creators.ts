@@ -79,6 +79,10 @@ export const openModifiedFormModal =
   createActionCreator<PublishActions.OpenModifiedFormModal>('OPEN_MODIFIED_FORM_MODAL');
 export const closeModifiedFormModal =
   createActionCreator<PublishActions.CloseModifiedFormModal>('CLOSE_MODIFIED_FORM_MODAL');
+export const openCancelPublicationModal =
+  createActionCreator<PublishActions.OpenCancelPublicationModal>('OPEN_CANCEL_PUBLICATION_MODAL');
+export const closeCancelPublicationModal =
+  createActionCreator<PublishActions.CloseCancelPublicationModal>('CLOSE_CANCEL_PUBLICATION_MODAL');
 
 /**
  * Close the modal used to confirm selection group deletion.

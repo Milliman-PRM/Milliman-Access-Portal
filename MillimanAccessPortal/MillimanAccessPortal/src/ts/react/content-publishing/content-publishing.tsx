@@ -264,6 +264,40 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             </button>
           </div>
         </Modal>
+        <Modal
+          isOpen={modals.cancelPublication.isOpen}
+          onRequestClose={() => this.props.closeCancelPublicationModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Cancel Publication Request</h3>
+          <span className="modal-text">Would you like to cancel the publication request?</span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeCancelPublicationModal({})}
+            >
+              Continue
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (!this.props.pending.data.cancelPublication) {
+                  this.props.cancelPublicationRequest(this.props.pending.publicationToCancel);
+                }
+              }}
+            >
+              Cancel Publication
+              {this.props.pending.data.cancelPublication
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
       </>
     );
   }
@@ -392,7 +426,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   <CardButton
                     color={'red'}
                     tooltip={'Cancel'}
-                    onClick={() => this.props.cancelPublicationRequest(entity.id)}
+                    onClick={() => this.props.openCancelPublicationModal({ id: entity.id })}
                     icon={'cancel'}
                   />
                 </>
