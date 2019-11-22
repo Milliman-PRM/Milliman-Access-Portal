@@ -647,7 +647,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
                     uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
                     value={formData.relatedFiles.MasterContent.fileOriginalName}
-                    readOnly={formState === 'read'}
+                    readOnly={formState === 'read' || dataForForm.formData.contentTypeId.length === 0}
                   />
                 </FormFlexContainer>
               </FormSectionRow>
