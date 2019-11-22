@@ -23,6 +23,7 @@
         @Html.Raw(@Model.Message)
     </h3>
     <br>
+	<div>
 	@{
 		foreach (var button in Model.Buttons) 
 		{
@@ -42,4 +43,5 @@
             </form>
 		}
 	}
+	</div>
 </div>
