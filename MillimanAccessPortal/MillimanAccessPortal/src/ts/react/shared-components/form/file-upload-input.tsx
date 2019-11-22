@@ -45,6 +45,7 @@ interface FileUploadInputProps {
   uploadId: string;
   upload: UploadState;
   value: string;
+  imageURL?: string;
   beginUpload: (uploadId: string, fileName: string) => void;
   cancelFileUpload: (uploadId: string) => void;
   finalizeUpload: (uploadId: string, fileName: string, Guid: string) => void;
@@ -53,7 +54,11 @@ interface FileUploadInputProps {
   updateUploadProgress: (uploadId: string, progress: ProgressSummary) => void;
 }
 
-export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
+interface FileUploadInputState {
+  imageSrc: string;
+}
+
+export class FileUploadInput extends React.Component<FileUploadInputProps, FileUploadInputState> {
   protected checksum: string;
   protected progressMonitor: ProgressMonitor;
   protected resumable: Resumable.Resumable;
@@ -68,6 +73,9 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
   constructor(props: FileUploadInputProps) {
     super(props);
     this.uploadRef = React.createRef();
+    this.state = {
+      imageSrc: null,
+    };
   }
 
   public componentDidUpdate(prevProps: FileUploadInputProps) {
@@ -109,6 +117,14 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
           this.props.setUploadError(this.props.uploadId, 'File extension not supported.');
           return false;
         }
+      }
+
+      if (this.props.name === 'thumbnail') {
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.setState({ imageSrc: reader.result.toString() });
+        };
+        reader.readAsDataURL(file);
       }
 
       // Make sure the file matches the expected magic numbers
@@ -261,12 +277,15 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
   public render() {
     const { label, name, placeholderText, readOnly, upload, value, children } = this.props;
     const { checksumProgress, uploadProgress, cancelable, errorMsg } = upload;
+    const hasImage = (this.props.imageURL || this.state.imageSrc);
     const checksumEasing =
       (checksumProgress.percentage === '0%' || checksumProgress.percentage === '100%') ? '' : ' progress-easing';
     const uploadEasing =
       (uploadProgress.percentage === '0%' || uploadProgress.percentage === '100%') ? '' : ' progress-easing';
     return (
-      <div className={`form-element-container ${readOnly ? 'disabled' : ''}`}>
+      <div
+        className={`form-element-container${readOnly ? ' disabled' : ''}${hasImage ? ' thumbnail' : ''}`}
+      >
         <div className={`form-element-input ${errorMsg ? ' error' : ''}`} ref={this.uploadRef}>
           <div className="form-input-container">
             <input
@@ -281,6 +300,14 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
             />
             <label className="form-input-label" htmlFor={name}>{label}</label>
           </div>
+          {
+            hasImage &&
+            <img
+              className="thumbnail-preview"
+              src={this.state.imageSrc || this.props.imageURL}
+              alt="thumbnail preview"
+            />
+          }
           {children}
         </div>
         {
