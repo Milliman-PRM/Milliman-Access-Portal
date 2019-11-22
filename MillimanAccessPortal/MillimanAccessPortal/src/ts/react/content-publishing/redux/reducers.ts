@@ -7,6 +7,7 @@ import { ProgressSummary } from '../../../upload/progress-monitor';
 import * as UploadActions from '../../../upload/Redux/actions';
 import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
+import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
   AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors, RelatedFiles,
 } from '../../models';
@@ -16,8 +17,8 @@ import { Dict, FilterState } from '../../shared-components/redux/store';
 import * as PublishingActions from './actions';
 import { FilterPublishingAction, PublishingAction } from './actions';
 import {
-  PendingDataState, PublishingFormData, PublishingState, PublishingStateData,
-  PublishingStateSelected,
+  ElementsToConfirm, GoLiveSummaryData, PendingDataState, PublishingFormData,
+  PublishingStateData, PublishingStateSelected,
 } from './store';
 
 const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
@@ -97,11 +98,21 @@ const _initialFormData: PublishingFormData = {
   formState: 'read',
 };
 
+const _initialGoLiveData: GoLiveSummaryData = {
+  rootContentItemId: null,
+  goLiveSummary: null,
+  elementsToConfirm: null,
+  onlyChangesShown: false,
+};
+
 const _initialPendingData: PendingDataState = {
   globalData: false,
   clients: false,
   items: false,
   contentItemDetail: false,
+  goLiveSummary: false,
+  goLiveApproval: false,
+  goLiveRejection: false,
   contentItemDeletion: false,
   formSubmit: false,
   publishing: false,
@@ -170,6 +181,42 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   FETCH_ITEMS_FAILED: (state) => ({
     ...state,
     items: false,
+  }),
+  FETCH_GO_LIVE_SUMMARY: (state) => ({
+    ...state,
+    goLiveSummary: true,
+  }),
+  FETCH_GO_LIVE_SUMMARY_SUCCEEDED: (state) => ({
+    ...state,
+    goLiveSummary: false,
+  }),
+  FETCH_GO_LIVE_SUMMARY_FAILED: (state) => ({
+    ...state,
+    goLiveSummary: false,
+  }),
+  APPROVE_GO_LIVE_SUMMARY: (state) => ({
+    ...state,
+    goLiveApproval: true,
+  }),
+  APPROVE_GO_LIVE_SUMMARY_SUCCEEDED: (state) => ({
+    ...state,
+    goLiveApproval: false,
+  }),
+  APPROVE_GO_LIVE_SUMMARY_FAILED: (state) => ({
+    ...state,
+    goLiveApproval: false,
+  }),
+  REJECT_GO_LIVE_SUMMARY: (state) => ({
+    ...state,
+    goLiveRejection: true,
+  }),
+  REJECT_GO_LIVE_SUMMARY_SUCCEEDED: (state) => ({
+    ...state,
+    goLiveRejection: false,
+  }),
+  REJECT_GO_LIVE_SUMMARY_FAILED: (state) => ({
+    ...state,
+    goLiveRejection: false,
   }),
   CREATE_NEW_CONTENT_ITEM: (state) => ({
     ...state,
@@ -333,6 +380,33 @@ const data = createReducer<PublishingStateData>(_initialData, {
       publicationQueue,
     };
   },
+  APPROVE_GO_LIVE_SUMMARY_SUCCEEDED: (state, action: PublishingActions.ApproveGoLiveSummarySucceeded) => {
+    const { publicationRequestId } = action.response;
+    return {
+      ...state,
+      publications: {
+        ...state.publications,
+        [publicationRequestId]: {
+          ...state.publications[publicationRequestId],
+          requestStatus: PublicationStatus.Confirming,
+        },
+      },
+    };
+  },
+  REJECT_GO_LIVE_SUMMARY_SUCCEEDED: (state, action: PublishingActions.RejectGoLiveSummarySucceeded) => {
+    const { publicationRequestId } = action.response;
+    return {
+      ...state,
+      publications: {
+        ...state.publications,
+        [publicationRequestId]: {
+          ...state.publications[publicationRequestId],
+          requestStatus: PublicationStatus.Rejected,
+        },
+      },
+    };
+  },
+
 });
 
 const formData = createReducer<PublishingFormData>(_initialFormData, {
@@ -841,6 +915,81 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
   },
 });
 
+const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
+  FETCH_GO_LIVE_SUMMARY: (_state, action: PublishingActions.FetchGoLiveSummary) => ({
+    rootContentItemId: action.request.rootContentItemId,
+    goLiveSummary: null,
+    elementsToConfirm: null,
+    onlyChangesShown: false,
+  }),
+  FETCH_GO_LIVE_SUMMARY_SUCCEEDED: (state, action: PublishingActions.FetchGoLiveSummarySucceeded) => {
+    const elementsToConfirm: ElementsToConfirm = {};
+    if (action.response.masterContentLink) {
+      elementsToConfirm.masterContent = false;
+    }
+    if (action.response.thumbnailLink) {
+      elementsToConfirm.thumbnail = false;
+    }
+    if (action.response.userGuideLink) {
+      elementsToConfirm.userguide = false;
+    }
+    if (action.response.releaseNotesLink) {
+      elementsToConfirm.releaseNotes = false;
+    }
+    if (action.response.reductionHierarchy) {
+      elementsToConfirm.reductionHierarchy = false;
+    }
+    if (action.response.selectionGroups) {
+      elementsToConfirm.selectionGroups = false;
+    }
+
+    return {
+      ...state,
+      goLiveSummary: action.response,
+      elementsToConfirm,
+    };
+  },
+  FETCH_GO_LIVE_SUMMARY_FAILED: () => ({
+    rootContentItemId: null,
+    goLiveSummary: null,
+    elementsToConfirm: null,
+    onlyChangesShown: false,
+  }),
+  APPROVE_GO_LIVE_SUMMARY_SUCCEEDED: () => ({
+    rootContentItemId: null,
+    goLiveSummary: null,
+    elementsToConfirm: null,
+    onlyChangesShown: false,
+  }),
+  REJECT_GO_LIVE_SUMMARY_SUCCEEDED: () => ({
+    rootContentItemId: null,
+    goLiveSummary: null,
+    elementsToConfirm: null,
+    onlyChangesShown: false,
+  }),
+  SELECT_ITEM: () => ({
+    rootContentItemId: null,
+    goLiveSummary: null,
+    elementsToConfirm: null,
+    onlyChangesShown: false,
+  }),
+  TOGGLE_SHOW_ONLY_CHANGES: (state) => ({
+    ...state,
+    onlyChangesShown: !state.onlyChangesShown,
+  }),
+  TOGGLE_GO_LIVE_CONFIRMATION_CHECKBOX: (
+    state, action: PublishingActions.ToggleGoLiveConfirmationCheckbox,
+  ) => {
+    return {
+      ...state,
+      elementsToConfirm: {
+        ...state.elementsToConfirm,
+        [action.target]: action.status,
+      },
+    };
+  },
+});
+
 const selected = createReducer<PublishingStateSelected>(
   {
     client: null,
@@ -866,6 +1015,18 @@ const selected = createReducer<PublishingStateSelected>(
         item,
       };
     },
+    FETCH_GO_LIVE_SUMMARY: (state, action: PublishingActions.FetchGoLiveSummary) => ({
+      ...state,
+      item: action.request.rootContentItemId,
+    }),
+    APPROVE_GO_LIVE_SUMMARY_SUCCEEDED: (state) => ({
+      ...state,
+      item: null,
+    }),
+    REJECT_GO_LIVE_SUMMARY_SUCCEEDED: (state) => ({
+      ...state,
+      item: null,
+    }),
   },
 );
 
@@ -887,6 +1048,7 @@ const filters = combineReducers({
 export const contentPublishing = combineReducers({
   data,
   formData,
+  goLiveSummary,
   selected,
   cardAttributes,
   pending,

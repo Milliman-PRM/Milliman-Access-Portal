@@ -1,9 +1,11 @@
 import { PageUploadAction } from '../../../upload/Redux/actions';
-import { PublishRequest, RootContentItemSummaryAndDetail } from '../../../view-models/content-publishing';
 import {
-    ClientWithEligibleUsers, ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
-    ContentPublicationRequest, ContentReductionTask, ContentType, Guid, PublicationQueueDetails,
-    ReductionQueueDetails, RootContentItem, RootContentItemWithStats, SelectionGroup, User,
+  PreLiveContentValidationSummary, PublishRequest, RootContentItemSummaryAndDetail,
+} from '../../../view-models/content-publishing';
+import {
+  ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
+  ContentPublicationRequest, ContentType, GoLiveViewModel, Guid,
+  PublicationQueueDetails, RootContentItem, RootContentItemWithStats,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -60,6 +62,27 @@ export interface SetFilterTextClient {
 export interface SetFilterTextItem {
   type: 'SET_FILTER_TEXT_ITEM';
   text: string;
+}
+
+/*
+ * Toggle confirmation checkboxes in Go-Live Summary
+ */
+export interface ToggleGoLiveConfirmationCheckbox {
+  type: 'TOGGLE_GO_LIVE_CONFIRMATION_CHECKBOX';
+  target: 'masterContent'
+  | 'thumbnail'
+  | 'releaseNotes'
+  | 'userguide'
+  | 'hierarchyChanges'
+  | 'selectionGroups';
+  status: boolean;
+}
+
+/**
+ * Set filter text for the content item card filter.
+ */
+export interface ToggleShowOnlyChanges {
+  type: 'TOGGLE_SHOW_ONLY_CHANGES';
 }
 
 /**
@@ -155,6 +178,63 @@ export interface FetchContentItemDetailSucceeded {
 }
 export interface FetchContentItemDetailFailed {
   type: 'FETCH_CONTENT_ITEM_DETAIL_FAILED';
+  error: TSError;
+}
+
+/**
+ * GET:
+ *   Content Item Go Live Summary data;
+ */
+export interface FetchGoLiveSummary {
+  type: 'FETCH_GO_LIVE_SUMMARY';
+  request: {
+    rootContentItemId: Guid;
+  };
+}
+export interface FetchGoLiveSummarySucceeded {
+  type: 'FETCH_GO_LIVE_SUMMARY_SUCCEEDED';
+  response: PreLiveContentValidationSummary;
+}
+export interface FetchGoLiveSummaryFailed {
+  type: 'FETCH_GO_LIVE_SUMMARY_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Approve the Go-Live Summary;
+ */
+export interface ApproveGoLiveSummary {
+  type: 'APPROVE_GO_LIVE_SUMMARY';
+  request: GoLiveViewModel;
+}
+export interface ApproveGoLiveSummarySucceeded {
+  type: 'APPROVE_GO_LIVE_SUMMARY_SUCCEEDED';
+  response: {
+    publicationRequestId: Guid;
+  };
+}
+export interface ApproveGoLiveSummaryFailed {
+  type: 'APPROVE_GO_LIVE_SUMMARY_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Reject the Go-Live Summary;
+ */
+export interface RejectGoLiveSummary {
+  type: 'REJECT_GO_LIVE_SUMMARY';
+  request: GoLiveViewModel;
+}
+export interface RejectGoLiveSummarySucceeded {
+  type: 'REJECT_GO_LIVE_SUMMARY_SUCCEEDED';
+  response: {
+    publicationRequestId: Guid;
+  };
+}
+export interface RejectGoLiveSummaryFailed {
+  type: 'REJECT_GO_LIVE_SUMMARY_FAILED';
   error: TSError;
 }
 
@@ -373,6 +453,8 @@ export type PagePublishingAction =
   | SetFormForNewContentItem
   | SetFilterTextClient
   | SetFilterTextItem
+  | ToggleShowOnlyChanges
+  | ToggleGoLiveConfirmationCheckbox
   | SetPublishingFormTextInputValue
   | SetPublishingFormBooleanInputValue
   | ResetContentItemForm
@@ -397,6 +479,9 @@ export type RequestPublishingAction =
   | FetchClients
   | FetchItems
   | FetchContentItemDetail
+  | FetchGoLiveSummary
+  | ApproveGoLiveSummary
+  | RejectGoLiveSummary
   | FetchStatusRefresh
   | FetchSessionCheck
   | CreateNewContentItem
@@ -414,6 +499,9 @@ export type ResponsePublishingAction =
   | FetchClientsSucceeded
   | FetchItemsSucceeded
   | FetchContentItemDetailSucceeded
+  | FetchGoLiveSummarySucceeded
+  | ApproveGoLiveSummarySucceeded
+  | RejectGoLiveSummarySucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   | CreateNewContentItemSucceeded
@@ -431,6 +519,9 @@ export type ErrorPublishingAction =
   | FetchClientsFailed
   | FetchItemsFailed
   | FetchContentItemDetailFailed
+  | FetchGoLiveSummaryFailed
+  | ApproveGoLiveSummaryFailed
+  | RejectGoLiveSummaryFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   | CreateNewContentItemFailed

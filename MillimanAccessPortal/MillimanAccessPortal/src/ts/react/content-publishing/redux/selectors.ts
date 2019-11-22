@@ -1,7 +1,9 @@
 import * as _ from 'lodash';
 import * as moment from 'moment';
 
-import { publicationStatusNames, PublishRequest, UploadedRelatedFile } from '../../../view-models/content-publishing';
+import {
+  publicationStatusNames, PublishRequest, UploadedRelatedFile,
+} from '../../../view-models/content-publishing';
 import {
   ClientWithStats, ContentPublicationRequest, ContentReductionTask,
     Guid, RootContentItemWithStats,
@@ -311,4 +313,14 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
     associatedFiles: [],
     deleteFilePurposes: [],
   };
+}
+
+export function goLiveApproveButtonIsActive(state: PublishingState): boolean {
+  if (state.goLiveSummary && state.goLiveSummary.elementsToConfirm) {
+    const { elementsToConfirm } = state.goLiveSummary;
+    const allChecksApproved = Object.keys(elementsToConfirm).every((key) => elementsToConfirm[key] === true);
+    return allChecksApproved;
+  } else {
+    return false;
+  }
 }

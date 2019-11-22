@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Newtonsoft.Json.Linq;
 using System;
 using MapDbContextLib.Models;
 
@@ -18,10 +19,11 @@ namespace AuditLogLib.Models
         public Guid RootContentId;
         public string RootContentName;
         public string ContentTypeName;
-        public ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy;
-        public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy;
+        public ContentReductionHierarchy<ReductionFieldValueChange> HierarchyComparison;
         public bool  DoesReduce;
         public Guid ClientId;
         public string ClientName;
+        public string ClientCode;
+        public JArray SelectionGroupSummary;
     }
 }

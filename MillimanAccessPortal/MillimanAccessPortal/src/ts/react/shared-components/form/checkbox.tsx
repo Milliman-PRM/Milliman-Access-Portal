@@ -6,7 +6,7 @@ import * as React from 'react';
 export interface CheckboxData {
   name: string;
   selected: boolean;
-  modified: boolean;
+  modified?: boolean;
   onChange: (selected: boolean) => void;
 }
 export interface CheckboxProps extends CheckboxData {

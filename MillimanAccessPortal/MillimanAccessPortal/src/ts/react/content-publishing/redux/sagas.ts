@@ -14,7 +14,7 @@ import {
   ErrorPublishingAction, PublishingAction, RequestPublishingAction, ResponsePublishingAction,
 } from './actions';
 import * as api from './api';
-import { filesForPublishing, remainingStatusRefreshAttempts, selectedClient, selectedItem } from './selectors';
+import { filesForPublishing, remainingStatusRefreshAttempts, selectedClient } from './selectors';
 
 /**
  * Custom effect for handling request actions.
@@ -47,6 +47,9 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
   yield takeLatestRequest('FETCH_ITEMS', api.fetchItems);
   yield takeLatestRequest('FETCH_CONTENT_ITEM_DETAIL', api.fetchContentItemDetail);
+  yield takeLatestRequest('FETCH_GO_LIVE_SUMMARY', api.fetchGoLiveSummary);
+  yield takeLatestRequest('APPROVE_GO_LIVE_SUMMARY', api.approveGoLiveSummary);
+  yield takeLatestRequest('REJECT_GO_LIVE_SUMMARY', api.rejectGoLiveSummary);
   yield takeLatest('CREATE_NEW_CONTENT_ITEM', createNewContentItem);
   yield takeLatestRequest('UPDATE_CONTENT_ITEM', api.updateContentItem);
   yield takeLatestRequest('PUBLISH_CONTENT_FILES', api.publishContentFiles);

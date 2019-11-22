@@ -1,4 +1,7 @@
+import '../../../scss/react/content-publishing/content-publishing.scss';
+
 import '../../../images/icons/add.svg';
+import '../../../images/icons/expand-frame.svg';
 import '../../../images/icons/user.svg';
 
 import * as React from 'react';
@@ -6,8 +9,9 @@ import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
 import {
-  isPublicationActive, PublicationStatus, PublishRequest,
+  ContentTypeEnum, PublicationStatus, PublishRequest,
 } from '../../view-models/content-publishing';
+import { ContentCard } from '../authorized-content/content-card';
 import {
   Client, ClientWithStats, ContentAssociatedFileType, ContentType,
   RootContentItem, RootContentItemWithPublication,
@@ -24,6 +28,7 @@ import {
    CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
+import { ContentContainer, contentTypeMap } from '../shared-components/content-container';
 import {
   ContentPanel, ContentPanelSectionContent,
 } from '../shared-components/content-panel/content-panel';
@@ -34,18 +39,23 @@ import {
 } from '../shared-components/form/form-elements';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { Select } from '../shared-components/form/select';
+import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { Dict } from '../shared-components/redux/store';
+import { GoLiveSection } from './go-live-section';
+import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
   availableContentTypes, clientEntities, filesForPublishing, formChangesPending,
-  itemEntities, selectedItem, submitButtonIsActive, uploadChangesPending,
+  goLiveApproveButtonIsActive, itemEntities, selectedItem, submitButtonIsActive,
+  uploadChangesPending,
 } from './redux/selectors';
 import {
-    PublishingFormData, PublishingState, PublishingStateCardAttributes, PublishingStateFilters,
-    PublishingStatePending, PublishingStateSelected,
+  GoLiveSummaryData, PublishingFormData, PublishingState, PublishingStateCardAttributes,
+  PublishingStateFilters, PublishingStatePending, PublishingStateSelected,
 } from './redux/store';
+import { SelectionGroupDetails } from './selection-group-detail';
 
 type ClientEntity = (ClientWithStats & { indent: 1 | 2 }) | 'divider';
 interface RootContentItemEntity extends RootContentItemWithPublication {
@@ -60,6 +70,7 @@ interface ContentPublishingProps {
   contentTypesList: Array<{ selectionValue: string | number, selectionLabel: string }>;
   associatedContentTypesList: Array<{ selectionValue: string | number, selectionLabel: string }>;
   formData: PublishingFormData;
+  goLiveSummary: GoLiveSummaryData;
   selected: PublishingStateSelected;
   cardAttributes: PublishingStateCardAttributes;
   pending: PublishingStatePending;
@@ -68,10 +79,11 @@ interface ContentPublishingProps {
   selectedItem: RootContentItem;
   activeSelectedClient: Client;
   activeSelectedItem: RootContentItem;
+  filesForPublishing: PublishRequest;
   formCanSubmit: boolean;
   formChangesPending: boolean;
+  goLiveApproveButtonIsActive: boolean;
   uploadChangesPending: boolean;
-  filesForPublishing: PublishRequest;
 }
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
@@ -99,7 +111,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
         {this.props.selected.client && this.renderItemPanel()}
-        {this.props.selected.item && this.props.formData.formData.clientId && this.renderContentItemForm()}
+        {(this.props.goLiveSummary.rootContentItemId)
+          ? this.renderGoLiveSummary()
+          : (this.props.selected.item
+            && this.props.formData.formData.clientId) ? this.renderContentItemForm() : null
+        }
       </>
     );
   }
@@ -182,7 +198,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 <CardButton
                   color={'green'}
                   tooltip={'Approve'}
-                  onClick={() => alert('Go Live Preview')}
+                  onClick={() => this.props.fetchGoLiveSummary({ rootContentItemId: entity.id })}
                   icon={'checkmark'}
                 />
               </>
@@ -400,7 +416,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               <FormSectionRow>
                 <FormFlexContainer flexPhone={5}>
                   <FileUploadInput
-                    fileExtensions={['image/*']}
+                    fileExtensions={['jpg', 'jpeg', 'gif', 'png']}
                     label="Thumbnail"
                     name="thumbnail"
                     placeholderText="Upload Thumbnail"
@@ -588,10 +604,224 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
     );
   }
 
+  private renderGoLiveSummary() {
+    const {
+      elementsToConfirm, goLiveSummary, rootContentItemId, onlyChangesShown,
+    } = this.props.goLiveSummary;
+    const contentCardPreview = goLiveSummary && (
+      <ContentCard
+        id={this.props.goLiveSummary.rootContentItemId}
+        name={goLiveSummary.rootContentName}
+        contentTypeEnum={contentTypeMap[goLiveSummary.contentTypeName]}
+        description={goLiveSummary.contentDescription}
+        contentURL={goLiveSummary.masterContentLink}
+        imageURL={goLiveSummary.thumbnailLink}
+        userguideURL={goLiveSummary.userGuideLink}
+        releaseNotesURL={goLiveSummary.releaseNotesLink}
+        selectContent={() => false}
+      />
+    );
+    const masterContentPreview = goLiveSummary && goLiveSummary.masterContentLink && (
+      <GoLiveSection
+        title="Master Content"
+        checkboxLabel="Master Content is as expected"
+        checkboxTarget="masterContent"
+        checkboxSelectedValue={elementsToConfirm.masterContent}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
+        {(goLiveSummary.contentTypeName === 'FileDownload') ? (
+          <div className="download-preview">
+            <a href={goLiveSummary.masterContentLink} download={true}>
+              Click to Download
+            </a>
+          </div>
+        ) : (
+            <ContentContainer
+              contentType={contentTypeMap[goLiveSummary.contentTypeName]}
+              contentURL={goLiveSummary.masterContentLink}
+            >
+              <a
+                href={goLiveSummary.masterContentLink}
+                className="new-tab-icon"
+                target="_blank"
+                title="Open in new tab"
+              >
+                <svg className="action-icon-expand-frame action-icon tooltip">
+                  <use xlinkHref="#expand-frame" />
+                </svg>
+              </a>
+            </ContentContainer>
+          )}
+      </GoLiveSection>
+    );
+    const thumbnailPreview = goLiveSummary && goLiveSummary.thumbnailLink && (
+      <GoLiveSection
+        title="Thumbnail"
+        checkboxLabel="Thumbnail is as expected"
+        checkboxTarget="thumbnail"
+        checkboxSelectedValue={elementsToConfirm.thumbnail}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
+        <div className="thumbnailContainer">
+          <img className="thumbnailPreview" src={goLiveSummary.thumbnailLink} />
+        </div>
+      </GoLiveSection>
+    );
+    const userGuidePreview = goLiveSummary && goLiveSummary.userGuideLink && (
+      <GoLiveSection
+        title="User Guide"
+        checkboxLabel="User Guide is as expected"
+        checkboxTarget="userguide"
+        checkboxSelectedValue={elementsToConfirm.userguide}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
+        <ContentContainer
+          contentType={ContentTypeEnum.Pdf}
+          contentURL={goLiveSummary.userGuideLink}
+        >
+          <a
+            href={goLiveSummary.userGuideLink}
+            className="new-tab-icon"
+            target="_blank"
+            title="Open in new tab"
+          >
+            <svg className="action-icon-expand-frame action-icon tooltip">
+              <use xlinkHref="#expand-frame" />
+            </svg>
+          </a>
+        </ContentContainer>
+      </GoLiveSection>
+    );
+    const releaseNotesPreview = goLiveSummary && goLiveSummary.releaseNotesLink && (
+      <GoLiveSection
+        title="Release Notes"
+        checkboxLabel="Release Notes are as expected"
+        checkboxTarget="releaseNotes"
+        checkboxSelectedValue={elementsToConfirm.releaseNotes}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
+        <ContentContainer
+          contentType={ContentTypeEnum.Pdf}
+          contentURL={goLiveSummary.releaseNotesLink}
+        >
+          <a
+            href={goLiveSummary.releaseNotesLink}
+            className="new-tab-icon"
+            target="_blank"
+            title="Open in new tab"
+          >
+            <svg className="action-icon-expand-frame action-icon tooltip">
+              <use xlinkHref="#expand-frame" />
+            </svg>
+          </a>
+        </ContentContainer>
+      </GoLiveSection>
+    );
+    const hierarchyValues = goLiveSummary && goLiveSummary.reductionHierarchy && (
+      <GoLiveSection
+        title="Hierarchy Changes"
+        checkboxLabel="All hierarchy changes are as expected"
+        checkboxTarget="reductionHierarchy"
+        checkboxSelectedValue={elementsToConfirm.reductionHierarchy}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
+        <Toggle
+          label="Show only changed values"
+          checked={onlyChangesShown}
+          onClick={() => this.props.toggleShowOnlyChanges({})}
+        />
+        <HierarchyDiffs
+          changedOnly={onlyChangesShown}
+          hierarchy={goLiveSummary.reductionHierarchy}
+        />
+      </GoLiveSection>
+    );
+    const selectionGroups = goLiveSummary && goLiveSummary.selectionGroups && (
+      <GoLiveSection
+        title="Selection Groups"
+        checkboxLabel="All reductions are as expected"
+        checkboxTarget="selectionGroups"
+        checkboxSelectedValue={elementsToConfirm.selectionGroups}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
+        {
+          goLiveSummary.selectionGroups.map((sG, key) => (
+            <SelectionGroupDetails
+              selectionGroup={sG}
+              changedOnly={onlyChangesShown}
+              key={key}
+            />
+          ),
+        )}
+      </GoLiveSection>
+    );
+    const attestationLanguage = goLiveSummary && goLiveSummary.attestationLanguage && (
+      <>
+        <h3>Attestation</h3>
+        <div dangerouslySetInnerHTML={{ __html: goLiveSummary.attestationLanguage }} />
+      </>
+    );
+    return (
+      <ContentPanel loading={this.props.pending.data.goLiveSummary}>
+        <h3 className="admin-panel-header">Pre-Live Summary</h3>
+        <PanelSectionToolbar>
+          <PanelSectionToolbarButtons>
+            <ActionIcon
+              label="Close Pre-Live Summary"
+              icon="cancel"
+              action={() => { this.props.selectItem({ id: null }); }}
+            />
+          </PanelSectionToolbarButtons>
+        </PanelSectionToolbar>
+        <ContentPanelSectionContent>
+          <h2>{goLiveSummary && goLiveSummary.rootContentName}</h2>
+          {masterContentPreview}
+          {thumbnailPreview}
+          {userGuidePreview}
+          {releaseNotesPreview}
+          {hierarchyValues}
+          {selectionGroups}
+          {attestationLanguage}
+        </ContentPanelSectionContent>
+        <div className="go-live-button-container">
+          <button
+            className="red-button"
+            onClick={() => this.props.rejectGoLiveSummary({
+              rootContentItemId,
+              publicationRequestId: goLiveSummary.publicationRequestId,
+              validationSummaryId: goLiveSummary.validationSummaryId,
+            })}
+          >
+            Reject
+            {this.props.pending.data.goLiveRejection
+              ? <ButtonSpinner version="circle" />
+              : null
+            }
+          </button>
+          <button
+            className="green-button"
+            disabled={!this.props.goLiveApproveButtonIsActive}
+            onClick={() => this.props.approveGoLiveSummary({
+              rootContentItemId,
+              publicationRequestId: goLiveSummary.publicationRequestId,
+              validationSummaryId: goLiveSummary.validationSummaryId,
+            })}
+          >
+            Approve
+            {this.props.pending.data.goLiveApproval
+              ? <ButtonSpinner version="circle" />
+              : null
+            }
+          </button>
+        </div>
+      </ContentPanel>
+    );
+
+  }
 }
 
 function mapStateToProps(state: PublishingState): ContentPublishingProps {
-  const { data, formData, selected, cardAttributes, pending, filters } = state;
+  const { data, formData, goLiveSummary, selected, cardAttributes, pending, filters } = state;
   const { id: rootContentItemId } = formData.formData;
   return {
     clients: clientEntities(state),
@@ -601,6 +831,7 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     contentTypesList: availableContentTypes(state),
     associatedContentTypesList: availableAssociatedContentTypes(state),
     formData,
+    goLiveSummary,
     selected,
     cardAttributes,
     pending,
@@ -608,10 +839,11 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     selectedItem: selectedItem(state),
     activeSelectedClient: activeSelectedClient(state),
     activeSelectedItem: activeSelectedItem(state),
+    filesForPublishing: filesForPublishing(state, rootContentItemId),
     formCanSubmit: submitButtonIsActive(state),
     formChangesPending: formChangesPending(state),
+    goLiveApproveButtonIsActive: goLiveApproveButtonIsActive(state),
     uploadChangesPending: uploadChangesPending(state),
-    filesForPublishing: filesForPublishing(state, rootContentItemId),
   };
 }
 

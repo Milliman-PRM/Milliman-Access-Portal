@@ -17,6 +17,12 @@ export const setFilterTextClient =
   createActionCreator<PublishActions.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');
 export const setFilterTextItem =
   createActionCreator<PublishActions.SetFilterTextItem>('SET_FILTER_TEXT_ITEM');
+export const toggleShowOnlyChanges =
+  createActionCreator<PublishActions.ToggleShowOnlyChanges>('TOGGLE_SHOW_ONLY_CHANGES');
+export const toggleGoLiveConfirmationCheckbox =
+  createActionCreator<PublishActions.ToggleGoLiveConfirmationCheckbox>(
+    'TOGGLE_GO_LIVE_CONFIRMATION_CHECKBOX',
+  );
 
 export const setPublishingFormTextInputValue =
   createActionCreator<PublishActions.SetPublishingFormTextInputValue>('SET_PENDING_TEXT_INPUT_VALUE');
@@ -37,6 +43,8 @@ export const fetchItems =
   createRequestActionCreator<PublishActions.FetchItems>('FETCH_ITEMS');
 export const fetchContentItemDetail =
   createRequestActionCreator<PublishActions.FetchContentItemDetail>('FETCH_CONTENT_ITEM_DETAIL');
+export const fetchGoLiveSummary =
+  createRequestActionCreator<PublishActions.FetchGoLiveSummary>('FETCH_GO_LIVE_SUMMARY');
 export const fetchStatusRefresh =
   createRequestActionCreator<PublishActions.FetchStatusRefresh>('FETCH_STATUS_REFRESH');
 export const fetchSessionCheck =
@@ -53,6 +61,10 @@ export const deleteContentItem =
   createRequestActionCreator<PublishActions.DeleteContentItem>('DELETE_CONTENT_ITEM');
 export const cancelPublicationRequest =
   createRequestActionCreator<PublishActions.CancelPublicationRequest>('CANCEL_PUBLICATION_REQUEST');
+export const approveGoLiveSummary =
+  createRequestActionCreator<PublishActions.ApproveGoLiveSummary>('APPROVE_GO_LIVE_SUMMARY');
+export const rejectGoLiveSummary =
+  createRequestActionCreator<PublishActions.RejectGoLiveSummary>('REJECT_GO_LIVE_SUMMARY');
 
 // Scheduled actions
 export const scheduleStatusRefresh =

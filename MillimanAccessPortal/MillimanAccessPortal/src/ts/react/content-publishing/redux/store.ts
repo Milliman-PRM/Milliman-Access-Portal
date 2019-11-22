@@ -4,6 +4,7 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
 
 import { UploadState } from '../../../upload/Redux/store';
+import { PreLiveContentValidationSummary } from '../../../view-models/content-publishing';
 import {
   ClientWithStats, ContentAssociatedFileType, ContentItemDetail, ContentItemFormErrors,
   ContentPublicationRequest, ContentType, Guid, PublicationQueueDetails, RootContentItemWithStats,
@@ -21,6 +22,9 @@ export interface PendingDataState {
   clients: boolean;
   items: boolean;
   contentItemDetail: boolean;
+  goLiveSummary: boolean;
+  goLiveApproval: boolean;
+  goLiveRejection: boolean;
   contentItemDeletion: boolean;
   formSubmit: boolean;
   publishing: boolean;
@@ -83,11 +87,35 @@ export interface PublishingFormData {
 }
 
 /**
+ * Go-Live Summary data
+ */
+export interface GoLiveSummaryData {
+  rootContentItemId: Guid;
+  goLiveSummary: PreLiveContentValidationSummary;
+  elementsToConfirm: ElementsToConfirm;
+  onlyChangesShown: boolean;
+}
+
+/**
+ * All elements that need to be confirmed during Go-Live process
+ */
+export interface ElementsToConfirm {
+  [key: string]: boolean;
+  masterContent?: boolean;
+  thumbnail?: boolean;
+  userguide?: boolean;
+  releaseNotes?: boolean;
+  reductionHierarchy?: boolean;
+  selectionGroups?: boolean;
+}
+
+/**
  * All content access admin state.
  */
 export interface PublishingState {
   data: PublishingStateData;
   formData: PublishingFormData;
+  goLiveSummary: GoLiveSummaryData;
   selected: PublishingStateSelected;
   cardAttributes: PublishingStateCardAttributes;
   pending: PublishingStatePending;

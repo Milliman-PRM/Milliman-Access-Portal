@@ -1,8 +1,5 @@
-import {
-  AssociatedContentItemUpload, ContentItemDetail, RelatedFiles,
-} from '../react/models';
+import { ContentItemDetail } from '../react/models';
 import { Guid } from '../react/shared-components/interfaces';
-import { Dict } from '../react/shared-components/redux/store';
 
 export interface Nestable {
   id: Guid;
@@ -200,8 +197,7 @@ export interface PreLiveContentValidationSummary {
   userGuideLink: string;
   releaseNotesLink: string;
   thumbnailLink: string;
-  liveHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
-  newHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
+  reductionHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   selectionGroups: SelectionGroupSummary[];
   associatedFiles: AssociatedFileSummary[];
 }
@@ -214,8 +210,8 @@ export interface SelectionGroupSummary {
   wasInactive: boolean;
   isInactive: boolean;
   inactiveReason?: string;
-  liveSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
-  pendingSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
+  previewLink: string;
+  selectionChanges: ContentReductionHierarchy<ReductionFieldValueSelection>;
 }
 export interface AssociatedFileSummary {
   id: Guid;
@@ -242,6 +238,7 @@ export interface ReductionField<T extends ReductionFieldValue> extends Reduction
 export interface ReductionFieldValueInfo {
   id: Guid;
   value: string;
+  valueChange: FieldValueChange;
 }
 export interface ReductionFieldValue extends ReductionFieldValueInfo {
   hasSelectionStatus: boolean;
@@ -252,3 +249,14 @@ export interface ReductionFieldValueSelection extends ReductionFieldValue {
 export function isSelection(value: ReductionFieldValue): value is ReductionFieldValueSelection {
   return value && (value as ReductionFieldValueSelection).selectionStatus !== undefined;
 }
+
+export enum FieldValueChange {
+  noChange = 0,
+  added = 1,
+  removed = 2,
+}
+export const FieldValueChangeName: { [status: number]: string; } = {
+  0: 'No change',
+  1: 'Added',
+  2: 'Removed',
+};
