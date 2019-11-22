@@ -690,7 +690,7 @@ namespace MillimanAccessPortal.Controllers
 
                 var messageModel = new MessageWithButtons
                 {
-                    Message = "Your previous account activation link is invalid or may have expired. A new welcome email has been sent with a new account activation link.",
+                    Message = "Your previous account activation link is invalid or may have expired. Click below to receive a new welcome email with an updated activation link.",
                     Buttons = new List<ConfiguredButton>
                         {
                             new ConfiguredButton
