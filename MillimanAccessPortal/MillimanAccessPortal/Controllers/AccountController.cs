@@ -686,12 +686,35 @@ namespace MillimanAccessPortal.Controllers
 
             if (!tokenIsValid)
             {
-                string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, WelcomeText));
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} GET action: confirmation token is invalid for user name {user.UserName}, may be expired.");
 
-                string WhatHappenedMessage = "Your previous account activation link is invalid or may have expired. A new welcome email has been sent, which contains a new account activation link.";
-                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} GET action: confirmation token is invalid for user name {user.UserName}, may be expired, new welcome email sent, aborting");
-                return View("Message", WhatHappenedMessage);
+                var messageModel = new MessageWithButtons
+                {
+                    Message = "Your previous account activation link is invalid or may have expired. A new welcome email has been sent with a new account activation link.",
+                    Buttons = new List<ConfiguredButton>
+                        {
+                            new ConfiguredButton
+                            {
+                                Value = "Cancel",
+                                Action = nameof(Login),
+                                Controller = nameof(AccountController).Replace("Controller", ""),
+                                Method = "get",
+                                ButtonClass = "link-button",
+                            },
+                            new ConfiguredButton
+                            {
+                                Value = "Resend Welcome Email",
+                                Action = nameof(NewWelcomEmailBecauseInvalidToken),
+                                Controller = nameof(AccountController).Replace("Controller", ""),
+                                RouteData = new Dictionary<string, string>
+                                {
+                                    { "userEmail", user.Email },
+                                    { "confirmationMessage", $"Thank you.  A new user welcome email has been sent to {user.Email}."}
+                                }
+                            },
+                        }
+                };
+                return View("MessageWithButtons", messageModel);
             }
 
             // Prompt for the user's profile data
@@ -875,6 +898,7 @@ namespace MillimanAccessPortal.Controllers
         /// A controller action that initiates a password reset
         /// </summary>
         /// <param name="userEmail"></param>
+        /// <param name="confirmationMessage"></param>
         /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
@@ -886,12 +910,39 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser user = await _userManager.FindByEmailAsync(userEmail);
             if (user == null)
             {
-                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: user <{userEmail}> not found, aborting");
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user <{userEmail}> not found, aborting");
                 return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Password Reset Error"));
             }
 
             await RequestPasswordReset(user, PasswordResetRequestReason.PasswordResetTokenInvalid, Request.Scheme, Request.Host);
             Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: new password reset requested for user {user.UserName}, previous link was expired or invalid");
+
+            return View("Message", confirmationMessage);
+        }
+
+        /// <summary>
+        /// A controller action that initiates a welcome new user email
+        /// </summary>
+        /// <param name="userEmail"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> NewWelcomEmailBecauseInvalidToken(string userEmail, string confirmationMessage)
+        {
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} POST action");
+
+            ApplicationUser user = await _userManager.FindByEmailAsync(userEmail);
+            if (user == null)
+            {
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user <{userEmail}> not found, aborting");
+                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+            }
+
+            string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
+            Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, WelcomeText));
+
+            Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: new user welcome email requested for user {user.UserName}, previous link was expired or invalid");
 
             return View("Message", confirmationMessage);
         }
