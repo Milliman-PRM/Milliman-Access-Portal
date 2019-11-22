@@ -285,6 +285,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
     return (
       <div
         className={`form-element-container${readOnly ? ' disabled' : ''}${hasImage ? ' thumbnail' : ''}`}
+        title={value}
       >
         <div className={`form-element-input ${errorMsg ? ' error' : ''}`} ref={this.uploadRef}>
           <div className="form-input-container">
