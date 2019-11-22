@@ -127,8 +127,10 @@ namespace MapTests
             #endregion
 
             #region Assert
-            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("MessageWithButtons", viewAsViewResult.ViewName);
+            ViewResult viewAsViewResult = view as ViewResult;
+
+            Assert.IsType<ViewResult>(view);
+            Assert.Equal("Message", viewAsViewResult.ViewName);
 
             #endregion
         }
