@@ -15,6 +15,7 @@
 .form-section-divider {
     display: flex;
     flex-flow: row wrap;
+    align-content: flex-start;
 }
 
 .form-content-container {
@@ -53,9 +54,30 @@
         }
     }
 
+    &.thumbnail {
 
-    .form-element-input,
-    .form-element-textarea,
+        .form-element-input {
+            height: auto;
+            flex-flow: column nowrap;
+
+            .form-input-container {
+                min-height: 3.5em;
+                border-bottom: none;
+            }
+        }
+
+        .thumbnail-preview {
+            width: 100%;
+            height: auto;
+            cursor: pointer;
+            border: 1px solid $charcoal;
+            border-top: none;
+        }
+
+    } 
+    
+    .form-element-input, 
+    .form-element-textarea, 
     .form-element-select {
         position: relative;
         display: flex;
