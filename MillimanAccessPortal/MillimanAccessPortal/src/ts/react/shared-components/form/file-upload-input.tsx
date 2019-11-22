@@ -274,10 +274,16 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
     resumableInput.disabled = this.props.readOnly;
   }
 
+  public componentWillReceiveProps(nextProps: FileUploadInputProps) {
+    if (nextProps.value === '') {
+      this.setState({ imageSrc: null });
+    }
+  }
+
   public render() {
     const { label, name, placeholderText, readOnly, upload, value, children } = this.props;
     const { checksumProgress, uploadProgress, cancelable, errorMsg } = upload;
-    const hasImage = (this.props.imageURL || this.state.imageSrc);
+    const hasImage = (value.length > 0 && this.props.imageURL || this.state.imageSrc);
     const checksumEasing =
       (checksumProgress.percentage === '0%' || checksumProgress.percentage === '100%') ? '' : ' progress-easing';
     const uploadEasing =
@@ -302,7 +308,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
             <label className="form-input-label" htmlFor={name}>{label}</label>
           </div>
           {
-            hasImage &&
+            hasImage && value &&
             <img
               className="thumbnail-preview"
               src={this.state.imageSrc || this.props.imageURL}
