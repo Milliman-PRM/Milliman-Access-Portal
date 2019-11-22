@@ -118,6 +118,13 @@ const _initialPendingData: PendingDataState = {
   publishing: false,
 };
 
+const newUpload: UploadState = {
+  cancelable: false,
+  errorMsg: null,
+  checksumProgress: ProgressSummary.empty(),
+  uploadProgress: ProgressSummary.empty(),
+};
+
 /**
  * Create reducers for a subtree of the redux store
  * @param initialState Subtree of state these handlers can influence
@@ -526,13 +533,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
     };
 
-    const newUpload: UploadState = {
-      cancelable: false,
-      errorMsg: null,
-      checksumProgress: ProgressSummary.empty(),
-      uploadProgress: ProgressSummary.empty(),
-    };
-
     const uploads: Dict<UploadState> = {
       [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
@@ -568,13 +568,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId = generateUniqueId('Thumbnail');
     contentItemDetail.relatedFiles.UserGuide.uniqueUploadId = generateUniqueId('UserGuide');
     contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId = generateUniqueId('ReleaseNotes');
-
-    const newUpload: UploadState = {
-      cancelable: false,
-      errorMsg: null,
-      checksumProgress: ProgressSummary.empty(),
-      uploadProgress: ProgressSummary.empty(),
-    };
 
     const uploads: Dict<UploadState> = {
       [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
@@ -674,13 +667,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       associatedFiles: {
         ...associatedContentItems,
       },
-    };
-
-    const newUpload: UploadState = {
-      cancelable: false,
-      errorMsg: null,
-      checksumProgress: ProgressSummary.empty(),
-      uploadProgress: ProgressSummary.empty(),
     };
 
     const uploads: Dict<UploadState> = {
@@ -890,13 +876,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
     };
 
-    const newUpload: UploadState = {
-      cancelable: false,
-      errorMsg: null,
-      checksumProgress: ProgressSummary.empty(),
-      uploadProgress: ProgressSummary.empty(),
-    };
-
     const uploads: Dict<UploadState> = {
       [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
@@ -966,13 +945,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       associatedFiles: {
         ...associatedContentItems,
       },
-    };
-
-    const newUpload: UploadState = {
-      cancelable: false,
-      errorMsg: null,
-      checksumProgress: ProgressSummary.empty(),
-      uploadProgress: ProgressSummary.empty(),
     };
 
     const uploads: Dict<UploadState> = {
