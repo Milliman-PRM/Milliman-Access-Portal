@@ -606,7 +606,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
-                <FormFlexContainer flexPhone={12} flexTablet={5}>
+                <FormFlexContainer flexPhone={12} flexTablet={4}>
                   <Select
                     error={dataForForm.formErrors.contentTypeId}
                     label="Content Type"
@@ -617,13 +617,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         value: target.value,
                       });
                     }}
-                    placeholderText="Choose Content Type"
+                    placeholderText="Content Type"
                     value={dataForForm.formData.contentTypeId}
                     values={this.props.contentTypesList}
                     readOnly={formState === 'read' || dataForForm.originalData.id.length > 0}
                   />
                 </FormFlexContainer>
-                <FormFlexContainer flexPhone={12} flexTablet={7}>
+                <FormFlexContainer flexPhone={12} flexTablet={8}>
                   <FileUploadInput
                     fileExtensions={
                       contentTypes[dataForForm.formData.contentTypeId] !== undefined
@@ -709,7 +709,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             }
             <FormSection title="Content Related Files">
               <FormSectionRow>
-                <FormFlexContainer flexPhone={5}>
+                <FormFlexContainer flexPhone={4}>
                   <FileUploadInput
                     fileExtensions={['jpg', 'jpeg', 'gif', 'png']}
                     label="Thumbnail"
@@ -732,7 +732,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
-                <FormFlexContainer flexPhone={7}>
+                <FormFlexContainer flexPhone={8}>
                   <FileUploadInput
                     fileExtensions={['pdf']}
                     label="User Guide"
