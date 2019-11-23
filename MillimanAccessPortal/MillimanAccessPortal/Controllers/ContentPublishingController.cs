@@ -215,7 +215,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             //RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, rootContentItem);
-            RootContentItemDetail model = _publishingQueries.BuildContentItemDetailModel(rootContentItem);
+            RootContentItemDetail model = _publishingQueries.BuildContentItemDetailModel(rootContentItem, Request);
 
             return Json(model);
         }
@@ -313,7 +313,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.RootContentItemCreated.ToEvent(rootContentItem, client));
 
             RootContentItemSummary summary = RootContentItemSummary.Build(_dbContext, rootContentItem);
-            RootContentItemDetail detail = _publishingQueries.BuildContentItemDetailModel(rootContentItem);
+            RootContentItemDetail detail = _publishingQueries.BuildContentItemDetailModel(rootContentItem, Request);
 
             return Json(new { summary, detail });
         }
@@ -424,7 +424,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             RootContentItemSummary summary = RootContentItemSummary.Build(_dbContext, currentRootContentItem);
-            RootContentItemDetail detail = _publishingQueries.BuildContentItemDetailModel(currentRootContentItem);
+            RootContentItemDetail detail = _publishingQueries.BuildContentItemDetailModel(currentRootContentItem, Request);
 
             return Json(new { summary, detail });
         }
@@ -472,7 +472,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            RootContentItemDetail model = _publishingQueries.BuildContentItemDetailModel(rootContentItem);
+            RootContentItemDetail model = _publishingQueries.BuildContentItemDetailModel(rootContentItem, Request);
 
             _dbContext.RootContentItem.Remove(rootContentItem);
             _dbContext.SaveChanges();
@@ -674,7 +674,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(ContentItem, ContentItem.Client, NewContentPublicationRequest));
             }
 
-            var rootContentItemDetail = _publishingQueries.BuildContentItemDetailModel(ContentItem);
+            var rootContentItemDetail = _publishingQueries.BuildContentItemDetailModel(ContentItem, Request);
             return Json(rootContentItemDetail);
         }
 
@@ -739,7 +739,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ContentPublishingController.CancelContentPublicationRequest action: success");
             AuditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(rootContentItem, rootContentItem.Client, contentPublicationRequest));
 
-            var rootContentItemStatusList = _publishingQueries.SelectCancelContentPublicationRequest(await _userManager.GetUserAsync(User), rootContentItem);
+            var rootContentItemStatusList = _publishingQueries.SelectCancelContentPublicationRequest(await _userManager.GetUserAsync(User), rootContentItem, Request);
 
             return new JsonResult(rootContentItemStatusList);
         }
