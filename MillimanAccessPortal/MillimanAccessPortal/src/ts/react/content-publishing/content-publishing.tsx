@@ -646,6 +646,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.updateUploadProgress({ uploadId, progress })}
                     upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
                     uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
+                    fileUploadId={
+                      (formData.relatedFiles.MasterContent.fileUploadId !== undefined)
+                        ? formData.relatedFiles.MasterContent.fileUploadId
+                        : null
+                    }
                     value={formData.relatedFiles.MasterContent.fileOriginalName}
                     readOnly={formState === 'read' || dataForForm.formData.contentTypeId.length === 0}
                   />
@@ -728,6 +733,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.updateUploadProgress({ uploadId, progress })}
                     upload={uploads[formData.relatedFiles.Thumbnail.uniqueUploadId]}
                     uploadId={formData.relatedFiles.Thumbnail.uniqueUploadId}
+                    fileUploadId={
+                      (formData.relatedFiles.Thumbnail.fileUploadId !== undefined)
+                        ? formData.relatedFiles.Thumbnail.fileUploadId
+                        : null
+                    }
                     value={formData.relatedFiles.Thumbnail.fileOriginalName}
                     readOnly={formState === 'read'}
                   />
@@ -751,6 +761,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.updateUploadProgress({ uploadId, progress })}
                     upload={uploads[formData.relatedFiles.UserGuide.uniqueUploadId]}
                     uploadId={formData.relatedFiles.UserGuide.uniqueUploadId}
+                    fileUploadId={
+                      (formData.relatedFiles.UserGuide.fileUploadId !== undefined)
+                        ? formData.relatedFiles.UserGuide.fileUploadId
+                        : null
+                    }
                     value={formData.relatedFiles.UserGuide.fileOriginalName}
                     readOnly={formState === 'read'}
                   />
@@ -772,6 +787,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.updateUploadProgress({ uploadId, progress })}
                     upload={uploads[formData.relatedFiles.ReleaseNotes.uniqueUploadId]}
                     uploadId={formData.relatedFiles.ReleaseNotes.uniqueUploadId}
+                    fileUploadId={
+                      (formData.relatedFiles.ReleaseNotes.fileUploadId !== undefined)
+                        ? formData.relatedFiles.ReleaseNotes.fileUploadId
+                        : null
+                    }
                     value={formData.relatedFiles.ReleaseNotes.fileOriginalName}
                     readOnly={formState === 'read'}
                   />
