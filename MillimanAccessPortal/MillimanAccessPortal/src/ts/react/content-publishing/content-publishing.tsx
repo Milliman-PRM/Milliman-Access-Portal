@@ -632,7 +632,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     }
                     label="Master Content"
                     name="masterContent"
-                    placeholderText="Upload Master Content"
+                    placeholderText="Master Content"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={() => false}
@@ -719,7 +719,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     fileExtensions={['jpg', 'jpeg', 'gif', 'png']}
                     label="Thumbnail"
                     name="thumbnail"
-                    placeholderText="Upload Thumbnail"
+                    placeholderText="Thumbnail"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={() => false}
@@ -747,7 +747,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     fileExtensions={['pdf']}
                     label="User Guide"
                     name="userGuide"
-                    placeholderText="Upload User Guide"
+                    placeholderText="User Guide"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={() => false}
@@ -773,7 +773,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     fileExtensions={['pdf']}
                     label="Release Notes"
                     name="releaseNotes"
-                    placeholderText="Upload Release Notes"
+                    placeholderText="Release Notes"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={() => false}
