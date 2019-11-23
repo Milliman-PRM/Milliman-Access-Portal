@@ -48,22 +48,22 @@ const emptyContentItemDetail: ContentItemDetail = {
     MasterContent: {
       fileOriginalName: '',
       uniqueUploadId: '',
-      fileUploadId: '',
+      fileUploadId: null,
     },
     Thumbnail: {
       fileOriginalName: '',
       uniqueUploadId: '',
-      fileUploadId: '',
+      fileUploadId: null,
     },
     UserGuide: {
       fileOriginalName: '',
       uniqueUploadId: '',
-      fileUploadId: '',
+      fileUploadId: null,
     },
     ReleaseNotes: {
       fileOriginalName: '',
       uniqueUploadId: '',
-      fileUploadId: '',
+      fileUploadId: null,
     },
   },
   associatedFiles: {},
