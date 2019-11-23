@@ -36,9 +36,53 @@
 }
 
 .form-element-container {
+    position: relative;
     margin: .25em .5em .5em;
     opacity: 1;
     width: 100%;
+
+    &:hover .icon.upload {
+        color: darken($green, .1);
+    }
+
+    .upload-icon-container {
+        position: absolute;
+        top: 0;
+        right: .25rem;
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: center;
+        align-items: center;
+        height: 3.5rem;
+
+        .upload-icon {
+            height: 1.5rem;
+            width: 1.5rem;
+            cursor: pointer;
+            margin-right: .4rem;
+
+            .icon {
+                height: 1.5rem;
+                width: 1.5rem;
+
+                .upload {
+                    pointer-events: none;
+                }
+
+                &.red {
+                    color: $red;
+                }
+
+                &.blue {
+                    color: $blue;
+                }
+
+                &.green {
+                    color: $green;
+                }
+            }
+        }
+    }
 
     &.disabled {
 
@@ -60,6 +104,10 @@
             height: auto;
             flex-flow: column nowrap;
 
+            .file-upload-input.preview {
+                display: none;
+            } 
+            
             .form-input-container {
                 min-height: 3.5em;
                 border-bottom: none;
@@ -73,11 +121,10 @@
             border: 1px solid $charcoal;
             border-top: none;
         }
+    }
 
-    } 
-    
-    .form-element-input, 
-    .form-element-textarea, 
+    .form-element-input,
+    .form-element-textarea,
     .form-element-select {
         position: relative;
         display: flex;

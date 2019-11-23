@@ -1,5 +1,10 @@
 ﻿import '../../../../scss/react/shared-components/form-elements.scss';
 
+import '../../../../images/icons/cancel.svg';
+import '../../../../images/icons/checkmark.svg';
+import '../../../../images/icons/delete.svg';
+import '../../../../images/icons/upload.svg';
+
 import * as React from 'react';
 import { resumableOptions } from '../../../lib-options';
 import { StatusMonitor } from '../../../status-monitor';
@@ -9,6 +14,7 @@ import { ProgressMonitor, ProgressSummary } from '../../../upload/progress-monit
 import { UploadState } from '../../../upload/Redux/store';
 
 import forge = require('node-forge');
+import { Guid } from '../../models';
 const resumable = require('resumablejs');
 
 export enum FileUploadStatus {
@@ -43,6 +49,7 @@ interface FileUploadInputProps {
   placeholderText?: string;
   readOnly?: boolean;
   uploadId: string;
+  fileUploadId: Guid;
   upload: UploadState;
   value: string;
   imageURL?: string;
@@ -297,7 +304,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
           <div className="form-input-container">
             <input
               type="text"
-              className="form-input file-upload-input"
+              className={`form-input file-upload-input ${hasImage ? 'preview' : ''}`}
               name={name}
               id={name}
               placeholder={placeholderText || 'Upload ' + label}
@@ -337,6 +344,64 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
           </div>
         }
         {errorMsg && <div className="error-message">{errorMsg}</div>}
+        {
+          !readOnly &&
+          <div className="upload-icon-container">
+            {
+              !cancelable &&
+              <div
+                className="upload-icon tooltip"
+                title="Upload file"
+                onClick={() => this.uploadRef.current.click()}
+              >
+                <svg className="upload icon green">
+                  <use xlinkHref="#upload" />
+                </svg>
+              </div>
+            }
+            {
+              cancelable &&
+              <div
+                className="upload-icon tooltip"
+                title="Cancel upload"
+                onClick={(event: React.MouseEvent) => {
+                  event.stopPropagation();
+                  alert('Cancel!');
+                }}
+              >
+                <svg className="icon red">
+                  <use xlinkHref="#cancel" />
+                </svg>
+              </div>
+            }
+            {
+              this.props.fileUploadId && this.props.fileUploadId.length > 0 &&
+              <div
+                className="upload-icon tooltip"
+                title="Upload Complete"
+              >
+                <svg className="icon green">
+                  <use xlinkHref="#checkmark" />
+                </svg>
+              </div>
+            }
+            {
+              value.length > 0 && !cancelable &&
+              <div
+                className="upload-icon tooltip"
+                title="Delete existing file"
+                onClick={(event: React.MouseEvent) => {
+                  event.stopPropagation();
+                  alert('Delete!');
+                }}
+              >
+                <svg className="icon red">
+                  <use xlinkHref="#delete" />
+                </svg>
+              </div>
+            }
+          </div>
+        }
       </div>
     );
   }
