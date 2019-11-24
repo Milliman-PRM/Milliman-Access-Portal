@@ -48,22 +48,22 @@ const emptyContentItemDetail: ContentItemDetail = {
     MasterContent: {
       fileOriginalName: '',
       uniqueUploadId: '',
-      fileUploadId: null,
+      fileUploadId: '',
     },
     Thumbnail: {
       fileOriginalName: '',
       uniqueUploadId: '',
-      fileUploadId: null,
+      fileUploadId: '',
     },
     UserGuide: {
       fileOriginalName: '',
       uniqueUploadId: '',
-      fileUploadId: null,
+      fileUploadId: '',
     },
     ReleaseNotes: {
       fileOriginalName: '',
       uniqueUploadId: '',
-      fileUploadId: null,
+      fileUploadId: '',
     },
   },
   associatedFiles: {},
@@ -762,6 +762,50 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
     },
   }),
+  CANCEL_FILE_UPLOAD: (state, action: UploadActions.CancelFileUpload) => {
+    const { relatedFiles } = state.formData;
+    const relatedFilesKeys = Object.keys(state.formData.relatedFiles);
+    let relatedFileType;
+    for (const key of relatedFilesKeys) {
+      if (relatedFiles.hasOwnProperty(key) &&
+        relatedFiles[key].uniqueUploadId === action.uploadId) {
+        relatedFileType = key;
+      }
+    }
+    const newUploadId = generateUniqueId(relatedFileType);
+
+    const uploads = { ...state.uploads };
+    delete uploads[action.uploadId];
+    uploads[newUploadId] = newUpload;
+
+    return {
+      ...state,
+      originalData: {
+        ...state.originalData,
+        relatedFiles: {
+          ...state.originalData.relatedFiles,
+          [relatedFileType]: {
+            ...state.originalData.relatedFiles[relatedFileType],
+            uniqueUploadId: newUploadId,
+            fileUploadId: '',
+          },
+        },
+      },
+      formData: {
+        ...state.formData,
+        relatedFiles: {
+          ...state.formData.relatedFiles,
+          [relatedFileType]: {
+            ...state.formData.relatedFiles[relatedFileType],
+            uniqueUploadId: newUploadId,
+            fileUploadId: '',
+            fileOriginalName: state.originalData.relatedFiles[relatedFileType].fileOriginalName,
+          },
+        },
+      },
+      uploads,
+    };
+  },
   FINALIZE_UPLOAD: (state, action: UploadActions.FinalizeUpload) => {
     const fileUploads = { ...state.formData.relatedFiles };
     for (const key in fileUploads) {

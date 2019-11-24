@@ -257,6 +257,13 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
         })
           .then(() => {
             this.props.cancelFileUpload(this.props.uploadId);
+            this.progressMonitor.deactivate();
+            if (this.statusMonitor) {
+              this.statusMonitor.stop();
+            }
+            if (this.state.imageSrc) {
+              this.setState({ imageSrc: null });
+            }
           })
           .catch((response) => {
             this.props.setUploadError(
@@ -366,7 +373,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
                 title="Cancel upload"
                 onClick={(event: React.MouseEvent) => {
                   event.stopPropagation();
-                  alert('Cancel!');
+                  this.resumable.cancel();
                 }}
               >
                 <svg className="icon red">
@@ -382,6 +389,17 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
               >
                 <svg className="icon green">
                   <use xlinkHref="#checkmark" />
+                </svg>
+              </div>
+            }
+            {
+              cancelable && this.props.fileUploadId.length === 0 &&
+              <div
+                className="upload-icon tooltip"
+                title="Uploading"
+              >
+                <svg className="icon blue">
+                  <use xlinkHref="#upload" />
                 </svg>
               </div>
             }

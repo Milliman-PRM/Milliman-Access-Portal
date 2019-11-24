@@ -635,7 +635,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     placeholderText="Master Content"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
-                    cancelFileUpload={() => false}
+                    cancelFileUpload={(uploadId) =>
+                      this.props.cancelFileUpload({ uploadId })}
                     finalizeUpload={(uploadId, fileName, Guid) =>
                       this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
@@ -722,7 +723,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     placeholderText="Thumbnail"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
-                    cancelFileUpload={() => false}
+                    cancelFileUpload={(uploadId) =>
+                      this.props.cancelFileUpload({ uploadId })}
                     finalizeUpload={(uploadId, fileName, Guid) =>
                       this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
@@ -750,7 +752,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     placeholderText="User Guide"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
-                    cancelFileUpload={() => false}
+                    cancelFileUpload={(uploadId) =>
+                      this.props.cancelFileUpload({ uploadId })}
                     finalizeUpload={(uploadId, fileName, Guid) =>
                       this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
@@ -776,7 +779,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     placeholderText="Release Notes"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
-                    cancelFileUpload={() => false}
+                    cancelFileUpload={(uploadId) =>
+                      this.props.cancelFileUpload({ uploadId })}
                     finalizeUpload={(uploadId, fileName, Guid) =>
                       this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
