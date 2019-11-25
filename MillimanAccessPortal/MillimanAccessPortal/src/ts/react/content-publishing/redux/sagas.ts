@@ -92,6 +92,13 @@ export default function* rootSaga() {
   yield takeLatest('FETCH_SESSION_CHECK_FAILED', function*() { yield window.location.reload(); });
 
   // Toasts
+  yield takeEveryToast('CREATE_NEW_CONTENT_ITEM_SUCCEEDED', 'New Content Item created successfully.');
+  yield takeEveryToast('UPDATE_CONTENT_ITEM_SUCCEEDED', 'Content Item updated successfully.');
+  yield takeEveryToast('PUBLISH_CONTENT_FILES_SUCCEEDED', 'Files successfully uploaded for processing.');
+  yield takeEveryToast('DELETE_CONTENT_ITEM_SUCCEEDED', 'Content Item successfully deleted.');
+  yield takeEveryToast('CANCEL_PUBLICATION_REQUEST_SUCCEEDED', 'Publication canceled.');
+  yield takeEveryToast('REJECT_GO_LIVE_SUMMARY_SUCCEEDED', 'Publication rejected.');
+  yield takeEveryToast('APPROVE_GO_LIVE_SUMMARY_SUCCEEDED', 'Publication approved.');
   yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',
     'Please refresh the page to update reduction status.', 'warning');
   yield takeEveryToast<ErrorPublishingAction>([
@@ -100,6 +107,15 @@ export default function* rootSaga() {
     'FETCH_ITEMS_FAILED',
     'FETCH_CONTENT_ITEM_DETAIL_FAILED',
     'FETCH_SESSION_CHECK_FAILED',
+    'FETCH_STATUS_REFRESH_FAILED',
+    'FETCH_GO_LIVE_SUMMARY_FAILED',
+    'APPROVE_GO_LIVE_SUMMARY_FAILED',
+    'REJECT_GO_LIVE_SUMMARY_FAILED',
+    'CREATE_NEW_CONTENT_ITEM_FAILED',
+    'UPDATE_CONTENT_ITEM_FAILED',
+    'PUBLISH_CONTENT_FILES_FAILED',
+    'DELETE_CONTENT_ITEM_FAILED',
+    'CANCEL_PUBLICATION_REQUEST_FAILED',
   ], ({ message }) => message === 'sessionExpired'
     ? 'Your session has expired. Please refresh the page.'
     : isNaN(message)

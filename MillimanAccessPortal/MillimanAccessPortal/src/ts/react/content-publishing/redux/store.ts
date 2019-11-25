@@ -10,7 +10,7 @@ import {
   ContentPublicationRequest, ContentType, Guid, PublicationQueueDetails, RootContentItemWithStats,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
-import { Dict, FilterState } from '../../shared-components/redux/store';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { contentPublishing } from './reducers';
 import sagas from './sagas';
 
@@ -26,6 +26,7 @@ export interface PendingDataState {
   goLiveApproval: boolean;
   goLiveRejection: boolean;
   contentItemDeletion: boolean;
+  cancelPublication: boolean;
   formSubmit: boolean;
   publishing: boolean;
 }
@@ -65,6 +66,21 @@ export interface PublishingStatePending {
   data: PendingDataState;
   statusTries: number;
   uploads: Dict<UploadState>;
+  contentItemToDelete: Guid;
+  publicationToCancel: Guid;
+  afterFormModal: AfterFormModal;
+}
+
+export interface AfterFormModal {
+  entityToSelect: Guid;
+  entityType:
+  | 'Select Client'
+  | 'Select Content Item'
+  | 'Delete Content Item'
+  | 'Edit Content Item'
+  | 'New Content Item'
+  | 'Undo Changes'
+  | 'Go Live Summary';
 }
 
 /**
@@ -110,7 +126,18 @@ export interface ElementsToConfirm {
 }
 
 /**
- * All content access admin state.
+ * All modal state.
+ */
+export interface PublishingStateModals {
+  formModified: ModalState;
+  goLiveRejection: ModalState;
+  contentItemDeletion: ModalState;
+  contentItemDeleteConfirmation: ModalState;
+  cancelPublication: ModalState;
+}
+
+/**
+ * All content publishing state.
  */
 export interface PublishingState {
   data: PublishingStateData;
@@ -120,6 +147,7 @@ export interface PublishingState {
   cardAttributes: PublishingStateCardAttributes;
   pending: PublishingStatePending;
   filters: PublishingStateFilters;
+  modals: PublishingStateModals;
   toastr: toastr.ToastrState;
 }
 

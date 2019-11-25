@@ -324,3 +324,14 @@ export function goLiveApproveButtonIsActive(state: PublishingState): boolean {
     return false;
   }
 }
+
+/**
+ * Select the content item that is pending deletion
+ * @param state Redux store
+ */
+export function contentItemToBeDeleted(state: PublishingState) {
+  const contentItemIdPendingDeletion = state.pending.contentItemToDelete;
+  return (state.data.items.hasOwnProperty(contentItemIdPendingDeletion))
+    ? state.data.items[contentItemIdPendingDeletion]
+    : null;
+}

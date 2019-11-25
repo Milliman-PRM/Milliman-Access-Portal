@@ -66,6 +66,35 @@ export const approveGoLiveSummary =
 export const rejectGoLiveSummary =
   createRequestActionCreator<PublishActions.RejectGoLiveSummary>('REJECT_GO_LIVE_SUMMARY');
 
+// Modal actions
+export const openDeleteContentItemModal =
+  createActionCreator<PublishActions.OpenDeleteContentItemModal>('OPEN_DELETE_CONTENT_ITEM_MODAL');
+export const closeDeleteContentItemModal =
+  createActionCreator<PublishActions.CloseDeleteContentItemModal>('CLOSE_DELETE_CONTENT_ITEM_MODAL');
+export const openDeleteConfirmationModal =
+  createActionCreator<PublishActions.OpenDeleteConfirmationModal>('OPEN_DELETE_CONFIRMATION_MODAL');
+export const closeDeleteConfirmationModal =
+  createActionCreator<PublishActions.CloseDeleteConfirmationModal>('CLOSE_DELETE_CONFIRMATION_MODAL');
+export const openGoLiveRejectionModal =
+  createActionCreator<PublishActions.OpenGoLiveRejectionModal>('OPEN_GO_LIVE_REJECTION_MODAL');
+export const closeGoLiveRejectionModal =
+  createActionCreator<PublishActions.CloseGoLiveRejectionModal>('CLOSE_GO_LIVE_REJECTION_MODAL');
+export const openModifiedFormModal =
+  createActionCreator<PublishActions.OpenModifiedFormModal>('OPEN_MODIFIED_FORM_MODAL');
+export const closeModifiedFormModal =
+  createActionCreator<PublishActions.CloseModifiedFormModal>('CLOSE_MODIFIED_FORM_MODAL');
+export const openCancelPublicationModal =
+  createActionCreator<PublishActions.OpenCancelPublicationModal>('OPEN_CANCEL_PUBLICATION_MODAL');
+export const closeCancelPublicationModal =
+  createActionCreator<PublishActions.CloseCancelPublicationModal>('CLOSE_CANCEL_PUBLICATION_MODAL');
+
+/**
+ * Close the modal used to confirm selection group deletion.
+ */
+export interface CloseDeleteGroupModal {
+  type: 'CLOSE_DELETE_GROUP_MODAL';
+}
+
 // Scheduled actions
 export const scheduleStatusRefresh =
   createActionCreator<PublishActions.ScheduleStatusRefresh>('SCHEDULE_STATUS_REFRESH');

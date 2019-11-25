@@ -5,9 +5,11 @@ import '../../../images/icons/expand-frame.svg';
 import '../../../images/icons/user.svg';
 
 import * as React from 'react';
+import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
+import { setUnloadAlert } from '../../unload-alerts';
 import {
   ContentTypeEnum, PublicationStatus, PublishRequest,
 } from '../../view-models/content-publishing';
@@ -47,13 +49,13 @@ import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
-  availableContentTypes, clientEntities, filesForPublishing, formChangesPending,
-  goLiveApproveButtonIsActive, itemEntities, selectedItem, submitButtonIsActive,
-  uploadChangesPending,
+  availableContentTypes, clientEntities, contentItemToBeDeleted, filesForPublishing,
+  formChangesPending, goLiveApproveButtonIsActive, itemEntities, selectedItem,
+  submitButtonIsActive, uploadChangesPending,
 } from './redux/selectors';
 import {
   GoLiveSummaryData, PublishingFormData, PublishingState, PublishingStateCardAttributes,
-  PublishingStateFilters, PublishingStatePending, PublishingStateSelected,
+  PublishingStateFilters, PublishingStateModals, PublishingStatePending, PublishingStateSelected,
 } from './redux/store';
 import { SelectionGroupDetails } from './selection-group-detail';
 
@@ -75,11 +77,13 @@ interface ContentPublishingProps {
   cardAttributes: PublishingStateCardAttributes;
   pending: PublishingStatePending;
   filters: PublishingStateFilters;
+  modals: PublishingStateModals;
 
   selectedItem: RootContentItem;
   activeSelectedClient: Client;
   activeSelectedItem: RootContentItem;
   filesForPublishing: PublishRequest;
+  contentItemToBeDeleted: RootContentItem;
   formCanSubmit: boolean;
   formChangesPending: boolean;
   goLiveApproveButtonIsActive: boolean;
@@ -95,10 +99,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
     this.props.fetchClients({});
     this.props.scheduleStatusRefresh({ delay: 0 });
     this.props.scheduleSessionCheck({ delay: 0 });
-    // setUnloadAlert(() => this.props.pending.item);
+    setUnloadAlert(() => this.props.formChangesPending || this.props.uploadChangesPending);
   }
 
   public render() {
+    const { modals, selected, formData, goLiveSummary, pending } = this.props;
     return (
       <>
         <ReduxToastr
@@ -110,12 +115,230 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         />
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
-        {this.props.selected.client && this.renderItemPanel()}
-        {(this.props.goLiveSummary.rootContentItemId)
+        {selected.client && this.renderItemPanel()}
+        {(goLiveSummary.rootContentItemId)
           ? this.renderGoLiveSummary()
-          : (this.props.selected.item
-            && this.props.formData.formData.clientId) ? this.renderContentItemForm() : null
+          : (selected.item
+            && formData.formData.clientId) ? this.renderContentItemForm() : null
         }
+        <Modal
+          isOpen={modals.contentItemDeletion.isOpen}
+          onRequestClose={() => this.props.closeDeleteContentItemModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Delete Content Item</h3>
+          <span className="modal-text">
+            Delete <strong>{
+              (this.props.contentItemToBeDeleted !== null)
+                ? this.props.contentItemToBeDeleted.name
+                : ''}</strong>?
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeDeleteContentItemModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                // Add a slight pause to make it obvious that you've switched modals
+                setTimeout(() => this.props.openDeleteConfirmationModal({}), 400);
+              }}
+            >
+              Delete
+              {this.props.pending.data.contentItemDeletion
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
+        <Modal
+          isOpen={modals.contentItemDeleteConfirmation.isOpen}
+          onRequestClose={() => this.props.closeDeleteConfirmationModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Confirm Deletion of Content Item</h3>
+          <span className="modal-text">
+            Delete <strong>{
+              (this.props.contentItemToBeDeleted !== null)
+                ? this.props.contentItemToBeDeleted.name
+                : ''}</strong>?
+            <br />
+            <br />
+            <strong>THIS ACTION CANNOT BE UNDONE.</strong>
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeDeleteConfirmationModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (!this.props.pending.data.contentItemDeletion) {
+                  this.props.deleteContentItem(this.props.pending.contentItemToDelete);
+                }
+              }}
+            >
+              Confirm Deletion
+              {this.props.pending.data.contentItemDeletion
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
+        <Modal
+          isOpen={modals.goLiveRejection.isOpen}
+          onRequestClose={() => this.props.closeGoLiveRejectionModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Reject Publication</h3>
+          <span className="modal-text">
+            Reject Publication of <strong>{
+              this.props.goLiveSummary.goLiveSummary && this.props.goLiveSummary.goLiveSummary.rootContentName
+            }</strong>?
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeGoLiveRejectionModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (!this.props.pending.data.goLiveRejection) {
+                  this.props.rejectGoLiveSummary({
+                    rootContentItemId: this.props.goLiveSummary.rootContentItemId,
+                    publicationRequestId: this.props.goLiveSummary.goLiveSummary.publicationRequestId,
+                    validationSummaryId: this.props.goLiveSummary.goLiveSummary.validationSummaryId,
+                  });
+                }
+              }}
+            >
+              Reject
+              {this.props.pending.data.contentItemDeletion
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
+        <Modal
+          isOpen={modals.formModified.isOpen}
+          onRequestClose={() => this.props.closeModifiedFormModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Discard Changes</h3>
+          <span className="modal-text">Would you like to discard unsaved changes?</span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeModifiedFormModal({})}
+            >
+              Continue Editing
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                const { entityToSelect, entityType } = pending.afterFormModal;
+                this.props.resetContentItemForm({});
+                switch (entityType) {
+                  case 'Select Client':
+                    if (selected.client !== entityToSelect) {
+                      this.props.fetchItems({ clientId: entityToSelect });
+                    }
+                    this.props.selectClient({ id: entityToSelect });
+                    break;
+                  case 'Select Content Item':
+                    if (selected.item !== entityToSelect && entityToSelect !== null) {
+                      this.props.fetchContentItemDetail({ rootContentItemId: entityToSelect });
+                    }
+                    this.props.selectItem({ id: entityToSelect });
+                    this.props.setContentItemFormState({ formState: 'read' });
+                    break;
+                  case 'Delete Content Item':
+                    // Add a slight pause to make it obvious that you've switched modals
+                    setTimeout(() => this.props.openDeleteContentItemModal({ id: entityToSelect }), 400);
+                    break;
+                  case 'Edit Content Item':
+                    this.props.fetchContentItemDetail({ rootContentItemId: entityToSelect });
+                    this.props.selectItem({ id: entityToSelect });
+                    this.props.setContentItemFormState({ formState: 'write' });
+                    break;
+                  case 'New Content Item':
+                    this.props.setFormForNewContentItem({ clientId: selected.client });
+                    break;
+                  case 'Undo Changes':
+                    // This action is triggered for every outcome
+                    break;
+                  case 'Go Live Summary':
+                    this.props.fetchGoLiveSummary({ rootContentItemId: entityToSelect });
+                    break;
+                }
+              }}
+            >
+              Discard
+            </button>
+          </div>
+        </Modal>
+        <Modal
+          isOpen={modals.cancelPublication.isOpen}
+          onRequestClose={() => this.props.closeCancelPublicationModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Cancel Publication Request</h3>
+          <span className="modal-text">Would you like to cancel the publication request?</span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeCancelPublicationModal({})}
+            >
+              Continue
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (!this.props.pending.data.cancelPublication) {
+                  this.props.cancelPublicationRequest(this.props.pending.publicationToCancel);
+                }
+              }}
+            >
+              Cancel Publication
+              {this.props.pending.data.cancelPublication
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
       </>
     );
   }
@@ -137,10 +360,20 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               selected={selected.client === entity.id}
               disabled={card.disabled}
               onSelect={() => {
-                if (selected.client !== entity.id) {
-                  this.props.fetchItems({ clientId: entity.id });
+                if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                  this.props.openModifiedFormModal({
+                    afterFormModal:
+                    {
+                      entityToSelect: entity.id,
+                      entityType: 'Select Client',
+                    },
+                  });
+                } else {
+                  if (selected.client !== entity.id) {
+                    this.props.fetchItems({ clientId: entity.id });
+                  }
+                  this.props.selectClient({ id: entity.id });
                 }
-                this.props.selectClient({ id: entity.id });
               }}
               indentation={entity.indent}
             >
@@ -179,12 +412,26 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderItemPanel() {
-    const { activeSelectedClient: activeClient, items, selected, filters, pending } = this.props;
+    const {
+      activeSelectedClient: activeClient, items, selected, filters, pending, modals,
+    } = this.props;
     const createNewContentItemIcon = (
       <ActionIcon
         label="New Content Item"
         icon="add"
-        action={() => { this.props.setFormForNewContentItem({ clientId: selected.client }); }}
+        action={() => {
+          if (this.props.formChangesPending || this.props.uploadChangesPending) {
+            this.props.openModifiedFormModal({
+              afterFormModal:
+              {
+                entityToSelect: null,
+                entityType: 'New Content Item',
+              },
+            });
+          } else {
+            this.props.setFormForNewContentItem({ clientId: selected.client });
+          }
+        }}
       />
     );
     return activeClient && (
@@ -198,7 +445,19 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 <CardButton
                   color={'green'}
                   tooltip={'Approve'}
-                  onClick={() => this.props.fetchGoLiveSummary({ rootContentItemId: entity.id })}
+                  onClick={() => {
+                    if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                      this.props.openModifiedFormModal({
+                        afterFormModal:
+                        {
+                          entityToSelect: entity.id,
+                          entityType: 'Go Live Summary',
+                        },
+                      });
+                    } else {
+                      this.props.fetchGoLiveSummary({ rootContentItemId: entity.id });
+                    }
+                  }}
                   icon={'checkmark'}
                 />
               </>
@@ -208,7 +467,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   <CardButton
                     color={'red'}
                     tooltip={'Cancel'}
-                    onClick={() => this.props.cancelPublicationRequest(entity.id)}
+                    onClick={() => this.props.openCancelPublicationModal({ id: entity.id })}
                     icon={'cancel'}
                   />
                 </>
@@ -217,20 +476,41 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   <CardButton
                     color={'red'}
                     tooltip={'Delete'}
-                    onClick={() => this.props.deleteContentItem(entity.id)}
+                    onClick={() => {
+                      if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                        this.props.openModifiedFormModal({
+                          afterFormModal:
+                          {
+                            entityToSelect: entity.id,
+                            entityType: 'Delete Content Item',
+                          },
+                        });
+                      } else {
+                        this.props.openDeleteContentItemModal({ id: entity.id });
+                      }
+                    }}
                     icon={'delete'}
                   />
                   <CardButton
                     color={'green'}
                     tooltip={'Edit'}
                     onClick={() => {
-                      if (selected.item !== entity.id) {
-                        this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
-                        this.props.selectItem({ id: entity.id });
+                      if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                        this.props.openModifiedFormModal({
+                          afterFormModal:
+                          {
+                            entityToSelect: entity.id,
+                            entityType: 'Edit Content Item',
+                          },
+                        });
+                      } else {
+                        if (selected.item !== entity.id) {
+                          this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
+                          this.props.selectItem({ id: entity.id });
+                        }
+                        this.props.setContentItemFormState({ formState: 'write' });
                       }
-                      this.props.setContentItemFormState({ formState: 'write' });
-                      }
-                    }
+                    }}
                     icon={'edit'}
                   />
                 </>
@@ -240,11 +520,21 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               key={key}
               selected={selected.item === entity.id}
               onSelect={() => {
-                if (selected.item !== entity.id) {
-                  this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
+                if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                  this.props.openModifiedFormModal({
+                    afterFormModal:
+                    {
+                      entityToSelect: entity.id,
+                      entityType: 'Select Content Item',
+                    },
+                  });
+                } else {
+                  if (selected.item !== entity.id) {
+                    this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
+                  }
+                  this.props.selectItem({ id: entity.id });
+                  this.props.setContentItemFormState({ formState: 'read' });
                 }
-                this.props.selectItem({ id: entity.id });
-                this.props.setContentItemFormState({ formState: 'read' });
               }}
               suspended={entity.isSuspended}
               status={entity.status}
@@ -277,7 +567,19 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         renderNewEntityButton={() => (
           <div
             className="card-container action-card-container"
-            onClick={() => this.props.setFormForNewContentItem({ clientId: selected.client })}
+            onClick={() => {
+              if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                this.props.openModifiedFormModal({
+                  afterFormModal:
+                  {
+                    entityToSelect: null,
+                    entityType: 'New Content Item',
+                  },
+                });
+              } else {
+                this.props.setFormForNewContentItem({ clientId: selected.client });
+              }
+            }}
           >
             <div className="admin-panel-content">
               <div
@@ -328,7 +630,19 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       <ActionIcon
         label="Close Content Item"
         icon="cancel"
-        action={() => { this.props.selectItem({ id: null }); }}
+        action={() => {
+          if (this.props.formChangesPending || this.props.uploadChangesPending) {
+            this.props.openModifiedFormModal({
+              afterFormModal:
+              {
+                entityToSelect: null,
+                entityType: 'Select Content Item',
+              },
+            });
+          } else {
+            this.props.selectItem({ id: null });
+          }
+        }}
       />
     );
     return (
@@ -543,14 +857,20 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               </FormSectionRow>
             </FormSection>
             {
-              formState === 'write' &&
+              formState === 'write' && (this.props.formChangesPending || this.props.uploadChangesPending) &&
               <div className="button-container">
                 <button
                   className="link-button"
                   type="button"
                   onClick={(event: any) => {
                     event.preventDefault();
-                    this.props.resetContentItemForm({});
+                    this.props.openModifiedFormModal({
+                      afterFormModal:
+                      {
+                        entityToSelect: null,
+                        entityType: 'Undo Changes',
+                      },
+                    });
                   }}
                 >
                   Undo Changes
@@ -786,11 +1106,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <div className="go-live-button-container">
           <button
             className="red-button"
-            onClick={() => this.props.rejectGoLiveSummary({
-              rootContentItemId,
-              publicationRequestId: goLiveSummary.publicationRequestId,
-              validationSummaryId: goLiveSummary.validationSummaryId,
-            })}
+            onClick={() => this.props.openGoLiveRejectionModal({})}
           >
             Reject
             {this.props.pending.data.goLiveRejection
@@ -821,7 +1137,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 }
 
 function mapStateToProps(state: PublishingState): ContentPublishingProps {
-  const { data, formData, goLiveSummary, selected, cardAttributes, pending, filters } = state;
+  const {
+    data, formData, goLiveSummary, selected, cardAttributes, pending, filters, modals,
+  } = state;
   const { id: rootContentItemId } = formData.formData;
   return {
     clients: clientEntities(state),
@@ -836,11 +1154,13 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     cardAttributes,
     pending,
     filters,
+    modals,
     selectedItem: selectedItem(state),
     activeSelectedClient: activeSelectedClient(state),
     activeSelectedItem: activeSelectedItem(state),
     filesForPublishing: filesForPublishing(state, rootContentItemId),
     formCanSubmit: submitButtonIsActive(state),
+    contentItemToBeDeleted: contentItemToBeDeleted(state),
     formChangesPending: formChangesPending(state),
     goLiveApproveButtonIsActive: goLiveApproveButtonIsActive(state),
     uploadChangesPending: uploadChangesPending(state),

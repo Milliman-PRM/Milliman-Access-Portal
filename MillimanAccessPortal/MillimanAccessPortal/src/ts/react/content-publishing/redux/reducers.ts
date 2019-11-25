@@ -9,16 +9,16 @@ import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
-  AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors, RelatedFiles,
+  AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
-import { createReducerCreator } from '../../shared-components/redux/reducers';
-import { Dict, FilterState } from '../../shared-components/redux/store';
+import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import * as PublishingActions from './actions';
-import { FilterPublishingAction, PublishingAction } from './actions';
+import { FilterPublishingAction, OpenModalAction, PublishingAction } from './actions';
 import {
-  ElementsToConfirm, GoLiveSummaryData, PendingDataState, PublishingFormData,
-  PublishingStateData, PublishingStateSelected,
+  AfterFormModal, ElementsToConfirm, GoLiveSummaryData, PendingDataState,
+  PublishingFormData, PublishingStateData, PublishingStateSelected,
 } from './store';
 
 const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
@@ -114,6 +114,7 @@ const _initialPendingData: PendingDataState = {
   goLiveApproval: false,
   goLiveRejection: false,
   contentItemDeletion: false,
+  cancelPublication: false,
   formSubmit: false,
   publishing: false,
 };
@@ -136,6 +137,31 @@ const createFilterReducer = (actionType: FilterPublishingAction['type']) =>
       text: action.text,
     }),
   });
+
+/**
+ * Create a reducer for a modal
+ * @param openActions Actions that cause the modal to open
+ * @param closeActions Actions that cause the modal to close
+ */
+const createModalReducer = (
+  openActions: Array<OpenModalAction['type']>,
+  closeActions: Array<PublishingAction['type']>,
+) => {
+  const handlers: Handlers<ModalState, any> = {};
+  openActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: true,
+    });
+  });
+  closeActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: false,
+    });
+  });
+  return createReducer<ModalState>({ isOpen: false }, handlers);
+};
 
 const clientCardAttributes = createReducer<Dict<CardAttributes>>({},
   {
@@ -266,11 +292,80 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     contentItemDeletion: false,
   }),
+  CANCEL_PUBLICATION_REQUEST: (state) => ({
+    ...state,
+    cancelPublication: true,
+  }),
+  CANCEL_PUBLICATION_REQUEST_SUCCEEDED: (state) => ({
+    ...state,
+    cancelPublication: false,
+  }),
+  CANCEL_PUBLICATION_REQUEST_FAILED: (state) => ({
+    ...state,
+    cancelPublication: false,
+  }),
 });
 
 const pendingStatusTries = createReducer<number>(5, {
   DECREMENT_STATUS_REFRESH_ATTEMPTS: (state) => state ? state - 1 : 0,
   FETCH_STATUS_REFRESH_SUCCEEDED: () => 5,
+});
+
+const contentItemToDelete = createReducer<Guid>(null, {
+  OPEN_DELETE_CONTENT_ITEM_MODAL: (_state, action: PublishingActions.OpenDeleteContentItemModal) => action.id,
+  CLOSE_DELETE_CONTENT_ITEM_MODAL: () => null,
+  CLOSE_DELETE_CONFIRMATION_MODAL: () => null,
+  DELETE_CONTENT_ITEM_SUCCEEDED: () => null,
+});
+
+const afterFormModal = createReducer<AfterFormModal>({ entityToSelect: null, entityType: null }, {
+  OPEN_MODIFIED_FORM_MODAL: (_state, action: PublishingActions.OpenModifiedFormModal) => ({
+    entityToSelect: action.afterFormModal.entityToSelect,
+    entityType: action.afterFormModal.entityType,
+  }),
+  CLOSE_MODIFIED_FORM_MODAL: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  SELECT_CLIENT: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  SELECT_ITEM: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  DELETE_CONTENT_ITEM_SUCCEEDED: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  DELETE_CONTENT_ITEM_FAILED: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  FETCH_CONTENT_ITEM_DETAIL_SUCCEEDED: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  FETCH_CONTENT_ITEM_DETAIL_FAILED: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  SET_FORM_FOR_NEW_CONTENT_ITEM: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+  RESET_CONTENT_ITEM_FORM: () => ({
+    entityToSelect: null,
+    entityType: null,
+  }),
+});
+
+const publicationToCancel = createReducer<Guid>(null, {
+  OPEN_CANCEL_PUBLICATION_MODAL: (_state, action: PublishingActions.OpenCancelPublicationModal) => action.id,
+  CLOSE_CANCEL_PUBLICATION_MODAL: () => null,
+  CANCEL_PUBLICATION_REQUEST_SUCCEEDED: () => null,
+  CANCEL_PUBLICATION_REQUEST_FAILED: () => null,
 });
 
 const data = createReducer<PublishingStateData>(_initialData, {
@@ -1030,6 +1125,38 @@ const selected = createReducer<PublishingStateSelected>(
   },
 );
 
+const modals = combineReducers({
+  contentItemDeletion: createModalReducer(['OPEN_DELETE_CONTENT_ITEM_MODAL'], [
+    'CLOSE_DELETE_CONTENT_ITEM_MODAL',
+    'OPEN_DELETE_CONFIRMATION_MODAL',
+  ]),
+  contentItemDeleteConfirmation: createModalReducer(['OPEN_DELETE_CONFIRMATION_MODAL'], [
+    'CLOSE_DELETE_CONFIRMATION_MODAL',
+    'DELETE_CONTENT_ITEM_SUCCEEDED',
+    'DELETE_CONTENT_ITEM_FAILED',
+  ]),
+  goLiveRejection: createModalReducer(['OPEN_GO_LIVE_REJECTION_MODAL'], [
+    'CLOSE_GO_LIVE_REJECTION_MODAL',
+    'REJECT_GO_LIVE_SUMMARY_SUCCEEDED',
+    'REJECT_GO_LIVE_SUMMARY_FAILED',
+  ]),
+  formModified: createModalReducer(['OPEN_MODIFIED_FORM_MODAL'], [
+    'CLOSE_MODIFIED_FORM_MODAL',
+    'SELECT_CLIENT',
+    'SELECT_ITEM',
+    'OPEN_DELETE_CONTENT_ITEM_MODAL',
+    'FETCH_CONTENT_ITEM_DETAIL',
+    'RESET_CONTENT_ITEM_FORM',
+    'SET_FORM_FOR_NEW_CONTENT_ITEM',
+    'FETCH_GO_LIVE_SUMMARY',
+  ]),
+  cancelPublication: createModalReducer(['OPEN_CANCEL_PUBLICATION_MODAL'], [
+    'CLOSE_CANCEL_PUBLICATION_MODAL',
+    'CANCEL_PUBLICATION_REQUEST_FAILED',
+    'CANCEL_PUBLICATION_REQUEST_SUCCEEDED',
+  ]),
+});
+
 const cardAttributes = combineReducers({
   client: clientCardAttributes,
 });
@@ -1038,6 +1165,9 @@ const pending = combineReducers({
   data: pendingData,
   statusTries: pendingStatusTries,
   uploads: uploadStatus,
+  contentItemToDelete,
+  publicationToCancel,
+  afterFormModal,
 });
 
 const filters = combineReducers({
@@ -1053,5 +1183,6 @@ export const contentPublishing = combineReducers({
   cardAttributes,
   pending,
   filters,
+  modals,
   toastr: toastrReducer,
 });

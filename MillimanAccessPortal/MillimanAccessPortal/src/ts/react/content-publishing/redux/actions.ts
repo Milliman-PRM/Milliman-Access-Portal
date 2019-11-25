@@ -9,6 +9,7 @@ import {
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
+import { AfterFormModal } from './store';
 
 // ~~ Page actions ~~
 
@@ -376,6 +377,79 @@ export interface ResetContentItemForm {
 }
 
 /**
+ * Open the modal used to begin content item deletion.
+ */
+export interface OpenDeleteContentItemModal {
+  type: 'OPEN_DELETE_CONTENT_ITEM_MODAL';
+  id: Guid;
+}
+
+/**
+ * Close the modal used to begin content item deletion.
+ */
+export interface CloseDeleteContentItemModal {
+  type: 'CLOSE_DELETE_CONTENT_ITEM_MODAL';
+}
+
+/**
+ * Open the modal used to confirm content item deletion.
+ */
+export interface OpenDeleteConfirmationModal {
+  type: 'OPEN_DELETE_CONFIRMATION_MODAL';
+}
+
+/**
+ * Close the modal used to confirm content item deletion.
+ */
+export interface CloseDeleteConfirmationModal {
+  type: 'CLOSE_DELETE_CONFIRMATION_MODAL';
+}
+
+/**
+ * Open the modal used to confirm Go-Live rejection
+ */
+export interface OpenGoLiveRejectionModal {
+  type: 'OPEN_GO_LIVE_REJECTION_MODAL';
+}
+
+/**
+ * Close the modal used to confirm Go-Live rejection
+ */
+export interface CloseGoLiveRejectionModal {
+  type: 'CLOSE_GO_LIVE_REJECTION_MODAL';
+}
+
+/**
+ * Open the modal used to confirm navigation away from a modified form
+ */
+export interface OpenModifiedFormModal {
+  type: 'OPEN_MODIFIED_FORM_MODAL';
+  afterFormModal: AfterFormModal;
+}
+
+/**
+ * Close the modal used to confirm navigation away from a modified form
+ */
+export interface CloseModifiedFormModal {
+  type: 'CLOSE_MODIFIED_FORM_MODAL';
+}
+
+/**
+ * Open the modal used to confirm cancelation of a publication
+ */
+export interface OpenCancelPublicationModal {
+  type: 'OPEN_CANCEL_PUBLICATION_MODAL';
+  id: Guid;
+}
+
+/**
+ * Close the modal used to confirm cancelation of a publication
+ */
+export interface CloseCancelPublicationModal {
+  type: 'CLOSE_CANCEL_PUBLICATION_MODAL';
+}
+
+/**
  * GET:
  *   content items for the selected client;
  *   publications for the selected client;
@@ -461,6 +535,16 @@ export type PagePublishingAction =
   | PromptStatusRefreshStopped
   | DecrementStatusRefreshAttempts
   | PublishContentFilesSucceeded
+  | OpenDeleteContentItemModal
+  | CloseDeleteContentItemModal
+  | OpenDeleteConfirmationModal
+  | CloseDeleteConfirmationModal
+  | OpenGoLiveRejectionModal
+  | CloseGoLiveRejectionModal
+  | OpenModifiedFormModal
+  | CloseModifiedFormModal
+  | OpenCancelPublicationModal
+  | CloseCancelPublicationModal
   ;
 
 /**
@@ -549,4 +633,15 @@ export type PublishingAction =
 export type FilterPublishingAction =
   | SetFilterTextClient
   | SetFilterTextItem
+  ;
+
+/**
+ * An action that opens a modal.
+ */
+export type OpenModalAction =
+  | OpenDeleteContentItemModal
+  | OpenDeleteConfirmationModal
+  | OpenGoLiveRejectionModal
+  | OpenModifiedFormModal
+  | OpenCancelPublicationModal
   ;
