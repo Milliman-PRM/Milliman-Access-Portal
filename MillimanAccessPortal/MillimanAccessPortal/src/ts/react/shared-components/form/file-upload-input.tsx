@@ -12,6 +12,7 @@ import { FileScanner } from '../../../upload/file-scanner';
 import { FileSniffer } from '../../../upload/file-sniffer';
 import { ProgressMonitor, ProgressSummary } from '../../../upload/progress-monitor';
 import { UploadState } from '../../../upload/Redux/store';
+import { ButtonSpinner } from '../button-spinner';
 
 import forge = require('node-forge');
 import { Guid } from '../../models';
@@ -298,13 +299,22 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
     const { label, name, placeholderText, readOnly, upload, value, children } = this.props;
     const { checksumProgress, uploadProgress, cancelable, errorMsg } = upload;
     const hasImage = (value.length > 0 && this.props.imageURL || this.state.imageSrc);
+    const completedUploadClass = (this.props.fileUploadId && this.props.fileUploadId.length > 0)
+      ? ' upload-complete'
+      : '';
     const checksumEasing =
       (checksumProgress.percentage === '0%' || checksumProgress.percentage === '100%') ? '' : ' progress-easing';
     const uploadEasing =
       (uploadProgress.percentage === '0%' || uploadProgress.percentage === '100%') ? '' : ' progress-easing';
     return (
       <div
-        className={`form-element-container${readOnly ? ' disabled' : ''}${hasImage ? ' thumbnail' : ''}`}
+        className={`form-element-container${
+          completedUploadClass
+          }${
+          readOnly ? ' disabled' : ''
+          }${
+          hasImage ? ' thumbnail' : ''
+          }`}
         title={value}
       >
         <div className={`form-element-input ${errorMsg ? ' error' : ''}`} ref={this.uploadRef}>
@@ -332,7 +342,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
           {children}
         </div>
         {
-          upload.cancelable &&
+          upload.cancelable && this.props.fileUploadId.length === 0 &&
           <div className="progress-bars">
             {!errorMsg &&
               <div
@@ -367,18 +377,11 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
               </div>
             }
             {
-              cancelable &&
+              cancelable && this.props.fileUploadId.length === 0 && !errorMsg &&
               <div
-                className="upload-icon tooltip"
-                title="Cancel upload"
-                onClick={(event: React.MouseEvent) => {
-                  event.stopPropagation();
-                  this.resumable.cancel();
-                }}
+                title="Uploading..."
               >
-                <svg className="icon red">
-                  <use xlinkHref="#cancel" />
-                </svg>
+                <ButtonSpinner version="bars" />
               </div>
             }
             {
@@ -393,13 +396,17 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
               </div>
             }
             {
-              cancelable && this.props.fileUploadId.length === 0 &&
+              cancelable &&
               <div
                 className="upload-icon tooltip"
-                title="Uploading"
+                title="Cancel upload"
+                onClick={(event: React.MouseEvent) => {
+                  event.stopPropagation();
+                  this.resumable.cancel();
+                }}
               >
-                <svg className="icon blue">
-                  <use xlinkHref="#upload" />
+                <svg className="icon red">
+                  <use xlinkHref="#cancel" />
                 </svg>
               </div>
             }

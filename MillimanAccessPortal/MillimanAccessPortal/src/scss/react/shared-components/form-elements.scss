@@ -41,6 +41,22 @@
     opacity: 1;
     width: 100%;
 
+    &.upload-complete {
+
+        .form-input-container,
+        .thumbnail-preview {
+            border: 2px solid $green !important;
+        }
+
+        &.thumbnail .form-input-container {
+            border-bottom: none !important;
+        }
+
+        .thumbnail-preview {
+            border-top: none !important;
+        }
+    }
+
     &:hover .icon.upload {
         color: darken($green, .1);
     }
@@ -82,6 +98,13 @@
                 }
             }
         }
+
+        .loading-spinner {
+            color: $green;
+            height: 2rem;
+            width: 2rem;
+            margin-right: .3rem;
+        }
     }
 
     &.disabled {
@@ -106,12 +129,16 @@
 
             .file-upload-input.preview {
                 display: none;
-            } 
-            
+            }
+
             .form-input-container {
-                min-height: 3.5em;
+                min-height: 2.5em;
                 border-bottom: none;
             }
+        }
+
+        .upload-icon-container {
+            height: 2.5em;
         }
 
         .thumbnail-preview {
