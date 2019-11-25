@@ -47,14 +47,10 @@ namespace MillimanAccessPortal.Services
         public IPublicationPostProcessingTaskQueue _taskQueue { get; }
         public IConfiguration _appConfig { get; }
 
-        public async override Task StartAsync(CancellationToken cancellationToken)
-        {
-            await Task.Run(() => AdoptOrphanPublications());
-            await base.StartAsync(cancellationToken);
-        }
-
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            AdoptOrphanPublications();
+
             while (!cancellationToken.IsCancellationRequested)
             {
                 // Retrieve the id of a new publication request to post-process

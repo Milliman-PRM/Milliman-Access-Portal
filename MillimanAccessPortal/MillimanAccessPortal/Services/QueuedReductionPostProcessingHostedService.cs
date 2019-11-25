@@ -36,23 +36,18 @@ namespace MillimanAccessPortal.Services
         public IServiceProvider _services { get; }
         public IConfiguration _appConfig { get; }
 
-        public async override Task StartAsync(CancellationToken cancellationToken)
-        {
-            await AdoptOrphanReductions();
-            await base.StartAsync(cancellationToken);
-        }
-
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            while (true)
+            await AdoptOrphanReductionsAsync();
+
+            while (!cancellationToken.IsCancellationRequested)
             {
                 // TODO Someday move logic here from ContentAccessSupport.MonitorReductionTaskForGoLive, using similar pattern as publishing hosted service
-                await Task.Yield();
-                Thread.Sleep(10_000);
+                await Task.Delay(10_000);
             }
         }
 
-        protected async Task AdoptOrphanReductions()
+        protected async Task AdoptOrphanReductionsAsync()
         {
             int recoveryLookbackHours = _appConfig.GetValue("TaskRecoveryLookbackHours", 24 * 7);
             DateTime minCreateDateTimeUtc = DateTime.UtcNow - TimeSpan.FromHours(recoveryLookbackHours);
