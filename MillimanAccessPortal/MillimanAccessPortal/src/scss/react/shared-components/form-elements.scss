@@ -111,7 +111,8 @@
 
         .input-icon-label,
         .action-icon-label,
-        .form-input-container {
+        .form-input-container,
+        .thumbnail-preview {
             border-color: $grey !important;
         }
 
@@ -147,6 +148,7 @@
             cursor: pointer;
             border: 1px solid $charcoal;
             border-top: none;
+            background-color: $white;
         }
     }
 
