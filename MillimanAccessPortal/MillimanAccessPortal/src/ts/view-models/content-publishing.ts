@@ -62,14 +62,16 @@ export const publicationStatusNames: { [status: number]: string; } = {
   9: 'Virus scanning',
   10: 'Queued',
   20: 'Processing',
+  25: 'Processing',
+  27: 'Processing',
   30: 'Processed',
   90: 'Error',
 };
 export const reductionStatusNames: { [status: number]: string; } = {
    9: 'Validating',
   10: 'Queued',
-  20: 'Reducing',
-  30: 'Reduced',
+  20: 'Processing',
+  30: 'Processed',
   90: 'Error',
 };
 export function isPublicationActive(status: PublicationStatus) {
