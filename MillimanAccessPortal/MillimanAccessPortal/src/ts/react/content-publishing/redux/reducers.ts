@@ -1164,6 +1164,10 @@ const selected = createReducer<PublishingStateSelected>(
       ...state,
       item: null,
     }),
+    CREATE_NEW_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.CreateNewContentItemSucceeded) => ({
+      ...state,
+      item: action.response.detail.id,
+    }),
   },
 );
 
