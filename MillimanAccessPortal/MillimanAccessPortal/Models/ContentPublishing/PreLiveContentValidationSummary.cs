@@ -289,9 +289,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
                     foreach (var field in newHierarchy.Fields)
                     {
-                        var addedValues = field.Values.Except(liveHierarchy.Fields.Single(f => f.FieldName == field.FieldName).Values, new ReductionFieldValueComparer());
-                        var removedValues = liveHierarchy.Fields.Single(f => f.FieldName == field.FieldName).Values.Except(field.Values, new ReductionFieldValueComparer());
-                        var sameValues = liveHierarchy.Fields.Single(f => f.FieldName == field.FieldName).Values.Intersect(field.Values, new ReductionFieldValueComparer());
+                        var addedValues = field.Values.Except(liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values), new ReductionFieldValueComparer());
+                        var removedValues = liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values).Except(field.Values, new ReductionFieldValueComparer());
+                        var sameValues = liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values).Intersect(field.Values, new ReductionFieldValueComparer());
 
                         ReturnObj.ReductionHierarchy.Fields.Add(new ReductionField<ReductionFieldValueChange>
                             {
