@@ -122,7 +122,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
         const fileParts: string[] = file.name.toLowerCase().split('.');
         const fileExtension: string = fileParts[fileParts.length - 1];
         if (this.props.fileExtensions.indexOf(fileExtension) === -1) {
-          this.props.setUploadError(this.props.uploadId, 'File extension not supported.');
+          this.props.setUploadError(this.props.uploadId, 'File extension not supported for the selected content type.');
           return false;
         }
       }
