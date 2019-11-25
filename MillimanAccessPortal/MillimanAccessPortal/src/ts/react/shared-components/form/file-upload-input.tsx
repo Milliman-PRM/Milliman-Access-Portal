@@ -1,7 +1,6 @@
 ﻿import '../../../../scss/react/shared-components/form-elements.scss';
 
 import '../../../../images/icons/cancel.svg';
-import '../../../../images/icons/checkmark.svg';
 import '../../../../images/icons/delete.svg';
 import '../../../../images/icons/upload.svg';
 
@@ -299,9 +298,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
     const { label, name, placeholderText, readOnly, upload, value, children } = this.props;
     const { checksumProgress, uploadProgress, cancelable, errorMsg } = upload;
     const hasImage = (value.length > 0 && this.props.imageURL || this.state.imageSrc);
-    const completedUploadClass = (this.props.fileUploadId && this.props.fileUploadId.length > 0)
-      ? ' upload-complete'
-      : '';
+    const uploadPendingPublication = this.props.fileUploadId && this.props.fileUploadId.length > 0;
     const checksumEasing =
       (checksumProgress.percentage === '0%' || checksumProgress.percentage === '100%') ? '' : ' progress-easing';
     const uploadEasing =
@@ -309,13 +306,14 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
     return (
       <div
         className={`form-element-container${
-          completedUploadClass
+          uploadPendingPublication ? ' upload-complete' : ''
           }${
           readOnly ? ' disabled' : ''
           }${
           hasImage ? ' thumbnail' : ''
-          }`}
-        title={value}
+          }`
+        }
+        title={`${value}${uploadPendingPublication ? ' (Awaiting Publication)' : ''}`}
       >
         <div className={`form-element-input ${errorMsg ? ' error' : ''}`} ref={this.uploadRef}>
           <div className="form-input-container">
@@ -382,17 +380,6 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
                 title="Uploading..."
               >
                 <ButtonSpinner version="bars" />
-              </div>
-            }
-            {
-              this.props.fileUploadId && this.props.fileUploadId.length > 0 &&
-              <div
-                className="upload-icon tooltip"
-                title="Upload Complete"
-              >
-                <svg className="icon green">
-                  <use xlinkHref="#checkmark" />
-                </svg>
               </div>
             }
             {
