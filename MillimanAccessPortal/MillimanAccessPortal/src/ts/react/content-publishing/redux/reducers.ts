@@ -834,23 +834,33 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
   }),
   CREATE_NEW_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.CreateNewContentItemSucceeded) => {
     const { detail } = action.response;
-    const newContentItemData: ContentItemDetail = {
-      ...state.originalData,
-      id: detail.id,
-      clientId: detail.clientId,
-      contentName: detail.contentName,
-      contentTypeId: detail.contentTypeId,
-      doesReduce: detail.doesReduce,
-      contentDescription: detail.contentDescription,
-      contentDisclaimer: detail.contentDisclaimer,
-      contentNotes: detail.contentNotes,
-      typeSpecificDetailObject: detail.typeSpecificDetailObject,
-    };
 
     return {
       ...state,
-      originalData: newContentItemData,
-      formData: newContentItemData,
+      originalData: {
+        ...state.originalData,
+        id: detail.id,
+        clientId: detail.clientId,
+        contentName: detail.contentName,
+        contentTypeId: detail.contentTypeId,
+        doesReduce: detail.doesReduce,
+        contentDescription: detail.contentDescription,
+        contentDisclaimer: detail.contentDisclaimer,
+        contentNotes: detail.contentNotes,
+        typeSpecificDetailObject: detail.typeSpecificDetailObject,
+      },
+      formData: {
+        ...state.formData,
+        id: detail.id,
+        clientId: detail.clientId,
+        contentName: detail.contentName,
+        contentTypeId: detail.contentTypeId,
+        doesReduce: detail.doesReduce,
+        contentDescription: detail.contentDescription,
+        contentDisclaimer: detail.contentDisclaimer,
+        contentNotes: detail.contentNotes,
+        typeSpecificDetailObject: detail.typeSpecificDetailObject,
+      },
       formState: 'read',
     };
   },
