@@ -67,6 +67,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     },
   },
   associatedFiles: {},
+  thumbnailLink: '',
   typeSpecificDetailObject: {},
 };
 

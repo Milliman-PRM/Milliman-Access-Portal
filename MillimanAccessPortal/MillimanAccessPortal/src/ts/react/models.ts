@@ -93,6 +93,7 @@ export interface ContentItemDetail {
   contentNotes: string;
   relatedFiles: RelatedFiles;
   associatedFiles: Dict<AssociatedContentItemUpload>;
+  thumbnailLink: string;
   typeSpecificDetailObject: {
     bookmarksPaneEnabled?: boolean;
     filterPaneEnabled?: boolean;

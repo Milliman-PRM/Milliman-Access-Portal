@@ -721,6 +721,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     label="Thumbnail"
                     name="thumbnail"
                     placeholderText="Thumbnail"
+                    imageURL={dataForForm.originalData.thumbnailLink}
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={(uploadId) =>
