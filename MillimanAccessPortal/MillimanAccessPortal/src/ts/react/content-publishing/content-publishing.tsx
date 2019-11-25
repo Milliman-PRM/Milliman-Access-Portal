@@ -620,7 +620,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     placeholderText="Content Type"
                     value={dataForForm.formData.contentTypeId}
                     values={this.props.contentTypesList}
-                    readOnly={formState === 'read' || dataForForm.originalData.id.length > 0}
+                    readOnly={
+                      formState === 'read'
+                      || dataForForm.originalData.id.length > 0
+                      || (dataForForm.formData.relatedFiles.MasterContent
+                        && dataForForm.formData.relatedFiles.MasterContent.fileOriginalName.length > 0)
+                    }
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={12} flexTablet={8}>
