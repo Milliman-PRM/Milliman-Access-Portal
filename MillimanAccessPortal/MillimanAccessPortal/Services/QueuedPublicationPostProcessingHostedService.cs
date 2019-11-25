@@ -50,6 +50,7 @@ namespace MillimanAccessPortal.Services
         public async override Task StartAsync(CancellationToken cancellationToken)
         {
             await Task.Run(() => AdoptOrphanPublications());
+            await base.StartAsync(cancellationToken);
         }
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
@@ -296,7 +297,8 @@ namespace MillimanAccessPortal.Services
 
         protected void AdoptOrphanPublications()
         {
-            int publishingRecoveryLookbackHours = _appConfig.GetValue("PublishingRecoveryLookbackHours", 24 * 7);
+            int recoveryLookbackHours = _appConfig.GetValue("TaskRecoveryLookbackHours", 24 * 7);
+            DateTime minCreateDateTimeUtc = DateTime.UtcNow - TimeSpan.FromHours(recoveryLookbackHours);
 
             using (var scope = _services.CreateScope())
             {
@@ -312,7 +314,7 @@ namespace MillimanAccessPortal.Services
 
                 List<ContentPublicationRequest> recentOrphanedRequests = dbContext.ContentPublicationRequest
                     .Where(r => handlableStatusList.Contains(r.RequestStatus))
-                    .Where(r => r.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromHours(publishingRecoveryLookbackHours))
+                    .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
                     .ToList();
 
                 var latestOrphanedRequests = recentOrphanedRequests
@@ -331,7 +333,7 @@ namespace MillimanAccessPortal.Services
 
                 List<ContentPublicationRequest> validatingRequests = dbContext.ContentPublicationRequest
                     .Where(r => r.RequestStatus == PublicationStatus.Validating)
-                    .Where(r => r.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromHours(publishingRecoveryLookbackHours))
+                    .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
                     .ToList();
                 foreach (ContentPublicationRequest request in validatingRequests)
                 {

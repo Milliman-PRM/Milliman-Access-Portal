@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using QlikviewLib;
+using MapCommonLib;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Controllers;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,12 +39,14 @@ namespace MillimanAccessPortal.Services
         public async override Task StartAsync(CancellationToken cancellationToken)
         {
             await AdoptOrphanReductions();
+            await base.StartAsync(cancellationToken);
         }
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
             while (true)
             {
+                // TODO Someday move logic here from ContentAccessSupport.MonitorReductionTaskForGoLive, using similar pattern as publishing hosted service
                 await Task.Yield();
                 Thread.Sleep(10_000);
             }
@@ -50,8 +54,8 @@ namespace MillimanAccessPortal.Services
 
         protected async Task AdoptOrphanReductions()
         {
-            int publishingRecoveryLookbackHours = _appConfig.GetValue("publishingRecoveryLookbackHours", 24 * 7);
-            DateTime minCreateDateTimeUtc = DateTime.UtcNow - TimeSpan.FromHours(publishingRecoveryLookbackHours);
+            int recoveryLookbackHours = _appConfig.GetValue("TaskRecoveryLookbackHours", 24 * 7);
+            DateTime minCreateDateTimeUtc = DateTime.UtcNow - TimeSpan.FromHours(recoveryLookbackHours);
 
             string ContentItemRootPath = _appConfig.GetValue<string>("ContentItemRootPath");
 
@@ -60,6 +64,7 @@ namespace MillimanAccessPortal.Services
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 string dbCxnString = dbContext.Database.GetDbConnection().ConnectionString;
                 ContentAccessAdminController accessAdminController = scope.ServiceProvider.GetRequiredService<ContentAccessAdminController>();
+                var ApplicationConfig = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
                 // First setup a go-live handler for tasks already queued or beyond
                 var reducedTasks = dbContext.ContentReductionTask
@@ -97,7 +102,7 @@ namespace MillimanAccessPortal.Services
 
                 }
 
-                // Second, perform long running processing for reductions that have not become queued yet (probably orphaned while long running operations were incompleted)
+                // Second, cancel and resubmit reduction requests that don't have queued status yet (probably orphaned while long running operations were incomplete)
                 List< ContentReductionTask> validatingTasks = dbContext.ContentReductionTask
                     .Include(t => t.SelectionGroup)
                         .ThenInclude(g => g.RootContentItem)
@@ -111,6 +116,13 @@ namespace MillimanAccessPortal.Services
                 // There may be some abandoned files depending on when the application previously terminated
                 foreach (ContentReductionTask task in validatingTasks)
                 {
+                    // Remove the temporary folder associated with the task
+                    string TaskFolderPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:MapPublishingServerExchangePath"), task.Id.ToString());
+                    if (Directory.Exists(TaskFolderPath))
+                    {
+                        FileSystemUtil.DeleteDirectoryWithRetry(TaskFolderPath);
+                    }
+
                     dbContext.ContentReductionTask.Remove(task);
                     dbContext.SaveChanges();
 
