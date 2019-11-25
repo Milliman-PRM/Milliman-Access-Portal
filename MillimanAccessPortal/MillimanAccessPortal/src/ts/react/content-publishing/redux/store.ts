@@ -26,6 +26,7 @@ export interface PendingDataState {
   goLiveApproval: boolean;
   goLiveRejection: boolean;
   contentItemDeletion: boolean;
+  cancelPublication: boolean;
   formSubmit: boolean;
   publishing: boolean;
 }
@@ -66,6 +67,7 @@ export interface PublishingStatePending {
   statusTries: number;
   uploads: Dict<UploadState>;
   contentItemToDelete: Guid;
+  publicationToCancel: Guid;
   afterFormModal: AfterFormModal;
 }
 
@@ -130,6 +132,8 @@ export interface PublishingStateModals {
   formModified: ModalState;
   goLiveRejection: ModalState;
   contentItemDeletion: ModalState;
+  contentItemDeleteConfirmation: ModalState;
+  cancelPublication: ModalState;
 }
 
 /**

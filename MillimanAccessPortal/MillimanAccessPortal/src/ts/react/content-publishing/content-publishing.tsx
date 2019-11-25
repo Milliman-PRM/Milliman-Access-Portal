@@ -130,7 +130,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           overlayClassName="modal-overlay"
           closeTimeoutMS={100}
         >
-          <h3 className="title red">Delete Selection Group</h3>
+          <h3 className="title red">Delete Content Item</h3>
           <span className="modal-text">
             Delete <strong>{
               (this.props.contentItemToBeDeleted !== null)
@@ -148,12 +148,53 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             <button
               className="red-button"
               onClick={() => {
+                // Add a slight pause to make it obvious that you've switched modals
+                setTimeout(() => this.props.openDeleteConfirmationModal({}), 400);
+              }}
+            >
+              Delete
+              {this.props.pending.data.contentItemDeletion
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
+        <Modal
+          isOpen={modals.contentItemDeleteConfirmation.isOpen}
+          onRequestClose={() => this.props.closeDeleteConfirmationModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Confirm Deletion of Content Item</h3>
+          <span className="modal-text">
+            Delete <strong>{
+              (this.props.contentItemToBeDeleted !== null)
+                ? this.props.contentItemToBeDeleted.name
+                : ''}</strong>?
+            <br />
+            <br />
+            <strong>THIS ACTION CANNOT BE UNDONE.</strong>
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeDeleteConfirmationModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
                 if (!this.props.pending.data.contentItemDeletion) {
                   this.props.deleteContentItem(this.props.pending.contentItemToDelete);
                 }
               }}
             >
-              Delete
+              Confirm Deletion
               {this.props.pending.data.contentItemDeletion
                 ? <ButtonSpinner version="circle" />
                 : null
@@ -262,6 +303,40 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               }}
             >
               Discard
+            </button>
+          </div>
+        </Modal>
+        <Modal
+          isOpen={modals.cancelPublication.isOpen}
+          onRequestClose={() => this.props.closeCancelPublicationModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Cancel Publication Request</h3>
+          <span className="modal-text">Would you like to cancel the publication request?</span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeCancelPublicationModal({})}
+            >
+              Continue
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (!this.props.pending.data.cancelPublication) {
+                  this.props.cancelPublicationRequest(this.props.pending.publicationToCancel);
+                }
+              }}
+            >
+              Cancel Publication
+              {this.props.pending.data.cancelPublication
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
             </button>
           </div>
         </Modal>
@@ -393,7 +468,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   <CardButton
                     color={'red'}
                     tooltip={'Cancel'}
-                    onClick={() => this.props.cancelPublicationRequest(entity.id)}
+                    onClick={() => this.props.openCancelPublicationModal({ id: entity.id })}
                     icon={'cancel'}
                   />
                 </>

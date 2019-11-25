@@ -115,6 +115,7 @@ const _initialPendingData: PendingDataState = {
   goLiveApproval: false,
   goLiveRejection: false,
   contentItemDeletion: false,
+  cancelPublication: false,
   formSubmit: false,
   publishing: false,
 };
@@ -299,6 +300,18 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     contentItemDeletion: false,
   }),
+  CANCEL_PUBLICATION_REQUEST: (state) => ({
+    ...state,
+    cancelPublication: true,
+  }),
+  CANCEL_PUBLICATION_REQUEST_SUCCEEDED: (state) => ({
+    ...state,
+    cancelPublication: false,
+  }),
+  CANCEL_PUBLICATION_REQUEST_FAILED: (state) => ({
+    ...state,
+    cancelPublication: false,
+  }),
 });
 
 const pendingStatusTries = createReducer<number>(5, {
@@ -309,6 +322,7 @@ const pendingStatusTries = createReducer<number>(5, {
 const contentItemToDelete = createReducer<Guid>(null, {
   OPEN_DELETE_CONTENT_ITEM_MODAL: (_state, action: PublishingActions.OpenDeleteContentItemModal) => action.id,
   CLOSE_DELETE_CONTENT_ITEM_MODAL: () => null,
+  CLOSE_DELETE_CONFIRMATION_MODAL: () => null,
   DELETE_CONTENT_ITEM_SUCCEEDED: () => null,
 });
 
@@ -353,6 +367,13 @@ const afterFormModal = createReducer<AfterFormModal>({ entityToSelect: null, ent
     entityToSelect: null,
     entityType: null,
   }),
+});
+
+const publicationToCancel = createReducer<Guid>(null, {
+  OPEN_CANCEL_PUBLICATION_MODAL: (_state, action: PublishingActions.OpenCancelPublicationModal) => action.id,
+  CLOSE_CANCEL_PUBLICATION_MODAL: () => null,
+  CANCEL_PUBLICATION_REQUEST_SUCCEEDED: () => null,
+  CANCEL_PUBLICATION_REQUEST_FAILED: () => null,
 });
 
 const data = createReducer<PublishingStateData>(_initialData, {
@@ -1149,6 +1170,10 @@ const selected = createReducer<PublishingStateSelected>(
 const modals = combineReducers({
   contentItemDeletion: createModalReducer(['OPEN_DELETE_CONTENT_ITEM_MODAL'], [
     'CLOSE_DELETE_CONTENT_ITEM_MODAL',
+    'OPEN_DELETE_CONFIRMATION_MODAL',
+  ]),
+  contentItemDeleteConfirmation: createModalReducer(['OPEN_DELETE_CONFIRMATION_MODAL'], [
+    'CLOSE_DELETE_CONFIRMATION_MODAL',
     'DELETE_CONTENT_ITEM_SUCCEEDED',
     'DELETE_CONTENT_ITEM_FAILED',
   ]),
@@ -1167,6 +1192,11 @@ const modals = combineReducers({
     'SET_FORM_FOR_NEW_CONTENT_ITEM',
     'FETCH_GO_LIVE_SUMMARY',
   ]),
+  cancelPublication: createModalReducer(['OPEN_CANCEL_PUBLICATION_MODAL'], [
+    'CLOSE_CANCEL_PUBLICATION_MODAL',
+    'CANCEL_PUBLICATION_REQUEST_FAILED',
+    'CANCEL_PUBLICATION_REQUEST_SUCCEEDED',
+  ]),
 });
 
 const cardAttributes = combineReducers({
@@ -1178,6 +1208,7 @@ const pending = combineReducers({
   statusTries: pendingStatusTries,
   uploads: uploadStatus,
   contentItemToDelete,
+  publicationToCancel,
   afterFormModal,
 });
 

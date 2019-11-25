@@ -243,7 +243,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (selectionGroup?.RootContentItem?.ContentType == null)
             {
-                Log.Error("In {ControllerContext.ActionDescriptor.DisplayName} action, failed to obtain the requested selection group, content item, or content type: " +
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action, failed to obtain the requested selection group, content item, or content type: " +
                     $"user {User.Identity.Name}, selectionGroupId {selectionGroupId}, aborting");
 
                 var ErrMsg = new List<string>
@@ -518,25 +518,25 @@ namespace MillimanAccessPortal.Controllers
             {
                 string Msg = $"Failed to obtain the requested reduction task";
                 Log.Error($"{ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, reduction task {reductionTaskId} not found, aborting");
-                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, Msg);
             }
             if (PublicationRequest == null)
             {
                 string Msg = $"Failed to obtain the requested publication request";
                 Log.Error($"{ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, publication request {publicationRequestId} not found, aborting");
-                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, Msg);
             }
             if (ReductionTask.ContentPublicationRequestId != PublicationRequest.Id)
             {
                 string Msg = $"The requested publication request is not related to the requested reduction task";
                 Log.Error($"{ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, requested publication request {publicationRequestId} is not related to the requested reduction task {reductionTaskId}, aborting");
-                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, Msg);
             }
             if (ReductionTask.ReductionStatus != ReductionStatusEnum.Reduced)  // could also validate pub request status, maybe too much?
             {
                 string Msg = $"The requested reduction task does not have the appropriate status for preview";
                 Log.Error($"{ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, requested reduction task {reductionTaskId} does not have the appropriate status for preview, aborting");
-                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, Msg);
             }
             #endregion
 
@@ -570,7 +570,7 @@ namespace MillimanAccessPortal.Controllers
 
                 UriBuilder QvwUri = await new QlikviewLibApi(QlikviewConfig).GetContentUri(Link, User.Identity.Name, Request);
 
-                Log.Verbose($"{ControllerContext.ActionDescriptor.DisplayName} action: success, redirecting");
+                Log.Verbose($"{ControllerContext.ActionDescriptor.DisplayName} action: success, content item {PublicationRequest.RootContentItemId}, selection group {ReductionTask.SelectionGroupId}, redirecting");
 
                 return Redirect(QvwUri.Uri.AbsoluteUri);
             }

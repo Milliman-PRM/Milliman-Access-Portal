@@ -71,6 +71,10 @@ export const openDeleteContentItemModal =
   createActionCreator<PublishActions.OpenDeleteContentItemModal>('OPEN_DELETE_CONTENT_ITEM_MODAL');
 export const closeDeleteContentItemModal =
   createActionCreator<PublishActions.CloseDeleteContentItemModal>('CLOSE_DELETE_CONTENT_ITEM_MODAL');
+export const openDeleteConfirmationModal =
+  createActionCreator<PublishActions.OpenDeleteConfirmationModal>('OPEN_DELETE_CONFIRMATION_MODAL');
+export const closeDeleteConfirmationModal =
+  createActionCreator<PublishActions.CloseDeleteConfirmationModal>('CLOSE_DELETE_CONFIRMATION_MODAL');
 export const openGoLiveRejectionModal =
   createActionCreator<PublishActions.OpenGoLiveRejectionModal>('OPEN_GO_LIVE_REJECTION_MODAL');
 export const closeGoLiveRejectionModal =
@@ -79,6 +83,10 @@ export const openModifiedFormModal =
   createActionCreator<PublishActions.OpenModifiedFormModal>('OPEN_MODIFIED_FORM_MODAL');
 export const closeModifiedFormModal =
   createActionCreator<PublishActions.CloseModifiedFormModal>('CLOSE_MODIFIED_FORM_MODAL');
+export const openCancelPublicationModal =
+  createActionCreator<PublishActions.OpenCancelPublicationModal>('OPEN_CANCEL_PUBLICATION_MODAL');
+export const closeCancelPublicationModal =
+  createActionCreator<PublishActions.CloseCancelPublicationModal>('CLOSE_CANCEL_PUBLICATION_MODAL');
 
 /**
  * Close the modal used to confirm selection group deletion.

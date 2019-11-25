@@ -382,7 +382,7 @@ export interface ResetContentItemForm {
 }
 
 /**
- * Open the modal used to confirm content item deletion.
+ * Open the modal used to begin content item deletion.
  */
 export interface OpenDeleteContentItemModal {
   type: 'OPEN_DELETE_CONTENT_ITEM_MODAL';
@@ -390,10 +390,24 @@ export interface OpenDeleteContentItemModal {
 }
 
 /**
- * Close the modal used to confirm content item deletion.
+ * Close the modal used to begin content item deletion.
  */
 export interface CloseDeleteContentItemModal {
   type: 'CLOSE_DELETE_CONTENT_ITEM_MODAL';
+}
+
+/**
+ * Open the modal used to confirm content item deletion.
+ */
+export interface OpenDeleteConfirmationModal {
+  type: 'OPEN_DELETE_CONFIRMATION_MODAL';
+}
+
+/**
+ * Close the modal used to confirm content item deletion.
+ */
+export interface CloseDeleteConfirmationModal {
+  type: 'CLOSE_DELETE_CONFIRMATION_MODAL';
 }
 
 /**
@@ -423,6 +437,21 @@ export interface OpenModifiedFormModal {
  */
 export interface CloseModifiedFormModal {
   type: 'CLOSE_MODIFIED_FORM_MODAL';
+}
+
+/**
+ * Open the modal used to confirm cancelation of a publication
+ */
+export interface OpenCancelPublicationModal {
+  type: 'OPEN_CANCEL_PUBLICATION_MODAL';
+  id: Guid;
+}
+
+/**
+ * Close the modal used to confirm cancelation of a publication
+ */
+export interface CloseCancelPublicationModal {
+  type: 'CLOSE_CANCEL_PUBLICATION_MODAL';
 }
 
 /**
@@ -513,10 +542,14 @@ export type PagePublishingAction =
   | PublishContentFilesSucceeded
   | OpenDeleteContentItemModal
   | CloseDeleteContentItemModal
+  | OpenDeleteConfirmationModal
+  | CloseDeleteConfirmationModal
   | OpenGoLiveRejectionModal
   | CloseGoLiveRejectionModal
   | OpenModifiedFormModal
   | CloseModifiedFormModal
+  | OpenCancelPublicationModal
+  | CloseCancelPublicationModal
   ;
 
 /**
@@ -612,6 +645,8 @@ export type FilterPublishingAction =
  */
 export type OpenModalAction =
   | OpenDeleteContentItemModal
+  | OpenDeleteConfirmationModal
   | OpenGoLiveRejectionModal
   | OpenModifiedFormModal
+  | OpenCancelPublicationModal
   ;
