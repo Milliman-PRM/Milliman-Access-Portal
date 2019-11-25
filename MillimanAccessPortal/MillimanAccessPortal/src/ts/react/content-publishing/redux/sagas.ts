@@ -56,10 +56,9 @@ export default function* rootSaga() {
   yield takeLatestRequest('DELETE_CONTENT_ITEM', api.deleteContentItem);
   yield takeLatestRequest('CANCEL_PUBLICATION_REQUEST', api.cancelPublicationRequest);
 
+  // Session and Status Checks
   yield takeLatestRequest('FETCH_STATUS_REFRESH', api.fetchStatusRefresh);
   yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);
-
-  // Scheduled actions
   yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
     const client: ClientWithEligibleUsers = yield select(selectedClient);
     return client
