@@ -314,6 +314,7 @@ const pendingStatusTries = createReducer<number>(5, {
 const contentItemToDelete = createReducer<Guid>(null, {
   OPEN_DELETE_CONTENT_ITEM_MODAL: (_state, action: PublishingActions.OpenDeleteContentItemModal) => action.id,
   CLOSE_DELETE_CONTENT_ITEM_MODAL: () => null,
+  CLOSE_DELETE_CONFIRMATION_MODAL: () => null,
   DELETE_CONTENT_ITEM_SUCCEEDED: () => null,
 });
 
@@ -1127,6 +1128,10 @@ const selected = createReducer<PublishingStateSelected>(
 const modals = combineReducers({
   contentItemDeletion: createModalReducer(['OPEN_DELETE_CONTENT_ITEM_MODAL'], [
     'CLOSE_DELETE_CONTENT_ITEM_MODAL',
+    'OPEN_DELETE_CONFIRMATION_MODAL',
+  ]),
+  contentItemDeleteConfirmation: createModalReducer(['OPEN_DELETE_CONFIRMATION_MODAL'], [
+    'CLOSE_DELETE_CONFIRMATION_MODAL',
     'DELETE_CONTENT_ITEM_SUCCEEDED',
     'DELETE_CONTENT_ITEM_FAILED',
   ]),

@@ -132,6 +132,7 @@ export interface PublishingStateModals {
   formModified: ModalState;
   goLiveRejection: ModalState;
   contentItemDeletion: ModalState;
+  contentItemDeleteConfirmation: ModalState;
   cancelPublication: ModalState;
 }
 
