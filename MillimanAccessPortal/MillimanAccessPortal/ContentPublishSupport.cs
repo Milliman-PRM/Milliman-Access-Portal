@@ -8,7 +8,7 @@
 using AuditLogLib;
 using AuditLogLib.Event;
 using MapCommonLib;
-using QlikviewLib;
+using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using MillimanAccessPortal.Services;
@@ -194,7 +194,7 @@ namespace MillimanAccessPortal
                     throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
                 }
                 // The checksum must be correct
-                if (FileUploadRecord.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath).ToLower())
+                if (FileUploadRecord.Checksum.Equals(GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath), StringComparison.InvariantCultureIgnoreCase))
                 {
                     throw new ApplicationException($"While publishing for content {ContentItem.Id}, checksum validation failed for file [{FileUploadRecord.StoragePath}].");
                 }
@@ -203,7 +203,7 @@ namespace MillimanAccessPortal
                 string RootContentFolder = Path.Combine(contentItemRootPath, ContentItem.Id.ToString());
 
                 // Copy uploaded file to root content folder
-                string DestinationFileName = QlikviewLibApi.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath));
+                string DestinationFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath));
                 switch (contentType)
                 {  // This is where any dependence on ContentType would be incorporated to override base behavior
                     case ContentTypeEnum.PowerBi:
