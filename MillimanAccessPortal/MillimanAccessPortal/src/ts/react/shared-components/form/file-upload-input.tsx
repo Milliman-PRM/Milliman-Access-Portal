@@ -55,6 +55,7 @@ interface FileUploadInputProps {
   imageURL?: string;
   beginUpload: (uploadId: string, fileName: string) => void;
   cancelFileUpload: (uploadId: string) => void;
+  removeExistingFile?: (uploadId: string) => void;
   finalizeUpload: (uploadId: string, fileName: string, Guid: string) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
   updateChecksumProgress: (uploadId: string, progress: ProgressSummary) => void;
@@ -297,7 +298,9 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
   public render() {
     const { label, name, placeholderText, readOnly, upload, value, children } = this.props;
     const { checksumProgress, uploadProgress, cancelable, errorMsg } = upload;
-    const hasImage = (value.length > 0 && this.props.imageURL || this.state.imageSrc);
+    const hasImage = (value.length > 0
+      && (this.props.imageURL || this.state.imageSrc)
+      && value !== '[Pending Removal]');
     const uploadPendingPublication = this.props.fileUploadId && this.props.fileUploadId.length > 0;
     const checksumEasing =
       (checksumProgress.percentage === '0%' || checksumProgress.percentage === '100%') ? '' : ' progress-easing';
@@ -398,13 +401,16 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
               </div>
             }
             {
-              value.length > 0 && !cancelable &&
+              value.length > 0
+              && !cancelable
+              && value !== '[Pending Removal]'
+              && this.props.removeExistingFile &&
               <div
                 className="upload-icon tooltip"
                 title="Delete existing file"
                 onClick={(event: React.MouseEvent) => {
                   event.stopPropagation();
-                  alert('Delete!');
+                  this.props.removeExistingFile(this.props.uploadId);
                 }}
               >
                 <svg className="icon red">

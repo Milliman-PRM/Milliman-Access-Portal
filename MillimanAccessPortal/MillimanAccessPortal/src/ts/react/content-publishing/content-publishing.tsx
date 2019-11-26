@@ -806,6 +806,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={(uploadId) =>
                       this.props.cancelFileUpload({ uploadId })}
+                    removeExistingFile={(uploadId) =>
+                      this.props.removeExistingFile({ uploadId })}
                     finalizeUpload={(uploadId, fileName, Guid) =>
                       this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
@@ -835,6 +837,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={(uploadId) =>
                       this.props.cancelFileUpload({ uploadId })}
+                    removeExistingFile={(uploadId) =>
+                      this.props.removeExistingFile({ uploadId })}
                     finalizeUpload={(uploadId, fileName, Guid) =>
                       this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
@@ -862,6 +866,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={(uploadId) =>
                       this.props.cancelFileUpload({ uploadId })}
+                    removeExistingFile={(uploadId) =>
+                      this.props.removeExistingFile({ uploadId })}
                     finalizeUpload={(uploadId, fileName, Guid) =>
                       this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>

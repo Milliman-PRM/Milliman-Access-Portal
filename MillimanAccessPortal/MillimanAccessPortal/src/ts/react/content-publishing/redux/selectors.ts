@@ -295,6 +295,7 @@ export function formChangesPending(state: PublishingState) {
 export function filesForPublishing(state: PublishingState, rootContentItemId: Guid): PublishRequest {
   const { relatedFiles } = state.formData.formData;
   const filesToPublish: UploadedRelatedFile[] = [];
+  const deleteFilePurposes: string[] = [];
   for (const key in relatedFiles) {
     if (relatedFiles[key].fileUploadId) {
       filesToPublish.push({
@@ -303,15 +304,16 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
         fileUploadId: relatedFiles[key].fileUploadId,
       });
     }
+    if (relatedFiles[key].fileOriginalName === '[Pending Removal]') {
+      deleteFilePurposes.push(key);
+    }
   }
-
-  // TODO: Implement file deletion...
 
   return {
     rootContentItemId,
     newRelatedFiles: filesToPublish,
     associatedFiles: [],
-    deleteFilePurposes: [],
+    deleteFilePurposes,
   };
 }
 

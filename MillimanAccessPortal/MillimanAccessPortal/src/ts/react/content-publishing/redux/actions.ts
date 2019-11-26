@@ -381,6 +381,11 @@ export interface ResetContentItemForm {
   type: 'RESET_CONTENT_ITEM_FORM';
 }
 
+export interface RemoveExistingFile {
+  type: 'REMOVE_EXISTING_FILE';
+  uploadId: Guid;
+}
+
 /**
  * Open the modal used to begin content item deletion.
  */
@@ -532,6 +537,7 @@ export type PagePublishingAction =
   | SetFormForNewContentItem
   | SetFilterTextClient
   | SetFilterTextItem
+  | RemoveExistingFile
   | ToggleShowOnlyChanges
   | ToggleGoLiveConfirmationCheckbox
   | SetPublishingFormTextInputValue

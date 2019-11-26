@@ -715,6 +715,49 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       uploads,
     };
   },
+  REMOVE_EXISTING_FILE: (state, action: PublishingActions.RemoveExistingFile) => {
+    const relatedFiles: RelatedFiles = { ...state.formData.relatedFiles };
+    const associatedFiles: Dict<AssociatedContentItemUpload> = { ...state.formData.associatedFiles };
+
+    if (action.uploadId.split('-')[0] !== 'associatedContent') {
+      const relatedFilesKeys = Object.keys(state.formData.relatedFiles);
+      for (const key of relatedFilesKeys) {
+        if (relatedFiles.hasOwnProperty(key) &&
+          relatedFiles[key].uniqueUploadId === action.uploadId) {
+          relatedFiles[key] = {
+            ...relatedFiles[key],
+            fileUploadId: '',
+            fileOriginalName: '[Pending Removal]',
+          };
+        }
+      }
+    } else {
+      const associatedContentKeys = Object.keys(state.formData.associatedFiles);
+      for (const key of associatedContentKeys) {
+        if (associatedFiles.hasOwnProperty(key) &&
+          associatedFiles[key].uniqueUploadId === action.uploadId) {
+          associatedFiles[key] = {
+            ...associatedFiles[key],
+            fileOriginalName: '[Pending Removal]',
+          };
+        }
+      }
+    }
+
+    const thumbnailLink = (action.uploadId.split('-')[0] !== 'Thumbnail')
+      ? state.formData.thumbnailLink
+      : '';
+
+    return {
+      ...state,
+      formData: {
+        ...state.formData,
+        relatedFiles,
+        associatedFiles,
+        thumbnailLink,
+      },
+    };
+  },
   BEGIN_FILE_UPLOAD: (state, action: UploadActions.BeginFileUpload) => {
     const relatedFiles: RelatedFiles = { ...state.formData.relatedFiles };
     const associatedFiles: Dict<AssociatedContentItemUpload> = { ...state.formData.associatedFiles };

@@ -93,7 +93,7 @@ export default function* rootSaga() {
   // Toasts
   yield takeEveryToast('CREATE_NEW_CONTENT_ITEM_SUCCEEDED', 'New Content Item created successfully.');
   yield takeEveryToast('UPDATE_CONTENT_ITEM_SUCCEEDED', 'Content Item updated successfully.');
-  yield takeEveryToast('PUBLISH_CONTENT_FILES_SUCCEEDED', 'Files successfully uploaded for processing.');
+  yield takeEveryToast('PUBLISH_CONTENT_FILES_SUCCEEDED', 'Updates submitted for processing.');
   yield takeEveryToast('DELETE_CONTENT_ITEM_SUCCEEDED', 'Content Item successfully deleted.');
   yield takeEveryToast('CANCEL_PUBLICATION_REQUEST_SUCCEEDED', 'Publication canceled.');
   yield takeEveryToast('REJECT_GO_LIVE_SUMMARY_SUCCEEDED', 'Publication rejected.');
