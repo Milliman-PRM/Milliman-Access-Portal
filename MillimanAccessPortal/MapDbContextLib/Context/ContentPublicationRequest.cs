@@ -35,15 +35,12 @@ namespace MapDbContextLib.Context
 
     public static class PublicationStatusExtensions
     {
+        public static List<PublicationStatus> CancelablePublicationStatusList { get; } 
+            = new List<PublicationStatus> { PublicationStatus.Validating, PublicationStatus.Queued, };
+
         public static bool IsCancelable(this PublicationStatus status)
         {
-            var blockingStatuses = new List<PublicationStatus>
-            {
-                PublicationStatus.Validating,
-                PublicationStatus.Queued,
-            };
-
-            return blockingStatuses.Contains(status);
+            return CancelablePublicationStatusList.Contains(status);
         }
 
         public static bool IsActive(this PublicationStatus status)

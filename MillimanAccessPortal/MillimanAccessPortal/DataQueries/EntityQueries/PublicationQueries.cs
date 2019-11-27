@@ -91,7 +91,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 {
                     var precedingPublicationRequestCount = _dbContext.ContentPublicationRequest
                         .Where(r => r.CreateDateTimeUtc < publication.CreateDateTimeUtc)
-                        .Where(r => r.RequestStatus.IsCancelable())
+                        .Where(r => PublicationStatusExtensions.CancelablePublicationStatusList.Contains(r.RequestStatus))
                         .Count();
                     queueDetails.Add(new PublicationQueueDetails
                     {

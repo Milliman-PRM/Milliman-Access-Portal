@@ -663,7 +663,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             var contentPublicationRequest = DbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
-                .Where(r => r.RequestStatus.IsCancelable())
+                .Where(r => PublicationStatusExtensions.CancelablePublicationStatusList.Contains(r.RequestStatus))
                 .SingleOrDefault();
             if (contentPublicationRequest == null)
             {
