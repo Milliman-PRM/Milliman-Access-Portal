@@ -100,6 +100,7 @@ export interface PublishingFormData {
   formErrors: ContentItemFormErrors;
   uploads: Dict<UploadState>;
   formState: 'read' | 'write';
+  disclaimerInputState: 'edit' | 'preview';
 }
 
 /**

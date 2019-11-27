@@ -97,6 +97,7 @@ const _initialFormData: PublishingFormData = {
   formErrors: emptyContentItemErrors,
   uploads: {},
   formState: 'read',
+  disclaimerInputState: 'edit',
 };
 
 const _initialGoLiveData: GoLiveSummaryData = {
@@ -580,6 +581,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         ...uploads,
       },
       formState: state.formState,
+      disclaimerInputState: 'edit',
     };
   },
   SET_FORM_FOR_NEW_CONTENT_ITEM: (_state, action: PublishingActions.SetFormForNewContentItem) => {
@@ -610,6 +612,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         ...uploads,
       },
       formState: 'write',
+      disclaimerInputState: 'edit',
     };
 
     return emptyContentItemFormData;
@@ -624,6 +627,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
   SET_CONTENT_ITEM_FORM_STATE: (state, action: PublishingActions.SetContentItemFormState) => ({
     ...state,
     formState: action.formState,
+    disclaimerInputState: 'edit',
   }),
   SET_PENDING_BOOLEAN_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormBooleanInputValue) => {
     if (action.inputName === 'doesReduce' || action.inputName === 'isSuspended') {
@@ -713,6 +717,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         ...contentItemDetail,
       },
       uploads,
+      disclaimerInputState: 'edit',
     };
   },
   REMOVE_EXISTING_FILE: (state, action: PublishingActions.RemoveExistingFile) => {
@@ -1009,6 +1014,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     }
 
     return {
+      ...state,
       originalData: {
         ...contentItemDetail,
       },
@@ -1093,6 +1099,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
     };
   },
+  TOGGLE_DISCLAIMER_INPUT_STATE: (state) => ({
+    ...state,
+    disclaimerInputState: (state.disclaimerInputState === 'edit') ? 'preview' : 'edit',
+  }),
 });
 
 const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {

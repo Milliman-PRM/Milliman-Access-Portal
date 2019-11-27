@@ -87,6 +87,13 @@ export interface ToggleShowOnlyChanges {
 }
 
 /**
+ * Set the disclaimer input to edit or preview mode.
+ */
+export interface ToggleDisclaimerInputState {
+  type: 'TOGGLE_DISCLAIMER_INPUT_STATE';
+}
+
+/**
  * Display a toast indicating that the status refresh polling has stopped
  */
 export interface PromptStatusRefreshStopped {
@@ -540,6 +547,7 @@ export type PagePublishingAction =
   | RemoveExistingFile
   | ToggleShowOnlyChanges
   | ToggleGoLiveConfirmationCheckbox
+  | ToggleDisclaimerInputState
   | SetPublishingFormTextInputValue
   | SetPublishingFormBooleanInputValue
   | ResetContentItemForm

@@ -9,6 +9,7 @@ import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
+import { convertMarkdownToHTML } from '../../convert-markdown';
 import { setUnloadAlert } from '../../unload-alerts';
 import {
   ContentTypeEnum, PublicationStatus, PublishRequest,
@@ -908,22 +909,52 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
+              </FormSectionRow>
+            </FormSection>
+            <FormSection title="Custom Content Disclaimer">
+              <FormSectionRow>
                 <FormFlexContainer flexPhone={12}>
-                  <TextAreaInput
-                    error={dataForForm.formErrors.contentDisclaimer}
-                    label="Custom Disclaimer Text"
-                    name="contentDisclaimer"
-                    onBlur={() => false}
-                    onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
-                      this.props.setPublishingFormTextInputValue({
-                        inputName: 'contentDisclaimer',
-                        value: target.value,
-                      });
-                    }}
-                    placeholderText="Custom Disclaimer Text..."
-                    value={dataForForm.formData.contentDisclaimer}
-                    readOnly={formState === 'read'}
-                  />
+                  {
+                    dataForForm.formState === 'write' &&
+                    <h4
+                      className="disclaimer-preview-toggle"
+                      onClick={() => this.props.toggleDisclaimerInputState({})}
+                    >
+                      {dataForForm.disclaimerInputState === 'edit' ? 'Preview' : 'Edit'}
+                    </h4>
+                  }
+                  {
+                    dataForForm.disclaimerInputState === 'preview' || dataForForm.formState === 'read'
+                      ? (
+                        <div
+                          className="disclaimer-preview"
+                          dangerouslySetInnerHTML={{
+                            __html: convertMarkdownToHTML(dataForForm.formData.contentDisclaimer),
+                          }}
+                        />
+                      ) : (
+                        <>
+                          <TextAreaInput
+                            error={dataForForm.formErrors.contentDisclaimer}
+                            label="Custom Disclaimer Text"
+                            name="contentDisclaimer"
+                            onBlur={() => false}
+                            onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                              this.props.setPublishingFormTextInputValue({
+                                inputName: 'contentDisclaimer',
+                                value: target.value,
+                              });
+                            }}
+                            placeholderText="Custom Disclaimer Text..."
+                            value={dataForForm.formData.contentDisclaimer}
+                            readOnly={formState === 'read'}
+                          />
+                          <div className="disclaimer-instructions">
+                            **<strong>bold</strong>**, _<i>italics</i>_, ### <strong>Section Header</strong>
+                          </div>
+                        </>
+                      )
+                  }
                 </FormFlexContainer>
               </FormSectionRow>
             </FormSection>

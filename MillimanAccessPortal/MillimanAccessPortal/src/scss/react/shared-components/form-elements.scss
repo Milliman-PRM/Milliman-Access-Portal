@@ -113,12 +113,12 @@
         .action-icon-label,
         .form-input-container,
         .thumbnail-preview {
-            border-color: $grey !important;
+            border-color: $dark-grey !important;
         }
 
         .form-input-label,
         .form-input {
-            color: darken($grey, 10%) !important;
+            color: darken($dark-grey, 10%) !important;
         }
     }
 
