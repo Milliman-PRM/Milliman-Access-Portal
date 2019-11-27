@@ -557,7 +557,7 @@ namespace MillimanAccessPortal.Controllers
         [NonAction]
         public async Task SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, string requestScheme, HostString requestHost, string SettableEmailText = null)
         {
-            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action with {{@UserName}}", RequestedUser.UserName);
+            Log.Verbose("Entered AccountController.SendNewAccountWelcomeEmail action with {@UserName}", RequestedUser.UserName);
 
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
 
@@ -609,7 +609,7 @@ namespace MillimanAccessPortal.Controllers
         [NonAction]
         public async Task RequestPasswordReset(ApplicationUser RequestedUser, PasswordResetRequestReason reason, string requestScheme, HostString host)
         {
-            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action with {{@UserName}}", RequestedUser.UserName);
+            Log.Verbose("Entered AccountControllerContext.RequestPasswordReset action with {@UserName}", RequestedUser.UserName);
 
             if (!DbContext.ApplicationUser.Any(u => u.Id == RequestedUser.Id))
             {
