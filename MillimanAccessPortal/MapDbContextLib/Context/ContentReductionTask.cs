@@ -39,6 +39,7 @@ namespace MapDbContextLib.Context
             {
                 ReductionStatusEnum.Validating,
                 ReductionStatusEnum.Queued,
+                ReductionStatusEnum.Reducing,
             };
 
             return blockingStatuses.Contains(status);
