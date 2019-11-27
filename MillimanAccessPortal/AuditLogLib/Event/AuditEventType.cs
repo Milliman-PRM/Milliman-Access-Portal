@@ -476,7 +476,7 @@ namespace AuditLogLib.Event
                 },
                 Action = reductionTask.TaskAction.ToString(),
                 SelectedValues = reductionTask.SelectionCriteriaObj
-                                              .Fields
+                                              ?.Fields
                                               .SelectMany(f => f.Values.Where(v => v.SelectionStatus).Select(v => new { v.Id, v.Value }))
                                               .ToList(),
             });
