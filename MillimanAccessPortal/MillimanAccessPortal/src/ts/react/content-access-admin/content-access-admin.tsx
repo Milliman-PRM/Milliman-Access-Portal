@@ -314,8 +314,14 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             : (
               <>
                 {isReductionActive(entity.status.taskStatus)
-                  ? null
-                  : (
+                  ? (
+                    <CardButton
+                      color={'red'}
+                      tooltip={'Cancel Reduction Task'}
+                      onClick={() => this.props.cancelReduction({ groupId: entity.id })}
+                      icon={'cancel'}
+                    />
+                  ) : (
                     <CardButton
                       color={'red'}
                       tooltip={'Delete selection group'}
