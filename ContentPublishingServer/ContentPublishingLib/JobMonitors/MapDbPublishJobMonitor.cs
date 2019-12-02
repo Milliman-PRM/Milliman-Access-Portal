@@ -277,6 +277,30 @@ namespace ContentPublishingLib.JobMonitors
         /// <param name="DbRequest">RequestStatus should already be Processing</param>
         private void LaunchPublishRunnerForRequest(ContentPublicationRequest DbRequest, bool SkipReductionTaskQueueing = false)
         {
+            #region Validation
+            using (ApplicationDbContext Db = IsTestMode
+                                             ? MockContext.Object
+                                             : new ApplicationDbContext(ContextOptions))
+            {
+                var requestInEfCache = Db.ContentPublicationRequest.Find(DbRequest.Id);
+                if (requestInEfCache == null)
+                {
+                    GlobalFunctions.TraceWriteLine($"LaunchPublishRunnerForRequest() could not find a ContentPublicationRequest with Id {DbRequest.Id}");
+                    return;
+                }
+                if (requestInEfCache.RequestStatus != PublicationStatus.Processing)
+                {
+                    string msg = $"LaunchPublishRunnerForRequest() called for publication request {DbRequest.Id} with unexpected status {ContentPublicationRequest.PublicationStatusString[requestInEfCache.RequestStatus]} while attempting LaunchPublishRunnerForRequest()";
+                    GlobalFunctions.TraceWriteLine(msg);
+                    Db.ContentPublicationRequest.Update(DbRequest);
+                    DbRequest.StatusMessage = msg;
+                    DbRequest.RequestStatus = PublicationStatus.Error;
+                    Db.SaveChanges();
+                    return;
+                }
+            }
+            #endregion
+
             Task<PublishJobDetail> NewTask = null;
             CancellationTokenSource cancelSource = new CancellationTokenSource();
 

@@ -301,7 +301,7 @@ namespace MillimanAccessPortal.Services
                 ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
                 // 1) prepare to postprocess publication requests that publishing server could be working with or finished with
-                List<PublicationStatus> handlableStatusList = new List<PublicationStatus>
+                List<PublicationStatus> queuedOrLaterOrphanStatusList = new List<PublicationStatus>
                 {
                     PublicationStatus.Queued,
                     PublicationStatus.Processing,
@@ -309,7 +309,7 @@ namespace MillimanAccessPortal.Services
                 };
 
                 List<ContentPublicationRequest> recentOrphanedRequests = dbContext.ContentPublicationRequest
-                    .Where(r => handlableStatusList.Contains(r.RequestStatus))
+                    .Where(r => queuedOrLaterOrphanStatusList.Contains(r.RequestStatus))
                     .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
                     .ToList();
 
