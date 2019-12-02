@@ -57,8 +57,8 @@
         }
     }
 
-    &:hover .icon.upload {
-        color: darken($green, .1);
+    &:hover .upload-icon-container .upload-icon .upload.icon.green {
+        color: $green;
     }
 
     .upload-icon-container {
@@ -80,21 +80,26 @@
             .icon {
                 height: 1.5rem;
                 width: 1.5rem;
+                color: $charcoal;
 
-                .upload {
+                &.upload {
                     pointer-events: none;
                 }
+            }
+
+            &:hover .icon {
+                pointer-events: none;
 
                 &.red {
-                    color: $red;
+                    color: $red !important;
                 }
 
                 &.blue {
-                    color: $blue;
+                    color: $blue !important;
                 }
 
                 &.green {
-                    color: $green;
+                    color: $green !important;
                 }
             }
         }
