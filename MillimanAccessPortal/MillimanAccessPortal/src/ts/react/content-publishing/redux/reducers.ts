@@ -92,8 +92,8 @@ const emptyContentItemErrors: ContentItemFormErrors = {
 };
 
 const _initialFormData: PublishingFormData = {
-  originalData: emptyContentItemDetail,
-  formData: emptyContentItemDetail,
+  originalFormData: emptyContentItemDetail,
+  pendingFormData: emptyContentItemDetail,
   formErrors: emptyContentItemErrors,
   uploads: {},
   formState: 'read',
@@ -570,10 +570,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     }
 
     return {
-      originalData: {
+      originalFormData: {
         ...contentItemDetail,
       },
-      formData: {
+      pendingFormData: {
         ...contentItemDetail,
       },
       formErrors: {},
@@ -601,10 +601,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     };
 
     const emptyContentItemFormData: PublishingFormData = {
-      originalData: {
+      originalFormData: {
         ...contentItemDetail,
       },
-      formData: {
+      pendingFormData: {
         ...contentItemDetail,
       },
       formErrors: {},
@@ -619,8 +619,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
   },
   SET_PENDING_TEXT_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormTextInputValue) => ({
     ...state,
-    formData: {
-      ...state.formData,
+    pendingFormData: {
+      ...state.pendingFormData,
       [action.inputName]: action.value,
     },
   }),
@@ -633,18 +633,18 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     if (action.inputName === 'doesReduce' || action.inputName === 'isSuspended') {
       return {
         ...state,
-        formData: {
-          ...state.formData,
+        pendingFormData: {
+          ...state.pendingFormData,
           [action.inputName]: action.value,
         },
       };
     } else {
       return {
         ...state,
-        formData: {
-          ...state.formData,
+        pendingFormData: {
+          ...state.pendingFormData,
           typeSpecificDetailObject: {
-            ...state.formData.typeSpecificDetailObject,
+            ...state.pendingFormData.typeSpecificDetailObject,
             [action.inputName]: action.value,
           },
         },
@@ -652,40 +652,40 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     }
   },
   RESET_CONTENT_ITEM_FORM: (state) => {
-    const { originalData } = state;
+    const { originalFormData } = state;
 
-    const keys = Object.keys({ ...originalData.associatedFiles });
+    const keys = Object.keys({ ...originalFormData.associatedFiles });
     const associatedContentItems: Dict<AssociatedContentItemUpload> = {};
 
     for (const key of keys) {
-      if (originalData.associatedFiles.hasOwnProperty(key)) {
+      if (originalFormData.associatedFiles.hasOwnProperty(key)) {
         associatedContentItems[key] = {
-          ...originalData.associatedFiles[key],
+          ...originalFormData.associatedFiles[key],
           uniqueUploadId: generateUniqueId('associatedContent'),
         };
       }
     }
 
     const contentItemDetail = {
-      ...originalData,
+      ...originalFormData,
       relatedFiles: {
         MasterContent: {
-          fileOriginalName: defaultIfUndefined(originalData.relatedFiles.MasterContent, 'fileOriginalName'),
+          fileOriginalName: defaultIfUndefined(originalFormData.relatedFiles.MasterContent, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('MasterContent'),
           fileUploadId: '',
         },
         Thumbnail: {
-          fileOriginalName: defaultIfUndefined(originalData.relatedFiles.Thumbnail, 'fileOriginalName'),
+          fileOriginalName: defaultIfUndefined(originalFormData.relatedFiles.Thumbnail, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('Thumbnail'),
           fileUploadId: '',
         },
         UserGuide: {
-          fileOriginalName: defaultIfUndefined(originalData.relatedFiles.UserGuide, 'fileOriginalName'),
+          fileOriginalName: defaultIfUndefined(originalFormData.relatedFiles.UserGuide, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('UserGuide'),
           fileUploadId: '',
         },
         ReleaseNotes: {
-          fileOriginalName: defaultIfUndefined(originalData.relatedFiles.ReleaseNotes, 'fileOriginalName'),
+          fileOriginalName: defaultIfUndefined(originalFormData.relatedFiles.ReleaseNotes, 'fileOriginalName'),
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
           fileUploadId: '',
         },
@@ -703,17 +703,17 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     };
 
     for (const key of keys) {
-      if (originalData.associatedFiles.hasOwnProperty(key)) {
+      if (originalFormData.associatedFiles.hasOwnProperty(key)) {
         uploads[contentItemDetail.associatedFiles[key].uniqueUploadId] = newUpload;
       }
     }
 
     return {
       ...state,
-      originalData: {
+      originalFormData: {
         ...contentItemDetail,
       },
-      formData: {
+      pendingFormData: {
         ...contentItemDetail,
       },
       uploads,
@@ -721,11 +721,11 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     };
   },
   REMOVE_EXISTING_FILE: (state, action: PublishingActions.RemoveExistingFile) => {
-    const relatedFiles: RelatedFiles = { ...state.formData.relatedFiles };
-    const associatedFiles: Dict<AssociatedContentItemUpload> = { ...state.formData.associatedFiles };
+    const relatedFiles: RelatedFiles = { ...state.pendingFormData.relatedFiles };
+    const associatedFiles: Dict<AssociatedContentItemUpload> = { ...state.pendingFormData.associatedFiles };
 
     if (action.uploadId.split('-')[0] !== 'associatedContent') {
-      const relatedFilesKeys = Object.keys(state.formData.relatedFiles);
+      const relatedFilesKeys = Object.keys(state.pendingFormData.relatedFiles);
       for (const key of relatedFilesKeys) {
         if (relatedFiles.hasOwnProperty(key) &&
           relatedFiles[key].uniqueUploadId === action.uploadId) {
@@ -737,7 +737,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         }
       }
     } else {
-      const associatedContentKeys = Object.keys(state.formData.associatedFiles);
+      const associatedContentKeys = Object.keys(state.pendingFormData.associatedFiles);
       for (const key of associatedContentKeys) {
         if (associatedFiles.hasOwnProperty(key) &&
           associatedFiles[key].uniqueUploadId === action.uploadId) {
@@ -750,13 +750,13 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     }
 
     const thumbnailLink = (action.uploadId.split('-')[0] !== 'Thumbnail')
-      ? state.formData.thumbnailLink
+      ? state.pendingFormData.thumbnailLink
       : '';
 
     return {
       ...state,
-      formData: {
-        ...state.formData,
+      pendingFormData: {
+        ...state.pendingFormData,
         relatedFiles,
         associatedFiles,
         thumbnailLink,
@@ -764,11 +764,11 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     };
   },
   BEGIN_FILE_UPLOAD: (state, action: UploadActions.BeginFileUpload) => {
-    const relatedFiles: RelatedFiles = { ...state.formData.relatedFiles };
-    const associatedFiles: Dict<AssociatedContentItemUpload> = { ...state.formData.associatedFiles };
+    const relatedFiles: RelatedFiles = { ...state.pendingFormData.relatedFiles };
+    const associatedFiles: Dict<AssociatedContentItemUpload> = { ...state.pendingFormData.associatedFiles };
 
     if (action.fileName.split('-')[0] !== 'associatedContent') {
-      const relatedFilesKeys = Object.keys(state.formData.relatedFiles);
+      const relatedFilesKeys = Object.keys(state.pendingFormData.relatedFiles);
       for (const key of relatedFilesKeys) {
         if (relatedFiles.hasOwnProperty(key) &&
           relatedFiles[key].uniqueUploadId === action.uploadId) {
@@ -779,7 +779,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         }
       }
     } else {
-      const associatedContentKeys = Object.keys(state.formData.associatedFiles);
+      const associatedContentKeys = Object.keys(state.pendingFormData.associatedFiles);
       for (const key of associatedContentKeys) {
         if (associatedFiles.hasOwnProperty(key) &&
           associatedFiles[key].uniqueUploadId === action.uploadId) {
@@ -793,8 +793,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 
     return {
       ...state,
-      formData: {
-        ...state.formData,
+      pendingFormData: {
+        ...state.pendingFormData,
         relatedFiles: {
           ...relatedFiles,
         },
@@ -833,8 +833,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     },
   }),
   CANCEL_FILE_UPLOAD: (state, action: UploadActions.CancelFileUpload) => {
-    const { relatedFiles } = state.formData;
-    const relatedFilesKeys = Object.keys(state.formData.relatedFiles);
+    const { relatedFiles } = state.pendingFormData;
+    const relatedFilesKeys = Object.keys(state.pendingFormData.relatedFiles);
     let relatedFileType;
     for (const key of relatedFilesKeys) {
       if (relatedFiles.hasOwnProperty(key) &&
@@ -850,26 +850,26 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 
     return {
       ...state,
-      originalData: {
-        ...state.originalData,
+      originalFormData: {
+        ...state.originalFormData,
         relatedFiles: {
-          ...state.originalData.relatedFiles,
+          ...state.originalFormData.relatedFiles,
           [relatedFileType]: {
-            ...state.originalData.relatedFiles[relatedFileType],
+            ...state.originalFormData.relatedFiles[relatedFileType],
             uniqueUploadId: newUploadId,
             fileUploadId: '',
           },
         },
       },
-      formData: {
-        ...state.formData,
+      pendingFormData: {
+        ...state.pendingFormData,
         relatedFiles: {
-          ...state.formData.relatedFiles,
+          ...state.pendingFormData.relatedFiles,
           [relatedFileType]: {
-            ...state.formData.relatedFiles[relatedFileType],
+            ...state.pendingFormData.relatedFiles[relatedFileType],
             uniqueUploadId: newUploadId,
             fileUploadId: '',
-            fileOriginalName: state.originalData.relatedFiles[relatedFileType].fileOriginalName,
+            fileOriginalName: state.originalFormData.relatedFiles[relatedFileType].fileOriginalName,
           },
         },
       },
@@ -877,7 +877,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     };
   },
   FINALIZE_UPLOAD: (state, action: UploadActions.FinalizeUpload) => {
-    const fileUploads = { ...state.formData.relatedFiles };
+    const fileUploads = { ...state.pendingFormData.relatedFiles };
     for (const key in fileUploads) {
       if (fileUploads[key].uniqueUploadId === action.uploadId) {
         fileUploads[key].fileUploadId = action.Guid;
@@ -886,8 +886,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 
     return {
       ...state,
-      formData: {
-        ...state.formData,
+      pendingFormData: {
+        ...state.pendingFormData,
         relatedFiles: fileUploads,
       },
     };
@@ -907,8 +907,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 
     return {
       ...state,
-      originalData: {
-        ...state.originalData,
+      originalFormData: {
+        ...state.originalFormData,
         id: detail.id,
         clientId: detail.clientId,
         contentName: detail.contentName,
@@ -919,8 +919,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         contentNotes: detail.contentNotes,
         typeSpecificDetailObject: detail.typeSpecificDetailObject,
       },
-      formData: {
-        ...state.formData,
+      pendingFormData: {
+        ...state.pendingFormData,
         id: detail.id,
         clientId: detail.clientId,
         contentName: detail.contentName,
@@ -937,7 +937,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
   UPDATE_CONTENT_ITEM_SUCCEEDED: (state, action: PublishingActions.UpdateContentItemSucceeded) => {
     const { detail } = action.response;
     const updatedContentItemData: ContentItemDetail = {
-      ...state.originalData,
+      ...state.originalFormData,
       id: detail.id,
       clientId: detail.clientId,
       contentName: detail.contentName,
@@ -951,8 +951,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 
     return {
       ...state,
-      originalData: updatedContentItemData,
-      formData: updatedContentItemData,
+      originalFormData: updatedContentItemData,
+      pendingFormData: updatedContentItemData,
       formState: 'read',
     };
   },
@@ -972,7 +972,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     }
 
     const contentItemDetail = {
-      ...state.formData,
+      ...state.pendingFormData,
       relatedFiles: {
         MasterContent: {
           fileOriginalName: defaultIfUndefined(detail.relatedFiles.MasterContent, 'fileOriginalName'),
@@ -1015,10 +1015,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 
     return {
       ...state,
-      originalData: {
+      originalFormData: {
         ...contentItemDetail,
       },
-      formData: {
+      pendingFormData: {
         ...contentItemDetail,
       },
       formErrors: {},
@@ -1044,7 +1044,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     }
 
     const contentItemDetail = {
-      ...state.formData,
+      ...state.pendingFormData,
       relatedFiles: {
         MasterContent: {
           fileOriginalName: defaultIfUndefined(detail.relatedFiles.MasterContent, 'fileOriginalName'),
@@ -1087,10 +1087,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 
     return {
       ...state,
-      originalData: {
+      originalFormData: {
         ...contentItemDetail,
       },
-      formData: {
+      pendingFormData: {
         ...contentItemDetail,
       },
       formErrors: {},

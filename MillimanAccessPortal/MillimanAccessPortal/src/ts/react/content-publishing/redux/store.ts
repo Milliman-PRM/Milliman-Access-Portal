@@ -95,8 +95,8 @@ export interface PublishingStateFilters {
  * Form data
  */
 export interface PublishingFormData {
-  originalData: ContentItemDetail;
-  formData: ContentItemDetail;
+  originalFormData: ContentItemDetail;
+  pendingFormData: ContentItemDetail;
   formErrors: ContentItemFormErrors;
   uploads: Dict<UploadState>;
   formState: 'read' | 'write';
