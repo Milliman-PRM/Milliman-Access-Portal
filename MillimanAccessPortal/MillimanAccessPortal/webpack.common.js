@@ -190,12 +190,12 @@ module.exports = {
       inject: false,
       chunks: ['commons', 'message'],
     }),
-      new HtmlWebpackPlugin({
-          filename: path.resolve(__dirname, 'Views', 'Shared', 'MessageWithButtons.cshtml'),
-          template: path.resolve(__dirname, 'ViewTemplates', 'Shared', 'MessageWithButtons.cshtml.template'),
-          inject: false,
-          chunks: ['commons', 'message'],
-      }),
+    new HtmlWebpackPlugin({
+        filename: path.resolve(__dirname, 'Views', 'Shared', 'MessageWithButtons.cshtml'),
+        template: path.resolve(__dirname, 'ViewTemplates', 'Shared', 'MessageWithButtons.cshtml.template'),
+        inject: false,
+        chunks: ['commons', 'message'],
+    }),
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'Account', 'Login.cshtml'),
       template: path.resolve(__dirname, 'ViewTemplates', 'Account', 'Login.cshtml.template'),
