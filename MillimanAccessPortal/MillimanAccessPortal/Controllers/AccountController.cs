@@ -682,13 +682,18 @@ namespace MillimanAccessPortal.Controllers
 
             // If the code is not valid (likely expired), re-send the welcome email and notify the user
             DataProtectorTokenProvider<ApplicationUser> emailConfirmationTokenProvider = (DataProtectorTokenProvider<ApplicationUser>) _serviceProvider.GetService(typeof(DataProtectorTokenProvider<ApplicationUser>));
-            bool tokenIsValid = await emailConfirmationTokenProvider.ValidateAsync("EmailConfirmation", code, _userManager, user);
+            bool tokenIsValid;
+            for (tokenIsValid = await emailConfirmationTokenProvider.ValidateAsync("EmailConfirmation", code, _userManager, user); !tokenIsValid && code.EndsWith('='); )
+            {
+                code = code.Remove(code.Length - 1);
+                tokenIsValid = await emailConfirmationTokenProvider.ValidateAsync("EmailConfirmation", code, _userManager, user);
+            }
 
             if (!tokenIsValid)
             {
                 Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} GET action: confirmation token is invalid for user name {user.UserName}, may be expired.");
 
-                var messageModel = new MessageWithButtons
+                var messageModel = new MessageModel
                 {
                     MessagesAboveButtons = { $"Your account activation link has either expired or is invalid. Resend the welcome email and try again." },
                     MessagesBelowButtons = { "If you continue to be directed to this page, please contact map.support@milliman.com." },
@@ -707,6 +712,7 @@ namespace MillimanAccessPortal.Controllers
                                 Value = "Resend Welcome Email",
                                 Action = nameof(NewWelcomEmailBecauseInvalidToken),
                                 Controller = nameof(AccountController).Replace("Controller", ""),
+                                ButtonClass = "blue-button",
                                 RouteData = new Dictionary<string, string>
                                 {
                                     { "userEmail", user.Email },
@@ -964,7 +970,12 @@ namespace MillimanAccessPortal.Controllers
             }
 
             PasswordResetSecurityTokenProvider<ApplicationUser> passwordResetTokenProvider = (PasswordResetSecurityTokenProvider<ApplicationUser>)_serviceProvider.GetService(typeof(PasswordResetSecurityTokenProvider<ApplicationUser>));
-            bool tokenIsValid = await passwordResetTokenProvider.ValidateAsync("ResetPassword", passwordResetToken, _userManager, user);
+            bool tokenIsValid;
+            for (tokenIsValid = await passwordResetTokenProvider.ValidateAsync("ResetPassword", passwordResetToken, _userManager, user); !tokenIsValid && passwordResetToken.EndsWith('='); )
+            {
+                passwordResetToken = passwordResetToken.Remove(passwordResetToken.Length - 1);
+                tokenIsValid = await passwordResetTokenProvider.ValidateAsync("ResetPassword", passwordResetToken, _userManager, user);
+            }
 
             if (!tokenIsValid)
             {
@@ -972,7 +983,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: requested for user {user.UserName} having expired or invalid reset token");
 
-                    var messageModel = new MessageWithButtons
+                    var messageModel = new MessageModel
                     {
                         MessagesAboveButtons = { "Your password reset link has either expired or is invalid. Reset the password and try again." },
                         MessagesBelowButtons = { "If you continue to be directed to this page, please contact map.support@milliman.com." },
@@ -991,6 +1002,7 @@ namespace MillimanAccessPortal.Controllers
                                 Value = "Reset Password",
                                 Action = nameof(ResetPasswordBecauseInvalidToken),
                                 Controller = nameof(AccountController).Replace("Controller", ""),
+                                ButtonClass = "blue-button",
                                 RouteData = new Dictionary<string, string>
                                 {
                                     { nameof(userEmail), userEmail },
