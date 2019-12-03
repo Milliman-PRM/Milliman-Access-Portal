@@ -13,8 +13,9 @@ namespace MillimanAccessPortal.Models.SharedModels
 {
     public class MessageWithButtons
     {
-        public string Message { get; set; }
+        public List<string> MessagesAboveButtons { get; set; } = new List<string>();
         public List<ConfiguredButton> Buttons { get; set; }
+        public List<string> MessagesBelowButtons { get; set; } = new List<string>();
     }
 
     public class ConfiguredButton

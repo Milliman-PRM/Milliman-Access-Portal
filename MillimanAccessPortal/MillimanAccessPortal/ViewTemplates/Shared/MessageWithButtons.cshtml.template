@@ -19,10 +19,12 @@
 }
 
 <div id="message-container">
-    <h3 class="message">
-        @Html.Raw(@Model.Message)
-    </h3>
-    <br>
+	@foreach (string msg in @Model.MessagesAboveButtons) 
+	{
+		<p class="message">
+			@Html.Raw(msg)
+		</p>
+	}
 	<div>
 	@{
 		foreach (var button in Model.Buttons) 
@@ -42,6 +44,12 @@
 			}
             </form>
 		}
+	}
+	@foreach (string msg in @Model.MessagesBelowButtons) 
+	{
+		<p class="message">
+			@Html.Raw(msg)
+		</p>
 	}
 	</div>
 </div>

@@ -690,7 +690,8 @@ namespace MillimanAccessPortal.Controllers
 
                 var messageModel = new MessageWithButtons
                 {
-                    Message = "Your previous account activation link is invalid or may have expired. Click below to receive a new welcome email with an updated activation link.",
+                    MessagesAboveButtons = { $"Your account activation link has either expired or is invalid. Resend the welcome email and try again." },
+                    MessagesBelowButtons = { "If you continue to be directed to this page, please contact map.support@milliman.com." },
                     Buttons = new List<ConfiguredButton>
                         {
                             new ConfiguredButton
@@ -973,7 +974,8 @@ namespace MillimanAccessPortal.Controllers
 
                     var messageModel = new MessageWithButtons
                     {
-                        Message = $"Your password reset link is invalid or expired.  Please click \"Reset Password\"  below to request an email with a new password reset link.",
+                        MessagesAboveButtons = { "Your password reset link has either expired or is invalid. Reset the password and try again." },
+                        MessagesBelowButtons = { "If you continue to be directed to this page, please contact map.support@milliman.com." },
                         Buttons = new List<ConfiguredButton>
                         {
                             new ConfiguredButton
