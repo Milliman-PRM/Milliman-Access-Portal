@@ -9,6 +9,7 @@ using AuditLogLib.Event;
 using MapCommonLib;
 using MapDbContextLib.Models;
 using QlikviewLib.Qms;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -174,7 +175,7 @@ namespace ContentPublishingLib.JobRunners
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Canceled;
                 JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.Canceled;
-                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
+                Log.Warning(e, $"Operation Cancelled in QvReductionRunner");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
                 AuditLog.Log(AuditEventType.ContentReductionTaskCanceled.ToEvent(new { ReductionTaskId = JobDetail.TaskId }));
             }
@@ -182,14 +183,14 @@ namespace ContentPublishingLib.JobRunners
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
                 // JobDetail.Result.OutcomeReason is expected to be set where the exception is thrown
-                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
+                Log.Error(e, $"ApplicationException in QvReductionRunner");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
                 // Security related audit logs are generated at the time ApplicationException is thrown, where appropriate.  Don't repeat that here. 
             }
             catch (System.Exception e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
-                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
+                Log.Error(e, "System.Exception in QvReductionRunner");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
                 DetailObj = new
                 {
@@ -212,7 +213,7 @@ namespace ContentPublishingLib.JobRunners
                 }
                 catch (System.Exception e)  // fail safe in case any exception gets to this point
                 {
-                    GlobalFunctions.TraceWriteLine($"In QvReductionRunner.Execute(), Cleanup method failed with exception: {Environment.NewLine}{GlobalFunctions.LoggableExceptionString(e)}");
+                    Log.Error(e, $"In QvReductionRunner.Execute(), Cleanup() failed");
                 }
             }
 
@@ -317,14 +318,14 @@ namespace ContentPublishingLib.JobRunners
             }
             catch (System.Exception e)
             {
-                GlobalFunctions.TraceWriteLine($"QvReductionRunner.PreTaskSetup() failed to create folder {WorkingFolderAbsolute} or copy master file {JobDetail.Request.MasterFilePath} to {MasterFileDestinationPath}, {GlobalFunctions.LoggableExceptionString(e)}");
+                Log.Information(e, $"QvReductionRunner.PreTaskSetup() failed to create folder {WorkingFolderAbsolute} or copy master file {JobDetail.Request.MasterFilePath} to {MasterFileDestinationPath}");
                 throw;
             }
 
             if (MasterDocumentNode == null)
             {
                 JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
-                throw new ApplicationException("Failed to obtain DocumentNode object from Qlikview Publisher for master content file");
+                throw new ApplicationException($"Failed to obtain DocumentNode object from Qlikview Publisher for master content file {MasterFileName} in relative folder {WorkingFolderRelative}");
             }
             return true;
         }
@@ -396,7 +397,7 @@ namespace ContentPublishingLib.JobRunners
             }
             catch (System.Exception e)
             {
-                GlobalFunctions.TraceWriteLine(GlobalFunctions.LoggableExceptionString(e, $"Error converting file {ReductionSchemeFilePath} to json output.", IncludeStackTrace: true));
+                Log.Error(e, $"Error converting file {ReductionSchemeFilePath} to json output");
 
                 object DetailObj = new {
                     ReductionJobId = JobDetail.TaskId.ToString(),
@@ -419,12 +420,12 @@ namespace ContentPublishingLib.JobRunners
                 }
                 catch (System.Exception e)
                 {
-                    GlobalFunctions.TraceWriteLine($"Failed to delete Qlikview task log file {LogFile}:" + Environment.NewLine + e.Message);
+                    Log.Error(e, $"Failed to delete Qlikview task log file {LogFile}");
                     throw;
                 }
             }
 
-            GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed ExtractReductionHierarchy");
+            Log.Information($"Task {JobDetail.TaskId.ToString()} completed ExtractReductionHierarchy");
 
             return ResultHierarchy;
         }
@@ -447,7 +448,6 @@ namespace ContentPublishingLib.JobRunners
 
                     JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.SelectionForInvalidFieldName;
                     AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
-                    GlobalFunctions.TraceWriteLine(Msg);
                     throw new ApplicationException(Msg);
                 }
             }
@@ -464,7 +464,6 @@ namespace ContentPublishingLib.JobRunners
                 };
 
                 AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
-                GlobalFunctions.TraceWriteLine(Msg);
 
                 JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent;
 
@@ -483,11 +482,10 @@ namespace ContentPublishingLib.JobRunners
             {
                 JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated;
                 string Msg = $"Failed to get DocumentNode for file {JobDetail.Request.RequestedOutputFileName} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}";
-                GlobalFunctions.TraceWriteLine(Msg);
                 throw new ApplicationException(Msg);
             }
 
-            GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed CreateReducedContent");
+            Log.Information($"Task {JobDetail.TaskId.ToString()} completed CreateReducedContent");
         }
 
         /// <summary>
@@ -505,7 +503,7 @@ namespace ContentPublishingLib.JobRunners
             JobDetail.Result.ReducedContentFileChecksum = GlobalFunctions.GetFileChecksum(CopyDestinationPath);
             JobDetail.Result.ReducedContentFilePath = CopyDestinationPath;
 
-            GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed DistributeReducedContent");
+            Log.Information($"Task {JobDetail.TaskId.ToString()} completed DistributeReducedContent");
         }
 
         /// <summary>
@@ -522,12 +520,12 @@ namespace ContentPublishingLib.JobRunners
                 }
                 catch (System.Exception e)  // Do not let this throw upward
                 {
-                    // Log this as an error or warning when switching to Serilog
-                    GlobalFunctions.TraceWriteLine($"In QvReductionRunner.Cleanup(), failed to delete reduction directory {WorkingFolderAbsolute}, exception was: {Environment.NewLine}{GlobalFunctions.LoggableExceptionString(e)}");
+                    // It's an error, but the reduction task has completed by now so just log this and continue.
+                    Log.Error(e, $"In QvReductionRunner.Cleanup(), failed to delete temporary reduction directory {WorkingFolderAbsolute}, continuing");
                 }
             }
 
-            GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed Cleanup");
+            Log.Information($"Task {JobDetail.TaskId.ToString()} completed Cleanup");
 
             return true;
         }
@@ -537,7 +535,7 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="RequestedFileName"></param>
         /// <param name="RequestedRelativeFolder">Path relative to the selected source documents folder.</param>
-        /// <returns></returns>
+        /// <returns>null if not found</returns>
         private async Task<DocumentNode> GetSourceDocumentNode(string RequestedFileName, string RequestedRelativeFolder)
         {
             DocumentNode DocNode = null;
@@ -555,7 +553,8 @@ namespace ContentPublishingLib.JobRunners
 
             if (DocNode == null)
             {
-                GlobalFunctions.TraceWriteLine(string.Format($"Did not find SourceDocument '{RequestedFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}"));
+                // Don't throw here, caller can decide what to do
+                Log.Error($"Did not find SourceDocument '{RequestedFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}");
             }
 
             return DocNode;
@@ -759,7 +758,7 @@ namespace ContentPublishingLib.JobRunners
                 throw new ApplicationException("After saving task, QmsClient.FindTaskAsync exception", ex);
             }
             Guid TaskIdGuid = TInfo.ID;
-            GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() successfully saved task {TaskIdGuid.ToString("D")}, and retrieved task info, after {DateTime.Now - SaveStartTime}");
+            Log.Information($"In QvReductionRunner.RunQdsTask() successfully saved task {TaskIdGuid.ToString("D")}, and retrieved task info, after {DateTime.Now - SaveStartTime}");
 
             try
             {
@@ -793,13 +792,13 @@ namespace ContentPublishingLib.JobRunners
                     {
                         if (pollTaskStartRetryCount-- > 0)
                         {
-                            GlobalFunctions.TraceWriteLine(GlobalFunctions.LoggableExceptionString(ex, "About to retry. Exception while polling for task completion"));
+                            Log.Information(ex, "Retrying after exception while polling for task status after RunTaskAsync");
                             continue;
                         }
-                        throw new ApplicationException("QmsClient.GetTaskStatusAsync (polling while trying to start task) exception", ex);
+                        throw new ApplicationException("Exceeded maximum retries for QmsClient.GetTaskStatusAsync while trying to start task", ex);
                     }
                 } while (Status == null || Status.Extended == null || !(DateTime.TryParse(Status.Extended.StartTime, out _) || DateTime.TryParse(Status.Extended.FinishedTime, out _)));
-                GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} started running after {DateTime.Now - RunStartTime}");
+                Log.Information($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} started running after {DateTime.Now - RunStartTime}");
 
                 // Wait for started task to finish
                 DateTime RunningStartTime = DateTime.Now;
@@ -822,13 +821,13 @@ namespace ContentPublishingLib.JobRunners
                     {
                         if (pollTaskFinishRetryCount-- > 0)
                         {
-                            GlobalFunctions.TraceWriteLine(GlobalFunctions.LoggableExceptionString(ex, "About to retry. Exception while polling for task completion"));
+                            Log.Information(ex, "Retrying after exception while polling for task status while task is running");
                             continue;
                         }
-                        throw new ApplicationException("QmsClient.GetTaskStatusAsync (polling while waiting for task to finish) exception", ex);
+                        throw new ApplicationException("Exceeded maximum retries for QmsClient.GetTaskStatusAsync while waiting for task to finish", ex);
                     }
                 } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
-                GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} finished running after {DateTime.Now - RunningStartTime}");
+                Log.Information($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} finished running after {DateTime.Now - RunningStartTime}");
 
                 switch (Status.General.Status)
                 {

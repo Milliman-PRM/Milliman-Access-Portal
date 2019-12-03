@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Serilog;
 using System;
 using System.Linq;
 using System.IO;
@@ -204,14 +205,14 @@ namespace ContentPublishingLib.JobRunners
             catch (OperationCanceledException e)
             {
                 string msg = GlobalFunctions.LoggableExceptionString(e);
-                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
+                Log.Error(e, $"Operation canceled in MapDbPublishRunner");
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
                 JobDetail.Result.StatusMessage = msg;
             }
             catch (Exception e)
             {
                 string msg = GlobalFunctions.LoggableExceptionString(e);
-                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
+                Log.Error(e, $"Exception from MapDbPublishRunner");
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 JobDetail.Result.StatusMessage = msg;
             }
@@ -227,6 +228,7 @@ namespace ContentPublishingLib.JobRunners
                             TaskOutcome.ReductionTaskId = RelatedTask.Id;
                         }
                         if (TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.Success ||
+                            // TODO Add new Warning status here
                             TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned)
                         {
                             JobDetail.Result.ReductionTaskSuccessList.Add(TaskOutcome);
@@ -235,6 +237,7 @@ namespace ContentPublishingLib.JobRunners
                         {
                             JobDetail.Result.ReductionTaskFailList.Add(TaskOutcome);
                         }
+                        Log.Debug($"From MapDbPublishRunner, recording OutcomeMetadata of related reduction task {RelatedTask.Id}");
                     }
                 }
 

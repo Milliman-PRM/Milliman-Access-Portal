@@ -5,6 +5,7 @@
  * more than is necessary to invoke all features of the library. 
  */
 
+using Serilog;
 using System;
 using System.IO;
 using System.Diagnostics;
@@ -36,17 +37,20 @@ namespace ContentPublishingService
                 int ServiceLaunchDelaySec = Configuration.ApplicationConfiguration.GetValue("ServiceLaunchDelaySec", 0);
                 Thread.Sleep(ServiceLaunchDelaySec * 1000);
 
-                InitiateTraceLogging();
-
                 Assembly processAssembly = Assembly.GetAssembly(typeof(ContentPublishingService));
                 FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
-                GlobalFunctions.TraceWriteLine($"Process launched:{Environment.NewLine}" +
-                                               $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
-                                               $"\tassembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" + 
-                                               $"\tassembly location <{processAssembly.Location}>{Environment.NewLine}" +
-                                               $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");
+                string introMsg = $"Process launched:{Environment.NewLine}" +
+                                  $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
+                                  $"\tassembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
+                                  $"\tassembly location <{processAssembly.Location}>{Environment.NewLine}" +
+                                  $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}";
 
-                GlobalFunctions.TraceWriteLine($"Service OnStart() called");
+                Log.Logger = new LoggerConfiguration()
+                        .ReadFrom.Configuration(Configuration.ApplicationConfiguration)
+                        .CreateLogger();
+                Log.Information(introMsg);
+
+                Log.Information($"Service OnStart() called");
 
                 if (Manager == null || !Manager.AnyMonitorThreadRunning)
                 {
@@ -56,7 +60,7 @@ namespace ContentPublishingService
             }
             catch (Exception e)
             {
-                GlobalFunctions.TraceWriteLine($"Failed to start service, exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
+                Log.Error(e, $"Failed to start service");
                 throw;
             }
         }
@@ -85,7 +89,7 @@ namespace ContentPublishingService
 
         protected override void OnStop()
         {
-            GlobalFunctions.TraceWriteLine($"Service OnStop() called");
+            Log.Information($"Service OnStop() called");
             if (Manager != null)
             {
                 Manager.Stop();
@@ -95,7 +99,7 @@ namespace ContentPublishingService
 
         protected override void OnShutdown()
         {
-            GlobalFunctions.TraceWriteLine($"Service OnShutdown() called");
+            Log.Information($"Service OnShutdown() called");
             if (Manager != null)
             {
                 Manager.Stop();
@@ -106,21 +110,21 @@ namespace ContentPublishingService
         #region Unimplemented service callbacks
         protected override void OnPause()
         {
-            GlobalFunctions.TraceWriteLine($"Service OnPause() called");
+            Log.Information($"Service OnPause() called");
 
             base.OnPause();
         }
 
         protected override void OnContinue()
         {
-            GlobalFunctions.TraceWriteLine($"Service OnContinue() called");
+            Log.Information($"Service OnContinue() called");
 
             base.OnContinue();
         }
 
         protected override void OnCustomCommand(int command)
         {
-            GlobalFunctions.TraceWriteLine($"Service OnCommand() called with command= {command}");
+            Log.Information($"Service OnCommand() called with command= {command}");
             base.OnCustomCommand(command);
 
             switch (command)   // must be between 128 and 255

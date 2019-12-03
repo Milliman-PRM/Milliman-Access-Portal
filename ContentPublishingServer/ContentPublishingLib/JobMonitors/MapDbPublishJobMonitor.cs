@@ -4,11 +4,10 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Serilog;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
-using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
@@ -124,8 +123,6 @@ namespace ContentPublishingLib.JobMonitors
 
         public override void JobMonitorThreadMain(CancellationToken Token)
         {
-            MethodBase Method = MethodBase.GetCurrentMethod();
-
             // Main loop
             while (!Token.IsCancellationRequested)
             {
@@ -133,7 +130,7 @@ namespace ContentPublishingLib.JobMonitors
                 // .ToList() is needed because the body changes the original List. 
                 foreach (PublishJobTrackingItem CompletedPublishRunnerItem in ActivePublicationRunnerItems.Where(t => t.task.IsCompleted).ToList())
                 {
-                    GlobalFunctions.TraceWriteLine($"PublishJobMonitor({JobMonitorType.ToString()}) completed processing for PublicationRequestId {CompletedPublishRunnerItem.requestId.ToString()}");
+                    Log.Information($"PublishJobMonitor({JobMonitorType.ToString()}) completed processing for PublicationRequestId {CompletedPublishRunnerItem.requestId.ToString()}");
                     UpdateRequest(CompletedPublishRunnerItem.task.Result);
                     ActivePublicationRunnerItems.Remove(CompletedPublishRunnerItem);
                 }
@@ -163,7 +160,7 @@ namespace ContentPublishingLib.JobMonitors
             }
 
             // Cancel was requested
-            GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} stopping {ActivePublicationRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
+            Log.Information($"MapDbPublishJobMonitor.JobMonigtorThreadMain() stopping {ActivePublicationRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
 
             if (ActivePublicationRunnerItems.Count != 0)
             {
@@ -172,7 +169,7 @@ namespace ContentPublishingLib.JobMonitors
                 DateTime WaitStart = DateTime.Now;
                 while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
                 {
-                    GlobalFunctions.TraceWriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} waiting for {ActivePublicationRunnerItems.Count} running tasks to complete");
+                    Log.Information($"MapDbPublishJobMonitor.JobMonigtorThreadMain() waiting for {ActivePublicationRunnerItems.Count} running tasks to complete");
 
                     int CompletedTaskIndex = Task.WaitAny(ActivePublicationRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks / 100));
                     if (CompletedTaskIndex > -1)
@@ -182,19 +179,19 @@ namespace ContentPublishingLib.JobMonitors
 
                     if (ActivePublicationRunnerItems.Count == 0)
                     {
-                        GlobalFunctions.TraceWriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} all publication runners terminated successfully");
+                        Log.Information($"MapDbPublishJobMonitor.JobMonigtorThreadMain() all publication runners terminated successfully");
                         break;
                     }
                 }
 
                 foreach (var Item in ActivePublicationRunnerItems)
                 {
-                    GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.requestId.ToString()} not completed");
+                    Log.Information($"MapDbPublishJobMonitor.JobMonigtorThreadMain() after timer expired, task {Item.requestId.ToString()} not completed");
                 }
             }
 
             Token.ThrowIfCancellationRequested();
-            GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} returning");
+            Log.Information($"MapDbPublishJobMonitor.JobMonigtorThreadMain() returning");
         }
 
         /// <summary>
@@ -255,7 +252,7 @@ namespace ContentPublishingLib.JobMonitors
                         TopItems.ForEach(r =>
                         {
                             r.RequestStatus = PublicationStatus.Processing;
-                            GlobalFunctions.TraceWriteLine($"PublishJobMonitor({JobMonitorType.ToString()}) initiating processing for PublicationRequestId {r.Id.ToString()}");
+                            Log.Information($"PublishJobMonitor({JobMonitorType.ToString()}) initiating processing for PublicationRequestId {r.Id.ToString()}");
                         });
                         Db.SaveChanges();
                         Transaction.Commit();
@@ -265,7 +262,7 @@ namespace ContentPublishingLib.JobMonitors
                 }
                 catch (Exception e)
                 {
-                    GlobalFunctions.TraceWriteLine(GlobalFunctions.LoggableExceptionString(e, $"Failed to query MAP database for available tasks:"));
+                    Log.Information(GlobalFunctions.LoggableExceptionString(e, $"Failed to query MAP database for available tasks:"));
                     return new List<ContentPublicationRequest>();
                 }
             }
@@ -285,13 +282,13 @@ namespace ContentPublishingLib.JobMonitors
                 var requestInEfCache = Db.ContentPublicationRequest.Find(DbRequest.Id);
                 if (requestInEfCache == null)
                 {
-                    GlobalFunctions.TraceWriteLine($"LaunchPublishRunnerForRequest() could not find a ContentPublicationRequest with Id {DbRequest.Id}");
+                    Log.Information($"LaunchPublishRunnerForRequest() could not find a ContentPublicationRequest with Id {DbRequest.Id}");
                     return;
                 }
                 if (requestInEfCache.RequestStatus != PublicationStatus.Processing)
                 {
                     string msg = $"LaunchPublishRunnerForRequest() called for publication request {DbRequest.Id} with unexpected status {ContentPublicationRequest.PublicationStatusString[requestInEfCache.RequestStatus]} while attempting LaunchPublishRunnerForRequest()";
-                    GlobalFunctions.TraceWriteLine(msg);
+                    Log.Information(msg);
                     Db.ContentPublicationRequest.Update(DbRequest);
                     DbRequest.StatusMessage = msg;
                     DbRequest.RequestStatus = PublicationStatus.Error;
@@ -342,9 +339,8 @@ namespace ContentPublishingLib.JobMonitors
         {
             if (JobDetail == null || JobDetail.Result == null || JobDetail.JobId == Guid.Empty)
             {
-                MethodBase Method = MethodBase.GetCurrentMethod();
-                string Msg = $"{Method.ReflectedType.Name}.{Method.Name} unusable argument";
-                GlobalFunctions.TraceWriteLine(Msg);
+                string Msg = $"MapDbPublishJobMonitor.UpdateRequest unusable argument";
+                Log.Information(Msg);
                 return false;
             }
 
@@ -406,7 +402,7 @@ namespace ContentPublishingLib.JobMonitors
                             };
                             break;
                         default:
-                            GlobalFunctions.TraceWriteLine("Unsupported job result status in MapDbPublishJobMonitor.UpdateTask().");
+                            Log.Information("Unsupported job result status in MapDbPublishJobMonitor.UpdateTask().");
                             return false;
                     }
 
@@ -420,7 +416,7 @@ namespace ContentPublishingLib.JobMonitors
             }
             catch (Exception e)
             {
-                GlobalFunctions.TraceWriteLine(GlobalFunctions.LoggableExceptionString(e, "Failed to update ContentPublishRequest in database:", true, true));
+                Log.Information(GlobalFunctions.LoggableExceptionString(e, "Failed to update ContentPublishRequest in database:", true, true));
                 return false;
             }
         }
@@ -449,7 +445,7 @@ namespace ContentPublishingLib.JobMonitors
                                                               .Where(r => !r.RootContentItem.DoesReduce)
                                                               .ToList();
 
-                            GlobalFunctions.TraceWriteLine($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, found {inProgressPublicationRequests.Count} publication requests in progress");
+                            Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, found {inProgressPublicationRequests.Count} publication requests in progress");
 
                             foreach (var request in inProgressPublicationRequests)
                             {
@@ -463,14 +459,14 @@ namespace ContentPublishingLib.JobMonitors
                                     request.StatusMessage = $"This publication request has exceeded the retry limit of {maxRetries}";
                                     request.RequestStatus = PublicationStatus.Error;
 
-                                    GlobalFunctions.TraceWriteLine($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, publication request {request.Id} has exceeded the max retry limit, setting Error status");
+                                    Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, publication request {request.Id} has exceeded the max retry limit, setting Error status");
                                 }
                                 else
                                 {
                                     request.StatusMessage = $"{retryStatusMessagePrefix}{nextRetry}";
                                     request.RequestStatus = PublicationStatus.Queued;
 
-                                    GlobalFunctions.TraceWriteLine($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, publication request {request.Id} will be retried, setting Queued status");
+                                    Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, publication request {request.Id} will be retried, setting Queued status");
                                 }
                                 Db.SaveChanges();
                             }
@@ -482,7 +478,7 @@ namespace ContentPublishingLib.JobMonitors
                                                               .Where(r => r.RootContentItem.DoesReduce)
                                                               .ToList();
 
-                            GlobalFunctions.TraceWriteLine($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, found {inProgressPublicationRequests.Count} publication requests in progress");
+                            Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, found {inProgressPublicationRequests.Count} publication requests in progress");
 
                             foreach (ContentPublicationRequest request in inProgressPublicationRequests)
                             {
@@ -493,7 +489,7 @@ namespace ContentPublishingLib.JobMonitors
 
                                 if (nextRetry > maxRetries)
                                 {
-                                    GlobalFunctions.TraceWriteLine($"CleanupOnStart() publication request {request.Id} exceeded max retries limit, setting status to PublicationStatus.Error, in job monitor type {JobMonitorType.ToString()}");
+                                    Log.Information($"CleanupOnStart() publication request {request.Id} exceeded max retries limit, setting status to PublicationStatus.Error, in job monitor type {JobMonitorType.ToString()}");
                                     request.StatusMessage = $"This publication request has exceeded the retry limit of {maxRetries}";
                                     request.RequestStatus = PublicationStatus.Error;
                                     continue;
@@ -510,7 +506,7 @@ namespace ContentPublishingLib.JobMonitors
                                     var allRelatedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == request.Id).ToList();
                                     allRelatedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
 
-                                    GlobalFunctions.TraceWriteLine($"CleanupOnStart() is re-queueing publication request {request.Id}, in job monitor type {JobMonitorType.ToString()}, because the master hierarchy has not been extracted");
+                                    Log.Information($"CleanupOnStart() is re-queueing publication request {request.Id}, in job monitor type {JobMonitorType.ToString()}, because the master hierarchy has not been extracted");
                                     Db.SaveChanges();
                                     continue;
                                 }
@@ -524,7 +520,7 @@ namespace ContentPublishingLib.JobMonitors
                                     foreach (ContentReductionTask task in relatedInProgressReductionTasks)
                                     {
                                         task.ReductionStatus = ReductionStatusEnum.Queued;
-                                        GlobalFunctions.TraceWriteLine($"CleanupOnStart() is re-queueing reduction task {task.Id} for publication request {request.Id}, in job monitor type {JobMonitorType.ToString()}");
+                                        Log.Information($"CleanupOnStart() is re-queueing reduction task {task.Id} for publication request {request.Id}, in job monitor type {JobMonitorType.ToString()}");
                                     }
                                     
                                     Db.SaveChanges();

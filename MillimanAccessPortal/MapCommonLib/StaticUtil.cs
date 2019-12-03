@@ -50,9 +50,6 @@ namespace MapCommonLib
                     {
                         throw;
                     }
-                    GlobalFunctions.TraceWriteLine(
-                        $"Failed to apply retry operation with argument '{opArg}'; "
-                        + $"retrying {attemptsLeft} more times...");
 
                     retryInterval += attemptNo;
                     Thread.Sleep(retryInterval * baseIntervalMs);
@@ -100,7 +97,6 @@ namespace MapCommonLib
                     {
                         throw;
                     }
-                    GlobalFunctions.TraceWriteLine($"Failed to apply retry operation with arguments '{opArg1},{opArg2}'; retrying {attemptsLeft} more times...");
 
                     retryInterval += attemptNo;
                     Thread.Sleep(retryInterval * baseIntervalMs);
