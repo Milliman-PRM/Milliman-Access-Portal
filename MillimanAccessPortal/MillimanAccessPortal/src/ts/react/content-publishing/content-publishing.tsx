@@ -446,7 +446,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               <>
                 <CardButton
                   color={'green'}
-                  tooltip={'Approve'}
+                  tooltip={'Review for Approval'}
                   onClick={() => {
                     if (this.props.formChangesPending || this.props.uploadChangesPending) {
                       this.props.openModifiedFormModal({
@@ -468,7 +468,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 <>
                   <CardButton
                     color={'red'}
-                    tooltip={'Cancel'}
+                    tooltip={'Cancel Publication'}
                     onClick={() => this.props.openCancelPublicationModal({ id: entity.id })}
                     icon={'cancel'}
                   />
@@ -477,7 +477,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 <>
                   <CardButton
                     color={'red'}
-                    tooltip={'Delete'}
+                    tooltip={'Delete Content Item'}
                     onClick={() => {
                       if (this.props.formChangesPending || this.props.uploadChangesPending) {
                         this.props.openModifiedFormModal({
@@ -495,7 +495,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   />
                   <CardButton
                     color={'green'}
-                    tooltip={'Edit'}
+                    tooltip={'Edit Content Item'}
                     onClick={() => {
                       if (this.props.formChangesPending || this.props.uploadChangesPending) {
                         this.props.openModifiedFormModal({
