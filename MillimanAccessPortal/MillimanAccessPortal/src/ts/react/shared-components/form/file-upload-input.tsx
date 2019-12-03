@@ -355,10 +355,6 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
                 className={`progress-bar-upload${uploadEasing}`}
                 style={{ width: uploadProgress.percentage }}
               />}
-            {errorMsg &&
-              <div
-                className="progress-bar-error progress-easing"
-              />}
           </div>
         }
         {errorMsg && <div className="error-message">{errorMsg}</div>}
