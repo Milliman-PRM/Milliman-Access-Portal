@@ -5,15 +5,14 @@
  * more than is necessary to invoke all features of the library. 
  */
 
+using Prm.SerilogCustomization;
 using Serilog;
 using System;
-using System.IO;
 using System.Diagnostics;
 using System.Reflection;
 using System.ServiceProcess;
 using System.Threading;
 using ContentPublishingLib;
-using MapCommonLib;
 using Microsoft.Extensions.Configuration;
 
 namespace ContentPublishingService
@@ -21,34 +20,34 @@ namespace ContentPublishingService
     public partial class ContentPublishingService : ServiceBase
     {
         ProcessManager Manager = null;
-        private TextWriterTraceListener CurrentTraceListener = null;
 
         public ContentPublishingService()
         {
             InitializeComponent();
+
+            Configuration.LoadConfiguration();
+
+            Assembly processAssembly = Assembly.GetAssembly(typeof(ContentPublishingService));
+            FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
+            string introMsg = $"Process launched:{Environment.NewLine}" +
+                              $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
+                              $"\tassembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
+                              $"\tassembly location <{processAssembly.Location}>{Environment.NewLine}" +
+                              $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}";
+
+            Log.Logger = new LoggerConfiguration()
+                    .ReadFrom.Configuration(Configuration.ApplicationConfiguration)
+                    .Enrich.With<UtcTimestampEnricher>()
+                    .CreateLogger();
+            Log.Information(introMsg);
         }
 
         protected override void OnStart(string[] args)
         {
             try
             {
-                Configuration.LoadConfiguration();
-
-                int ServiceLaunchDelaySec = Configuration.ApplicationConfiguration.GetValue("ServiceLaunchDelaySec", 0);
+                int ServiceLaunchDelaySec = Configuration.ApplicationConfiguration.GetValue("ServiceLaunchDelaySec", 10);
                 Thread.Sleep(ServiceLaunchDelaySec * 1000);
-
-                Assembly processAssembly = Assembly.GetAssembly(typeof(ContentPublishingService));
-                FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
-                string introMsg = $"Process launched:{Environment.NewLine}" +
-                                  $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
-                                  $"\tassembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
-                                  $"\tassembly location <{processAssembly.Location}>{Environment.NewLine}" +
-                                  $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}";
-
-                Log.Logger = new LoggerConfiguration()
-                        .ReadFrom.Configuration(Configuration.ApplicationConfiguration)
-                        .CreateLogger();
-                Log.Information(introMsg);
 
                 Log.Information($"Service OnStart() called");
 
@@ -62,28 +61,6 @@ namespace ContentPublishingService
             {
                 Log.Error(e, $"Failed to start service");
                 throw;
-            }
-        }
-
-        /// <summary>
-        /// Adds a service trace logging file to the collection of Trace listeners
-        /// </summary>
-        private void InitiateTraceLogging()
-        {
-            if (CurrentTraceListener == null)
-            {
-                EventLogEntryType EvtType = EventLogEntryType.Information;
-                string EvtMsg = string.Empty;
-
-                string TraceLogDirectory = Configuration.ApplicationConfiguration.GetValue("TraceLogDirectory", Path.GetDirectoryName(Assembly.GetAssembly(typeof(ContentPublishingService)).Location));
-
-                string TraceLogFilePath = Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")}.txt");
-                EvtMsg += $"Using Trace logging file {Environment.NewLine}    {TraceLogFilePath}";
-                EventLog.WriteEntry(EvtMsg, EvtType);
-
-                CurrentTraceListener = new TextWriterTraceListener(TraceLogFilePath);
-                Trace.Listeners.Add(CurrentTraceListener);
-                Trace.AutoFlush = true;
             }
         }
 

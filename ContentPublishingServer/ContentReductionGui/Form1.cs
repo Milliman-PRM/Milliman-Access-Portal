@@ -4,19 +4,12 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Prm.SerilogCustomization;
 using Serilog;
 using System;
 using System.Diagnostics;
-//using System.Configuration;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.IO;
 using ContentPublishingLib;
 
 namespace QvReportReductionGui
@@ -40,6 +33,7 @@ namespace QvReportReductionGui
 
             Log.Logger = new LoggerConfiguration()
                     .ReadFrom.Configuration(Configuration.ApplicationConfiguration)
+                    .Enrich.With<UtcTimestampEnricher>()
                     .CreateLogger();
             Log.Information(introMsg);
 
