@@ -1157,7 +1157,19 @@ const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
     elementsToConfirm: null,
     onlyChangesShown: false,
   }),
+  SELECT_CLIENT: () => ({
+    rootContentItemId: null,
+    goLiveSummary: null,
+    elementsToConfirm: null,
+    onlyChangesShown: false,
+  }),
   SELECT_ITEM: () => ({
+    rootContentItemId: null,
+    goLiveSummary: null,
+    elementsToConfirm: null,
+    onlyChangesShown: false,
+  }),
+  SET_FORM_FOR_NEW_CONTENT_ITEM: () => ({
     rootContentItemId: null,
     goLiveSummary: null,
     elementsToConfirm: null,
