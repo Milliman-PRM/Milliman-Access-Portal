@@ -582,13 +582,13 @@ namespace MillimanAccessPortal.Controllers
                 ? string.Empty
                 : SettableEmailText + $"{Environment.NewLine}{Environment.NewLine}";
 
-            string accountActivationDays = _configuration["AccountActivationTokenTimespanDays"] ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays.ToString();
+            int accountActivationDays = _configuration.GetValue("AccountActivationTokenTimespanDays", GlobalFunctions.fallbackAccountActivationTokenTimespanDays);
 
             // Non-configurable portion of email body
             emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}" +
                 $"Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}" +
                 $"{emailLink.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}" +
-                $"This link will expire in {accountActivationDays} days.{Environment.NewLine}{Environment.NewLine}" +
+                $"This link will expire {accountActivationDays} days after the time it was sent.{Environment.NewLine}{Environment.NewLine}" +
                 $"Once you have activated your account, MAP can be accessed at {rootSiteUrl.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}" +
                 $"If you have any questions regarding this email, please contact map.support@milliman.com";
             string emailSubject = "Welcome to Milliman Access Portal!";
@@ -631,11 +631,11 @@ namespace MillimanAccessPortal.Controllers
                     Query = $"userEmail={RequestedUser.Email}&passwordResetToken={Uri.EscapeDataString(PasswordResetToken)}"
                 };
 
-                string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours.ToString();
+                int expirationHours = _configuration.GetValue("PasswordResetTokenTimespanHours", GlobalFunctions.fallbackPasswordResetTokenTimespanHours);
 
-                emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
-                emailBody += $"Your user name is {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}";
-                emailBody += $"{link.Uri.AbsoluteUri}";
+                emailBody = $"A password reset for your Milliman Access Portal (MAP) account ({RequestedUser.Email}) has been requested. To reset your password, please click on the link below or copy and paste the link into your browser. {Environment.NewLine}";
+                emailBody += $"{link.Uri.AbsoluteUri}{Environment.NewLine}";
+                emailBody += $"This link will expire {expirationHours} hours after the time it was sent.";
 
                 appLogMsg = $"Password reset email queued to address {RequestedUser.Email}{Environment.NewLine}reason: {reason.GetDisplayValueString()}{Environment.NewLine}emailed link: {link.Uri.AbsoluteUri}";
             }
@@ -643,7 +643,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 MapDbContextLib.Context.AuthenticationScheme authScheme = GetExternalAuthenticationScheme(RequestedUser.UserName);
 
-                emailBody = "A password reset was requested for your Milliman Access Portal account. " +
+                emailBody = $"A password reset for your Milliman Access Portal (MAP) account ({RequestedUser.Email}) has been requested. " +
                     $"Your MAP account uses login services from your organization ({authScheme.DisplayName}). Please contact your IT department if you require password assistance.";
 
                 appLogMsg = $"Password reset was requested for an externally authenticated user with email {RequestedUser.Email}. Information email was queued. No other action taken.";
