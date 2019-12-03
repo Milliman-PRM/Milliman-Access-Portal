@@ -64,7 +64,9 @@ export class CardStatus extends React.Component<CardStatusProps> {
       const { requestStatus, queueDetails } = status;
       if (requestStatus === PublicationStatus.Queued) {
         const { queuePosition: position } = queueDetails;
-        queueString = `(behind ${position} other publication${s(position)})`;
+        queueString = (position > 0)
+          ? `(behind ${position} other publication${s(position)})`
+          : '';
       } else if (requestStatus === PublicationStatus.Processing) {
         const { reductionsCompleted: completed, reductionsTotal: total } = queueDetails;
         if (total > 0) {
