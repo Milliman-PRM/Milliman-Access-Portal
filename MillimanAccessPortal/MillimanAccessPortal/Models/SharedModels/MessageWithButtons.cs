@@ -11,20 +11,20 @@ using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.SharedModels
 {
-    public class MessageWithButtons
+    public class MessageModel
     {
         public List<string> MessagesAboveButtons { get; set; } = new List<string>();
-        public List<ConfiguredButton> Buttons { get; set; }
+        public List<ConfiguredButton> Buttons { get; set; } = new List<ConfiguredButton>();
         public List<string> MessagesBelowButtons { get; set; } = new List<string>();
     }
 
     public class ConfiguredButton
     {
-        public string Value { get; set; }
-        public string Controller { get; set; }
-        public string Action { get; set; }
+        public string Value { get; set; } = string.Empty;
+        public string Controller { get; set; } = string.Empty;
+        public string Action { get; set; } = string.Empty;
         public Dictionary<string,string> RouteData { get; set; } = new Dictionary<string, string>();
         public string Method { get; set; } = "post";
-        public string ButtonClass { get; set; } = "blue-button";
+        public string ButtonClass { get; set; } = "link-button";
     }
 }
