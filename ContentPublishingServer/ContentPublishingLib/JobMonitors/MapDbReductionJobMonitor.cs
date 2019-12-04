@@ -303,10 +303,30 @@ namespace ContentPublishingLib.JobMonitors
                         OutcomeReason = MapDbReductionTaskOutcomeReason.Default,
                     };
 
+                    // Assign DbTask.ReductionStatus and OutcomeMetadataObj.OutcomeReason
                     switch (JobDetail.Status)
                     {
                         case ReductionJobDetail.JobStatusEnum.Unspecified:
                             DbTask.ReductionStatus = ReductionStatusEnum.Unspecified;
+                            break;
+                        case ReductionJobDetail.JobStatusEnum.Warning:
+                            // TODO finish this
+                            DbTask.ReductionStatus = ReductionStatusEnum.Warning;
+                            switch (JobDetail.Result.OutcomeReason)
+                            {
+                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValues:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoReducedFileCreated;
+                                    break;
+                                default:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.UnspecifiedError;
+                                    break;
+                            }
                             break;
                         case ReductionJobDetail.JobStatusEnum.Error:
                             DbTask.ReductionStatus = ReductionStatusEnum.Error;
@@ -321,9 +341,6 @@ namespace ContentPublishingLib.JobMonitors
                                     break;
                                 case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValues:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues;
-                                    break;
-                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent:
-                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent;
                                     break;
                                 case ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoReducedFileCreated;
@@ -369,7 +386,7 @@ namespace ContentPublishingLib.JobMonitors
             }
             catch (Exception e)
             {
-                Log.Information("Failed to update task in database" + Environment.NewLine + e.Message);
+                Log.Error(e, "Failed to update task in database");
                 return false;
             }
         }

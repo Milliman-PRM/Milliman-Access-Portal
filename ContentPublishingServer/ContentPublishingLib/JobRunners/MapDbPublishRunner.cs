@@ -227,9 +227,12 @@ namespace ContentPublishingLib.JobRunners
                         {
                             TaskOutcome.ReductionTaskId = RelatedTask.Id;
                         }
+
                         if (TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.Success ||
-                            // TODO Add new Warning status here
-                            TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned)
+                            TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned ||
+                            TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent || // warning
+                            TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.NoSelectedFieldValues || // warning
+                            TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.NoReducedFileCreated) // warning
                         {
                             JobDetail.Result.ReductionTaskSuccessList.Add(TaskOutcome);
                         }

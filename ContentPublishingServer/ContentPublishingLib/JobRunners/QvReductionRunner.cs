@@ -181,9 +181,22 @@ namespace ContentPublishingLib.JobRunners
             }
             catch (ApplicationException e)
             {
-                JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
+                List<ReductionJobDetail.JobOutcomeReason> WarningStatusReasons = new List<ReductionJobDetail.JobOutcomeReason>
+                {
+                    ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent,
+                };
+
                 // JobDetail.Result.OutcomeReason is expected to be set where the exception is thrown
-                Log.Error(e, $"ApplicationException in QvReductionRunner");
+                if (WarningStatusReasons.Contains(JobDetail.Result.OutcomeReason))
+                {
+                    JobDetail.Status = ReductionJobDetail.JobStatusEnum.Warning;
+                }
+                else
+                {
+                    JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
+                }
+
+                Log.Warning(e, $"ApplicationException in QvReductionRunner");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
                 // Security related audit logs are generated at the time ApplicationException is thrown, where appropriate.  Don't repeat that here. 
             }

@@ -28,6 +28,7 @@ namespace MapDbContextLib.Context
         Reduced = 30,       // The reduction server has completed the reduction task, but no user has pushed the reduced document
         Live = 40,          // The reduced document is published and is currently being served to users
         Replaced = 50,      // The reduced document was previously live, but a more recent document has since gone live
+        Warning = 80,       // The reduction completed with a notable issue that results in the selection group becoming inactive
         Error = 90,         // An error has occured
     }
 
@@ -210,7 +211,7 @@ namespace MapDbContextLib.Context
             set
             {
                 OutcomeMetadata = value != null
-                    ? JsonConvert.SerializeObject(value)
+                    ? JsonConvert.SerializeObject(value, new JsonSerializerSettings { })
                     : "{}";
             }
         }

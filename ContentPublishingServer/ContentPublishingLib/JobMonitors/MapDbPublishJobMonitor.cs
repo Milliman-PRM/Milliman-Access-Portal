@@ -474,6 +474,7 @@ namespace ContentPublishingLib.JobMonitors
 
                         case MapDbPublishJobMonitorType.ReducingPublications:
                             inProgressPublicationRequests = Db.ContentPublicationRequest
+                                                              .Include(r => r.RootContentItem)
                                                               .Where(r => r.RequestStatus == PublicationStatus.Processing)
                                                               .Where(r => r.RootContentItem.DoesReduce)
                                                               .ToList();
@@ -524,9 +525,9 @@ namespace ContentPublishingLib.JobMonitors
                                     }
                                     
                                     Db.SaveChanges();
-
-                                    LaunchPublishRunnerForRequest(request, SkipReductionTaskQueueing: true);
                                 }
+
+                                LaunchPublishRunnerForRequest(request, SkipReductionTaskQueueing: true);
                             }
                             break;
 

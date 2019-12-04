@@ -83,18 +83,16 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             ReturnObj.SelectionGroups = null;
             if (PubRequest.RootContentItem.DoesReduce)
             {
-                // retrieve all reduction tasks for this publication, filtering out the request
-                // responsible for extracting the new hierarchy
+                // retrieve all related reduction tasks that are associated with selection groups
                 List<ContentReductionTask> AllTasks = Db.ContentReductionTask
                                                         .Include(t => t.SelectionGroup)
                                                         .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
-                                                        .Where(t => t.SelectionGroup != null)
+                                                        .Where(t => t.SelectionGroup != null)  // omit the task that extracts the new master hierarchy
                                                         .ToList();
                 #region Validation of reduction tasks and related nav properties from db
-                if (AllTasks.Any(t => t.SelectionGroup == null)
-                 || AllTasks.Any(t => t.SelectionGroup.RootContentItemId != PubRequest.RootContentItemId)
-                 )  // if any of this happens it probably means db corruption or connection failed
+                if (AllTasks.Any(t => t.SelectionGroup.RootContentItemId != PubRequest.RootContentItemId))
                 {
+                    // this probably means db corruption or connection failed
                     throw new ApplicationException($"While building content validation summary, reduction task query failed");
                 }
                 #endregion
@@ -125,16 +123,14 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 errorMessage = "This group has no selections.";
                                 break;
                             case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
-                                errorMessage = "None of this group's selections are in the new hierarchy.";
+                                errorMessage = "None of this group's selections exist in the new hierarchy.";
                                 break;
                             case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
-                                errorMessage = "The reduction did not produce an output file. "
-                                    + "This could be caused by selections that result in no matching data.";
+                                errorMessage = "The reduction did not produce an output file. This could be caused by selections that result in no matching data.";
                                 break;
                             default:
                                 errorMessage = null;
-                                Log.Warning("Unexpected outcome reason in go live preview "
-                                    + $"for reduction task {task.Id}: {task.OutcomeMetadataObj.OutcomeReason}");
+                                Log.Warning($"Unexpected outcome reason {task.OutcomeMetadataObj.OutcomeReason.ToString()} in go live preview for reduction task {task.Id}");
                                 break;
                         }
 

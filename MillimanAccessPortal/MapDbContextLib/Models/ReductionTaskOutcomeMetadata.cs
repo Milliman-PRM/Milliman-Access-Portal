@@ -4,6 +4,8 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 
@@ -56,8 +58,12 @@ namespace MapDbContextLib.Models
     public class ReductionTaskOutcomeMetadata
     {
         public Guid ReductionTaskId { get; set; }
+
         public TimeSpan ElapsedTime { get; set; } = TimeSpan.Zero;
+
         public DateTime? ProcessingStartedUtc { get; set; } = null;
+
+        [JsonConverter(typeof(StringEnumConverter))]
         public MapDbReductionTaskOutcomeReason OutcomeReason { get; set; } = MapDbReductionTaskOutcomeReason.Default;
     }
 }

@@ -35,6 +35,7 @@ namespace ContentPublishingLib.JobRunners
             Canceled,
             Success,
             Error,
+            Warning,
         }
 
         public enum JobOutcomeReason
