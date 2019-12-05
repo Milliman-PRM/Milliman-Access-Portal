@@ -118,12 +118,17 @@
         .action-icon-label,
         .form-input-container,
         .thumbnail-preview {
-            border-color: $dark-grey !important;
+            border-color: $grey !important;
+            background-color: $off-white !important;
         }
 
         .form-input-label,
         .form-input {
-            color: darken($dark-grey, 10%) !important;
+            color: $grey !important;
+        }
+
+        &.thumbnail .form-element-input .form-input-container {
+            min-height: 1.5em;
         }
     }
 
