@@ -1,4 +1,4 @@
-﻿@model MillimanAccessPortal.Models.SharedModels.MessageWithButtons;
+﻿@model MillimanAccessPortal.Models.SharedModels.MessageModel;
 @using MillimanAccessPortal.Models.SharedModels
 
 @{
@@ -19,41 +19,50 @@
 }
 
 <div id="message-container">
-	<div>
-	@foreach (string msg in @Model.MessagesAboveButtons) 
+	@if (Model.MessagesAboveButtons.Count > 0)
 	{
-		<p class="message">
-			@Html.Raw(msg)
-		</p>
-	}
-	</div>
-	<div>
-	@{
-		foreach (var button in Model.Buttons) 
+		<div class="primary-message">
+		@foreach (string msg in @Model.MessagesAboveButtons) 
 		{
-            <form style="display: inline" method="@button.Method">
-			@if (button.Method == "post")
-			{
-				@foreach (var kvp in @button.RouteData)
-				{
-					<input type="hidden" id="@kvp.Key" name="@kvp.Key" value="@kvp.Value">
-				}
-				<button class="@button.ButtonClass" asp-controller="@button.Controller" asp-action="@button.Action">@button.Value</button>
-			}
-			else
-			{
-				<button class="@button.ButtonClass" asp-controller="@button.Controller" asp-action="@button.Action" asp-all-route-data="@button.RouteData">@button.Value</button>
-			}
-            </form>
+			<p>
+				@Html.Raw(msg)
+			</p>
 		}
+		</div>
 	}
-	</div>
-	<div>
-	@foreach (string msg in @Model.MessagesBelowButtons) 
+	@if (Model.Buttons.Count > 0)
 	{
-		<p class="message">
-			@Html.Raw(msg)
-		</p>
+		<div class="button-container">
+		@{
+			foreach (var button in Model.Buttons) 
+			{
+				<form style="display: inline" method="@button.Method">
+				@if (button.Method == "post")
+				{
+					@foreach (var kvp in @button.RouteData)
+					{
+						<input type="hidden" id="@kvp.Key" name="@kvp.Key" value="@kvp.Value">
+					}
+					<button class="@button.ButtonClass" asp-controller="@button.Controller" asp-action="@button.Action">@button.Value</button>
+				}
+				else
+				{
+					<button class="@button.ButtonClass" asp-controller="@button.Controller" asp-action="@button.Action" asp-all-route-data="@button.RouteData">@button.Value</button>
+				}
+				</form>
+			}
+		}
+		</div>
 	}
-	</div>
+	@if (Model.MessagesBelowButtons.Count > 0)
+	{
+		<div class="secondary-message">
+		@foreach (string msg in @Model.MessagesBelowButtons) 
+		{
+			<p>
+				@Html.Raw(msg)
+			</p>
+		}
+		</div>
+	}
 </div>
