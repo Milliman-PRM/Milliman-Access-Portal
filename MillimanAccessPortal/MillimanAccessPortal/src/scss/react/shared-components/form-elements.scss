@@ -303,6 +303,41 @@
     }
 }
 
+.disclaimer-preview-toggle {
+    width: 100%;
+    padding: 0 1em;
+    text-align: right;
+    color: $blue;
+    cursor: pointer;
+
+    &:hover {
+        color: darken($blue, 10%);
+    }
+}
+
+.disclaimer-preview {
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 90vh;
+    width: 100%;
+    border: 1px solid $charcoal;
+    background-color: $white;
+    padding: 1em;
+    margin: .25em .5em 1.5em;
+
+    &.disabled {
+        border-color: $grey;
+        background-color: $off-white;
+        color: $grey;
+    }
+}
+
+.disclaimer-instructions {
+    text-align: right;
+    width: 100%;
+    margin-bottom: 1.5em;
+}
+
 /* File Upload Component */
 
 .file-upload-input {
