@@ -927,7 +927,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     formData.disclaimerInputState === 'preview' || formData.formState === 'read'
                       ? (
                         <div
-                          className="disclaimer-preview"
+                          className={`disclaimer-preview${formData.formState === 'read' ? ' disabled' : ''}`}
                           dangerouslySetInnerHTML={{
                             __html: convertMarkdownToHTML(formData.pendingFormData.contentDisclaimer),
                           }}
