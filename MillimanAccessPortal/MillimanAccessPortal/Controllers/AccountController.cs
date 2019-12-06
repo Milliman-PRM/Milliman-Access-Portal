@@ -229,7 +229,8 @@ namespace MillimanAccessPortal.Controllers
                     _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName));
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, User {user.UserName} suspended, local login rejected");
 
-                    Response.Headers.Add("Warning", "This account is currently suspended.  Please contact your Milliman consultant, or email map.support@milliman.com");
+                    string supportEmail = _configuration.GetValue("SupportEmailAddress", "map.support@milliman.com");
+                    Response.Headers.Add("Warning", $"This account is currently suspended.  Please contact your Milliman consultant, or email {supportEmail}>");
                     return Ok();
                 }
 
@@ -584,13 +585,14 @@ namespace MillimanAccessPortal.Controllers
 
             int accountActivationDays = _configuration.GetValue("AccountActivationTokenTimespanDays", GlobalFunctions.fallbackAccountActivationTokenTimespanDays);
 
+            string supportEmail = _configuration.GetValue("SupportEmailAddress", "map.support@milliman.com");
             // Non-configurable portion of email body
             emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}" +
                 $"Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}" +
                 $"{emailLink.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}" +
                 $"This link will expire {accountActivationDays} days after the time it was sent.{Environment.NewLine}{Environment.NewLine}" +
                 $"Once you have activated your account, MAP can be accessed at {rootSiteUrl.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}" +
-                $"If you have any questions regarding this email, please contact map.support@milliman.com";
+                $"If you have any questions regarding this email, please contact {supportEmail}";
             string emailSubject = "Welcome to Milliman Access Portal!";
 
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
@@ -1051,7 +1053,8 @@ namespace MillimanAccessPortal.Controllers
                 model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
                 return View(model);
             }
-            var passwordResetErrorMessage = "An error occurred. Please try again. If the issue persists, please contact <a href=\"mailto:map.support@milliman.com\">MAP.Support@Milliman.com</a>.";
+            string supportEmail = _configuration.GetValue("SupportEmailAddress", "map.support@milliman.com");
+            var passwordResetErrorMessage = $"An error occurred. Please try again. If the issue persists, please contact <a href=\"mailto:{supportEmail}\">{supportEmail}</a>.";
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
