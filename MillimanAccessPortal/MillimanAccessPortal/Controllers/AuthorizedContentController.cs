@@ -22,6 +22,7 @@ using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AuthorizedContentViewModels;
+using MillimanAccessPortal.Models.SharedModels;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
 using PowerBiLib;
@@ -133,11 +134,7 @@ namespace MillimanAccessPortal.Controllers
                     "failed to obtain the requested selection group, content item, or content type: " +
                     $"user {User.Identity.Name}, selectionGroupId {selectionGroupId}, aborting");
 
-                var ErrMsg = new List<string>
-                {
-                    "You are not authorized to access the requested content.",
-                };
-                return View("ContentMessage", ErrMsg);
+                return View("UserMessage", new UserMessageModel("You are not authorized to access the requested content."));
             }
             #endregion
 
@@ -148,11 +145,7 @@ namespace MillimanAccessPortal.Controllers
                 Log.Verbose($"In AuthorizedContentController.ContentWrapper action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
-                var ErrMsg = new List<string>
-                {
-                    "You are not authorized to access the requested content.",
-                };
-                return View("ContentMessage", ErrMsg);
+                return View("UserMessage", new UserMessageModel("You are not authorized to access the requested content."));
             }
             #endregion
 
@@ -248,11 +241,7 @@ namespace MillimanAccessPortal.Controllers
                     "failed to obtain the requested selection group, content item, or content type: " +
                     $"user {User.Identity.Name}, selectionGroupId {selectionGroupId}, aborting");
 
-                var ErrMsg = new List<string>
-                {
-                    "You are not authorized to access the requested content.",
-                };
-                return View("ContentMessage", ErrMsg);
+                return View("UserMessage", new UserMessageModel("You are not authorized to access the requested content."));
             }
             #endregion
 
@@ -263,11 +252,7 @@ namespace MillimanAccessPortal.Controllers
                 Log.Verbose($"In AuthorizedContentController.WebHostedContent action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
-                var ErrMsg = new List<string>
-                {
-                    "You are not authorized to access the requested content.",
-                };
-                return View("ContentMessage", ErrMsg);
+                return View("UserMessage", new UserMessageModel("You are not authorized to access the requested content."));
             }
             #endregion
 
@@ -276,10 +261,7 @@ namespace MillimanAccessPortal.Controllers
             if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer)
                 && !userInSelectionGroup.DisclaimerAccepted)
             {
-                return View("ContentMessage", new List<string>
-                {
-                    "You are not authorized to access the requested content.",
-                });
+                return View("UserMessage", new UserMessageModel("You are not authorized to access the requested content."));
             }
 
             // This request must be referred by ContentWrapper
@@ -326,30 +308,27 @@ namespace MillimanAccessPortal.Controllers
                     Log.Error("In AuthorizedContentController.WebHostedContent action: content file path not found " +
                         $"for {(selectionGroup.IsMaster ? "master" : "reduced")} " +
                         $"selection group {selectionGroupId}, aborting");
-                    var ErrMsg = new List<string>
-                {
-                    "This content file path could not be found.",
-                    "Please refresh this web page (F5) in a few minutes, " +
-                    "and contact MAP Support if this error continues.",
-                };
-                    return View("ContentMessage", ErrMsg);
+
+                    return View("UserMessage", new UserMessageModel { PrimaryMessages = {
+                        "This content file path could not be found.",
+                        "Please refresh this web page (F5) in a few minutes, and contact MAP Support if this error continues." }});
                 }
 
                 // Make sure the checksum currently matches the value stored at the time the file went live
                 if (!requestedContentFile.ValidateChecksum())
                 {
-                    var ErrMsg = new List<string>
-                {
-                    $"The system could not validate the file for content item {selectionGroup.RootContentItem.ContentName}, selection group {selectionGroup.GroupName}.",
-                    $"Please contact MAP Support if this error continues.",
-                };
+                    var ErrMsg = new string[]
+                    {
+                        $"The system could not validate the file for content item {selectionGroup.RootContentItem.ContentName}, selection group {selectionGroup.GroupName}.",
+                        $"Please contact MAP Support if this error continues.",
+                    };
                     string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Time stamp (UTC): {DateTime.UtcNow.ToString()}{Environment.NewLine}Content item: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
                     var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
                     notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
                     Log.Warning("In AuthorizedContentController.WebHostedContent action: checksum failure for ContentFile {@ContentFile}, aborting", requestedContentFile);
                     AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, requestedContentFile, "AuthorizedContentController.WebHostedContent"));
-                    return View("ContentMessage", ErrMsg);
+                    return View("UserMessage", new UserMessageModel(ErrMsg));
                 }
             }
             #endregion
@@ -399,20 +378,14 @@ namespace MillimanAccessPortal.Controllers
 
                     default:
                         Log.Error($"In AuthorizedContentController.WebHostedContent action, unsupported content type <{selectionGroup.RootContentItem.ContentType.Name}>, aborting");
-                        TempData["Message"] = $"Display of an unsupported ContentType was requested: {selectionGroup.RootContentItem.ContentType.Name}";
-                        TempData["ReturnToController"] = "AuthorizedContent";
-                        TempData["ReturnToAction"] = "Index";
-                        return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
+                        return View("UserMessage", new UserMessageModel($"Display of an unsupported ContentType was requested: {selectionGroup.RootContentItem.ContentType.Name}"));
                 }
 
             }
             catch (MapException e)
             {
                 Log.Error(e, $"In AuthorizedContentController.WebHostedContent action, failed to obtain content URI, aborting");
-                TempData["Message"] = GlobalFunctions.LoggableExceptionString(e, "Exception:", true, true, true);
-                TempData["ReturnToController"] = "AuthorizedContent";
-                TempData["ReturnToAction"] = "Index";
-                return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
+                return View("UserMessage", new UserMessageModel(GlobalFunctions.LoggableExceptionString(e, "Exception:", true, true, true)));
             }
         }
 
@@ -754,7 +727,7 @@ namespace MillimanAccessPortal.Controllers
                 notifier.sendSupportMail(MailMsg, $"Checksum verification ({purpose})");
                 Log.Error("In AuthorizedContentController.RelatedPdf action: file checksum failure, ContentRelatedFile {@ContentRelatedFile}, aborting", contentRelatedPdf);
                 AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentRelatedPdf, "AuthorizedContentController.RelatedPdf"));
-                return View("ContentMessage", ErrMsg);
+                return View("UserMessage", new UserMessageModel { PrimaryMessages = ErrMsg });
             }
             #endregion
 

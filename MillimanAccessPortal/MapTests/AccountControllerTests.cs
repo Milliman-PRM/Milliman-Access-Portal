@@ -128,7 +128,7 @@ namespace MapTests
 
             #region Assert
             ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("MessageWithButtons", viewAsViewResult.ViewName);
+            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
 
             #endregion
         }
@@ -251,7 +251,7 @@ namespace MapTests
 
             #region Assert
             ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal(nameof(SharedController.Message), viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
+            Assert.Equal(nameof(SharedController.UserMessage), viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
             Assert.IsType<string>(viewAsViewResult.Model);
             #endregion
         }

@@ -665,13 +665,13 @@ namespace MillimanAccessPortal.Controllers
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(code))
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: missing argument(s), aborting");
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
             }
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: user {userId} not found, aborting");
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
             }
 
             if (user.EmailConfirmed)  // Account is already activated
@@ -693,10 +693,10 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} GET action: confirmation token is invalid for user name {user.UserName}, may be expired.");
 
-                var messageModel = new MessageModel
+                var messageModel = new UserMessageModel
                 {
-                    MessagesAboveButtons = { $"Your account activation link has either expired or is invalid. Resend the welcome email and try again." },
-                    MessagesBelowButtons = { "If you continue to be directed to this page, please contact map.support@milliman.com." },
+                    PrimaryMessages = { $"Your account activation link has either expired or is invalid. Resend the welcome email and try again." },
+                    SecondaryMessages = { "If you continue to be directed to this page, please contact map.support@milliman.com." },
                     Buttons = new List<ConfiguredButton>
                         {
                             new ConfiguredButton
@@ -721,7 +721,7 @@ namespace MillimanAccessPortal.Controllers
                             },
                         }
                 };
-                return View("MessageWithButtons", messageModel);
+                return View("UserMessage", messageModel);
             }
 
             // Prompt for the user's profile data
@@ -759,7 +759,7 @@ namespace MillimanAccessPortal.Controllers
             if (user == null)
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user {model.Id} not found, aborting");
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
             }
 
             if (user.EmailConfirmed)  // Account is already activated
@@ -781,7 +781,7 @@ namespace MillimanAccessPortal.Controllers
 
                         Log.Information($"EnableAccount failed for user {model.Username} with code 'InvalidToken', it is likely that the token is expired, new welcome email sent");
                         string WhatHappenedMessage = "Your previous Milliman Access Portal account activation link is invalid and may have expired.  A new link has been emailed to you.";
-                        return View("Message", WhatHappenedMessage);
+                        return View("UserMessage", new UserMessageModel(WhatHappenedMessage));
                     }
                     else
                     {
@@ -790,7 +790,7 @@ namespace MillimanAccessPortal.Controllers
 
                         Log.Error($"EnableAccount failed from _userManager.ConfirmEmailAsync(user, model.Code), not due to token expiration: user {user.UserName}, errors: {confirmEmailErrors}");
 
-                        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                        return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
                     }
                 }
 
@@ -805,7 +805,7 @@ namespace MillimanAccessPortal.Controllers
 
                         Log.Error($"Error for user {model.Username} while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}");
 
-                        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                        return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
                     }
 
                     // Save password hash in history
@@ -819,7 +819,7 @@ namespace MillimanAccessPortal.Controllers
 
                         Log.Information($"Error for user {model.Username} while saving history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}");
 
-                        return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                        return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
                     }
                 }
 
@@ -836,7 +836,7 @@ namespace MillimanAccessPortal.Controllers
 
                     Log.Information($"Error for user {model.Username} while saving updated user profile {{Profile}}", user);
 
-                    return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                    return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
                 }
 
                 Txn.Commit();
@@ -898,7 +898,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} post action: success");
 
             var passwordConfirmationMessage = "Please check your email inbox for a password reset notification.";
-            return View("Message", passwordConfirmationMessage);
+            return View("UserMessage", new UserMessageModel(passwordConfirmationMessage));
         }
 
         /// <summary>
@@ -918,13 +918,13 @@ namespace MillimanAccessPortal.Controllers
             if (user == null)
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user <{userEmail}> not found, aborting");
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Password Reset Error"));
+                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Password Reset Error")));
             }
 
             await RequestPasswordReset(user, PasswordResetRequestReason.PasswordResetTokenInvalid, Request.Scheme, Request.Host);
             Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: new password reset requested for user {user.UserName}, previous link was expired or invalid");
 
-            return View("Message", confirmationMessage);
+            return View("UserMessage", new UserMessageModel(confirmationMessage));
         }
 
         /// <summary>
@@ -943,7 +943,7 @@ namespace MillimanAccessPortal.Controllers
             if (user == null)
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user <{userEmail}> not found, aborting");
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error"));
+                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
             }
 
             string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
@@ -951,7 +951,7 @@ namespace MillimanAccessPortal.Controllers
 
             Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: new user welcome email requested for user {user.UserName}, previous link was expired or invalid");
 
-            return View("Message", confirmationMessage);
+            return View("UserMessage", new UserMessageModel(confirmationMessage));
         }
 
         //
@@ -966,7 +966,7 @@ namespace MillimanAccessPortal.Controllers
             if (user == null)
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: user <{userEmail}> not found, aborting");
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Password Reset Error"));
+                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Password Reset Error")));
             }
 
             PasswordResetSecurityTokenProvider<ApplicationUser> passwordResetTokenProvider = (PasswordResetSecurityTokenProvider<ApplicationUser>)_serviceProvider.GetService(typeof(PasswordResetSecurityTokenProvider<ApplicationUser>));
@@ -983,10 +983,10 @@ namespace MillimanAccessPortal.Controllers
                 {
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: requested for user {user.UserName} having expired or invalid reset token");
 
-                    var messageModel = new MessageModel
+                    var messageModel = new UserMessageModel
                     {
-                        MessagesAboveButtons = { "Your password reset link has either expired or is invalid. Reset the password and try again." },
-                        MessagesBelowButtons = { "If you continue to be directed to this page, please contact map.support@milliman.com." },
+                        PrimaryMessages = { "Your password reset link has either expired or is invalid. Reset the password and try again." },
+                        SecondaryMessages = { "If you continue to be directed to this page, please contact map.support@milliman.com." },
                         Buttons = new List<ConfiguredButton>
                         {
                             new ConfiguredButton
@@ -1011,7 +1011,7 @@ namespace MillimanAccessPortal.Controllers
                             },
                         }
                     };
-                    return View("MessageWithButtons", messageModel);
+                    return View("UserMessage", messageModel);
                 }
                 else
                 {
@@ -1019,7 +1019,7 @@ namespace MillimanAccessPortal.Controllers
                     Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, EmailBodyText));
 
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}  GET action: requested for user {user.UserName} with unconfirmed account, new welcome user email sent");
-                    return View("Message", "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.");
+                    return View("UserMessage", new UserMessageModel("Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account."));
                 }
             }
 
@@ -1055,7 +1055,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 // Don't reveal that the user does not exist
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: requested user with email {model.Email} not found, current user will not be informed of the issue, aborting");
-                return View("Message", passwordResetErrorMessage);
+                return View("UserMessage", new UserMessageModel(passwordResetErrorMessage));
             }
             using (var Txn = DbContext.Database.BeginTransaction())
             {
@@ -1091,11 +1091,11 @@ namespace MillimanAccessPortal.Controllers
                         Txn.Commit();
                         Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: succeeded for user {user.UserName }");
                         _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user));
-                        return View("Message", "Your password has been reset. <a href=\"/Account/Login\">Click here to log in</a>.");
+                        return View("UserMessage", new UserMessageModel("Your password has been reset. <a href=\"/Account/Login\">Click here to log in</a>."));
                     }
                     else
                     {
-                        return View("Message", passwordResetErrorMessage);
+                        return View("UserMessage", new UserMessageModel(passwordResetErrorMessage));
                     }
 
                 }
@@ -1116,7 +1116,7 @@ namespace MillimanAccessPortal.Controllers
                         Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: for user {user.UserName}, the account is not enabled, new welcome email sent, aborting");
                         UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
                     }
-                    return View("Message", UserMsg);
+                    return View("UserMessage", new UserMessageModel(UserMsg));
                 }
                 else if (result.Errors.Any())
                 {
@@ -1233,7 +1233,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error"));
+                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error")));
             }
             var userFactors = await _userManager.GetValidTwoFactorProvidersAsync(user);
             var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
@@ -1257,14 +1257,14 @@ namespace MillimanAccessPortal.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error"));
+                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error")));
             }
 
             // Generate the token and send it
             var code = await _userManager.GenerateTwoFactorTokenAsync(user, model.SelectedProvider);
             if (string.IsNullOrWhiteSpace(code))
             {
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error"));
+                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error")));
             }
 
             var message = "Your security code is: " + code;
@@ -1292,7 +1292,7 @@ namespace MillimanAccessPortal.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("Message", GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Verification Error"));
+                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Verification Error")));
             }
             return View(new VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
@@ -1323,7 +1323,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Debug("User account locked out.");
                 var lockoutMessage = "This account has been locked out, please try again later.";
-                return View("Message", lockoutMessage);
+                return View("UserMessage", new UserMessageModel(lockoutMessage));
             }
             else
             {
@@ -1355,7 +1355,7 @@ namespace MillimanAccessPortal.Controllers
             if (user == null)
             {
                 Log.Warning("AccountSettings action requested for invalid user {@User}, aborting", User.Identity.Name);
-                return View("Message", $"User settings not found. Please contact support if this issue repeats.");
+                return View("UserMessage", new UserMessageModel("User settings not found. Please contact support if this issue repeats."));
             }
 
             Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} GET action, returning view");
