@@ -206,7 +206,7 @@ namespace MapTests
 
             #region Assert
             ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("Message", viewAsViewResult.ViewName);
+            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
             #endregion
         }
 
@@ -227,7 +227,7 @@ namespace MapTests
 
             #region Assert
             ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("Message", viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
+            Assert.Equal("UserMessage", viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
             #endregion
 
         }
@@ -252,7 +252,7 @@ namespace MapTests
             #region Assert
             ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
             Assert.Equal(nameof(SharedController.UserMessage), viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
-            Assert.IsType<string>(viewAsViewResult.Model);
+            Assert.IsType<MillimanAccessPortal.Models.SharedModels.UserMessageModel>(viewAsViewResult.Model);
             #endregion
         }
 
@@ -296,7 +296,7 @@ namespace MapTests
 
             #region Assert
             ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("Message", viewAsViewResult.ViewName);
+            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
             #endregion
         }
 
@@ -321,7 +321,7 @@ namespace MapTests
             #region Assert
             Assert.IsType<ViewResult>(view);
             var viewAsViewResult = view as ViewResult;
-            Assert.Equal("Message", viewAsViewResult.ViewName);
+            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
             #endregion
         }
 
@@ -345,7 +345,7 @@ namespace MapTests
 
             #region Assert
             var viewAsViewResult = view as ViewResult;
-            Assert.Equal("Message", viewAsViewResult.ViewName);
+            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
             #endregion
         }
 
