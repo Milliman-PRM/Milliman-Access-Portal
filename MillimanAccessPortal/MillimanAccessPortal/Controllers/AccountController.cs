@@ -693,15 +693,16 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} GET action: confirmation token is invalid for user name {user.UserName}, may be expired.");
 
+                string supportEmail = _configuration.GetValue("SupportEmailAddress", "map.support@milliman.com");
                 var messageModel = new UserMessageModel
                 {
-                    PrimaryMessages = { $"Your account activation link has either expired or is invalid. Resend the welcome email and try again." },
-                    SecondaryMessages = { "If you continue to be directed to this page, please contact map.support@milliman.com." },
+                    PrimaryMessages = { $"Your account activation link has either expired or is invalid. Please click <b>RESEND</b> to receive a new welcome email and try again." },
+                    SecondaryMessages = { $"If you continue to be directed to this page, please contact <a href=\"mailto:{supportEmail}\">{supportEmail}</a>." },
                     Buttons = new List<ConfiguredButton>
                         {
                             new ConfiguredButton
                             {
-                                Value = "Cancel",
+                                Value = "CANCEL",
                                 Action = nameof(Login),
                                 Controller = nameof(AccountController).Replace("Controller", ""),
                                 Method = "get",
@@ -709,7 +710,7 @@ namespace MillimanAccessPortal.Controllers
                             },
                             new ConfiguredButton
                             {
-                                Value = "Resend Welcome Email",
+                                Value = "RESEND",
                                 Action = nameof(NewWelcomEmailBecauseInvalidToken),
                                 Controller = nameof(AccountController).Replace("Controller", ""),
                                 ButtonClass = "blue-button",
@@ -983,15 +984,16 @@ namespace MillimanAccessPortal.Controllers
                 {
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: requested for user {user.UserName} having expired or invalid reset token");
 
+                    string supportEmail = _configuration.GetValue("SupportEmailAddress", "map.support@milliman.com");
                     var messageModel = new UserMessageModel
                     {
-                        PrimaryMessages = { "Your password reset link has either expired or is invalid. Reset the password and try again." },
-                        SecondaryMessages = { "If you continue to be directed to this page, please contact map.support@milliman.com." },
+                        PrimaryMessages = { "Your password reset link has either expired or is invalid. Please click <b>RESEND</b> to receive a new password reset email and try again." },
+                        SecondaryMessages = { $"If you continue to be directed to this page, please contact <a href=\"mailto:{supportEmail}\">{supportEmail}</a>." },
                         Buttons = new List<ConfiguredButton>
                         {
                             new ConfiguredButton
                             {
-                                Value = "Cancel",
+                                Value = "CANCEL",
                                 Action = nameof(Login),
                                 Controller = nameof(AccountController).Replace("Controller", ""),
                                 Method = "get",
@@ -999,7 +1001,7 @@ namespace MillimanAccessPortal.Controllers
                             },
                             new ConfiguredButton
                             {
-                                Value = "Reset Password",
+                                Value = "RESEND",
                                 Action = nameof(ResetPasswordBecauseInvalidToken),
                                 Controller = nameof(AccountController).Replace("Controller", ""),
                                 ButtonClass = "blue-button",

@@ -21,10 +21,10 @@
 <div id="message-container">
     @if (Model.PrimaryMessages.Any())
     {
-        <div>
+        <div class="primary-message">
             @foreach (string msg in @Model.PrimaryMessages)
             {
-                <p class="message">
+                <p>
                     @Html.Raw(msg)
                 </p>
             }
@@ -32,7 +32,7 @@
     }
     @if (Model.Buttons.Any())
     {
-        <div>
+        <div class="button-container">
             @{
                 foreach (var button in Model.Buttons)
                 {
@@ -56,10 +56,10 @@
     }
     @if (Model.SecondaryMessages.Any())
     {
-        <div>
+        <div class="secondary-message">
             @foreach (string msg in @Model.SecondaryMessages)
             {
-                <p class="message">
+                <p>
                     @Html.Raw(msg)
                 </p>
             }
