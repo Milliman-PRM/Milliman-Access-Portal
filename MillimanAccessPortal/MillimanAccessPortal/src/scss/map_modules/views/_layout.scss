@@ -1,4 +1,6 @@
-﻿body {
+﻿@import "../../map_modules/mixins/_breakpoints.scss";
+
+body {
     display: flex;
     flex-direction: column;
  }
@@ -56,14 +58,21 @@
     .primary-message,
     .button-container,
     .secondary-message {
-        width: 80%;
+        width: 60%;
         text-align: center;
         padding: 1em ;
     }
 
+    @include for-phone-only {
+        .primary-message,
+        .button-container,
+        .secondary-message {
+            width: 95%;
+        }
+    }
+
     .primary-message {
-        font-size: 1.25em;
-        font-weight: bold;
+        font-size: 1.4em;
     }
 
     .button-container {
