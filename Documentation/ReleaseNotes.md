@@ -2,6 +2,11 @@
 
 ## Release Notes
 
+#### v1.7.3
+
+- Fixed a bug that allowed a perpetual email sending loop for a user requesting password reset when the user's spam filter followed the embedded link after the link was expired
+- Fixed an issue where an errant equal sign was being included in the URL prevented proper token validation
+
 #### v1.7.2
 
 - Prevent accidental submission of multiple selection group reductions in the Content Access Admin view
