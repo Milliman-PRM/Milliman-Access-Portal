@@ -30,7 +30,7 @@ export class SelectionGroupDetails extends React.Component<SelectionGroupDetails
         <ul>
           {
             selectionGroup.users && selectionGroup.users.length > 0
-              ? selectionGroup.users.map((user, i) => <li key={i}>{user}</li>)
+              ? selectionGroup.users.map((user, i) => <li key={i}>{user.userName}</li>)
               : <li><i>No Authorized Users</i></li>
           }
         </ul>
