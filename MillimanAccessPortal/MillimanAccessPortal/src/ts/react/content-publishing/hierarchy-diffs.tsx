@@ -46,11 +46,15 @@ export class HierarchyDiffs extends React.Component<HierarchyDiffsProps, {}> {
       <>
         <h4>{field.displayName}</h4>
         <table>
-          <tr>
-            <th className="header-status">Status</th>
-            <th className="header-value">Value</th>
-          </tr>
-          {fieldValues}
+          <thead>
+            <tr>
+              <th className="header-status">Status</th>
+              <th className="header-value">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {fieldValues}
+          </tbody>
         </table>
       </>
     );
