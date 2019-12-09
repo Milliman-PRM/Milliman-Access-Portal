@@ -154,7 +154,7 @@ namespace MapTests
 
             #region Assert
             ViewResult typedResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("ContentMessage", typedResult.ViewName);
+            Assert.Equal("UserMessage", typedResult.ViewName);
             #endregion
         }
 
@@ -283,7 +283,7 @@ namespace MapTests
             ViewResult viewResult = Assert.IsType<ViewResult>(result);
 
             // Test that the Message view was returned
-            Assert.Equal("ContentMessage", viewResult.ViewName);
+            Assert.Equal("UserMessage", viewResult.ViewName);
             #endregion
         }
 
@@ -384,7 +384,7 @@ namespace MapTests
 
             #region Assert
             ViewResult typedResult = Assert.IsType<ViewResult>(actionResult);
-            Assert.Equal("ContentMessage", typedResult.ViewName);
+            Assert.Equal("UserMessage", typedResult.ViewName);
             #endregion
         }
 
@@ -428,7 +428,7 @@ namespace MapTests
 
             #region Assert
             ViewResult typedResult = Assert.IsType<ViewResult>(actionResult);
-            Assert.Equal("ContentMessage", typedResult.ViewName);
+            Assert.Equal("UserMessage", typedResult.ViewName);
             #endregion
         }
 
@@ -549,7 +549,7 @@ namespace MapTests
             {
                 // Test that a content view was not returned
                 ViewResult viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Equal("ContentMessage", viewResult.ViewName);
+                Assert.Equal("UserMessage", viewResult.ViewName);
             }
             finally
             {
