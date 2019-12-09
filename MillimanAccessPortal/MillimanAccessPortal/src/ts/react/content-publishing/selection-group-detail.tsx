@@ -6,12 +6,11 @@ import { HierarchyDiffs } from './hierarchy-diffs';
 interface SelectionGroupDetailsProps {
   selectionGroup: SelectionGroupSummary;
   changedOnly: boolean;
-  key: number | string;
 }
 
 export class SelectionGroupDetails extends React.Component<SelectionGroupDetailsProps, {}> {
   public render() {
-    const { changedOnly, key, selectionGroup } = this.props;
+    const { changedOnly, selectionGroup } = this.props;
     const previewLink = selectionGroup && selectionGroup.previewLink && (
       <span className="preview-link">
         (<a href={selectionGroup.previewLink} target="_blank">Preview</a>)
@@ -24,7 +23,7 @@ export class SelectionGroupDetails extends React.Component<SelectionGroupDetails
       ? <span className="inactive-status">INACTIVE</span>
       : <span className="active-status">ACTIVE</span>;
     return (
-      <div key={key} className={`selection-group-detail${statusClass}`}>
+      <div className={`selection-group-detail${statusClass}`}>
         <h3>{selectionGroup.name}  {previewLink}</h3>
         <h4>Status:  {statusDetail}</h4>
         <h4>Authorized Users:</h4>
