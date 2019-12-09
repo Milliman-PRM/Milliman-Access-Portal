@@ -1,4 +1,6 @@
-﻿body {
+﻿@import "../../map_modules/mixins/_breakpoints.scss";
+
+body {
     display: flex;
     flex-direction: column;
  }
@@ -49,12 +51,35 @@
     justify-content: center;
     align-items: center;
 }
+
 #message-container {
     flex-flow: column nowrap;
 
-    .message {
-        width: 100%;
+    .primary-message,
+    .button-container,
+    .secondary-message {
+        width: 60%;
         text-align: center;
-        padding: 1em 0;
+        padding: 1em ;
+    }
+
+    @include for-phone-only {
+        .primary-message,
+        .button-container,
+        .secondary-message {
+            width: 95%;
+        }
+    }
+
+    .primary-message {
+        font-size: 1.4em;
+    }
+
+    .button-container {
+        margin-bottom: 7em;
+    }
+
+    .secondary-message {
+        font-weight: 300;
     }
 }
