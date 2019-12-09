@@ -496,7 +496,7 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary validation
             if (selectionGroup == null)
             {
-                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName}: selection group {selectionGroupId} not found, aborting");
+                Log.Warning($"In ContentAccessAdminController.UpdateSelections: selection group {selectionGroupId} not found, aborting");
                 Response.Headers.Add("Warning", "The requested selection group does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -506,8 +506,8 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, selectionGroup.RootContentItemId));
             if (!roleInRootContentItemResult.Succeeded)
             {
-                Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: authorization failure, user {User.Identity.Name}, content item {selectionGroup.RootContentItemId}, role {requiredRole.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
+                Log.Information($"In ContentAccessAdminController.UpdateSelections: authorization failure, user {User.Identity.Name}, content item {selectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
@@ -520,14 +520,14 @@ namespace MillimanAccessPortal.Controllers
                 .Any(pr => pr.RequestStatus.IsActive());
             if (blockedByPendingPublication)
             {
-                Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: action for selection group {selectionGroupId} blocked by pending publication, aborting");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections: selection group {selectionGroupId} blocked by pending publication, aborting");
                 Response.Headers.Add("Warning", "Selections may not be updated while this content item has a pending publication.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             if (!selectionGroup.RootContentItem.DoesReduce)
             {
-                Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: action invoked for selection group {selectionGroupId} with non-reducing content item {selectionGroup.RootContentItemId}, aborting");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections: invoked for selection group {selectionGroupId} with non-reducing content item {selectionGroup.RootContentItemId}, aborting");
                 Response.Headers.Add("Warning", "The requested selection group belongs to a content item that cannot be reduced.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -538,7 +538,7 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault();
             if (currentLivePublication == null)
             {
-                Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: action invoked for selection group {selectionGroupId} with non-live content item {selectionGroup.RootContentItemId}, aborting");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections: invoked for selection group {selectionGroupId} with non-live content item {selectionGroup.RootContentItemId}, aborting");
                 Response.Headers.Add("Warning", "There is no live content for the requested selection group.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -550,7 +550,7 @@ namespace MillimanAccessPortal.Controllers
                 .Where(task => task.ReductionStatus.IsActive());
             if (pendingReductions.Any())
             {
-                Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: action for selection group {selectionGroupId} blocked due to pending reduction (id {string.Join(",", pendingReductions.Select(t => t.Id))}), aborting");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections: selection group {selectionGroupId} blocked due to pending reduction (id {string.Join(",", pendingReductions.Select(t => t.Id))}), aborting");
                 Response.Headers.Add("Warning", "An unresolved publication or selection change prevents this action.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -559,7 +559,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 if (selectionGroup.IsMaster)
                 {
-                    Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: request to make selection group {selectionGroup.Id} master but it is already master, aborting");
+                    Log.Information($"In ContentAccessAdminController.UpdateSelections: request to make selection group {selectionGroup.Id} master but it is already master, aborting");
                     Response.Headers.Add("Warning", "The specified selection group already has master content access.");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
@@ -573,7 +573,7 @@ namespace MillimanAccessPortal.Controllers
                                                    .Count();
                 if (validSelectionCount < selections.Count())
                 {
-                    Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: request to update selection group {selectionGroup.Id} using invalid selection value(s), aborting");
+                    Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} using invalid selection value(s), aborting");
                     Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified content item.");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
@@ -583,7 +583,7 @@ namespace MillimanAccessPortal.Controllers
                     // The requested selections must be modified from the live selections for this SelectionGroup
                     if (selections.ToHashSet().SetEquals(selectionGroup.SelectedHierarchyFieldValueList))
                     {
-                        Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: request to update selection group {selectionGroup.Id} with unchanged selections, aborting");
+                        Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} with unchanged selections, aborting");
                         Response.Headers.Add("Warning", "The requested selections are not different from the active document.");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
@@ -595,7 +595,7 @@ namespace MillimanAccessPortal.Controllers
             if (LiveMasterFile == null 
              || !System.IO.File.Exists(LiveMasterFile.FullPath))
             {
-                Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: request to update selection group {selectionGroup.Id} but master content file {LiveMasterFile.FullPath} for the content item {selectionGroup.RootContentItemId} is not found");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} but master content file {LiveMasterFile.FullPath} for the content item {selectionGroup.RootContentItemId} is not found");
                 Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -659,7 +659,7 @@ namespace MillimanAccessPortal.Controllers
 
                     DbContext.SaveChanges();
 
-                    Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: request to update selection group {selectionGroup.Id} with no selections, cannot be processed, aborting");
+                    Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} with no selections, cannot be processed, aborting");
                 }
                 else
                 {
@@ -690,7 +690,7 @@ namespace MillimanAccessPortal.Controllers
 
                     Task DontAwaitThisTask = ContentAccessSupport.LongRunningUpdateSelectionCodeAsync(CxnString, LiveMasterFile.FullPath, MasterFileCopyTarget, contentReductionTask, cancellationTokenSource);
 
-                    Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: reduction task {contentReductionTask.Id} submitted with status {contentReductionTask.ReductionStatus.ToString()}.  Background processing will continue.");
+                    Log.Information($"In ContentAccessAdminController.UpdateSelections: reduction task {contentReductionTask.Id} submitted with status {contentReductionTask.ReductionStatus.ToString()}.  Background processing will continue.");
 
                     object ContentTypeConfigObj = null;
                     switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
@@ -716,7 +716,7 @@ namespace MillimanAccessPortal.Controllers
 
             var model = _accessAdminQueries.GetUpdateSelectionsModel(selectionGroupId, isMaster, selections.ToList());
 
-            Log.Debug($"Action {ControllerContext.ActionDescriptor.DisplayName}: succeeded for selection group {selectionGroupId}");
+            Log.Debug($"ContentAccessAdminController.UpdateSelections: succeeded for selection group {selectionGroupId}");
 
             return Json(model);
         }
@@ -733,7 +733,7 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary validation
             if (SelectionGroup == null)
             {
-                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName}: selection group {SelectionGroupId} not found, aborting");
+                Log.Warning($"In ContentAccessAdminController.CancelReduction: selection group {SelectionGroupId} not found, aborting");
                 Response.Headers.Add("Warning", "The requested selection group does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -743,8 +743,8 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, SelectionGroup.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
-                Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: authorization failure, user {User.Identity.Name}, content item {SelectionGroup.RootContentItemId}, role {requiredRole.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
+                Log.Information($"In ContentAccessAdminController.CancelReduction: authorization failure, user {User.Identity.Name}, content item {SelectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
@@ -757,7 +757,7 @@ namespace MillimanAccessPortal.Controllers
                 .Where(crt => crt.ContentPublicationRequestId == null);
             if (CancelableTasks.Count() == 0)
             {
-                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName}: no cancelable tasks for requested selection group {SelectionGroupId}, aborting");
+                Log.Warning($"In ContentAccessAdminController.CancelReduction: no cancelable tasks for requested selection group {SelectionGroupId}, aborting");
                 Response.Headers.Add("Warning", "There are no cancelable tasks for this content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -772,7 +772,7 @@ namespace MillimanAccessPortal.Controllers
             }
             DbContext.SaveChanges();
 
-            Log.Information($"In action {ControllerContext.ActionDescriptor.DisplayName}: reduction task(s) cancelled: {string.Join(", ", UpdatedTasks.Select(t=>t.Id.ToString()))}");
+            Log.Information($"In ContentAccessAdminController.CancelReduction: reduction task(s) cancelled: {string.Join(", ", UpdatedTasks.Select(t=>t.Id.ToString()))}");
             foreach (var Task in UpdatedTasks)
             {
                 AuditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(SelectionGroup, SelectionGroup.RootContentItem, SelectionGroup.RootContentItem.Client, Task));
