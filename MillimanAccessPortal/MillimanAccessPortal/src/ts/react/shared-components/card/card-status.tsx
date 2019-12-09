@@ -93,13 +93,18 @@ export class CardStatus extends React.Component<CardStatusProps> {
   private renderStatusMessage = () => {
     const { status } = this.props;
     const user = status.applicationUser;
-    const userAbbreviation = `${user.firstName[0]}. ${user.lastName}`;
+    const initiatedBy = user ? `Initiated by ${user.firstName[0]}. ${user.lastName}` : '';
 
     const when = moment(status.createDateTimeUtc);
 
     return (
       <>
-        Initiated by {userAbbreviation}&nbsp;
+        {initiatedBy}
+        {
+          user
+            ? <>&nbsp;</>
+            : null
+        }
         <span title={when.toLocaleString()}>
           {when.fromNow()}
         </span>
