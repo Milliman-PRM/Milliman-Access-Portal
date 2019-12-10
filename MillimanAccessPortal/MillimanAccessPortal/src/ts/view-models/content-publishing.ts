@@ -41,6 +41,8 @@ export enum PublicationStatus {
   Validating = 9,
   Queued = 10,
   Processing = 20,
+  PostProcessReady = 25,
+  PostProcessing = 27,
   Processed = 30,
   Confirming = 35,
   Confirmed = 40,
@@ -63,7 +65,10 @@ export const publicationStatusNames: { [status: number]: string; } = {
   9: 'Virus scanning',
   10: 'Queued',
   20: 'Processing',
+  25: 'Processing',
+  27: 'Processing',
   30: 'Processed',
+  35: 'Going Live',
   90: 'Error',
 };
 export const reductionStatusNames: { [status: number]: string; } = {
@@ -78,7 +83,10 @@ export function isPublicationActive(status: PublicationStatus) {
     PublicationStatus.Validating,
     PublicationStatus.Queued,
     PublicationStatus.Processing,
+    PublicationStatus.PostProcessReady,
+    PublicationStatus.PostProcessing,
     PublicationStatus.Processed,
+    PublicationStatus.Confirming,
   ].indexOf(status) !== -1;
 }
 export function isReductionActive(status: ReductionStatus) {
