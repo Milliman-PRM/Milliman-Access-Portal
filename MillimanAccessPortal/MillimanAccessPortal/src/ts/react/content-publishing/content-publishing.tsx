@@ -495,7 +495,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     icon={'delete'}
                   />
                   <CardButton
-                    color={'green'}
+                    color={'blue'}
                     tooltip={'Edit Content Item'}
                     onClick={() => {
                       if (this.props.formChangesPending || this.props.uploadChangesPending) {
