@@ -37,18 +37,18 @@ namespace MapDbContextLib.Context
         public string TypeSpecificDetail { get; set; }
 
         /// <summary>
-        /// Requires that this object has a populated ContentType navigation property
+        /// If this instance does not have ContentType navigation property populated then this property is treated as null
         /// </summary>
         [NotMapped]
         public TypeSpecificContentItemProperties TypeSpecificDetailObject
         {
             get
             {
-                if (ContentType == null || string.IsNullOrWhiteSpace(TypeSpecificDetail))
+                if (string.IsNullOrWhiteSpace(TypeSpecificDetail))
                 {
                     return null;
                 }
-                switch (ContentType.TypeEnum)
+                switch (ContentType?.TypeEnum)
                 {
                     case ContentTypeEnum.PowerBi:
                         return JsonConvert.DeserializeObject<PowerBiContentItemProperties>(TypeSpecificDetail, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Include });
@@ -63,7 +63,7 @@ namespace MapDbContextLib.Context
             }
             set
             {
-                switch (ContentType.TypeEnum)
+                switch (ContentType?.TypeEnum)
                 {
                     case ContentTypeEnum.PowerBi:
                         TypeSpecificDetail = JsonConvert.SerializeObject(value as PowerBiContentItemProperties);
