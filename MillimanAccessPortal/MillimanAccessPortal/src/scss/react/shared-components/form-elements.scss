@@ -119,6 +119,15 @@
         .form-input-container,
         .thumbnail-preview {
             border-color: $grey !important;
+        }
+
+        .input-icon-label {
+            background-color: rgba($blue, .6) !important;
+        }
+
+        .action-icon-label,
+        .form-input-container,
+        .thumbnail-preview {
             background-color: $off-white !important;
         }
 
