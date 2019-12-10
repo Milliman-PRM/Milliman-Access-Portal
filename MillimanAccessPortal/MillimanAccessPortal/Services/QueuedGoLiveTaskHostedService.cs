@@ -322,6 +322,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     {
                         string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
                             Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId);
+                        string TargetFilePath = string.Empty;
 
                         // special treatment for powerbi content file (no live content file persists in MAP)
                         if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase) && 
@@ -353,9 +354,9 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         else
                         {
                             // This assignment defines the live file name
-                            string TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
-                                                                 goLiveViewModel.RootContentItemId.ToString(),
-                                                                 TargetFileName);
+                            TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
+                                                          goLiveViewModel.RootContentItemId.ToString(),
+                                                          TargetFileName);
 
                             // Move any existing live file of this name to backed up name
                             if (File.Exists(TargetFilePath))
@@ -389,16 +390,16 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 }
                                 File.Move(TargetFilePath, Crf.FullPath);
                             }));
-
-                            UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
-                            UpdatedContentFilesList.Add(new ContentRelatedFile
-                            {
-                                FilePurpose = Crf.FilePurpose,
-                                FullPath = TargetFilePath,
-                                Checksum = Crf.Checksum,
-                                FileOriginalName = Crf.FileOriginalName,
-                            });
                         }
+
+                        UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.Equals(Crf.FilePurpose, StringComparison.InvariantCultureIgnoreCase));
+                        UpdatedContentFilesList.Add(new ContentRelatedFile
+                        {
+                            FilePurpose = Crf.FilePurpose,
+                            FullPath = TargetFilePath,
+                            Checksum = Crf.Checksum,
+                            FileOriginalName = Crf.FileOriginalName,
+                        });
 
                         // Set content URL in each master SelectionGroup
                         if (Crf.FilePurpose.ToLower() == "mastercontent")
