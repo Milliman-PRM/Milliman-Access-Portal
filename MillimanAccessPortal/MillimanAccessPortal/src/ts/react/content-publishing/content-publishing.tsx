@@ -16,8 +16,8 @@ import {
 } from '../../view-models/content-publishing';
 import { ContentCard } from '../authorized-content/content-card';
 import {
-  Client, ClientWithStats, ContentAssociatedFileType, ContentType,
-  RootContentItem, RootContentItemWithPublication,
+  Client, ClientWithStats, ContentAssociatedFileType, ContentItemPublicationDetail,
+  ContentType, RootContentItem, RootContentItemWithPublication,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ButtonSpinner } from '../shared-components/button-spinner';
@@ -51,9 +51,9 @@ import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
-  availableContentTypes, clientEntities, contentItemToBeDeleted, filesForPublishing,
-  formChangesPending, goLiveApproveButtonIsActive, itemEntities, selectedItem,
-  submitButtonIsActive, uploadChangesPending,
+  availableContentTypes, clientEntities, contentItemForPublication, contentItemToBeDeleted,
+  filesForPublishing, formChangesPending, goLiveApproveButtonIsActive, itemEntities,
+  selectedItem, submitButtonIsActive, uploadChangesPending,
 } from './redux/selectors';
 import {
   GoLiveSummaryData, PublishingFormData, PublishingState, PublishingStateCardAttributes,
@@ -90,6 +90,7 @@ interface ContentPublishingProps {
   formChangesPending: boolean;
   goLiveApproveButtonIsActive: boolean;
   uploadChangesPending: boolean;
+  contentItemForPublication: ContentItemPublicationDetail;
 }
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
@@ -1005,27 +1006,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   onClick={(event: React.MouseEvent) => {
                     event.preventDefault();
                     if (!formData.pendingFormData.id) {
-                      this.props.createNewContentItem({
-                        ClientId: formData.pendingFormData.clientId,
-                        ContentName: formData.pendingFormData.contentName,
-                        ContentTypeId: formData.pendingFormData.contentTypeId,
-                        DoesReduce: formData.pendingFormData.doesReduce,
-                        Description: formData.pendingFormData.contentDescription,
-                        ContentDisclaimer: formData.pendingFormData.contentDisclaimer,
-                        Notes: formData.pendingFormData.contentNotes,
-                      });
+                      this.props.createNewContentItem(this.props.contentItemForPublication);
                     } else {
                       if (this.props.formChangesPending) {
-                        this.props.updateContentItem({
-                          Id: formData.pendingFormData.id,
-                          ClientId: formData.pendingFormData.clientId,
-                          ContentName: formData.pendingFormData.contentName,
-                          ContentTypeId: formData.pendingFormData.contentTypeId,
-                          DoesReduce: formData.pendingFormData.doesReduce,
-                          Description: formData.pendingFormData.contentDescription,
-                          ContentDisclaimer: formData.pendingFormData.contentDisclaimer,
-                          Notes: formData.pendingFormData.contentNotes,
-                        });
+                        this.props.updateContentItem(this.props.contentItemForPublication);
                       }
                       if (this.props.uploadChangesPending) {
                         this.props.publishContentFiles(this.props.filesForPublishing);
@@ -1287,6 +1271,7 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     formChangesPending: formChangesPending(state),
     goLiveApproveButtonIsActive: goLiveApproveButtonIsActive(state),
     uploadChangesPending: uploadChangesPending(state),
+    contentItemForPublication: contentItemForPublication(state),
   };
 }
 

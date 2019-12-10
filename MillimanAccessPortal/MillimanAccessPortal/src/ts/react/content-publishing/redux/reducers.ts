@@ -68,7 +68,11 @@ const emptyContentItemDetail: ContentItemDetail = {
   },
   associatedFiles: {},
   thumbnailLink: '',
-  typeSpecificDetailObject: {},
+  typeSpecificDetailObject: {
+    bookmarksPaneEnabled: false,
+    filterPaneEnabled: false,
+    navigationPaneEnabled: false,
+  },
 };
 
 const emptyContentItemErrors: ContentItemFormErrors = {

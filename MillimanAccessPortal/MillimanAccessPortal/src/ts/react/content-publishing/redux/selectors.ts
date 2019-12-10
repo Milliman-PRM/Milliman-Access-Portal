@@ -5,8 +5,8 @@ import {
   publicationStatusNames, PublishRequest, UploadedRelatedFile,
 } from '../../../view-models/content-publishing';
 import {
-  ClientWithStats, ContentPublicationRequest, ContentReductionTask,
-    Guid, RootContentItemWithStats,
+  ClientWithStats, ContentItemPublicationDetail, ContentPublicationRequest,
+  ContentReductionTask, Guid, RootContentItemWithStats,
 } from '../../models';
 import { PublishingState } from './store';
 
@@ -336,4 +336,41 @@ export function contentItemToBeDeleted(state: PublishingState) {
   return (state.data.items.hasOwnProperty(contentItemIdPendingDeletion))
     ? state.data.items[contentItemIdPendingDeletion]
     : null;
+}
+
+/**
+ * Return the content item information for creating and updating content items
+ * @param state Redux store
+ */
+export function contentItemForPublication(state: PublishingState): ContentItemPublicationDetail {
+  const { contentTypes } = state.data;
+  const { pendingFormData } = state.formData;
+  const isPowerBI = pendingFormData.contentTypeId
+    && contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI';
+  const contentItemInformation: ContentItemPublicationDetail = {
+    ClientId: pendingFormData.clientId,
+    ContentName: pendingFormData.contentName,
+    ContentTypeId: pendingFormData.contentTypeId,
+    Description: pendingFormData.contentDescription,
+    ContentDisclaimer: pendingFormData.contentDisclaimer,
+    Notes: pendingFormData.contentNotes,
+  };
+
+  if (pendingFormData.id) {
+    contentItemInformation.Id = pendingFormData.id;
+  }
+
+  if (!pendingFormData.id) {
+    contentItemInformation.DoesReduce = pendingFormData.doesReduce;
+  }
+
+  if (isPowerBI) {
+    contentItemInformation.TypeSpecificDetailObject = {
+      BookmarksPaneEnabled: pendingFormData.typeSpecificDetailObject.bookmarksPaneEnabled,
+      FilterPaneEnabled: pendingFormData.typeSpecificDetailObject.filterPaneEnabled,
+      NavigationPaneEnabled: pendingFormData.typeSpecificDetailObject.navigationPaneEnabled,
+    };
+  }
+
+  return contentItemInformation;
 }

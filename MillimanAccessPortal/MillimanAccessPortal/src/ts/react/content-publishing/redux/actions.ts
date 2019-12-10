@@ -4,8 +4,9 @@ import {
 } from '../../../view-models/content-publishing';
 import {
   ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
-  ContentPublicationRequest, ContentType, GoLiveViewModel, Guid,
-  PublicationQueueDetails, RootContentItem, RootContentItemWithStats,
+  ContentItemPublicationDetail, ContentPublicationRequest, ContentType,
+  GoLiveViewModel, Guid, PublicationQueueDetails, RootContentItem,
+  RootContentItemWithStats,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -252,19 +253,7 @@ export interface RejectGoLiveSummaryFailed {
  */
 export interface CreateNewContentItem {
   type: 'CREATE_NEW_CONTENT_ITEM';
-  request: {
-    ClientId: Guid;
-    ContentName: string;
-    ContentTypeId: Guid;
-    Description: string;
-    Notes: string;
-    ContentDisclaimer: string;
-    DoesReduce: boolean;
-    // PowerBi specific:
-    FilterPaneEnabled?: boolean;
-    NavigationPaneEnabled?: boolean;
-    BookmarksPaneEnabled?: boolean;
-  };
+  request: ContentItemPublicationDetail;
 }
 export interface CreateNewContentItemSucceeded {
   type: 'CREATE_NEW_CONTENT_ITEM_SUCCEEDED';
@@ -281,20 +270,7 @@ export interface CreateNewContentItemFailed {
  */
 export interface UpdateContentItem {
   type: 'UPDATE_CONTENT_ITEM';
-  request: {
-    Id: Guid;
-    ClientId: Guid;
-    ContentName: string;
-    ContentTypeId: Guid;
-    Description: string;
-    Notes: string;
-    ContentDisclaimer: string;
-    DoesReduce: boolean;
-    // PowerBi specific:
-    FilterPaneEnabled?: boolean;
-    NavigationPaneEnabled?: boolean;
-    BookmarksPaneEnabled?: boolean;
-  };
+  request: ContentItemPublicationDetail;
 }
 export interface UpdateContentItemSucceeded {
   type: 'UPDATE_CONTENT_ITEM_SUCCEEDED';

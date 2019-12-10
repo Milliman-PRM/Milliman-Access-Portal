@@ -107,6 +107,23 @@ export interface ContentItemDetail {
   };
 }
 
+export interface ContentItemPublicationDetail {
+  Id?: Guid;
+  ClientId: Guid;
+  ContentName: string;
+  ContentTypeId: Guid;
+  Description: string;
+  Notes: string;
+  ContentDisclaimer: string;
+  DoesReduce?: boolean;
+  TypeSpecificDetailObject?: {
+    // PowerBi specific:
+    BookmarksPaneEnabled?: boolean;
+    FilterPaneEnabled?: boolean;
+    NavigationPaneEnabled?: boolean;
+  };
+}
+
 export interface GoLiveViewModel {
   rootContentItemId: Guid;
   publicationRequestId: Guid;
