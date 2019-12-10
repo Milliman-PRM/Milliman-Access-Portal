@@ -295,6 +295,13 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
     }
   }
 
+  public openFileUploadDialogOnEnter(event: React.KeyboardEvent) {
+    event.preventDefault();
+    if (event.key === 'Enter' || event.which === 13) {
+      this.uploadRef.current.click();
+    }
+  }
+
   public render() {
     const { label, name, placeholderText, readOnly, upload, value, children } = this.props;
     const { checksumProgress, uploadProgress, cancelable, errorMsg } = upload;
@@ -328,6 +335,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
               placeholder={placeholderText || 'Upload ' + label}
               value={value}
               onChange={() => false}
+              onKeyDown={(event) => this.openFileUploadDialogOnEnter(event)}
               readOnly={readOnly}
             />
             <label className="form-input-label" htmlFor={name}>{label}</label>
