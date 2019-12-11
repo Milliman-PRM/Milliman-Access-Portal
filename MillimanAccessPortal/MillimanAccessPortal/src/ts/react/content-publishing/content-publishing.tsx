@@ -621,7 +621,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderContentItemForm() {
-    const { contentTypes, formData, pending } = this.props;
+    const { contentTypes, formData, items, pending } = this.props;
     const { formErrors, pendingFormData, formState, uploads } = formData;
     const editFormButton = (
       <ActionIcon
@@ -654,8 +654,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <h3 className="admin-panel-header">Content Item</h3>
         <PanelSectionToolbar>
           <PanelSectionToolbarButtons>
-            {formState === 'read' &&
-              editFormButton
+            {formState === 'read'
+              && pendingFormData.id
+              && items.filter((x) => x.id === pendingFormData.id)[0].status.requestStatus !==
+              PublicationStatus.Processed
+              && editFormButton
             }
             {closeFormButton}
           </PanelSectionToolbarButtons>
