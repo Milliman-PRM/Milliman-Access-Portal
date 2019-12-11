@@ -1,0 +1,56 @@
+﻿@import "../../map_modules/variables";
+
+.tab-row {
+    display: flex;
+    flex-flow: row nowrap;
+    flex: 0 0 auto;
+    margin-bottom: .5em;
+
+    &.min-width {
+        justify-content: flex-start;
+        align-items: center;
+
+        .tab {
+            flex: 0 0 auto;
+            padding: 0 2em;
+        }
+    }
+
+    &.full-width {
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+
+        .tab {
+            flex: 1 1 auto;
+            padding: 0;
+        }
+    }
+
+    .tab {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        height: 2.5em;
+        font-weight: bold;
+        color: $charcoal;
+        text-align: center;
+        cursor: pointer;
+        border: 2px solid transparent;
+
+        &:hover {
+            background-color: $off-white;
+        }
+
+        &.selected {
+            color: $blue;
+            border-bottom: 2px solid $blue;
+            cursor: default;
+
+            &:hover {
+                background-color: transparent;
+            }
+        }
+    }
+}
