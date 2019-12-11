@@ -90,8 +90,9 @@ export interface ToggleShowOnlyChanges {
 /**
  * Set the disclaimer input to edit or preview mode.
  */
-export interface ToggleDisclaimerInputState {
-  type: 'TOGGLE_DISCLAIMER_INPUT_STATE';
+export interface SetDisclaimerInputState {
+  type: 'SET_DISCLAIMER_INPUT_STATE';
+  value: 'edit' | 'preview';
 }
 
 /**
@@ -523,7 +524,7 @@ export type PagePublishingAction =
   | RemoveExistingFile
   | ToggleShowOnlyChanges
   | ToggleGoLiveConfirmationCheckbox
-  | ToggleDisclaimerInputState
+  | SetDisclaimerInputState
   | SetPublishingFormTextInputValue
   | SetPublishingFormBooleanInputValue
   | ResetContentItemForm
