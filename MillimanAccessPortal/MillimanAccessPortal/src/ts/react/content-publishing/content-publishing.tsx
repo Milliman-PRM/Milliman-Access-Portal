@@ -46,6 +46,7 @@ import { Select } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { Dict } from '../shared-components/redux/store';
+import { TabRow } from '../shared-components/tab-row';
 import { GoLiveSection } from './go-live-section';
 import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
@@ -917,12 +918,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 <FormFlexContainer flexPhone={12}>
                   {
                     formData.formState === 'write' &&
-                    <h4
-                      className="disclaimer-preview-toggle"
-                      onClick={() => this.props.toggleDisclaimerInputState({})}
-                    >
-                      {formData.disclaimerInputState === 'edit' ? 'Preview' : 'Edit'}
-                    </h4>
+                    <TabRow
+                      tabs={[{ id: 'edit', label: 'Edit' }, { id: 'preview', label: 'Preview' }]}
+                      selectedTab={formData.disclaimerInputState}
+                      onTabSelect={(tab: 'edit' | 'preview') => this.props.setDisclaimerInputState({value: tab})}
+                      fullWidth={true}
+                    />
                   }
                   {
                     formData.disclaimerInputState === 'preview' || formData.formState === 'read'
