@@ -1179,7 +1179,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           goLiveSummary.selectionGroups.map((sG, key) => (
             <SelectionGroupDetails
               selectionGroup={sG}
-              changedOnly={onlyChangesShown}
+              changedOnly={false}
               key={key}
             />
           ),
