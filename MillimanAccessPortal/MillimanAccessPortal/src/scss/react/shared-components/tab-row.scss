@@ -38,6 +38,7 @@
         text-align: center;
         cursor: pointer;
         border: 2px solid transparent;
+        user-select: none;
 
         &:hover {
             background-color: $off-white;
