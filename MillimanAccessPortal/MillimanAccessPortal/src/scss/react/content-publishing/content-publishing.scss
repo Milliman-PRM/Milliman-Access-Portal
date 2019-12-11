@@ -75,6 +75,12 @@
             background-color: rgba($red, .3);
         }
     }
+
+    .no-values {
+        display: block;
+        font-style: italic;
+        margin-bottom: 1em;
+    }
 }
 
 .selection-group-detail {
