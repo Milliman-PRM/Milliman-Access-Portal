@@ -710,7 +710,7 @@ namespace MillimanAccessPortal.Controllers
 
             var contentPublicationRequest = _dbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
-                .Where(r => r.RequestStatus.IsCancelable())
+                .Where(r => r.RequestStatus.IsCancelable())  // TODO Make sure IsCancelable() works for Error status, and maybe other added values
                 .SingleOrDefault();
 
             #region Validation
