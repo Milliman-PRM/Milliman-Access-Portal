@@ -465,8 +465,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   icon={'checkmark'}
                 />
               </>
-            ) : entity.status.requestStatus === PublicationStatus.Queued
-              || entity.status.requestStatus === PublicationStatus.Validating ? (
+            ) : entity.status.requestStatus === PublicationStatus.Validating
+            || entity.status.requestStatus === PublicationStatus.Queued
+            || entity.status.requestStatus === PublicationStatus.Processing
+            || entity.status.requestStatus === PublicationStatus.PostProcessReady
+            || entity.status.requestStatus === PublicationStatus.Error ? (
                 <>
                   <CardButton
                     color={'red'}

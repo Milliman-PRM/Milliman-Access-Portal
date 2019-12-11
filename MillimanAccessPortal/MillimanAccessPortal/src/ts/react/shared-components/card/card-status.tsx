@@ -19,7 +19,9 @@ export class CardStatus extends React.Component<CardStatusProps> {
     const [statusValue, isActive] = isPublicationRequest(status)
       ? [status.requestStatus, isPublicationActive(status.requestStatus)]
       : [status.taskStatus, isReductionActive(status.taskStatus)];
-    return isActive || (!isPublicationRequest(status) && status.taskStatus === ReductionStatus.Error)
+    return isActive
+      || (!isPublicationRequest(status) && status.taskStatus === ReductionStatus.Error)
+      || (isPublicationRequest(status) && status.requestStatus === PublicationStatus.Error)
       ? (
         <div
           className={`card-status-container status-${statusValue}`}
