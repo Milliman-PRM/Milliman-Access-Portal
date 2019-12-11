@@ -67,6 +67,7 @@ interface FileUploadInputState {
 }
 
 export class FileUploadInput extends React.Component<FileUploadInputProps, FileUploadInputState> {
+  protected canceled: boolean = false;
   protected checksum: string;
   protected progressMonitor: ProgressMonitor;
   protected resumable: Resumable.Resumable;
@@ -115,6 +116,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
 
     // Define the process after a file is selected
     this.resumable.on('fileAdded', async (resumableFile: Resumable.ResumableFile) => {
+      this.canceled = false;
       const file: File = resumableFile.file;
 
       // Ensure that the uploaded file type matches the expected
@@ -214,7 +216,9 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
             (fileUpload: FileUpload) => {
               if (fileUpload.status === FileUploadStatus.Complete) {
                 this.progressMonitor.deactivate();
-                this.props.finalizeUpload(this.props.uploadId, resumableFile.fileName, fileGUID);
+                if (!this.canceled) {
+                  this.props.finalizeUpload(this.props.uploadId, resumableFile.fileName, fileGUID);
+                }
                 this.statusMonitor.stop();
               } else if (fileUpload.status === FileUploadStatus.Error) {
                 this.props.setUploadError(
@@ -237,6 +241,16 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
 
     // Define the process if an upload is canceled
     this.resumable.on('beforeCancel', () => {
+      // Stop all monitoring immediately and clear the image (if applicable)
+      this.canceled = true;
+      this.progressMonitor.deactivate();
+      if (this.statusMonitor) {
+        this.statusMonitor.stop();
+      }
+      if (this.state.imageSrc) {
+        this.setState({ imageSrc: null });
+      }
+
       // Define the information that needs to be sent with the Finalize Upload POST request
       this.resumable.files.forEach((file: any) => {
         const cancelInfo: ResumableInfo = {
@@ -258,13 +272,6 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
         })
           .then(() => {
             this.props.cancelFileUpload(this.props.uploadId);
-            this.progressMonitor.deactivate();
-            if (this.statusMonitor) {
-              this.statusMonitor.stop();
-            }
-            if (this.state.imageSrc) {
-              this.setState({ imageSrc: null });
-            }
           })
           .catch((response) => {
             this.props.setUploadError(

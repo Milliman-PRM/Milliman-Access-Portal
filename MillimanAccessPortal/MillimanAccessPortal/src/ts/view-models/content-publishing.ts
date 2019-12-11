@@ -264,7 +264,7 @@ export enum FieldValueChange {
   removed = 2,
 }
 export const FieldValueChangeName: { [status: number]: string; } = {
-  0: 'No change',
+  0: '',
   1: 'Added',
   2: 'Removed',
 };

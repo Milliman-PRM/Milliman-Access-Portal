@@ -1103,9 +1103,9 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
     };
   },
-  TOGGLE_DISCLAIMER_INPUT_STATE: (state) => ({
+  SET_DISCLAIMER_INPUT_STATE: (state, action: PublishingActions.SetDisclaimerInputState) => ({
     ...state,
-    disclaimerInputState: (state.disclaimerInputState === 'edit') ? 'preview' : 'edit',
+    disclaimerInputState: action.value,
   }),
 });
 

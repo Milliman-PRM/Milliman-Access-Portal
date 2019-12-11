@@ -11,10 +11,13 @@ interface SelectionGroupDetailsProps {
 export class SelectionGroupDetails extends React.Component<SelectionGroupDetailsProps, {}> {
   public render() {
     const { changedOnly, selectionGroup } = this.props;
-    const previewLink = selectionGroup && selectionGroup.previewLink && (
-      <span className="preview-link">
-        (<a href={selectionGroup.previewLink} target="_blank">Preview</a>)
-      </span>
+    const previewLink = selectionGroup
+      && selectionGroup.previewLink
+      && !selectionGroup.isInactive
+      && (
+        <span className="preview-link">
+          (<a href={selectionGroup.previewLink} target="_blank">Preview</a>)
+        </span>
     );
     const statusClass = selectionGroup.isInactive
       ? ' inactive'

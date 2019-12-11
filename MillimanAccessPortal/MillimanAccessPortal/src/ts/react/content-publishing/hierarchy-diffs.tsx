@@ -45,17 +45,24 @@ export class HierarchyDiffs extends React.Component<HierarchyDiffsProps, {}> {
     return (
       <>
         <h4>{field.displayName}</h4>
-        <table>
-          <thead>
-            <tr>
-              <th className="header-status">Status</th>
-              <th className="header-value">Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {fieldValues}
-          </tbody>
-        </table>
+        {
+          field.values.length > 0
+            ? (
+              <table>
+                <thead>
+                  <tr>
+                    <th className="header-status">Status</th>
+                    <th className="header-value">Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fieldValues}
+                </tbody>
+              </table>
+            ) : (
+              <span className="no-values">No Selected Values</span>
+            )
+        }
       </>
     );
   }

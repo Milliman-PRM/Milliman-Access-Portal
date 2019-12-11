@@ -46,6 +46,7 @@ import { Select } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { Dict } from '../shared-components/redux/store';
+import { TabRow } from '../shared-components/tab-row';
 import { GoLiveSection } from './go-live-section';
 import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
@@ -495,7 +496,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     icon={'delete'}
                   />
                   <CardButton
-                    color={'green'}
+                    color={'blue'}
                     tooltip={'Edit Content Item'}
                     onClick={() => {
                       if (this.props.formChangesPending || this.props.uploadChangesPending) {
@@ -620,7 +621,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderContentItemForm() {
-    const { contentTypes, formData, pending } = this.props;
+    const { contentTypes, formData, items, pending } = this.props;
     const { formErrors, pendingFormData, formState, uploads } = formData;
     const editFormButton = (
       <ActionIcon
@@ -653,8 +654,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <h3 className="admin-panel-header">Content Item</h3>
         <PanelSectionToolbar>
           <PanelSectionToolbarButtons>
-            {formState === 'read' &&
-              editFormButton
+            {formState === 'read'
+              && pendingFormData.id
+              && items.filter((x) => x.id === pendingFormData.id)[0].status.requestStatus !==
+              PublicationStatus.Processed
+              && editFormButton
             }
             {closeFormButton}
           </PanelSectionToolbarButtons>
@@ -917,12 +921,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 <FormFlexContainer flexPhone={12}>
                   {
                     formData.formState === 'write' &&
-                    <h4
-                      className="disclaimer-preview-toggle"
-                      onClick={() => this.props.toggleDisclaimerInputState({})}
-                    >
-                      {formData.disclaimerInputState === 'edit' ? 'Preview' : 'Edit'}
-                    </h4>
+                    <TabRow
+                      tabs={[{ id: 'edit', label: 'Edit' }, { id: 'preview', label: 'Preview' }]}
+                      selectedTab={formData.disclaimerInputState}
+                      onTabSelect={(tab: 'edit' | 'preview') => this.props.setDisclaimerInputState({value: tab})}
+                      fullWidth={true}
+                    />
                   }
                   {
                     formData.disclaimerInputState === 'preview' || formData.formState === 'read'
@@ -1175,7 +1179,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           goLiveSummary.selectionGroups.map((sG, key) => (
             <SelectionGroupDetails
               selectionGroup={sG}
-              changedOnly={onlyChangesShown}
+              changedOnly={false}
               key={key}
             />
           ),

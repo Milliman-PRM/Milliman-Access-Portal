@@ -23,8 +23,8 @@ export const toggleGoLiveConfirmationCheckbox =
   createActionCreator<PublishActions.ToggleGoLiveConfirmationCheckbox>(
     'TOGGLE_GO_LIVE_CONFIRMATION_CHECKBOX',
   );
-export const toggleDisclaimerInputState =
-  createActionCreator<PublishActions.ToggleDisclaimerInputState>('TOGGLE_DISCLAIMER_INPUT_STATE');
+export const setDisclaimerInputState =
+  createActionCreator<PublishActions.SetDisclaimerInputState>('SET_DISCLAIMER_INPUT_STATE');
 
 export const setPublishingFormTextInputValue =
   createActionCreator<PublishActions.SetPublishingFormTextInputValue>('SET_PENDING_TEXT_INPUT_VALUE');
