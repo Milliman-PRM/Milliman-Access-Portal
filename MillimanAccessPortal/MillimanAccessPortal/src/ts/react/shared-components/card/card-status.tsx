@@ -19,7 +19,9 @@ export class CardStatus extends React.Component<CardStatusProps> {
     const [statusValue, isActive] = isPublicationRequest(status)
       ? [status.requestStatus, isPublicationActive(status.requestStatus)]
       : [status.taskStatus, isReductionActive(status.taskStatus)];
-    return isActive || (!isPublicationRequest(status) && status.taskStatus === ReductionStatus.Error)
+    return isActive
+      || (!isPublicationRequest(status) && status.taskStatus === ReductionStatus.Error)
+      || (isPublicationRequest(status) && status.requestStatus === PublicationStatus.Error)
       ? (
         <div
           className={`card-status-container status-${statusValue}`}
@@ -64,7 +66,9 @@ export class CardStatus extends React.Component<CardStatusProps> {
       const { requestStatus, queueDetails } = status;
       if (requestStatus === PublicationStatus.Queued) {
         const { queuePosition: position } = queueDetails;
-        queueString = `(behind ${position} other publication${s(position)})`;
+        queueString = (position > 0)
+          ? `(behind ${position} other publication${s(position)})`
+          : '';
       } else if (requestStatus === PublicationStatus.Processing) {
         const { reductionsCompleted: completed, reductionsTotal: total } = queueDetails;
         if (total > 0) {
@@ -91,13 +95,18 @@ export class CardStatus extends React.Component<CardStatusProps> {
   private renderStatusMessage = () => {
     const { status } = this.props;
     const user = status.applicationUser;
-    const userAbbreviation = `${user.firstName[0]}. ${user.lastName}`;
+    const initiatedBy = user ? `Initiated by ${user.firstName[0]}. ${user.lastName}` : '';
 
     const when = moment(status.createDateTimeUtc);
 
     return (
       <>
-        Initiated by {userAbbreviation}&nbsp;
+        {initiatedBy}
+        {
+          user
+            ? <>&nbsp;</>
+            : null
+        }
         <span title={when.toLocaleString()}>
           {when.fromNow()}
         </span>

@@ -1,4 +1,5 @@
 ﻿using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         private ContentPublicationRequest PublicationWhereContentItem(Guid contentItemId)
         {
             var publicationRequest = _dbContext.ContentPublicationRequest
+                .Include(r => r.ApplicationUser)
                 .Where(r => r.RootContentItemId == contentItemId)
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();
@@ -43,6 +45,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         private ContentReductionTask ReductionWhereSelectionGroup(Guid selectionGroupId)
         {
             var reductionTask = _dbContext.ContentReductionTask
+                .Include(t => t.ApplicationUser)
                 .Where(t => t.SelectionGroupId == selectionGroupId)
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();

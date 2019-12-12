@@ -76,6 +76,8 @@ export const promptStatusRefreshStopped =
   createActionCreator<AccessActions.PromptStatusRefreshStopped>('PROMPT_STATUS_REFRESH_STOPPED');
 
 // Data fetches
+export const fetchGlobalData =
+  createRequestActionCreator<AccessActions.FetchGlobalData>('FETCH_GLOBAL_DATA');
 export const fetchClients =
   createRequestActionCreator<AccessActions.FetchClients>('FETCH_CLIENTS');
 export const fetchItems =

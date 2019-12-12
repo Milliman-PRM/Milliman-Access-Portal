@@ -1,0 +1,66 @@
+import { createJsonRequestorCreator } from '../../shared-components/redux/api';
+import { RequestPublishingAction, ResponsePublishingAction } from './actions';
+import * as PublishingActions from './actions';
+
+/**
+ * Function for handling request actions.
+ * @param method HTTP method to use
+ * @param url Request URL
+ */
+const createJsonRequestor = createJsonRequestorCreator<RequestPublishingAction, ResponsePublishingAction>();
+
+export const fetchGlobalData =
+  createJsonRequestor<PublishingActions.FetchGlobalData, PublishingActions.FetchGlobalDataSucceeded>
+    ('GET', '/ContentPublishing/PageGlobalData');
+
+export const fetchClients =
+  createJsonRequestor<PublishingActions.FetchClients, PublishingActions.FetchClientsSucceeded>
+    ('GET', '/ContentPublishing/Clients');
+
+export const fetchItems =
+  createJsonRequestor<PublishingActions.FetchItems, PublishingActions.FetchItemsSucceeded>
+    ('GET', '/ContentPublishing/ContentItems');
+
+export const fetchContentItemDetail =
+  createJsonRequestor<PublishingActions.FetchContentItemDetail, PublishingActions.FetchContentItemDetailSucceeded>
+    ('GET', '/ContentPublishing/RootContentItemDetail');
+
+export const fetchGoLiveSummary =
+  createJsonRequestor<PublishingActions.FetchGoLiveSummary, PublishingActions.FetchGoLiveSummarySucceeded>
+    ('GET', '/ContentPublishing/PreLiveSummary');
+
+export const approveGoLiveSummary =
+  createJsonRequestor<PublishingActions.ApproveGoLiveSummary, PublishingActions.ApproveGoLiveSummarySucceeded>
+    ('POST', '/ContentPublishing/GoLive');
+
+export const rejectGoLiveSummary =
+  createJsonRequestor<PublishingActions.RejectGoLiveSummary, PublishingActions.RejectGoLiveSummarySucceeded>
+    ('POST', '/ContentPublishing/Reject');
+
+export const fetchStatusRefresh =
+  createJsonRequestor<PublishingActions.FetchStatusRefresh, PublishingActions.FetchStatusRefreshSucceeded>
+    ('GET', '/ContentPublishing/Status');
+
+export const fetchSessionCheck =
+  createJsonRequestor<PublishingActions.FetchSessionCheck, PublishingActions.FetchSessionCheckSucceeded>
+    ('GET', '/Account/SessionStatus');
+
+export const createNewContentItem =
+  createJsonRequestor<PublishingActions.CreateNewContentItem, PublishingActions.CreateNewContentItemSucceeded>
+    ('POST', '/ContentPublishing/CreateRootContentItem');
+
+export const updateContentItem =
+  createJsonRequestor<PublishingActions.UpdateContentItem, PublishingActions.UpdateContentItemSucceeded>
+    ('POST', '/ContentPublishing/UpdateRootContentItem');
+
+export const publishContentFiles =
+  createJsonRequestor<PublishingActions.PublishContentFiles, PublishingActions.PublishContentFilesSucceeded>
+    ('POST', '/ContentPublishing/Publish');
+
+export const deleteContentItem =
+  createJsonRequestor<PublishingActions.DeleteContentItem, PublishingActions.DeleteContentItemSucceeded>
+    ('DELETE', '/ContentPublishing/DeleteRootContentItem');
+
+export const cancelPublicationRequest =
+  createJsonRequestor<PublishingActions.CancelPublicationRequest, PublishingActions.CancelPublicationRequestSucceeded>
+    ('POST', '/ContentPublishing/CancelContentPublicationRequest');

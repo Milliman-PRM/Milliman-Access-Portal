@@ -37,21 +37,22 @@ namespace MapDbContextLib.Context
         public string TypeSpecificDetail { get; set; }
 
         /// <summary>
-        /// Requires that this object has a populated ContentType navigation property
+        /// If this instance does not have ContentType navigation property populated then this property is treated as null
         /// </summary>
         [NotMapped]
         public TypeSpecificContentItemProperties TypeSpecificDetailObject
         {
             get
             {
-                if (ContentType == null || string.IsNullOrWhiteSpace(TypeSpecificDetail))
+                if (string.IsNullOrWhiteSpace(TypeSpecificDetail))
                 {
                     return null;
                 }
-                switch (ContentType.TypeEnum)
+                switch (ContentType?.TypeEnum)
                 {
                     case ContentTypeEnum.PowerBi:
                         return JsonConvert.DeserializeObject<PowerBiContentItemProperties>(TypeSpecificDetail, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Include });
+
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.Html:
@@ -62,7 +63,7 @@ namespace MapDbContextLib.Context
             }
             set
             {
-                switch (ContentType.TypeEnum)
+                switch (ContentType?.TypeEnum)
                 {
                     case ContentTypeEnum.PowerBi:
                         TypeSpecificDetail = JsonConvert.SerializeObject(value as PowerBiContentItemProperties);
@@ -73,6 +74,29 @@ namespace MapDbContextLib.Context
                     case ContentTypeEnum.FileDownload:
                     default:
                         break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the Type of the TypeSpecificDetailObject property, which depends on the ContentType navigation property
+        /// </summary>
+        [NotMapped]
+        public Type TypeSpecificDetailObjectType
+        {
+            get
+            {
+                switch (ContentType?.TypeEnum ?? ContentTypeEnum.Unknown)
+                {
+                    case ContentTypeEnum.PowerBi:
+                        return typeof(PowerBiContentItemProperties);
+
+                    case ContentTypeEnum.Qlikview:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.FileDownload:
+                    default:
+                        return null;
                 }
             }
         }
@@ -106,8 +130,27 @@ namespace MapDbContextLib.Context
                     : JsonConvert.SerializeObject(value);
             }
         }
-    }
 
+        [Column(TypeName = "jsonb")]
+        public string AssociatedFiles { get; set; } = "[]";
+
+        [NotMapped]
+        public List<ContentAssociatedFile> AssociatedFilesList
+        {
+            get
+            {
+                return string.IsNullOrEmpty(AssociatedFiles)
+                    ? new List<ContentAssociatedFile>()
+                    : JsonConvert.DeserializeObject<List<ContentAssociatedFile>>(AssociatedFiles);
+            }
+            set
+            {
+                AssociatedFiles = value == null
+                    ? "[]"
+                    : JsonConvert.SerializeObject(value);
+            }
+        }
+    }
 
     /// <summary>
     /// Comparer for the above entity class, used to ensure proper operation of `.distinct()` function

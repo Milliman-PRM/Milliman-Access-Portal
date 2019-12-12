@@ -1,4 +1,4 @@
-import '../../../scss/react/shared-components/toggle.scss';
+import '../../../../scss/react/shared-components/toggle.scss';
 
 import * as React from 'react';
 

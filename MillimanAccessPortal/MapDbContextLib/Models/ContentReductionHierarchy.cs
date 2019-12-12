@@ -101,6 +101,11 @@ namespace MapDbContextLib.Models
                 return null;
             }
 
+            if (SelectionGroup.IsMaster)
+            {
+                return null;
+            }
+
             // Apply selection updates if provided
             var SelectedHierarchyFieldValues = Selections ?? SelectionGroup.SelectedHierarchyFieldValueList;
 

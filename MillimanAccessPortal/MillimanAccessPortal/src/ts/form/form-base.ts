@@ -3,7 +3,7 @@ import * as $ from 'jquery';
 
 import { confirmAndContinueForm } from '../shared';
 import { FormElement } from './form-element';
-import { FileUploadInput } from './form-input/file-upload';
+// import { FileUploadInput } from './form-input/file-upload';
 import { NullableTextareaInput } from './form-input/nullable-textarea';
 import { AccessMode, SubmissionMode } from './form-modes';
 import { FormInputSection, FormSubmissionSection } from './form-section';
@@ -132,20 +132,20 @@ export class FormBase extends FormElement {
       .forEach((submission) => submission.setCallbacks(modes, this));
 
     // Create upload objects, configure special inputs
-    this.inputSections.forEach((section) => {
-      section.inputs
-        .filter((input) => input instanceof FileUploadInput)
-        .forEach((upload) => {
-          const uploadInput = upload as FileUploadInput;
-          uploadInput.configure(this.token);
-        });
-      section.inputs
-        .filter((input) => input instanceof NullableTextareaInput)
-        .forEach((textarea) => {
-          const nullableTextareaInput = textarea as NullableTextareaInput;
-          nullableTextareaInput.configure();
-        });
-    });
+    // this.inputSections.forEach((section) => {
+    //  section.inputs
+    //    .filter((input) => input instanceof FileUploadInput)
+    //    .forEach((upload) => {
+    //      const uploadInput = upload as FileUploadInput;
+    //      uploadInput.configure(this.token);
+    //    });
+    //  section.inputs
+    //    .filter((input) => input instanceof NullableTextareaInput)
+    //    .forEach((textarea) => {
+    //      const nullableTextareaInput = textarea as NullableTextareaInput;
+    //      nullableTextareaInput.configure();
+    //    });
+    // });
   }
 
   public get modified() {

@@ -10,8 +10,8 @@ import * as Yup from 'yup';
 import { getUrlParameter } from '../../get-url-parameters';
 import { postData } from '../../shared';
 import { ButtonSpinner } from '../shared-components/button-spinner';
-import { BaseFormState, Form } from '../shared-components/form';
-import { Input } from '../shared-components/input';
+import { BaseFormState, Form } from '../shared-components/form/form';
+import { Input } from '../shared-components/form/input';
 
 interface LoginFormState extends BaseFormState {
   userConfirmed: boolean;

@@ -1,3 +1,4 @@
+import { ContentItemDetail } from '../react/models';
 import { Guid } from '../react/shared-components/interfaces';
 
 export interface Nestable {
@@ -40,6 +41,8 @@ export enum PublicationStatus {
   Validating = 9,
   Queued = 10,
   Processing = 20,
+  PostProcessReady = 25,
+  PostProcessing = 27,
   Processed = 30,
   Confirming = 35,
   Confirmed = 40,
@@ -62,7 +65,10 @@ export const publicationStatusNames: { [status: number]: string; } = {
   9: 'Virus scanning',
   10: 'Queued',
   20: 'Processing',
+  25: 'Processing',
+  27: 'Processing',
   30: 'Processed',
+  35: 'Going Live',
   90: 'Error',
 };
 export const reductionStatusNames: { [status: number]: string; } = {
@@ -77,7 +83,10 @@ export function isPublicationActive(status: PublicationStatus) {
     PublicationStatus.Validating,
     PublicationStatus.Queued,
     PublicationStatus.Processing,
+    PublicationStatus.PostProcessReady,
+    PublicationStatus.PostProcessing,
     PublicationStatus.Processed,
+    PublicationStatus.Confirming,
   ].indexOf(status) !== -1;
 }
 export function isReductionActive(status: ReductionStatus) {
@@ -124,6 +133,12 @@ export enum ContentTypeEnum {
   FileDownload = 4,
   PowerBi = 5,
 }
+export enum ContentAssociatedFileTypeEnum {
+    Unknown = 0,
+    Pdf = 1,
+    Html = 2,
+    FileDownload = 3,
+}
 
 export interface ContentType {
   id: Guid;
@@ -134,45 +149,46 @@ export interface ContentType {
   fileExtensions: string[];
 }
 
-export interface RootContentItemDetail {
+export interface ContentRelatedFile {
+  fullPath: string;
+  filePurpose: string;
+  fileOriginalName: string;
+  checksum: string;
+}
+export interface ContentAssociatedFile {
   id: Guid;
-  clientId: Guid;
-  contentName: string;
-  contentTypeId: Guid;
-  doesReduce: boolean;
-  filterPaneEnabled?: boolean;
-  navigationPaneEnabled?: boolean;
-  bookmarksPaneEnabled?: boolean;
-  relatedFiles: ContentRelatedFile[];
-  description: string;
-  notes: string;
-  contentDisclaimer: string;
-  isSuspended: boolean;
-  typeSpecificDetailObject?: {
-    filterPaneEnabled?: boolean;
-    navigationPaneEnabled?: boolean;
-    bookmarksPaneEnabled?: boolean;
-  };
+  displayName: string;
+  fileOriginalName: string;
+  sortOrder: string;
+  checksum: string;
 }
 
 export interface RootContentItemSummaryAndDetail {
   summary: RootContentItemSummary;
-  detail: RootContentItemDetail;
+  detail: ContentItemDetail;
 }
 
 export interface RootContentItemStatus {
   status: PublicationSummary[];
 }
 
-export interface ContentRelatedFile {
+export interface UploadedRelatedFile {
   fileOriginalName: string;
   filePurpose: string;
   fileUploadId: Guid;
 }
+export interface RequestedAssociatedFile {
+    id: Guid;
+    fileOriginalName: string;
+    displayName: string;
+    sortOrder: string;
+    fileType: ContentAssociatedFileTypeEnum;
+}
 export interface PublishRequest {
   rootContentItemId: Guid;
-  newRelatedFiles: ContentRelatedFile[];
-  deleteFilePurposes: string[];
+  newRelatedFiles?: UploadedRelatedFile[];
+  associatedFiles?: RequestedAssociatedFile[];
+  deleteFilePurposes?: string[];
 }
 
 export interface PreLiveContentValidationSummary {
@@ -189,9 +205,9 @@ export interface PreLiveContentValidationSummary {
   userGuideLink: string;
   releaseNotesLink: string;
   thumbnailLink: string;
-  liveHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
-  newHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
+  reductionHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   selectionGroups: SelectionGroupSummary[];
+  associatedFiles: AssociatedFileSummary[];
 }
 export interface SelectionGroupSummary {
   id: Guid;
@@ -202,8 +218,16 @@ export interface SelectionGroupSummary {
   wasInactive: boolean;
   isInactive: boolean;
   inactiveReason?: string;
-  liveSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
-  pendingSelections: ContentReductionHierarchy<ReductionFieldValueSelection>;
+  previewLink: string;
+  selectionChanges: ContentReductionHierarchy<ReductionFieldValueSelection>;
+}
+export interface AssociatedFileSummary {
+  id: Guid;
+  displayName: string;
+  fileOriginalName: string;
+  sortOrder: string;
+  fileType: ContentAssociatedFileTypeEnum;
+  link: string;
 }
 
 export interface ContentReductionHierarchy<T extends ReductionFieldValue> {
@@ -222,6 +246,7 @@ export interface ReductionField<T extends ReductionFieldValue> extends Reduction
 export interface ReductionFieldValueInfo {
   id: Guid;
   value: string;
+  valueChange: FieldValueChange;
 }
 export interface ReductionFieldValue extends ReductionFieldValueInfo {
   hasSelectionStatus: boolean;
@@ -232,3 +257,14 @@ export interface ReductionFieldValueSelection extends ReductionFieldValue {
 export function isSelection(value: ReductionFieldValue): value is ReductionFieldValueSelection {
   return value && (value as ReductionFieldValueSelection).selectionStatus !== undefined;
 }
+
+export enum FieldValueChange {
+  noChange = 0,
+  added = 1,
+  removed = 2,
+}
+export const FieldValueChangeName: { [status: number]: string; } = {
+  0: '',
+  1: 'Added',
+  2: 'Removed',
+};

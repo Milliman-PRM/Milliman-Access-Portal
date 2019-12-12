@@ -1,7 +1,7 @@
-﻿import '../../../images/icons/hide-password.svg';
-import '../../../images/icons/show-password.svg';
+﻿import '../../../../images/icons/hide-password.svg';
+import '../../../../images/icons/show-password.svg';
 
-import '../../../scss/react/shared-components/form-elements.scss';
+import '../../../../scss/react/shared-components/form-elements.scss';
 
 import * as React from 'react';
 
@@ -69,6 +69,7 @@ export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, BaseInputProp
             placeholder={placeholderText || label}
             readOnly={readOnly}
             data-input-value={value}
+            value={value || ''}
             {...rest}
           />
           <label className="form-input-label" htmlFor={name}>{label}</label>

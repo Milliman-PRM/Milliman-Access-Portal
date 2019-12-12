@@ -3,6 +3,7 @@
 exports[`progress monitor renders progress 1`] = `
 Array [
   Array [
+    "abc",
     Object {
       "percentage": "0%",
       "rate": "0 B/s",
@@ -10,6 +11,7 @@ Array [
     },
   ],
   Array [
+    "abc",
     Object {
       "percentage": "20%",
       "rate": "128 KB/s",

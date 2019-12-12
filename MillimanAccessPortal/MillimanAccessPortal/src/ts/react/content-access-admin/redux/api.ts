@@ -9,9 +9,13 @@ import * as AccessActions from './actions';
  */
 const createJsonRequestor = createJsonRequestorCreator<RequestAccessAction, ResponseAccessAction>();
 
+export const fetchGlobalData =
+  createJsonRequestor<AccessActions.FetchGlobalData, AccessActions.FetchGlobalDataSucceeded>
+    ('GET', '/ContentAccessAdmin/PageGlobalData');
+
 export const fetchClients =
   createJsonRequestor<AccessActions.FetchClients, AccessActions.FetchClientsSucceeded>
-  ('GET', '/ContentAccessAdmin/Clients');
+    ('GET', '/ContentAccessAdmin/Clients');
 
 export const fetchItems =
   createJsonRequestor<AccessActions.FetchItems, AccessActions.FetchItemsSucceeded>

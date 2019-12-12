@@ -12,9 +12,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
+using Newtonsoft.Json.Linq;
 using Serilog;
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -37,9 +37,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string UserGuideLink { get; set; }
         public string ReleaseNotesLink { get; set; }
         public string ThumbnailLink { get; set; }
-        public ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy { get; set; }
-        public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
-        public List<SelectionGroupSummary> SelectionGroups { get; set; }
+        public ContentReductionHierarchy<ReductionFieldValueChange> ReductionHierarchy { get; set; }
+        public List<SelectionGroupSummary> SelectionGroups { get; set; } = null;
+        public List<AssociatedFilePreviewSummary> AssociatedFiles { get; set; } = new List<AssociatedFilePreviewSummary>();
 
         public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
         {
@@ -78,13 +78,80 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ThumbnailLink = null,
             };
 
-            ReturnObj.LiveHierarchy = null;
-            ReturnObj.NewHierarchy = null;
-            ReturnObj.SelectionGroups = null;
+            foreach (ContentRelatedFile RelatedFile in PubRequest.LiveReadyFilesObj)
+            {
+                UriBuilder contentUri = new UriBuilder
+                {
+                    Scheme = Context.Request.Scheme,
+                    Host = Context.Request.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
+                    Port = Context.Request.Host.Port ?? -1,
+                };
+
+                switch (RelatedFile.FilePurpose.ToLower())
+                {
+                    case "mastercontent":
+                        switch (PubRequest.RootContentItem.ContentType.TypeEnum)
+                        {
+                            case ContentTypeEnum.PowerBi:
+                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}";
+                                contentUri.Query = $"request={PubRequest.Id}";
+
+                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                break;
+
+                            case ContentTypeEnum.Qlikview:
+                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.QvwPreview)}";
+                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
+                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                break;
+
+                            case ContentTypeEnum.Pdf:
+                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PdfPreview)}";
+                                contentUri.Query = $"purpose=mastercontent&publicationRequestId={PubRequest.Id}";
+                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                break;
+
+                            case ContentTypeEnum.Html:
+                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.HtmlPreview)}";
+                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
+                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                break;
+
+                            case ContentTypeEnum.FileDownload:
+                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.FileDownloadPreview)}";
+                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
+                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                break;
+
+                            default:
+                                break;
+                        }
+                        break;
+
+                    case "thumbnail":
+                        contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ThumbnailPreview)}";
+                        contentUri.Query = $"publicationRequestId={PubRequest.Id}";
+                        // this doesn't happen
+                        ReturnObj.ThumbnailLink = contentUri.Uri.AbsoluteUri;
+                        break;
+
+                    case "userguide":
+                        contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PdfPreview)}";
+                        contentUri.Query = $"purpose=userguide&publicationRequestId={PubRequest.Id}";
+                        ReturnObj.UserGuideLink = contentUri.Uri.AbsoluteUri;
+                        break;
+
+                    case "releasenotes":
+                        contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PdfPreview)}";
+                        contentUri.Query = $"purpose=releasenotes&publicationRequestId={PubRequest.Id}";
+                        ReturnObj.ReleaseNotesLink = contentUri.Uri.AbsoluteUri;
+                        break;
+                }
+            }
+
             if (PubRequest.RootContentItem.DoesReduce)
             {
-                // retrieve all reduction tasks for this publication, filtering out the request
-                // responsible for extracting the new hierarchy
+                // retrieve all reduction tasks for this publication (not including the task responsible for extracting the new hierarchy)
                 List<ContentReductionTask> AllTasks = Db.ContentReductionTask
                                                         .Include(t => t.SelectionGroup)
                                                         .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
@@ -99,13 +166,12 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 }
                 #endregion
 
-                var newHierarchy = AllTasks.FirstOrDefault()?.MasterContentHierarchyObj;
-
+                ContentReductionHierarchy<ReductionFieldValue> newHierarchy = AllTasks.FirstOrDefault()?.MasterContentHierarchyObj;
                 if (newHierarchy != null)
                 {
                     newHierarchy.Sort();
 
-                    var selectionGroups = new List<SelectionGroupSummary>();
+                    ReturnObj.SelectionGroups = new List<SelectionGroupSummary>();
                     foreach (var task in AllTasks)
                     {
                         var selectionGroupUsers = new List<UserInfoViewModel>();
@@ -118,9 +184,12 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             selectionGroupUsers.Add(userInfo); 
                         }
 
-                        string errorMessage;
+                        string errorMessage = null;
                         switch (task.OutcomeMetadataObj.OutcomeReason)
                         {
+                            case MapDbReductionTaskOutcomeReason.Success:
+                            case MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned:
+                                break;
                             case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
                                 errorMessage = "This group has no selections.";
                                 break;
@@ -128,17 +197,33 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 errorMessage = "None of this group's selections are in the new hierarchy.";
                                 break;
                             case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
-                                errorMessage = "The reduction did not produce an output file. "
-                                    + "This could be caused by selections that result in no matching data.";
+                                errorMessage = "The reduction did not produce an output file. This could be caused by selections that result in no matching data.";
                                 break;
                             default:
-                                errorMessage = null;
-                                Log.Warning("Unexpected outcome reason in go live preview "
-                                    + $"for reduction task {task.Id}: {task.OutcomeMetadataObj.OutcomeReason}");
+                                Log.Warning($"Unexpected outcome reason in go live preview for reduction task {task.Id}: {task.OutcomeMetadataObj.OutcomeReason}");
                                 break;
                         }
 
-                        selectionGroups.Add(new SelectionGroupSummary
+                        var liveSelections = task.SelectionGroup.IsMaster
+                            ? null
+                            : ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId.Value);
+                        var pendingSelections = task.SelectionGroup.IsMaster
+                            ? null
+                            : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(task.MasterContentHierarchyObj, task.SelectionCriteriaObj);
+
+                        UriBuilder reducedLinkBuilder = 
+                            task.SelectionGroup.IsMaster
+                            ? new UriBuilder(ReturnObj.MasterContentLink)
+                            : new UriBuilder
+                            {
+                                Scheme = Context.Request.Scheme,
+                                Host = Context.Request.Host.Host,
+                                Port = Context.Request.Host.Port ?? -1,
+                                Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ReducedQvwPreview)}",
+                                Query = $"publicationRequestId={PubRequest.Id}&reductionTaskId={task.Id}",
+                            };
+
+                        ReturnObj.SelectionGroups.Add(new SelectionGroupSummary
                         {
                             Id = task.SelectionGroup.Id,
                             Name = task.SelectionGroup.GroupName,
@@ -148,140 +233,111 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             WasInactive = task.SelectionGroup.ContentInstanceUrl == null,
                             IsInactive = task.ReductionStatus != ReductionStatusEnum.Reduced,
                             InactiveReason = errorMessage,
-                            LiveSelections = task.SelectionGroup.IsMaster
+                            PreviewLink = reducedLinkBuilder.Uri.AbsoluteUri,
+                            SelectionChanges = task.SelectionGroup.IsMaster
                                 ? null
-                                : ContentReductionHierarchy<ReductionFieldValueSelection>
-                                    .GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId.Value),
-                            PendingSelections = task.SelectionGroup.IsMaster
-                                ? null
-                                : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(
-                                    task.MasterContentHierarchyObj, task.SelectionCriteriaObj),
+                                : new ContentReductionHierarchy<ReductionFieldValueChange>
+                                {
+                                    RootContentItemId = RootContentItemId,
+                                    Fields = task.SelectionCriteriaObj.Fields.Select(f =>
+                                    {
+                                        var addedValues = pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus).Except(
+                                            liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus), new ReductionFieldValueComparer());
+
+                                        var removedValues = liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus).Except(
+                                            pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus), new ReductionFieldValueComparer());
+
+                                        var unchangedValues = liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus).Intersect(
+                                            pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus), new ReductionFieldValueComparer());
+
+                                        return new ReductionField<ReductionFieldValueChange>
+                                        {
+                                            FieldName = f.FieldName,
+                                            DisplayName = f.DisplayName,
+                                            Id = f.Id,
+                                            StructureType = f.StructureType,
+                                            ValueDelimiter = f.ValueDelimiter,
+                                            Values = addedValues.Select(v => new ReductionFieldValueChange
+                                            {
+                                                Value = v.Value,
+                                                Id = v.Id,
+                                                ValueChange = FieldValueChange.Added,
+                                            })
+                                            .Concat(removedValues.Select(v => new ReductionFieldValueChange
+                                            {
+                                                Value = v.Value,
+                                                Id = v.Id,
+                                                ValueChange = FieldValueChange.Removed,
+                                            }))
+                                            .Concat(unchangedValues.Select(v => new ReductionFieldValueChange
+                                            {
+                                                Value = v.Value,
+                                                Id = v.Id,
+                                                ValueChange = FieldValueChange.NoChange,
+                                            }))
+                                            .OrderBy(v => v.Value)
+                                            .ToList()
+                                        };
+                                    })
+                                    .ToList(),
+                                }
                         });
                     }
 
-                    ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
-                    ReturnObj.NewHierarchy = newHierarchy;
-                    ReturnObj.SelectionGroups = selectionGroups;
+                    ReturnObj.ReductionHierarchy = new ContentReductionHierarchy<ReductionFieldValueChange> { RootContentItemId = RootContentItemId };
+                    var liveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
+
+                    foreach (var field in newHierarchy.Fields)
+                    {
+                        var addedValues = field.Values.Except(liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values), new ReductionFieldValueComparer());
+                        var removedValues = liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values).Except(field.Values, new ReductionFieldValueComparer());
+                        var sameValues = liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values).Intersect(field.Values, new ReductionFieldValueComparer());
+
+                        ReturnObj.ReductionHierarchy.Fields.Add(new ReductionField<ReductionFieldValueChange>
+                            {
+                                Id = field.Id,
+                                DisplayName = field.DisplayName,
+                                FieldName = field.FieldName,
+                                StructureType = field.StructureType,
+                                ValueDelimiter = field.ValueDelimiter,
+                                Values = addedValues.Select(v => new ReductionFieldValueChange
+                                    {
+                                        Id = v.Id,
+                                        Value = v.Value,
+                                        ValueChange = FieldValueChange.Added,
+                                    })
+                                    .Concat(removedValues.Select(v => new ReductionFieldValueChange
+                                    {
+                                        Id = v.Id,
+                                        Value = v.Value,
+                                        ValueChange = FieldValueChange.Removed,
+                                    }))
+                                    .Concat(sameValues.Select(v => new ReductionFieldValueChange
+                                    {
+                                        Id = v.Id,
+                                        Value = v.Value,
+                                        ValueChange = FieldValueChange.NoChange,
+                                    }))
+                                    .OrderBy(v => v.Value)
+                                    .ToList(),
+                            });
+                    }
                 }
             }
 
-            string ContentRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");            
-            foreach (ContentRelatedFile RelatedFile in PubRequest.LiveReadyFilesObj)
+            foreach (var associatedFile in PubRequest.LiveReadyAssociatedFilesList)
             {
-                string Link = Path.GetRelativePath(ContentRootPath, RelatedFile.FullPath);
-                switch (RelatedFile.FilePurpose.ToLower())
+                var summary = new AssociatedFilePreviewSummary(associatedFile);
+                UriBuilder builder = new UriBuilder
                 {
-                    case "mastercontent":
-                        switch (PubRequest.RootContentItem.ContentType.TypeEnum)
-                        {
-                            case ContentTypeEnum.PowerBi:
-                                string[] QueryStringItems = new string[]
-                                {
-                                    $"request={PubRequest.Id}",
-                                };
-
-                                UriBuilder powerBiContentUri = new UriBuilder
-                                {
-                                    Scheme = Context.Request.Scheme,
-                                    Host = Context.Request.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
-                                    Port = Context.Request.Host.Port ?? -1,
-                                    Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}",
-                                    Query = string.Join("&", QueryStringItems),
-                                };
-
-                                ReturnObj.MasterContentLink = powerBiContentUri.Uri.AbsoluteUri;
-                                break;
-
-                            case ContentTypeEnum.Qlikview:
-                                UriBuilder qvwUrlBuilder = new UriBuilder
-                                {
-                                    Host = Context.Request.Host.Host,
-                                    Scheme = Context.Request.Scheme,
-                                    Port = Context.Request.Host.Port ?? -1,
-                                    Path = "/AuthorizedContent/QvwPreview",
-                                    Query = $"publicationRequestId={PubRequest.Id}",
-                                };
-                                ReturnObj.MasterContentLink = qvwUrlBuilder.Uri.AbsoluteUri;
-                                break;
-
-                            case ContentTypeEnum.Pdf:
-                                UriBuilder pdfUrlBuilder = new UriBuilder
-                                {
-                                    Host = Context.Request.Host.Host,
-                                    Scheme = Context.Request.Scheme,
-                                    Port = Context.Request.Host.Port ?? -1,
-                                    Path = "/AuthorizedContent/PdfPreview",
-                                    Query = $"purpose=mastercontent&publicationRequestId={PubRequest.Id}",
-                                };
-                                ReturnObj.MasterContentLink = pdfUrlBuilder.Uri.AbsoluteUri;
-                                break;
-
-                            case ContentTypeEnum.Html:
-                                UriBuilder HtmlUri = new UriBuilder
-                                {
-                                    Scheme = Context.Request.Scheme,
-                                    Host = Context.Request.Host.Host,
-                                    Port = Context.Request.Host.Port ?? -1,
-                                    Path = "/AuthorizedContent/HtmlPreview",
-                                    Query = $"publicationRequestId={PubRequest.Id}",
-                                };
-                                ReturnObj.MasterContentLink = HtmlUri.Uri.AbsoluteUri;
-                                break;
-
-                            case ContentTypeEnum.FileDownload:
-                                UriBuilder FileDownloadUri = new UriBuilder
-                                {
-                                    Scheme = Context.Request.Scheme,
-                                    Host = Context.Request.Host.Host,
-                                    Port = Context.Request.Host.Port ?? -1,
-                                    Path = "/AuthorizedContent/FileDownloadPreview",
-                                    Query = $"publicationRequestId={PubRequest.Id}",
-                                };
-                                ReturnObj.MasterContentLink = FileDownloadUri.Uri.AbsoluteUri;
-                                break;
-
-                            default:
-                                break;
-                        }
-                        break;
-
-                    case "thumbnail":
-                        UriBuilder thumbnailUrlBuilder = new UriBuilder
-                        {
-                            Host = Context.Request.Host.Host,
-                            Scheme = Context.Request.Scheme,
-                            Port = Context.Request.Host.Port ?? -1,
-                            Path = "/AuthorizedContent/ThumbnailPreview",
-                            Query = $"publicationRequestId={PubRequest.Id}",
-                        };
-                        // this doesn't happen
-                        ReturnObj.ThumbnailLink = thumbnailUrlBuilder.Uri.AbsoluteUri;
-                        break;
-
-                    case "userguide":
-                        UriBuilder userGuideUrlBuilder = new UriBuilder
-                        {
-                            Host = Context.Request.Host.Host,
-                            Scheme = Context.Request.Scheme,
-                            Port = Context.Request.Host.Port ?? -1,
-                            Path = "/AuthorizedContent/PdfPreview",
-                            Query = $"purpose=userguide&publicationRequestId={PubRequest.Id}",
-                        };
-                        ReturnObj.UserGuideLink = userGuideUrlBuilder.Uri.AbsoluteUri;
-                        break;
-
-                    case "releasenotes":
-                        UriBuilder releaseNotesUrlBuilder = new UriBuilder
-                        {
-                            Host = Context.Request.Host.Host,
-                            Scheme = Context.Request.Scheme,
-                            Port = Context.Request.Host.Port ?? -1,
-                            Path = "/AuthorizedContent/PdfPreview",
-                            Query = $"purpose=releasenotes&publicationRequestId={PubRequest.Id}",
-                        };
-                        ReturnObj.ReleaseNotesLink = releaseNotesUrlBuilder.Uri.AbsoluteUri;
-                        break;
-                }
+                    Scheme = Context.Request.Scheme,
+                    Host = Context.Request.Host.Host,
+                    Port = Context.Request.Host.Port ?? -1,
+                    Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.AssociatedFilePreview)}",
+                    Query = $"publicationRequestId={PubRequest.Id}&fileId={associatedFile.Id}",
+                };
+                summary.Link = builder.Uri.AbsoluteUri;
+                ReturnObj.AssociatedFiles.Add(summary);
             }
 
             return ReturnObj;
@@ -298,11 +354,14 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 RootContentId = source.RootContentId,
                 RootContentName = source.RootContentName,
                 ContentTypeName = source.ContentTypeName,
-                LiveHierarchy = source.LiveHierarchy,
-                NewHierarchy = source.NewHierarchy,
+                HierarchyComparison = source.ReductionHierarchy,
                 DoesReduce = source.DoesReduce,
                 ClientId = source.ClientId,
                 ClientName = source.ClientName,
+                ClientCode = source.ClientCode,
+                SelectionGroupSummary = source.SelectionGroups != null
+                    ? JArray.FromObject(source.SelectionGroups)
+                    : null,
             };
         }
     }
@@ -317,7 +376,19 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public bool WasInactive { get; set; }
         public bool IsInactive { get; set; }
         public string InactiveReason { get; set; } = null;
-        public ContentReductionHierarchy<ReductionFieldValueSelection> LiveSelections { get; set; }
-        public ContentReductionHierarchy<ReductionFieldValueSelection> PendingSelections { get; set; }
+        public ContentReductionHierarchy<ReductionFieldValueChange> SelectionChanges { get; set; }
+        public string PreviewLink { get; set; } = null;
     }
+
+    public class AssociatedFilePreviewSummary : AssociatedFileModel
+    {
+        public string Link { get; set; } = string.Empty;
+
+        public AssociatedFilePreviewSummary(ContentAssociatedFile source)
+            : base(source)
+        {
+            Link = string.Empty;
+        }
+    }
+
 }

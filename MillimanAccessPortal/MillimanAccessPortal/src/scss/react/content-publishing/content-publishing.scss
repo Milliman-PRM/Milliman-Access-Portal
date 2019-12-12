@@ -1,0 +1,111 @@
+﻿@import "../../map_modules/variables";
+@import "../../map_modules/mixins";
+
+.content-card-container {
+    flex: 1 0 100% !important;
+    max-width: 100% !important;
+}
+
+#iframe-container {
+    position: relative;
+    width: 100%;
+    height: 20em;
+
+    iframe, object {
+        height: 100%;
+        width: 100%;
+        overflow: auto;
+        border: none;
+    }
+
+    .new-tab-icon {
+        position: absolute;
+        top: 1em;
+        right: 2em;
+        padding: 0;
+
+        svg {
+            height: 2em;
+            width: 2em;
+        }
+    }
+}
+
+.go-live-section {
+    margin-bottom: 2em;
+
+    #iframe-container,
+    .download-preview,
+    .thumbnailPreview {
+        padding: 1em;
+    }
+
+    .thumbnailContainer {
+        text-align: center;
+
+        .thumbnailPreview {
+            max-width: 70%;
+            max-height: 15em;
+        }
+    }
+}
+
+.hierarchy-diffs {
+    padding: 0 0 0 1em;
+
+    table {
+        width: 100%;
+        background-color: $white;
+        border: 1px solid $charcoal;
+
+        th {
+            border-bottom: 1px solid $charcoal;
+            font-weight: bold;
+
+            &.header-status {
+                width: 7em;
+            }
+        }
+
+        tr.status-1 { // Added
+            background-color: rgba($green, .3);
+        }
+
+        tr.status-2 { // Removed
+            background-color: rgba($red, .3);
+        }
+    }
+
+    .no-values {
+        display: block;
+        font-style: italic;
+        margin-bottom: 1em;
+    }
+}
+
+.selection-group-detail {
+    padding: 1em;
+    margin: 1em 1em 1em 2em;
+    border: 1px solid $charcoal;
+    background-color: $white;
+
+    &.inactive {
+        border: 2px solid $red;
+    }
+
+    span.preview-link {
+        font-size: .75em;
+    }
+
+    span.inactive-status {
+        color: $red;
+    }
+
+    span.active-status {
+        color: $green;
+    }
+}
+
+.go-live-button-container {
+    text-align: center;
+}

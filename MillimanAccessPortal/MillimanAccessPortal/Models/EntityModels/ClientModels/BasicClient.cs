@@ -9,6 +9,15 @@ namespace MillimanAccessPortal.Models.ClientModels
     /// </summary>
     public class BasicClient
     {
+        public BasicClient() { }
+        public BasicClient(Client client)
+        {
+            Id = client.Id;
+            ParentId = client.ParentClientId;
+            Name = client.Name;
+            Code = client.ClientCode;
+        }
+
         public Guid Id { get; set; }
         public Guid? ParentId { get; set; } = null;
         public string Name { get; set; }
@@ -21,13 +30,7 @@ namespace MillimanAccessPortal.Models.ClientModels
                 return null;
             }
 
-            return new BasicClient
-            {
-                Id = client.Id,
-                ParentId = client.ParentClientId,
-                Name = client.Name,
-                Code = client.ClientCode,
-            };
+            return new BasicClient(client);
         }
     }
 }
