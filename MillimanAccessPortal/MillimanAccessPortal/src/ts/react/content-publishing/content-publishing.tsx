@@ -633,6 +633,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         action={() => { this.props.setContentItemFormState({ formState: 'write' }); }}
       />
     );
+    const selectedItemStatus = items.filter((x) => x.id === pendingFormData.id)[0];
     const closeFormButton = (
       <ActionIcon
         label="Close Content Item"
@@ -659,8 +660,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           <PanelSectionToolbarButtons>
             {formState === 'read'
               && pendingFormData.id
-              && items.filter((x) => x.id === pendingFormData.id)[0].status.requestStatus !==
-              PublicationStatus.Processed
+              && selectedItemStatus
+              && selectedItemStatus.status.requestStatus !== PublicationStatus.Processed
               && editFormButton
             }
             {closeFormButton}
