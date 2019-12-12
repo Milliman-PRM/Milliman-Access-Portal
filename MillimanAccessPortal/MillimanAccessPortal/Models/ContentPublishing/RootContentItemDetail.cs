@@ -38,6 +38,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public string ContentNotes { get; set; }
 
+        public string ThumbnailLink { get; set; }
+
         public Dictionary<string, ContentRelatedFile> RelatedFiles { get; set; } = new Dictionary<string, ContentRelatedFile>();
 
         public Dictionary<Guid, AssociatedFileModel> AssociatedFiles { get; set; }

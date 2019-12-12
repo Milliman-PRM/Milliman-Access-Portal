@@ -1,5 +1,9 @@
 ﻿import '../../../../scss/react/shared-components/form-elements.scss';
 
+import '../../../../images/icons/cancel.svg';
+import '../../../../images/icons/delete.svg';
+import '../../../../images/icons/upload.svg';
+
 import * as React from 'react';
 import { resumableOptions } from '../../../lib-options';
 import { StatusMonitor } from '../../../status-monitor';
@@ -7,8 +11,10 @@ import { FileScanner } from '../../../upload/file-scanner';
 import { FileSniffer } from '../../../upload/file-sniffer';
 import { ProgressMonitor, ProgressSummary } from '../../../upload/progress-monitor';
 import { UploadState } from '../../../upload/Redux/store';
+import { ButtonSpinner } from '../button-spinner';
 
 import forge = require('node-forge');
+import { Guid } from '../../models';
 const resumable = require('resumablejs');
 
 export enum FileUploadStatus {
@@ -43,17 +49,25 @@ interface FileUploadInputProps {
   placeholderText?: string;
   readOnly?: boolean;
   uploadId: string;
+  fileUploadId: Guid;
   upload: UploadState;
   value: string;
+  imageURL?: string;
   beginUpload: (uploadId: string, fileName: string) => void;
   cancelFileUpload: (uploadId: string) => void;
+  removeExistingFile?: (uploadId: string) => void;
   finalizeUpload: (uploadId: string, fileName: string, Guid: string) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
   updateChecksumProgress: (uploadId: string, progress: ProgressSummary) => void;
   updateUploadProgress: (uploadId: string, progress: ProgressSummary) => void;
 }
 
-export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
+interface FileUploadInputState {
+  imageSrc: string;
+}
+
+export class FileUploadInput extends React.Component<FileUploadInputProps, FileUploadInputState> {
+  protected canceled: boolean = false;
   protected checksum: string;
   protected progressMonitor: ProgressMonitor;
   protected resumable: Resumable.Resumable;
@@ -68,6 +82,9 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
   constructor(props: FileUploadInputProps) {
     super(props);
     this.uploadRef = React.createRef();
+    this.state = {
+      imageSrc: null,
+    };
   }
 
   public componentDidUpdate(prevProps: FileUploadInputProps) {
@@ -99,16 +116,25 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
 
     // Define the process after a file is selected
     this.resumable.on('fileAdded', async (resumableFile: Resumable.ResumableFile) => {
+      this.canceled = false;
       const file: File = resumableFile.file;
 
       // Ensure that the uploaded file type matches the expected
-      if (this.props.fileExtensions) {
+      if (this.props.fileExtensions.length > 0) {
         const fileParts: string[] = file.name.toLowerCase().split('.');
         const fileExtension: string = fileParts[fileParts.length - 1];
         if (this.props.fileExtensions.indexOf(fileExtension) === -1) {
-          this.props.setUploadError(this.props.uploadId, 'File extension not supported.');
+          this.props.setUploadError(this.props.uploadId, 'File extension not supported for the selected content type.');
           return false;
         }
+      }
+
+      if (this.props.name === 'thumbnail') {
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.setState({ imageSrc: reader.result.toString() });
+        };
+        reader.readAsDataURL(file);
       }
 
       // Make sure the file matches the expected magic numbers
@@ -190,7 +216,9 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
             (fileUpload: FileUpload) => {
               if (fileUpload.status === FileUploadStatus.Complete) {
                 this.progressMonitor.deactivate();
-                this.props.finalizeUpload(this.props.uploadId, resumableFile.fileName, fileGUID);
+                if (!this.canceled) {
+                  this.props.finalizeUpload(this.props.uploadId, resumableFile.fileName, fileGUID);
+                }
                 this.statusMonitor.stop();
               } else if (fileUpload.status === FileUploadStatus.Error) {
                 this.props.setUploadError(
@@ -213,6 +241,16 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
 
     // Define the process if an upload is canceled
     this.resumable.on('beforeCancel', () => {
+      // Stop all monitoring immediately and clear the image (if applicable)
+      this.canceled = true;
+      this.progressMonitor.deactivate();
+      if (this.statusMonitor) {
+        this.statusMonitor.stop();
+      }
+      if (this.state.imageSrc) {
+        this.setState({ imageSrc: null });
+      }
+
       // Define the information that needs to be sent with the Finalize Upload POST request
       this.resumable.files.forEach((file: any) => {
         const cancelInfo: ResumableInfo = {
@@ -258,33 +296,69 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
     resumableInput.disabled = this.props.readOnly;
   }
 
+  public componentWillReceiveProps(nextProps: FileUploadInputProps) {
+    if (nextProps.value === '') {
+      this.setState({ imageSrc: null });
+    }
+  }
+
+  public openFileUploadDialogOnEnter(event: React.KeyboardEvent) {
+    event.preventDefault();
+    if (event.key === 'Enter' || event.which === 13) {
+      this.uploadRef.current.click();
+    }
+  }
+
   public render() {
     const { label, name, placeholderText, readOnly, upload, value, children } = this.props;
     const { checksumProgress, uploadProgress, cancelable, errorMsg } = upload;
+    const hasImage = (value.length > 0
+      && (this.props.imageURL || this.state.imageSrc)
+      && value !== '[Pending Removal]');
+    const uploadPendingPublication = this.props.fileUploadId && this.props.fileUploadId.length > 0;
     const checksumEasing =
       (checksumProgress.percentage === '0%' || checksumProgress.percentage === '100%') ? '' : ' progress-easing';
     const uploadEasing =
       (uploadProgress.percentage === '0%' || uploadProgress.percentage === '100%') ? '' : ' progress-easing';
     return (
-      <div className={`form-element-container ${readOnly ? 'disabled' : ''}`}>
+      <div
+        className={`form-element-container${
+          uploadPendingPublication ? ' upload-complete' : ''
+          }${
+          readOnly ? ' disabled' : ''
+          }${
+          hasImage ? ' thumbnail' : ''
+          }`
+        }
+        title={`${value}${uploadPendingPublication ? ' (Awaiting Publication)' : ''}`}
+      >
         <div className={`form-element-input ${errorMsg ? ' error' : ''}`} ref={this.uploadRef}>
           <div className="form-input-container">
             <input
               type="text"
-              className="form-input file-upload-input"
+              className={`form-input file-upload-input ${hasImage ? 'preview' : ''}`}
               name={name}
               id={name}
               placeholder={placeholderText || 'Upload ' + label}
               value={value}
               onChange={() => false}
+              onKeyDown={(event) => this.openFileUploadDialogOnEnter(event)}
               readOnly={readOnly}
             />
             <label className="form-input-label" htmlFor={name}>{label}</label>
           </div>
+          {
+            hasImage && value &&
+            <img
+              className="thumbnail-preview"
+              src={this.state.imageSrc || this.props.imageURL}
+              alt="thumbnail preview"
+            />
+          }
           {children}
         </div>
         {
-          upload.cancelable &&
+          upload.cancelable && this.props.fileUploadId.length === 0 &&
           <div className="progress-bars">
             {!errorMsg &&
               <div
@@ -296,13 +370,67 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, {}> {
                 className={`progress-bar-upload${uploadEasing}`}
                 style={{ width: uploadProgress.percentage }}
               />}
-            {errorMsg &&
-              <div
-                className="progress-bar-error progress-easing"
-              />}
           </div>
         }
         {errorMsg && <div className="error-message">{errorMsg}</div>}
+        {
+          !readOnly &&
+          <div className="upload-icon-container">
+            {
+              !cancelable &&
+              <div
+                className="upload-icon tooltip"
+                title="Upload file"
+                onClick={() => this.uploadRef.current.click()}
+              >
+                <svg className="upload icon green">
+                  <use xlinkHref="#upload" />
+                </svg>
+              </div>
+            }
+            {
+              cancelable && this.props.fileUploadId.length === 0 && !errorMsg &&
+              <div
+                title="Uploading..."
+              >
+                <ButtonSpinner version="bars" />
+              </div>
+            }
+            {
+              cancelable &&
+              <div
+                className="upload-icon tooltip"
+                title="Cancel upload"
+                onClick={(event: React.MouseEvent) => {
+                  event.stopPropagation();
+                  this.resumable.cancel();
+                }}
+              >
+                <svg className="icon red">
+                  <use xlinkHref="#cancel" />
+                </svg>
+              </div>
+            }
+            {
+              value.length > 0
+              && !cancelable
+              && value !== '[Pending Removal]'
+              && this.props.removeExistingFile &&
+              <div
+                className="upload-icon tooltip"
+                title="Delete existing file"
+                onClick={(event: React.MouseEvent) => {
+                  event.stopPropagation();
+                  this.props.removeExistingFile(this.props.uploadId);
+                }}
+              >
+                <svg className="icon red">
+                  <use xlinkHref="#delete" />
+                </svg>
+              </div>
+            }
+          </div>
+        }
       </div>
     );
   }

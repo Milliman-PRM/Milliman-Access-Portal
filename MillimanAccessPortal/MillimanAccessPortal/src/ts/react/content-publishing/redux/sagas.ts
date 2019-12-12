@@ -56,10 +56,9 @@ export default function* rootSaga() {
   yield takeLatestRequest('DELETE_CONTENT_ITEM', api.deleteContentItem);
   yield takeLatestRequest('CANCEL_PUBLICATION_REQUEST', api.cancelPublicationRequest);
 
+  // Session and Status Checks
   yield takeLatestRequest('FETCH_STATUS_REFRESH', api.fetchStatusRefresh);
   yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);
-
-  // Scheduled actions
   yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
     const client: ClientWithEligibleUsers = yield select(selectedClient);
     return client
@@ -94,7 +93,7 @@ export default function* rootSaga() {
   // Toasts
   yield takeEveryToast('CREATE_NEW_CONTENT_ITEM_SUCCEEDED', 'New Content Item created successfully.');
   yield takeEveryToast('UPDATE_CONTENT_ITEM_SUCCEEDED', 'Content Item updated successfully.');
-  yield takeEveryToast('PUBLISH_CONTENT_FILES_SUCCEEDED', 'Files successfully uploaded for processing.');
+  yield takeEveryToast('PUBLISH_CONTENT_FILES_SUCCEEDED', 'Updates submitted for processing.');
   yield takeEveryToast('DELETE_CONTENT_ITEM_SUCCEEDED', 'Content Item successfully deleted.');
   yield takeEveryToast('CANCEL_PUBLICATION_REQUEST_SUCCEEDED', 'Publication canceled.');
   yield takeEveryToast('REJECT_GO_LIVE_SUMMARY_SUCCEEDED', 'Publication rejected.');

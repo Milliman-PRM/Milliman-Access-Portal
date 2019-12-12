@@ -15,6 +15,7 @@
 .form-section-divider {
     display: flex;
     flex-flow: row wrap;
+    align-content: flex-start;
 }
 
 .form-content-container {
@@ -35,24 +36,140 @@
 }
 
 .form-element-container {
+    position: relative;
     margin: .25em .5em .5em;
     opacity: 1;
     width: 100%;
+
+    &.upload-complete {
+
+        .form-input-container,
+        .thumbnail-preview {
+            border: 2px solid $green !important;
+        }
+
+        &.thumbnail .form-input-container {
+            border-bottom: none !important;
+        }
+
+        .thumbnail-preview {
+            border-top: none !important;
+        }
+    }
+
+    &:hover .upload-icon-container .upload-icon .upload.icon.green {
+        color: $green;
+    }
+
+    .upload-icon-container {
+        position: absolute;
+        top: 0;
+        right: .25rem;
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: center;
+        align-items: center;
+        height: 3.5rem;
+
+        .upload-icon {
+            height: 1.5rem;
+            width: 1.5rem;
+            cursor: pointer;
+            margin-right: .4rem;
+
+            .icon {
+                height: 1.5rem;
+                width: 1.5rem;
+                color: $charcoal;
+
+                &.upload {
+                    pointer-events: none;
+                }
+            }
+
+            &:hover .icon {
+                pointer-events: none;
+
+                &.red {
+                    color: $red !important;
+                }
+
+                &.blue {
+                    color: $blue !important;
+                }
+
+                &.green {
+                    color: $green !important;
+                }
+            }
+        }
+
+        .loading-spinner {
+            color: $green;
+            height: 2rem;
+            width: 2rem;
+            margin-right: .3rem;
+        }
+    }
 
     &.disabled {
 
         .input-icon-label,
         .action-icon-label,
-        .form-input-container {
+        .form-input-container,
+        .thumbnail-preview {
             border-color: $grey !important;
+        }
+
+        .input-icon-label {
+            background-color: rgba($blue, .6) !important;
+        }
+
+        .action-icon-label,
+        .form-input-container,
+        .thumbnail-preview {
+            background-color: $off-white !important;
         }
 
         .form-input-label,
         .form-input {
-            color: darken($grey, 10%) !important;
+            color: $grey !important;
+        }
+
+        &.thumbnail .form-element-input .form-input-container {
+            min-height: 1.5em;
         }
     }
 
+    &.thumbnail {
+
+        .form-element-input {
+            height: auto;
+            flex-flow: column nowrap;
+
+            .file-upload-input.preview {
+                display: none;
+            }
+
+            .form-input-container {
+                min-height: 2.5em;
+                border-bottom: none;
+            }
+        }
+
+        .upload-icon-container {
+            height: 2.5em;
+        }
+
+        .thumbnail-preview {
+            width: 100%;
+            height: auto;
+            cursor: pointer;
+            border: 1px solid $charcoal;
+            border-top: none;
+            background-color: $white;
+        }
+    }
 
     .form-element-input,
     .form-element-textarea,
@@ -200,6 +317,41 @@
     }
 }
 
+.disclaimer-preview-toggle {
+    width: 100%;
+    padding: 0 1em;
+    text-align: right;
+    color: $blue;
+    cursor: pointer;
+
+    &:hover {
+        color: darken($blue, 10%);
+    }
+}
+
+.disclaimer-preview {
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 90vh;
+    width: 100%;
+    border: 1px solid $charcoal;
+    background-color: $white;
+    padding: 1em;
+    margin: .25em .5em 1.5em;
+
+    &.disabled {
+        border-color: $grey;
+        background-color: $off-white;
+        color: $grey;
+    }
+}
+
+.disclaimer-instructions {
+    text-align: right;
+    width: 100%;
+    margin-bottom: 1.5em;
+}
+
 /* File Upload Component */
 
 .file-upload-input {
@@ -228,11 +380,6 @@
 
     .progress-bar-upload {
         background-color: $green;
-    }
-
-    .progress-bar-error {
-        background-color: $red;
-        width: 100%;
     }
 }
 

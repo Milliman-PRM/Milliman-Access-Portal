@@ -93,6 +93,7 @@ export interface ContentItemDetail {
   contentNotes: string;
   relatedFiles: RelatedFiles;
   associatedFiles: Dict<AssociatedContentItemUpload>;
+  thumbnailLink: string;
   typeSpecificDetailObject: {
     bookmarksPaneEnabled?: boolean;
     filterPaneEnabled?: boolean;
@@ -103,6 +104,23 @@ export interface ContentItemDetail {
     previewEmbedUrl?: string;
     previewReportId?: Guid;
     previewWorkspaceId?: Guid;
+  };
+}
+
+export interface ContentItemPublicationDetail {
+  Id?: Guid;
+  ClientId: Guid;
+  ContentName: string;
+  ContentTypeId: Guid;
+  Description: string;
+  Notes: string;
+  ContentDisclaimer: string;
+  DoesReduce?: boolean;
+  TypeSpecificDetailObject?: {
+    // PowerBi specific:
+    BookmarksPaneEnabled?: boolean;
+    FilterPaneEnabled?: boolean;
+    NavigationPaneEnabled?: boolean;
   };
 }
 

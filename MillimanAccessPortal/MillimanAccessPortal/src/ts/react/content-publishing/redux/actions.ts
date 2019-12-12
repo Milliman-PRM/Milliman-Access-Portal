@@ -4,8 +4,9 @@ import {
 } from '../../../view-models/content-publishing';
 import {
   ClientWithStats, ContentAssociatedFileType, ContentItemDetail,
-  ContentPublicationRequest, ContentType, GoLiveViewModel, Guid,
-  PublicationQueueDetails, RootContentItem, RootContentItemWithStats,
+  ContentItemPublicationDetail, ContentPublicationRequest, ContentType,
+  GoLiveViewModel, Guid, PublicationQueueDetails, RootContentItem,
+  RootContentItemWithStats,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -84,6 +85,14 @@ export interface ToggleGoLiveConfirmationCheckbox {
  */
 export interface ToggleShowOnlyChanges {
   type: 'TOGGLE_SHOW_ONLY_CHANGES';
+}
+
+/**
+ * Set the disclaimer input to edit or preview mode.
+ */
+export interface SetDisclaimerInputState {
+  type: 'SET_DISCLAIMER_INPUT_STATE';
+  value: 'edit' | 'preview';
 }
 
 /**
@@ -245,19 +254,7 @@ export interface RejectGoLiveSummaryFailed {
  */
 export interface CreateNewContentItem {
   type: 'CREATE_NEW_CONTENT_ITEM';
-  request: {
-    ClientId: Guid;
-    ContentName: string;
-    ContentTypeId: Guid;
-    Description: string;
-    Notes: string;
-    ContentDisclaimer: string;
-    DoesReduce: boolean;
-    // PowerBi specific:
-    FilterPaneEnabled?: boolean;
-    NavigationPaneEnabled?: boolean;
-    BookmarksPaneEnabled?: boolean;
-  };
+  request: ContentItemPublicationDetail;
 }
 export interface CreateNewContentItemSucceeded {
   type: 'CREATE_NEW_CONTENT_ITEM_SUCCEEDED';
@@ -274,20 +271,7 @@ export interface CreateNewContentItemFailed {
  */
 export interface UpdateContentItem {
   type: 'UPDATE_CONTENT_ITEM';
-  request: {
-    Id: Guid;
-    ClientId: Guid;
-    ContentName: string;
-    ContentTypeId: Guid;
-    Description: string;
-    Notes: string;
-    ContentDisclaimer: string;
-    DoesReduce: boolean;
-    // PowerBi specific:
-    FilterPaneEnabled?: boolean;
-    NavigationPaneEnabled?: boolean;
-    BookmarksPaneEnabled?: boolean;
-  };
+  request: ContentItemPublicationDetail;
 }
 export interface UpdateContentItemSucceeded {
   type: 'UPDATE_CONTENT_ITEM_SUCCEEDED';
@@ -368,12 +352,22 @@ export interface SetPublishingFormTextInputValue {
 
 export interface SetPublishingFormBooleanInputValue {
   type: 'SET_PENDING_BOOLEAN_INPUT_VALUE';
-  inputName: 'doesReduce' | 'isSuspended';
+  inputName:
+  | 'doesReduce'
+  | 'isSuspended'
+  | 'filterPaneEnabled'
+  | 'navigationPaneEnabled'
+  | 'bookmarksPaneEnabled';
   value: boolean;
 }
 
 export interface ResetContentItemForm {
   type: 'RESET_CONTENT_ITEM_FORM';
+}
+
+export interface RemoveExistingFile {
+  type: 'REMOVE_EXISTING_FILE';
+  uploadId: Guid;
 }
 
 /**
@@ -527,8 +521,10 @@ export type PagePublishingAction =
   | SetFormForNewContentItem
   | SetFilterTextClient
   | SetFilterTextItem
+  | RemoveExistingFile
   | ToggleShowOnlyChanges
   | ToggleGoLiveConfirmationCheckbox
+  | SetDisclaimerInputState
   | SetPublishingFormTextInputValue
   | SetPublishingFormBooleanInputValue
   | ResetContentItemForm

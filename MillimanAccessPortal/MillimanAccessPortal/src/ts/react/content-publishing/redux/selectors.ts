@@ -5,8 +5,8 @@ import {
   publicationStatusNames, PublishRequest, UploadedRelatedFile,
 } from '../../../view-models/content-publishing';
 import {
-  ClientWithStats, ContentPublicationRequest, ContentReductionTask,
-    Guid, RootContentItemWithStats,
+  ClientWithStats, ContentItemPublicationDetail, ContentPublicationRequest,
+  ContentReductionTask, Guid, RootContentItemWithStats,
 } from '../../models';
 import { PublishingState } from './store';
 
@@ -251,13 +251,13 @@ export function availableAssociatedContentTypes(state: PublishingState) {
  * @param state Redux store
  */
 export function submitButtonIsActive(state: PublishingState) {
-  const { formData } = state.formData;
-  const formChanged = !_.isEqual(state.formData.formData, state.formData.originalData);
+  const { pendingFormData } = state.formData;
+  const formChanged = !_.isEqual(state.formData.pendingFormData, state.formData.originalFormData);
   const noActiveUpload = _.size(state.pending.uploads) === 0;
-  const formValid = formData.clientId
-    && formData.contentName
-    && formData.contentTypeId
-    && formData.relatedFiles.MasterContent.fileOriginalName.length > 0;
+  const formValid = pendingFormData.clientId
+    && pendingFormData.contentName
+    && pendingFormData.contentTypeId
+    && pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0;
   return formChanged && noActiveUpload && formValid;
 }
 
@@ -266,8 +266,8 @@ export function submitButtonIsActive(state: PublishingState) {
  * @param state Redux store
  */
 export function uploadChangesPending(state: PublishingState) {
-  const { formData, originalData } = state.formData;
-  const changesPending = !_.isEqual(formData.relatedFiles, originalData.relatedFiles);
+  const { pendingFormData, originalFormData } = state.formData;
+  const changesPending = !_.isEqual(pendingFormData.relatedFiles, originalFormData.relatedFiles);
   return changesPending;
 }
 
@@ -276,15 +276,15 @@ export function uploadChangesPending(state: PublishingState) {
  * @param state Redux store
  */
 export function formChangesPending(state: PublishingState) {
-  const { formData, originalData } = state.formData;
-  const changesPending = (formData.id !== originalData.id)
-    || (formData.clientId !== originalData.clientId)
-    || (formData.contentName !== originalData.contentName)
-    || (formData.contentDescription !== originalData.contentDescription)
-    || (formData.contentDisclaimer !== originalData.contentDisclaimer)
-    || (formData.contentNotes !== originalData.contentNotes)
-    || (formData.doesReduce !== originalData.doesReduce)
-    || !_.isEqual(formData.typeSpecificDetailObject, originalData.typeSpecificDetailObject);
+  const { pendingFormData, originalFormData } = state.formData;
+  const changesPending = (pendingFormData.id !== originalFormData.id)
+    || (pendingFormData.clientId !== originalFormData.clientId)
+    || (pendingFormData.contentName !== originalFormData.contentName)
+    || (pendingFormData.contentDescription !== originalFormData.contentDescription)
+    || (pendingFormData.contentDisclaimer !== originalFormData.contentDisclaimer)
+    || (pendingFormData.contentNotes !== originalFormData.contentNotes)
+    || (pendingFormData.doesReduce !== originalFormData.doesReduce)
+    || !_.isEqual(pendingFormData.typeSpecificDetailObject, originalFormData.typeSpecificDetailObject);
   return changesPending;
 }
 
@@ -293,8 +293,9 @@ export function formChangesPending(state: PublishingState) {
  * @param state Redux store
  */
 export function filesForPublishing(state: PublishingState, rootContentItemId: Guid): PublishRequest {
-  const { relatedFiles } = state.formData.formData;
+  const { relatedFiles } = state.formData.pendingFormData;
   const filesToPublish: UploadedRelatedFile[] = [];
+  const deleteFilePurposes: string[] = [];
   for (const key in relatedFiles) {
     if (relatedFiles[key].fileUploadId) {
       filesToPublish.push({
@@ -303,15 +304,16 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
         fileUploadId: relatedFiles[key].fileUploadId,
       });
     }
+    if (relatedFiles[key].fileOriginalName === '[Pending Removal]') {
+      deleteFilePurposes.push(key);
+    }
   }
-
-  // TODO: Implement file deletion...
 
   return {
     rootContentItemId,
     newRelatedFiles: filesToPublish,
     associatedFiles: [],
-    deleteFilePurposes: [],
+    deleteFilePurposes,
   };
 }
 
@@ -334,4 +336,41 @@ export function contentItemToBeDeleted(state: PublishingState) {
   return (state.data.items.hasOwnProperty(contentItemIdPendingDeletion))
     ? state.data.items[contentItemIdPendingDeletion]
     : null;
+}
+
+/**
+ * Return the content item information for creating and updating content items
+ * @param state Redux store
+ */
+export function contentItemForPublication(state: PublishingState): ContentItemPublicationDetail {
+  const { contentTypes } = state.data;
+  const { pendingFormData } = state.formData;
+  const isPowerBI = pendingFormData.contentTypeId
+    && contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI';
+  const contentItemInformation: ContentItemPublicationDetail = {
+    ClientId: pendingFormData.clientId,
+    ContentName: pendingFormData.contentName,
+    ContentTypeId: pendingFormData.contentTypeId,
+    Description: pendingFormData.contentDescription,
+    ContentDisclaimer: pendingFormData.contentDisclaimer,
+    Notes: pendingFormData.contentNotes,
+  };
+
+  if (pendingFormData.id) {
+    contentItemInformation.Id = pendingFormData.id;
+  }
+
+  if (!pendingFormData.id) {
+    contentItemInformation.DoesReduce = pendingFormData.doesReduce;
+  }
+
+  if (isPowerBI) {
+    contentItemInformation.TypeSpecificDetailObject = {
+      BookmarksPaneEnabled: pendingFormData.typeSpecificDetailObject.bookmarksPaneEnabled,
+      FilterPaneEnabled: pendingFormData.typeSpecificDetailObject.filterPaneEnabled,
+      NavigationPaneEnabled: pendingFormData.typeSpecificDetailObject.navigationPaneEnabled,
+    };
+  }
+
+  return contentItemInformation;
 }

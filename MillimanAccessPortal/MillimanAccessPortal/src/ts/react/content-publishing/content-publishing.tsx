@@ -9,14 +9,15 @@ import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
+import { convertMarkdownToHTML } from '../../convert-markdown';
 import { setUnloadAlert } from '../../unload-alerts';
 import {
   ContentTypeEnum, PublicationStatus, PublishRequest,
 } from '../../view-models/content-publishing';
 import { ContentCard } from '../authorized-content/content-card';
 import {
-  Client, ClientWithStats, ContentAssociatedFileType, ContentType,
-  RootContentItem, RootContentItemWithPublication,
+  Client, ClientWithStats, ContentAssociatedFileType, ContentItemPublicationDetail,
+  ContentType, RootContentItem, RootContentItemWithPublication,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ButtonSpinner } from '../shared-components/button-spinner';
@@ -35,6 +36,7 @@ import {
   ContentPanel, ContentPanelSectionContent,
 } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
+import { Checkbox } from '../shared-components/form/checkbox';
 import { FileUploadInput } from '../shared-components/form/file-upload-input';
 import {
   ContentPanelForm, FormFlexContainer, FormSection, FormSectionRow,
@@ -44,14 +46,15 @@ import { Select } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { Dict } from '../shared-components/redux/store';
+import { TabRow } from '../shared-components/tab-row';
 import { GoLiveSection } from './go-live-section';
 import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
-  availableContentTypes, clientEntities, contentItemToBeDeleted, filesForPublishing,
-  formChangesPending, goLiveApproveButtonIsActive, itemEntities, selectedItem,
-  submitButtonIsActive, uploadChangesPending,
+  availableContentTypes, clientEntities, contentItemForPublication, contentItemToBeDeleted,
+  filesForPublishing, formChangesPending, goLiveApproveButtonIsActive, itemEntities,
+  selectedItem, submitButtonIsActive, uploadChangesPending,
 } from './redux/selectors';
 import {
   GoLiveSummaryData, PublishingFormData, PublishingState, PublishingStateCardAttributes,
@@ -88,6 +91,7 @@ interface ContentPublishingProps {
   formChangesPending: boolean;
   goLiveApproveButtonIsActive: boolean;
   uploadChangesPending: boolean;
+  contentItemForPublication: ContentItemPublicationDetail;
 }
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
@@ -119,7 +123,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         {(goLiveSummary.rootContentItemId)
           ? this.renderGoLiveSummary()
           : (selected.item
-            && formData.formData.clientId) ? this.renderContentItemForm() : null
+            && formData.pendingFormData.clientId) ? this.renderContentItemForm() : null
         }
         <Modal
           isOpen={modals.contentItemDeletion.isOpen}
@@ -444,7 +448,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               <>
                 <CardButton
                   color={'green'}
-                  tooltip={'Approve'}
+                  tooltip={'Review for Approval'}
                   onClick={() => {
                     if (this.props.formChangesPending || this.props.uploadChangesPending) {
                       this.props.openModifiedFormModal({
@@ -461,12 +465,15 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   icon={'checkmark'}
                 />
               </>
-            ) : entity.status.requestStatus === PublicationStatus.Queued
-              || entity.status.requestStatus === PublicationStatus.Validating ? (
+            ) : entity.status.requestStatus === PublicationStatus.Validating
+            || entity.status.requestStatus === PublicationStatus.Queued
+            || entity.status.requestStatus === PublicationStatus.Processing
+            || entity.status.requestStatus === PublicationStatus.PostProcessReady
+            || entity.status.requestStatus === PublicationStatus.Error ? (
                 <>
                   <CardButton
                     color={'red'}
-                    tooltip={'Cancel'}
+                    tooltip={'Cancel Publication'}
                     onClick={() => this.props.openCancelPublicationModal({ id: entity.id })}
                     icon={'cancel'}
                   />
@@ -475,7 +482,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 <>
                   <CardButton
                     color={'red'}
-                    tooltip={'Delete'}
+                    tooltip={'Delete Content Item'}
                     onClick={() => {
                       if (this.props.formChangesPending || this.props.uploadChangesPending) {
                         this.props.openModifiedFormModal({
@@ -492,8 +499,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     icon={'delete'}
                   />
                   <CardButton
-                    color={'green'}
-                    tooltip={'Edit'}
+                    color={'blue'}
+                    tooltip={'Edit Content Item'}
                     onClick={() => {
                       if (this.props.formChangesPending || this.props.uploadChangesPending) {
                         this.props.openModifiedFormModal({
@@ -617,8 +624,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderContentItemForm() {
-    const { contentTypes, formData: dataForForm, pending } = this.props;
-    const { formErrors, formData, formState, uploads } = dataForForm;
+    const { contentTypes, formData, items, pending } = this.props;
+    const { formErrors, pendingFormData, formState, uploads } = formData;
     const editFormButton = (
       <ActionIcon
         label="Edit Content Item"
@@ -626,6 +633,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         action={() => { this.props.setContentItemFormState({ formState: 'write' }); }}
       />
     );
+    const selectedItemStatus = items.filter((x) => x.id === pendingFormData.id)[0];
     const closeFormButton = (
       <ActionIcon
         label="Close Content Item"
@@ -650,8 +658,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <h3 className="admin-panel-header">Content Item</h3>
         <PanelSectionToolbar>
           <PanelSectionToolbarButtons>
-            {formState === 'read' &&
-              editFormButton
+            {formState === 'read'
+              && pendingFormData.id
+              && selectedItemStatus
+              && selectedItemStatus.status.requestStatus !== PublicationStatus.Processed
+              && editFormButton
             }
             {closeFormButton}
           </PanelSectionToolbarButtons>
@@ -676,13 +687,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       });
                     }}
                     type="text"
-                    value={formData.contentName}
+                    value={pendingFormData.contentName}
                     readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
-                <FormFlexContainer flexPhone={12} flexTablet={5}>
+                <FormFlexContainer flexPhone={12} flexTablet={4}>
                   <Select
-                    error={dataForForm.formErrors.contentTypeId}
+                    error={formData.formErrors.contentTypeId}
                     label="Content Type"
                     name="contentType"
                     onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
@@ -691,25 +702,31 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         value: target.value,
                       });
                     }}
-                    placeholderText="Choose Content Type"
-                    value={dataForForm.formData.contentTypeId}
+                    placeholderText="Content Type"
+                    value={formData.pendingFormData.contentTypeId}
                     values={this.props.contentTypesList}
-                    readOnly={formState === 'read'}
+                    readOnly={
+                      formState === 'read'
+                      || formData.originalFormData.id.length > 0
+                      || (formData.pendingFormData.relatedFiles.MasterContent
+                        && formData.pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0)
+                    }
                   />
                 </FormFlexContainer>
-                <FormFlexContainer flexPhone={12} flexTablet={7}>
+                <FormFlexContainer flexPhone={12} flexTablet={8}>
                   <FileUploadInput
                     fileExtensions={
-                      contentTypes[dataForForm.formData.contentTypeId] !== undefined
-                        ? contentTypes[dataForForm.formData.contentTypeId].fileExtensions
+                      contentTypes[formData.pendingFormData.contentTypeId] !== undefined
+                        ? contentTypes[formData.pendingFormData.contentTypeId].fileExtensions
                         : []
                     }
-                    label="Master Content"
+                    label="Content File"
                     name="masterContent"
-                    placeholderText="Upload Master Content"
+                    placeholderText="Content File"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
-                    cancelFileUpload={() => false}
+                    cancelFileUpload={(uploadId) =>
+                      this.props.cancelFileUpload({ uploadId })}
                     finalizeUpload={(uploadId, fileName, Guid) =>
                       this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
@@ -718,25 +735,89 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.updateChecksumProgress({ uploadId, progress })}
                     updateUploadProgress={(uploadId, progress) =>
                       this.props.updateUploadProgress({ uploadId, progress })}
-                    upload={uploads[formData.relatedFiles.MasterContent.uniqueUploadId]}
-                    uploadId={formData.relatedFiles.MasterContent.uniqueUploadId}
-                    value={formData.relatedFiles.MasterContent.fileOriginalName}
-                    readOnly={formState === 'read'}
+                    upload={uploads[pendingFormData.relatedFiles.MasterContent.uniqueUploadId]}
+                    uploadId={pendingFormData.relatedFiles.MasterContent.uniqueUploadId}
+                    fileUploadId={
+                      (pendingFormData.relatedFiles.MasterContent.fileUploadId !== undefined)
+                        ? pendingFormData.relatedFiles.MasterContent.fileUploadId
+                        : null
+                    }
+                    value={pendingFormData.relatedFiles.MasterContent.fileOriginalName}
+                    readOnly={formState === 'read' || formData.pendingFormData.contentTypeId.length === 0}
                   />
                 </FormFlexContainer>
               </FormSectionRow>
             </FormSection>
+            {
+              formData.pendingFormData && formData.pendingFormData.contentTypeId &&
+              (
+                contentTypes[formData.pendingFormData.contentTypeId].displayName === 'QlikView' ||
+                contentTypes[formData.pendingFormData.contentTypeId].displayName === 'Power BI'
+              ) &&
+              <FormSection
+                title={`${contentTypes[formData.pendingFormData.contentTypeId].displayName} Specific Settings`}
+              >
+                {
+                  contentTypes[formData.pendingFormData.contentTypeId].displayName === 'QlikView' &&
+                  <Checkbox
+                    name="Reducible"
+                    selected={formData.pendingFormData.doesReduce}
+                    onChange={(status) => this.props.setPublishingFormBooleanInputValue({
+                      inputName: 'doesReduce',
+                      value: status,
+                    })}
+                    readOnly={formState === 'read' || formData.originalFormData.id.length > 0}
+                  />
+                }
+                {
+                  contentTypes[formData.pendingFormData.contentTypeId].displayName === 'Power BI' &&
+                  <>
+                    <Checkbox
+                      name="Navigation Pane"
+                      selected={formData.pendingFormData.typeSpecificDetailObject.navigationPaneEnabled}
+                      onChange={(status) => this.props.setPublishingFormBooleanInputValue({
+                        inputName: 'navigationPaneEnabled',
+                        value: status,
+                      })}
+                      readOnly={formState === 'read'}
+                    />
+                    <Checkbox
+                      name="Filter Pane"
+                      selected={formData.pendingFormData.typeSpecificDetailObject.filterPaneEnabled}
+                      onChange={(status) => this.props.setPublishingFormBooleanInputValue({
+                        inputName: 'filterPaneEnabled',
+                        value: status,
+                      })}
+                      readOnly={formState === 'read'}
+                    />
+                    <Checkbox
+                      name="Bookmark Pane"
+                      selected={formData.pendingFormData.typeSpecificDetailObject.bookmarksPaneEnabled}
+                      onChange={(status) => this.props.setPublishingFormBooleanInputValue({
+                        inputName: 'bookmarksPaneEnabled',
+                        value: status,
+                      })}
+                      readOnly={formState === 'read'}
+                    />
+                  </>
+                }
+              </FormSection>
+            }
             <FormSection title="Content Related Files">
               <FormSectionRow>
-                <FormFlexContainer flexPhone={5}>
+                <FormFlexContainer flexPhone={4}>
                   <FileUploadInput
                     fileExtensions={['jpg', 'jpeg', 'gif', 'png']}
                     label="Thumbnail"
                     name="thumbnail"
-                    placeholderText="Upload Thumbnail"
+                    placeholderText="Thumbnail"
+                    imageURL={formData.originalFormData.thumbnailLink}
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
-                    cancelFileUpload={() => false}
+                    cancelFileUpload={(uploadId) =>
+                      this.props.cancelFileUpload({ uploadId })}
+                    removeExistingFile={(uploadId) =>
+                      this.props.removeExistingFile({ uploadId })}
                     finalizeUpload={(uploadId, fileName, Guid) =>
                       this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
@@ -745,21 +826,29 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.updateChecksumProgress({ uploadId, progress })}
                     updateUploadProgress={(uploadId, progress) =>
                       this.props.updateUploadProgress({ uploadId, progress })}
-                    upload={uploads[formData.relatedFiles.Thumbnail.uniqueUploadId]}
-                    uploadId={formData.relatedFiles.Thumbnail.uniqueUploadId}
-                    value={formData.relatedFiles.Thumbnail.fileOriginalName}
+                    upload={uploads[pendingFormData.relatedFiles.Thumbnail.uniqueUploadId]}
+                    uploadId={pendingFormData.relatedFiles.Thumbnail.uniqueUploadId}
+                    fileUploadId={
+                      (pendingFormData.relatedFiles.Thumbnail.fileUploadId !== undefined)
+                        ? pendingFormData.relatedFiles.Thumbnail.fileUploadId
+                        : null
+                    }
+                    value={pendingFormData.relatedFiles.Thumbnail.fileOriginalName}
                     readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
-                <FormFlexContainer flexPhone={7}>
+                <FormFlexContainer flexPhone={8}>
                   <FileUploadInput
                     fileExtensions={['pdf']}
                     label="User Guide"
                     name="userGuide"
-                    placeholderText="Upload User Guide"
+                    placeholderText="User Guide"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
-                    cancelFileUpload={() => false}
+                    cancelFileUpload={(uploadId) =>
+                      this.props.cancelFileUpload({ uploadId })}
+                    removeExistingFile={(uploadId) =>
+                      this.props.removeExistingFile({ uploadId })}
                     finalizeUpload={(uploadId, fileName, Guid) =>
                       this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
@@ -768,19 +857,27 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.updateChecksumProgress({ uploadId, progress })}
                     updateUploadProgress={(uploadId, progress) =>
                       this.props.updateUploadProgress({ uploadId, progress })}
-                    upload={uploads[formData.relatedFiles.UserGuide.uniqueUploadId]}
-                    uploadId={formData.relatedFiles.UserGuide.uniqueUploadId}
-                    value={formData.relatedFiles.UserGuide.fileOriginalName}
+                    upload={uploads[pendingFormData.relatedFiles.UserGuide.uniqueUploadId]}
+                    uploadId={pendingFormData.relatedFiles.UserGuide.uniqueUploadId}
+                    fileUploadId={
+                      (pendingFormData.relatedFiles.UserGuide.fileUploadId !== undefined)
+                        ? pendingFormData.relatedFiles.UserGuide.fileUploadId
+                        : null
+                    }
+                    value={pendingFormData.relatedFiles.UserGuide.fileOriginalName}
                     readOnly={formState === 'read'}
                   />
                   <FileUploadInput
                     fileExtensions={['pdf']}
                     label="Release Notes"
                     name="releaseNotes"
-                    placeholderText="Upload Release Notes"
+                    placeholderText="Release Notes"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
-                    cancelFileUpload={() => false}
+                    cancelFileUpload={(uploadId) =>
+                      this.props.cancelFileUpload({ uploadId })}
+                    removeExistingFile={(uploadId) =>
+                      this.props.removeExistingFile({ uploadId })}
                     finalizeUpload={(uploadId, fileName, Guid) =>
                       this.props.finalizeUpload({ uploadId, fileName, Guid })}
                     setUploadError={(uploadId, errorMsg) =>
@@ -789,9 +886,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.updateChecksumProgress({ uploadId, progress })}
                     updateUploadProgress={(uploadId, progress) =>
                       this.props.updateUploadProgress({ uploadId, progress })}
-                    upload={uploads[formData.relatedFiles.ReleaseNotes.uniqueUploadId]}
-                    uploadId={formData.relatedFiles.ReleaseNotes.uniqueUploadId}
-                    value={formData.relatedFiles.ReleaseNotes.fileOriginalName}
+                    upload={uploads[pendingFormData.relatedFiles.ReleaseNotes.uniqueUploadId]}
+                    uploadId={pendingFormData.relatedFiles.ReleaseNotes.uniqueUploadId}
+                    fileUploadId={
+                      (pendingFormData.relatedFiles.ReleaseNotes.fileUploadId !== undefined)
+                        ? pendingFormData.relatedFiles.ReleaseNotes.fileUploadId
+                        : null
+                    }
+                    value={pendingFormData.relatedFiles.ReleaseNotes.fileOriginalName}
                     readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
@@ -801,7 +903,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               <FormSectionRow>
                 <FormFlexContainer flexPhone={12}>
                   <TextAreaInput
-                    error={dataForForm.formErrors.contentDescription}
+                    error={formData.formErrors.contentDescription}
                     label="Content Description"
                     name="contentDescription"
                     onBlur={() => false}
@@ -812,26 +914,56 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       });
                     }}
                     placeholderText="Content Description..."
-                    value={dataForForm.formData.contentDescription}
+                    value={formData.pendingFormData.contentDescription}
                     readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
+              </FormSectionRow>
+            </FormSection>
+            <FormSection title="Custom Content Disclaimer">
+              <FormSectionRow>
                 <FormFlexContainer flexPhone={12}>
-                  <TextAreaInput
-                    error={dataForForm.formErrors.contentDisclaimer}
-                    label="Custom Disclaimer Text"
-                    name="contentDisclaimer"
-                    onBlur={() => false}
-                    onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
-                      this.props.setPublishingFormTextInputValue({
-                        inputName: 'contentDisclaimer',
-                        value: target.value,
-                      });
-                    }}
-                    placeholderText="Custom Disclaimer Text..."
-                    value={dataForForm.formData.contentDisclaimer}
-                    readOnly={formState === 'read'}
-                  />
+                  {
+                    formData.formState === 'write' &&
+                    <TabRow
+                      tabs={[{ id: 'edit', label: 'Edit' }, { id: 'preview', label: 'Preview' }]}
+                      selectedTab={formData.disclaimerInputState}
+                      onTabSelect={(tab: 'edit' | 'preview') => this.props.setDisclaimerInputState({value: tab})}
+                      fullWidth={true}
+                    />
+                  }
+                  {
+                    formData.disclaimerInputState === 'preview' || formData.formState === 'read'
+                      ? (
+                        <div
+                          className={`disclaimer-preview${formData.formState === 'read' ? ' disabled' : ''}`}
+                          dangerouslySetInnerHTML={{
+                            __html: convertMarkdownToHTML(formData.pendingFormData.contentDisclaimer),
+                          }}
+                        />
+                      ) : (
+                        <>
+                          <TextAreaInput
+                            error={formData.formErrors.contentDisclaimer}
+                            label="Custom Disclaimer Text"
+                            name="contentDisclaimer"
+                            onBlur={() => false}
+                            onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                              this.props.setPublishingFormTextInputValue({
+                                inputName: 'contentDisclaimer',
+                                value: target.value,
+                              });
+                            }}
+                            placeholderText="Custom Disclaimer Text..."
+                            value={formData.pendingFormData.contentDisclaimer}
+                            readOnly={formState === 'read'}
+                          />
+                          <div className="disclaimer-instructions">
+                            **<strong>bold</strong>**, _<i>italics</i>_, ### <strong>Section Header</strong>
+                          </div>
+                        </>
+                      )
+                  }
                 </FormFlexContainer>
               </FormSectionRow>
             </FormSection>
@@ -839,7 +971,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               <FormSectionRow>
                 <FormFlexContainer flexPhone={12}>
                   <TextAreaInput
-                    error={dataForForm.formErrors.contentNotes}
+                    error={formData.formErrors.contentNotes}
                     label="Notes"
                     name="contentDisclaimer"
                     onBlur={() => false}
@@ -850,7 +982,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       });
                     }}
                     placeholderText="Notes..."
-                    value={dataForForm.formData.contentNotes}
+                    value={formData.pendingFormData.contentNotes}
                     readOnly={formState === 'read'}
                   />
                 </FormFlexContainer>
@@ -881,28 +1013,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   disabled={!this.props.formCanSubmit}
                   onClick={(event: React.MouseEvent) => {
                     event.preventDefault();
-                    if (!dataForForm.formData.id) {
-                      this.props.createNewContentItem({
-                        ClientId: dataForForm.formData.clientId,
-                        ContentName: dataForForm.formData.contentName,
-                        ContentTypeId: dataForForm.formData.contentTypeId,
-                        DoesReduce: dataForForm.formData.doesReduce,
-                        Description: dataForForm.formData.contentDescription,
-                        ContentDisclaimer: dataForForm.formData.contentDisclaimer,
-                        Notes: dataForForm.formData.contentNotes,
-                      });
+                    if (!formData.pendingFormData.id) {
+                      this.props.createNewContentItem(this.props.contentItemForPublication);
                     } else {
                       if (this.props.formChangesPending) {
-                        this.props.updateContentItem({
-                          Id: dataForForm.formData.id,
-                          ClientId: dataForForm.formData.clientId,
-                          ContentName: dataForForm.formData.contentName,
-                          ContentTypeId: dataForForm.formData.contentTypeId,
-                          DoesReduce: dataForForm.formData.doesReduce,
-                          Description: dataForForm.formData.contentDescription,
-                          ContentDisclaimer: dataForForm.formData.contentDisclaimer,
-                          Notes: dataForForm.formData.contentNotes,
-                        });
+                        this.props.updateContentItem(this.props.contentItemForPublication);
                       }
                       if (this.props.uploadChangesPending) {
                         this.props.publishContentFiles(this.props.filesForPublishing);
@@ -910,7 +1025,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     }
                   }}
                 >
-                  {`${dataForForm.formData.id ? 'Update' : 'Create'} Content Item`}
+                  {`${formData.pendingFormData.id ? 'Update' : 'Create'} Content Item`}
                   {this.props.pending.data.formSubmit
                     ? <ButtonSpinner version="circle" />
                     : null
@@ -1068,7 +1183,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           goLiveSummary.selectionGroups.map((sG, key) => (
             <SelectionGroupDetails
               selectionGroup={sG}
-              changedOnly={onlyChangesShown}
+              changedOnly={false}
               key={key}
             />
           ),
@@ -1140,7 +1255,7 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
   const {
     data, formData, goLiveSummary, selected, cardAttributes, pending, filters, modals,
   } = state;
-  const { id: rootContentItemId } = formData.formData;
+  const { id: rootContentItemId } = formData.pendingFormData;
   return {
     clients: clientEntities(state),
     items: itemEntities(state),
@@ -1164,6 +1279,7 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     formChangesPending: formChangesPending(state),
     goLiveApproveButtonIsActive: goLiveApproveButtonIsActive(state),
     uploadChangesPending: uploadChangesPending(state),
+    contentItemForPublication: contentItemForPublication(state),
   };
 }
 

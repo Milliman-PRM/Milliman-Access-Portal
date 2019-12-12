@@ -23,6 +23,8 @@ export const toggleGoLiveConfirmationCheckbox =
   createActionCreator<PublishActions.ToggleGoLiveConfirmationCheckbox>(
     'TOGGLE_GO_LIVE_CONFIRMATION_CHECKBOX',
   );
+export const setDisclaimerInputState =
+  createActionCreator<PublishActions.SetDisclaimerInputState>('SET_DISCLAIMER_INPUT_STATE');
 
 export const setPublishingFormTextInputValue =
   createActionCreator<PublishActions.SetPublishingFormTextInputValue>('SET_PENDING_TEXT_INPUT_VALUE');
@@ -30,6 +32,8 @@ export const setPublishingFormBooleanInputValue =
   createActionCreator<PublishActions.SetPublishingFormBooleanInputValue>('SET_PENDING_BOOLEAN_INPUT_VALUE');
 export const resetContentItemForm =
   createActionCreator<PublishActions.ResetContentItemForm>('RESET_CONTENT_ITEM_FORM');
+export const removeExistingFile =
+  createActionCreator<PublishActions.RemoveExistingFile>('REMOVE_EXISTING_FILE');
 
 export const promptStatusRefreshStopped =
   createActionCreator<PublishActions.PromptStatusRefreshStopped>('PROMPT_STATUS_REFRESH_STOPPED');
@@ -87,13 +91,6 @@ export const openCancelPublicationModal =
   createActionCreator<PublishActions.OpenCancelPublicationModal>('OPEN_CANCEL_PUBLICATION_MODAL');
 export const closeCancelPublicationModal =
   createActionCreator<PublishActions.CloseCancelPublicationModal>('CLOSE_CANCEL_PUBLICATION_MODAL');
-
-/**
- * Close the modal used to confirm selection group deletion.
- */
-export interface CloseDeleteGroupModal {
-  type: 'CLOSE_DELETE_GROUP_MODAL';
-}
 
 // Scheduled actions
 export const scheduleStatusRefresh =
