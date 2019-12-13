@@ -35,13 +35,13 @@ namespace MapDbContextLib.Context
 
     public static class PublicationStatusExtensions
     {
-        public readonly static List<PublicationStatus> CancelablePublicationStatusList { get; } = new List<PublicationStatus> 
+        public static List<PublicationStatus> CancelablePublicationStatusList { get; } = new List<PublicationStatus> 
         { 
             PublicationStatus.Validating, 
             PublicationStatus.Queued, 
         };
 
-        public readonly static List<PublicationStatus> ActiveStatuses { get; } = new List<PublicationStatus>
+        public static List<PublicationStatus> ActiveStatuses { get; } = new List<PublicationStatus>
         {
             PublicationStatus.Validating,
             PublicationStatus.Queued,
