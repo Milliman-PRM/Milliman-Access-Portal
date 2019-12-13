@@ -2,6 +2,18 @@
 
 ## Release Notes
 
+### v1.8.0
+
+- Restructured Content Publishing to improve usability and responsiveness
+- Added the ability to review thumbnail changes as part of the Go Live process
+- Redesigned the Content Publishing form to improve the user experience of creating and editing Content Items
+- Added the ability to cancel publications during more of the publishing process
+
+#### v1.7.3
+
+- Fixed a bug that allowed a perpetual email sending loop for a user requesting password reset when the user's spam filter followed the embedded link after the link was expired
+- Fixed an issue where an errant equal sign was being included in the URL prevented proper token validation
+
 #### v1.7.2
 
 - Prevent accidental submission of multiple selection group reductions in the Content Access Admin view

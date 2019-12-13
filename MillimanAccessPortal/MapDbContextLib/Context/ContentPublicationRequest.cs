@@ -35,8 +35,22 @@ namespace MapDbContextLib.Context
 
     public static class PublicationStatusExtensions
     {
-        public static List<PublicationStatus> CancelablePublicationStatusList { get; } 
-            = new List<PublicationStatus> { PublicationStatus.Validating, PublicationStatus.Queued, };
+        public readonly static List<PublicationStatus> CancelablePublicationStatusList { get; } = new List<PublicationStatus> 
+        { 
+            PublicationStatus.Validating, 
+            PublicationStatus.Queued, 
+        };
+
+        public readonly static List<PublicationStatus> ActiveStatuses { get; } = new List<PublicationStatus>
+        {
+            PublicationStatus.Validating,
+            PublicationStatus.Queued,
+            PublicationStatus.Processing,
+            PublicationStatus.PostProcessReady,
+            PublicationStatus.PostProcessing,
+            PublicationStatus.Processed,
+            PublicationStatus.Confirming,
+        };
 
         public static bool IsCancelable(this PublicationStatus status)
         {
@@ -45,18 +59,7 @@ namespace MapDbContextLib.Context
 
         public static bool IsActive(this PublicationStatus status)
         {
-            var blockingStatuses = new List<PublicationStatus>
-            {
-                PublicationStatus.Validating,
-                PublicationStatus.Queued,
-                PublicationStatus.Processing,
-                PublicationStatus.PostProcessReady,
-                PublicationStatus.PostProcessing,
-                PublicationStatus.Processed,
-                PublicationStatus.Confirming,
-            };
-
-            return blockingStatuses.Contains(status);
+            return ActiveStatuses.Contains(status);
         }
     }
 
@@ -107,6 +110,13 @@ namespace MapDbContextLib.Context
         public string LiveReadyFiles { get; set; } = "[]";
 
         /// <summary>
+        /// May also be accessed through [NotMapped] property LiveReadyAssociatedFilesList
+        /// Intended to be serialization of type List<ContentRelatedFile>
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string LiveReadyAssociatedFiles { get; set; } = "[]";
+
+        /// <summary>
         /// May also be accessed through [NotMapped] property ReductionRelatedFilesObj
         /// Intended to be serialization of type List<ReductionRelatedFiles>
         /// </summary>
@@ -119,6 +129,13 @@ namespace MapDbContextLib.Context
         /// </summary>
         [Column(TypeName = "jsonb")]
         public string UploadedRelatedFiles { get; set; } = "[]";
+
+        /// <summary>
+        /// May also be accessed through [NotMapped] property RequestedAssociatedFilesList
+        /// Intended to be serialization of type List<UploadedRelatedFile>
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string RequestedAssociatedFiles { get; set; } = "[]";
 
         [Required]
         public PublicationStatus RequestStatus { get; set; }
@@ -171,6 +188,26 @@ namespace MapDbContextLib.Context
         }
 
         /// <summary>
+        /// Identifies content associated files NOT associated with work of the publishing server, rather that are ready to switch to live status.
+        /// </summary>
+        [NotMapped]
+        public List<ContentAssociatedFile> LiveReadyAssociatedFilesList
+        {
+            get
+            {
+                return string.IsNullOrWhiteSpace(LiveReadyAssociatedFiles)
+                    ? new List<ContentAssociatedFile>()
+                    : JsonConvert.DeserializeObject<List<ContentAssociatedFile>>(LiveReadyAssociatedFiles);
+            }
+            set
+            {
+                LiveReadyAssociatedFiles = value != null
+                    ? JsonConvert.SerializeObject(value)
+                    : "[]";
+            }
+        }
+
+        /// <summary>
         /// Identifies files uploaded as part of a publication request
         /// </summary>
         /// <remarks>This field is expected to be empty once uploaded files have been processed.</remarks>
@@ -186,6 +223,27 @@ namespace MapDbContextLib.Context
             set
             {
                 UploadedRelatedFiles = value != null
+                    ? JsonConvert.SerializeObject(value)
+                    : "[]";
+            }
+        }
+
+        /// <summary>
+        /// The full list of associated files requested to exist upon completion of the publication go-live
+        /// </summary>
+        /// <remarks>This field is expected to be empty once uploaded files have been processed.</remarks>
+        [NotMapped]
+        public List<AssociatedFileModel> RequestedAssociatedFileList
+        {
+            get
+            {
+                return string.IsNullOrWhiteSpace(RequestedAssociatedFiles)
+                    ? new List<AssociatedFileModel>()
+                    : JsonConvert.DeserializeObject<List<AssociatedFileModel>>(RequestedAssociatedFiles);
+            }
+            set
+            {
+                RequestedAssociatedFiles = value != null
                     ? JsonConvert.SerializeObject(value)
                     : "[]";
             }

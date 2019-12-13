@@ -4,7 +4,7 @@ import { isReductionActive, ReductionStatus } from '../../view-models/content-pu
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { PanelSectionContainer } from '../shared-components/card-panel/panel-sections';
 import { ColumnSpinner } from '../shared-components/column-spinner';
-import { Toggle } from '../shared-components/toggle';
+import { Toggle } from '../shared-components/form/toggle';
 import { Fieldset, FieldsetData } from './fieldset';
 
 export interface SelectionsPanelProps {

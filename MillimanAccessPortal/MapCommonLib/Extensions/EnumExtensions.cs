@@ -4,7 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
@@ -26,6 +26,18 @@ namespace System
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TEnum"></typeparam>
+        /// <param name="enumVal"></param>
+        /// <returns></returns>
+        public static List<string> GetStringList<TEnum>(this TEnum enumVal, StringListKey key) where TEnum : Enum
+        {
+            IEnumerable<StringListAttribute> atts = enumVal.GetAllAttributes<StringListAttribute>();
+            return atts.SingleOrDefault(a => a.Key == key)?.GetStringList();
+        }
+
+        /// <summary>
         /// Retrieves an `Attribute` declared on the specified value of the specified enumeration type
         /// </summary>
         /// <typeparam name="TAtt">The type of the attribute to be found and returned</typeparam>
@@ -37,5 +49,18 @@ namespace System
                       .GetMember(enumVal.ToString())
                       .First()
                       .GetCustomAttribute<TAtt>();
+
+        /// <summary>
+        /// Retrieves all`Attribute`s declared on the specified value of the specified enumeration type
+        /// </summary>
+        /// <typeparam name="TAtt">The type of the attribute to be found and returned</typeparam>
+        /// <param name="enumVal">The enumeration value for which the attribute should be returned</param>
+        /// <returns>Returns null if no matching attribute is found</returns>
+        private static IEnumerable<TAtt> GetAllAttributes<TAtt>(this Enum enumVal)
+            where TAtt : Attribute
+            => enumVal.GetType()
+                      .GetMember(enumVal.ToString())
+                      .First()
+                      .GetCustomAttributes<TAtt>();
     }
 }

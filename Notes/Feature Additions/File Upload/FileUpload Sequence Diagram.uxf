@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <help_text>title=File Upload Message Sequence
+</help_text>
+  <zoom_level>8</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>0</x>
+      <y>0</y>
+      <w>3272</w>
+      <h>1400</h>
+    </coordinates>
+    <panel_attributes>// This file is viewed with UMLet: http://www.umlet.com
+fontsize=16
+title=FileUpload Sequence
+obj=User~user ACTOR EXECUTION
+obj=UI\nFront End~ui EXECUTION
+obj=FileUpload Component\nFront End~component
+obj=Sniffer\nFront End~sniffer
+obj=Resumable\nFront End~resumable
+obj=FileUploadController\nBack End~controller
+obj=UploadHelper Hosted Service\nBack End~helper
+obj=UploadTaskQueue\nBack End~queue EXECUTION
+obj=QueuedUploadTask Hosted Service\nBack End~service EXECUTION
+
+user-&gt;ui : Upload
+ui-&gt;ui+ : Generate Unique ID
+tick=
+ui-&gt;&gt;&gt;component : DoUpload;on=component
+component-&gt;&gt;&gt;sniffer : Validate File; on=sniffer
+sniffer -&gt; sniffer+ : Validate magic bytes
+tick=
+sniffer.&gt;component : Ok; off=sniffer
+component-&gt;component+ : Create Chunks
+tick=
+component-&gt;component+ : FileScanner - Calculate Checksum - ProgressMonitor updates the blue progress bar
+tick=
+component-&gt;resumable : Manage Upload; on=resumable
+combinedFragment=For each Chunk~loop1 component helper
+resumable-&gt;&gt;&gt;controller : UploadChunk; on=controller
+component:[ProgressMonitor updates the green progress bar];controller-&gt;helper : FinalizeChunk(ResumableInfo);on=helper
+controller.&gt;resumable:Ok or Error Status;off=controller;off=helper
+--=loop1
+tick=
+resumable-&gt;&gt;&gt;controller:POST FinalizeUpload; on=controller
+controller-&gt;&gt;&gt;controller+:INSERT to dbContext.FileUpload;service-&gt;&gt;&gt;queue:Dequeue;combinedFragment=Repeat Forever~svcloop helper service
+service:[Waiting for Queued ResumableInfo]
+controller-&gt;queue:QueueUploadFinalization(ResumableInfo);queue.&gt;service;
+controller.&gt;resumable:FinalizeUpload; off=controller;service-&gt;&gt;&gt;helper: FinalizeUpload;on=helper
+off=helper
+service-&gt;&gt;&gt;service+++:UPDATE to dbContext.FileUpload
+tick=
+combinedFragment=Poll for Completion~loop2 resumable controller
+--=svcloop;resumable-&gt;&gt;&gt;controller:GET FinalizeUpload; on=controller
+controller.&gt;resumable:FileUpload record Guid; off=controller
+--=loop2
+off=resumable
+off=component
+tick=4
+combinedFragment=Optional~opt component helper
+component-&gt;&gt;&gt;controller:ChunkStatus; on=controller
+controller-&gt;helper : GetUploadStatus(ResumableInfo);on=helper
+controller.&gt;component : List of completed chunks; off=controller;off=helper
+--=opt
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

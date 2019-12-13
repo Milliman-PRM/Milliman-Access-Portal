@@ -8,7 +8,11 @@ export function convertMarkdownToHTML(rawMarkdown: string): string {
     headerIds: false,
     sanitize: false,
   };
-  const rawHTML = marked(rawMarkdown.trim(), markedOptions);
-  const sanitizedHTML = DOMPurify.sanitize(rawHTML);
-  return sanitizedHTML;
+  if (rawMarkdown) {
+    const rawHTML = marked(rawMarkdown.trim(), markedOptions);
+    const sanitizedHTML = DOMPurify.sanitize(rawHTML);
+    return sanitizedHTML;
+  } else {
+    return '';
+  }
 }

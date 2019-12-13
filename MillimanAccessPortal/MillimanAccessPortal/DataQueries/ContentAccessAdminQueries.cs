@@ -37,6 +37,14 @@ namespace MillimanAccessPortal.DataQueries
             _publicationQueries = publicationQueries;
             _userQueries = userQueries;
         }
+        internal ContentAccessAdminPageGlobalModel BuildAccessAdminPageGlobalModel()
+        {
+            return new ContentAccessAdminPageGlobalModel
+            {
+                ContentTypes = _contentItemQueries.GetAllContentTypes().ToDictionary(t => t.Id),
+            };
+        }
+
 
         /// <summary>
         /// Select all clients for which the current user can administer access.

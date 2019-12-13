@@ -1,5 +1,12 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Context;
 using MapDbContextLib.Models;
+using MillimanAccessPortal.Models.UserModels;
 using System;
 using System.Collections.Generic;
 
@@ -13,7 +20,7 @@ namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
     {
         public Guid Id { get; set; }
         public Guid? ContentPublicationRequestId { get; set; }
-        public Guid ApplicationUserId { get; set; }
+        public BasicUser ApplicationUser { get; set; }
         public Guid? SelectionGroupId { get; set; }
         public List<Guid> SelectedValues { get; set; }
         public DateTime CreateDateTimeUtc { get; set; }
@@ -49,7 +56,7 @@ namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
             {
                 Id = reduction.Id,
                 ContentPublicationRequestId = reduction.ContentPublicationRequestId,
-                ApplicationUserId = reduction.ApplicationUserId,
+                ApplicationUser = (BasicUser)reduction.ApplicationUser,
                 SelectionGroupId = reduction.SelectionGroupId,
                 SelectedValues = reduction.SelectionCriteriaObj?.GetSelectedValueIds(),
                 CreateDateTimeUtc = reduction.CreateDateTimeUtc,

@@ -26,9 +26,9 @@ namespace MillimanAccessPortal.Utilities
         /// <returns></returns>
         public bool sendSupportMail(string messageArg, string reason)
         {
-            string supportAddress = _configuration["SupportEmailAddress"] ?? "map.support@milliman.com";
-            string sender = _configuration["SmtpFromAddress"] ?? "map.support@milliman.com";
-            return _messageSender.QueueEmail(supportAddress, $"Automated support notification - {reason}", messageArg, sender);
+            string supportEmail = _configuration.GetValue("SupportEmailAddress", "map.support@milliman.com");
+            string sender = _configuration.GetValue("SmtpFromAddress", "map.support@milliman.com");
+            return _messageSender.QueueEmail(supportEmail, $"Automated support notification - {reason}", messageArg, sender);
         }
     }
 }

@@ -26,8 +26,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             {
                 Id = contentItem.Id,
                 ContentName = contentItem.ContentName,
-                ContentType = MapDbContextLib.Context.ContentType
-                    .ContentTypeString[contentItem.ContentType?.TypeEnum ?? ContentTypeEnum.Unknown],
+                ContentType = (contentItem.ContentType?.TypeEnum ?? ContentTypeEnum.Unknown).GetDisplayValueString(),
             };
         }
     }

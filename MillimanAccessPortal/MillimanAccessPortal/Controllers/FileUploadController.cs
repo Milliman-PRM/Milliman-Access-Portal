@@ -211,7 +211,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="resumableInfo">Identifies the resumable upload</param>
         /// <returns>Ok or 409</returns>
         [HttpPost]
-        public IActionResult FinalizeUpload(ResumableInfo resumableInfo)
+        public IActionResult FinalizeUpload([FromBody] ResumableInfo resumableInfo)
         {
             Log.Verbose("Entered FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
 

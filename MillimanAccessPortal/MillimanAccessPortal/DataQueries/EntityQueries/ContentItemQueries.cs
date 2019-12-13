@@ -155,16 +155,15 @@ namespace MillimanAccessPortal.DataQueries
                 .Select(i => i.ContentType)
                 .Distinct()
                 .OrderBy(t => t.Name)
-                .Select(t => new BasicContentType
-                {
-                    Id = t.Id,
-                    Name = ContentType.ContentTypeString.GetValueOrDefault(t.TypeEnum),
-                    CanReduce = t.CanReduce,
-                    FileExtensions = t.FileExtensions.ToList(),
-                })
+                .Select(t => new BasicContentType(t))
                 .ToList();
 
             return contentTypes;
+        }
+
+        internal List<BasicContentType> GetAllContentTypes()
+        {
+            return _dbContext.ContentType.Select(t => new BasicContentType(t)).ToList();
         }
     }
 }

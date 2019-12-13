@@ -17,6 +17,8 @@ using System.Linq;
 using System.Reflection;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MapTests
 {
@@ -43,12 +45,12 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.FileSystemTasksObject,
                 TestResources.GoLiveTaskQueueObject,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig,
                 TestResources.QvConfig,
-                TestResources.PublicationPostProcessingQueueObject
+                TestResources.PublicationPostProcessingQueueObject,
+                TestResources.ContentPublishingAdminQueriesObj
                 );
 
             try
@@ -101,11 +103,12 @@ namespace MapTests
             {
                 validRootContentItem.ContentName = "CreateRootContentItem_ErrorInvalid";
             }
+            var jObject = JObject.FromObject(validRootContentItem, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.CreateRootContentItem(validRootContentItem);
+            var view = await controller.CreateRootContentItem(jObject);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -131,11 +134,12 @@ namespace MapTests
                 ContentName = "",
                 DoesReduce = false,
             };
+            var jObject = JObject.FromObject(validRootContentItem, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.CreateRootContentItem(validRootContentItem);
+            var view = await controller.CreateRootContentItem(jObject);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -157,10 +161,11 @@ namespace MapTests
                 ContentName = "CreateRootContentItem_ReturnsJson",
                 DoesReduce = false,
             };
+            var jObject = JObject.FromObject(validRootContentItem, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             #endregion
 
             #region Act
-            var view = await controller.CreateRootContentItem(validRootContentItem);
+            var view = await controller.CreateRootContentItem(jObject);
             #endregion
 
             #region Assert
@@ -185,11 +190,12 @@ namespace MapTests
                 ContentName = "CreateRootContentItem_Success",
                 DoesReduce = false,
             };
+            var jObject = JObject.FromObject(validRootContentItem, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.CreateRootContentItem(validRootContentItem);
+            var view = await controller.CreateRootContentItem(jObject);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -308,7 +314,7 @@ namespace MapTests
             PublishRequest RequestArg = new PublishRequest
             {
                 RootContentItemId = TestUtil.MakeTestGuid(3),
-                NewRelatedFiles = new UploadedRelatedFile[]
+                NewRelatedFiles = new List<UploadedRelatedFile>
                 {
                     new UploadedRelatedFile
                     {  // does not exist in initialized FileUpload entity. 
@@ -340,7 +346,7 @@ namespace MapTests
             PublishRequest RequestArg = new PublishRequest
             {
                 RootContentItemId = TestUtil.MakeTestGuid(3),
-                NewRelatedFiles = new UploadedRelatedFile[0],
+                NewRelatedFiles = new List<UploadedRelatedFile>(),
             };
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentPublicationRequest.Add(new ContentPublicationRequest
@@ -375,7 +381,7 @@ namespace MapTests
             PublishRequest RequestArg = new PublishRequest
             {
                 RootContentItemId = TestUtil.MakeTestGuid(3),
-                NewRelatedFiles = new UploadedRelatedFile[0],
+                NewRelatedFiles = new List<UploadedRelatedFile>(),
             };
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
@@ -460,10 +466,16 @@ namespace MapTests
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("user3");
+            var goLiveViewModel = new GoLiveViewModel
+            {
+                RootContentItemId = TestUtil.MakeTestGuid(1),
+                PublicationRequestId = TestUtil.MakeTestGuid(1),
+                ValidationSummaryId = "",
+            };
             #endregion
 
             #region Act
-            var view = await controller.Reject(TestUtil.MakeTestGuid(1), TestUtil.MakeTestGuid(1));
+            var view = await controller.Reject(goLiveViewModel);
             #endregion
 
             #region Assert
@@ -486,10 +498,16 @@ namespace MapTests
                 pubRequest.RootContentItem = TestResources.DbContextObject.RootContentItem.SingleOrDefault(rc => rc.Id == TestUtil.MakeTestGuid(rootContentItemId));
                 pubRequest.RequestStatus = initialPubRequestStatus;
             }
+            var goLiveViewModel = new GoLiveViewModel
+            {
+                RootContentItemId = TestUtil.MakeTestGuid(rootContentItemId),
+                PublicationRequestId = TestUtil.MakeTestGuid(pubRequestId),
+                ValidationSummaryId = "",
+            };
             #endregion
 
             #region Act
-            var view = await controller.Reject(TestUtil.MakeTestGuid(rootContentItemId), TestUtil.MakeTestGuid(pubRequestId));
+            var view = await controller.Reject(goLiveViewModel);
             #endregion
 
             #region Assert
@@ -512,11 +530,12 @@ namespace MapTests
                 ContentName = dbItem.ContentName,
                 Notes = "This note is added",
             };
+            var jObject = JObject.FromObject(updateModel, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             Assert.Null(dbItem.Notes);
             #endregion
 
             #region Act
-            var view = await controller.UpdateRootContentItem(updateModel);
+            var view = await controller.UpdateRootContentItem(jObject);
             #endregion
 
             #region Assert
@@ -541,11 +560,12 @@ namespace MapTests
                 ContentName = dbItem.ContentName,
                 Notes = "This note is added",
             };
+            var jObject = JObject.FromObject(updateModel, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             Assert.Null(dbItem.Notes);
             #endregion
 
             #region Act
-            var view = await controller.UpdateRootContentItem(updateModel);
+            var view = await controller.UpdateRootContentItem(jObject);
             #endregion
 
             #region Assert
@@ -576,10 +596,11 @@ namespace MapTests
                 ContentName = dbItem.ContentName,
             };
             updateModel.TypeSpecificDetailObject = props;
+            var jObject = JObject.FromObject(updateModel, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             #endregion
 
             #region Act
-            var view = await controller.UpdateRootContentItem(updateModel);
+            var view = await controller.UpdateRootContentItem(jObject);
             #endregion
 
             #region Assert

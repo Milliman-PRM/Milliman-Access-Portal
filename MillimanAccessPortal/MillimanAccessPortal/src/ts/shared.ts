@@ -650,10 +650,10 @@ export function postData(url: string = '', data: any = {}, rawResponse: boolean 
   });
 }
 
-export function postJsonData<TResponse = any>(url: string = '', data: object = {}) {
+export function postJsonData<TResponse = any>(url: string = '', data: object = {}, method = 'POST') {
   const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
   return fetch(url, {
-    method: 'POST',
+    method,
     cache: 'no-cache',
     headers: {
       'Accept': 'application/json',
