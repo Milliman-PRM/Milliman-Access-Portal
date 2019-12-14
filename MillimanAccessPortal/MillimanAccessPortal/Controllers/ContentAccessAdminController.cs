@@ -397,7 +397,7 @@ namespace MillimanAccessPortal.Controllers
             // reject this request if the SelectionGroup has a pending reduction
             bool blockedByPendingReduction = DbContext.ContentReductionTask
                 .Where(r => r.SelectionGroupId == selectionGroup.Id)
-                .Any(r => r.ReductionStatus.IsActive());
+                .Any(r => ReductionStatusExtensions.activeStatusList.Contains(r.ReductionStatus));
             if (blockedByPendingReduction)
             {
                 Log.Information($"Action {ControllerContext.ActionDescriptor.DisplayName} aborting because a pending reduction exists for this selection group {selectionGroup.Id}");
@@ -554,7 +554,7 @@ namespace MillimanAccessPortal.Controllers
             var pendingReductions = DbContext.ContentReductionTask
                 .Where(task => task.SelectionGroupId == selectionGroup.Id)
                 .Where(task => task.CreateDateTimeUtc > currentLivePublication.CreateDateTimeUtc)
-                .Where(task => task.ReductionStatus.IsActive());
+                .Where(task => ReductionStatusExtensions.activeStatusList.Contains(task.ReductionStatus));
             if (pendingReductions.Any())
             {
                 Log.Information($"In ContentAccessAdminController.UpdateSelections: selection group {selectionGroupId} blocked due to pending reduction (id {string.Join(",", pendingReductions.Select(t => t.Id))}), aborting");
@@ -760,7 +760,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             var CancelableTasks = DbContext.ContentReductionTask
                 .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
-                .Where(crt => crt.ReductionStatus.IsCancelable())
+                .Where(crt => ReductionStatusExtensions.cancelableStatusList.Contains(crt.ReductionStatus))
                 .Where(crt => crt.ContentPublicationRequestId == null);
             if (CancelableTasks.Count() == 0)
             {

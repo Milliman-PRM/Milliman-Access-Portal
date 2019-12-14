@@ -34,21 +34,14 @@ namespace MapDbContextLib.Context
 
     public static class ReductionStatusExtensions
     {
-        public static bool IsCancelable(this ReductionStatusEnum status)
-        {
-            var blockingStatuses = new List<ReductionStatusEnum>
+        public static List<ReductionStatusEnum> cancelableStatusList = new List<ReductionStatusEnum>
             {
                 ReductionStatusEnum.Validating,
                 ReductionStatusEnum.Queued,
                 ReductionStatusEnum.Reducing,
             };
 
-            return blockingStatuses.Contains(status);
-        }
-
-        public static bool IsActive(this ReductionStatusEnum status)
-        {
-            var blockingStatuses = new List<ReductionStatusEnum>
+        public static List<ReductionStatusEnum> activeStatusList = new List<ReductionStatusEnum>
             {
                 ReductionStatusEnum.Validating,
                 ReductionStatusEnum.Queued,
@@ -56,7 +49,14 @@ namespace MapDbContextLib.Context
                 ReductionStatusEnum.Reduced,
             };
 
-            return blockingStatuses.Contains(status);
+        public static bool IsCancelable(this ReductionStatusEnum status)
+        {
+            return cancelableStatusList.Contains(status);
+        }
+
+        public static bool IsActive(this ReductionStatusEnum status)
+        {
+            return activeStatusList.Contains(status);
         }
     }
 

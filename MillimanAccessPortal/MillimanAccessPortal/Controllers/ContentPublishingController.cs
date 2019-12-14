@@ -603,7 +603,7 @@ namespace MillimanAccessPortal.Controllers
             Blocked = _dbContext.ContentReductionTask
                                 .Where(t => t.ContentPublicationRequestId == null)
                                 .Where(t => t.SelectionGroup.RootContentItemId == request.RootContentItemId)
-                                .Any(t => t.ReductionStatus.IsActive());
+                                .Any(t => ReductionStatusExtensions.activeStatusList.Contains(t.ReductionStatus));
             if (Blocked)
             {
                 Log.Debug($"In ContentPublishingController.Publish action: blocked due to unresolved ContentReductionTask for content item {request.RootContentItemId}, aborting");
@@ -726,7 +726,6 @@ namespace MillimanAccessPortal.Controllers
 
             contentPublicationRequest.RequestStatus = PublicationStatus.Canceled;
             contentPublicationRequest.UploadedRelatedFilesObj = null;
-            _dbContext.ContentPublicationRequest.Update(contentPublicationRequest);
             try
             {
                 _dbContext.SaveChanges();

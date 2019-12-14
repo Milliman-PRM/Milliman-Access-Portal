@@ -75,7 +75,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 {
                     var reductionTasks = dbContext.ContentReductionTask
                         .Where(rt => rt.SelectionGroupId == group.Id)
-                        .Where(rt => rt.ReductionStatus.IsActive())
+                        .Where(rt => ReductionStatusExtensions.activeStatusList.Contains(rt.ReductionStatus))
                         .Include(rt => rt.ContentPublicationRequest)
                         .ToList();
                     selectionGroupList.Sections.Add(new NestedListSection

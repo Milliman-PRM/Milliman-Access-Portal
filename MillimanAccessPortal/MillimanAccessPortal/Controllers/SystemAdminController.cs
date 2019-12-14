@@ -1566,7 +1566,7 @@ namespace MillimanAccessPortal.Controllers
             // The selection group should have an active reduction
             var activeReductions = _dbContext.ContentReductionTask
                 .Where(rt => rt.SelectionGroupId == selectionGroupId)
-                .Where(rt => rt.ReductionStatus.IsActive())
+                .Where(rt => ReductionStatusExtensions.activeStatusList.Contains(rt.ReductionStatus))
                 .ToList();
             if (!activeReductions.Any())
             {
