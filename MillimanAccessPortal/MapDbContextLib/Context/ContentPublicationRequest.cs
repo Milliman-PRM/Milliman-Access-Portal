@@ -39,6 +39,11 @@ namespace MapDbContextLib.Context
         { 
             PublicationStatus.Validating, 
             PublicationStatus.Queued, 
+            PublicationStatus.Processing,
+            PublicationStatus.PostProcessReady,
+            PublicationStatus.PostProcessing,
+            PublicationStatus.Processed,
+            PublicationStatus.Error,
         };
 
         public static List<PublicationStatus> ActiveStatuses { get; } = new List<PublicationStatus>
