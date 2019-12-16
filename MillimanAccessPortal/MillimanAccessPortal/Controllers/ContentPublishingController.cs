@@ -671,7 +671,7 @@ namespace MillimanAccessPortal.Controllers
                 ContentPublishSupport.AddPublicationMonitor(Task.Run(() =>
                     ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath, _PostProcessingTaskQueue)));
 
-                Log.Verbose($"In ContentPublishingController.Publish action: publication request queued successfully");
+                Log.Verbose($"In ContentPublishingController.Publish action: publication request successfully submitted for validation");
                 AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(ContentItem, ContentItem.Client, NewContentPublicationRequest));
             }
 
@@ -724,8 +724,43 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            // Delete uploaded files related to the publication request
+            List<Guid> possibleUploadIds = contentPublicationRequest.UploadedRelatedFilesObj.Select(u => u.FileUploadId).Union(
+                                           contentPublicationRequest.RequestedAssociatedFileList.Select(u => u.Id)).ToList();
+            List<FileUpload> uploadRecords = _dbContext.FileUpload.Where(u => possibleUploadIds.Contains(u.Id)).ToList();
+            foreach (var uploadRecord in uploadRecords)
+            {
+                _dbContext.FileUpload.Remove(uploadRecord);
+                if (System.IO.File.Exists(uploadRecord.StoragePath))
+                {
+                    System.IO.File.Delete(uploadRecord.StoragePath);
+                }
+            }
+
+            // Delete reduction related files
+            var ReductionRelatedFiles = contentPublicationRequest.ReductionRelatedFilesObj.SelectMany(rrf => rrf.ReducedContentFileList.Select(rcf => rcf.FullPath).Append(rrf.MasterContentFile.FullPath));
+            foreach (string reductionRelatedFile in ReductionRelatedFiles)
+            {
+                if (System.IO.File.Exists(reductionRelatedFile))
+                {
+                    System.IO.File.Delete(reductionRelatedFile);
+                }
+
+                string containingFolder = Path.GetDirectoryName(reductionRelatedFile);
+                if (Path.GetFullPath(containingFolder).Contains(Path.GetFullPath(ApplicationConfig.GetValue("Storage:MapPublishingServerExchangePath", "zzzz"))) &&
+                    Path.GetFullPath(containingFolder) != Path.GetFullPath(ApplicationConfig.GetValue("Storage:MapPublishingServerExchangePath", "zzz")) &&
+                    Directory.Exists(containingFolder) &&
+                    Directory.EnumerateFileSystemEntries(containingFolder).Count() == 0)
+                {
+                    Directory.Delete(containingFolder);
+                }
+            }
+
+            // Cancel all realted ContentReductionTasks
+
             contentPublicationRequest.RequestStatus = PublicationStatus.Canceled;
             contentPublicationRequest.UploadedRelatedFilesObj = null;
+            contentPublicationRequest.RequestedAssociatedFileList = null;
             try
             {
                 _dbContext.SaveChanges();
