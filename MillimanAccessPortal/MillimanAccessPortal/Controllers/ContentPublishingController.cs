@@ -756,7 +756,21 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            // Cancel all realted ContentReductionTasks
+            // Delete live ready files (including associated files)
+            var LiveReadyFiles = contentPublicationRequest.LiveReadyFilesObj.Select(f => f.FullPath).Union(
+                                 contentPublicationRequest.LiveReadyAssociatedFilesList.Select(f => f.FullPath))
+                                 .ToList();
+            foreach (string fileToDelete in LiveReadyFiles)
+            {
+                if (System.IO.File.Exists(fileToDelete))
+                {
+                    System.IO.File.Delete(fileToDelete);
+                }
+            }
+
+            // Cancel all realted ContentReductionTask records
+            List<ContentReductionTask> relatedTasks = _dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == contentPublicationRequest.Id).ToList();
+            relatedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
 
             contentPublicationRequest.RequestStatus = PublicationStatus.Canceled;
             contentPublicationRequest.UploadedRelatedFilesObj = null;

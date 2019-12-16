@@ -42,7 +42,6 @@ namespace MapDbContextLib.Context
             PublicationStatus.Processing,
             PublicationStatus.PostProcessReady,
             PublicationStatus.PostProcessing,
-            PublicationStatus.Processed,
             PublicationStatus.Error,
         };
 
