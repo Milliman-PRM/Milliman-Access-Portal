@@ -678,6 +678,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     autoFocus={true}
                     error={formErrors.contentName}
                     label="Content Name"
+                    placeholderText="Content Name *"
                     name="contentName"
                     onBlur={() => false}
                     onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
@@ -702,7 +703,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         value: target.value,
                       });
                     }}
-                    placeholderText="Content Type"
+                    placeholderText="Content Type *"
                     value={formData.pendingFormData.contentTypeId}
                     values={this.props.contentTypesList}
                     readOnly={
@@ -722,7 +723,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     }
                     label="Content File"
                     name="masterContent"
-                    placeholderText="Content File"
+                    placeholderText="Content File *"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={(uploadId) =>
