@@ -9,7 +9,7 @@ import Select from 'react-select';
 
 import { setUnloadAlert } from '../../unload-alerts';
 import {
-    isPublicationActive, isReductionActive, ReductionStatus,
+  isPublicationActive, isReductionActive, PublicationStatus, ReductionStatus,
 } from '../../view-models/content-publishing';
 import {
     Client, ClientWithEligibleUsers, ClientWithStats, ReductionFieldset, RootContentItem,
@@ -188,7 +188,6 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         renderEntity={(entity, key) => (
           <Card
             key={key}
-            disabled={isPublicationActive(entity.status && entity.status.requestStatus)}
             selected={selected.item === entity.id}
             onSelect={() => {
               if (pending.group.id !== null) {
@@ -625,6 +624,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
       activeSelectedItem: activeItem,
       activeSelectedGroup: activeGroup,
       filters,
+      items,
       pending,
       modals,
       selectedValues,
@@ -658,6 +658,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         title={group.name}
         subtitle={item.name}
         status={group.status.taskStatus || ReductionStatus.Unspecified}
+        itemStatus={items.filter((x) => x.id === item.id)[0].status.requestStatus}
         onBeginReduction={() => selectedValues.length || selectedMaster
           ? this.props.updateSelections({
             groupId: group.id,

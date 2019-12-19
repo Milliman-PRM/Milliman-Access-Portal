@@ -1,6 +1,8 @@
 import * as React from 'react';
 
-import { isReductionActive, ReductionStatus } from '../../view-models/content-publishing';
+import {
+  isPublicationActive, isReductionActive, PublicationStatus, ReductionStatus,
+} from '../../view-models/content-publishing';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { PanelSectionContainer } from '../shared-components/card-panel/panel-sections';
 import { ColumnSpinner } from '../shared-components/column-spinner';
@@ -20,6 +22,7 @@ export interface SelectionsPanelProps {
   title: string;
   subtitle: string;
   status: ReductionStatus;
+  itemStatus: PublicationStatus;
   onBeginReduction: () => void;
   onCancelReduction: () => void;
   loading?: boolean;
@@ -109,13 +112,13 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderReductionSection() {
-    const { status } = this.props;
+    const { status, itemStatus } = this.props;
     return this.props.isMaster
       ? null
       : (
         <div className="fieldset-container" style={{ flex: '1 1 1px', overflowY: 'auto' }}>
           <h4>Reduction Values</h4>
-          {!isReductionActive(status) && (
+          {!isReductionActive(status) && !isPublicationActive(itemStatus) && (
             <div className="fieldset-options-container">
               <div
                 className={`fieldset-option${this.props.isAllValuesSelected ? ' disabled' : ''}`}
@@ -143,58 +146,63 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderReductionFields() {
-    const { fieldsets, status } = this.props;
+    const { fieldsets, status, itemStatus } = this.props;
     return fieldsets.map((fieldset) => (
       <Fieldset
         key={fieldset.name}
-        readOnly={isReductionActive(status)}
+        readOnly={isReductionActive(status) || isPublicationActive(itemStatus)}
         {...fieldset}
       />
     ));
   }
 
   private renderButtonSection() {
-    switch (this.props.status) {
-      case ReductionStatus.Unspecified:
-      case ReductionStatus.Canceled:
-      case ReductionStatus.Rejected:
-      case ReductionStatus.Live:
-      case ReductionStatus.Error:
-        return this.props.isModified
-          ? (
+    const { status, itemStatus, isModified, submitting } = this.props;
+    if (!isPublicationActive(itemStatus)) {
+      switch (status) {
+        case ReductionStatus.Unspecified:
+        case ReductionStatus.Canceled:
+        case ReductionStatus.Rejected:
+        case ReductionStatus.Live:
+        case ReductionStatus.Error:
+          return isModified
+            ? (
+              <button
+                type="button"
+                className="blue-button"
+                disabled={submitting}
+                onClick={this.props.onBeginReduction}
+                style={{ alignSelf: 'flex-end' }}
+              >
+                Submit
+                {submitting
+                  ? <ButtonSpinner version="circle" />
+                  : null
+                }
+              </button>
+            )
+            : null;
+        case ReductionStatus.Queued:
+          return (
             <button
               type="button"
-              className="blue-button"
-              disabled={this.props.submitting}
-              onClick={this.props.onBeginReduction}
+              className="red-button"
+              disabled={submitting}
+              onClick={this.props.onCancelReduction}
               style={{ alignSelf: 'flex-end' }}
             >
-              Submit
-              {this.props.submitting
+              Cancel
+              {submitting
                 ? <ButtonSpinner version="circle" />
                 : null
               }
             </button>
-          )
-          : null;
-      case ReductionStatus.Queued:
-        return (
-          <button
-            type="button"
-            className="red-button"
-            disabled={this.props.submitting}
-            onClick={this.props.onCancelReduction}
-            style={{ alignSelf: 'flex-end' }}
-          >
-            Cancel
-            {this.props.submitting
-              ? <ButtonSpinner version="circle" />
-              : null
-            }
-          </button>
-        );
-      default:
-        return null;
+          );
+        default:
+          return null;
+      }
+    } else {
+      return null;
     }
   }
 }
