@@ -29,7 +29,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public AssociatedFileTypeModel(ContentAssociatedFileType typeEnum)
         {
-            DisplayName = typeEnum.GetDisplayValueString();
+            DisplayName = typeEnum.GetDisplayNameString();
             FileExtensions = typeEnum.GetStringList(StringListKey.FileExtensions);
             TypeEnum = typeEnum;
         }

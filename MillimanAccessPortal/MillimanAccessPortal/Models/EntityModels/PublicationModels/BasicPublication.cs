@@ -1,5 +1,11 @@
-﻿using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: A model summarizing information about a publication request, passed to front end code
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using MillimanAccessPortal.Models.UserModels;
 using System;
 
@@ -16,6 +22,7 @@ namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
         public BasicUser ApplicationUser { get; set; }
         public DateTime CreateDateTimeUtc { get; set; }
         public PublicationStatus RequestStatus { get; set; }
+        public PublicationRequestOutcomeMetadata OutcomeMetadata { get; set; }
 
         /// <summary>
         /// Type conversion from ContentPublicationRequest to BasicPublication
@@ -34,6 +41,7 @@ namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
                 RootContentItemId = publication.RootContentItemId,
                 ApplicationUser = (BasicUser)publication.ApplicationUser,
                 CreateDateTimeUtc = publication.CreateDateTimeUtc,
+                OutcomeMetadata = publication.OutcomeMetadataObj,
                 RequestStatus = publication.RequestStatus,
             };
         }

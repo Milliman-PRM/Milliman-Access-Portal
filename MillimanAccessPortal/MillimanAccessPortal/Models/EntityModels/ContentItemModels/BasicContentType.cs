@@ -27,7 +27,7 @@ namespace MillimanAccessPortal.Models.EntityModels.ContentItemModels
             TypeEnum = t.TypeEnum;
             CanReduce = t.CanReduce;
             FileExtensions = t.FileExtensions;
-            DisplayName = t.TypeEnum.GetDisplayValueString();
+            DisplayName = t.TypeEnum.GetDisplayNameString();
         }
 
     }

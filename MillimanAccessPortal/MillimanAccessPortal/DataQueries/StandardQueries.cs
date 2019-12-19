@@ -155,7 +155,7 @@ namespace MillimanAccessPortal.DataQueries
                                                                 new AssignedRoleInfo
                                                                 {
                                                                     RoleEnum = urc.Role.RoleEnum,
-                                                                    RoleDisplayValue = urc.Role.RoleEnum.GetDisplayValueString(),
+                                                                    RoleDisplayValue = urc.Role.RoleEnum.GetDisplayNameString(false),
                                                                     IsAssigned = true,
                                                                 });
 

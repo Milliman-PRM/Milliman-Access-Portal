@@ -14,15 +14,29 @@ namespace System
     public static class EnumExtensions
     {
         /// <summary>
-        /// 
+        /// Returns a Name string value assigned to an individual enum value through the use of <c>[DisplayAttribute(Name=...)]</c>
         /// </summary>
         /// <typeparam name="TEnum"></typeparam>
         /// <param name="enumVal"></param>
-        /// <returns></returns>
-        public static string GetDisplayValueString<TEnum>(this TEnum enumVal) where TEnum : Enum
+        /// <param name="defaultIfNotDefined">Set true to return <c>default(string)</c> if no Name has been assigned</param>
+        /// <returns>The assigned string, otherwise by default the actual name of this enumeration value</returns>
+        public static string GetDisplayNameString<TEnum>(this TEnum enumVal, bool defaultIfNotDefined = false) where TEnum : Enum
         {
             DisplayAttribute att = enumVal.GetAttribute<DisplayAttribute>();
-            return att?.Name ?? enumVal.ToString();
+            return att?.Name ?? (defaultIfNotDefined ? default : enumVal.ToString());
+        }
+
+        /// <summary>
+        /// Returns a Description string value assigned to an individual enum value through the use of <c>[DisplayAttribute(Description=...)]</c>
+        /// </summary>
+        /// <typeparam name="TEnum"></typeparam>
+        /// <param name="enumVal"></param>
+        /// <param name="defaultIfNotDefined">Set true to return <c>default(string)</c> if no Description has been assigned</param>
+        /// <returns>The assigned string, otherwise by default the actual name of this enumeration value</returns>
+        public static string GetDisplayDescriptionString<TEnum>(this TEnum enumVal, bool defaultIfNotDefined = false) where TEnum : Enum
+        {
+            DisplayAttribute att = enumVal.GetAttribute<DisplayAttribute>();
+            return att?.Description ?? (defaultIfNotDefined ? default : enumVal.ToString());
         }
 
         /// <summary>
