@@ -32,7 +32,7 @@ export function pendingReductionValues(state: AccessState) {
   const _relatedReduction = relatedReduction(state, _selectedGroup && _selectedGroup.id);
 
   if (!_selectedGroup) { return []; }
-  if (_relatedReduction && isReductionActive(_relatedReduction.taskStatus)) {
+  if (_relatedReduction && _relatedReduction.selectedValues && isReductionActive(_relatedReduction.taskStatus)) {
     return _relatedReduction.selectedValues.map((i) => state.data.values[i]).filter((i) => i);
   }
   return _.filter(state.data.values, (v) => {
