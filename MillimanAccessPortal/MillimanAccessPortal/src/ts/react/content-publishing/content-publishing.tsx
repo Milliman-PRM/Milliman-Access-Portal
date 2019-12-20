@@ -12,7 +12,7 @@ import ReduxToastr from 'react-redux-toastr';
 import { convertMarkdownToHTML } from '../../convert-markdown';
 import { setUnloadAlert } from '../../unload-alerts';
 import {
-  ContentTypeEnum, PublicationStatus, PublishRequest,
+  ContentTypeEnum, isPublicationActive, PublicationStatus, PublishRequest,
 } from '../../view-models/content-publishing';
 import { ContentCard } from '../authorized-content/content-card';
 import {
@@ -438,90 +438,100 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         }}
       />
     );
+    const cardButtons = (entityId: string, entityPublicationStatus: PublicationStatus) => {
+      switch (entityPublicationStatus) {
+        case PublicationStatus.Processed:
+          return (
+            <>
+              <CardButton
+                color={'green'}
+                tooltip={'Review for Approval'}
+                onClick={() => {
+                  if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                    this.props.openModifiedFormModal({
+                      afterFormModal:
+                      {
+                        entityToSelect: entityId,
+                        entityType: 'Go Live Summary',
+                      },
+                    });
+                  } else {
+                    this.props.fetchGoLiveSummary({ rootContentItemId: entityId });
+                  }
+                }}
+                icon={'checkmark'}
+              />
+            </>
+          );
+        case PublicationStatus.Validating:
+        case PublicationStatus.Queued:
+        case PublicationStatus.Processing:
+        case PublicationStatus.PostProcessReady:
+        case PublicationStatus.Error:
+          return (
+            <>
+              <CardButton
+                color={'red'}
+                tooltip={'Cancel Publication'}
+                onClick={() => this.props.openCancelPublicationModal({ id: entityId })}
+                icon={'cancel'}
+              />
+            </>
+          );
+        case PublicationStatus.PostProcessing:
+          return null;
+        default:
+          return (
+            <>
+              <CardButton
+                color={'red'}
+                tooltip={'Delete Content Item'}
+                onClick={() => {
+                  if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                    this.props.openModifiedFormModal({
+                      afterFormModal:
+                      {
+                        entityToSelect: entityId,
+                        entityType: 'Delete Content Item',
+                      },
+                    });
+                  } else {
+                    this.props.openDeleteContentItemModal({ id: entityId });
+                  }
+                }}
+                icon={'delete'}
+              />
+              <CardButton
+                color={'blue'}
+                tooltip={'Edit Content Item'}
+                onClick={() => {
+                  if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                    this.props.openModifiedFormModal({
+                      afterFormModal:
+                      {
+                        entityToSelect: entityId,
+                        entityType: 'Edit Content Item',
+                      },
+                    });
+                  } else {
+                    if (selected.item !== entityId) {
+                      this.props.fetchContentItemDetail({ rootContentItemId: entityId });
+                      this.props.selectItem({ id: entityId });
+                    }
+                    this.props.setContentItemFormState({ formState: 'write' });
+                  }
+                }}
+                icon={'edit'}
+              />
+            </>
+          );
+      }
+    };
     return activeClient && (
       <CardPanel
         entities={items}
         loading={pending.data.items}
         renderEntity={(entity, key) => {
-          const cardButtons = entity.status.requestStatus === PublicationStatus.Processed ?
-            (
-              <>
-                <CardButton
-                  color={'green'}
-                  tooltip={'Review for Approval'}
-                  onClick={() => {
-                    if (this.props.formChangesPending || this.props.uploadChangesPending) {
-                      this.props.openModifiedFormModal({
-                        afterFormModal:
-                        {
-                          entityToSelect: entity.id,
-                          entityType: 'Go Live Summary',
-                        },
-                      });
-                    } else {
-                      this.props.fetchGoLiveSummary({ rootContentItemId: entity.id });
-                    }
-                  }}
-                  icon={'checkmark'}
-                />
-              </>
-            ) : entity.status.requestStatus === PublicationStatus.Validating
-            || entity.status.requestStatus === PublicationStatus.Queued
-            || entity.status.requestStatus === PublicationStatus.Processing
-            || entity.status.requestStatus === PublicationStatus.PostProcessReady
-            || entity.status.requestStatus === PublicationStatus.Error ? (
-                <>
-                  <CardButton
-                    color={'red'}
-                    tooltip={'Cancel Publication'}
-                    onClick={() => this.props.openCancelPublicationModal({ id: entity.id })}
-                    icon={'cancel'}
-                  />
-                </>
-              ) : (
-                <>
-                  <CardButton
-                    color={'red'}
-                    tooltip={'Delete Content Item'}
-                    onClick={() => {
-                      if (this.props.formChangesPending || this.props.uploadChangesPending) {
-                        this.props.openModifiedFormModal({
-                          afterFormModal:
-                          {
-                            entityToSelect: entity.id,
-                            entityType: 'Delete Content Item',
-                          },
-                        });
-                      } else {
-                        this.props.openDeleteContentItemModal({ id: entity.id });
-                      }
-                    }}
-                    icon={'delete'}
-                  />
-                  <CardButton
-                    color={'blue'}
-                    tooltip={'Edit Content Item'}
-                    onClick={() => {
-                      if (this.props.formChangesPending || this.props.uploadChangesPending) {
-                        this.props.openModifiedFormModal({
-                          afterFormModal:
-                          {
-                            entityToSelect: entity.id,
-                            entityType: 'Edit Content Item',
-                          },
-                        });
-                      } else {
-                        if (selected.item !== entity.id) {
-                          this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
-                          this.props.selectItem({ id: entity.id });
-                        }
-                        this.props.setContentItemFormState({ formState: 'write' });
-                      }
-                    }}
-                    icon={'edit'}
-                  />
-                </>
-              );
           return (
             <Card
               key={key}
@@ -565,7 +575,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   />
                 </CardSectionStats>
                 <CardSectionButtons>
-                  {cardButtons}
+                  {cardButtons(entity.id, entity.status.requestStatus)}
                 </CardSectionButtons>
               </CardSectionMain>
             </Card>
@@ -661,7 +671,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             {formState === 'read'
               && pendingFormData.id
               && selectedItemStatus
-              && selectedItemStatus.status.requestStatus !== PublicationStatus.Processed
+              && !isPublicationActive(selectedItemStatus.status.requestStatus)
               && editFormButton
             }
             {closeFormButton}
