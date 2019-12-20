@@ -1014,53 +1014,53 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 </FormSectionRow>
               </FormSection>
             }
-            {
-              formState === 'write' && (this.props.formChangesPending || this.props.uploadChangesPending) &&
-              <div className="button-container">
-                <button
-                  className="link-button"
-                  type="button"
-                  onClick={(event: any) => {
-                    event.preventDefault();
-                    this.props.openModifiedFormModal({
-                      afterFormModal:
-                      {
-                        entityToSelect: null,
-                        entityType: 'Undo Changes',
-                      },
-                    });
-                  }}
-                >
-                  Undo Changes
-                </button>
-                <button
-                  type="button"
-                  className={`green-button${this.props.formCanSubmit ? '' : ' disabled'}`}
-                  disabled={!this.props.formCanSubmit}
-                  onClick={(event: React.MouseEvent) => {
-                    event.preventDefault();
-                    if (!formData.pendingFormData.id) {
-                      this.props.createNewContentItem(this.props.contentItemForPublication);
-                    } else {
-                      if (this.props.formChangesPending) {
-                        this.props.updateContentItem(this.props.contentItemForPublication);
-                      }
-                      if (this.props.uploadChangesPending) {
-                        this.props.publishContentFiles(this.props.filesForPublishing);
-                      }
-                    }
-                  }}
-                >
-                  {`${formData.pendingFormData.id ? 'Update' : 'Create'} Content Item`}
-                  {this.props.pending.data.formSubmit
-                    ? <ButtonSpinner version="circle" />
-                    : null
-                  }
-                </button>
-              </div>
-            }
           </ContentPanelForm>
         </ContentPanelSectionContent>
+        {
+          formState === 'write' && (this.props.formChangesPending || this.props.uploadChangesPending) &&
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={(event: any) => {
+                event.preventDefault();
+                this.props.openModifiedFormModal({
+                  afterFormModal:
+                  {
+                    entityToSelect: null,
+                    entityType: 'Undo Changes',
+                  },
+                });
+              }}
+            >
+              Undo Changes
+            </button>
+            <button
+              type="button"
+              className={`green-button${this.props.formCanSubmit ? '' : ' disabled'}`}
+              disabled={!this.props.formCanSubmit}
+              onClick={(event: React.MouseEvent) => {
+                event.preventDefault();
+                if (!formData.pendingFormData.id) {
+                  this.props.createNewContentItem(this.props.contentItemForPublication);
+                } else {
+                  if (this.props.formChangesPending) {
+                    this.props.updateContentItem(this.props.contentItemForPublication);
+                  }
+                  if (this.props.uploadChangesPending) {
+                    this.props.publishContentFiles(this.props.filesForPublishing);
+                  }
+                }
+              }}
+            >
+              {`${formData.pendingFormData.id ? 'Update' : 'Create'} Content Item`}
+              {this.props.pending.data.formSubmit
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        }
       </ContentPanel>
     );
   }
