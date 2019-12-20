@@ -244,6 +244,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
       pending,
       selected,
       filters,
+      items,
       modals,
       cardAttributes,
       addableUsers: users,
@@ -252,6 +253,9 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
       groupToDelete: groupDelete,
     } = this.props;
 
+    const selectedItemIsPublishing = item && isPublicationActive(
+      items.filter((x) => x.id === item.id)[0].status.requestStatus,
+    );
     const expandAllIcon = allExpanded
       ? null
       : (
@@ -313,22 +317,25 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             )
             : (
               <>
-                {isReductionActive(entity.status.taskStatus)
-                  ? (
-                    <CardButton
-                      color={'red'}
-                      tooltip={'Cancel Reduction Task'}
-                      onClick={() => this.props.cancelReduction({ groupId: entity.id })}
-                      icon={'cancel'}
-                    />
-                  ) : (
-                    <CardButton
-                      color={'red'}
-                      tooltip={'Delete selection group'}
-                      onClick={() => this.props.openDeleteGroupModal({ id: entity.id })}
-                      icon={'delete'}
-                    />
-                  )
+                {
+                  (!selectedItemIsPublishing)
+                    ? isReductionActive(entity.status.taskStatus)
+                      ? (
+                        <CardButton
+                          color={'red'}
+                          tooltip={'Cancel Reduction Task'}
+                          onClick={() => this.props.cancelReduction({ groupId: entity.id })}
+                          icon={'cancel'}
+                        />
+                      ) : (
+                        <CardButton
+                          color={'red'}
+                          tooltip={'Delete selection group'}
+                          onClick={() => this.props.openDeleteGroupModal({ id: entity.id })}
+                          icon={'delete'}
+                        />
+                      )
+                  : null
                 }
                 {pending.group.id === null
                   ? (
