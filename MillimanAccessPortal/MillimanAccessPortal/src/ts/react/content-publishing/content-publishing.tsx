@@ -900,95 +900,110 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 </FormFlexContainer>
               </FormSectionRow>
             </FormSection>
-            <FormSection title="Content Description">
-              <FormSectionRow>
-                <FormFlexContainer flexPhone={12}>
-                  <TextAreaInput
-                    error={formData.formErrors.contentDescription}
-                    label="Content Description"
-                    name="contentDescription"
-                    onBlur={() => false}
-                    onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
-                      this.props.setPublishingFormTextInputValue({
-                        inputName: 'contentDescription',
-                        value: target.value,
-                      });
-                    }}
-                    placeholderText="Content Description..."
-                    value={formData.pendingFormData.contentDescription}
-                    readOnly={formState === 'read'}
-                  />
-                </FormFlexContainer>
-              </FormSectionRow>
-            </FormSection>
-            <FormSection title="Custom Content Disclaimer">
-              <FormSectionRow>
-                <FormFlexContainer flexPhone={12}>
-                  {
-                    formData.formState === 'write' &&
-                    <TabRow
-                      tabs={[{ id: 'edit', label: 'Edit' }, { id: 'preview', label: 'Preview' }]}
-                      selectedTab={formData.disclaimerInputState}
-                      onTabSelect={(tab: 'edit' | 'preview') => this.props.setDisclaimerInputState({value: tab})}
-                      fullWidth={true}
+            {
+              (formData.formState !== 'read'
+                || formData.pendingFormData.contentDescription.length > 0
+              ) &&
+              <FormSection title="Content Description">
+                <FormSectionRow>
+                  <FormFlexContainer flexPhone={12}>
+                    <TextAreaInput
+                      error={formData.formErrors.contentDescription}
+                      label="Content Description"
+                      name="contentDescription"
+                      onBlur={() => false}
+                      onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                        this.props.setPublishingFormTextInputValue({
+                          inputName: 'contentDescription',
+                          value: target.value,
+                        });
+                      }}
+                      placeholderText="Content Description..."
+                      value={formData.pendingFormData.contentDescription}
+                      readOnly={formState === 'read'}
                     />
-                  }
-                  {
-                    formData.disclaimerInputState === 'preview' || formData.formState === 'read'
-                      ? (
-                        <div
-                          className={`disclaimer-preview${formData.formState === 'read' ? ' disabled' : ''}`}
-                          dangerouslySetInnerHTML={{
-                            __html: convertMarkdownToHTML(formData.pendingFormData.contentDisclaimer),
-                          }}
-                        />
-                      ) : (
-                        <>
-                          <TextAreaInput
-                            error={formData.formErrors.contentDisclaimer}
-                            label="Custom Disclaimer Text"
-                            name="contentDisclaimer"
-                            onBlur={() => false}
-                            onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
-                              this.props.setPublishingFormTextInputValue({
-                                inputName: 'contentDisclaimer',
-                                value: target.value,
-                              });
+                  </FormFlexContainer>
+                </FormSectionRow>
+              </FormSection>
+            }
+            {
+              (formData.formState !== 'read'
+                || formData.pendingFormData.contentDisclaimer.length > 0
+              ) &&
+              <FormSection title="Custom Content Disclaimer">
+                <FormSectionRow>
+                  <FormFlexContainer flexPhone={12}>
+                    {
+                      formData.formState === 'write' &&
+                      <TabRow
+                        tabs={[{ id: 'edit', label: 'Edit' }, { id: 'preview', label: 'Preview' }]}
+                        selectedTab={formData.disclaimerInputState}
+                        onTabSelect={(tab: 'edit' | 'preview') => this.props.setDisclaimerInputState({value: tab})}
+                        fullWidth={true}
+                      />
+                    }
+                    {
+                      formData.disclaimerInputState === 'preview' || formData.formState === 'read'
+                        ? (
+                          <div
+                            className={`disclaimer-preview${formData.formState === 'read' ? ' disabled' : ''}`}
+                            dangerouslySetInnerHTML={{
+                              __html: convertMarkdownToHTML(formData.pendingFormData.contentDisclaimer),
                             }}
-                            placeholderText="Custom Disclaimer Text..."
-                            value={formData.pendingFormData.contentDisclaimer}
-                            readOnly={formState === 'read'}
                           />
-                          <div className="disclaimer-instructions">
-                            **<strong>bold</strong>**, _<i>italics</i>_, ### <strong>Section Header</strong>
-                          </div>
-                        </>
-                      )
-                  }
-                </FormFlexContainer>
-              </FormSectionRow>
-            </FormSection>
-            <FormSection title="Internal Notes (Not Shown To End Users)">
-              <FormSectionRow>
-                <FormFlexContainer flexPhone={12}>
-                  <TextAreaInput
-                    error={formData.formErrors.contentNotes}
-                    label="Notes"
-                    name="contentDisclaimer"
-                    onBlur={() => false}
-                    onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
-                      this.props.setPublishingFormTextInputValue({
-                        inputName: 'contentNotes',
-                        value: target.value,
-                      });
-                    }}
-                    placeholderText="Notes..."
-                    value={formData.pendingFormData.contentNotes}
-                    readOnly={formState === 'read'}
-                  />
-                </FormFlexContainer>
-              </FormSectionRow>
-            </FormSection>
+                        ) : (
+                          <>
+                            <TextAreaInput
+                              error={formData.formErrors.contentDisclaimer}
+                              label="Custom Disclaimer Text"
+                              name="contentDisclaimer"
+                              onBlur={() => false}
+                              onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                                this.props.setPublishingFormTextInputValue({
+                                  inputName: 'contentDisclaimer',
+                                  value: target.value,
+                                });
+                              }}
+                              placeholderText="Custom Disclaimer Text..."
+                              value={formData.pendingFormData.contentDisclaimer}
+                              readOnly={formState === 'read'}
+                            />
+                            <div className="disclaimer-instructions">
+                              **<strong>bold</strong>**, _<i>italics</i>_, ### <strong>Section Header</strong>
+                            </div>
+                          </>
+                        )
+                    }
+                  </FormFlexContainer>
+                </FormSectionRow>
+              </FormSection>
+            }
+            {
+              (formData.formState !== 'read'
+                || formData.pendingFormData.contentNotes.length > 0
+              ) &&
+              <FormSection title="Internal Notes (Not Shown To End Users)">
+                <FormSectionRow>
+                  <FormFlexContainer flexPhone={12}>
+                    <TextAreaInput
+                      error={formData.formErrors.contentNotes}
+                      label="Notes"
+                      name="contentDisclaimer"
+                      onBlur={() => false}
+                      onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                        this.props.setPublishingFormTextInputValue({
+                          inputName: 'contentNotes',
+                          value: target.value,
+                        });
+                      }}
+                      placeholderText="Notes..."
+                      value={formData.pendingFormData.contentNotes}
+                      readOnly={formState === 'read'}
+                    />
+                  </FormFlexContainer>
+                </FormSectionRow>
+              </FormSection>
+            }
             {
               formState === 'write' && (this.props.formChangesPending || this.props.uploadChangesPending) &&
               <div className="button-container">
