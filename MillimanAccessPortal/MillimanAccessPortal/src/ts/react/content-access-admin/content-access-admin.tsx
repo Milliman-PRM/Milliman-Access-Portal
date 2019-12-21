@@ -274,13 +274,13 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
           action={() => this.props.setAllCollapsedGroup({})}
         />
       );
-    const addGroupIcon = (
-      <ActionIcon
-        label="Add group"
-        icon="add"
-        action={() => this.props.openAddGroupModal({})}
-      />
-    );
+    const addGroupIcon = !selectedItemIsPublishing ? (
+        <ActionIcon
+          label="Add group"
+          icon="add"
+          action={() => this.props.openAddGroupModal({})}
+        />
+      ) : null;
 
     return activeClient && activeItem && (
       <CardPanel
@@ -511,7 +511,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             </Card>
           );
         }}
-        renderNewEntityButton={() => (
+        renderNewEntityButton={() => !selectedItemIsPublishing && (
           <div className="card-container action-card-container" onClick={() => this.props.openAddGroupModal({})}>
             <div className="admin-panel-content">
               <div className="card-body-container card-100 action-card">
