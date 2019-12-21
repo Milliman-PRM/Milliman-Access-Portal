@@ -70,13 +70,15 @@ export function pendingMaster(state: AccessState) {
   const _selectedGroup = selectedGroup(state);
   const _relatedReduction = _selectedGroup && relatedReduction(state, _selectedGroup.id);
   const { isMaster } = state.pending;
-  return _selectedGroup
-    ? isMaster !== null
-      ? isMaster
-      : _relatedReduction && isReductionActive(_relatedReduction.taskStatus)
-        ? false
-        : _selectedGroup.isMaster
-    : false;
+  if (isMaster !== null) {
+    return isMaster;
+  }
+  if (_relatedReduction
+    && _relatedReduction.selectedValues !== null
+    && _relatedReduction.selectedValues.length > 0) {
+    return false;
+  }
+  return _selectedGroup && _selectedGroup.isMaster;
 }
 
 /**
