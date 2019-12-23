@@ -244,6 +244,8 @@ namespace ContentPublishingLib.JobRunners
                     }
                 }
 
+                JobDetail.Result.ReductionTaskSuccessList = JobDetail.Result.ReductionTaskSuccessList.OrderBy(t => t.ProcessingStartedUtc).ToList();
+                JobDetail.Result.ReductionTaskFailList = JobDetail.Result.ReductionTaskFailList.OrderBy(t => t.ProcessingStartedUtc).ToList();
                 JobDetail.Result.ElapsedTime = DateTime.UtcNow - JobDetail.Result.StartDateTime;
             }
 
@@ -404,6 +406,8 @@ namespace ContentPublishingLib.JobRunners
                                 OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
                                 ReductionTaskId = NewTask.Id,
                                 ProcessingStartedUtc = DateTime.UtcNow,
+                                SelectionGroupName = SelGrp.GroupName,
+                                UserMessage = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned.GetDisplayNameString(),
                             };
                         }
                         else

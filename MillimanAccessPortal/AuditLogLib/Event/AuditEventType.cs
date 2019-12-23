@@ -275,7 +275,7 @@ namespace AuditLogLib.Event
                     user.Id,
                     user.UserName,
                 },
-                Reason = reason.GetDisplayValueString()
+                Reason = reason.GetDisplayNameString()
             });
         public static readonly AuditEventType<ApplicationUser> PasswordResetCompleted = new AuditEventType<ApplicationUser>(
             3007, "Account password reset completed", (user) => new
@@ -552,7 +552,7 @@ namespace AuditLogLib.Event
                         u.SelectionGroup.GroupName,
                     }
                 }),
-                Reason = reason.GetDisplayValueString(),
+                Reason = reason.GetDisplayNameString(),
             });
         public static readonly AuditEventType<UserInSelectionGroup, RootContentItem, Client, Guid, string> ContentDisclaimerPresented =
             new AuditEventType<UserInSelectionGroup, RootContentItem, Client, Guid, string>(4102, "Content disclaimer presented to user",

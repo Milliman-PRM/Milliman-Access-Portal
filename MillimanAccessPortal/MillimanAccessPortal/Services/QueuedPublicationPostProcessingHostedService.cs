@@ -74,6 +74,13 @@ namespace MillimanAccessPortal.Services
                             ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == kvpWithException.Key);
 
                             thisPubRequest.RequestStatus = PublicationStatus.Error;
+
+                            var newOutcome = thisPubRequest.OutcomeMetadataObj;
+                            newOutcome.ElapsedTime = DateTime.UtcNow - newOutcome.StartDateTime;
+                            newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
+                            newOutcome.SupportMessage = kvpWithException.Value.Exception.Message;
+                            thisPubRequest.OutcomeMetadataObj = newOutcome;
+
                             thisPubRequest.StatusMessage = kvpWithException.Value.Exception.Message;
                             foreach (var reduction in dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == thisPubRequest.Id))
                             {
@@ -194,6 +201,12 @@ namespace MillimanAccessPortal.Services
 
                 // update pub status to PostProcessing
                 thisPubRequest.RequestStatus = PublicationStatus.PostProcessing;
+
+                var newOutcome = thisPubRequest.OutcomeMetadataObj;
+                newOutcome.ElapsedTime = DateTime.UtcNow - newOutcome.StartDateTime;
+                newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
+                thisPubRequest.OutcomeMetadataObj = newOutcome;
+
                 dbContext.SaveChanges();
 
                 string tempContentDestinationFolder = Path.Combine(configuration.GetValue<string>("Storage:ContentItemRootPath"),
@@ -328,6 +341,12 @@ namespace MillimanAccessPortal.Services
 
                 // update pub status to Processed
                 thisPubRequest.RequestStatus = PublicationStatus.Processed;
+
+                newOutcome = thisPubRequest.OutcomeMetadataObj;
+                newOutcome.ElapsedTime = DateTime.UtcNow - newOutcome.StartDateTime;
+                newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
+                thisPubRequest.OutcomeMetadataObj = newOutcome;
+
                 dbContext.ContentPublicationRequest.Update(thisPubRequest);
                 dbContext.SaveChanges();
             }

@@ -76,7 +76,7 @@ namespace MapDbContextLib.Identity
                 ApplicationRole RecordFromDb = dbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == Role);
                 if (RecordFromDb == null)
                 {
-                    RecordFromDb = new ApplicationRole { RoleEnum = Role, Name = RoleName, DisplayName = Role.GetDisplayValueString() };
+                    RecordFromDb = new ApplicationRole { RoleEnum = Role, Name = RoleName, DisplayName = Role.GetDisplayNameString() };
                     var createResult = await roleManager.CreateAsync(RecordFromDb);
                     if (!createResult.Succeeded)
                     {
@@ -87,9 +87,9 @@ namespace MapDbContextLib.Identity
                 {
                     throw new Exception($"It is not possible to change ApplicationRole name in database from {RecordFromDb.Name} to {RoleName}.");
                 }
-                else if (RecordFromDb.DisplayName != Role.GetDisplayValueString())
+                else if (RecordFromDb.DisplayName != Role.GetDisplayNameString())
                 {
-                    RecordFromDb.DisplayName = Role.GetDisplayValueString();
+                    RecordFromDb.DisplayName = Role.GetDisplayNameString();
                     await roleManager.UpdateAsync(RecordFromDb);
                 }
 
@@ -107,7 +107,7 @@ namespace MapDbContextLib.Identity
 
             // Make sure the database table contains exactly the expected records and no more
             var RoleNamesInitialized = Enum.GetValues(typeof(RoleEnum)).Cast<RoleEnum>().OrderBy(r => r).Select(r => new KeyValuePair<RoleEnum, string>(r, r.ToString()));
-            var RoleDisplayNamesInitialized = Enum.GetValues(typeof(RoleEnum)).Cast<RoleEnum>().OrderBy(r => r).Select(r => new KeyValuePair<RoleEnum, string>(r, r.GetDisplayValueString()));
+            var RoleDisplayNamesInitialized = Enum.GetValues(typeof(RoleEnum)).Cast<RoleEnum>().OrderBy(r => r).Select(r => new KeyValuePair<RoleEnum, string>(r, r.GetDisplayNameString()));
             if (!RoleNamesInitialized.SequenceEqual(FoundRolesInDb.OrderBy(fr => fr.Key)) ||
                 !RoleDisplayNamesInitialized.SequenceEqual(FoundDisplayNamesInDb.OrderBy(fr => fr.Key)))
             {

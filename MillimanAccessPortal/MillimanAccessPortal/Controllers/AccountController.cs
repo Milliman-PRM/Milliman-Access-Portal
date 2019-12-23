@@ -639,7 +639,7 @@ namespace MillimanAccessPortal.Controllers
                 emailBody += $"{link.Uri.AbsoluteUri}{Environment.NewLine}";
                 emailBody += $"This link will expire {expirationHours} hours after the time it was sent.";
 
-                appLogMsg = $"Password reset email queued to address {RequestedUser.Email}{Environment.NewLine}reason: {reason.GetDisplayValueString()}{Environment.NewLine}emailed link: {link.Uri.AbsoluteUri}";
+                appLogMsg = $"Password reset email queued to address {RequestedUser.Email}{Environment.NewLine}reason: {reason.GetDisplayNameString()}{Environment.NewLine}emailed link: {link.Uri.AbsoluteUri}";
             }
             else
             {
