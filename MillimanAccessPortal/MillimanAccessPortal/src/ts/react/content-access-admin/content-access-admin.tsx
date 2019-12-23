@@ -253,9 +253,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
       groupToDelete: groupDelete,
     } = this.props;
 
-    const selectedItemIsPublishing = item && isPublicationActive(
-      items.filter((x) => x.id === item.id)[0].status.requestStatus,
-    );
+    const selectedItemStatus = item && items.filter((x) => x.id === item.id)[0].status.requestStatus;
+    const selectedItemIsPublishing = item && isPublicationActive(selectedItemStatus);
     const expandAllIcon = allExpanded
       ? null
       : (
@@ -318,7 +317,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             : (
               <>
                 {
-                  (!selectedItemIsPublishing)
+                  (!selectedItemIsPublishing && selectedItemStatus !== PublicationStatus.Error)
                     ? isReductionActive(entity.status.taskStatus)
                       ? (
                         <CardButton
