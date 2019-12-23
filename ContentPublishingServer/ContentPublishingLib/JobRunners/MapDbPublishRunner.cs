@@ -404,7 +404,7 @@ namespace ContentPublishingLib.JobRunners
                             MasterContentChecksum = contentRelatedFile.Checksum,
                             SelectionGroupId = SelGrp.Id,
                             MasterContentHierarchyObj = MasterHierarchyTask.MasterContentHierarchyObj,
-                    };
+                        };
 
                         if (SelGrp.IsMaster)
                         {
@@ -413,10 +413,10 @@ namespace ContentPublishingLib.JobRunners
                             NewTask.ProcessingStartDateTimeUtc = DateTime.UtcNow;
                             NewTask.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
                             {
-                                OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
-                                ReductionTaskId = NewTask.Id,
                                 ProcessingStartedUtc = DateTime.UtcNow,
+                                ReductionTaskId = NewTask.Id,
                                 SelectionGroupName = SelGrp.GroupName,
+                                OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
                                 UserMessage = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned.GetDisplayNameString(),
                             };
                         }
@@ -431,11 +431,14 @@ namespace ContentPublishingLib.JobRunners
                             else
                             {
                                 // There are no values selected
-                                NewTask.ReductionStatus = ReductionStatusEnum.Error;
+                                NewTask.ReductionStatus = ReductionStatusEnum.Warning;
                                 NewTask.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
                                 {
-                                    OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
+                                    ProcessingStartedUtc = DateTime.UtcNow,
                                     ReductionTaskId = NewTask.Id,
+                                    SelectionGroupName = SelGrp.GroupName,
+                                    OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
+                                    UserMessage = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues.GetDisplayDescriptionString(),
                                 };
                             }
                         }

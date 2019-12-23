@@ -341,9 +341,6 @@ namespace ContentPublishingLib.JobMonitors
                                 case ReductionJobDetail.JobOutcomeReason.UnspecifiedError:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.UnspecifiedError;
                                     break;
-                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValues:
-                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues;
-                                    break;
                                 case ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoReducedFileCreated;
                                     break;
