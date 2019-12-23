@@ -91,28 +91,28 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     .Single(r => r.Id == publicationId);
 
                 // Provide queue position for publications that have not yet begun
-                if (publication.RequestStatus.IsCancelable())
+                if (PublicationStatusExtensions.QueueWaitableStatusList.Contains(publication.RequestStatus))
                 {
                     var precedingPublicationRequestCount = _dbContext.ContentPublicationRequest
                         .Where(r => r.CreateDateTimeUtc < publication.CreateDateTimeUtc)
-                        .Where(r => PublicationStatusExtensions.CancelablePublicationStatusList.Contains(r.RequestStatus))
+                        .Where(r => PublicationStatusExtensions.QueueWaitableStatusList.Contains(r.RequestStatus))
                         .Count();
                     queueDetails.Add(new PublicationQueueDetails
                     {
                         PublicationId = publicationId,
-                        QueuePosition = precedingPublicationRequestCount + 1,
+                        QueuePosition = precedingPublicationRequestCount,
                     });
                 }
                 // Provide progress details for publications that have begun
                 else if (publication.RequestStatus.IsActive())
                 {
-                    var reductionTasks = _dbContext.ContentReductionTask
+                    var reductionTaskStatusList = _dbContext.ContentReductionTask
                         .Where(t => t.ContentPublicationRequestId == publicationId)
                         .Where(t => t.SelectionGroupId != null)  // exclude hierarchy extract task
                         .Select(t => t.ReductionStatus)
                         .ToList();
-                    var reductionsCompleted = reductionTasks.Where(t => t == ReductionStatusEnum.Reduced).Count();
-                    var reductionsTotal = reductionTasks.Count;
+                    var reductionsCompleted = reductionTaskStatusList.Count(t => !ReductionStatusExtensions.cancelableStatusList.Contains(t));
+                    var reductionsTotal = reductionTaskStatusList.Count;
                     queueDetails.Add(new PublicationQueueDetails
                     {
                         PublicationId = publicationId,

@@ -80,10 +80,12 @@ namespace MapDbContextLib.Context
             PublicationStatus.Confirming,
         };
 
-        public static bool IsCancelable(this PublicationStatus status)
+        public static List<PublicationStatus> QueueWaitableStatusList { get; } = new List<PublicationStatus>
         {
-            return CancelablePublicationStatusList.Contains(status);
-        }
+            PublicationStatus.Validating,
+            PublicationStatus.Queued,
+            PublicationStatus.Processing,
+        };
 
         public static bool IsActive(this PublicationStatus status)
         {
