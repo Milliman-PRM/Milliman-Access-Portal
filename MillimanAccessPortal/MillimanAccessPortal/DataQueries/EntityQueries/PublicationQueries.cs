@@ -1,4 +1,5 @@
 ﻿using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using System;
@@ -181,7 +182,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// Select the list of selections for a reduction task
         /// </summary>
         /// <param name="selectionGroupId">Selection group ID</param>
-        /// <returns>List of value IDs</returns>
+        /// <returns>IDs of selected values minus any values not in the new reduced hierarchy</returns>
         internal List<Guid> SelectReductionSelections(Guid selectionGroupId)
         {
             var reductionTask = ReductionWhereSelectionGroup(selectionGroupId);
@@ -190,10 +191,37 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 return new List<Guid> { };
             }
 
-            var selections = _dbContext.ContentReductionTask
-                .Where(t => t.Id == reductionTask.Id)
-                .Select(t => t.SelectionCriteriaObj)
-                .SingleOrDefault();
+            ContentReductionHierarchy<ReductionFieldValueSelection> selections = _dbContext.ContentReductionTask
+                .Find(reductionTask.Id)
+                ?.SelectionCriteriaObj;
+
+            // remove selected values not contained in the hierarchy of the newly reduced content
+            if (reductionTask.ReducedContentHierarchyObj != null && selections != null)
+            {
+                foreach (var selectionHierarchyField in selections.Fields)
+                {
+                    var reducedValueList = reductionTask.ReducedContentHierarchyObj
+                        .Fields
+                        .Single(f => f.FieldName == selectionHierarchyField.FieldName)
+                        .Values
+                        .Select(v => v.Value)
+                        .ToList();
+
+                    foreach (ReductionFieldValueSelection selectedValue in selectionHierarchyField.Values.Where(v => v.SelectionStatus))
+                    {
+                        if (!reducedValueList.Contains(selectedValue.Value))
+                        {
+                            selectedValue.SelectionStatus = false;
+                        }
+                    }
+                }
+            }
+            else if (reductionTask.TaskAction != TaskActionEnum.HierarchyOnly && 
+                     reductionTask.ReducedContentHierarchyObj == null && 
+                     reductionTask.ReductionStatus == ReductionStatusEnum.Warning)
+            {
+                return new List<Guid>();
+            }
 
             return selections?.GetSelectedValueIds();
         }
