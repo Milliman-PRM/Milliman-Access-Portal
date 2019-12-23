@@ -301,6 +301,9 @@ namespace ContentPublishingLib.JobMonitors
                         ElapsedTime = JobDetail.Result.ProcessingDuration,
                         ProcessingStartedUtc = DbTask.ProcessingStartDateTimeUtc,
                         OutcomeReason = MapDbReductionTaskOutcomeReason.Default,
+                        SelectionGroupName = JobDetail.Request.SelectionGroupName,
+                        SupportMessage = JobDetail.Result.StatusMessage,
+                        // UserMessage is set below
                     };
 
                     // Assign DbTask.ReductionStatus and OutcomeMetadataObj.OutcomeReason
@@ -310,7 +313,6 @@ namespace ContentPublishingLib.JobMonitors
                             DbTask.ReductionStatus = ReductionStatusEnum.Unspecified;
                             break;
                         case ReductionJobDetail.JobStatusEnum.Warning:
-                            // TODO finish this
                             DbTask.ReductionStatus = ReductionStatusEnum.Warning;
                             switch (JobDetail.Result.OutcomeReason)
                             {
@@ -364,6 +366,8 @@ namespace ContentPublishingLib.JobMonitors
                         default:
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
+
+                    OutcomeMetadataObj.UserMessage = OutcomeMetadataObj.OutcomeReason.GetDisplayNameString();
 
                     DbTask.MasterContentHierarchyObj = (ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy;
 

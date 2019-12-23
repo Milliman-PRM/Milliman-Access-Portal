@@ -371,14 +371,6 @@ namespace ContentPublishingLib.JobMonitors
                         return true;
                     }
 
-                    DbRequest.OutcomeMetadataObj = new PublicationRequestOutcomeMetadata
-                    {
-                        StartDateTime = JobDetail.Result.StartDateTime,
-                        ElapsedTime = JobDetail.Result.ElapsedTime,
-                        ReductionTaskFailOutcomeList = JobDetail.Result.ReductionTaskFailList,
-                        ReductionTaskSuccessOutcomeList = JobDetail.Result.ReductionTaskSuccessList,
-                    };
-
                     switch (JobDetail.Status)
                     {
                         case PublishJobDetail.JobStatusEnum.Unspecified:
@@ -405,6 +397,18 @@ namespace ContentPublishingLib.JobMonitors
                             Log.Information("Unsupported job result status in MapDbPublishJobMonitor.UpdateTask().");
                             return false;
                     }
+
+                    DbRequest.OutcomeMetadataObj = new PublicationRequestOutcomeMetadata
+                    {
+                        Id = JobDetail.JobId,
+                        StartDateTime = JobDetail.Result.StartDateTime,
+                        ElapsedTime = JobDetail.Result.ElapsedTime,
+                        UserMessage = DbRequest.RequestStatus.GetDisplayNameString(),
+                        SupportMessage = JobDetail.Result.StatusMessage,
+
+                        ReductionTaskFailOutcomeList = JobDetail.Result.ReductionTaskFailList,
+                        ReductionTaskSuccessOutcomeList = JobDetail.Result.ReductionTaskSuccessList,
+                    };
 
                     DbRequest.StatusMessage = JobDetail.Result.StatusMessage;
 
