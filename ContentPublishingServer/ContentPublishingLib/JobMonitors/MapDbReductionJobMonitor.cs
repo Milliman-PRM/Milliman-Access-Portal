@@ -364,7 +364,7 @@ namespace ContentPublishingLib.JobMonitors
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
-                    OutcomeMetadataObj.UserMessage = OutcomeMetadataObj.OutcomeReason.GetDisplayNameString();
+                    OutcomeMetadataObj.UserMessage = OutcomeMetadataObj.OutcomeReason.GetDisplayDescriptionString();
 
                     DbTask.MasterContentHierarchyObj = (ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy;
 
