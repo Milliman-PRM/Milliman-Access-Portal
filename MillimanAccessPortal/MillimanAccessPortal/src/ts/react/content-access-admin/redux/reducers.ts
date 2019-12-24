@@ -412,8 +412,14 @@ const data = createReducer<AccessStateData>(_initialData, {
     };
   },
   FETCH_STATUS_REFRESH_SUCCEEDED: (state, action: AccessActions.FetchStatusRefreshSucceeded) => {
+    const { liveSelectionsSet } = action.response;
     const groups = { ...state.groups };
     const items = { ...state.items };
+    _.forEach(liveSelectionsSet, (liveSelections, groupId) => {
+      if (groups[groupId]) {
+        groups[groupId].selectedValues = liveSelections;
+      }
+    });
     _.forEach(groups, (group, groupId) => {
       if (action.response.groups[groupId]) {
         groups[groupId] = {
@@ -437,6 +443,7 @@ const data = createReducer<AccessStateData>(_initialData, {
       items,
       publications: action.response.publications,
       publicationQueue: action.response.publicationQueue,
+      reductions: action.response.reductions,
       reductionQueue: action.response.reductionQueue,
     };
   },
