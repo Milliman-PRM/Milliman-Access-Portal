@@ -47,6 +47,11 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     {
         public static PublicationSummary ToSummaryWithQueueInformation(this ContentPublicationRequest publicationRequest, ApplicationDbContext dbContext)
         {
+            if (publicationRequest == null)
+            {
+                return null;
+            }
+
             var publicationSummary = (PublicationSummary)publicationRequest;
 
             if (PublicationStatusExtensions.QueueWaitableStatusList.Contains(publicationRequest.RequestStatus))
