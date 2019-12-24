@@ -19,18 +19,19 @@ export class CardStatus extends React.Component<CardStatusProps> {
     const [statusValue, isActive] = isPublicationRequest(status)
       ? [status.requestStatus, isPublicationActive(status.requestStatus)]
       : [status.taskStatus, isReductionActive(status.taskStatus)];
+    const taskStatusMessage = isReductionTask(status)
+      && (status.taskStatus === ReductionStatus.Warning
+        || status.taskStatus === ReductionStatus.Error)
+      && status.taskStatusMessage;
+
     return isActive
-      || (!isPublicationRequest(status) && status.taskStatus === ReductionStatus.Error)
+      || (!isPublicationRequest(status)
+      && (status.taskStatus === ReductionStatus.Error || status.taskStatus === ReductionStatus.Warning))
       || (isPublicationRequest(status) && status.requestStatus === PublicationStatus.Error)
       ? (
         <div
           className={`card-status-container status-${statusValue}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            if (isReductionTask(status) && status.taskStatus === ReductionStatus.Error && status.taskStatusMessage) {
-              toastr.error('', status.taskStatusMessage);
-            }
-          }}
+          title={taskStatusMessage}
         >
           <div className="status-top">{this.renderStatusTitle()}</div>
           <div className="status-bot">{this.renderStatusMessage()}</div>
@@ -82,10 +83,6 @@ export class CardStatus extends React.Component<CardStatusProps> {
       if (taskStatus === ReductionStatus.Queued) {
         const { queuePosition: position } = queueDetails;
         queueString = `(behind ${position} other reduction${s(position)})`;
-      } else if (taskStatus === ReductionStatus.Error) {
-        queueString = status.taskStatusMessage
-          ? '(click for details)'
-          : '';
       }
     }
 

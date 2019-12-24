@@ -70,12 +70,9 @@
             font-size: 0.8rem;
         }
 
-        &.status-9 {
-            display: block;
-            background-color: $orange;
-        }
-
-        &.status-10 {
+        &.status-9,
+        &.status-10,
+        &.status-80 {
             display: block;
             background-color: $orange;
         }

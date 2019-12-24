@@ -59,6 +59,7 @@ export enum ReductionStatus {
   Reduced = 30,
   Live = 40,
   Replaced = 50,
+  Warning = 80,
   Error = 90,
 }
 export const publicationStatusNames: { [status: number]: string; } = {
@@ -76,6 +77,7 @@ export const reductionStatusNames: { [status: number]: string; } = {
   10: 'Queued',
   20: 'Reducing',
   30: 'Reduced',
+  80: 'Warning',
   90: 'Error',
 };
 export function isPublicationActive(status: PublicationStatus) {
