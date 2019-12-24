@@ -378,7 +378,6 @@ namespace ContentPublishingLib.JobMonitors
 
                     DbTask.OutcomeMetadataObj = OutcomeMetadataObj;
 
-                    Db.ContentReductionTask.Update(DbTask);
                     Db.SaveChanges();
                     Transaction.Commit();
                 }
