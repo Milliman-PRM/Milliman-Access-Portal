@@ -415,6 +415,8 @@ const data = createReducer<AccessStateData>(_initialData, {
     const { liveSelectionsSet } = action.response;
     const groups = { ...state.groups };
     const items = { ...state.items };
+    const reductions = { ...state.reductions };
+
     _.forEach(liveSelectionsSet, (liveSelections, groupId) => {
       if (groups[groupId]) {
         groups[groupId].selectedValues = liveSelections;
@@ -436,6 +438,15 @@ const data = createReducer<AccessStateData>(_initialData, {
         };
       }
     });
+    _.forEach(reductions, (reduction, reductionId) => {
+      if (action.response.reductions[reductionId]) {
+        reductions[reductionId] = {
+          ...reduction,
+          taskStatus: action.response.reductions[reductionId].taskStatus,
+          taskStatusMessage: action.response.reductions[reductionId].taskStatusMessage,
+        };
+      }
+    });
 
     return {
       ...state,
@@ -443,7 +454,7 @@ const data = createReducer<AccessStateData>(_initialData, {
       items,
       publications: action.response.publications,
       publicationQueue: action.response.publicationQueue,
-      reductions: action.response.reductions,
+      reductions,
       reductionQueue: action.response.reductionQueue,
     };
   },
