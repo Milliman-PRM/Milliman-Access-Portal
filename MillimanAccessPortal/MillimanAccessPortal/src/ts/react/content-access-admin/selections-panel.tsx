@@ -102,7 +102,10 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
           <Toggle
             label={'Unrestricted Access'}
             checked={isMaster}
-            onClick={() => !isReductionActive(status) && onIsMasterChange(!isMaster)}
+            onClick={() => !isReductionActive(status)
+              && status !== ReductionStatus.Warning
+              && onIsMasterChange(!isMaster)
+            }
           />
           {this.renderReductionSection()}
           {this.renderButtonSection()}
