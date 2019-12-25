@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as moment from 'moment';
 
 import {
-    isReductionActive, publicationStatusNames, reductionStatusNames,
+  isReductionActive, publicationStatusNames, ReductionStatus, reductionStatusNames,
 } from '../../../view-models/content-publishing';
 import {
     ClientWithEligibleUsers, ClientWithStats, ContentPublicationRequest, ContentReductionTask, Guid,
@@ -32,7 +32,11 @@ export function pendingReductionValues(state: AccessState) {
   const _relatedReduction = relatedReduction(state, _selectedGroup && _selectedGroup.id);
 
   if (!_selectedGroup) { return []; }
-  if (_relatedReduction && _relatedReduction.selectedValues && isReductionActive(_relatedReduction.taskStatus)) {
+  if (_relatedReduction
+    && _relatedReduction.selectedValues
+    && (isReductionActive(_relatedReduction.taskStatus)
+      || _relatedReduction.taskStatus === ReductionStatus.Warning)
+  ) {
     return _relatedReduction.selectedValues.map((i) => state.data.values[i]).filter((i) => i);
   }
   return _.filter(state.data.values, (v) => {
