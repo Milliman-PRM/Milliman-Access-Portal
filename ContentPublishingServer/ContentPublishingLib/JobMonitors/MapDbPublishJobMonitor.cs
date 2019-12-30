@@ -403,7 +403,7 @@ namespace ContentPublishingLib.JobMonitors
                         Id = JobDetail.JobId,
                         StartDateTime = JobDetail.Result.StartDateTime,
                         ElapsedTime = JobDetail.Result.ElapsedTime,
-                        UserMessage = DbRequest.RequestStatus.GetDisplayNameString(),
+                        UserMessage = DbRequest.RequestStatus.GetDisplayDescriptionString(),
                         SupportMessage = JobDetail.Result.StatusMessage,
 
                         ReductionTaskFailOutcomeList = JobDetail.Result.ReductionTaskFailList,

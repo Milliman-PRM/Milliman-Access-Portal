@@ -417,7 +417,7 @@ namespace ContentPublishingLib.JobRunners
                                 ReductionTaskId = NewTask.Id,
                                 SelectionGroupName = SelGrp.GroupName,
                                 OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
-                                UserMessage = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned.GetDisplayNameString(),
+                                UserMessage = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned.GetDisplayDescriptionString(),
                             };
                         }
                         else
