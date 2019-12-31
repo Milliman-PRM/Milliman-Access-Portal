@@ -203,6 +203,27 @@ export interface ContentPublicationRequest {
   applicationUser: User;
   createDateTimeUtc: string;
   requestStatus: PublicationStatus;
+  outcomeMetadata: PublicationRequestOutcomeMetadata;
+}
+
+export interface PublicationRequestOutcomeMetadata {
+  id: Guid;
+  startDateTime: string;
+  elapsedTime: string;
+  userMessage: string;
+  supportMessage: string;
+  reductionTaskFailOutcomeList: ReductionTaskOutcomeMetadata[];
+  reductionTaskSuccessOutcomeList: ReductionTaskOutcomeMetadata[];
+}
+
+export interface ReductionTaskOutcomeMetadata {
+  reductionTaskId: Guid;
+  elapsedTime: string;
+  processingStartedUtc: string;
+  outcomeReason: string;
+  selectionGroupName: string;
+  userMessage: string;
+  supportMessage: string;
 }
 
 export interface ContentReductionTask {
