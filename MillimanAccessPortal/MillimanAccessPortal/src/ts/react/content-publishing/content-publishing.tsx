@@ -240,7 +240,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               }}
             >
               Reject
-              {this.props.pending.data.contentItemDeletion
+              {this.props.pending.data.goLiveRejection
                 ? <ButtonSpinner version="circle" />
                 : null
               }
