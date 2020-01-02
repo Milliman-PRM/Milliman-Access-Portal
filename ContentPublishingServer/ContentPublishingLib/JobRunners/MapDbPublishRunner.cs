@@ -382,7 +382,7 @@ namespace ContentPublishingLib.JobRunners
                 using (ApplicationDbContext Db = GetDbContext())
                 {
                     var liveHierarchyFieldNames = new HashSet<string>(Db.HierarchyField.Where(f => f.RootContentItemId == JobDetail.Request.RootContentId).Select(f => f.FieldName));
-                    if (!extractedFieldNames.SetEquals(liveHierarchyFieldNames))
+                    if (liveHierarchyFieldNames.Any() && !extractedFieldNames.SetEquals(liveHierarchyFieldNames))
                     {
                         throw new ApplicationException($"New master hierarchy field names ({string.Join(",",extractedFieldNames)}) do not match the live hierarchy field names ({string.Join(",",liveHierarchyFieldNames)}) for this content item");
                     }
