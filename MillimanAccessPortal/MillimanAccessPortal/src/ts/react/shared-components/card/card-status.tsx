@@ -1,3 +1,5 @@
+import '../../../../scss/react/shared-components/card.scss';
+
 import * as moment from 'moment';
 import * as React from 'react';
 import { toastr } from 'react-redux-toastr';
@@ -13,7 +15,19 @@ import {
 export interface CardStatusProps {
   status: PublicationWithQueueDetails | ReductionWithQueueDetails;
 }
-export class CardStatus extends React.Component<CardStatusProps> {
+
+interface CardStatusState {
+  statusMessageDisplayed: boolean;
+}
+
+export class CardStatus extends React.Component<CardStatusProps, CardStatusState> {
+  constructor(props: CardStatusProps) {
+    super(props);
+    this.state = {
+      statusMessageDisplayed: false,
+    };
+  }
+
   public render() {
     const { status } = this.props;
     const [statusValue, isActive] = isPublicationRequest(status)
@@ -33,7 +47,11 @@ export class CardStatus extends React.Component<CardStatusProps> {
           className={`card-status-container status-${statusValue}`}
           title={taskStatusMessage}
         >
-          <div className="status-top">{this.renderStatusTitle()}</div>
+          <div className="status-top">
+            {this.renderStatusTitle()}
+            {this.renderExpansionToggle()}
+          </div>
+          <div>{this.renderReductionTaskStatus()}</div>
           <div className="status-bot">{this.renderStatusMessage()}</div>
         </div>
       )
@@ -47,11 +65,27 @@ export class CardStatus extends React.Component<CardStatusProps> {
       : status.taskStatusName;
 
     return (
-      <>
+      <span className="status-name">
         {statusName}&nbsp;
         <span>{this.renderQueueString()}</span>
-      </>
+      </span>
     );
+  }
+
+  private renderExpansionToggle = () => {
+    return this.hasStatusMessages()
+      ? (
+        <span
+          className="status-message-toggle"
+          onClick={(event: React.MouseEvent) => {
+            event.stopPropagation();
+            this.setState({ statusMessageDisplayed: !this.state.statusMessageDisplayed });
+          }}
+        >
+          {this.state.statusMessageDisplayed ? 'Show Less' : 'Show More'}
+        </span>
+      )
+      : null;
   }
 
   private renderQueueString = () => {
@@ -87,6 +121,56 @@ export class CardStatus extends React.Component<CardStatusProps> {
     }
 
     return queueString;
+  }
+
+  private hasStatusMessages = () => {
+    const { status } = this.props;
+    return isPublicationRequest(status)
+      && status.outcomeMetadata
+      && (status.outcomeMetadata.reductionTaskSuccessOutcomeList.length > 0
+        || status.outcomeMetadata.reductionTaskFailOutcomeList.length > 0
+      );
+  }
+
+  private renderReductionTaskStatus = () => {
+    const { status } = this.props;
+    if (this.state.statusMessageDisplayed && this.hasStatusMessages()) {
+      if (isPublicationRequest(status) && status.outcomeMetadata) {
+        const taskList = status.outcomeMetadata.reductionTaskSuccessOutcomeList.concat(
+          status.outcomeMetadata.reductionTaskFailOutcomeList,
+        ).sort((a, b) => (a.processingStartedUtc > b.processingStartedUtc) ? 1 : -1);
+        const taskListTable = taskList.filter((x) => x.selectionGroupName !== null).map((x) => (
+          <>
+            <tr>
+              <td>{'Success'}</td>
+              <td>
+                <span className="selection-group-name">{x.selectionGroupName}</span>
+                <p className="task-status-description">{x.userMessage}</p>
+              </td>
+            </tr>
+          </>
+        ));
+        return (
+          <table className="task-status-list">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {taskListTable}
+            </tbody>
+          </table>
+        );
+      }
+      if (isReductionTask(status) && status.taskStatusMessage) {
+        return null;
+      }
+    } else {
+      return null;
+    }
+
   }
 
   private renderStatusMessage = () => {
