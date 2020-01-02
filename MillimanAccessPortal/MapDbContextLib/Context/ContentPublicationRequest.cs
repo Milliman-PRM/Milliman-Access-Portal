@@ -80,6 +80,18 @@ namespace MapDbContextLib.Context
             PublicationStatus.Confirming,
         };
 
+        public static List<PublicationStatus> CurrentStatuses { get; } = new List<PublicationStatus>
+        {
+            PublicationStatus.Validating,
+            PublicationStatus.Queued,
+            PublicationStatus.Processing,
+            PublicationStatus.PostProcessReady,
+            PublicationStatus.PostProcessing,
+            PublicationStatus.Processed,
+            PublicationStatus.Confirming,
+            PublicationStatus.Confirmed,
+        };
+
         public static List<PublicationStatus> QueueWaitableStatusList { get; } = new List<PublicationStatus>
         {
             PublicationStatus.Validating,

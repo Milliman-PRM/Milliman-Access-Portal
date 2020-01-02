@@ -267,6 +267,7 @@ namespace MillimanAccessPortal.DataQueries
 
             var publications = _dbContext.ContentPublicationRequest
                                           .Where(r => contentItemIds.Contains(r.RootContentItemId))
+                                          .Where(r => PublicationStatusExtensions.CurrentStatuses.Contains(r.RequestStatus))
                                           .GroupBy(r => r.RootContentItemId,
                                                    (k, g) => g.OrderByDescending(r => r.CreateDateTimeUtc).FirstOrDefault()
                                                   );
