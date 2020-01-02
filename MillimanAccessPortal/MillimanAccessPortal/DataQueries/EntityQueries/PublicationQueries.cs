@@ -32,6 +32,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             var publicationRequest = _dbContext.ContentPublicationRequest
                 .Include(r => r.ApplicationUser)
                 .Where(r => r.RootContentItemId == contentItemId)
+                .Where(r => PublicationStatusExtensions.CurrentStatuses.Contains(r.RequestStatus))
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();
 
