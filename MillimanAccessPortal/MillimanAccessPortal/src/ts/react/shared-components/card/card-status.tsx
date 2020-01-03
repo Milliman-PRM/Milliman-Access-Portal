@@ -2,6 +2,7 @@ import '../../../../scss/react/shared-components/card.scss';
 
 import '../../../../images/icons/checkmark.svg';
 import '../../../../images/icons/error.svg';
+import '../../../../images/icons/expand-card.svg';
 import '../../../../images/icons/information.svg';
 
 import * as moment from 'moment';
@@ -79,15 +80,17 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
   private renderExpansionToggle = () => {
     return this.hasStatusMessages()
       ? (
-        <span
+        <div
           className="status-message-toggle"
           onClick={(event: React.MouseEvent) => {
             event.stopPropagation();
             this.setState({ statusMessageDisplayed: !this.state.statusMessageDisplayed });
           }}
         >
-          {this.state.statusMessageDisplayed ? 'Show Less' : 'Show More'}
-        </span>
+          <svg className={`status-expansion-icon ${this.state.statusMessageDisplayed ? 'open' : 'close'}`}>
+            <use xlinkHref="#expand-card" />
+          </svg>
+        </div>
       )
       : null;
   }

@@ -1,5 +1,17 @@
 @import "../../map_modules/variables";
 
+.status-expansion-icon {
+    height: 1.5em;
+    width: 1.5em;
+    color: $white;
+    transition: all .1s linear;
+
+    &.open {
+        transform: rotate(180deg);
+        transition: all .1s linear;
+    }
+}
+
 .task-status-list {
     background-color: $white;
     border: 1px solid $charcoal;
