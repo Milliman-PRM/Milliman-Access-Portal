@@ -134,11 +134,13 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
 
   private hasStatusMessages = () => {
     const { status } = this.props;
-    return isPublicationRequest(status)
+    return (isPublicationRequest(status)
       && status.outcomeMetadata
       && (status.outcomeMetadata.reductionTaskSuccessOutcomeList.length > 0
         || status.outcomeMetadata.reductionTaskFailOutcomeList.length > 0
-      );
+      ))
+      || (isReductionTask(status)
+      && status.taskStatusMessage);
   }
 
   private taskStatusSummary = (statusString: string): { status: string; icon: string; } => {
@@ -196,7 +198,9 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
         );
       }
       if (isReductionTask(status) && status.taskStatusMessage) {
-        return null;
+        return (
+          <span className="task-status-message">{status.taskStatusMessage}</span>
+        );
       }
     } else {
       return null;
