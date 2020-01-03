@@ -10,6 +10,27 @@
     th, td {
         border: 1px solid $charcoal;
         padding: .5em;
+
+        &.status-column {
+            text-align: center;
+        }
+    }
+
+    .card-status-icon {
+        height: 2em;
+        width: 2em;
+
+        &.success {
+            color: $green;
+        }
+
+        &.warning {
+            color: $orange;
+        }
+
+        &.error {
+            color: $red;
+        }
     }
 
     .selection-group-name {

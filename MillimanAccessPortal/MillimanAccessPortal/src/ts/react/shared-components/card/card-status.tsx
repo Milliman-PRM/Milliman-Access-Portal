@@ -1,5 +1,9 @@
 import '../../../../scss/react/shared-components/card.scss';
 
+import '../../../../images/icons/checkmark.svg';
+import '../../../../images/icons/error.svg';
+import '../../../../images/icons/information.svg';
+
 import * as moment from 'moment';
 import * as React from 'react';
 import { toastr } from 'react-redux-toastr';
@@ -132,6 +136,24 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
       );
   }
 
+  private taskStatusSummary = (statusString: string): { status: string; icon: string; } => {
+    switch (statusString) {
+      case 'Success':
+      case 'MasterHierarchyAssigned':
+        return { status: 'success', icon: 'checkmark' };
+      case 'NoSelectedFieldValues':
+      case 'NoSelectedFieldValueExistsInNewContent':
+      case 'NoReducedFileCreated':
+        return { status: 'warning', icon: 'information' };
+      case 'Canceled':
+      case 'BadRequest':
+      case 'UnspecifiedError':
+      case 'SelectionForInvalidFieldName':
+      case 'ReductionTimeout':
+        return { status: 'error', icon: 'error' };
+    }
+  }
+
   private renderReductionTaskStatus = () => {
     const { status } = this.props;
     if (this.state.statusMessageDisplayed && this.hasStatusMessages()) {
@@ -142,7 +164,11 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
         const taskListTable = taskList.filter((x) => x.selectionGroupName !== null).map((x) => (
           <>
             <tr>
-              <td>{'Success'}</td>
+              <td className="status-column">
+                <svg className={`card-status-icon ${this.taskStatusSummary(x.outcomeReason).status}`}>
+                  <use xlinkHref={`#${this.taskStatusSummary(x.outcomeReason).icon}`} />
+                </svg>
+              </td>
               <td>
                 <span className="selection-group-name">{x.selectionGroupName}</span>
                 <p className="task-status-description">{x.userMessage}</p>
@@ -154,7 +180,7 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
           <table className="task-status-list">
             <thead>
               <tr>
-                <th>Status</th>
+                <th className="status-column">Status</th>
                 <th>Details</th>
               </tr>
             </thead>
