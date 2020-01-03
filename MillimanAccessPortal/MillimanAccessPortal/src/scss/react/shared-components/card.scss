@@ -59,11 +59,17 @@
     }
 }
 
-.status-top {
+.task-status-message {
+    margin: .5em 0;
+    font-size: .9em;
+    font-style: italic;
+}
+
+.status-bot {
     display: flex;
     flex-flow: row nowrap;
 
-    .status-name {
+    .initiated-by {
         flex: 1 1 auto;
     }
 

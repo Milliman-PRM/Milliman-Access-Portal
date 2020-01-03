@@ -54,10 +54,12 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
         >
           <div className="status-top">
             {this.renderStatusTitle()}
-            {this.renderExpansionToggle()}
           </div>
           <div>{this.renderReductionTaskStatus()}</div>
-          <div className="status-bot">{this.renderStatusMessage()}</div>
+          <div className="status-bot">
+            {this.renderStatusMessage()}
+            {this.renderExpansionToggle()}
+          </div>
         </div>
       )
       : null;
@@ -210,7 +212,7 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
     const when = moment(status.createDateTimeUtc);
 
     return (
-      <>
+      <span className="initiated-by">
         {initiatedBy}
         {
           user
@@ -220,7 +222,7 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
         <span title={when.toLocaleString()}>
           {when.fromNow()}
         </span>
-      </>
+      </span>
     );
   }
 }
