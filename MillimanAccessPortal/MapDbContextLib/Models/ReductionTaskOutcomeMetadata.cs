@@ -14,7 +14,7 @@ namespace MapDbContextLib.Models
 {
     public enum MapDbReductionTaskOutcomeReason
     {
-        [Display(Description = "The reduction task has not started processing")]
+        [Display(Description = "")]
         Default = 0,
 
         [Display(Description = "The reduction task completed successfully")]
