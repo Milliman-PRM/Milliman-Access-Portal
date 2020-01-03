@@ -50,7 +50,6 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
       ? (
         <div
           className={`card-status-container status-${statusValue}`}
-          title={taskStatusMessage}
         >
           <div className="status-top">
             {this.renderStatusTitle()}
