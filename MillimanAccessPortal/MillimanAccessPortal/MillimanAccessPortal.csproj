@@ -71,7 +71,8 @@
     <Folder Include="Migrations\" />
     <Folder Include="Properties\PublishProfiles\" />
     <Folder Include="Views\" />
-    <Folder Include="wwwroot\" /> 
+    <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\js\" /> 
   </ItemGroup>
   <ItemGroup>
     <None Include="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />

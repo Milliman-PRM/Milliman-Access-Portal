@@ -35,6 +35,7 @@ namespace ContentPublishingLib.JobRunners
             Canceled,
             Success,
             Error,
+            Warning,
         }
 
         public enum JobOutcomeReason
@@ -90,9 +91,13 @@ namespace ContentPublishingLib.JobRunners
                 },
             };
 
-            if (DbTask.SelectionGroupId.HasValue && new TaskActionEnum[] { TaskActionEnum.HierarchyAndReduction, TaskActionEnum.ReductionOnly }.Contains(DbTask.TaskAction))
+            if (DbTask.SelectionGroupId.HasValue) 
             {
-                ReturnObj.Request.RequestedOutputFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(DbTask.SelectionGroup.Id, DbTask.SelectionGroup.RootContentItemId, Path.GetExtension(DbTask.MasterFilePath));
+                ReturnObj.Request.SelectionGroupName = DbTask.SelectionGroup.GroupName;
+                if (new TaskActionEnum[] { TaskActionEnum.HierarchyAndReduction, TaskActionEnum.ReductionOnly }.Contains(DbTask.TaskAction))
+                {
+                    ReturnObj.Request.RequestedOutputFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(DbTask.SelectionGroup.Id, DbTask.SelectionGroup.RootContentItemId, Path.GetExtension(DbTask.MasterFilePath));
+                }
             }
 
             return ReturnObj;
@@ -115,6 +120,7 @@ namespace ContentPublishingLib.JobRunners
             public List<FieldValueSelection> SelectionCriteria { get; set; }
             public string MasterContentChecksum { get; set; } = string.Empty;
             public string RequestedOutputFileName { get; set; } = string.Empty;
+            public string SelectionGroupName { get; set; } = default;
             public ReductionJobActionEnum JobAction { get; set; } = ReductionJobActionEnum.Unspecified;
         }
     }

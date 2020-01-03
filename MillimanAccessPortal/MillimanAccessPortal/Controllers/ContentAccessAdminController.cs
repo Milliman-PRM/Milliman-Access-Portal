@@ -387,7 +387,7 @@ namespace MillimanAccessPortal.Controllers
             var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, selectionGroup?.RootContentItemId));
             if (!roleResult.Succeeded)
             {
-                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Log.Information($"Action {ControllerContext.ActionDescriptor.DisplayName} user {User.Identity.Name} is not authorized to content item {selectionGroup?.RootContentItemId}");
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
@@ -397,29 +397,27 @@ namespace MillimanAccessPortal.Controllers
             // reject this request if the SelectionGroup has a pending reduction
             bool blockedByPendingReduction = DbContext.ContentReductionTask
                 .Where(r => r.SelectionGroupId == selectionGroup.Id)
-                .Where(r => r.ReductionStatus.IsActive())
-                .Any();
+                .Any(r => ReductionStatusExtensions.activeStatusList.Contains(r.ReductionStatus));
             if (blockedByPendingReduction)
             {
-                Response.Headers.Add("Warning",
-                    "A selection group may not be deleted while it has a pending reduction.");
+                Log.Information($"Action {ControllerContext.ActionDescriptor.DisplayName} aborting because a pending reduction exists for this selection group {selectionGroup.Id}");
+                Response.Headers.Add("Warning", "A selection group may not be deleted while it has a pending reduction.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            // reject this request if the RootContentItem has a pending publication request
+            // reject this request if the related RootContentItem has a pending publication request
             bool blockedByPendingPublication = DbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == selectionGroup.RootContentItemId)
-                .Where(r => r.RequestStatus.IsActive())
-                .Any();
+                .Any(r => r.RequestStatus.IsActive());
             if (blockedByPendingPublication)
             {
-                Response.Headers.Add("Warning",
-                    "A selection group may not be deleted while this content item has a pending publication.");
+                Log.Information($"Action {ControllerContext.ActionDescriptor.DisplayName} aborting for selection group {selectionGroup.Id} because an active publication request exists for related content itme {selectionGroup.RootContentItemId}");
+                Response.Headers.Add("Warning", "A selection group may not be deleted while this content item has a pending publication.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
-            var selectionGroups = _accessAdminQueries.DeleteGroup(model.GroupId);
+            var selectionGroupModel = _accessAdminQueries.DeleteGroup(model.GroupId);
 
             #region file cleanup
             // ContentType specific handling after successful transaction
@@ -432,19 +430,25 @@ namespace MillimanAccessPortal.Controllers
                             ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath"),
                             selectionGroup.ContentInstanceUrl);
 
-                        await new QlikviewLibApi(QvConfig).ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl);
+                        try
+                        {
+                            await new QlikviewLibApi(QvConfig).ReclaimAllDocCalsForFile(selectionGroup.ContentInstanceUrl);
 
-                        if (System.IO.File.Exists(ContentFileFullPath))
-                        {
                             System.IO.File.Delete(ContentFileFullPath);
+
+                            if (System.IO.File.Exists($"{ContentFileFullPath}.TShared"))
+                            {
+                                System.IO.File.Delete($"{ContentFileFullPath}.TShared");
+                            }
+
+                            if (System.IO.File.Exists($"{ContentFileFullPath}.Meta"))
+                            {
+                                System.IO.File.Delete($"{ContentFileFullPath}.Meta");
+                            }
                         }
-                        if (System.IO.File.Exists(ContentFileFullPath + ".Shared"))
+                        catch (Exception ex)
                         {
-                            System.IO.File.Delete(ContentFileFullPath + ".Shared");
-                        }
-                        if (System.IO.File.Exists(ContentFileFullPath + ".Meta"))
-                        {
-                            System.IO.File.Delete(ContentFileFullPath + ".Meta");
+                            Log.Error(ex, $"In action {ControllerContext.ActionDescriptor.DisplayName}, failed while reclaiming Qlikview document CAL or deleting file");
                         }
                     }
                     break;
@@ -459,7 +463,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            return Json(selectionGroups);
+            return Json(selectionGroupModel);
         }
 
         /// <summary>
@@ -469,7 +473,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSelections([FromBody] UpdateSelectionsRequestModel model)
         {
-            return await UpdateSelections(model.GroupId, model.IsMaster, model.Selections.ToArray());
+            return await UpdateSelectionsAsync(model.GroupId, model.IsMaster, model.Selections.ToArray());
         }
 
         /// <summary>
@@ -483,7 +487,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        private async Task<IActionResult> UpdateSelections(Guid selectionGroupId, bool isMaster, Guid[] selections)
+        internal async Task<IActionResult> UpdateSelectionsAsync(Guid selectionGroupId, bool isMaster, IEnumerable<Guid> selections)
         {
             var selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -532,9 +536,12 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
+            // There should always be 1 live publication but this query is designed to tolerate error conditions
             var currentLivePublication = DbContext.ContentPublicationRequest
                 .Where(request => request.RootContentItemId == selectionGroup.RootContentItemId)
                 .Where(request => request.RequestStatus == PublicationStatus.Confirmed)
+                .OrderBy(request => request.CreateDateTimeUtc)
+                .Take(1)
                 .SingleOrDefault();
             if (currentLivePublication == null)
             {
@@ -547,7 +554,7 @@ namespace MillimanAccessPortal.Controllers
             var pendingReductions = DbContext.ContentReductionTask
                 .Where(task => task.SelectionGroupId == selectionGroup.Id)
                 .Where(task => task.CreateDateTimeUtc > currentLivePublication.CreateDateTimeUtc)
-                .Where(task => task.ReductionStatus.IsActive());
+                .Where(task => ReductionStatusExtensions.activeStatusList.Contains(task.ReductionStatus));
             if (pendingReductions.Any())
             {
                 Log.Information($"In ContentAccessAdminController.UpdateSelections: selection group {selectionGroupId} blocked due to pending reduction (id {string.Join(",", pendingReductions.Select(t => t.Id))}), aborting");
@@ -638,6 +645,8 @@ namespace MillimanAccessPortal.Controllers
                         {
                             OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
                             ReductionTaskId = NewTaskGuid,
+                            UserMessage = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues.GetDisplayDescriptionString(),
+                            SelectionGroupName = selectionGroup.GroupName,
                         },
                         ReductionStatus = ReductionStatusEnum.Live,
                         ReductionStatusMessage = "In ContentAccessAdminController.UpdateSelections, no selections, reduction task not queued",
@@ -753,7 +762,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             var CancelableTasks = DbContext.ContentReductionTask
                 .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
-                .Where(crt => crt.ReductionStatus.IsCancelable())
+                .Where(crt => ReductionStatusExtensions.cancelableStatusList.Contains(crt.ReductionStatus))
                 .Where(crt => crt.ContentPublicationRequestId == null);
             if (CancelableTasks.Count() == 0)
             {

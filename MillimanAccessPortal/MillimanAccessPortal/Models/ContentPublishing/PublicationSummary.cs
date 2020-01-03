@@ -53,7 +53,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             {
                 var precedingPublicationRequestCount = dbContext.ContentPublicationRequest
                     .Where(r => r.CreateDateTimeUtc < publicationRequest.CreateDateTimeUtc)
-                    .Where(r => r.RequestStatus.IsCancelable())
+                    .Where(r => PublicationStatusExtensions.CancelablePublicationStatusList.Contains(r.RequestStatus))
                     .Count();
                 publicationSummary.QueuePosition = precedingPublicationRequestCount;
             }
@@ -79,28 +79,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 var messages = new List<string> { };
                 foreach (var taskOutcome in publicationRequest.OutcomeMetadataObj.ReductionTaskFailOutcomeList)
                 {
-                    switch (taskOutcome.OutcomeReason)
-                    {
-                        case MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName:
-                            messages.Add("A value in an invalid field was selected.");
-                            break;
-                        case MapDbReductionTaskOutcomeReason.ReductionTimeout:
-                            messages.Add("The reduction timed out. Please retry the publication and "
-                                + "contact support if the problem persists.");
-                            break;
-                        case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
-                        case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
-                        case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
-                            // these reasons do not contribute to error status
-                            break;
-                        case MapDbReductionTaskOutcomeReason.BadRequest:
-                        case MapDbReductionTaskOutcomeReason.UnspecifiedError:
-                        default:
-                            // these reasons won't mean anything to a user but could help us
-                            messages.Add("Unexpected error. Please retry the publication and "
-                                + "contact support if the problem persists.");
-                            break;
-                    }
+                    messages.Add(taskOutcome.OutcomeReason.GetDisplayDescriptionString(true));
                 }
 
                 // don't overwhelm the user with a giant error message

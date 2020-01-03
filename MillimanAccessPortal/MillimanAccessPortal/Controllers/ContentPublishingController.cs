@@ -159,6 +159,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> ContentItems([EmitBeforeAfterLog] Guid clientId)
         {
+            Log.Verbose($"Entered ContentPublishingController.ContentItems action with client id {clientId}");
             Client client = await _dbContext.Client.FindAsync(clientId);
 
             #region Preliminary validation
@@ -403,10 +404,10 @@ namespace MillimanAccessPortal.Controllers
             {
                 // Reset disclaimer acceptance
                 usersInGroup = _dbContext.UserInSelectionGroup
-                                        .Include(usg => usg.User)
-                                        .Include(usg => usg.SelectionGroup)
-                                        .Where(u => u.SelectionGroup.RootContentItemId == currentRootContentItem.Id)
-                                        .ToList();
+                                         .Include(usg => usg.User)
+                                         .Include(usg => usg.SelectionGroup)
+                                         .Where(u => u.SelectionGroup.RootContentItemId == currentRootContentItem.Id)
+                                         .ToList();
                 usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
             }
             currentRootContentItem.ContentDisclaimer = rootContentItem.ContentDisclaimer;
@@ -564,9 +565,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             RootContentItem ContentItem = _dbContext.RootContentItem
-                                                   .Include(rc => rc.ContentType)
-                                                   .Include(rc => rc.Client)
-                                                   .SingleOrDefault(rc => rc.Id == request.RootContentItemId);
+                                                    .Include(rc => rc.ContentType)
+                                                    .Include(rc => rc.Client)
+                                                    .SingleOrDefault(rc => rc.Id == request.RootContentItemId);
 
             #region Validation
             // The requested RootContentItem must exist
@@ -589,8 +590,8 @@ namespace MillimanAccessPortal.Controllers
 
             // There must be no unresolved ContentPublicationRequest.
             Blocked = _dbContext.ContentPublicationRequest
-                               .Where(r => r.RootContentItemId == request.RootContentItemId)
-                               .Any(r => r.RequestStatus.IsActive());
+                                .Where(r => r.RootContentItemId == request.RootContentItemId)
+                                .Any(r => r.RequestStatus.IsActive());
             if (Blocked)
             {
                 Log.Debug($"In ContentPublishingController.Publish action: blocked due to unresolved ContentPublicationRequest for content item {request.RootContentItemId}, aborting");
@@ -600,9 +601,9 @@ namespace MillimanAccessPortal.Controllers
 
             // There must be no unresolved ContentReductionTask.
             Blocked = _dbContext.ContentReductionTask
-                               .Where(t => t.ContentPublicationRequestId == null)
-                               .Where(t => t.SelectionGroup.RootContentItemId == request.RootContentItemId)
-                               .Any(t => t.ReductionStatus.IsActive());
+                                .Where(t => t.ContentPublicationRequestId == null)
+                                .Where(t => t.SelectionGroup.RootContentItemId == request.RootContentItemId)
+                                .Any(t => ReductionStatusExtensions.activeStatusList.Contains(t.ReductionStatus));
             if (Blocked)
             {
                 Log.Debug($"In ContentPublishingController.Publish action: blocked due to unresolved ContentReductionTask for content item {request.RootContentItemId}, aborting");
@@ -670,7 +671,7 @@ namespace MillimanAccessPortal.Controllers
                 ContentPublishSupport.AddPublicationMonitor(Task.Run(() =>
                     ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath, _PostProcessingTaskQueue)));
 
-                Log.Verbose($"In ContentPublishingController.Publish action: publication request queued successfully");
+                Log.Verbose($"In ContentPublishingController.Publish action: publication request successfully submitted for validation");
                 AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(ContentItem, ContentItem.Client, NewContentPublicationRequest));
             }
 
@@ -710,7 +711,8 @@ namespace MillimanAccessPortal.Controllers
 
             var contentPublicationRequest = _dbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
-                .Where(r => r.RequestStatus.IsCancelable())  // TODO Make sure IsCancelable() works for Error status, and maybe other added values
+                .Where(r => PublicationStatusExtensions.CancelablePublicationStatusList.Contains(r.RequestStatus))
+                // TODO Make sure CancelablePublicationStatusList works for Error status, and maybe other added values
                 .SingleOrDefault();
 
             #region Validation
@@ -722,9 +724,57 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            // Delete uploaded files related to the publication request
+            List<Guid> possibleUploadIds = contentPublicationRequest.UploadedRelatedFilesObj.Select(u => u.FileUploadId).Union(
+                                           contentPublicationRequest.RequestedAssociatedFileList.Select(u => u.Id)).ToList();
+            List<FileUpload> uploadRecords = _dbContext.FileUpload.Where(u => possibleUploadIds.Contains(u.Id)).ToList();
+            foreach (var uploadRecord in uploadRecords)
+            {
+                _dbContext.FileUpload.Remove(uploadRecord);
+                if (System.IO.File.Exists(uploadRecord.StoragePath))
+                {
+                    System.IO.File.Delete(uploadRecord.StoragePath);
+                }
+            }
+
+            // Delete reduction related files
+            var ReductionRelatedFiles = contentPublicationRequest.ReductionRelatedFilesObj.SelectMany(rrf => rrf.ReducedContentFileList.Select(rcf => rcf.FullPath).Append(rrf.MasterContentFile.FullPath));
+            foreach (string reductionRelatedFile in ReductionRelatedFiles)
+            {
+                if (System.IO.File.Exists(reductionRelatedFile))
+                {
+                    System.IO.File.Delete(reductionRelatedFile);
+                }
+
+                string containingFolder = Path.GetDirectoryName(reductionRelatedFile);
+                if (Path.GetFullPath(containingFolder).Contains(Path.GetFullPath(ApplicationConfig.GetValue("Storage:MapPublishingServerExchangePath", "zzzz"))) &&
+                    Path.GetFullPath(containingFolder) != Path.GetFullPath(ApplicationConfig.GetValue("Storage:MapPublishingServerExchangePath", "zzz")) &&
+                    Directory.Exists(containingFolder) &&
+                    Directory.EnumerateFileSystemEntries(containingFolder).Count() == 0)
+                {
+                    Directory.Delete(containingFolder);
+                }
+            }
+
+            // Delete live ready files (including associated files)
+            var LiveReadyFiles = contentPublicationRequest.LiveReadyFilesObj.Select(f => f.FullPath).Union(
+                                 contentPublicationRequest.LiveReadyAssociatedFilesList.Select(f => f.FullPath))
+                                 .ToList();
+            foreach (string fileToDelete in LiveReadyFiles)
+            {
+                if (System.IO.File.Exists(fileToDelete))
+                {
+                    System.IO.File.Delete(fileToDelete);
+                }
+            }
+
+            // Cancel all realted ContentReductionTask records
+            List<ContentReductionTask> relatedTasks = _dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == contentPublicationRequest.Id).ToList();
+            relatedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
+
             contentPublicationRequest.RequestStatus = PublicationStatus.Canceled;
             contentPublicationRequest.UploadedRelatedFilesObj = null;
-            _dbContext.ContentPublicationRequest.Update(contentPublicationRequest);
+            contentPublicationRequest.RequestedAssociatedFileList = null;
             try
             {
                 _dbContext.SaveChanges();

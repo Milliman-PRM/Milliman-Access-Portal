@@ -34,7 +34,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             {
                 Id = contentItem.Id,
                 ContentName = contentItem.ContentName,
-                ContentType = (contentItem.ContentType?.TypeEnum ?? ContentTypeEnum.Unknown).GetDisplayValueString(),
+                ContentType = (contentItem.ContentType?.TypeEnum ?? ContentTypeEnum.Unknown).GetDisplayNameString(),
                 Description = contentItem.Description,
                 LastUpdated = DateTime.UtcNow,
                 LastAccessed = DateTime.UtcNow,
@@ -75,7 +75,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 {
                     var reductionTasks = dbContext.ContentReductionTask
                         .Where(rt => rt.SelectionGroupId == group.Id)
-                        .Where(rt => rt.ReductionStatus.IsActive())
+                        .Where(rt => ReductionStatusExtensions.activeStatusList.Contains(rt.ReductionStatus))
                         .Include(rt => rt.ContentPublicationRequest)
                         .ToList();
                     selectionGroupList.Sections.Add(new NestedListSection

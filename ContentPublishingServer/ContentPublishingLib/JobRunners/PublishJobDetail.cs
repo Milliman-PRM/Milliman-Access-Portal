@@ -37,7 +37,7 @@ namespace ContentPublishingLib.JobRunners
         public JobErrorReason StatusReason { get; set; } = JobErrorReason.Unspecified;
 
         // cast operator to convert a MAP ContentReductionTask to this type
-        public static PublishJobDetail New(ContentPublicationRequest DbTask, ApplicationDbContext Db)
+        public static PublishJobDetail New(ContentPublicationRequest DbTask, bool SkipReductionTaskQueueing = false)
         {
             return new PublishJobDetail
             {
@@ -49,6 +49,7 @@ namespace ContentPublishingLib.JobRunners
                     RootContentId = DbTask.RootContentItemId,
                     ApplicationUserId = DbTask.ApplicationUserId,
                     CreateDateTimeUtc = DbTask.CreateDateTimeUtc,
+                    SkipReductionTaskQueueing = SkipReductionTaskQueueing,
                 },
                 Result = new PublishJobResult(),
             };
@@ -72,6 +73,7 @@ namespace ContentPublishingLib.JobRunners
             public Guid RootContentId { get; set; }
             public Guid ApplicationUserId { get; set; }
             public DateTime CreateDateTimeUtc { get; set; }
+            public bool SkipReductionTaskQueueing { get; set; }
         }
 
     }

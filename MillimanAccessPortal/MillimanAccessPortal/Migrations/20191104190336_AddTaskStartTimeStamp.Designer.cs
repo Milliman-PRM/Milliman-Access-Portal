@@ -4,22 +4,24 @@ using System.Collections.Generic;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20191104190336_AddTaskStartTimeStamp")]
+    partial class AddTaskStartTimeStamp
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:Enum:authentication_type", "default,ws_federation")
                 .HasAnnotation("Npgsql:Enum:content_type_enum", "unknown,qlikview,html,pdf,file_download,power_bi")
                 .HasAnnotation("Npgsql:Enum:publication_status", "unknown,canceled,rejected,validating,queued,processing,post_process_ready,post_processing,processed,confirming,confirmed,replaced,error")
-                .HasAnnotation("Npgsql:Enum:reduction_status_enum", "unspecified,canceled,rejected,validating,queued,reducing,reduced,live,replaced,warning,error")
+                .HasAnnotation("Npgsql:Enum:reduction_status_enum", "unspecified,canceled,rejected,validating,queued,reducing,reduced,live,replaced,error")
                 .HasAnnotation("Npgsql:PostgresExtension:citext", ",,")
                 .HasAnnotation("Npgsql:PostgresExtension:uuid-ossp", ",,")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
@@ -112,9 +114,6 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<DateTime>("CreateDateTimeUtc");
 
-                    b.Property<string>("LiveReadyAssociatedFiles")
-                        .HasColumnType("jsonb");
-
                     b.Property<string>("LiveReadyFiles")
                         .HasColumnType("jsonb");
 
@@ -125,9 +124,6 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("jsonb");
 
                     b.Property<PublicationStatus>("RequestStatus");
-
-                    b.Property<string>("RequestedAssociatedFiles")
-                        .HasColumnType("jsonb");
 
                     b.Property<string>("ResultHierarchy")
                         .HasColumnType("jsonb");
@@ -357,9 +353,6 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("uuid_generate_v4()");
-
-                    b.Property<string>("AssociatedFiles")
-                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("ClientId");
 

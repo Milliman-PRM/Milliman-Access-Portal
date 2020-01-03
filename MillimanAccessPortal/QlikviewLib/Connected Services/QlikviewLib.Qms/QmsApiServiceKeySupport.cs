@@ -86,7 +86,19 @@ namespace QlikviewLib.Qms
 
     public class QmsClientCreator
     {
-        public async static Task<IQMS> New(string Url)
+        /// <summary>
+        /// Synchronous wrapper for the corresponding async method
+        /// </summary>
+        /// <param name="Url"></param>
+        /// <returns></returns>
+        public static IQMS New(string Url)
+        {
+            // Avoids deadlock, see https://devblogs.microsoft.com/pfxteam/should-i-expose-synchronous-wrappers-for-asynchronous-methods/
+            var theTask = Task.Run(() => NewAsync(Url));
+            return theTask.Result;
+        }
+
+        public async static Task<IQMS> NewAsync(string Url)
         {
             QMSClient Client =
                 string.IsNullOrWhiteSpace(Url) 

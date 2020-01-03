@@ -97,12 +97,6 @@ namespace MapCommonLib
             return ErrMsg;
         }
 
-        public static void TraceWriteLine(string CallerMessage)
-        {
-            string FullMessageString = $"{DateTime.UtcNow.ToString("s")} {CallerMessage}";
-            Trace.WriteLine(FullMessageString);
-        }
-
         /// <summary>
         /// Gets the linker date of the assembly.
         /// </summary>

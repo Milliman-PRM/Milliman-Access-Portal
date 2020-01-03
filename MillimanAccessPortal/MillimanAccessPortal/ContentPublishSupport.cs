@@ -209,7 +209,7 @@ namespace MillimanAccessPortal
                     throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
                 }
                 // The checksum must be correct
-                if (FileUploadRecord.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath).ToLower())
+                if (!FileUploadRecord.Checksum.Equals(GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath), StringComparison.InvariantCultureIgnoreCase))
                 {
                     throw new ApplicationException($"While publishing for content {ContentItem.Id}, checksum validation failed for file [{FileUploadRecord.StoragePath}].");
                 }

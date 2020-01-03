@@ -94,7 +94,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 {
                     var precedingPublicationRequestCount = _dbContext.ContentPublicationRequest
                         .Where(r => r.CreateDateTimeUtc < publication.CreateDateTimeUtc)
-                        .Where(r => r.RequestStatus.IsCancelable())
+                        .Where(r => PublicationStatusExtensions.CancelablePublicationStatusList.Contains(r.RequestStatus))
                         .Count();
                     queueDetails.Add(new PublicationQueueDetails
                     {
@@ -164,7 +164,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 {
                     var precedingReductionTaskCount = _dbContext.ContentReductionTask
                         .Where(r => r.CreateDateTimeUtc < reduction.CreateDateTimeUtc)
-                        .Where(r => r.ReductionStatus.IsCancelable())
+                        .Where(r => ReductionStatusExtensions.cancelableStatusList.Contains(r.ReductionStatus))
                         .Count();
                     queueDetails.Add(new ReductionQueueDetails
                     {

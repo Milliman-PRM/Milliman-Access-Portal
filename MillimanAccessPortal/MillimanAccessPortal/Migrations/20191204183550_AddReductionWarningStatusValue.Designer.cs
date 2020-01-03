@@ -4,15 +4,17 @@ using System.Collections.Generic;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20191204183550_AddReductionWarningStatusValue")]
+    partial class AddReductionWarningStatusValue
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -112,9 +114,6 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<DateTime>("CreateDateTimeUtc");
 
-                    b.Property<string>("LiveReadyAssociatedFiles")
-                        .HasColumnType("jsonb");
-
                     b.Property<string>("LiveReadyFiles")
                         .HasColumnType("jsonb");
 
@@ -125,9 +124,6 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("jsonb");
 
                     b.Property<PublicationStatus>("RequestStatus");
-
-                    b.Property<string>("RequestedAssociatedFiles")
-                        .HasColumnType("jsonb");
 
                     b.Property<string>("ResultHierarchy")
                         .HasColumnType("jsonb");
@@ -357,9 +353,6 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("uuid_generate_v4()");
-
-                    b.Property<string>("AssociatedFiles")
-                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("ClientId");
 

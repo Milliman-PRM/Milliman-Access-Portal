@@ -4,13 +4,12 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Serilog;
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
-using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
@@ -52,7 +51,7 @@ namespace ContentPublishingLib.JobMonitors
         {
             set
             {
-                ConnectionString = Configuration.GetConnectionString(value);
+                ConnectionString = Configuration.ApplicationConfiguration.GetConnectionString(value);
             }
         }
 
@@ -81,6 +80,8 @@ namespace ContentPublishingLib.JobMonitors
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
 
+            CleanupOnStart();
+
             return Task.Run(() => JobMonitorThreadMain(Token), Token);
         }
 
@@ -91,7 +92,6 @@ namespace ContentPublishingLib.JobMonitors
         /// <param name="Token"></param>
         public override void JobMonitorThreadMain(CancellationToken Token)
         {
-            MethodBase Method = MethodBase.GetCurrentMethod();
             while (!Token.IsCancellationRequested)
             {
                 // Request to cancel active runners for canceled (in db) ContentReductionTasks. 
@@ -149,11 +149,11 @@ namespace ContentPublishingLib.JobMonitors
                                     }
 
                                     NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
-                                    GlobalFunctions.TraceWriteLine($"In ReductionJobMonitor.JobMonitorThreadMain executing TaskAction {DbTask.TaskAction.ToString()} for task {DbTask.Id}, ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentRunners})");
+                                    Log.Information($"In ReductionJobMonitor.JobMonitorThreadMain executing TaskAction {DbTask.TaskAction.ToString()} for task {DbTask.Id}, ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentRunners})");
                                     break;
 
                                 default:
-                                    GlobalFunctions.TraceWriteLine($"In ReductionJobMonitor.JobMonitorThreadMain, task record discovered for unsupported content type {type.ToString()}");
+                                    Log.Information($"In ReductionJobMonitor.JobMonitorThreadMain, task record discovered for unsupported content type {type.ToString()}");
                                     break;
                             }
 
@@ -175,7 +175,7 @@ namespace ContentPublishingLib.JobMonitors
                 }
             }
 
-            GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
+            Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
 
             if (ActiveReductionRunnerItems.Count != 0)
             {
@@ -184,7 +184,7 @@ namespace ContentPublishingLib.JobMonitors
                 DateTime WaitStart = DateTime.Now;
                 while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
                 {
-                    GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
+                    Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
 
                     int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks / 100));
                     if (CompletedTaskIndex > -1)
@@ -194,19 +194,19 @@ namespace ContentPublishingLib.JobMonitors
 
                     if (ActiveReductionRunnerItems.Count == 0)
                     {
-                        GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} all reduction runners terminated successfully");
+                        Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain all reduction runners terminated successfully");
                         break;
                     }
                 }
 
                 foreach (var Item in ActiveReductionRunnerItems)
                 {
-                    GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.dbTask.Id.ToString()} not completed");
+                    Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain after timer expired, task {Item.dbTask.Id.ToString()} not completed");
                 }
             }
 
             Token.ThrowIfCancellationRequested();
-            GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} returning");
+            Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain returning");
         }
 
         /// <summary>
@@ -248,8 +248,11 @@ namespace ContentPublishingLib.JobMonitors
                                                                                  .ToList();
                     if (TopItems.Count > 0)
                     {
-                        TopItems.ForEach(rt => rt.ReductionStatus = ReductionStatusEnum.Reducing);
-                        Db.ContentReductionTask.UpdateRange(TopItems);
+                        TopItems.ForEach(rt =>
+                        {
+                            rt.ReductionStatus = ReductionStatusEnum.Reducing;
+                            rt.ProcessingStartDateTimeUtc = DateTime.UtcNow;
+                        });
                         Db.SaveChanges();
                         Transaction.Commit();
                     }
@@ -257,7 +260,7 @@ namespace ContentPublishingLib.JobMonitors
                 }
                 catch (Exception e)
                 {
-                    GlobalFunctions.TraceWriteLine($"Failed to query MAP database for available tasks.  Exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
+                    Log.Information($"Failed to query MAP database for available tasks.  Exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
                     throw;
                 }
             }
@@ -272,9 +275,8 @@ namespace ContentPublishingLib.JobMonitors
         {
             if (JobDetail == null || JobDetail.Result == null || JobDetail.TaskId == Guid.Empty)
             {
-                MethodBase Method = MethodBase.GetCurrentMethod();
-                string Msg = $"{Method.ReflectedType.Name}.{Method.Name} unusable argument";
-                GlobalFunctions.TraceWriteLine(Msg);
+                string Msg = $"MapDbReductionJobMonitor.UpdateTask unusable argument";
+                Log.Information(Msg);
                 return false;
             }
 
@@ -288,8 +290,7 @@ namespace ContentPublishingLib.JobMonitors
                 {
                     ContentReductionTask DbTask = Db.ContentReductionTask.Find(JobDetail.TaskId);
 
-                    // Canceled here implies that the application does not want the update
-                    if (DbTask == null || DbTask.ReductionStatus == ReductionStatusEnum.Canceled)
+                    if (DbTask == null)
                     {
                         return false;
                     }
@@ -298,13 +299,36 @@ namespace ContentPublishingLib.JobMonitors
                     {
                         ReductionTaskId = JobDetail.TaskId,
                         ElapsedTime = JobDetail.Result.ProcessingDuration,
+                        ProcessingStartedUtc = DbTask.ProcessingStartDateTimeUtc,
                         OutcomeReason = MapDbReductionTaskOutcomeReason.Default,
+                        SelectionGroupName = JobDetail.Request.SelectionGroupName,
+                        SupportMessage = JobDetail.Result.StatusMessage,
+                        // UserMessage is set below
                     };
 
+                    // Assign DbTask.ReductionStatus and OutcomeMetadataObj.OutcomeReason
                     switch (JobDetail.Status)
                     {
                         case ReductionJobDetail.JobStatusEnum.Unspecified:
                             DbTask.ReductionStatus = ReductionStatusEnum.Unspecified;
+                            break;
+                        case ReductionJobDetail.JobStatusEnum.Warning:
+                            DbTask.ReductionStatus = ReductionStatusEnum.Warning;
+                            switch (JobDetail.Result.OutcomeReason)
+                            {
+                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValues:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues;
+                                    break;
+                                case ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoReducedFileCreated;
+                                    break;
+                                default:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.UnspecifiedError;
+                                    break;
+                            }
                             break;
                         case ReductionJobDetail.JobStatusEnum.Error:
                             DbTask.ReductionStatus = ReductionStatusEnum.Error;
@@ -319,9 +343,6 @@ namespace ContentPublishingLib.JobMonitors
                                     break;
                                 case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValues:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues;
-                                    break;
-                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent:
-                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent;
                                     break;
                                 case ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoReducedFileCreated;
@@ -346,6 +367,8 @@ namespace ContentPublishingLib.JobMonitors
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
+                    OutcomeMetadataObj.UserMessage = OutcomeMetadataObj.OutcomeReason.GetDisplayNameString();
+
                     DbTask.MasterContentHierarchyObj = (ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy;
 
                     DbTask.ReducedContentHierarchyObj = (ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.ReducedContentHierarchy;
@@ -367,9 +390,54 @@ namespace ContentPublishingLib.JobMonitors
             }
             catch (Exception e)
             {
-                GlobalFunctions.TraceWriteLine("Failed to update task in database" + Environment.NewLine + e.Message);
+                Log.Error(e, "Failed to update task in database");
                 return false;
             }
         }
+
+        public override void CleanupOnStart()
+        {
+            int maxRetries = Configuration.ApplicationConfiguration.GetValue("MaxReductionRetries", 2);
+            const string retryStatusMessagePrefix = "Retry: ";
+
+            lock (_CleanupOnStartLockObj)  // The lock object is declared / initialized in the base class
+            {
+                using (ApplicationDbContext Db = IsTestMode
+                                                 ? MockContext.Object
+                                                 : new ApplicationDbContext(ContextOptions))
+                {
+                    List<ContentReductionTask> inProgressReductionTasks = Db.ContentReductionTask
+                                                                            .Where(t => t.ReductionStatus == ReductionStatusEnum.Reducing)
+                                                                            .Where(t => t.ContentPublicationRequestId == null)
+                                                                            .ToList();
+                    Log.Information($"CleanupOnStart(), reduction job monitor, found {inProgressReductionTasks.Count} reductions tasks in progress");
+
+                    foreach (ContentReductionTask task in inProgressReductionTasks)
+                    {
+                        // Don't retry forever
+                        int nextRetry = !string.IsNullOrWhiteSpace(task.ReductionStatusMessage) && task.ReductionStatusMessage.StartsWith(retryStatusMessagePrefix)
+                            ? int.Parse(task.ReductionStatusMessage.Replace(retryStatusMessagePrefix, "")) + 1
+                            : 1;
+
+                        if (nextRetry > maxRetries)
+                        {
+                            task.ReductionStatusMessage = $"This reduction task has exceeded the retry limit of {maxRetries}";
+                            task.ReductionStatus = ReductionStatusEnum.Error;
+
+                            Log.Information($"CleanupOnStart(), reduction job monitor, reduction task {task.Id} has exceeded the max retry limit, setting Error status");
+                        }
+                        else
+                        {
+                            task.ReductionStatusMessage = $"{retryStatusMessagePrefix}{nextRetry}";
+                            task.ReductionStatus = ReductionStatusEnum.Queued;
+
+                            Log.Information($"CleanupOnStart(), reduction job monitor, reduction task {task.Id} will be retried, setting Queued status");
+                        }
+                        Db.SaveChanges();
+                    }
+                }
+            }
+        }
+
     }
 }

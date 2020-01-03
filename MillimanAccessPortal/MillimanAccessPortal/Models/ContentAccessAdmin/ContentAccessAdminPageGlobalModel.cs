@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: Defines information used globally by the ContentAccessAdmin View
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
