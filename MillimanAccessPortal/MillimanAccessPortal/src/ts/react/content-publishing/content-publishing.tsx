@@ -1093,7 +1093,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         {(goLiveSummary.contentTypeName === 'FileDownload') ? (
           <div className="download-preview">
             <a href={goLiveSummary.masterContentLink} download={true}>
-              Click to Download
+              Download {goLiveSummary.rootContentName}
             </a>
           </div>
         ) : (
