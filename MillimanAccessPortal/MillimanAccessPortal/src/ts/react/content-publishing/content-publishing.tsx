@@ -912,7 +912,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             </FormSection>
             {
               (formData.formState !== 'read'
-                || formData.pendingFormData.contentDescription.length > 0
+                || (
+                  formData.pendingFormData.contentDescription &&
+                  formData.pendingFormData.contentDescription.length > 0
+                )
               ) &&
               <FormSection title="Content Description">
                 <FormSectionRow>
@@ -938,7 +941,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             }
             {
               (formData.formState !== 'read'
-                || formData.pendingFormData.contentDisclaimer.length > 0
+                || (
+                  formData.pendingFormData.contentDisclaimer &&
+                  formData.pendingFormData.contentDisclaimer.length > 0
+                )
               ) &&
               <FormSection title="Custom Content Disclaimer">
                 <FormSectionRow>
@@ -990,7 +996,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             }
             {
               (formData.formState !== 'read'
-                || formData.pendingFormData.contentNotes.length > 0
+                || (
+                  formData.pendingFormData.contentNotes &&
+                  formData.pendingFormData.contentNotes.length > 0
+                )
               ) &&
               <FormSection title="Internal Notes (Not Shown To End Users)">
                 <FormSectionRow>
