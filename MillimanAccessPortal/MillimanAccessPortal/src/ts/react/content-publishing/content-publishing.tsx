@@ -998,7 +998,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     <TextAreaInput
                       error={formData.formErrors.contentNotes}
                       label="Notes"
-                      name="contentDisclaimer"
+                      name="contentNotes"
                       onBlur={() => false}
                       onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
                         this.props.setPublishingFormTextInputValue({
