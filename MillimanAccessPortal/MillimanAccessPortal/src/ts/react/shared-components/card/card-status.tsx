@@ -83,6 +83,7 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
       ? (
         <div
           className="status-message-toggle"
+          title={this.state.statusMessageDisplayed ? 'Minimize' : 'View status details'}
           onClick={(event: React.MouseEvent) => {
             event.stopPropagation();
             this.setState({ statusMessageDisplayed: !this.state.statusMessageDisplayed });
