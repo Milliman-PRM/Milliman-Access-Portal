@@ -31,10 +31,10 @@
     flex-flow: row nowrap;
 
     .status-name {
-        flex: 1;
+        flex: 1 1 auto;
     }
 
     .status-message-toggle {
-        flex: 0;
+        flex: 0 0 auto;
     }
 }
