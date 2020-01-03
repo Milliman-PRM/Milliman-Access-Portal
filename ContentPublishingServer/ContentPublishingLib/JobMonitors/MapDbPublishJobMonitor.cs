@@ -160,7 +160,7 @@ namespace ContentPublishingLib.JobMonitors
             }
 
             // Cancel was requested
-            Log.Information($"MapDbPublishJobMonitor.JobMonigtorThreadMain() stopping {ActivePublicationRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
+            Log.Information($"MapDbPublishJobMonitor.JobMonitorThreadMain() stopping {ActivePublicationRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
 
             if (ActivePublicationRunnerItems.Count != 0)
             {
@@ -169,7 +169,7 @@ namespace ContentPublishingLib.JobMonitors
                 DateTime WaitStart = DateTime.Now;
                 while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
                 {
-                    Log.Information($"MapDbPublishJobMonitor.JobMonigtorThreadMain() waiting for {ActivePublicationRunnerItems.Count} running tasks to complete");
+                    Log.Information($"MapDbPublishJobMonitor.JobMonitorThreadMain() waiting for {ActivePublicationRunnerItems.Count} running tasks to complete");
 
                     int CompletedTaskIndex = Task.WaitAny(ActivePublicationRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks / 100));
                     if (CompletedTaskIndex > -1)
@@ -179,19 +179,19 @@ namespace ContentPublishingLib.JobMonitors
 
                     if (ActivePublicationRunnerItems.Count == 0)
                     {
-                        Log.Information($"MapDbPublishJobMonitor.JobMonigtorThreadMain() all publication runners terminated successfully");
+                        Log.Information($"MapDbPublishJobMonitor.JobMonitorThreadMain() all publication runners terminated successfully");
                         break;
                     }
                 }
 
                 foreach (var Item in ActivePublicationRunnerItems)
                 {
-                    Log.Information($"MapDbPublishJobMonitor.JobMonigtorThreadMain() after timer expired, task {Item.requestId.ToString()} not completed");
+                    Log.Information($"MapDbPublishJobMonitor.JobMonitorThreadMain() after timer expired, task {Item.requestId.ToString()} not completed");
                 }
             }
 
             Token.ThrowIfCancellationRequested();
-            Log.Information($"MapDbPublishJobMonitor.JobMonigtorThreadMain() returning");
+            Log.Information($"MapDbPublishJobMonitor.JobMonitorThreadMain() returning");
         }
 
         /// <summary>
@@ -282,7 +282,7 @@ namespace ContentPublishingLib.JobMonitors
                 var requestInEfCache = Db.ContentPublicationRequest.Find(DbRequest.Id);
                 if (requestInEfCache == null)
                 {
-                    Log.Information($"LaunchPublishRunnerForRequest() could not find a ContentPublicationRequest with Id {DbRequest.Id}");
+                    Log.Error($"LaunchPublishRunnerForRequest() could not find a ContentPublicationRequest with Id {DbRequest.Id}");
                     return;
                 }
                 if (requestInEfCache.RequestStatus != PublicationStatus.Processing)
@@ -339,8 +339,7 @@ namespace ContentPublishingLib.JobMonitors
         {
             if (JobDetail == null || JobDetail.Result == null || JobDetail.JobId == Guid.Empty)
             {
-                string Msg = $"MapDbPublishJobMonitor.UpdateRequest unusable argument";
-                Log.Information(Msg);
+                Log.Information("MapDbPublishJobMonitor.UpdateRequest unusable argument");
                 return false;
             }
 
@@ -448,32 +447,6 @@ namespace ContentPublishingLib.JobMonitors
                                                               .Where(r => r.RequestStatus == PublicationStatus.Processing)
                                                               .Where(r => !r.RootContentItem.DoesReduce)
                                                               .ToList();
-
-                            Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, found {inProgressPublicationRequests.Count} publication requests in progress");
-
-                            foreach (var request in inProgressPublicationRequests)
-                            {
-                                // Don't retry forever
-                                int nextRetry = !string.IsNullOrWhiteSpace(request.StatusMessage) && request.StatusMessage.StartsWith(retryStatusMessagePrefix)
-                                    ? int.Parse(request.StatusMessage.Replace(retryStatusMessagePrefix, "")) + 1
-                                    : 1;
-
-                                if (nextRetry > maxRetries)
-                                {
-                                    request.StatusMessage = $"This publication request has exceeded the retry limit of {maxRetries}";
-                                    request.RequestStatus = PublicationStatus.Error;
-
-                                    Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, publication request {request.Id} has exceeded the max retry limit, setting Error status");
-                                }
-                                else
-                                {
-                                    request.StatusMessage = $"{retryStatusMessagePrefix}{nextRetry}";
-                                    request.RequestStatus = PublicationStatus.Queued;
-
-                                    Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, publication request {request.Id} will be retried, setting Queued status");
-                                }
-                                Db.SaveChanges();
-                            }
                             break;
 
                         case MapDbPublishJobMonitorType.ReducingPublications:
@@ -482,66 +455,78 @@ namespace ContentPublishingLib.JobMonitors
                                                               .Where(r => r.RequestStatus == PublicationStatus.Processing)
                                                               .Where(r => r.RootContentItem.DoesReduce)
                                                               .ToList();
-
-                            Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, found {inProgressPublicationRequests.Count} publication requests in progress");
-
-                            foreach (ContentPublicationRequest request in inProgressPublicationRequests)
-                            {
-                                // Don't retry forever
-                                int nextRetry = !string.IsNullOrWhiteSpace(request.StatusMessage) && request.StatusMessage.StartsWith(retryStatusMessagePrefix)
-                                    ? int.Parse(request.StatusMessage.Replace(retryStatusMessagePrefix, "")) + 1
-                                    : 1;
-
-                                if (nextRetry > maxRetries)
-                                {
-                                    Log.Information($"CleanupOnStart() publication request {request.Id} exceeded max retries limit, setting status to PublicationStatus.Error, in job monitor type {JobMonitorType.ToString()}");
-                                    request.StatusMessage = $"This publication request has exceeded the retry limit of {maxRetries}";
-                                    request.RequestStatus = PublicationStatus.Error;
-                                    continue;
-                                }
-
-                                
-                                // if the master hierarchy has not been extracted yet then just requeue this publication request and cancel all related reduction task records
-                                if (!Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == request.Id)
-                                                            .Where(t => t.TaskAction == TaskActionEnum.HierarchyOnly)
-                                                            .Any(t => t.ReductionStatus == ReductionStatusEnum.Reduced))
-                                {
-                                    request.RequestStatus = PublicationStatus.Queued;
-
-                                    var allRelatedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == request.Id).ToList();
-                                    allRelatedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
-
-                                    Log.Information($"CleanupOnStart() is re-queueing publication request {request.Id}, in job monitor type {JobMonitorType.ToString()}, because the master hierarchy has not been extracted");
-                                    Db.SaveChanges();
-                                    continue;
-                                }
-
-                                var relatedInProgressReductionTasks = Db.ContentReductionTask
-                                                                        .Where(t => t.ReductionStatus == ReductionStatusEnum.Reducing)
-                                                                        .Where(t => t.ContentPublicationRequestId.Value == request.Id)
-                                                                        .ToList();
-                                if (relatedInProgressReductionTasks.Any())
-                                {
-                                    foreach (ContentReductionTask task in relatedInProgressReductionTasks)
-                                    {
-                                        task.ReductionStatus = ReductionStatusEnum.Queued;
-                                        Log.Information($"CleanupOnStart() is re-queueing reduction task {task.Id} for publication request {request.Id}, in job monitor type {JobMonitorType.ToString()}");
-                                    }
-                                    
-                                    Db.SaveChanges();
-                                }
-
-                                LaunchPublishRunnerForRequest(request, SkipReductionTaskQueueing: true);
-                            }
                             break;
 
                         default:
                             throw new NotSupportedException($"CleanupOnStart tried to run but unsupported JobMonitorType {JobMonitorType.ToString()}");  // can only happen if the enum gets a new value; in that case we must handle it here
                     }
 
-                    // any request with Queued status or earlier, or PostProcessReady or later, needs no recovery here
+                    Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, found {inProgressPublicationRequests.Count} publication requests in progress");
+
+                    foreach (var request in inProgressPublicationRequests)
+                    {
+                        // Don't retry forever
+                        int nextRetry = !string.IsNullOrWhiteSpace(request.StatusMessage) && request.StatusMessage.StartsWith(retryStatusMessagePrefix)
+                            ? int.Parse(request.StatusMessage.Replace(retryStatusMessagePrefix, "")) + 1
+                            : 1;
+
+                        if (nextRetry > maxRetries)
+                        {
+                            Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, publication request {request.Id} has exceeded the max retry limit, setting Error status");
+                            request.StatusMessage = $"This publication request has exceeded the retry limit of {maxRetries}";
+                            request.RequestStatus = PublicationStatus.Error;
+                        }
+                        else
+                        {
+                            switch (JobMonitorType)
+                            {
+                                case MapDbPublishJobMonitorType.NonReducingPublications:
+                                    request.StatusMessage = $"{retryStatusMessagePrefix}{nextRetry}";
+                                    request.RequestStatus = PublicationStatus.Queued;
+
+                                    Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, publication request {request.Id} will be retried, setting Queued status");
+                                    break;
+
+                                case MapDbPublishJobMonitorType.ReducingPublications:
+                                    // if the master hierarchy has not been extracted yet then just requeue this publication request and cancel all related reduction task records
+                                    if (!Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == request.Id)
+                                                                .Where(t => t.TaskAction == TaskActionEnum.HierarchyOnly)
+                                                                .Any(t => t.ReductionStatus == ReductionStatusEnum.Reduced))
+                                    {
+                                        request.RequestStatus = PublicationStatus.Queued;
+
+                                        var allRelatedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == request.Id).ToList();
+                                        allRelatedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
+
+                                        Log.Information($"CleanupOnStart() is re-queueing publication request {request.Id}, in job monitor type {JobMonitorType.ToString()}, because the master hierarchy has not been extracted");
+                                    }
+                                    else
+                                    {
+                                        var relatedInProgressReductionTasks = Db.ContentReductionTask
+                                                                                .Where(t => t.ReductionStatus == ReductionStatusEnum.Reducing)
+                                                                                .Where(t => t.ContentPublicationRequestId.Value == request.Id)
+                                                                                .ToList();
+                                        if (relatedInProgressReductionTasks.Any())
+                                        {
+                                            foreach (ContentReductionTask task in relatedInProgressReductionTasks)
+                                            {
+                                                task.ReductionStatus = ReductionStatusEnum.Queued;
+                                                Log.Information($"CleanupOnStart() is re-queueing reduction task {task.Id} for publication request {request.Id}, in job monitor type {JobMonitorType.ToString()}");
+                                            }
+                                        }
+
+                                        LaunchPublishRunnerForRequest(request, SkipReductionTaskQueueing: true);
+                                    }
+                                    break;
+                            }
+                        }
+
+                        Db.SaveChanges();
+                    }
 
                 }
+
+                // any request with Queued status or earlier, or PostProcessReady or later, needs no recovery here
             }
         }
     }

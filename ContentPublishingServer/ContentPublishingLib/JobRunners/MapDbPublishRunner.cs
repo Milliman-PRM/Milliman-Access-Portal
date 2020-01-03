@@ -228,11 +228,16 @@ namespace ContentPublishingLib.JobRunners
                             TaskOutcome.ReductionTaskId = RelatedTask.Id;
                         }
 
-                        if (TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.Success ||
-                            TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned ||
-                            TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent || // warning
-                            TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.NoSelectedFieldValues || // warning
-                            TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.NoReducedFileCreated) // warning
+                        List<MapDbReductionTaskOutcomeReason> successListReductionReasons = new List<MapDbReductionTaskOutcomeReason>
+                        {
+                            MapDbReductionTaskOutcomeReason.Success,
+                            MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
+                            MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent, // warning
+                            MapDbReductionTaskOutcomeReason.NoSelectedFieldValues, // warning
+                            MapDbReductionTaskOutcomeReason.NoReducedFileCreated, // warning
+                        };
+
+                        if (successListReductionReasons.Contains(TaskOutcome.OutcomeReason))
                         {
                             JobDetail.Result.ReductionTaskSuccessList.Add(TaskOutcome);
                         }
