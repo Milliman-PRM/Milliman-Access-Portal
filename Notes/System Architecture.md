@@ -62,6 +62,20 @@ We utilize multiple Azure products to build the production environment. Most are
 
 * **Help Scout** - SaaS helpdesk software used to track customer support requests as well as security events.
 
+## Environment segregation
+
+There are three runtime environments for MAP. This document details the production environment in-depth, but we do maintain environments for dev/test and staging as well.
+
+### Dev/test Environment
+
+This environment exists largely to test deployments on a per-branch basis. Each branch is deployed (MAP web app & app database only) to this environment as part of the continuous integration process.
+
+### Staging
+
+This environment is intended to match production as closely as possible and is used for manual testing of the application, particularly during pre-release. It shares a QlikView Server and QlikView Publisher with production, to save on the significant licensing costs. It also shares the production database server, but uses separate databases and credentials.
+
+The staging web application and publishing service run on `map-client-01`, which is also used as a Remote Administration machines (see below). Developers can manually trigger deployments to this environment. The web application is automatically deployed to this environment for pre-release branches.
+
 ## Virtual Machines
 
 VMs in the MAP environment are segmented by function and user access. Throughout this document, VMs will be referred to by category, not by name.
@@ -334,15 +348,9 @@ Manual updates will typically only be applied for QlikView services.
 
 ### MAP updates
 
-We use Octopus Deploy to perform deployments of MAP and the Content Publishing Service.
+We use Octopus Deploy to perform deployments of MAP, database migrations, and the Content Publishing Service.
 
-There is a completely separate dev/test environment in a standalone Azure subscription which cannot access production. Pull Request code changes are pushed automatically to this environment.
-
-The staging environment is configured as a separate IIS application on the production Web server(s). To leverage this properly, we will maintain separate databases for the staging environment. This will allow us to test changes such as database migrations on the production infrastructure before making the changes live.
-
-Deployments should only ever be made to the Staging deployment slot. Once changes are verified in Staging, swap the slot over to production to complete the update. The previous deployed version will now be in the Staging slot, which makes reverting the update very easy if something goes wrong after switching to Production.
-
-The MAP development team will coordinate update scheduling with the infrastructure team. Updates should only be deployed after completing the formal release process and QRM documentation is complete. At this time, only the infrastructure team is able to push releases to production from Octopus Deploy.
+The MAP development team will coordinate production deployment scheduling with the infrastructure team. Updates should only be deployed to production after completing the formal release process and QRM documentation is complete. At this time, only the infrastructure team is able to push releases to production from Octopus Deploy. Developers may deploy manually to dev/test and staging at any time for testing purposes.
 
 Additional special scenarios should be added to this section as they are identified.
 
