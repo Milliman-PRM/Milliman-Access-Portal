@@ -89,7 +89,7 @@ namespace MapDbContextLib.Context
             PublicationStatus.PostProcessing,
             PublicationStatus.Processed,
             PublicationStatus.Confirming,
-            PublicationStatus.Confirmed,
+            PublicationStatus.Error,
         };
 
         public static List<PublicationStatus> QueueWaitableStatusList { get; } = new List<PublicationStatus>
