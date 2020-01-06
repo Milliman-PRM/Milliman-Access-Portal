@@ -257,7 +257,15 @@ namespace MillimanAccessPortal.DataQueries
             _dbContext.AttachRange(publications); // track in EF cache, including navigation properties
             foreach (var pub in publications)
             {
-                model.Publications.Add(pub.Id, (BasicPublication)pub);
+                // If the content item has a live publication, only publications requested later than that should be returned
+                var livePublication = _dbContext.ContentPublicationRequest
+                                                .SingleOrDefault(r => r.RootContentItemId == pub.RootContentItemId
+                                                                   && r.RequestStatus == PublicationStatus.Confirmed);
+
+                if (livePublication == null || pub.CreateDateTimeUtc > livePublication.CreateDateTimeUtc)
+                {
+                    model.Publications.Add(pub.Id, (BasicPublication)pub);
+                }
             }
 
             return model;
