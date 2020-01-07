@@ -21,18 +21,7 @@ export interface CardStatusProps {
   status: PublicationWithQueueDetails | ReductionWithQueueDetails;
 }
 
-interface CardStatusState {
-  statusMessageDisplayed: boolean;
-}
-
-export class CardStatus extends React.Component<CardStatusProps, CardStatusState> {
-  constructor(props: CardStatusProps) {
-    super(props);
-    this.state = {
-      statusMessageDisplayed: false,
-    };
-  }
-
+export class CardStatus extends React.Component<CardStatusProps> {
   public render() {
     const { status } = this.props;
     const [statusValue, isActive] = isPublicationRequest(status)
@@ -54,10 +43,11 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
           <div className="status-top">
             {this.renderStatusTitle()}
           </div>
-          <div>{this.renderReductionTaskStatus()}</div>
+          <div>
+            {this.renderReductionTaskStatus()}
+          </div>
           <div className="status-bot">
             {this.renderStatusMessage()}
-            {this.renderExpansionToggle()}
           </div>
         </div>
       )
@@ -76,25 +66,6 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
         <span>{this.renderQueueString()}</span>
       </span>
     );
-  }
-
-  private renderExpansionToggle = () => {
-    return this.hasStatusMessages()
-      ? (
-        <div
-          className="status-message-toggle"
-          title={this.state.statusMessageDisplayed ? 'Minimize' : 'View status details'}
-          onClick={(event: React.MouseEvent) => {
-            event.stopPropagation();
-            this.setState({ statusMessageDisplayed: !this.state.statusMessageDisplayed });
-          }}
-        >
-          <svg className={`status-expansion-icon ${this.state.statusMessageDisplayed ? 'open' : 'close'}`}>
-            <use xlinkHref="#expand-card" />
-          </svg>
-        </div>
-      )
-      : null;
   }
 
   private renderQueueString = () => {
@@ -132,80 +103,30 @@ export class CardStatus extends React.Component<CardStatusProps, CardStatusState
     return queueString;
   }
 
-  private hasStatusMessages = () => {
-    const { status } = this.props;
-    return (isPublicationRequest(status)
-      && status.outcomeMetadata
-      && (status.outcomeMetadata.reductionTaskSuccessOutcomeList.length > 0
-        || status.outcomeMetadata.reductionTaskFailOutcomeList.length > 0
-      ))
-      || (isReductionTask(status)
-      && status.taskStatusMessage);
-  }
-
-  private taskStatusSummary = (statusString: string): { status: string; icon: string; } => {
-    switch (statusString) {
-      case 'Success':
-      case 'MasterHierarchyAssigned':
-        return { status: 'success', icon: 'checkmark' };
-      case 'NoSelectedFieldValues':
-      case 'NoSelectedFieldValueExistsInNewContent':
-      case 'NoReducedFileCreated':
-        return { status: 'warning', icon: 'information' };
-      case 'Canceled':
-      case 'BadRequest':
-      case 'UnspecifiedError':
-      case 'SelectionForInvalidFieldName':
-      case 'ReductionTimeout':
-        return { status: 'error', icon: 'error' };
-    }
-  }
-
   private renderReductionTaskStatus = () => {
     const { status } = this.props;
-    if (this.state.statusMessageDisplayed && this.hasStatusMessages()) {
-      if (isPublicationRequest(status) && status.outcomeMetadata) {
-        const taskList = status.outcomeMetadata.reductionTaskSuccessOutcomeList.concat(
-          status.outcomeMetadata.reductionTaskFailOutcomeList,
-        ).sort((a, b) => (a.processingStartedUtc > b.processingStartedUtc) ? 1 : -1);
-        const taskListTable = taskList.filter((x) => x.selectionGroupName !== null).map((x) => (
-          <>
-            <tr>
-              <td className="status-column">
-                <svg className={`card-status-icon ${this.taskStatusSummary(x.outcomeReason).status}`}>
-                  <use xlinkHref={`#${this.taskStatusSummary(x.outcomeReason).icon}`} />
-                </svg>
-              </td>
-              <td>
-                <span className="selection-group-name">{x.selectionGroupName}</span>
-                <p className="task-status-description">{x.userMessage}</p>
-              </td>
-            </tr>
-          </>
-        ));
-        return (
-          <table className="task-status-list">
-            <thead>
-              <tr>
-                <th className="status-column">Status</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {taskListTable}
-            </tbody>
-          </table>
-        );
-      }
-      if (isReductionTask(status) && status.taskStatusMessage) {
-        return (
-          <span className="task-status-message">{status.taskStatusMessage}</span>
-        );
-      }
+    if (isPublicationRequest(status)
+      && status.outcomeMetadata
+      && status.outcomeMetadata.reductionTaskFailOutcomeList.length > 0
+    ) {
+      return status.outcomeMetadata.reductionTaskFailOutcomeList.map((x) => (
+        <>
+          <span className="task-status-message">
+            {x.selectionGroupName
+              ? <>In Selection Group <strong>{x.selectionGroupName}</strong>: </>
+              : null
+            } {x.userMessage}
+          </span>
+          <br />
+        </>
+      ));
+    } else if (isReductionTask(status) && status.taskStatusMessage) {
+      return (
+        <span className="task-status-message">{status.taskStatusMessage}</span>
+      );
     } else {
       return null;
     }
-
   }
 
   private renderStatusMessage = () => {
