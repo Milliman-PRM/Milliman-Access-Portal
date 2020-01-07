@@ -106,21 +106,30 @@ export class CardStatus extends React.Component<CardStatusProps> {
   private renderReductionTaskStatus = () => {
     const { status } = this.props;
     if (isPublicationRequest(status)
+      && status.requestStatus === PublicationStatus.Error
       && status.outcomeMetadata
-      && status.outcomeMetadata.reductionTaskFailOutcomeList.length > 0
+      && (status.outcomeMetadata.reductionTaskFailOutcomeList.length > 0
+      || status.outcomeMetadata.userMessage)
     ) {
-      return status.outcomeMetadata.reductionTaskFailOutcomeList.map((x) => (
-        <>
-          <span className="task-status-message">
-            {x.selectionGroupName
-              ? <>In Selection Group <strong>{x.selectionGroupName}</strong>: </>
-              : null
-            } {x.userMessage}
-          </span>
-          <br />
-        </>
-      ));
-    } else if (isReductionTask(status) && status.taskStatusMessage) {
+      if (status.outcomeMetadata.reductionTaskFailOutcomeList.length > 0) {
+        return status.outcomeMetadata.reductionTaskFailOutcomeList.map((x) => (
+          <>
+            <span className="task-status-message">
+              {x.selectionGroupName
+                ? <>In Selection Group <strong>{x.selectionGroupName}</strong>: </>
+                : null
+              } {x.userMessage}
+            </span>
+            <br />
+          </>
+        ));
+      } else {
+        return <span className="task-status-message">{status.outcomeMetadata.userMessage}</span>;
+      }
+    } else if (isReductionTask(status)
+      && (status.taskStatus === ReductionStatus.Error
+      || status.taskStatus === ReductionStatus.Warning)
+      && status.taskStatusMessage) {
       return (
         <span className="task-status-message">{status.taskStatusMessage}</span>
       );
