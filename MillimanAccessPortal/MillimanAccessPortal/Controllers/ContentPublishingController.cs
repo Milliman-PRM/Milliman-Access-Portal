@@ -7,6 +7,7 @@
 using AuditLogLib.Event;
 using AuditLogLib.Models;
 using AuditLogLib.Services;
+using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -1102,7 +1103,14 @@ namespace MillimanAccessPortal.Controllers
                                                 goLiveViewModel.PublicationRequestId.ToString());
             if (Directory.Exists(PreviewFolder))
             {
-                Directory.Delete(PreviewFolder, true);
+                try
+                {
+                    FileSystemUtil.DeleteDirectoryWithRetry(PreviewFolder, 4, 2000);  // 4, 2000 is max 20 sec delay
+                }
+                catch (IOException ex)
+                {
+                    Log.Error(ex, $"In ContentPublishingController.Reject action, failed to delete publication pre-live folder <{PreviewFolder}>");
+                }
             }
 
             Log.Verbose($"In ContentPublishingController.Reject action, success");

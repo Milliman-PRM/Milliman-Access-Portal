@@ -341,9 +341,6 @@ namespace ContentPublishingLib.JobMonitors
                                 case ReductionJobDetail.JobOutcomeReason.UnspecifiedError:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.UnspecifiedError;
                                     break;
-                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValues:
-                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues;
-                                    break;
                                 case ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoReducedFileCreated;
                                     break;
@@ -367,7 +364,7 @@ namespace ContentPublishingLib.JobMonitors
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
-                    OutcomeMetadataObj.UserMessage = OutcomeMetadataObj.OutcomeReason.GetDisplayNameString();
+                    OutcomeMetadataObj.UserMessage = OutcomeMetadataObj.OutcomeReason.GetDisplayDescriptionString();
 
                     DbTask.MasterContentHierarchyObj = (ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy;
 
@@ -381,7 +378,6 @@ namespace ContentPublishingLib.JobMonitors
 
                     DbTask.OutcomeMetadataObj = OutcomeMetadataObj;
 
-                    Db.ContentReductionTask.Update(DbTask);
                     Db.SaveChanges();
                     Transaction.Commit();
                 }

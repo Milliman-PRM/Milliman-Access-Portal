@@ -12,7 +12,7 @@ import ReduxToastr from 'react-redux-toastr';
 import { convertMarkdownToHTML } from '../../convert-markdown';
 import { setUnloadAlert } from '../../unload-alerts';
 import {
-  ContentTypeEnum, PublicationStatus, PublishRequest,
+  ContentTypeEnum, isPublicationActive, PublicationStatus, PublishRequest,
 } from '../../view-models/content-publishing';
 import { ContentCard } from '../authorized-content/content-card';
 import {
@@ -240,7 +240,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               }}
             >
               Reject
-              {this.props.pending.data.contentItemDeletion
+              {this.props.pending.data.goLiveRejection
                 ? <ButtonSpinner version="circle" />
                 : null
               }
@@ -438,90 +438,100 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         }}
       />
     );
+    const cardButtons = (entityId: string, entityPublicationStatus: PublicationStatus) => {
+      switch (entityPublicationStatus) {
+        case PublicationStatus.Processed:
+          return (
+            <>
+              <CardButton
+                color={'green'}
+                tooltip={'Review for Approval'}
+                onClick={() => {
+                  if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                    this.props.openModifiedFormModal({
+                      afterFormModal:
+                      {
+                        entityToSelect: entityId,
+                        entityType: 'Go Live Summary',
+                      },
+                    });
+                  } else {
+                    this.props.fetchGoLiveSummary({ rootContentItemId: entityId });
+                  }
+                }}
+                icon={'checkmark'}
+              />
+            </>
+          );
+        case PublicationStatus.Validating:
+        case PublicationStatus.Queued:
+        case PublicationStatus.Processing:
+        case PublicationStatus.PostProcessReady:
+        case PublicationStatus.Error:
+          return (
+            <>
+              <CardButton
+                color={'red'}
+                tooltip={'Cancel Publication'}
+                onClick={() => this.props.openCancelPublicationModal({ id: entityId })}
+                icon={'cancel'}
+              />
+            </>
+          );
+        case PublicationStatus.PostProcessing:
+          return null;
+        default:
+          return (
+            <>
+              <CardButton
+                color={'red'}
+                tooltip={'Delete Content Item'}
+                onClick={() => {
+                  if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                    this.props.openModifiedFormModal({
+                      afterFormModal:
+                      {
+                        entityToSelect: entityId,
+                        entityType: 'Delete Content Item',
+                      },
+                    });
+                  } else {
+                    this.props.openDeleteContentItemModal({ id: entityId });
+                  }
+                }}
+                icon={'delete'}
+              />
+              <CardButton
+                color={'blue'}
+                tooltip={'Edit Content Item'}
+                onClick={() => {
+                  if (this.props.formChangesPending || this.props.uploadChangesPending) {
+                    this.props.openModifiedFormModal({
+                      afterFormModal:
+                      {
+                        entityToSelect: entityId,
+                        entityType: 'Edit Content Item',
+                      },
+                    });
+                  } else {
+                    if (selected.item !== entityId) {
+                      this.props.fetchContentItemDetail({ rootContentItemId: entityId });
+                      this.props.selectItem({ id: entityId });
+                    }
+                    this.props.setContentItemFormState({ formState: 'write' });
+                  }
+                }}
+                icon={'edit'}
+              />
+            </>
+          );
+      }
+    };
     return activeClient && (
       <CardPanel
         entities={items}
         loading={pending.data.items}
         renderEntity={(entity, key) => {
-          const cardButtons = entity.status.requestStatus === PublicationStatus.Processed ?
-            (
-              <>
-                <CardButton
-                  color={'green'}
-                  tooltip={'Review for Approval'}
-                  onClick={() => {
-                    if (this.props.formChangesPending || this.props.uploadChangesPending) {
-                      this.props.openModifiedFormModal({
-                        afterFormModal:
-                        {
-                          entityToSelect: entity.id,
-                          entityType: 'Go Live Summary',
-                        },
-                      });
-                    } else {
-                      this.props.fetchGoLiveSummary({ rootContentItemId: entity.id });
-                    }
-                  }}
-                  icon={'checkmark'}
-                />
-              </>
-            ) : entity.status.requestStatus === PublicationStatus.Validating
-            || entity.status.requestStatus === PublicationStatus.Queued
-            || entity.status.requestStatus === PublicationStatus.Processing
-            || entity.status.requestStatus === PublicationStatus.PostProcessReady
-            || entity.status.requestStatus === PublicationStatus.Error ? (
-                <>
-                  <CardButton
-                    color={'red'}
-                    tooltip={'Cancel Publication'}
-                    onClick={() => this.props.openCancelPublicationModal({ id: entity.id })}
-                    icon={'cancel'}
-                  />
-                </>
-              ) : (
-                <>
-                  <CardButton
-                    color={'red'}
-                    tooltip={'Delete Content Item'}
-                    onClick={() => {
-                      if (this.props.formChangesPending || this.props.uploadChangesPending) {
-                        this.props.openModifiedFormModal({
-                          afterFormModal:
-                          {
-                            entityToSelect: entity.id,
-                            entityType: 'Delete Content Item',
-                          },
-                        });
-                      } else {
-                        this.props.openDeleteContentItemModal({ id: entity.id });
-                      }
-                    }}
-                    icon={'delete'}
-                  />
-                  <CardButton
-                    color={'blue'}
-                    tooltip={'Edit Content Item'}
-                    onClick={() => {
-                      if (this.props.formChangesPending || this.props.uploadChangesPending) {
-                        this.props.openModifiedFormModal({
-                          afterFormModal:
-                          {
-                            entityToSelect: entity.id,
-                            entityType: 'Edit Content Item',
-                          },
-                        });
-                      } else {
-                        if (selected.item !== entity.id) {
-                          this.props.fetchContentItemDetail({ rootContentItemId: entity.id });
-                          this.props.selectItem({ id: entity.id });
-                        }
-                        this.props.setContentItemFormState({ formState: 'write' });
-                      }
-                    }}
-                    icon={'edit'}
-                  />
-                </>
-              );
           return (
             <Card
               key={key}
@@ -565,7 +575,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   />
                 </CardSectionStats>
                 <CardSectionButtons>
-                  {cardButtons}
+                  {cardButtons(entity.id, entity.status.requestStatus)}
                 </CardSectionButtons>
               </CardSectionMain>
             </Card>
@@ -661,7 +671,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             {formState === 'read'
               && pendingFormData.id
               && selectedItemStatus
-              && selectedItemStatus.status.requestStatus !== PublicationStatus.Processed
+              && !isPublicationActive(selectedItemStatus.status.requestStatus)
               && editFormButton
             }
             {closeFormButton}
@@ -900,142 +910,166 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 </FormFlexContainer>
               </FormSectionRow>
             </FormSection>
-            <FormSection title="Content Description">
-              <FormSectionRow>
-                <FormFlexContainer flexPhone={12}>
-                  <TextAreaInput
-                    error={formData.formErrors.contentDescription}
-                    label="Content Description"
-                    name="contentDescription"
-                    onBlur={() => false}
-                    onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
-                      this.props.setPublishingFormTextInputValue({
-                        inputName: 'contentDescription',
-                        value: target.value,
-                      });
-                    }}
-                    placeholderText="Content Description..."
-                    value={formData.pendingFormData.contentDescription}
-                    readOnly={formState === 'read'}
-                  />
-                </FormFlexContainer>
-              </FormSectionRow>
-            </FormSection>
-            <FormSection title="Custom Content Disclaimer">
-              <FormSectionRow>
-                <FormFlexContainer flexPhone={12}>
-                  {
-                    formData.formState === 'write' &&
-                    <TabRow
-                      tabs={[{ id: 'edit', label: 'Edit' }, { id: 'preview', label: 'Preview' }]}
-                      selectedTab={formData.disclaimerInputState}
-                      onTabSelect={(tab: 'edit' | 'preview') => this.props.setDisclaimerInputState({value: tab})}
-                      fullWidth={true}
-                    />
-                  }
-                  {
-                    formData.disclaimerInputState === 'preview' || formData.formState === 'read'
-                      ? (
-                        <div
-                          className={`disclaimer-preview${formData.formState === 'read' ? ' disabled' : ''}`}
-                          dangerouslySetInnerHTML={{
-                            __html: convertMarkdownToHTML(formData.pendingFormData.contentDisclaimer),
-                          }}
-                        />
-                      ) : (
-                        <>
-                          <TextAreaInput
-                            error={formData.formErrors.contentDisclaimer}
-                            label="Custom Disclaimer Text"
-                            name="contentDisclaimer"
-                            onBlur={() => false}
-                            onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
-                              this.props.setPublishingFormTextInputValue({
-                                inputName: 'contentDisclaimer',
-                                value: target.value,
-                              });
-                            }}
-                            placeholderText="Custom Disclaimer Text..."
-                            value={formData.pendingFormData.contentDisclaimer}
-                            readOnly={formState === 'read'}
-                          />
-                          <div className="disclaimer-instructions">
-                            **<strong>bold</strong>**, _<i>italics</i>_, ### <strong>Section Header</strong>
-                          </div>
-                        </>
-                      )
-                  }
-                </FormFlexContainer>
-              </FormSectionRow>
-            </FormSection>
-            <FormSection title="Internal Notes (Not Shown To End Users)">
-              <FormSectionRow>
-                <FormFlexContainer flexPhone={12}>
-                  <TextAreaInput
-                    error={formData.formErrors.contentNotes}
-                    label="Notes"
-                    name="contentDisclaimer"
-                    onBlur={() => false}
-                    onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
-                      this.props.setPublishingFormTextInputValue({
-                        inputName: 'contentNotes',
-                        value: target.value,
-                      });
-                    }}
-                    placeholderText="Notes..."
-                    value={formData.pendingFormData.contentNotes}
-                    readOnly={formState === 'read'}
-                  />
-                </FormFlexContainer>
-              </FormSectionRow>
-            </FormSection>
             {
-              formState === 'write' && (this.props.formChangesPending || this.props.uploadChangesPending) &&
-              <div className="button-container">
-                <button
-                  className="link-button"
-                  type="button"
-                  onClick={(event: any) => {
-                    event.preventDefault();
-                    this.props.openModifiedFormModal({
-                      afterFormModal:
-                      {
-                        entityToSelect: null,
-                        entityType: 'Undo Changes',
-                      },
-                    });
-                  }}
-                >
-                  Undo Changes
-                </button>
-                <button
-                  type="button"
-                  className={`green-button${this.props.formCanSubmit ? '' : ' disabled'}`}
-                  disabled={!this.props.formCanSubmit}
-                  onClick={(event: React.MouseEvent) => {
-                    event.preventDefault();
-                    if (!formData.pendingFormData.id) {
-                      this.props.createNewContentItem(this.props.contentItemForPublication);
-                    } else {
-                      if (this.props.formChangesPending) {
-                        this.props.updateContentItem(this.props.contentItemForPublication);
-                      }
-                      if (this.props.uploadChangesPending) {
-                        this.props.publishContentFiles(this.props.filesForPublishing);
-                      }
+              (formData.formState !== 'read'
+                || (
+                  formData.pendingFormData.contentDescription &&
+                  formData.pendingFormData.contentDescription.length > 0
+                )
+              ) &&
+              <FormSection title="Content Description">
+                <FormSectionRow>
+                  <FormFlexContainer flexPhone={12}>
+                    <TextAreaInput
+                      error={formData.formErrors.contentDescription}
+                      label="Content Description"
+                      name="contentDescription"
+                      onBlur={() => false}
+                      onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                        this.props.setPublishingFormTextInputValue({
+                          inputName: 'contentDescription',
+                          value: target.value,
+                        });
+                      }}
+                      placeholderText="Content Description..."
+                      value={formData.pendingFormData.contentDescription}
+                      readOnly={formState === 'read'}
+                    />
+                  </FormFlexContainer>
+                </FormSectionRow>
+              </FormSection>
+            }
+            {
+              (formData.formState !== 'read'
+                || (
+                  formData.pendingFormData.contentDisclaimer &&
+                  formData.pendingFormData.contentDisclaimer.length > 0
+                )
+              ) &&
+              <FormSection title="Custom Content Disclaimer">
+                <FormSectionRow>
+                  <FormFlexContainer flexPhone={12}>
+                    {
+                      formData.formState === 'write' &&
+                      <TabRow
+                        tabs={[{ id: 'edit', label: 'Edit' }, { id: 'preview', label: 'Preview' }]}
+                        selectedTab={formData.disclaimerInputState}
+                        onTabSelect={(tab: 'edit' | 'preview') => this.props.setDisclaimerInputState({value: tab})}
+                        fullWidth={true}
+                      />
                     }
-                  }}
-                >
-                  {`${formData.pendingFormData.id ? 'Update' : 'Create'} Content Item`}
-                  {this.props.pending.data.formSubmit
-                    ? <ButtonSpinner version="circle" />
-                    : null
-                  }
-                </button>
-              </div>
+                    {
+                      formData.disclaimerInputState === 'preview' || formData.formState === 'read'
+                        ? (
+                          <div
+                            className={`disclaimer-preview${formData.formState === 'read' ? ' disabled' : ''}`}
+                            dangerouslySetInnerHTML={{
+                              __html: convertMarkdownToHTML(formData.pendingFormData.contentDisclaimer),
+                            }}
+                          />
+                        ) : (
+                          <>
+                            <TextAreaInput
+                              error={formData.formErrors.contentDisclaimer}
+                              label="Custom Disclaimer Text"
+                              name="contentDisclaimer"
+                              onBlur={() => false}
+                              onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                                this.props.setPublishingFormTextInputValue({
+                                  inputName: 'contentDisclaimer',
+                                  value: target.value,
+                                });
+                              }}
+                              placeholderText="Custom Disclaimer Text..."
+                              value={formData.pendingFormData.contentDisclaimer}
+                              readOnly={formState === 'read'}
+                            />
+                            <div className="disclaimer-instructions">
+                              **<strong>bold</strong>**, _<i>italics</i>_, ### <strong>Section Header</strong>
+                            </div>
+                          </>
+                        )
+                    }
+                  </FormFlexContainer>
+                </FormSectionRow>
+              </FormSection>
+            }
+            {
+              (formData.formState !== 'read'
+                || (
+                  formData.pendingFormData.contentNotes &&
+                  formData.pendingFormData.contentNotes.length > 0
+                )
+              ) &&
+              <FormSection title="Internal Notes (Not Shown To End Users)">
+                <FormSectionRow>
+                  <FormFlexContainer flexPhone={12}>
+                    <TextAreaInput
+                      error={formData.formErrors.contentNotes}
+                      label="Notes"
+                      name="contentNotes"
+                      onBlur={() => false}
+                      onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                        this.props.setPublishingFormTextInputValue({
+                          inputName: 'contentNotes',
+                          value: target.value,
+                        });
+                      }}
+                      placeholderText="Notes..."
+                      value={formData.pendingFormData.contentNotes}
+                      readOnly={formState === 'read'}
+                    />
+                  </FormFlexContainer>
+                </FormSectionRow>
+              </FormSection>
             }
           </ContentPanelForm>
         </ContentPanelSectionContent>
+        {
+          formState === 'write' && (this.props.formChangesPending || this.props.uploadChangesPending) &&
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={(event: any) => {
+                event.preventDefault();
+                this.props.openModifiedFormModal({
+                  afterFormModal:
+                  {
+                    entityToSelect: null,
+                    entityType: 'Undo Changes',
+                  },
+                });
+              }}
+            >
+              Undo Changes
+            </button>
+            <button
+              type="button"
+              className={`green-button${this.props.formCanSubmit ? '' : ' disabled'}`}
+              disabled={!this.props.formCanSubmit}
+              onClick={(event: React.MouseEvent) => {
+                event.preventDefault();
+                if (!formData.pendingFormData.id) {
+                  this.props.createNewContentItem(this.props.contentItemForPublication);
+                } else {
+                  if (this.props.formChangesPending) {
+                    this.props.updateContentItem(this.props.contentItemForPublication);
+                  }
+                  if (this.props.uploadChangesPending) {
+                    this.props.publishContentFiles(this.props.filesForPublishing);
+                  }
+                }
+              }}
+            >
+              {`${formData.pendingFormData.id ? 'Update' : 'Create'} Content Item`}
+              {this.props.pending.data.formSubmit
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        }
       </ContentPanel>
     );
   }
@@ -1068,7 +1102,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         {(goLiveSummary.contentTypeName === 'FileDownload') ? (
           <div className="download-preview">
             <a href={goLiveSummary.masterContentLink} download={true}>
-              Click to Download
+              Download {goLiveSummary.rootContentName}
             </a>
           </div>
         ) : (

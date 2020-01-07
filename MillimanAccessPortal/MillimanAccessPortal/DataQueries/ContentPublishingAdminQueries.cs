@@ -101,59 +101,40 @@ namespace MillimanAccessPortal.DataQueries
             return returnObject;
         }
 
+        /// <summary>
+        /// The returned model is identical to the status model but with another property added.  
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="user"></param>
+        /// <param name="roleInRootContentItem"></param>
+        /// <returns></returns>
         internal RootContentItemsModel BuildRootContentItemsModel(Client client, ApplicationUser user, RoleEnum roleInRootContentItem)
         {
-            RootContentItemsModel model = new RootContentItemsModel();
+            var statusModel = SelectStatus(user, client.Id);
 
-            Claim memberOfThisClient = new Claim(ClaimNames.ClientMembership.ToString(), client.Id.ToString());
-            model.ClientStats = new
+            RootContentItemsModel model = new RootContentItemsModel
             {
-                code = client.ClientCode,
-                contentItemCount = _dbContext.UserRoleInRootContentItem
+                ContentItems = statusModel.ContentItems,
+                Publications = statusModel.Publications,
+                PublicationQueue = statusModel.PublicationQueue,
+                ClientStats = new
+                {
+                    code = client.ClientCode,
+                    contentItemCount = _dbContext.UserRoleInRootContentItem
                                             .Where(r => r.UserId == user.Id && r.Role.RoleEnum == roleInRootContentItem && r.RootContentItem.ClientId == client.Id)
                                             .Select(r => r.RootContentItemId)
                                             .Distinct()
                                             .Count(),
-                Id = client.Id.ToString(),
-                name = client.Name,
-                parentId = client.ParentClientId?.ToString(),
-                userCount = _dbContext.UserRoleInClient
+                    Id = client.Id.ToString(),
+                    name = client.Name,
+                    parentId = client.ParentClientId?.ToString(),
+                    userCount = _dbContext.UserRoleInClient
                                      .Where(r => r.UserId == user.Id && r.Role.RoleEnum == RoleEnum.ContentUser && r.ClientId == client.Id)
                                      .Select(r => r.UserId)
                                      .Distinct()
                                      .Count(),
+                },
             };
-
-            List<RootContentItem> rootContentItems = _dbContext.UserRoleInRootContentItem
-                .Where(urc => urc.RootContentItem.ClientId == client.Id)
-                .Where(urc => urc.UserId == user.Id)
-                .Where(urc => urc.Role.RoleEnum == roleInRootContentItem)
-                .OrderBy(urc => urc.RootContentItem.ContentName)
-                .Select(urc => urc.RootContentItem)
-                .AsEnumerable()
-                .Distinct(new IdPropertyComparer<RootContentItem>())
-                .ToList();
-            List<Guid> contentItemIds = rootContentItems.ConvertAll(c => c.Id);
-            foreach (var rootContentItem in rootContentItems)
-            {
-                var summary = RootContentItemNewSummary.Build(_dbContext, rootContentItem);
-                model.ContentItems.Add(rootContentItem.Id, summary);
-            }
-
-            model.PublicationQueue = PublicationQueueDetails.BuildQueueForClient(_dbContext, client);
-
-            var publications = _dbContext.ContentPublicationRequest
-                                          .Where(r => contentItemIds.Contains(r.RootContentItemId))
-                                          .GroupBy(r => r.RootContentItemId,
-                                                   (k, g) => g.OrderByDescending(r => r.CreateDateTimeUtc).FirstOrDefault()
-                                                  );
-
-            // This is required because a `resultSelector` (2nd expression argument) in GroupBy() can return any type, so no EF cache tracking
-            _dbContext.AttachRange(publications); // track in EF cache, including navigation properties
-            foreach (var pub in publications)
-            {
-                model.Publications.Add(pub.Id, (BasicPublication)pub);
-            }
 
             return model;
         }
@@ -267,6 +248,7 @@ namespace MillimanAccessPortal.DataQueries
 
             var publications = _dbContext.ContentPublicationRequest
                                           .Where(r => contentItemIds.Contains(r.RootContentItemId))
+                                          .Where(r => PublicationStatusExtensions.CurrentStatuses.Contains(r.RequestStatus))
                                           .GroupBy(r => r.RootContentItemId,
                                                    (k, g) => g.OrderByDescending(r => r.CreateDateTimeUtc).FirstOrDefault()
                                                   );
@@ -275,7 +257,15 @@ namespace MillimanAccessPortal.DataQueries
             _dbContext.AttachRange(publications); // track in EF cache, including navigation properties
             foreach (var pub in publications)
             {
-                model.Publications.Add(pub.Id, (BasicPublication)pub);
+                // If the content item has a live publication, only publications requested later than that should be returned
+                var livePublication = _dbContext.ContentPublicationRequest
+                                                .SingleOrDefault(r => r.RootContentItemId == pub.RootContentItemId
+                                                                   && r.RequestStatus == PublicationStatus.Confirmed);
+
+                if (livePublication == null || pub.CreateDateTimeUtc > livePublication.CreateDateTimeUtc)
+                {
+                    model.Publications.Add(pub.Id, (BasicPublication)pub);
+                }
             }
 
             return model;

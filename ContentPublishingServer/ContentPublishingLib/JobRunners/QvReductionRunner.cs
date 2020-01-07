@@ -184,6 +184,7 @@ namespace ContentPublishingLib.JobRunners
                 List<ReductionJobDetail.JobOutcomeReason> WarningStatusReasons = new List<ReductionJobDetail.JobOutcomeReason>
                 {
                     ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent,
+                    ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValues,
                 };
 
                 // JobDetail.Result.OutcomeReason is expected to be set where the exception is thrown

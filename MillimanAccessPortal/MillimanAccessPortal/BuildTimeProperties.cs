@@ -8,6 +8,6 @@ namespace MillimanAccessPortal
 {
     public static class BuildTimeProperties
     {
-        public static string CompilationYear { get { return "2019"; } }
+        public static string CompilationYear { get { return "2020"; } }
     }
 }

@@ -47,9 +47,14 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     {
         public static PublicationSummary ToSummaryWithQueueInformation(this ContentPublicationRequest publicationRequest, ApplicationDbContext dbContext)
         {
+            if (publicationRequest == null)
+            {
+                return null;
+            }
+
             var publicationSummary = (PublicationSummary)publicationRequest;
 
-            if (publicationRequest?.RequestStatus.IsCancelable() ?? false)
+            if (PublicationStatusExtensions.QueueWaitableStatusList.Contains(publicationRequest.RequestStatus))
             {
                 var precedingPublicationRequestCount = dbContext.ContentPublicationRequest
                     .Where(r => r.CreateDateTimeUtc < publicationRequest.CreateDateTimeUtc)

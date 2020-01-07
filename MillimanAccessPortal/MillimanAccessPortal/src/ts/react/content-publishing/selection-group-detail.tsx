@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import * as moment from 'moment';
+
 import { SelectionGroupSummary } from '../../view-models/content-publishing';
 import { HierarchyDiffs } from './hierarchy-diffs';
 
@@ -25,10 +27,20 @@ export class SelectionGroupDetails extends React.Component<SelectionGroupDetails
     const statusDetail = selectionGroup.isInactive
       ? <span className="inactive-status">INACTIVE</span>
       : <span className="active-status">ACTIVE</span>;
+    const duration = moment.duration(selectionGroup.duration);
+    const timeDisplay = ((hours, minutes, seconds) => (`
+        ${hours ? hours + ' hour' + (hours === 1 ? ' ' : 's ') : ''}
+        ${(hours || minutes) ? minutes + ' minute' + (minutes === 1 ? ' ' : 's ') : ''}
+        ${seconds + ' second' + (seconds === 1 ? ' ' : 's ')}
+      `))(duration.hours(), duration.minutes(), duration.seconds());
     return (
       <div className={`selection-group-detail${statusClass}`}>
         <h3>{selectionGroup.name}  {previewLink}</h3>
         <h4>Status:  {statusDetail}</h4>
+        {
+          selectionGroup.duration && (duration.hours() > 0 || duration.minutes() > 0 || duration.seconds() > 0) &&
+          <h4>Duration:  {timeDisplay}</h4>
+        }
         <h4>Authorized Users:</h4>
         <ul>
           {

@@ -415,6 +415,8 @@ const data = createReducer<AccessStateData>(_initialData, {
     const { liveSelectionsSet } = action.response;
     const groups = { ...state.groups };
     const items = { ...state.items };
+    const reductions = { ...action.response.reductions };
+
     _.forEach(liveSelectionsSet, (liveSelections, groupId) => {
       if (groups[groupId]) {
         groups[groupId].selectedValues = liveSelections;
@@ -436,6 +438,22 @@ const data = createReducer<AccessStateData>(_initialData, {
         };
       }
     });
+    _.forEach(reductions, (_reduction, reductionId) => {
+      if (action.response.reductions[reductionId]) {
+        reductions[reductionId] = {
+          selectedValues: (state.reductions[reductionId] !== undefined)
+            ? state.reductions[reductionId].selectedValues
+            : null,
+          contentPublicationRequestId: action.response.reductions[reductionId].contentPublicationRequestId,
+          applicationUser: action.response.reductions[reductionId].applicationUser,
+          createDateTimeUtc: action.response.reductions[reductionId].createDateTimeUtc,
+          id: action.response.reductions[reductionId].id,
+          selectionGroupId: action.response.reductions[reductionId].selectionGroupId,
+          taskStatus: action.response.reductions[reductionId].taskStatus,
+          taskStatusMessage: action.response.reductions[reductionId].taskStatusMessage,
+        };
+      }
+    });
 
     return {
       ...state,
@@ -443,7 +461,7 @@ const data = createReducer<AccessStateData>(_initialData, {
       items,
       publications: action.response.publications,
       publicationQueue: action.response.publicationQueue,
-      reductions: action.response.reductions,
+      reductions,
       reductionQueue: action.response.reductionQueue,
     };
   },

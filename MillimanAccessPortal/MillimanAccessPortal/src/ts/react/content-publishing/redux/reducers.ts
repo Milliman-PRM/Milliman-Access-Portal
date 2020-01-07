@@ -621,13 +621,27 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 
     return emptyContentItemFormData;
   },
-  SET_PENDING_TEXT_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormTextInputValue) => ({
-    ...state,
-    pendingFormData: {
-      ...state.pendingFormData,
-      [action.inputName]: action.value,
-    },
-  }),
+  SET_PENDING_TEXT_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormTextInputValue) => {
+    if (action.inputName === 'contentTypeId') {
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          doesReduce: false,
+          [action.inputName]: action.value,
+          typeSpecificDetailObject: emptyContentItemDetail.typeSpecificDetailObject,
+        },
+      };
+    } else {
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          [action.inputName]: action.value,
+        },
+      };
+    }
+  },
   SET_CONTENT_ITEM_FORM_STATE: (state, action: PublishingActions.SetContentItemFormState) => ({
     ...state,
     formState: action.formState,

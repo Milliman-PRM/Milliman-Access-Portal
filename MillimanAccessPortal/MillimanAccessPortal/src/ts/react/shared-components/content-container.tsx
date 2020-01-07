@@ -90,7 +90,7 @@ export class ContentContainer extends React.Component<ContentContainerProps, Con
     );
 
     return (
-      <div id="iframe-container">
+      <div className="iframe-container">
         {this.state.isLoading && <ColumnSpinner />}
         {this.props.children}
         {frame}

@@ -52,7 +52,7 @@ namespace MillimanAccessPortal.Services
             int recoveryLookbackHours = _appConfig.GetValue("TaskRecoveryLookbackHours", 24 * 7);
             DateTime minCreateDateTimeUtc = DateTime.UtcNow - TimeSpan.FromHours(recoveryLookbackHours);
 
-            string ContentItemRootPath = _appConfig.GetValue<string>("ContentItemRootPath");
+            string ContentItemRootPath = _appConfig.GetSection("Storage")["ContentItemRootPath"];
 
             using (var scope = _services.CreateScope())
             {

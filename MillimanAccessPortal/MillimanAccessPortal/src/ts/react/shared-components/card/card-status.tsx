@@ -1,3 +1,10 @@
+import '../../../../scss/react/shared-components/card.scss';
+
+import '../../../../images/icons/checkmark.svg';
+import '../../../../images/icons/error.svg';
+import '../../../../images/icons/expand-card.svg';
+import '../../../../images/icons/information.svg';
+
 import * as moment from 'moment';
 import * as React from 'react';
 import { toastr } from 'react-redux-toastr';
@@ -13,27 +20,35 @@ import {
 export interface CardStatusProps {
   status: PublicationWithQueueDetails | ReductionWithQueueDetails;
 }
+
 export class CardStatus extends React.Component<CardStatusProps> {
   public render() {
     const { status } = this.props;
     const [statusValue, isActive] = isPublicationRequest(status)
       ? [status.requestStatus, isPublicationActive(status.requestStatus)]
       : [status.taskStatus, isReductionActive(status.taskStatus)];
+    const taskStatusMessage = isReductionTask(status)
+      && (status.taskStatus === ReductionStatus.Warning
+        || status.taskStatus === ReductionStatus.Error)
+      && status.taskStatusMessage;
+
     return isActive
-      || (!isPublicationRequest(status) && status.taskStatus === ReductionStatus.Error)
+      || (!isPublicationRequest(status)
+      && (status.taskStatus === ReductionStatus.Error || status.taskStatus === ReductionStatus.Warning))
       || (isPublicationRequest(status) && status.requestStatus === PublicationStatus.Error)
       ? (
         <div
           className={`card-status-container status-${statusValue}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            if (isReductionTask(status) && status.taskStatus === ReductionStatus.Error && status.taskStatusMessage) {
-              toastr.error('', status.taskStatusMessage);
-            }
-          }}
         >
-          <div className="status-top">{this.renderStatusTitle()}</div>
-          <div className="status-bot">{this.renderStatusMessage()}</div>
+          <div className="status-top">
+            {this.renderStatusTitle()}
+          </div>
+          <div>
+            {this.renderReductionTaskStatus()}
+          </div>
+          <div className="status-bot">
+            {this.renderStatusMessage()}
+          </div>
         </div>
       )
       : null;
@@ -46,10 +61,10 @@ export class CardStatus extends React.Component<CardStatusProps> {
       : status.taskStatusName;
 
     return (
-      <>
+      <span className="status-name">
         {statusName}&nbsp;
         <span>{this.renderQueueString()}</span>
-      </>
+      </span>
     );
   }
 
@@ -82,14 +97,45 @@ export class CardStatus extends React.Component<CardStatusProps> {
       if (taskStatus === ReductionStatus.Queued) {
         const { queuePosition: position } = queueDetails;
         queueString = `(behind ${position} other reduction${s(position)})`;
-      } else if (taskStatus === ReductionStatus.Error) {
-        queueString = status.taskStatusMessage
-          ? '(click for details)'
-          : '';
       }
     }
 
     return queueString;
+  }
+
+  private renderReductionTaskStatus = () => {
+    const { status } = this.props;
+    if (isPublicationRequest(status)
+      && status.requestStatus === PublicationStatus.Error
+      && status.outcomeMetadata
+      && (status.outcomeMetadata.reductionTaskFailOutcomeList.length > 0
+      || status.outcomeMetadata.userMessage)
+    ) {
+      if (status.outcomeMetadata.reductionTaskFailOutcomeList.length > 0) {
+        return status.outcomeMetadata.reductionTaskFailOutcomeList.map((x) => (
+          <>
+            <span className="task-status-message">
+              {x.selectionGroupName
+                ? <>In Selection Group <strong>{x.selectionGroupName}</strong>: </>
+                : null
+              } {x.userMessage}
+            </span>
+            <br />
+          </>
+        ));
+      } else {
+        return <span className="task-status-message">{status.outcomeMetadata.userMessage}</span>;
+      }
+    } else if (isReductionTask(status)
+      && (status.taskStatus === ReductionStatus.Error
+      || status.taskStatus === ReductionStatus.Warning)
+      && status.taskStatusMessage) {
+      return (
+        <span className="task-status-message">{status.taskStatusMessage}</span>
+      );
+    } else {
+      return null;
+    }
   }
 
   private renderStatusMessage = () => {
@@ -100,7 +146,7 @@ export class CardStatus extends React.Component<CardStatusProps> {
     const when = moment(status.createDateTimeUtc);
 
     return (
-      <>
+      <span className="initiated-by">
         {initiatedBy}
         {
           user
@@ -110,7 +156,7 @@ export class CardStatus extends React.Component<CardStatusProps> {
         <span title={when.toLocaleString()}>
           {when.fromNow()}
         </span>
-      </>
+      </span>
     );
   }
 }
