@@ -143,9 +143,9 @@ namespace ContentPublishingLib.JobRunners
                         }
 
                         var FailedTasks = await Db.ContentReductionTask
-                                                   .Where(t => t.ContentPublicationRequestId == JobDetail.JobId)
-                                                   .Where(t => t.ReductionStatus == ReductionStatusEnum.Error)
-                                                   .ToListAsync();
+                                                  .Where(t => t.ContentPublicationRequestId == JobDetail.JobId
+                                                           && t.ReductionStatus == ReductionStatusEnum.Error)
+                                                  .ToListAsync();
                         if (FailedTasks.Any())
                         {
                             await CancelReductionTasks(QueuedTasks);
