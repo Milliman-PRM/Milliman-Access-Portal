@@ -368,7 +368,11 @@ namespace ContentPublishingLib.JobRunners
             finally
             {
                 // Clean up
-                FileSystemUtil.DeleteFileWithRetry(AncillaryScriptFilePath);
+                try
+                {
+                    FileSystemUtil.DeleteFileWithRetry(AncillaryScriptFilePath);
+                }
+                catch { }
             }
 
             #region Build hierarchy json output
@@ -422,7 +426,11 @@ namespace ContentPublishingLib.JobRunners
             }
             finally
             {
-                FileSystemUtil.DeleteFileWithRetry(ReductionSchemeFilePath);
+                try
+                {
+                    FileSystemUtil.DeleteFileWithRetry(ReductionSchemeFilePath);
+                }
+                catch { }
             }
             #endregion
 
