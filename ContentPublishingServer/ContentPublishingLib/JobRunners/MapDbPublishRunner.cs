@@ -128,15 +128,15 @@ namespace ContentPublishingLib.JobRunners
                 {
                     using (ApplicationDbContext Db = GetDbContext())
                     {
-                        var QueuedTasks = Db.ContentReductionTask
-                                            .Include(t => t.SelectionGroup)
-                                            .Where(t => t.ContentPublicationRequestId == JobDetail.JobId)
-                                            .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
-                                            .ToList();
+                        var cancelableTasks = Db.ContentReductionTask
+                                                .Include(t => t.SelectionGroup)
+                                                .Where(t => t.ContentPublicationRequestId == JobDetail.JobId)
+                                                .Where(t => ReductionStatusExtensions.cancelableStatusList.Contains(t.ReductionStatus))
+                                                .ToList();
 
                         if (DateTime.UtcNow > StartUtc + timeLimit)
                         {
-                            await CancelReductionTasks(QueuedTasks);
+                            await CancelReductionTasks(cancelableTasks);
 
                             // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
                             throw new ApplicationException($"Publication {JobDetail.JobId} timed out waiting for {PendingTaskCount} pending reduction tasks");
@@ -148,7 +148,7 @@ namespace ContentPublishingLib.JobRunners
                                                   .ToListAsync();
                         if (FailedTasks.Any())
                         {
-                            await CancelReductionTasks(QueuedTasks);
+                            await CancelReductionTasks(cancelableTasks);
 
                             // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
                             throw new ApplicationException($"Terminating publication {JobDetail.JobId} due to reduction task(s) with Error status: {string.Join(", ", FailedTasks.Select(t => t.Id.ToString()))}");
@@ -314,6 +314,7 @@ namespace ContentPublishingLib.JobRunners
                                 ? t.SelectionGroup.GroupName 
                                 : default,
                         };
+                        Log.Information($"Task {t.Id} canceled programatically in MapDbPublishRunner");
                     });
                     Db.ContentReductionTask.UpdateRange(TasksToCancel);
                     await Db.SaveChangesAsync();
