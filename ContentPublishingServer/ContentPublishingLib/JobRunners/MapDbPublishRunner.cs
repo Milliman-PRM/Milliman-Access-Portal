@@ -304,7 +304,9 @@ namespace ContentPublishingLib.JobRunners
                 {
                     foreach (Guid id in TaskIdsToCancel)
                     {
-                        ContentReductionTask taskToCancel = await Db.ContentReductionTask.SingleOrDefaultAsync(t => t.Id == id);
+                        ContentReductionTask taskToCancel = await Db.ContentReductionTask
+                                                                    .Include(t => t.SelectionGroup)
+                                                                    .SingleOrDefaultAsync(t => t.Id == id);
 
                         taskToCancel.ReductionStatus = ReductionStatusEnum.Canceled;
                         taskToCancel.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
