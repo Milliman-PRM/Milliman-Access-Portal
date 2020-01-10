@@ -46,6 +46,9 @@ namespace MapDbContextLib.Models
 
         [Display(Description = "The reduction task timed out. Please retry the request and contact support if the problem persists")]
         ReductionTimeout = 105,
+
+        [Display(Description = "The content hierarchy failed to export from the content file or could not be interpreted")]
+        HierarchyExtractionFailed = 106,
     }
     public static class MapDbReductionTaskOutcomeReasonExtensions
     {

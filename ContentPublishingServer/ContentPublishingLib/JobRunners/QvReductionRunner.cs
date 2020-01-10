@@ -91,7 +91,6 @@ namespace ContentPublishingLib.JobRunners
 
             _CancellationToken = cancellationToken;
 
-            MethodBase Method = MethodBase.GetCurrentMethod();
             object DetailObj;
 
             ReductionJobActionEnum[] SupportedJobActions = new ReductionJobActionEnum[] 
@@ -176,11 +175,14 @@ namespace ContentPublishingLib.JobRunners
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Canceled;
                 JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.Canceled;
                 Log.Warning(e, $"Operation Cancelled in QvReductionRunner");
-                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
+                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in QvReductionRunner", true, true);
                 AuditLog.Log(AuditEventType.ContentReductionTaskCanceled.ToEvent(new { ReductionTaskId = JobDetail.TaskId }));
             }
             catch (ApplicationException e)
             {
+                // JobDetail.Result.OutcomeReason should be set where the problem occurs before throwing to here
+                // Any security related audit logs are generated at the time ApplicationException is thrown, where appropriate.  Don't repeat that here. 
+
                 List<ReductionJobDetail.JobOutcomeReason> WarningStatusReasons = new List<ReductionJobDetail.JobOutcomeReason>
                 {
                     ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent,
@@ -198,14 +200,13 @@ namespace ContentPublishingLib.JobRunners
                 }
 
                 Log.Warning(e, $"ApplicationException in QvReductionRunner");
-                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
-                // Security related audit logs are generated at the time ApplicationException is thrown, where appropriate.  Don't repeat that here. 
+                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in QvReductionRunner", true, true);
             }
             catch (System.Exception e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
                 Log.Error(e, "System.Exception in QvReductionRunner");
-                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
+                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in QvReductionRunner", true, true);
                 DetailObj = new
                 {
                     ReductionJobId = JobDetail.TaskId.ToString(),
@@ -415,14 +416,17 @@ namespace ContentPublishingLib.JobRunners
             }
             catch (System.Exception e)
             {
-                Log.Error(e, $"Error converting file {ReductionSchemeFilePath} to json output");
+                JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.HierarchyExtractionFailed;
+                string errMsg = $"Failed to extract content reduction hierarchy, error converting file {ReductionSchemeFilePath} to json output{Environment.NewLine}{e.Message}";
+                Log.Error(e, errMsg);
 
                 object DetailObj = new {
                     ReductionJobId = JobDetail.TaskId.ToString(),
-                    ExceptionMessage = e.Message,
+                    ProblemDetail = errMsg,
                 };
                 AuditLog.Log(AuditEventType.HierarchyExtractionFailed.ToEvent(DetailObj));
-                throw;
+
+                throw new ApplicationException(errMsg);
             }
             finally
             {

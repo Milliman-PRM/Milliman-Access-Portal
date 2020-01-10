@@ -136,7 +136,7 @@ namespace ContentPublishingLib.JobRunners
 
                         if (DateTime.UtcNow > StartUtc + timeLimit)
                         {
-                            await CancelReductionTasks(cancelableTasks.Select(t => t.Id));
+                            await CancelReductionTasks(cancelableTasks.Select(t => t.Id), $"Processing of the publication was canceled because the time limit of {timeLimit} was exceeded.");
 
                             // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
                             throw new ApplicationException($"Publication {JobDetail.JobId} timed out waiting for {PendingTaskCount} pending reduction tasks");
@@ -148,7 +148,7 @@ namespace ContentPublishingLib.JobRunners
                                                   .ToListAsync();
                         if (FailedTasks.Any())
                         {
-                            await CancelReductionTasks(cancelableTasks.Select(t => t.Id));
+                            await CancelReductionTasks(cancelableTasks.Select(t => t.Id), "This reduction was canceled due to an unrecoverable error in another reduction of the same publication");
 
                             // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
                             throw new ApplicationException($"Terminating publication {JobDetail.JobId} due to reduction task(s) with Error status: {string.Join(", ", FailedTasks.Select(t => t.Id.ToString()))}");
@@ -281,7 +281,7 @@ namespace ContentPublishingLib.JobRunners
 
                 if (_CancellationToken.IsCancellationRequested || RequestStatus == PublicationStatus.Canceled)
                 {
-                    await CancelReductionTasks(AllRelatedReductionTasks.Select(t => t.Id));
+                    await CancelReductionTasks(AllRelatedReductionTasks.Select(t => t.Id), "This reduction was canceled because the overall publication was canceled");
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
                     _CancellationToken.ThrowIfCancellationRequested();
                 }
@@ -296,7 +296,7 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="TasksToCancel"></param>
         /// <returns></returns>
-        private async Task<bool> CancelReductionTasks(IEnumerable<Guid> TaskIdsToCancel)
+        private async Task<bool> CancelReductionTasks(IEnumerable<Guid> TaskIdsToCancel, string userMessage)
         {
             using (ApplicationDbContext Db = GetDbContext())
             {
@@ -312,6 +312,7 @@ namespace ContentPublishingLib.JobRunners
                             OutcomeReason = MapDbReductionTaskOutcomeReason.Canceled,
                             ReductionTaskId = taskToCancel.Id,
                             SupportMessage = "Canceled programatically in MapDbPublishRunner",
+                            UserMessage = userMessage,
                             SelectionGroupName = taskToCancel.SelectionGroup != null 
                                 ? taskToCancel.SelectionGroup.GroupName 
                                 : default,
