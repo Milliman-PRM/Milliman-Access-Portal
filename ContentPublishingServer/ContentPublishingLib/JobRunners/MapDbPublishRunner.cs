@@ -136,7 +136,7 @@ namespace ContentPublishingLib.JobRunners
 
                         if (DateTime.UtcNow > StartUtc + timeLimit)
                         {
-                            await CancelReductionTasks(cancelableTasks);
+                            await CancelReductionTasks(cancelableTasks.Select(t => t.Id));
 
                             // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
                             throw new ApplicationException($"Publication {JobDetail.JobId} timed out waiting for {PendingTaskCount} pending reduction tasks");
@@ -148,7 +148,7 @@ namespace ContentPublishingLib.JobRunners
                                                   .ToListAsync();
                         if (FailedTasks.Any())
                         {
-                            await CancelReductionTasks(cancelableTasks);
+                            await CancelReductionTasks(cancelableTasks.Select(t => t.Id));
 
                             // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
                             throw new ApplicationException($"Terminating publication {JobDetail.JobId} due to reduction task(s) with Error status: {string.Join(", ", FailedTasks.Select(t => t.Id.ToString()))}");
@@ -281,7 +281,7 @@ namespace ContentPublishingLib.JobRunners
 
                 if (_CancellationToken.IsCancellationRequested || RequestStatus == PublicationStatus.Canceled)
                 {
-                    await CancelReductionTasks(AllRelatedReductionTasks);
+                    await CancelReductionTasks(AllRelatedReductionTasks.Select(t => t.Id));
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
                     _CancellationToken.ThrowIfCancellationRequested();
                 }
@@ -296,31 +296,32 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="TasksToCancel"></param>
         /// <returns></returns>
-        private async Task<bool> CancelReductionTasks(List<ContentReductionTask> TasksToCancel)
+        private async Task<bool> CancelReductionTasks(IEnumerable<Guid> TaskIdsToCancel)
         {
             using (ApplicationDbContext Db = GetDbContext())
             {
                 try
                 {
-                    TasksToCancel.ForEach(t =>
+                    foreach (Guid id in TaskIdsToCancel)
                     {
-                        t.ReductionStatus = ReductionStatusEnum.Canceled;
-                        t.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                        ContentReductionTask taskToCancel = await Db.ContentReductionTask.SingleOrDefaultAsync(t => t.Id == id);
+
+                        taskToCancel.ReductionStatus = ReductionStatusEnum.Canceled;
+                        taskToCancel.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
                         {
                             OutcomeReason = MapDbReductionTaskOutcomeReason.Canceled,
-                            ReductionTaskId = t.Id,
+                            ReductionTaskId = taskToCancel.Id,
                             SupportMessage = "Canceled programatically in MapDbPublishRunner",
-                            SelectionGroupName = t.SelectionGroup != null 
-                                ? t.SelectionGroup.GroupName 
+                            SelectionGroupName = taskToCancel.SelectionGroup != null 
+                                ? taskToCancel.SelectionGroup.GroupName 
                                 : default,
                         };
-                        Log.Information($"Task {t.Id} canceled programatically in MapDbPublishRunner");
-                    });
-                    Db.ContentReductionTask.UpdateRange(TasksToCancel);
+                        Log.Information($"Canceling reduction task {id} programatically in MapDbPublishRunner");
+                    };
                     await Db.SaveChangesAsync();
                     return true;
                 }
-                catch
+                catch (Exception ex)
                 {
                     return false;
                 }
