@@ -350,6 +350,9 @@ namespace ContentPublishingLib.JobMonitors
                                 case ReductionJobDetail.JobOutcomeReason.ReductionProcessingTimeout:
                                     OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.ReductionTimeout;
                                     break;
+                                case ReductionJobDetail.JobOutcomeReason.HierarchyExtractionFailed:
+                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.HierarchyExtractionFailed;
+                                    break;
                             }
                             break;
                         case ReductionJobDetail.JobStatusEnum.Success:

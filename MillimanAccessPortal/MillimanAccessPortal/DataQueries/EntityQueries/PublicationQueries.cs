@@ -171,7 +171,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     queueDetails.Add(new ReductionQueueDetails
                     {
                         ReductionId = reductionId,
-                        QueuePosition = precedingReductionTaskCount + 1,
+                        QueuePosition = precedingReductionTaskCount,
                     });
                 }
             }

@@ -102,7 +102,6 @@ namespace ContentPublishingLib.JobRunners
         public async Task<PublishJobDetail> Execute(CancellationToken cancellationToken)
         {
             long limitTicksPerReductionTask = new TimeSpan(0, 10, 0).Ticks;
-            MethodBase Method = MethodBase.GetCurrentMethod();
 
             JobDetail.Result.StartDateTime = DateTime.UtcNow;
             DateTime StartUtc = DateTime.UtcNow;
@@ -127,18 +126,33 @@ namespace ContentPublishingLib.JobRunners
                 // Wait for any/all related reduction tasks to complete
                 for ( ; PendingTaskCount > 0; PendingTaskCount = await CountPendingReductionTasks())
                 {
-                    if (DateTime.UtcNow > StartUtc + timeLimit)
+                    using (ApplicationDbContext Db = GetDbContext())
                     {
-                        using (ApplicationDbContext Db = GetDbContext())
+                        var cancelableTasks = Db.ContentReductionTask
+                                                .Include(t => t.SelectionGroup)
+                                                .Where(t => t.ContentPublicationRequestId == JobDetail.JobId)
+                                                .Where(t => ReductionStatusExtensions.cancelableStatusList.Contains(t.ReductionStatus))
+                                                .ToList();
+
+                        if (DateTime.UtcNow > StartUtc + timeLimit)
                         {
-                            var QueuedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId)
-                                                                     .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
-                                                                     .ToList();
-                            await CancelReductionTasks(QueuedTasks);
+                            await CancelReductionTasks(cancelableTasks.Select(t => t.Id), $"Processing of the publication was canceled because the time limit of {timeLimit} was exceeded.");
+
+                            // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
+                            throw new ApplicationException($"Publication {JobDetail.JobId} timed out waiting for {PendingTaskCount} pending reduction tasks");
                         }
 
-                        // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
-                        throw new ApplicationException($"{Method.DeclaringType.Name}.{Method.Name} timed out waiting for {PendingTaskCount} pending reduction tasks");
+                        var FailedTasks = await Db.ContentReductionTask
+                                                  .Where(t => t.ContentPublicationRequestId == JobDetail.JobId
+                                                           && t.ReductionStatus == ReductionStatusEnum.Error)
+                                                  .ToListAsync();
+                        if (FailedTasks.Any())
+                        {
+                            await CancelReductionTasks(cancelableTasks.Select(t => t.Id), "This reduction was canceled due to an unrecoverable error in another reduction of the same publication");
+
+                            // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
+                            throw new ApplicationException($"Terminating publication {JobDetail.JobId} due to reduction task(s) with Error status: {string.Join(", ", FailedTasks.Select(t => t.Id.ToString()))}");
+                        }
                     }
 
                     Thread.Sleep(1000);
@@ -157,8 +171,8 @@ namespace ContentPublishingLib.JobRunners
                 {
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 }
-                else if (AllRelatedReductionTasks.Any()
-                    && AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Canceled))
+                else if (AllRelatedReductionTasks.Any() &&
+                         AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Canceled))
                 {
                     // If a publication timeout happens queued tasks are canceled but we won't get here because that also throws ApplicationException
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
@@ -211,10 +225,9 @@ namespace ContentPublishingLib.JobRunners
             }
             catch (Exception e)
             {
-                string msg = GlobalFunctions.LoggableExceptionString(e);
-                Log.Error(e, $"Exception from MapDbPublishRunner");
+                Log.Error(e, $"Exception from MapDbPublishRunner.Execute()");
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
-                JobDetail.Result.StatusMessage = msg;
+                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e);
             }
             finally
             {
@@ -268,7 +281,7 @@ namespace ContentPublishingLib.JobRunners
 
                 if (_CancellationToken.IsCancellationRequested || RequestStatus == PublicationStatus.Canceled)
                 {
-                    await CancelReductionTasks(AllRelatedReductionTasks);
+                    await CancelReductionTasks(AllRelatedReductionTasks.Select(t => t.Id), "This reduction was canceled because the overall publication was canceled");
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
                     _CancellationToken.ThrowIfCancellationRequested();
                 }
@@ -283,26 +296,35 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="TasksToCancel"></param>
         /// <returns></returns>
-        private async Task<bool> CancelReductionTasks(List<ContentReductionTask> TasksToCancel)
+        private async Task<bool> CancelReductionTasks(IEnumerable<Guid> TaskIdsToCancel, string userMessage)
         {
             using (ApplicationDbContext Db = GetDbContext())
             {
                 try
                 {
-                    TasksToCancel.ForEach(t =>
+                    foreach (Guid id in TaskIdsToCancel)
                     {
-                        t.ReductionStatus = ReductionStatusEnum.Canceled;
-                        t.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                        ContentReductionTask taskToCancel = await Db.ContentReductionTask
+                                                                    .Include(t => t.SelectionGroup)
+                                                                    .SingleOrDefaultAsync(t => t.Id == id);
+
+                        taskToCancel.ReductionStatus = ReductionStatusEnum.Canceled;
+                        taskToCancel.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
                         {
                             OutcomeReason = MapDbReductionTaskOutcomeReason.Canceled,
-                            ReductionTaskId = t.Id,
+                            ReductionTaskId = taskToCancel.Id,
+                            SupportMessage = "Canceled programatically in MapDbPublishRunner",
+                            UserMessage = userMessage,
+                            SelectionGroupName = taskToCancel.SelectionGroup != null 
+                                ? taskToCancel.SelectionGroup.GroupName 
+                                : default,
                         };
-                    });
-                    Db.ContentReductionTask.UpdateRange(TasksToCancel);
+                        Log.Information($"Canceling reduction task {id} programatically in MapDbPublishRunner");
+                    };
                     await Db.SaveChangesAsync();
                     return true;
                 }
-                catch
+                catch (Exception ex)
                 {
                     return false;
                 }
