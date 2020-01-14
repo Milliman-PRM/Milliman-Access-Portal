@@ -731,9 +731,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         ? contentTypes[formData.pendingFormData.contentTypeId].fileExtensions
                         : []
                     }
-                    label="Content File"
+                    label="File"
                     name="masterContent"
-                    placeholderText="Content File *"
+                    placeholderText="File *"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={(uploadId) =>
