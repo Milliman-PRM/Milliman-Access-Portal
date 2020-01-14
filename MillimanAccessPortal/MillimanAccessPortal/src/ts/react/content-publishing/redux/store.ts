@@ -77,7 +77,7 @@ export interface AfterFormModal {
   | 'Select Client'
   | 'Select Content Item'
   | 'Delete Content Item'
-  | 'Edit Content Item'
+  | 'Update Content Item'
   | 'New Content Item'
   | 'Undo Changes'
   | 'Go Live Summary';
