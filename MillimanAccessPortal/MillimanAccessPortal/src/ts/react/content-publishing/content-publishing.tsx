@@ -778,6 +778,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       value: status,
                     })}
                     readOnly={formState === 'read' || formData.originalFormData.id.length > 0}
+                    hoverText="This can only be changed on the initial publication of this content item"
                   />
                 }
                 {
