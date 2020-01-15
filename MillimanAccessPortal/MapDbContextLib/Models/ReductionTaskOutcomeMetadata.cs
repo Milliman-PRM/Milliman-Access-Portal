@@ -20,7 +20,7 @@ namespace MapDbContextLib.Models
         [Display(Description = "This reduction completed successfully")]
         Success = 10,
 
-        [Display(Description = "This unreduced file has been successfully assigned to this selection group")]
+        [Display(Description = "This selection group has been granted unrestricted access to the content item")]
         MasterHierarchyAssigned = 11,
 
         [Display(Description = "This reduction was canceled")]
