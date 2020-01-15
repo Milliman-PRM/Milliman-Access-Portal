@@ -41,7 +41,7 @@ namespace MapDbContextLib.Context
         [Display(Description = "This publication is post-processing")]
         PostProcessing = 27,
 
-        [Display(Description = "This publication is ready for pre-live summary")]
+        [Display(Description = "This publication is ready for review")]
         Processed = 30,
 
         [Display(Description = "This publication is going live")]
@@ -50,10 +50,10 @@ namespace MapDbContextLib.Context
         [Display(Description = "This publication is live")]
         Confirmed = 40,
 
-        [Display(Description = "This publication was live and has been replaced by a more recent publication")]
+        [Display(Description = "This publication has been replaced by a more recent publication")]
         Replaced = 50,
 
-        [Display(Description = "This publication encountered an error during processing that prevents further use")]
+        [Display(Description = "This publication encountered an error during processing")]
         Error = 90,
     }
 
