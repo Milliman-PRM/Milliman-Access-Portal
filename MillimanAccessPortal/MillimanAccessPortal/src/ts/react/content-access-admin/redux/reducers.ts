@@ -289,7 +289,6 @@ const pendingSelections = createReducer<Dict<{ selected?: boolean }>>({}, {
     });
     return state;
   },
-  UPDATE_SELECTIONS_SUCCEEDED: (state) => _.mapValues(state, () => ({})),
   CANCEL_REDUCTION_SUCCEEDED: (state) => _.mapValues(state, () => ({})),
 });
 const pendingNewGroupName = createReducer<string>('', {
