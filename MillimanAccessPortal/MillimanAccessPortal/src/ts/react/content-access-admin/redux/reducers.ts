@@ -229,6 +229,10 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     updateSelections: false,
   }),
+  SELECT_GROUP: (state) => ({
+    ...state,
+    updateSelections: false,
+  }),
   CANCEL_REDUCTION: (state) => ({
     ...state,
     cancelReduction: true,
