@@ -133,6 +133,10 @@
             background-color: $off-white !important;
         }
 
+        &.thumbnail img.thumbnail-preview {
+            cursor: default;
+        }
+
         .form-input-label,
         .form-input {
             color: $grey !important;
