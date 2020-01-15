@@ -18,6 +18,7 @@ export interface SelectionsPanelProps {
   isModified: boolean;
   isValuesModified: boolean;
   isMaster: boolean;
+  isSubmitting: boolean;
   onIsMasterChange: (value: boolean) => void;
   title: string;
   subtitle: string;
@@ -149,11 +150,11 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderReductionFields() {
-    const { fieldsets, status, itemStatus } = this.props;
+    const { fieldsets, status, isSubmitting, itemStatus } = this.props;
     return fieldsets.map((fieldset) => (
       <Fieldset
         key={fieldset.name}
-        readOnly={isReductionActive(status) || isPublicationActive(itemStatus)}
+        readOnly={isSubmitting || isReductionActive(status) || isPublicationActive(itemStatus)}
         {...fieldset}
       />
     ));
