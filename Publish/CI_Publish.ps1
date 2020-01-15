@@ -129,7 +129,7 @@ $runTests = $env:RunTests -ne "False"
 mkdir -p ${rootPath}\_test_results
 #endregion
 
-rm ${rootPath}\MillimanAccessPortal\.yarnrc
+rm ${rootPath}\MillimanAccessPortal\MillimanAccessPortal\.yarnrc
 
 #region Exit if only notes have changed within the current branch (comparing against develop)
 # if we're not building in "Release" mode
