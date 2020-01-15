@@ -7,5 +7,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public Guid RootContentItemId { get; set; }
         public Guid PublicationRequestId { get; set; }
         public string ValidationSummaryId { get; set; }
+        public string UserName { get; set; }
     }
 }

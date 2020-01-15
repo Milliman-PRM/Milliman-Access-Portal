@@ -625,7 +625,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 "In ContentPublishingController.GoLive action: " +
                 $"publication request {publicationRequest.Id} success");
             auditLogger.Log(AuditEventType.ContentPublicationGoLive.ToEvent(
-                publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest, goLiveViewModel.ValidationSummaryId));
+                publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest, goLiveViewModel.ValidationSummaryId), goLiveViewModel.UserName);
 
             // 4 Clean up
             // 4.1 Delete all temporarily backed up production files
