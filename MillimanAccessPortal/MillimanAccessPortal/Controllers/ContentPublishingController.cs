@@ -844,7 +844,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GoLive([FromBody] GoLiveViewModel goLiveViewModel)
+        public async Task<IActionResult> GoLive([FromBody][Bind("RootContentItemId", "PublicationRequestId", "ValidationSummaryId")] GoLiveViewModel goLiveViewModel)
         {
             Log.Verbose(
                 "Entered ContentPublishingController.GoLive action with model {@GoLiveViewModel}",
@@ -866,6 +866,8 @@ namespace MillimanAccessPortal.Controllers
                 return Unauthorized();
             }
             #endregion
+
+            goLiveViewModel.UserName = User.Identity.Name;
 
             #region Validation
             var publicationRequest = _dbContext.ContentPublicationRequest
@@ -1001,7 +1003,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Reject([FromBody] GoLiveViewModel goLiveViewModel)
+        public async Task<IActionResult> Reject([FromBody][Bind("RootContentItemId", "PublicationRequestId", "ValidationSummaryId")] GoLiveViewModel goLiveViewModel)
         {
             Log.Verbose($"Entered ContentPublishingController.Reject action with content item {goLiveViewModel.RootContentItemId}, publication request {goLiveViewModel.PublicationRequestId}");
 
