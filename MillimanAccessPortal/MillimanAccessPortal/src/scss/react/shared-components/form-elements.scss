@@ -245,17 +245,21 @@
             background-color: $white;
             margin: 0;
 
-            textarea.form-input {
-                resize: none;
-            }
-            
             input.form-input,
-            textarea.form-input,
             select.form-input {
                 position: absolute;
                 top: 0;
                 left: 0;
                 height: 100%;
+            }
+
+            textarea.form-input {
+                position: relative;
+            }
+            
+            input.form-input,
+            textarea.form-input,
+            select.form-input {
                 width: 100%;
                 font-size: 1.25rem;
                 border: none;
@@ -320,10 +324,6 @@
     .form-element-input,
     .form-element-select {
         height: 3.5rem;
-    }
-
-    .form-element-textarea {
-        min-height: 10rem;
     }
 }
 
