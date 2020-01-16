@@ -4,33 +4,38 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Prm.SerilogCustomization;
+using Serilog;
 using System;
 using System.Diagnostics;
-//using System.Configuration;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 using System.Windows.Forms;
-using System.IO;
 using ContentPublishingLib;
 
 namespace QvReportReductionGui
 {
     public partial class Form1 : Form
     {
-        private TextWriterTraceListener CurrentTraceListener = null;
+        //private TextWriterTraceListener CurrentTraceListener = null;
         ProcessManager Manager = null;
 
         public Form1()
         {
-            DateTime StartDateTime = DateTime.UtcNow;
-            CurrentTraceListener = new TextWriterTraceListener("QvReportReductionGui_Trace_" + StartDateTime.ToString("yyyyMMdd-HHmmss") + ".txt");
-            Trace.Listeners.Add(CurrentTraceListener);
-            Trace.AutoFlush = true;
+            Assembly processAssembly = Assembly.GetEntryAssembly();
+            FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
+            string introMsg = $"Process launched:{Environment.NewLine}" +
+                              $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
+                              $"\tAssembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
+                              $"\tAssembly location <{processAssembly.Location}>{Environment.NewLine}" +
+                              $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}";
+
+            Configuration.LoadConfiguration();
+
+            Log.Logger = new LoggerConfiguration()
+                    .ReadFrom.Configuration(Configuration.ApplicationConfiguration)
+                    .Enrich.With<UtcTimestampEnricher>()
+                    .CreateLogger();
+            Log.Information(introMsg);
 
             InitializeComponent();
 
@@ -40,8 +45,6 @@ namespace QvReportReductionGui
 
         private void ButtonInitiateLoop_Click(object sender, EventArgs e)
         {
-            Configuration.LoadConfiguration();
-
             if (Manager == null || !Manager.AnyMonitorThreadRunning)
             {
                 Manager = new ProcessManager();

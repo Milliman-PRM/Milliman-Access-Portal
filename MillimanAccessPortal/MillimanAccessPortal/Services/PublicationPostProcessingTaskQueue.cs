@@ -29,7 +29,6 @@ namespace MillimanAccessPortal.Services
             _publicationRequestIdQueue.Enqueue(publicationRequestId);
             int initialCount = _signal.CurrentCount;
             _signal.Release();
-            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"PublicationPostProcessingTaskQueue.QueuePublicationPostProcess: queue has enqueued publication Id <{publicationRequestId}> and signaled semaphore, semaphore count {_signal.CurrentCount}, was {initialCount}");
         }
 
         /// <summary>
@@ -44,18 +43,15 @@ namespace MillimanAccessPortal.Services
 
             if (! await _signal.WaitAsync(timeoutMs, cancellationToken))
             {
-                GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"PublicationPostProcessingTaskQueue.DequeueAsync: _signal.WaitAsync returned false, semaphore count {_signal.CurrentCount}, was {initialCount}, invalid Guid.Empty will be returned from the queue");
                 return Guid.Empty;
             }
 
             bool LegitId = _publicationRequestIdQueue.TryDequeue(out var publicationRequestId);
             if (!LegitId)
             {
-                GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"PublicationPostProcessingTaskQueue.DequeueAsync: _publicationRequestIdQueue.TryDequeue returned false, semaphore count {_signal.CurrentCount}, was {initialCount}, invalid Guid.Empty will be returned from the queue");
                 return Guid.Empty;
             }
 
-            GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"PublicationPostProcessingTaskQueue.DequeueAsync: returning publication Id <{publicationRequestId}>, semaphore count {_signal.CurrentCount}, was {initialCount}");
             return publicationRequestId;
         }
     }

@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Serilog;
 using System;
 using System.Linq;
 using System.IO;
@@ -14,6 +15,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using AuditLogLib;
 using MapCommonLib;
@@ -38,11 +40,9 @@ namespace ContentPublishingLib.JobRunners
         {
             set
             {
-                ConnectionString = Configuration.GetConnectionString(value);
+                ConnectionString = Configuration.ApplicationConfiguration.GetConnectionString(value);
             }
         }
-
-        internal TimeSpan TimeLimit { get; set; } = new TimeSpan(6, 0, 0);
 
         /// <summary>
         /// Initializes data used to construct database context instances.
@@ -101,10 +101,10 @@ namespace ContentPublishingLib.JobRunners
         /// <returns></returns>
         public async Task<PublishJobDetail> Execute(CancellationToken cancellationToken)
         {
-            MethodBase Method = MethodBase.GetCurrentMethod();
+            long limitTicksPerReductionTask = new TimeSpan(0, 10, 0).Ticks;
 
             JobDetail.Result.StartDateTime = DateTime.UtcNow;
-            DateTime WaitEndUtc = DateTime.UtcNow + TimeLimit;
+            DateTime StartUtc = DateTime.UtcNow;
 
             _CancellationToken = cancellationToken;
             // AuditLog would not be null during a test run where it may be initialized earlier
@@ -115,26 +115,44 @@ namespace ContentPublishingLib.JobRunners
 
             try
             {
-                if (JobDetail.Request.MasterContentFile != null)
+                if (JobDetail.Request.MasterContentFile != null && !JobDetail.Request.SkipReductionTaskQueueing)
                 {
                     QueueReductionActivity(JobDetail.Request.MasterContentFile);
                 }
 
+                int PendingTaskCount = await CountPendingReductionTasks();
+                TimeSpan timeLimit = TimeSpan.FromTicks(limitTicksPerReductionTask * PendingTaskCount);
+
                 // Wait for any/all related reduction tasks to complete
-                for (int PendingTaskCount = await CountPendingReductionTasks(); PendingTaskCount > 0; PendingTaskCount = await CountPendingReductionTasks())
+                for ( ; PendingTaskCount > 0; PendingTaskCount = await CountPendingReductionTasks())
                 {
-                    if (DateTime.UtcNow > WaitEndUtc)
+                    using (ApplicationDbContext Db = GetDbContext())
                     {
-                        using (ApplicationDbContext Db = GetDbContext())
+                        var cancelableTasks = Db.ContentReductionTask
+                                                .Include(t => t.SelectionGroup)
+                                                .Where(t => t.ContentPublicationRequestId == JobDetail.JobId)
+                                                .Where(t => ReductionStatusExtensions.cancelableStatusList.Contains(t.ReductionStatus))
+                                                .ToList();
+
+                        if (DateTime.UtcNow > StartUtc + timeLimit)
                         {
-                            var QueuedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId)
-                                                                     .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
-                                                                     .ToList();
-                            await CancelReductionTasks(QueuedTasks);
+                            await CancelReductionTasks(cancelableTasks.Select(t => t.Id), $"Processing of the publication was canceled because the time limit of {timeLimit} was exceeded.");
+
+                            // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
+                            throw new ApplicationException($"Publication {JobDetail.JobId} timed out waiting for {PendingTaskCount} pending reduction tasks");
                         }
 
-                        // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
-                        throw new ApplicationException($"{Method.DeclaringType.Name}.{Method.Name} timed out waiting for {PendingTaskCount} pending reduction tasks");
+                        var FailedTasks = await Db.ContentReductionTask
+                                                  .Where(t => t.ContentPublicationRequestId == JobDetail.JobId
+                                                           && t.ReductionStatus == ReductionStatusEnum.Error)
+                                                  .ToListAsync();
+                        if (FailedTasks.Any())
+                        {
+                            await CancelReductionTasks(cancelableTasks.Select(t => t.Id), "This reduction was canceled due to an unrecoverable error in another reduction of the same publication");
+
+                            // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
+                            throw new ApplicationException($"Terminating publication {JobDetail.JobId} due to reduction task(s) with Error status: {string.Join(", ", FailedTasks.Select(t => t.Id.ToString()))}");
+                        }
                     }
 
                     Thread.Sleep(1000);
@@ -153,8 +171,8 @@ namespace ContentPublishingLib.JobRunners
                 {
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 }
-                else if (AllRelatedReductionTasks.Any()
-                    && AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Canceled))
+                else if (AllRelatedReductionTasks.Any() &&
+                         AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Canceled))
                 {
                     // If a publication timeout happens queued tasks are canceled but we won't get here because that also throws ApplicationException
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
@@ -201,16 +219,15 @@ namespace ContentPublishingLib.JobRunners
             catch (OperationCanceledException e)
             {
                 string msg = GlobalFunctions.LoggableExceptionString(e);
-                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
+                Log.Error(e, $"Operation canceled in MapDbPublishRunner");
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
                 JobDetail.Result.StatusMessage = msg;
             }
             catch (Exception e)
             {
-                string msg = GlobalFunctions.LoggableExceptionString(e);
-                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
+                Log.Error(e, $"Exception from MapDbPublishRunner.Execute()");
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
-                JobDetail.Result.StatusMessage = msg;
+                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e);
             }
             finally
             {
@@ -223,8 +240,17 @@ namespace ContentPublishingLib.JobRunners
                         {
                             TaskOutcome.ReductionTaskId = RelatedTask.Id;
                         }
-                        if (TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.Success ||
-                            TaskOutcome.OutcomeReason == MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned)
+
+                        List<MapDbReductionTaskOutcomeReason> successListReductionReasons = new List<MapDbReductionTaskOutcomeReason>
+                        {
+                            MapDbReductionTaskOutcomeReason.Success,
+                            MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
+                            MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent, // warning
+                            MapDbReductionTaskOutcomeReason.NoSelectedFieldValues, // warning
+                            MapDbReductionTaskOutcomeReason.NoReducedFileCreated, // warning
+                        };
+
+                        if (successListReductionReasons.Contains(TaskOutcome.OutcomeReason))
                         {
                             JobDetail.Result.ReductionTaskSuccessList.Add(TaskOutcome);
                         }
@@ -232,9 +258,12 @@ namespace ContentPublishingLib.JobRunners
                         {
                             JobDetail.Result.ReductionTaskFailList.Add(TaskOutcome);
                         }
+                        Log.Debug($"From MapDbPublishRunner, recording OutcomeMetadata of related reduction task {RelatedTask.Id}");
                     }
                 }
 
+                JobDetail.Result.ReductionTaskSuccessList = JobDetail.Result.ReductionTaskSuccessList.OrderBy(t => t.ProcessingStartedUtc).ToList();
+                JobDetail.Result.ReductionTaskFailList = JobDetail.Result.ReductionTaskFailList.OrderBy(t => t.ProcessingStartedUtc).ToList();
                 JobDetail.Result.ElapsedTime = DateTime.UtcNow - JobDetail.Result.StartDateTime;
             }
 
@@ -252,7 +281,7 @@ namespace ContentPublishingLib.JobRunners
 
                 if (_CancellationToken.IsCancellationRequested || RequestStatus == PublicationStatus.Canceled)
                 {
-                    await CancelReductionTasks(AllRelatedReductionTasks);
+                    await CancelReductionTasks(AllRelatedReductionTasks.Select(t => t.Id), "This reduction was canceled because the overall publication was canceled");
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
                     _CancellationToken.ThrowIfCancellationRequested();
                 }
@@ -267,26 +296,35 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="TasksToCancel"></param>
         /// <returns></returns>
-        private async Task<bool> CancelReductionTasks(List<ContentReductionTask> TasksToCancel)
+        private async Task<bool> CancelReductionTasks(IEnumerable<Guid> TaskIdsToCancel, string userMessage)
         {
             using (ApplicationDbContext Db = GetDbContext())
             {
                 try
                 {
-                    TasksToCancel.ForEach(t =>
+                    foreach (Guid id in TaskIdsToCancel)
                     {
-                        t.ReductionStatus = ReductionStatusEnum.Canceled;
-                        t.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                        ContentReductionTask taskToCancel = await Db.ContentReductionTask
+                                                                    .Include(t => t.SelectionGroup)
+                                                                    .SingleOrDefaultAsync(t => t.Id == id);
+
+                        taskToCancel.ReductionStatus = ReductionStatusEnum.Canceled;
+                        taskToCancel.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
                         {
                             OutcomeReason = MapDbReductionTaskOutcomeReason.Canceled,
-                            ReductionTaskId = t.Id,
+                            ReductionTaskId = taskToCancel.Id,
+                            SupportMessage = "Canceled programatically in MapDbPublishRunner",
+                            UserMessage = userMessage,
+                            SelectionGroupName = taskToCancel.SelectionGroup != null 
+                                ? taskToCancel.SelectionGroup.GroupName 
+                                : default,
                         };
-                    });
-                    Db.ContentReductionTask.UpdateRange(TasksToCancel);
+                        Log.Information($"Canceling reduction task {id} programatically in MapDbPublishRunner");
+                    };
                     await Db.SaveChangesAsync();
                     return true;
                 }
-                catch
+                catch (Exception ex)
                 {
                     return false;
                 }
@@ -303,6 +341,7 @@ namespace ContentPublishingLib.JobRunners
             // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
             using (ApplicationDbContext Db = GetDbContext())
             {
+                // if there are no selection groups for this content, create a master group
                 if (!Db.SelectionGroup.Any(sg => sg.RootContentItemId == JobDetail.Request.RootContentId))
                 {
                     SelectionGroup NewMasterSelectionGroup = new SelectionGroup
@@ -366,6 +405,16 @@ namespace ContentPublishingLib.JobRunners
                     }
                 }
 
+                var extractedFieldNames = new HashSet<string>(MasterHierarchyTask.MasterContentHierarchyObj.Fields.Select(f => f.FieldName));
+                using (ApplicationDbContext Db = GetDbContext())
+                {
+                    var liveHierarchyFieldNames = new HashSet<string>(Db.HierarchyField.Where(f => f.RootContentItemId == JobDetail.Request.RootContentId).Select(f => f.FieldName));
+                    if (liveHierarchyFieldNames.Any() && !extractedFieldNames.SetEquals(liveHierarchyFieldNames))
+                    {
+                        throw new ApplicationException($"New master hierarchy field names ({string.Join(",",extractedFieldNames)}) do not match the live hierarchy field names ({string.Join(",",liveHierarchyFieldNames)}) for this content item");
+                    }
+                }
+
                 using (ApplicationDbContext Db = GetDbContext())
                 {
                     foreach (SelectionGroup SelGrp in Db.SelectionGroup
@@ -382,16 +431,20 @@ namespace ContentPublishingLib.JobRunners
                             MasterContentChecksum = contentRelatedFile.Checksum,
                             SelectionGroupId = SelGrp.Id,
                             MasterContentHierarchyObj = MasterHierarchyTask.MasterContentHierarchyObj,
-                    };
+                        };
 
                         if (SelGrp.IsMaster)
                         {
                             NewTask.TaskAction = TaskActionEnum.HierarchyOnly;
                             NewTask.ReductionStatus = ReductionStatusEnum.Reduced;
+                            NewTask.ProcessingStartDateTimeUtc = DateTime.UtcNow;
                             NewTask.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
                             {
-                                OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
+                                ProcessingStartedUtc = DateTime.UtcNow,
                                 ReductionTaskId = NewTask.Id,
+                                SelectionGroupName = SelGrp.GroupName,
+                                OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
+                                UserMessage = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned.GetDisplayDescriptionString(),
                             };
                         }
                         else
@@ -405,11 +458,14 @@ namespace ContentPublishingLib.JobRunners
                             else
                             {
                                 // There are no values selected
-                                NewTask.ReductionStatus = ReductionStatusEnum.Error;
+                                NewTask.ReductionStatus = ReductionStatusEnum.Warning;
                                 NewTask.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
                                 {
-                                    OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
+                                    ProcessingStartedUtc = DateTime.UtcNow,
                                     ReductionTaskId = NewTask.Id,
+                                    SelectionGroupName = SelGrp.GroupName,
+                                    OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
+                                    UserMessage = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues.GetDisplayDescriptionString(),
                                 };
                             }
                         }

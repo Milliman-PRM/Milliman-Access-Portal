@@ -65,22 +65,16 @@ namespace MapDbContextLib.Models
         /// <returns></returns>
         public List<Guid> GetSelectedValueIds()
         {
-            var valueIds = new List<Guid> { };
-
-            foreach (var field in Fields)
-            {
-                foreach (var value in field.Values)
+            var valueIds = Fields.SelectMany(f => f.Values.Aggregate(
+                new List<Guid>(), 
+                (result, value) => 
                 {
-                    if (value.HasSelectionStatus)
+                    if (value.HasSelectionStatus && (value as ReductionFieldValueSelection).SelectionStatus)
                     {
-                        var v = value as ReductionFieldValueSelection;
-                        if (v.SelectionStatus)
-                        {
-                            valueIds.Add(value.Id);
-                        }
+                        result.Add(value.Id);
                     }
-                }
-            }
+                    return result;
+                })).ToList();
 
             return valueIds;
         }
@@ -90,7 +84,7 @@ namespace MapDbContextLib.Models
         /// <param name="SelectionGroupId">The selection group whose selections are to be gathered</param>
         /// <param name="Selections">Any changes to the current selections to effect in the returned hierarchy</param>
         /// <returns>ContentReductionHierarchy</returns>
-        public static ContentReductionHierarchy<ReductionFieldValueSelection> GetFieldSelectionsForSelectionGroup(ApplicationDbContext DbContext, Guid SelectionGroupId, Guid[] Selections = null)
+        public static ContentReductionHierarchy<ReductionFieldValueSelection> GetFieldSelectionsForSelectionGroup(ApplicationDbContext DbContext, Guid SelectionGroupId, IEnumerable<Guid> Selections = null)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)

@@ -8,7 +8,7 @@
 using AuditLogLib;
 using AuditLogLib.Event;
 using MapCommonLib;
-using QlikviewLib;
+using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using MillimanAccessPortal.Services;
@@ -78,7 +78,9 @@ namespace MillimanAccessPortal
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
                 var publicationRequest = Db.ContentPublicationRequest.Single(r => r.Id == publicationRequestId);
-                fileIds = publicationRequest.UploadedRelatedFilesObj.Select(f => f.FileUploadId).ToList();
+                fileIds = publicationRequest.UploadedRelatedFilesObj.Select(f => f.FileUploadId).Union(
+                          publicationRequest.RequestedAssociatedFileList.Select(f => f.Id))
+                          .ToList();
             }
             while (!validationWindowComplete)
             {
@@ -104,7 +106,7 @@ namespace MillimanAccessPortal
                     return;
                 }
 
-                var files = publicationRequest.UploadedRelatedFilesObj;
+                var relatedFiles = publicationRequest.UploadedRelatedFilesObj;
                 var rootContentItem = Db.RootContentItem
                     .Where(i => i.Id == publicationRequest.RootContentItemId)
                     .Include(i => i.ContentType)
@@ -117,15 +119,15 @@ namespace MillimanAccessPortal
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.FileDownload:
                         // Only one mastercontent file is supported with this content type
-                        if (files.Select(f => f.FilePurpose).Count(p => p.ToLower() == "mastercontent") > 1)
+                        if (relatedFiles.Select(f => f.FilePurpose).Count(p => p.ToLower() == "mastercontent") > 1)
                         {
                             throw new ApplicationException("This publication request cannot contain multiple MasterContent files");
                         }
 
-                        foreach (UploadedRelatedFile UploadedFileRef in files)
+                        foreach (UploadedRelatedFile UploadedFileRef in relatedFiles)
                         {
                             // move uploaded file(s) to content folder with temporary name(s)
-                            ContentRelatedFile Crf = HandleRelatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath, rootContentItem.ContentType.TypeEnum);
+                            ContentRelatedFile Crf = HandleRelatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath);
 
                             if (Crf != null)
                             {
@@ -145,6 +147,19 @@ namespace MillimanAccessPortal
                         throw new NotSupportedException($"Publication request cannot be created for unsupported ContentType {rootContentItem.ContentType.TypeEnum.ToString()}");
                 }
 
+                List<AssociatedFileModel> associatedFiles = publicationRequest.RequestedAssociatedFileList;
+                foreach (AssociatedFileModel UploadedFileRef in associatedFiles)
+                {
+                    // move uploaded file(s) to content folder with temporary name(s)
+                    ContentAssociatedFile Caf = HandleAssociatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath);
+
+                    if (Caf != null)
+                    {
+                        publicationRequest.LiveReadyAssociatedFilesList = publicationRequest.LiveReadyAssociatedFilesList.Append(Caf).ToList();
+                        publicationRequest.RequestedAssociatedFileList = publicationRequest.RequestedAssociatedFileList.Where(f => f.Id != UploadedFileRef.Id).ToList();
+                    }
+                }
+
                 publicationRequest.RequestStatus = PublicationStatus.Queued;
 
                 // Update the request record with file info and Queued status
@@ -152,7 +167,6 @@ namespace MillimanAccessPortal
                 {
                     Db.SaveChanges();
                     postProcessingTaskQueue.QueuePublicationPostProcess(publicationRequest.Id);
-                    GlobalFunctions.IssueLog(IssueLogEnum.QueuePostProcessing, $"ContentPublishSupport.MonitorPublicationRequestForQueueing: completed queuing of publication Id <{publicationRequest.Id}> to postProcessingTaskQueue");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -177,7 +191,7 @@ namespace MillimanAccessPortal
         /// <param name="contentItemRootPath"></param>
         /// <param name="contentType"></param>
         /// <returns></returns>
-        private static ContentRelatedFile HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath, ContentTypeEnum contentType)
+        private static ContentRelatedFile HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
         {
             ContentRelatedFile ReturnObj = null;
 
@@ -195,7 +209,7 @@ namespace MillimanAccessPortal
                     throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
                 }
                 // The checksum must be correct
-                if (FileUploadRecord.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath).ToLower())
+                if (!FileUploadRecord.Checksum.Equals(GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath), StringComparison.InvariantCultureIgnoreCase))
                 {
                     throw new ApplicationException($"While publishing for content {ContentItem.Id}, checksum validation failed for file [{FileUploadRecord.StoragePath}].");
                 }
@@ -204,8 +218,8 @@ namespace MillimanAccessPortal
                 string RootContentFolder = Path.Combine(contentItemRootPath, ContentItem.Id.ToString());
 
                 // Copy uploaded file to root content folder
-                string DestinationFileName = QlikviewLibApi.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath));
-                switch (contentType)
+                string DestinationFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath));
+                switch (ContentItem.ContentType.TypeEnum)
                 {  // This is where any dependence on ContentType would be incorporated to override base behavior
                     case ContentTypeEnum.PowerBi:
                     case ContentTypeEnum.Qlikview:
@@ -234,6 +248,48 @@ namespace MillimanAccessPortal
                 List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == FileUploadRecord.StoragePath).ToList();
                 File.Delete(FileUploadRecord.StoragePath);  // delete the file
                 Db.FileUpload.RemoveRange(Uploads);  // remove the record
+
+                Db.SaveChanges();
+                Txn.Commit();
+            }
+
+            return ReturnObj;
+        }
+
+        private static ContentAssociatedFile HandleAssociatedFile(ApplicationDbContext Db, AssociatedFileModel uploadedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
+        {
+            ContentAssociatedFile ReturnObj = null;
+
+            using (IDbContextTransaction Txn = Db.Database.BeginTransaction())
+            {
+                FileUpload fileUploadRecord = Db.FileUpload
+                .Where(f => f.Id == uploadedFile.Id)
+                .Where(f => f.Status == FileUploadStatus.Complete)
+                .SingleOrDefault();
+
+                string RootContentFolder = Path.Combine(contentItemRootPath, ContentItem.Id.ToString());
+                string DestinationFileName = ContentTypeSpecificApiBase.GeneratePreliveAssociatedFileName(uploadedFile.Id, PubRequestId, ContentItem.Id, Path.GetExtension(fileUploadRecord.StoragePath));
+                string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
+
+                // Create the root content folder if it does not already exist
+                Directory.CreateDirectory(RootContentFolder);
+                File.Copy(fileUploadRecord.StoragePath, DestinationFullPath, true);
+
+                ReturnObj = new ContentAssociatedFile
+                {
+                    Id = uploadedFile.Id,
+                    Checksum = fileUploadRecord.Checksum,
+                    DisplayName = uploadedFile.DisplayName,
+                    FileOriginalName = uploadedFile.FileOriginalName,
+                    FileType = uploadedFile.FileType,
+                    SortOrder = uploadedFile.SortOrder,
+                    FullPath = DestinationFullPath,
+                };
+
+                // Remove FileUpload record(s) for this file path
+                List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == fileUploadRecord.StoragePath).ToList();
+                File.Delete(fileUploadRecord.StoragePath);  // delete the uploaded file
+                Db.FileUpload.RemoveRange(Uploads);  // remove the FileUpload record
 
                 Db.SaveChanges();
                 Txn.Commit();

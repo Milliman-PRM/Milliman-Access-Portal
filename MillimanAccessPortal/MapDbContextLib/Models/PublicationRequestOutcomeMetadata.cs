@@ -9,16 +9,13 @@ using System.Collections.Generic;
 
 namespace MapDbContextLib.Models
 {
-    public enum PublicationRequestErrorReason
-    {
-        Default = 0,
-        ReductionTaskError = 1,
-    }
-
     public class PublicationRequestOutcomeMetadata
     {
+        public Guid Id { get; set; }
         public DateTime StartDateTime { get; set; }
         public TimeSpan ElapsedTime { get; set; } = TimeSpan.Zero;
+        public string UserMessage { get; set; } = default;
+        public string SupportMessage { get; set; } = default;
         public List<ReductionTaskOutcomeMetadata> ReductionTaskFailOutcomeList { get; set; } = new List<ReductionTaskOutcomeMetadata>();
         public List<ReductionTaskOutcomeMetadata> ReductionTaskSuccessOutcomeList { get; set; } = new List<ReductionTaskOutcomeMetadata>();
     }

@@ -19,47 +19,89 @@ namespace MapDbContextLib.Context
     public enum PublicationStatus
     {
         Unknown = 0,
+
+        [Display(Description = "The publication was canceled")]
         Canceled = 1,
+
+        [Display(Description = "The publication was rejected during preview")]
         Rejected = 2,
+
+        [Display(Description = "The publication is being prepared to become queued for processing")]
         Validating = 9,
+
+        [Display(Description = "The publication is queued for processing")]
         Queued = 10,
+
+        [Display(Description = "The publication is processing")]
         Processing = 20,
+
+        [Display(Description = "The publication is awaiting postprocessing")]
         PostProcessReady = 25,
+
+        [Display(Description = "The publication is postprocessing")]
         PostProcessing = 27,
+
+        [Display(Description = "The publication is ready for preview and approval")]
         Processed = 30,
+
+        [Display(Description = "The publication is in the process of going live")]
         Confirming = 35,
+
+        [Display(Description = "The publication is live")]
         Confirmed = 40,
+
+        [Display(Description = "The publication was previously live and has been replaced by a more recent publication")]
         Replaced = 50,
-        Error = 90,         // An error has occured
+
+        [Display(Description = "The publication encountered an error during processing that prevents further use")]
+        Error = 90,
     }
 
     public static class PublicationStatusExtensions
     {
-        public static bool IsCancelable(this PublicationStatus status)
-        {
-            var blockingStatuses = new List<PublicationStatus>
-            {
-                PublicationStatus.Validating,
-                PublicationStatus.Queued,
-            };
+        public static List<PublicationStatus> CancelablePublicationStatusList { get; } = new List<PublicationStatus> 
+        { 
+            PublicationStatus.Validating, 
+            PublicationStatus.Queued, 
+            PublicationStatus.Processing,
+            PublicationStatus.PostProcessReady,
+            PublicationStatus.PostProcessing,
+            PublicationStatus.Error,
+        };
 
-            return blockingStatuses.Contains(status);
-        }
+        public static List<PublicationStatus> ActiveStatuses { get; } = new List<PublicationStatus>
+        {
+            PublicationStatus.Validating,
+            PublicationStatus.Queued,
+            PublicationStatus.Processing,
+            PublicationStatus.PostProcessReady,
+            PublicationStatus.PostProcessing,
+            PublicationStatus.Processed,
+            PublicationStatus.Confirming,
+        };
+
+        public static List<PublicationStatus> CurrentStatuses { get; } = new List<PublicationStatus>
+        {
+            PublicationStatus.Validating,
+            PublicationStatus.Queued,
+            PublicationStatus.Processing,
+            PublicationStatus.PostProcessReady,
+            PublicationStatus.PostProcessing,
+            PublicationStatus.Processed,
+            PublicationStatus.Confirming,
+            PublicationStatus.Error,
+        };
+
+        public static List<PublicationStatus> QueueWaitableStatusList { get; } = new List<PublicationStatus>
+        {
+            PublicationStatus.Validating,
+            PublicationStatus.Queued,
+            PublicationStatus.Processing,
+        };
 
         public static bool IsActive(this PublicationStatus status)
         {
-            var blockingStatuses = new List<PublicationStatus>
-            {
-                PublicationStatus.Validating,
-                PublicationStatus.Queued,
-                PublicationStatus.Processing,
-                PublicationStatus.PostProcessReady,
-                PublicationStatus.PostProcessing,
-                PublicationStatus.Processed,
-                PublicationStatus.Confirming,
-            };
-
-            return blockingStatuses.Contains(status);
+            return ActiveStatuses.Contains(status);
         }
     }
 
@@ -110,6 +152,13 @@ namespace MapDbContextLib.Context
         public string LiveReadyFiles { get; set; } = "[]";
 
         /// <summary>
+        /// May also be accessed through [NotMapped] property LiveReadyAssociatedFilesList
+        /// Intended to be serialization of type List<ContentRelatedFile>
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string LiveReadyAssociatedFiles { get; set; } = "[]";
+
+        /// <summary>
         /// May also be accessed through [NotMapped] property ReductionRelatedFilesObj
         /// Intended to be serialization of type List<ReductionRelatedFiles>
         /// </summary>
@@ -122,6 +171,13 @@ namespace MapDbContextLib.Context
         /// </summary>
         [Column(TypeName = "jsonb")]
         public string UploadedRelatedFiles { get; set; } = "[]";
+
+        /// <summary>
+        /// May also be accessed through [NotMapped] property RequestedAssociatedFilesList
+        /// Intended to be serialization of type List<UploadedRelatedFile>
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string RequestedAssociatedFiles { get; set; } = "[]";
 
         [Required]
         public PublicationStatus RequestStatus { get; set; }
@@ -174,6 +230,26 @@ namespace MapDbContextLib.Context
         }
 
         /// <summary>
+        /// Identifies content associated files NOT associated with work of the publishing server, rather that are ready to switch to live status.
+        /// </summary>
+        [NotMapped]
+        public List<ContentAssociatedFile> LiveReadyAssociatedFilesList
+        {
+            get
+            {
+                return string.IsNullOrWhiteSpace(LiveReadyAssociatedFiles)
+                    ? new List<ContentAssociatedFile>()
+                    : JsonConvert.DeserializeObject<List<ContentAssociatedFile>>(LiveReadyAssociatedFiles);
+            }
+            set
+            {
+                LiveReadyAssociatedFiles = value != null
+                    ? JsonConvert.SerializeObject(value)
+                    : "[]";
+            }
+        }
+
+        /// <summary>
         /// Identifies files uploaded as part of a publication request
         /// </summary>
         /// <remarks>This field is expected to be empty once uploaded files have been processed.</remarks>
@@ -189,6 +265,27 @@ namespace MapDbContextLib.Context
             set
             {
                 UploadedRelatedFiles = value != null
+                    ? JsonConvert.SerializeObject(value)
+                    : "[]";
+            }
+        }
+
+        /// <summary>
+        /// The full list of associated files requested to exist upon completion of the publication go-live
+        /// </summary>
+        /// <remarks>This field is expected to be empty once uploaded files have been processed.</remarks>
+        [NotMapped]
+        public List<AssociatedFileModel> RequestedAssociatedFileList
+        {
+            get
+            {
+                return string.IsNullOrWhiteSpace(RequestedAssociatedFiles)
+                    ? new List<AssociatedFileModel>()
+                    : JsonConvert.DeserializeObject<List<AssociatedFileModel>>(RequestedAssociatedFiles);
+            }
+            set
+            {
+                RequestedAssociatedFiles = value != null
                     ? JsonConvert.SerializeObject(value)
                     : "[]";
             }

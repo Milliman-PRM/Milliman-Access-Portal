@@ -28,8 +28,6 @@ namespace MapCommonLib
         public static readonly int fallbackAccountActivationTokenTimespanDays = 7;
         public static readonly int fallbackPasswordResetTokenTimespanHours = 4;
 
-        private static readonly string _DefaultErrorLogPath = ".";
-
         static Regex EmailAddressValidationRegex = new Regex (EmailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
         public static bool IsValidEmail(string TestAddress)
@@ -97,12 +95,6 @@ namespace MapCommonLib
                 Indent += "  ";
             }
             return ErrMsg;
-        }
-
-        public static void TraceWriteLine(string CallerMessage)
-        {
-            string FullMessageString = $"{DateTime.UtcNow.ToString("s")} {CallerMessage}";
-            Trace.WriteLine(FullMessageString);
         }
 
         /// <summary>
@@ -179,7 +171,7 @@ namespace MapCommonLib
     /// </summary>
     public enum IssueLogEnum
     {
-        QueuePostProcessing
+        LongRunningSelectionGroupProcessing
     }
 
 }

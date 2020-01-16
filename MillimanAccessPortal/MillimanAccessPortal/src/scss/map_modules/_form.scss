@@ -243,8 +243,7 @@ input.filter-input {
     .form-section-title {
         width: 100%;
         border-bottom: 2px solid $charcoal;
-        padding: 0 .5em;
-        margin-bottom: .25em;
+        margin-bottom: 1em;
         text-transform: uppercase
     }
 
@@ -255,7 +254,6 @@ input.filter-input {
     .form-input-container {
         display: flex;
         flex-flow: row wrap;
-        align-items: center;
         padding-left: 1.5em;
         margin-bottom: .5em;
         margin-right: -.5em;

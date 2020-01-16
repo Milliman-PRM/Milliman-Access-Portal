@@ -1,5 +1,12 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Context;
 using MapDbContextLib.Models;
+using MillimanAccessPortal.Models.UserModels;
 using System;
 using System.Collections.Generic;
 
@@ -13,7 +20,7 @@ namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
     {
         public Guid Id { get; set; }
         public Guid? ContentPublicationRequestId { get; set; }
-        public Guid ApplicationUserId { get; set; }
+        public BasicUser ApplicationUser { get; set; }
         public Guid? SelectionGroupId { get; set; }
         public List<Guid> SelectedValues { get; set; }
         public DateTime CreateDateTimeUtc { get; set; }
@@ -30,26 +37,14 @@ namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
             string message = null;
             if (!string.IsNullOrWhiteSpace(reduction.OutcomeMetadata))
             {
-                switch (reduction.OutcomeMetadataObj.OutcomeReason)
-                {
-                    case MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName:
-                        message = "A value in an invalid field was selected.";
-                        break;
-                    case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
-                        message = "The selected values did not match any data.";
-                        break;
-                    default:
-                        message = "Unexpected error. Please retry the selection update and "
-                            + "contact support if the problem persists.";
-                        break;
-                }
+                message = reduction.OutcomeMetadataObj.OutcomeReason.GetDisplayDescriptionString();
             }
 
             return new BasicReduction
             {
                 Id = reduction.Id,
                 ContentPublicationRequestId = reduction.ContentPublicationRequestId,
-                ApplicationUserId = reduction.ApplicationUserId,
+                ApplicationUser = (BasicUser)reduction.ApplicationUser,
                 SelectionGroupId = reduction.SelectionGroupId,
                 SelectedValues = reduction.SelectionCriteriaObj?.GetSelectedValueIds(),
                 CreateDateTimeUtc = reduction.CreateDateTimeUtc,

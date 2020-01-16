@@ -1,4 +1,6 @@
 ﻿using MapDbContextLib.Context;
+using MapDbContextLib.Models;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using System;
 using System.Collections.Generic;
@@ -28,7 +30,9 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         private ContentPublicationRequest PublicationWhereContentItem(Guid contentItemId)
         {
             var publicationRequest = _dbContext.ContentPublicationRequest
+                .Include(r => r.ApplicationUser)
                 .Where(r => r.RootContentItemId == contentItemId)
+                .Where(r => PublicationStatusExtensions.CurrentStatuses.Contains(r.RequestStatus))
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();
 
@@ -43,6 +47,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         private ContentReductionTask ReductionWhereSelectionGroup(Guid selectionGroupId)
         {
             var reductionTask = _dbContext.ContentReductionTask
+                .Include(t => t.ApplicationUser)
                 .Where(t => t.SelectionGroupId == selectionGroupId)
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();
@@ -87,28 +92,28 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     .Single(r => r.Id == publicationId);
 
                 // Provide queue position for publications that have not yet begun
-                if (publication.RequestStatus.IsCancelable())
+                if (PublicationStatusExtensions.QueueWaitableStatusList.Contains(publication.RequestStatus))
                 {
                     var precedingPublicationRequestCount = _dbContext.ContentPublicationRequest
                         .Where(r => r.CreateDateTimeUtc < publication.CreateDateTimeUtc)
-                        .Where(r => r.RequestStatus.IsCancelable())
+                        .Where(r => PublicationStatusExtensions.QueueWaitableStatusList.Contains(r.RequestStatus))
                         .Count();
                     queueDetails.Add(new PublicationQueueDetails
                     {
                         PublicationId = publicationId,
-                        QueuePosition = precedingPublicationRequestCount + 1,
+                        QueuePosition = precedingPublicationRequestCount,
                     });
                 }
                 // Provide progress details for publications that have begun
                 else if (publication.RequestStatus.IsActive())
                 {
-                    var reductionTasks = _dbContext.ContentReductionTask
+                    var reductionTaskStatusList = _dbContext.ContentReductionTask
                         .Where(t => t.ContentPublicationRequestId == publicationId)
                         .Where(t => t.SelectionGroupId != null)  // exclude hierarchy extract task
                         .Select(t => t.ReductionStatus)
                         .ToList();
-                    var reductionsCompleted = reductionTasks.Where(t => t == ReductionStatusEnum.Reduced).Count();
-                    var reductionsTotal = reductionTasks.Count;
+                    var reductionsCompleted = reductionTaskStatusList.Count(t => !ReductionStatusExtensions.cancelableStatusList.Contains(t));
+                    var reductionsTotal = reductionTaskStatusList.Count;
                     queueDetails.Add(new PublicationQueueDetails
                     {
                         PublicationId = publicationId,
@@ -161,12 +166,12 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 {
                     var precedingReductionTaskCount = _dbContext.ContentReductionTask
                         .Where(r => r.CreateDateTimeUtc < reduction.CreateDateTimeUtc)
-                        .Where(r => r.ReductionStatus.IsCancelable())
+                        .Where(r => ReductionStatusExtensions.cancelableStatusList.Contains(r.ReductionStatus))
                         .Count();
                     queueDetails.Add(new ReductionQueueDetails
                     {
                         ReductionId = reductionId,
-                        QueuePosition = precedingReductionTaskCount + 1,
+                        QueuePosition = precedingReductionTaskCount,
                     });
                 }
             }
@@ -178,7 +183,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// Select the list of selections for a reduction task
         /// </summary>
         /// <param name="selectionGroupId">Selection group ID</param>
-        /// <returns>List of value IDs</returns>
+        /// <returns>IDs of selected values minus any values not in the new reduced hierarchy</returns>
         internal List<Guid> SelectReductionSelections(Guid selectionGroupId)
         {
             var reductionTask = ReductionWhereSelectionGroup(selectionGroupId);
@@ -187,10 +192,37 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 return new List<Guid> { };
             }
 
-            var selections = _dbContext.ContentReductionTask
-                .Where(t => t.Id == reductionTask.Id)
-                .Select(t => t.SelectionCriteriaObj)
-                .SingleOrDefault();
+            ContentReductionHierarchy<ReductionFieldValueSelection> selections = _dbContext.ContentReductionTask
+                .Find(reductionTask.Id)
+                ?.SelectionCriteriaObj;
+
+            // remove selected values not contained in the hierarchy of the newly reduced content
+            if (reductionTask.ReducedContentHierarchyObj != null && selections != null)
+            {
+                foreach (var selectionHierarchyField in selections.Fields)
+                {
+                    var reducedValueList = reductionTask.ReducedContentHierarchyObj
+                        .Fields
+                        .Single(f => f.FieldName == selectionHierarchyField.FieldName)
+                        .Values
+                        .Select(v => v.Value)
+                        .ToList();
+
+                    foreach (ReductionFieldValueSelection selectedValue in selectionHierarchyField.Values.Where(v => v.SelectionStatus))
+                    {
+                        if (!reducedValueList.Contains(selectedValue.Value))
+                        {
+                            selectedValue.SelectionStatus = false;
+                        }
+                    }
+                }
+            }
+            else if (reductionTask.TaskAction != TaskActionEnum.HierarchyOnly && 
+                     reductionTask.ReducedContentHierarchyObj == null && 
+                     reductionTask.ReductionStatus == ReductionStatusEnum.Warning)
+            {
+                return new List<Guid>();
+            }
 
             return selections?.GetSelectedValueIds();
         }

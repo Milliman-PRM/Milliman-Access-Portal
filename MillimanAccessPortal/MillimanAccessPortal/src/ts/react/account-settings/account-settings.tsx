@@ -4,7 +4,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
-import { Input } from '../shared-components/input';
+import { Input } from '../shared-components/form/input';
 import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
 import { UpdateAccount } from './redux/actions';

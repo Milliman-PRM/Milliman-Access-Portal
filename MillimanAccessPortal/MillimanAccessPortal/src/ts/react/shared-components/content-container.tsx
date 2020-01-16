@@ -8,12 +8,28 @@ import '../../../images/icons/cancel.svg';
 import * as React from 'react';
 
 import { ContentTypeEnum } from '../../view-models/content-publishing';
+import { ColumnSpinner } from './column-spinner';
 import { ContentContainerProps } from './interfaces';
 
-export class ContentContainer extends React.Component<ContentContainerProps, {}> {
+export const contentTypeMap: { [name: string]: ContentTypeEnum } = {
+  Qlikview: ContentTypeEnum.Qlikview,
+  Html: ContentTypeEnum.Html,
+  Pdf: ContentTypeEnum.Pdf,
+  FileDownload: ContentTypeEnum.FileDownload,
+  PowerBi: ContentTypeEnum.PowerBi,
+};
+
+interface ContentContainerState {
+  isLoading: boolean;
+}
+
+export class ContentContainer extends React.Component<ContentContainerProps, ContentContainerState> {
 
   public constructor(props: ContentContainerProps) {
     super(props);
+    this.state = {
+      isLoading: true,
+    };
   }
 
   public closeWindow() {
@@ -59,12 +75,24 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
         sandboxValues = '';
     }
 
-    const frame = this.props.contentType === ContentTypeEnum.Pdf
-      ? <object data={this.props.contentURL} type="application/pdf" />
-      : <iframe src={this.props.contentURL} sandbox={sandboxValues} />;
+    const frame = this.props.contentType === ContentTypeEnum.Pdf ? (
+      <object
+        data={this.props.contentURL}
+        type="application/pdf"
+        onLoad={() => this.setState({ isLoading: false })}
+      />
+    ) : (
+      <iframe
+        src={this.props.contentURL}
+        sandbox={sandboxValues}
+        onLoad={() => this.setState({ isLoading: false })}
+      />
+    );
 
     return (
-      <div id="iframe-container">
+      <div className="iframe-container">
+        {this.state.isLoading && <ColumnSpinner />}
+        {this.props.children}
         {frame}
       </div>
     );

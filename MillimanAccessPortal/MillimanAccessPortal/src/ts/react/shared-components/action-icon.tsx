@@ -1,7 +1,14 @@
 ﻿import '../../../images/icons/add.svg';
+import '../../../images/icons/cancel.svg';
+import '../../../images/icons/checkmark.svg';
 import '../../../images/icons/collapse-cards.svg';
+import '../../../images/icons/delete.svg';
+import '../../../images/icons/edit.svg';
+import '../../../images/icons/email.svg';
+import '../../../images/icons/expand-card.svg';
 import '../../../images/icons/expand-cards.svg';
-import '../../../images/icons/release-notes.svg';
+import '../../../images/icons/remove-circle.svg';
+import '../../../images/icons/upload.svg';
 import '../../../images/icons/user.svg';
 import '../../../images/icons/userguide.svg';
 
@@ -13,7 +20,8 @@ import * as React from 'react';
 
 export interface ActionIconProps {
   label: string;
-  icon: 'add' | 'collapse-cards' | 'expand-cards' | 'release-notes' | 'user' | 'userguide';
+  icon: 'add' | 'cancel' | 'checkmark' | 'collapse-cards' | 'delete' | 'edit'
+    | 'email' | 'expand-card' | 'expand-cards' | 'remove-circle' | 'upload' | 'user' | 'userguide';
   action: () => void;
   inline: boolean;
 }

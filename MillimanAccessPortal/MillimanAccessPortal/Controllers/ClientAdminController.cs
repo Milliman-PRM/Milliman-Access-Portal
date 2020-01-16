@@ -582,7 +582,7 @@ namespace MillimanAccessPortal.Controllers
                 ReturnModel.Add(new AssignedRoleInfo
                 {
                     RoleEnum = x,
-                    RoleDisplayValue = ApplicationRole.RoleDisplayNames[x],
+                    RoleDisplayValue = x.GetDisplayNameString(),
                     IsAssigned = ExistingRecordsForRequestedRole.Any(urc => urc.RoleId == ApplicationRole.RoleIds[x]),
                 });
             }

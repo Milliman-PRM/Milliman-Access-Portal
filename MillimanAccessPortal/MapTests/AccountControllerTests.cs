@@ -127,10 +127,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            ViewResult viewAsViewResult = view as ViewResult;
-
-            Assert.IsType<ViewResult>(view);
-            Assert.Equal("Message", viewAsViewResult.ViewName);
+            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
+            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
 
             #endregion
         }
@@ -208,7 +206,7 @@ namespace MapTests
 
             #region Assert
             ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("Message", viewAsViewResult.ViewName);
+            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
             #endregion
         }
 
@@ -229,7 +227,7 @@ namespace MapTests
 
             #region Assert
             ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("Message", viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
+            Assert.Equal("UserMessage", viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
             #endregion
 
         }
@@ -253,8 +251,8 @@ namespace MapTests
 
             #region Assert
             ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal(nameof(SharedController.Message), viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
-            Assert.IsType<string>(viewAsViewResult.Model);
+            Assert.Equal(nameof(SharedController.UserMessage), viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
+            Assert.IsType<MillimanAccessPortal.Models.SharedModels.UserMessageModel>(viewAsViewResult.Model);
             #endregion
         }
 
@@ -298,7 +296,7 @@ namespace MapTests
 
             #region Assert
             ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("Message", viewAsViewResult.ViewName);
+            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
             #endregion
         }
 
@@ -323,7 +321,7 @@ namespace MapTests
             #region Assert
             Assert.IsType<ViewResult>(view);
             var viewAsViewResult = view as ViewResult;
-            Assert.Equal("Message", viewAsViewResult.ViewName);
+            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
             #endregion
         }
 
@@ -347,7 +345,7 @@ namespace MapTests
 
             #region Assert
             var viewAsViewResult = view as ViewResult;
-            Assert.Equal("Message", viewAsViewResult.ViewName);
+            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
             #endregion
         }
 
@@ -503,29 +501,11 @@ namespace MapTests
             #region Arrange
             AccountController controller = GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordIsNotEmailOrUsernameValidator<ApplicationUser>();
+            var validator = new PasswordIsNotEmailValidator<ApplicationUser>();
             #endregion
 
             #region Act
             IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, AppUser.Email);
-            #endregion
-
-            #region Assert
-            Assert.False(result.Succeeded);
-            #endregion
-        }
-
-        [Fact]
-        public async Task UsernameInPasswordNotAllowed()
-        {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordIsNotEmailOrUsernameValidator<ApplicationUser>();
-            #endregion
-
-            #region Act
-            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, AppUser.UserName);
             #endregion
 
             #region Assert

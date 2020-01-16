@@ -95,5 +95,8 @@ namespace ContentPublishingLib.JobMonitors
                 throw new ApplicationException($"Assert testing failed.  Stack trace:{Environment.NewLine}{CallStack.ToString()}");
             }
         }
+
+        static protected object _CleanupOnStartLockObj = new object();
+        public virtual void CleanupOnStart() { }
     }
 }

@@ -12,6 +12,7 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
+        "SUPPRESS_MAP_WEBHOST_LOGGING": "true",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },

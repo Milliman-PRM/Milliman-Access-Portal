@@ -2,6 +2,32 @@
 
 ## Release Notes
 
+### v1.8.0
+
+- Restructured Content Publishing to improve usability and responsiveness
+- Redesigned the Content Publishing form to improve the user experience of creating and editing Content Items
+- The content for each individual selection group can now be viewed during the publication approval process
+- Added the ability to review thumbnail changes as part of the publication approval process
+- Added the ability to cancel publications during more of the publishing process
+- Queued and processing publications and selection group updates will now resume after an intentional or unintentional MAP application termination 
+- Publication processing is more resilient after certain temporary communications interruptions with the Qlikview publishing server
+- Certain minor errors during publication processing will no longer cause the entire publication job to fail, but rather will cause the associated selection group to become inactive
+
+#### v1.7.3
+
+- Fixed a bug that allowed a perpetual email sending loop for a user requesting password reset when the user's spam filter followed the embedded link after the link was expired
+- Fixed an issue where an errant equal sign was being included in the URL prevented proper token validation
+
+#### v1.7.2
+
+- Prevent accidental submission of multiple selection group reductions in the Content Access Admin view
+- The response to a selection change request for reduced content is much faster to provide timely user feedback
+- A new status (Validating) has been added to selection change logic, before Queued.  For smaller content, the user may see the status change directly to Queued since validation will be fast
+
+#### v1.7.1
+
+- Improved feedback to user on password reset failure
+
 ### v1.7.0
 
 - Added a User Agreement

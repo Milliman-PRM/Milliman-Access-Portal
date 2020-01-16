@@ -5,49 +5,51 @@
  * more than is necessary to invoke all features of the library. 
  */
 
+using Prm.SerilogCustomization;
+using Serilog;
 using System;
-using System.IO;
 using System.Diagnostics;
 using System.Reflection;
 using System.ServiceProcess;
 using System.Threading;
 using ContentPublishingLib;
-using MapCommonLib;
+using Microsoft.Extensions.Configuration;
 
 namespace ContentPublishingService
 {
     public partial class ContentPublishingService : ServiceBase
     {
         ProcessManager Manager = null;
-        private TextWriterTraceListener CurrentTraceListener = null;
 
         public ContentPublishingService()
         {
             InitializeComponent();
+
+            Configuration.LoadConfiguration();
+
+            Assembly processAssembly = Assembly.GetAssembly(typeof(ContentPublishingService));
+            FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
+            string introMsg = $"Process launched:{Environment.NewLine}" +
+                              $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
+                              $"\tassembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
+                              $"\tassembly location <{processAssembly.Location}>{Environment.NewLine}" +
+                              $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}";
+
+            Log.Logger = new LoggerConfiguration()
+                    .ReadFrom.Configuration(Configuration.ApplicationConfiguration)
+                    .Enrich.With<UtcTimestampEnricher>()
+                    .CreateLogger();
+            Log.Information(introMsg);
         }
 
         protected override void OnStart(string[] args)
         {
             try
             {
-                Configuration.LoadConfiguration();
+                int ServiceLaunchDelaySec = Configuration.ApplicationConfiguration.GetValue("ServiceLaunchDelaySec", 10);
+                Thread.Sleep(ServiceLaunchDelaySec * 1000);
 
-                string ServiceLaunchDelaySecString = Configuration.GetConfigurationValue("ServiceLaunchDelaySec");
-                if (!string.IsNullOrWhiteSpace(ServiceLaunchDelaySecString) && int.TryParse(ServiceLaunchDelaySecString, out int ServiceLaunchDelaySec))
-                {
-                     Thread.Sleep(ServiceLaunchDelaySec * 1000);
-                }
-
-                InitiateTraceLogging();
-
-                Assembly processAssembly = Assembly.GetAssembly(typeof(ContentPublishingService));
-                FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
-                GlobalFunctions.TraceWriteLine($"Process launched:{Environment.NewLine}" +
-                                               $"\tassembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" + 
-                                               $"\tassembly location <{processAssembly.Location}>{Environment.NewLine}" +
-                                               $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");
-
-                GlobalFunctions.TraceWriteLine($"Service OnStart() called");
+                Log.Information($"Service OnStart() called");
 
                 if (Manager == null || !Manager.AnyMonitorThreadRunning)
                 {
@@ -57,45 +59,14 @@ namespace ContentPublishingService
             }
             catch (Exception e)
             {
-                GlobalFunctions.TraceWriteLine($"Failed to start service, exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
+                Log.Error(e, $"Failed to start service");
                 throw;
-            }
-        }
-
-        /// <summary>
-        /// Adds a service trace logging file to the collection of Trace listeners
-        /// </summary>
-        private void InitiateTraceLogging()
-        {
-            if (CurrentTraceListener == null)
-            {
-                EventLogEntryType EvtType = EventLogEntryType.Information;
-                string EvtMsg = string.Empty;
-
-                string TraceLogDirectory = Configuration.GetConfigurationValue("TraceLogDirectory");
-                if (!Directory.Exists(TraceLogDirectory))
-                {
-                    EvtMsg += $"No configured Tracelog directory, or directory {TraceLogDirectory} does not exist. ";
-                    EvtType = EventLogEntryType.Warning;
-
-                    // Get the full path of the assembly in which ContentPublishingService is declared
-                    string fullPath = System.Reflection.Assembly.GetAssembly(typeof(ContentPublishingService)).Location;
-                    TraceLogDirectory = Path.GetDirectoryName(fullPath);
-                }
-
-                string TraceLogFilePath = Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")}.txt");
-                EvtMsg += $"Using Trace logging file {Environment.NewLine}    {TraceLogFilePath}";
-                EventLog.WriteEntry(EvtMsg, EvtType);
-
-                CurrentTraceListener = new TextWriterTraceListener(TraceLogFilePath);
-                Trace.Listeners.Add(CurrentTraceListener);
-                Trace.AutoFlush = true;
             }
         }
 
         protected override void OnStop()
         {
-            GlobalFunctions.TraceWriteLine($"Service OnStop() called");
+            Log.Information($"Service OnStop() called");
             if (Manager != null)
             {
                 Manager.Stop();
@@ -105,7 +76,7 @@ namespace ContentPublishingService
 
         protected override void OnShutdown()
         {
-            GlobalFunctions.TraceWriteLine($"Service OnShutdown() called");
+            Log.Information($"Service OnShutdown() called");
             if (Manager != null)
             {
                 Manager.Stop();
@@ -116,21 +87,21 @@ namespace ContentPublishingService
         #region Unimplemented service callbacks
         protected override void OnPause()
         {
-            GlobalFunctions.TraceWriteLine($"Service OnPause() called");
+            Log.Information($"Service OnPause() called");
 
             base.OnPause();
         }
 
         protected override void OnContinue()
         {
-            GlobalFunctions.TraceWriteLine($"Service OnContinue() called");
+            Log.Information($"Service OnContinue() called");
 
             base.OnContinue();
         }
 
         protected override void OnCustomCommand(int command)
         {
-            GlobalFunctions.TraceWriteLine($"Service OnCommand() called with command= {command}");
+            Log.Information($"Service OnCommand() called with command= {command}");
             base.OnCustomCommand(command);
 
             switch (command)   // must be between 128 and 255

@@ -220,7 +220,7 @@ namespace TestResourcesLib
 
                 foreach (RoleEnum Role in Enum.GetValues(typeof(RoleEnum)))
                 {
-                    ApplicationRole NewRole = new ApplicationRole { Id = TestUtil.MakeTestGuid((int)Role), RoleEnum = Role, Name = Role.ToString(), NormalizedName = Role.ToString().ToUpper(), DisplayName = ApplicationRole.RoleDisplayNames[Role] };
+                    ApplicationRole NewRole = new ApplicationRole { Id = TestUtil.MakeTestGuid((int)Role), RoleEnum = Role, Name = Role.ToString(), NormalizedName = Role.ToString().ToUpper(), DisplayName = Role.GetDisplayNameString() };
 
                     ReturnList.Add(NewRole);
                     if (ResetRoles)

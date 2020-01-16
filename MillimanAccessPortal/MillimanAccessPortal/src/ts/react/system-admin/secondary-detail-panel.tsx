@@ -1,7 +1,7 @@
 import * as React from 'react';
 
+import { Toggle } from '../shared-components/form/toggle';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
-import { Toggle } from '../shared-components/toggle';
 import {
   ClientDetailForProfitCenter, ClientDetailForUser, NestedList, RootContentItemDetailForClient,
   RootContentItemDetailForUser, SecondaryDetail, UserDetailForClient, UserDetailForProfitCenter,

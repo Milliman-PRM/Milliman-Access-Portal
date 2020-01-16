@@ -175,7 +175,7 @@ namespace ContentPublishingServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
-            Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, JobDetail.Status);
+            Assert.Equal(ReductionJobDetail.JobStatusEnum.Warning, JobDetail.Status);
 
             Assert.NotNull(TaskResult.MasterContentHierarchy);
             Assert.Equal(3, TaskResult.MasterContentHierarchy.Fields.Count);
