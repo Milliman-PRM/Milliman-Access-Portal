@@ -13,7 +13,7 @@
 - Improved error handling in the Content Publishing process to better handle reductions that fail for a variety of reasons
 - Improved the resiliency of the Content Publishing process in handling temporary communications interruptions with the Qlikview Publishing Server
 - Added the ability for queued and processing publications and reductions to resume after the MAP application restarts
-- Minor errors during the publication process will now cause the Selection Group to become inactive where appropriate
+- Improved the publication process by allowing reductions resulting in certain minor errors to become inactive when appropriate without causing a failed publication
 - Improved the publication process by failing publications immediately upon errors that cannot be resolved
 - Improved messaging for publications and reductions that result in warnings or errors
 - Fixed an issue that made it difficult to successfully republish following certain publication failures
