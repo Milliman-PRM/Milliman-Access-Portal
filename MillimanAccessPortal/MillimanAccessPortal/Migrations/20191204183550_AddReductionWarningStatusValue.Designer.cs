@@ -114,6 +114,9 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<DateTime>("CreateDateTimeUtc");
 
+                    b.Property<string>("LiveReadyAssociatedFiles")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("LiveReadyFiles")
                         .HasColumnType("jsonb");
 
@@ -124,6 +127,9 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("jsonb");
 
                     b.Property<PublicationStatus>("RequestStatus");
+
+                    b.Property<string>("RequestedAssociatedFiles")
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("ResultHierarchy")
                         .HasColumnType("jsonb");
@@ -353,6 +359,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<string>("AssociatedFiles")
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("ClientId");
 
