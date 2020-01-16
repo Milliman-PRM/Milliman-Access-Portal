@@ -241,6 +241,10 @@
             background-color: $white;
             margin: 0;
 
+            textarea.form-input {
+                resize: none;
+            }
+            
             input.form-input,
             textarea.form-input,
             select.form-input {

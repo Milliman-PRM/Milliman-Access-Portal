@@ -229,6 +229,10 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     updateSelections: false,
   }),
+  SELECT_GROUP: (state) => ({
+    ...state,
+    updateSelections: false,
+  }),
   CANCEL_REDUCTION: (state) => ({
     ...state,
     cancelReduction: true,
@@ -285,7 +289,6 @@ const pendingSelections = createReducer<Dict<{ selected?: boolean }>>({}, {
     });
     return state;
   },
-  UPDATE_SELECTIONS_SUCCEEDED: (state) => _.mapValues(state, () => ({})),
   CANCEL_REDUCTION_SUCCEEDED: (state) => _.mapValues(state, () => ({})),
 });
 const pendingNewGroupName = createReducer<string>('', {

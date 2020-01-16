@@ -288,7 +288,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     // Add a slight pause to make it obvious that you've switched modals
                     setTimeout(() => this.props.openDeleteContentItemModal({ id: entityToSelect }), 400);
                     break;
-                  case 'Edit Content Item':
+                  case 'Update Content Item':
                     this.props.fetchContentItemDetail({ rootContentItemId: entityToSelect });
                     this.props.selectItem({ id: entityToSelect });
                     this.props.setContentItemFormState({ formState: 'write' });
@@ -503,14 +503,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               />
               <CardButton
                 color={'blue'}
-                tooltip={'Edit Content Item'}
+                tooltip={'Update Content Item'}
                 onClick={() => {
                   if (this.props.formChangesPending || this.props.uploadChangesPending) {
                     this.props.openModifiedFormModal({
                       afterFormModal:
                       {
                         entityToSelect: entityId,
-                        entityType: 'Edit Content Item',
+                        entityType: 'Update Content Item',
                       },
                     });
                   } else {
@@ -521,7 +521,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     this.props.setContentItemFormState({ formState: 'write' });
                   }
                 }}
-                icon={'edit'}
+                icon={'upload'}
               />
             </>
           );
@@ -638,8 +638,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
     const { formErrors, pendingFormData, formState, uploads } = formData;
     const editFormButton = (
       <ActionIcon
-        label="Edit Content Item"
-        icon="edit"
+        label="Update Content Item"
+        icon="upload"
         action={() => { this.props.setContentItemFormState({ formState: 'write' }); }}
       />
     );
@@ -731,9 +731,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         ? contentTypes[formData.pendingFormData.contentTypeId].fileExtensions
                         : []
                     }
-                    label="Content File"
+                    label="File"
                     name="masterContent"
-                    placeholderText="Content File *"
+                    placeholderText="File *"
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={(uploadId) =>
@@ -778,6 +778,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       value: status,
                     })}
                     readOnly={formState === 'read' || formData.originalFormData.id.length > 0}
+                    hoverText="This can only be changed on the initial publication of this content item"
                   />
                 }
                 {

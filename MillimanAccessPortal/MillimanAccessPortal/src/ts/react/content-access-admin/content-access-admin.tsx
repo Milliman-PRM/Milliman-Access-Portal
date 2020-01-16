@@ -660,6 +660,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         isModified={formModified}
         isValuesModified={valuesModified}
         isMaster={selectedMaster}
+        isSubmitting={pending.data.updateSelections}
         onIsMasterChange={(isMaster) => this.props.setPendingIsMaster({ isMaster })}
         title={group.name}
         subtitle={item.name}

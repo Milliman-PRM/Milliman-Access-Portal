@@ -51,6 +51,7 @@ namespace ContentPublishingLib.JobRunners
             NoReducedFileCreated,
             SelectionForInvalidFieldName,
             ReductionProcessingTimeout,
+            HierarchyExtractionFailed,
         }
 
         public ReductionJobRequest Request;

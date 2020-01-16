@@ -128,7 +128,7 @@ namespace MillimanAccessPortal
                 {
                     #region Log audit event
                     AuditLogger Logger = new AuditLogger();
-                    Logger.Log(AuditEventType.SelectionChangeReductionLive.ToEvent(thisContentReductionTask));
+                    Logger.Log(AuditEventType.SelectionChangeReductionLive.ToEvent(thisContentReductionTask), thisContentReductionTask.ApplicationUser.UserName);
                     #endregion
                 }
             }
@@ -220,8 +220,8 @@ namespace MillimanAccessPortal
             Db.SaveChanges();
 
             AuditLogger Logger = new AuditLogger();
-            Logger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
-                .ToEvent(usersInGroup, reductionTask.SelectionGroup.RootContentItem, reductionTask.SelectionGroup.RootContentItem.Client, ContentDisclaimerResetReason.ContentSelectionsModified));
+            Logger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersInGroup, reductionTask.SelectionGroup.RootContentItem, reductionTask.SelectionGroup.RootContentItem.Client, ContentDisclaimerResetReason.ContentSelectionsModified),
+                       reductionTask.ApplicationUser.UserName);
 
             return FilesToDelete;
         }

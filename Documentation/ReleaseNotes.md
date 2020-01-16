@@ -5,9 +5,13 @@
 ### v1.8.0
 
 - Restructured Content Publishing to improve usability and responsiveness
-- Added the ability to review thumbnail changes as part of the Go Live process
 - Redesigned the Content Publishing form to improve the user experience of creating and editing Content Items
+- The content for each individual selection group can now be viewed during the publication approval process
+- Added the ability to review thumbnail changes as part of the publication approval process
 - Added the ability to cancel publications during more of the publishing process
+- Queued and processing publications and selection group updates will now resume after an intentional or unintentional MAP application termination 
+- Publication processing is more resilient after certain temporary communications interruptions with the Qlikview publishing server
+- Certain minor errors during publication processing will no longer cause the entire publication job to fail, but rather will cause the associated selection group to become inactive
 
 #### v1.7.3
 

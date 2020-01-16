@@ -234,20 +234,21 @@
 
     &.readonly {
         cursor: default;
+        color: lighten($charcoal, 30%);
 
         .selection-option-checkmark {
             cursor: default;
         }
 
         .selection-option-value:checked ~ .selection-option-checkmark {
-            background-color: $dark-grey;
+            background-color: lighten($grey, 10%);
         }
 
         &:hover .selection-option-value ~ .selection-option-checkmark {
             background-color: $grey;
         }
         &:hover .selection-option-value:checked ~ .selection-option-checkmark {
-            background-color: $dark-grey;
+            background-color: lighten($grey, 10%);
         }
     }
 }

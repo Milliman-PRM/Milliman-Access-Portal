@@ -6,6 +6,7 @@ import '../../../../images/icons/edit.svg';
 import '../../../../images/icons/email.svg';
 import '../../../../images/icons/expand-card.svg';
 import '../../../../images/icons/remove-circle.svg';
+import '../../../../images/icons/upload.svg';
 
 import * as React from 'react';
 
@@ -13,7 +14,7 @@ export interface CardButtonProps {
   color: 'red' | 'blue' | 'green';
   tooltip: string;
   onClick: () => void;
-  icon: 'add' | 'cancel' | 'checkmark' | 'delete' | 'edit' | 'email' | 'expand-card' | 'remove-circle';
+  icon: 'add' | 'cancel' | 'checkmark' | 'delete' | 'edit' | 'email' | 'expand-card' | 'remove-circle' | 'upload';
   additionalClasses: string[];
 }
 
