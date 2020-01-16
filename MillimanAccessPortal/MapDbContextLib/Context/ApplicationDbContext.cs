@@ -36,6 +36,9 @@ namespace MapDbContextLib.Context
         public DbSet<FileUpload> FileUpload { get; set; }
         public DbSet<AuthenticationScheme> AuthenticationScheme { get; set; }
         public DbSet<NameValueConfiguration> NameValueConfiguration { get; set; }
+        public DbSet<FileDrop> FileDrop { get; set; }
+        public DbSet<SftpAccount> SftpAccount { get; set; }
+        public DbSet<SftpConnection> SftpConnection { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
