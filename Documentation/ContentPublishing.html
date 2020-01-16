@@ -11,52 +11,55 @@
     <button class="accordion">Creating a New Content Item</button>
     <div class="content">
         <ol>
-            <li>Select the client to which the content will be published in the <strong>Client Tree</strong> column on the left side of the screen</li>
-            <li>Click on the plus sign next to the search bar or click on the large <strong>Add Content Item</strong> button</li>
+            <li>Select the client to which the content will be published in the <strong>Clients</strong> column on the left side of the screen</li>
+            <li>Click on the plus sign next to the search bar or click on the large <strong>Add Content Item</strong> button in the <strong>Content Items</strong> column</li>
             <li>Fill out the Content Item form</li>
             <div>
                 <ul>
-                    <li>Field names designated with <strong>*</strong> are required</li>
-                    <li>If the content is intended to be reduced, click the <strong>Reducible</strong> toggle to the <strong>ON</strong> position</li>
+                    <li>Field names designated with <strong>*</strong> are required fields</li>
+                    <li>In the <strong>Files</strong> area of the form, click on a field for a prompt to upload a file</li>
+                    <li>If the content is intended to be reduced, click the <strong>Reducible</strong> toggle to the <strong>ON</strong> position (QlikView only)</li>
                     <li>After the content item is saved, the content type and <strong>Reducible</strong> status cannot be changed</li>
-                    <li>The <strong>Description</strong> field is for text that will appear on the content item card for all users with access to the content</li>
-                    <li>The <strong>Notes</strong> field is for text that will only appear on the publishing page and can serve as notes for publishing users</li>
-                    <li>In the <strong>Files</strong> area of the form, click on a field for a prompt to upload a file; all are optional except the content file itself</li>
+                    <li>The <strong>Content Description</strong> field is for text that will appear on the Content Item card for all users with access to the content</li>
+                    <li>The <strong>Custom Content Disclaimer</strong> field is the text that will be presented to end users and must be accepted before accessing the content; This field accepts markdown syntax for advanced styling</li>
+                    <li>The <strong>Internal Notes</strong> field is for text that will only appear on the publishing page and can serve as notes for publishing users</li>
                 </ul>
             </div>
             <li>Click <strong>Create Content Item</strong></li>
         </ol>
-        <li>Processing of publications is performed in the order requested; depending on the size and complexity of the publication, this may take some time</li>
+        <li>Processing of publications is performed in the order requested; depending on the content type and complexity of the publication, this may take some time</li>
         <li>The status of the request will be displayed below the content item card on this page</li>
-        <h3 class="subheading">Approving a New Content Item for Go-Live</h3>
+        <h3 class="subheading">Approving a new or republished Content Item</h3>
         <ol>
             <li>After the Content Item has reached the <strong>Processed</strong> status, click the green checkmark on the Content Item card to review the processed publication</li>
             <li>Review and check off each section (if it is correct), and consider the attestation statement. Note that for the FileDownload content type, you can download the file to review it</li>
             <li>If something looks incorrect, click <strong>Reject</strong> to cancel the publication</li>
             <li>Click <strong>Approve</strong> at the bottom of the publication preview to make the content live</li>
+            <li>The new content will not be viewable by the end user until the publication has been reviewed and approved</li>
         </ol>
     </div>
     <button class="accordion">Updating Existing Content</button>
     <div class="content">
         <ol>
-            <li>Select the client for which the content item has been published in the <strong>Client Tree</strong> on the left side</li>
+            <li>Select the client for which the content item has been published in the <strong>Clients</strong> column on the left side</li>
             <li>Select the content item to be updated</li>
-            <li>Click on the green Republish icon on the content card, or click on the <strong>Submit new publication</strong> icon in the upper right corner</li>
+            <li>Click on the blue Update icon on the content card, or click on the <strong>Update Content Item</strong> icon in the upper right corner</li>
             <li>Update the form on the right side of the screen as needed</li>
             <li>In the <strong>Files</strong> area of the form, click on a field for a prompt to upload an updated file</li>
-            <li>Click <strong>Republish</strong></li>
-            <li>If a new content file was included, the approval process outlined in the <strong>Content Publishing</strong> section above must be followed for the content to go live</li>
+            <li>Click <strong>Update Content Item</strong></li>
+            <li>If a new content file, Thumbnail, User Guide, or Release Notes was included, the approval process outlined in the <strong>Content Publishing</strong> section above must be followed for the content to go live</li>
         </ol>
     </div>
     <button class="accordion">Adding a Content Disclaimer</button>
     <div class="content">
         <ol>
-            <li>Select the client for which the content item has been published in the <strong>Client Tree</strong> on the left side</li>
+            <li>Select the client for which the content item has been published in the <strong>Clients</strong> column on the left side</li>
             <li>Select the content item that you would to add a disclaimer to</li>
+            <li>Click on the blue Update icon on the content card, or click on the <strong>Update Content Item</strong> icon in the upper right corner</li>
             <li>Input the desired disclaimer text in the "Custom Disclaimer Text" input field</li>
             <li>If text formatting is desired, this can be accomplished through the use of markdown syntax</li>
             <li>To preview the formatted disclaimer text, click the "Preview" button above the "Custom Disclaimer Text" text box</li>
-            <li>Once you are satisfied with the disclaimer text and formatting, click the "CREATE CONTENT ITEM" or "REPUBLISH" button</li>
+            <li>Once you are satisfied with the disclaimer text and formatting, click the "CREATE CONTENT ITEM" or "UPDATE CONTENT ITEM" button</li>
         </ol>
         <h3 class="subheading">Markdown Syntax:</h3>
         <table id="syntax">
@@ -133,7 +136,7 @@
             <li>Navigate to the Client, then the Content Item to be deleted</li>
             <li>Click on the red trash icon</li>
             <li>Press <strong>Delete</strong></li>
-            <li>Enter the word "DELETE" and press the <strong>Delete</strong> button to confirm deletion</li>
+            <li>Press the <strong>Confirm Deletion</strong> to confirm the deletion</li>
         </ol>
     </div>
     <script src="_JS\accordion.js"></script>
