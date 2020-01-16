@@ -17,6 +17,7 @@
     "popper.js": "^1.14.1",
     "prop-types": "^15.5.7",
     "react": "^16.3.0",
+    "react-autosize-textarea": "7.0.0",
     "react-dom": "^16.3.0",
     "react-modal": "^3.5.1",
     "react-redux": "^5.1.0",
