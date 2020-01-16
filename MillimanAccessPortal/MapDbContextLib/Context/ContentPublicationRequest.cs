@@ -20,40 +20,40 @@ namespace MapDbContextLib.Context
     {
         Unknown = 0,
 
-        [Display(Description = "The publication was canceled")]
+        [Display(Description = "This publication was canceled")]
         Canceled = 1,
 
-        [Display(Description = "The publication was rejected during preview")]
+        [Display(Description = "This publication was rejected during pre-live summary")]
         Rejected = 2,
 
-        [Display(Description = "The publication is being prepared to become queued for processing")]
+        [Display(Description = "This publication is preparing to be queued for processing")]
         Validating = 9,
 
-        [Display(Description = "The publication is queued for processing")]
+        [Display(Description = "This publication is queued for processing")]
         Queued = 10,
 
-        [Display(Description = "The publication is processing")]
+        [Display(Description = "This publication is processing")]
         Processing = 20,
 
-        [Display(Description = "The publication is awaiting postprocessing")]
+        [Display(Description = "This publication is awaiting post-processing")]
         PostProcessReady = 25,
 
-        [Display(Description = "The publication is postprocessing")]
+        [Display(Description = "This publication is post-processing")]
         PostProcessing = 27,
 
-        [Display(Description = "The publication is ready for preview and approval")]
+        [Display(Description = "This publication is ready for review")]
         Processed = 30,
 
-        [Display(Description = "The publication is in the process of going live")]
+        [Display(Description = "This publication is going live")]
         Confirming = 35,
 
-        [Display(Description = "The publication is live")]
+        [Display(Description = "This publication is live")]
         Confirmed = 40,
 
-        [Display(Description = "The publication was previously live and has been replaced by a more recent publication")]
+        [Display(Description = "This publication has been replaced by a more recent publication")]
         Replaced = 50,
 
-        [Display(Description = "The publication encountered an error during processing that prevents further use")]
+        [Display(Description = "This publication encountered an error during processing")]
         Error = 90,
     }
 

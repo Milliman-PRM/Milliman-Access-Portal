@@ -17,25 +17,25 @@ namespace MapDbContextLib.Models
         [Display(Description = "")]
         Default = 0,
 
-        [Display(Description = "The reduction task completed successfully")]
+        [Display(Description = "This reduction completed successfully")]
         Success = 10,
 
-        [Display(Description = "The unreduced content file has been successfully assigned to this selection group")]
+        [Display(Description = "This selection group will be granted unrestricted access upon approval")]
         MasterHierarchyAssigned = 11,
 
-        [Display(Description = "The reduction task was canceled")]
+        [Display(Description = "This reduction was canceled")]
         Canceled = 20,
 
-        [Display(Description = "Bad request, an internal reduction processing error occurred")]
+        [Display(Description = "An internal reduction processing error occurred")]
         BadRequest = 21,
 
-        [Display(Description = "An unspecified error has occurred. Please retry the request and contact support if the problem persists")]
+        [Display(Description = "An unspecified error has occurred")]
         UnspecifiedError = 100,
 
         [Display(Description = "No field values were selected for this reduction")]
         NoSelectedFieldValues = 101,
 
-        [Display(Description = "None of the selected values for this selection group exist in the new content file")]
+        [Display(Description = "None of the selected values for this selection group exist in the new file")]
         NoSelectedFieldValueExistsInNewContent = 102,
 
         [Display(Description = "A value was selected for an invalid field")]
@@ -44,7 +44,7 @@ namespace MapDbContextLib.Models
         [Display(Description = "A reduced file was not created")]
         NoReducedFileCreated = 104,
 
-        [Display(Description = "The reduction task timed out. Please retry the request and contact support if the problem persists")]
+        [Display(Description = "This reduction timed out")]
         ReductionTimeout = 105,
 
         [Display(Description = "The content hierarchy failed to export from the content file or could not be interpreted")]
