@@ -47,7 +47,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderFormSection() {
-    const { title, subtitle, isSuspended, loading } = this.props;
+    const { isMaster, title, subtitle, isSuspended, loading } = this.props;
     return loading
       ? <ColumnSpinner />
       : (
@@ -59,7 +59,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
                 display: 'flex',
                 flexDirection: 'column',
                 flex: 'auto',
-                height: 'calc(100% - 1.5em)',
+                height: (!isMaster) ? 'calc(100% - 1.5em)' : null,
               }}
             >
               <h2
