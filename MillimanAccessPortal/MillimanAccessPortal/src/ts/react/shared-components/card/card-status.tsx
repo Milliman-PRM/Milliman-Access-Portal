@@ -56,9 +56,16 @@ export class CardStatus extends React.Component<CardStatusProps> {
 
   private renderStatusTitle = () => {
     const { status } = this.props;
-    const statusName = isPublicationRequest(status)
-      ? status.requestStatusName
-      : status.taskStatusName;
+    let statusName;
+    if (isPublicationRequest(status)) {
+      statusName = status.requestStatusName;
+    } else {
+      if (status.taskStatus === ReductionStatus.Reduced && status.selectedValues === null) {
+        statusName = 'Processed';
+      } else {
+        statusName = status.taskStatusName;
+      }
+    }
 
     return (
       <span className="status-name">
