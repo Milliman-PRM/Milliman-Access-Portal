@@ -121,8 +121,8 @@ export class CardStatus extends React.Component<CardStatusProps> {
       if (status.outcomeMetadata.reductionTaskFailOutcomeList.length > 0) {
         return status.outcomeMetadata.reductionTaskFailOutcomeList
           .filter((x) => x.outcomeReason !== 'Canceled')
-          .map((x) => (
-            <>
+          .map((x, i) => (
+            <div key={i}>
               <span className="task-status-message">
                 {x.selectionGroupName
                   ? <>In Selection Group <strong>{x.selectionGroupName}</strong>: </>
@@ -130,7 +130,7 @@ export class CardStatus extends React.Component<CardStatusProps> {
                 } {x.userMessage}
               </span>
               <br />
-            </>
+            </div>
           ));
       } else {
         return <span className="task-status-message">{status.outcomeMetadata.userMessage}</span>;
