@@ -104,7 +104,6 @@ namespace MapDbContextLib.Context
         public SelectionGroup SelectionGroup { get; set; }
 
         [Required]
-        // Default value is enforced in ApplicationDbContext.OnModelCreating()
         public DateTime CreateDateTimeUtc { get; set; }
 
         /// <summary>
