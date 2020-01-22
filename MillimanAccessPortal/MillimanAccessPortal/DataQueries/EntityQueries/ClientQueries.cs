@@ -120,8 +120,7 @@ namespace MillimanAccessPortal.DataQueries
                     clientWith.CanManage = _dbContext.UserRoleInClient.Any(r => r.ClientId == client.Id && r.Role.RoleEnum == role.Value && r.UserId == userId.Value);
                 }
                 clientWith.ContentItemCount = _dbContext.RootContentItem
-                    .Where(i => i.ClientId == client.Id)
-                    .Count();
+                    .Count(i => i.ClientId == client.Id);
                 clientWith.UserCount = _dbContext.UserRoleInClient
                     .Where(r => r.ClientId == client.Id)
                     .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
