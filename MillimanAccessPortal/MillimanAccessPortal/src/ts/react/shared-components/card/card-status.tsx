@@ -60,11 +60,7 @@ export class CardStatus extends React.Component<CardStatusProps> {
     if (isPublicationRequest(status)) {
       statusName = status.requestStatusName;
     } else {
-      if (status.taskStatus === ReductionStatus.Reduced && status.selectedValues === null) {
-        statusName = 'Processed';
-      } else {
-        statusName = status.taskStatusName;
-      }
+      statusName = status.taskStatusName;
     }
 
     return (
