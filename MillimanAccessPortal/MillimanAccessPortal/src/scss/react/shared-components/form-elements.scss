@@ -170,6 +170,7 @@
         .thumbnail-preview {
             width: 100%;
             height: auto;
+            min-height: 1px;
             cursor: pointer;
             border: 1px solid $charcoal;
             border-top: none;
