@@ -81,6 +81,14 @@ export class CardStatus extends React.Component<CardStatusProps> {
     const s = (count: number) => count === 1 ? '' : 's';
 
     let queueString = '';
+    if (isReductionTask(status)
+      && (
+        status.taskStatus === ReductionStatus.Reduced
+        || status.taskStatus === ReductionStatus.Warning
+      )
+      && status.contentPublicationRequestId) {
+      return '(pending approval)';
+    }
     if (!status.queueDetails) {
       return queueString;
     }
