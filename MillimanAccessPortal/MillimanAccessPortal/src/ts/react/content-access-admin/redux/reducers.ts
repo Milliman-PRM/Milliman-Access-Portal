@@ -445,9 +445,7 @@ const data = createReducer<AccessStateData>(_initialData, {
       if (action.response.reductions[reductionId]) {
         reductions[reductionId] = {
           selectedValues: (state.reductions[reductionId] !== undefined)
-            ? (state.reductions[reductionId].selectedValues === null)
-              ? null
-              : []
+            ? state.reductions[reductionId].selectedValues
             : [],
           contentPublicationRequestId: action.response.reductions[reductionId].contentPublicationRequestId,
           applicationUser: action.response.reductions[reductionId].applicationUser,
