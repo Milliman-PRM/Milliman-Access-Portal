@@ -160,7 +160,12 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
     return fieldsets.map((fieldset) => (
       <Fieldset
         key={fieldset.name}
-        readOnly={isSubmitting || isReductionActive(status) || isPublicationActive(itemStatus)}
+        readOnly={
+          isSubmitting
+          || isReductionActive(status)
+          || isPublicationActive(itemStatus)
+          || itemStatus === PublicationStatus.Error
+        }
         {...fieldset}
       />
     ));
