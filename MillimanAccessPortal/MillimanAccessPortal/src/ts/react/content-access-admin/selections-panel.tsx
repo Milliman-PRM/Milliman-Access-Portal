@@ -89,7 +89,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderDoesReduceSection() {
-    const { doesReduce, isMaster, onIsMasterChange, status } = this.props;
+    const { doesReduce, isMaster, onIsMasterChange, status, itemStatus } = this.props;
     return doesReduce
       ? (
         <div
@@ -103,8 +103,14 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
           <Toggle
             label={'Unrestricted Access'}
             checked={isMaster}
+            readOnly={
+              itemStatus === PublicationStatus.Error
+              || isPublicationActive(itemStatus)
+              || isReductionActive(status)
+            }
             onClick={() => !isReductionActive(status)
-              && status !== ReductionStatus.Warning
+              && !isPublicationActive(itemStatus)
+              && itemStatus !== PublicationStatus.Error
               && onIsMasterChange(!isMaster)
             }
           />
@@ -154,7 +160,12 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
     return fieldsets.map((fieldset) => (
       <Fieldset
         key={fieldset.name}
-        readOnly={isSubmitting || isReductionActive(status) || isPublicationActive(itemStatus)}
+        readOnly={
+          isSubmitting
+          || isReductionActive(status)
+          || isPublicationActive(itemStatus)
+          || itemStatus === PublicationStatus.Error
+        }
         {...fieldset}
       />
     ));
