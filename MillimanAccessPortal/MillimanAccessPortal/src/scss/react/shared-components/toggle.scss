@@ -105,7 +105,7 @@
                 }
 
                 &:after {
-                    background-color: $grey;
+                    background-color: lighten($grey, 5%);
                 }
 
                 &:before {
@@ -114,8 +114,8 @@
             }
 
             .toggle-switch-switch {
-                border: 2px solid $white !important;
-                background-color: transparent;
+                border: 2px solid $grey !important;
+                background-color: lighten($grey, 30%);
             }
         }
 
