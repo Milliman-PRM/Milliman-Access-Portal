@@ -60,11 +60,7 @@ export class CardStatus extends React.Component<CardStatusProps> {
     if (isPublicationRequest(status)) {
       statusName = status.requestStatusName;
     } else {
-      if (status.taskStatus === ReductionStatus.Reduced && status.selectedValues === null) {
-        statusName = 'Processed';
-      } else {
-        statusName = status.taskStatusName;
-      }
+      statusName = status.taskStatusName;
     }
 
     return (
@@ -81,6 +77,14 @@ export class CardStatus extends React.Component<CardStatusProps> {
     const s = (count: number) => count === 1 ? '' : 's';
 
     let queueString = '';
+    if (isReductionTask(status)
+      && (
+        status.taskStatus === ReductionStatus.Reduced
+        || status.taskStatus === ReductionStatus.Warning
+      )
+      && status.contentPublicationRequestId) {
+      return '(pending approval)';
+    }
     if (!status.queueDetails) {
       return queueString;
     }
@@ -103,7 +107,9 @@ export class CardStatus extends React.Component<CardStatusProps> {
       const { taskStatus, queueDetails } = status;
       if (taskStatus === ReductionStatus.Queued) {
         const { queuePosition: position } = queueDetails;
-        queueString = `(behind ${position} other reduction${s(position)})`;
+        queueString = (position > 0)
+          ? `(behind ${position} other reduction${s(position)})`
+          : '';
       }
     }
 
