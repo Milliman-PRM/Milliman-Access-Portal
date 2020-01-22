@@ -108,7 +108,7 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="user"></param>
         /// <param name="roleInRootContentItem"></param>
         /// <returns></returns>
-        internal RootContentItemsModel BuildRootContentItemsModel(Client client, ApplicationUser user, RoleEnum roleInRootContentItem)
+        internal RootContentItemsModel BuildRootContentItemsModel(Client client, ApplicationUser user)
         {
             var statusModel = SelectStatus(user, client.Id);
 
@@ -120,19 +120,19 @@ namespace MillimanAccessPortal.DataQueries
                 ClientStats = new
                 {
                     code = client.ClientCode,
-                    contentItemCount = _dbContext.UserRoleInRootContentItem
-                                            .Where(r => r.UserId == user.Id && r.Role.RoleEnum == roleInRootContentItem && r.RootContentItem.ClientId == client.Id)
-                                            .Select(r => r.RootContentItemId)
-                                            .Distinct()
-                                            .Count(),
+                    contentItemCount = _dbContext.RootContentItem
+                                                 .Where(r => r.ClientId == client.Id)
+                                                 .Select(r => r.Id)
+                                                 .Distinct()
+                                                 .Count(),
                     Id = client.Id.ToString(),
                     name = client.Name,
                     parentId = client.ParentClientId?.ToString(),
-                    userCount = _dbContext.UserRoleInClient
-                                     .Where(r => r.UserId == user.Id && r.Role.RoleEnum == RoleEnum.ContentUser && r.ClientId == client.Id)
-                                     .Select(r => r.UserId)
-                                     .Distinct()
-                                     .Count(),
+                    userCount = _dbContext.UserInSelectionGroup
+                                          .Where(g => g.SelectionGroup.RootContentItem.ClientId == client.Id)
+                                          .Select(r => r.UserId)
+                                          .Distinct()
+                                          .Count(),
                 },
             };
 
