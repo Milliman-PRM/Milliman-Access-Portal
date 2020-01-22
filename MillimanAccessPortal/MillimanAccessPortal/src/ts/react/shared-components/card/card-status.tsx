@@ -107,7 +107,9 @@ export class CardStatus extends React.Component<CardStatusProps> {
       const { taskStatus, queueDetails } = status;
       if (taskStatus === ReductionStatus.Queued) {
         const { queuePosition: position } = queueDetails;
-        queueString = `(behind ${position} other reduction${s(position)})`;
+        queueString = (position > 0)
+          ? `(behind ${position} other reduction${s(position)})`
+          : '';
       }
     }
 
