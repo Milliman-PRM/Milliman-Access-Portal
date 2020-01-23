@@ -128,7 +128,11 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
       : (
         <div className="fieldset-container" style={{ flex: '1 1 1px', overflowY: 'auto' }}>
           <h4>Reduction Values</h4>
-          {!isReductionActive(status) && !isPublicationActive(itemStatus) && (
+          {
+            !isReductionActive(status)
+            && !isPublicationActive(itemStatus)
+            && itemStatus !== PublicationStatus.Error
+            && (
             <div className="fieldset-options-container">
               <div
                 className={`fieldset-option${this.props.isAllValuesSelected ? ' disabled' : ''}`}
@@ -180,7 +184,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
         case ReductionStatus.Rejected:
         case ReductionStatus.Live:
         case ReductionStatus.Error:
-          return isModified
+          return (isModified && itemStatus !== PublicationStatus.Error)
             ? (
               <button
                 type="button"
