@@ -338,6 +338,13 @@ export function contentItemToBeDeleted(state: PublishingState) {
     : null;
 }
 
+export function contentItemToBeCanceled(state: PublishingState) {
+  const contentItemIdPendingCancelation = state.pending.publicationToCancel;
+  return (state.data.items.hasOwnProperty(contentItemIdPendingCancelation))
+    ? state.data.items[contentItemIdPendingCancelation]
+    : null;
+}
+
 /**
  * Return the content item information for creating and updating content items
  * @param state Redux store

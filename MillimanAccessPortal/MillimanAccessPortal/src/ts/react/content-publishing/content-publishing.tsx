@@ -52,9 +52,9 @@ import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
-  availableContentTypes, clientEntities, contentItemForPublication, contentItemToBeDeleted,
-  filesForPublishing, formChangesPending, goLiveApproveButtonIsActive, itemEntities,
-  selectedItem, submitButtonIsActive, uploadChangesPending,
+  availableContentTypes, clientEntities, contentItemForPublication, contentItemToBeCanceled,
+  contentItemToBeDeleted, filesForPublishing, formChangesPending, goLiveApproveButtonIsActive,
+  itemEntities, selectedItem, submitButtonIsActive, uploadChangesPending,
 } from './redux/selectors';
 import {
   GoLiveSummaryData, PublishingFormData, PublishingState, PublishingStateCardAttributes,
@@ -87,6 +87,7 @@ interface ContentPublishingProps {
   activeSelectedItem: RootContentItem;
   filesForPublishing: PublishRequest;
   contentItemToBeDeleted: RootContentItem;
+  contentItemToBeCanceled: RootContentItem;
   formCanSubmit: boolean;
   formChangesPending: boolean;
   goLiveApproveButtonIsActive: boolean;
@@ -318,7 +319,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           closeTimeoutMS={100}
         >
           <h3 className="title red">Cancel Publication Request</h3>
-          <span className="modal-text">Would you like to cancel the publication request?</span>
+          <span className="modal-text">
+            Would you like to cancel the publication request for {
+              (this.props.contentItemToBeCanceled !== null)
+                ? this.props.contentItemToBeCanceled.name
+                : ''}?
+          </span>
           <div className="button-container">
             <button
               className="link-button"
@@ -1312,6 +1318,7 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     filesForPublishing: filesForPublishing(state, rootContentItemId),
     formCanSubmit: submitButtonIsActive(state),
     contentItemToBeDeleted: contentItemToBeDeleted(state),
+    contentItemToBeCanceled: contentItemToBeCanceled(state),
     formChangesPending: formChangesPending(state),
     goLiveApproveButtonIsActive: goLiveApproveButtonIsActive(state),
     uploadChangesPending: uploadChangesPending(state),
