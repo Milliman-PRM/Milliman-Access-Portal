@@ -518,6 +518,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             ContentReductionTask liveTask = DbContext.ContentReductionTask
+                                                     .Where(t => t.SelectionGroup.RootContentItemId == selectionGroup.RootContentItemId)
                                                      .FirstOrDefault(t => t.ReductionStatus == ReductionStatusEnum.Live);
 
             #region Validation
