@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: Extends the base class with properties employed in the user interface
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
@@ -11,7 +11,17 @@ namespace MillimanAccessPortal.Models.ClientModels
     public class BasicClientWithCardStats : BasicClient
     {
         public BasicClientWithCardStats() { }
-        public BasicClientWithCardStats(Client b) : base (b) {}
+
+        /// <summary>
+        /// Populates only the fields of (base) class BasicClient.  Other property values may depend on context of the caller so should be assigned there. 
+        /// </summary>
+        /// <param name="c"></param>
+        public BasicClientWithCardStats(Client c) : base(c) { }
+
+        public static explicit operator BasicClientWithCardStats(Client c)
+        {
+            return new BasicClientWithCardStats(c);
+        }
 
         /// <summary>
         /// Number of RootContentItems for this client.

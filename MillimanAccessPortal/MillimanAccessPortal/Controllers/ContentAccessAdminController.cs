@@ -125,7 +125,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var clients = _accessAdminQueries.SelectClients(currentUser);
+            var clients = _accessAdminQueries.GetAuthorizedClientsModel(currentUser);
 
             return Json(clients);
         }

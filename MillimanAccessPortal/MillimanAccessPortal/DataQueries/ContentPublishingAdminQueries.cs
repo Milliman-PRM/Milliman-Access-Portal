@@ -60,19 +60,19 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        internal Dictionary<Guid, BasicClientWithCardStats> GetAuthorizedClients(ApplicationUser user, RoleEnum role)
+        internal Dictionary<Guid, BasicClientWithCardStats> GetAuthorizedClientsModel(ApplicationUser user)
         {
-            List<Client> clients = _dbContext.UserRoleInClient
-                                             .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == role)
-                                             .Select(urc => urc.Client)
-                                             .ToList();
-            clients = AddUniqueAncestorClientsNonInclusiveOf(clients);
+            List<Client> clientList = _dbContext.UserRoleInClient
+                                                .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == RoleEnum.ContentPublisher)
+                                                .Select(urc => urc.Client)
+                                                .ToList();
+            clientList = AddUniqueAncestorClientsNonInclusiveOf(clientList);
 
             List<BasicClientWithCardStats> returnList = new List<BasicClientWithCardStats>();
 
-            foreach (Guid authorizedClientId in clients.Select(c => c.Id))
+            foreach (Client oneClient in clientList)
             {
-                returnList.Add(_clientQueries.SelectClientWithCardStats(authorizedClientId, role, user.Id));
+                returnList.Add(_clientQueries.SelectClientWithPublishingCardStats(oneClient, RoleEnum.ContentPublisher, user.Id));
             }
 
             return returnList.ToDictionary(c => c.Id);
