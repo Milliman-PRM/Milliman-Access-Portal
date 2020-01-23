@@ -320,10 +320,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         >
           <h3 className="title red">Cancel Publication Request</h3>
           <span className="modal-text">
-            Would you like to cancel the publication request for {
+            Would you like to cancel the publication request for <strong>{
               (this.props.contentItemToBeCanceled !== null)
                 ? this.props.contentItemToBeCanceled.name
-                : ''}?
+                : ''}</strong>?
           </span>
           <div className="button-container">
             <button
