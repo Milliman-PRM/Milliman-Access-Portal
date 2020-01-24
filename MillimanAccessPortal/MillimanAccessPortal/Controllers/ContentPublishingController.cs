@@ -147,7 +147,7 @@ namespace MillimanAccessPortal.Controllers
 
             ClientsResponseModel responseModel = new ClientsResponseModel
             {
-                Clients = _publishingQueries.GetAuthorizedClients(await _userManager.GetUserAsync(User), requiredRole),
+                Clients = _publishingQueries.GetAuthorizedClientsModel(await _userManager.GetUserAsync(User)),
             };
 
             return new JsonResult(responseModel);
@@ -184,7 +184,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await _userManager.GetUserAsync(User);
-            var contentItems = _publishingQueries.BuildRootContentItemsModel(client, currentUser, requiredRole);
+            var contentItems = _publishingQueries.BuildRootContentItemsModel(client, currentUser);
 
             return Json(contentItems);
         }
