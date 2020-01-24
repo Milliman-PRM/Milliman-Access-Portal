@@ -519,6 +519,7 @@ namespace MillimanAccessPortal.Controllers
 
             ContentReductionTask liveTask = DbContext.ContentReductionTask
                                                      .Where(t => t.SelectionGroup.RootContentItemId == selectionGroup.RootContentItemId)
+                                                     .Where(t => t.MasterContentHierarchyObj != null)
                                                      .FirstOrDefault(t => t.ReductionStatus == ReductionStatusEnum.Live);
 
             #region Validation
@@ -577,7 +578,7 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 // Invalid to convert a group to unrestricted if no previous task has live status and contains a master hierarchy
-                if (liveTask == default || liveTask.MasterContentHierarchyObj == null)
+                if (liveTask == default)
                 {
                     Log.Information($"In ContentAccessAdminController.UpdateSelections: Unable to find a live reduction task record with master hierarchy information");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -637,17 +638,13 @@ namespace MillimanAccessPortal.Controllers
                                             .ToList();
                 usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
 
-                var masterHierarchyObj = DbContext.ContentReductionTask
-                                                  .Where(t => t.CreateDateTimeUtc >= liveTask.CreateDateTimeUtc)
-                                                  .First(t => t.MasterContentHierarchy != null)
-                                                  .MasterContentHierarchyObj;
-
+                DateTime taskTime = DateTime.UtcNow;
                 // Record with a new ContentReductionTask record
                 DbContext.ContentReductionTask.Add(new ContentReductionTask
                 {
                     ApplicationUserId = currentUser.Id,
-                    CreateDateTimeUtc = DateTime.UtcNow,
-                    ProcessingStartDateTimeUtc = DateTime.UtcNow,
+                    CreateDateTimeUtc = taskTime,
+                    ProcessingStartDateTimeUtc = taskTime,
                     Id = NewTaskGuid,
                     MasterFilePath = "",
                     OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
@@ -666,7 +663,7 @@ namespace MillimanAccessPortal.Controllers
                                                           .ContentFilesList
                                                           .Single(f => f.FilePurpose.Equals("MasterContent", StringComparison.InvariantCultureIgnoreCase))
                                                           .Checksum,
-                    MasterContentHierarchyObj = masterHierarchyObj,
+                    MasterContentHierarchyObj = liveTask.MasterContentHierarchyObj,
                 });
 
                 DbContext.SaveChanges();
