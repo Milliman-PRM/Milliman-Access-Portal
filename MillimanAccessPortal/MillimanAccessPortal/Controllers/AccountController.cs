@@ -1163,10 +1163,10 @@ namespace MillimanAccessPortal.Controllers
                 NavBarElements.Add(new NavBarElementModel
                 {
                     Order = order++,
-                    Label = "FileDrop",
+                    Label = "File Drop",
                     URL = nameof(FileDropController).Replace("Controller", ""),
                     View = "FileDrop",
-                    Icon = "filedrop",
+                    Icon = "file-drop",
                 });
             }
 
