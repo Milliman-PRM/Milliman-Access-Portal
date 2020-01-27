@@ -49,6 +49,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             var reductionTask = _dbContext.ContentReductionTask
                 .Include(t => t.ApplicationUser)
                 .Where(t => t.SelectionGroupId == selectionGroupId)
+                .Where(t => ReductionStatusExtensions.accessAdminStatusList.Contains(t.ReductionStatus))
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();
 
