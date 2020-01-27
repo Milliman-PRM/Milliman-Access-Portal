@@ -666,6 +666,13 @@ namespace MillimanAccessPortal.Controllers
                     MasterContentHierarchyObj = liveTask.MasterContentHierarchyObj,
                 });
 
+                // set live reduction to replaced
+                var liveReductionTasks = DbContext.ContentReductionTask
+                    .Where(t => t.SelectionGroupId == selectionGroup.Id)
+                    .Where(t => t.ReductionStatus == ReductionStatusEnum.Live)
+                    .ToList();
+                liveReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Replaced);
+
                 DbContext.SaveChanges();
 
                 AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client));
