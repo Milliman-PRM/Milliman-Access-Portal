@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "FileDrop";
+    ViewData["Title"] = "File Drop";
     Layout = "_Layout_w_NB_H_F";
     ViewData["NavIcon"] = "FileDrop";
 }
