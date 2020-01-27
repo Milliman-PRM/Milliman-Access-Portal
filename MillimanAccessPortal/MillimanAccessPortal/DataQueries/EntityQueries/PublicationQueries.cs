@@ -168,6 +168,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     var precedingReductionTaskCount = _dbContext.ContentReductionTask
                         .Where(r => r.CreateDateTimeUtc <= reduction.CreateDateTimeUtc)
                         .Where(r => ReductionStatusExtensions.cancelableStatusList.Contains(r.ReductionStatus))
+                        .Where(r => r.Id != reduction.Id)
                         .Count();
                     queueDetails.Add(new ReductionQueueDetails
                     {
