@@ -1156,9 +1156,10 @@ namespace MillimanAccessPortal.Controllers
             });
 
             // Conditionally add the FileDrop Element
-            // TODO: Switch this to the correct role once it has been added
-            AuthorizationResult FileDropResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
-            if (FileDropResult.Succeeded)
+            AuthorizationResult FileDropAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
+            // TODO: Actually check if a File Drop User is assigned to a File Drop to provide access
+            AuthorizationResult FileDropUserResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser));
+            if (FileDropAdminResult.Succeeded || FileDropUserResult.Succeeded)
             {
                 NavBarElements.Add(new NavBarElementModel
                 {
