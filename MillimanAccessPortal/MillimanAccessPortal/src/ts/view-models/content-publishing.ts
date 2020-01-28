@@ -75,8 +75,8 @@ export const publicationStatusNames: { [status: number]: string; } = {
 export const reductionStatusNames: { [status: number]: string; } = {
    9: 'Validating',
   10: 'Queued',
-  20: 'Reducing',
-  30: 'Reduced',
+  20: 'Processing',
+  30: 'Processed',
   80: 'Warning',
   90: 'Error',
 };

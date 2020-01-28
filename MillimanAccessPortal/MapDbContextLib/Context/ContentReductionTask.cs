@@ -49,6 +49,16 @@ namespace MapDbContextLib.Context
                 ReductionStatusEnum.Reduced,
             };
 
+        public static List<ReductionStatusEnum> accessAdminStatusList = new List<ReductionStatusEnum>
+            {
+                ReductionStatusEnum.Validating,
+                ReductionStatusEnum.Queued,
+                ReductionStatusEnum.Reducing,
+                ReductionStatusEnum.Reduced,
+                ReductionStatusEnum.Live,
+                ReductionStatusEnum.Error,
+            };
+
         public static bool IsCancelable(this ReductionStatusEnum status)
         {
             return cancelableStatusList.Contains(status);
@@ -104,7 +114,6 @@ namespace MapDbContextLib.Context
         public SelectionGroup SelectionGroup { get; set; }
 
         [Required]
-        // Default value is enforced in ApplicationDbContext.OnModelCreating()
         public DateTime CreateDateTimeUtc { get; set; }
 
         /// <summary>

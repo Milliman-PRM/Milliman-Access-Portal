@@ -147,7 +147,7 @@ namespace MillimanAccessPortal.Controllers
 
             ClientsResponseModel responseModel = new ClientsResponseModel
             {
-                Clients = _publishingQueries.GetAuthorizedClients(await _userManager.GetUserAsync(User), requiredRole),
+                Clients = _publishingQueries.GetAuthorizedClientsModel(await _userManager.GetUserAsync(User)),
             };
 
             return new JsonResult(responseModel);
@@ -184,7 +184,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await _userManager.GetUserAsync(User);
-            var contentItems = _publishingQueries.BuildRootContentItemsModel(client, currentUser, requiredRole);
+            var contentItems = _publishingQueries.BuildRootContentItemsModel(client, currentUser);
 
             return Json(contentItems);
         }
@@ -710,11 +710,20 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            DateTime onlyCancelRequestCreatedAfter = _dbContext.ContentPublicationRequest
+                .Where(r => r.RootContentItemId == rootContentItem.Id)
+                .Where(r => PublicationStatusExtensions.CancelOnlyAfterLastOfStatusList.Contains(r.RequestStatus))
+                .OrderByDescending(r => r.CreateDateTimeUtc)
+                .FirstOrDefault()
+                ?.CreateDateTimeUtc 
+                ?? DateTime.MinValue;
+
             var contentPublicationRequest = _dbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
                 .Where(r => PublicationStatusExtensions.CancelablePublicationStatusList.Contains(r.RequestStatus))
-                // TODO Make sure CancelablePublicationStatusList works for Error status, and maybe other added values
-                .SingleOrDefault();
+                .Where(r => r.CreateDateTimeUtc > onlyCancelRequestCreatedAfter)
+                .OrderByDescending(r => r.CreateDateTimeUtc)
+                .FirstOrDefault();
 
             #region Validation
             if (contentPublicationRequest == null)
