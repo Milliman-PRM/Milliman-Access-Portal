@@ -13,6 +13,8 @@ export enum RoleEnum {
   ContentAccessAdmin = 3,
   ContentPublisher = 4,
   ContentUser = 5,
+  FileDropAdmin = 6,
+  FileDropUser = 7,
 }
 
 export interface NavBarElement {

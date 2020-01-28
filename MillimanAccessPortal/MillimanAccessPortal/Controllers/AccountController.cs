@@ -1155,6 +1155,22 @@ namespace MillimanAccessPortal.Controllers
                 Icon = "content-grid",
             });
 
+            // Conditionally add the FileDrop Element
+            AuthorizationResult FileDropAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
+            // TODO: Actually check if a File Drop User is assigned to a File Drop to provide access
+            AuthorizationResult FileDropUserResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser));
+            if (FileDropAdminResult.Succeeded || FileDropUserResult.Succeeded)
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "File Drop",
+                    URL = nameof(FileDropController).Replace("Controller", ""),
+                    View = "FileDrop",
+                    Icon = "file-drop",
+                });
+            }
+
             // Conditionally add the System Admin Element
             AuthorizationResult SystemAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
             if (SystemAdminResult.Succeeded)

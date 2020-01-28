@@ -15,6 +15,7 @@ module.exports = {
     'content-publishing': './src/ts/react/content-publishing/index.tsx',
     'create-initial-user': './src/ts/create-initial-user.ts',
     'enable-account': './src/ts/enable-account.ts',
+    'filedrop': './src/ts/react/filedrop/index.tsx',
     'forgot-password': './src/ts/react/forgot-password/index.tsx',
     'login': './src/ts/react/login/index.tsx',
     'message': './src/ts/message.ts',
@@ -159,6 +160,12 @@ module.exports = {
       template: path.resolve(__dirname, 'ViewTemplates', 'ContentPublishing', 'Index.cshtml.template'),
       inject: false,
       chunks: [ 'commons', 'content-publishing' ],
+    }),
+    new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'FileDrop', 'Index.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'FileDrop', 'Index.cshtml.template'),
+      inject: false,
+      chunks: ['commons', 'filedrop'],
     }),
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'AuthorizedContent', 'Index.cshtml'),
