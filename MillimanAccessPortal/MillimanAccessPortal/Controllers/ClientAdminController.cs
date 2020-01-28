@@ -37,7 +37,15 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ClientAdminController : Controller
     {
-        private readonly static List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentPublisher, RoleEnum.ContentUser, RoleEnum.ContentAccessAdmin };
+        private readonly static List<RoleEnum> RolesToManage = new List<RoleEnum>
+        {
+            RoleEnum.Admin,
+            RoleEnum.ContentPublisher,
+            RoleEnum.ContentUser,
+            RoleEnum.ContentAccessAdmin,
+            RoleEnum.FileDropAdmin,
+            RoleEnum.FileDropUser
+        };
 
         private readonly ApplicationDbContext DbContext;
         private readonly IAuditLogger AuditLogger;
@@ -523,6 +531,7 @@ namespace MillimanAccessPortal.Controllers
                             }
                         }
                     }
+                    // TODO: Determine if File Drop admins should be assigned to specific File Drops (possible not?)
                     DbContext.SaveChanges();
 
                     Log.Verbose($"In ClientAdminController.SetUserRoleInClient action: Role {RequestedRole.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
@@ -560,6 +569,7 @@ namespace MillimanAccessPortal.Controllers
                         DbContext.Remove(existingSelectionGroupAssignment);
                     }
                 }
+                // TODO: De-assign user from any specific File Drops
                 DbContext.UserRoleInClient.RemoveRange(ExistingRecordsForRequestedRole);
                 DbContext.SaveChanges();
 
