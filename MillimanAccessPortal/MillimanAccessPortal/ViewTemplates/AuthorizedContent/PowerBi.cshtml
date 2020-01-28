@@ -23,32 +23,66 @@
         <script src="~/js/polyfills.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/powerbi-client@2.7.2/dist/powerbi.min.js"></script>
         <script>
-	    // Get models. models contains enums that can be used.
-	    var models = window['powerbi-client'].models;
+	        // Get models. models contains enums that can be used.
+	        var models = window['powerbi-client'].models;
 
-	    // Embed configuration used to describe what and how to embed.
-	    // This object is used when calling powerbi.embed.
-	    // This also includes settings and options such as filters.
-	    // You can find more information at https://github.com/Microsoft/PowerBI-JavaScript/wiki/Embed-Configuration-Details.
-	    var config = {
-		    type: 'report',
-		    tokenType: models.TokenType.Embed,
-		    accessToken: "@Model.EmbedToken",
-		    embedUrl: "@Html.Raw(Model.EmbedUrl)",
-		    id: "@Model.ReportId",
-		    permissions: models.Permissions.All,
-		    settings: {
-			    filterPaneEnabled: @Json.Serialize(Model.FilterPaneEnabled),
-			    navContentPaneEnabled: @Json.Serialize(Model.NavigationPaneEnabled)
-		    }
-	    };
+	        // Embed configuration used to describe what and how to embed.
+	        // This object is used when calling powerbi.embed.
+	        // This also includes settings and options such as filters.
+	        // You can find more information at https://github.com/Microsoft/PowerBI-JavaScript/wiki/Embed-Configuration-Details.
+	        var config = {
+		        type: 'report',
+		        tokenType: models.TokenType.Embed,
+		        accessToken: "@Model.EmbedToken",
+		        embedUrl: "@Html.Raw(Model.EmbedUrl)",
+		        id: "@Model.ReportId",
+		        permissions: models.Permissions.All,
+		        settings: {
+			        filterPaneEnabled: @Json.Serialize(Model.FilterPaneEnabled),
+			        navContentPaneEnabled: @Json.Serialize(Model.NavigationPaneEnabled)
+		        }
+	        };
 
-	    // Get a reference to the embedded report HTML element
-	    var reportContainer = document.getElementById('reportContainer');
+	        // Get a reference to the embedded report HTML element
+	        var reportContainer = document.getElementById('reportContainer');
 
-	    // Embed the report and display it within the div container.
-	    var report = powerbi.embed(reportContainer, config);
-	    report.on('loaded', function(event) {report.updateSettings({bookmarksPaneEnabled: @Json.Serialize(Model.BookmarksPaneEnabled)})});
+	        // Embed the report and display it within the div container.
+            var report = powerbi.embed(reportContainer, config);
+
+            const printIcon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAEG2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS41LjAiPgogPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgeG1sbnM6ZXhpZj0iaHR0cDovL25zLmFkb2JlLmNvbS9leGlmLzEuMC8iCiAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIKICAgIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIgogICAgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIKICAgZXhpZjpQaXhlbFhEaW1lbnNpb249IjI0IgogICBleGlmOlBpeGVsWURpbWVuc2lvbj0iMjQiCiAgIHRpZmY6SW1hZ2VXaWR0aD0iMjQiCiAgIHRpZmY6SW1hZ2VMZW5ndGg9IjI0IgogICB0aWZmOlJlc29sdXRpb25Vbml0PSIyIgogICB0aWZmOlhSZXNvbHV0aW9uPSI3Mi4wIgogICB0aWZmOllSZXNvbHV0aW9uPSI3Mi4wIgogICB4bXA6TW9kaWZ5RGF0ZT0iMjAxOS0wOC0xOVQxMToxMzo0OS0wNDowMCIKICAgeG1wOk1ldGFkYXRhRGF0ZT0iMjAxOS0wOC0xOVQxMToxMzo0OS0wNDowMCI+CiAgIDx4bXBNTTpIaXN0b3J5PgogICAgPHJkZjpTZXE+CiAgICAgPHJkZjpsaQogICAgICBzdEV2dDphY3Rpb249InByb2R1Y2VkIgogICAgICBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZmZpbml0eSBEZXNpZ25lciAxLjcuMSIKICAgICAgc3RFdnQ6d2hlbj0iMjAxOS0wOC0xOVQxMToxMzo0OS0wNDowMCIvPgogICAgPC9yZGY6U2VxPgogICA8L3htcE1NOkhpc3Rvcnk+CiAgPC9yZGY6RGVzY3JpcHRpb24+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgo8P3hwYWNrZXQgZW5kPSJyIj8+NCxBrwAAAYFpQ0NQc1JHQiBJRUM2MTk2Ni0yLjEAACiRdZHPK0RRFMc/M0PEaBQLC4uXsBryo8TGYuRXYTEzymAz88ybUfPG672RJltlO0WJjV8L/gK2ylopIiUbG2tig55zjRrJnNu553O/957TveeCN5rRTaeiC8xszg6PhrSZ2KxW9Ug1DQTw44vrjjUZGYlS1t5u8Kh41aFqlT/3r9UuJB0dPNXCg7pl54THhCdWcpbiTeFGPR1fED4WDtpyQeFrpSeK/KQ4VeQPxXY0PATeemEt9YsTv1hP26awvJxWM7Os/9xHvcSfzE5HJLaIN+MQZpQQGuMMM0Qf3QzI3EcHPXTKijL5Xd/5UyxJri6zRR6bRVKkyREUdVmqJyUaoidlZMir/v/tq2P09hSr+0NQ+eC6L21QtQGfBdd933fdzwPw3cNZtpS/tAf9r6IXSlrrLgTW4OS8pCW24HQdmu6suB3/lnziXsOA5yOoi0HDJdTMFXv2s8/hLURX5asuYHsH2uV8YP4LCxlnvEmBuXQAAAAJcEhZcwAACxMAAAsTAQCanBgAAACYSURBVEiJ3VVBDoAgDKvG8DlfwSf9BIlfwoNoJtnGAmLUJrswVtLRAdAZg7Ae7+IbK4nMmAp5SWEOUXF3Bf86wAHwAEID35o4HJf02C+LhhV5nec2hZScmQJrHLVnF6gNI1lrGTTKI86B1f9FaC5aUjRBm+TaNqmEd5BeeCQF33lNOZtKeQ1i7aP/QUmNBe/70Zpt211Bd2wFHS3Vih/EZgAAAABJRU5ErkJggg==";
+
+            // The new settings that you want to apply to the report.
+            const newSettings = {
+                bookmarksPaneEnabled: @Json.Serialize(Model.BookmarksPaneEnabled),
+                extensions: [
+                    {
+                        command: {
+                            name: "print",
+                            title: "Print",
+                            icon: printIcon,
+                            extend: {
+                                // Define visualOptionsMenu to extend options menu
+                                visualOptionsMenu: {
+                                    // Define title to override default title.
+                                    // You can override default icon as well.
+                                    title: "Print",
+                                }
+                            }
+                        }
+                    }
+                ]
+            };
+
+            // Report.on will add an event handler to commandTriggered event which prints to console window.
+            report.on("commandTriggered", function (event) {
+                if (event.detail.command === 'print') {
+                    report.print();
+                };
+            });
+
+            report.on('loaded', function (event) {
+                report.updateSettings(newSettings);
+            });
         </script>
     </body>
 </html>
