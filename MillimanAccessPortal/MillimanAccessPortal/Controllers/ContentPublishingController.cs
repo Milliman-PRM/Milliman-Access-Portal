@@ -712,7 +712,7 @@ namespace MillimanAccessPortal.Controllers
 
             DateTime onlyCancelRequestCreatedAfter = _dbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
-                .Where(r => !PublicationStatusExtensions.CancelablePublicationStatusList.Contains(r.RequestStatus))
+                .Where(r => PublicationStatusExtensions.CancelOnlyAfterLastOfStatusList.Contains(r.RequestStatus))
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault()
                 ?.CreateDateTimeUtc 
