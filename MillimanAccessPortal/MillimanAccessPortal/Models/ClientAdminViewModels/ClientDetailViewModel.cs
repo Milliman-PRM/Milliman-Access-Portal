@@ -103,12 +103,14 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             ClientEntity.ParentClient = null;
 
             StandardQueries Queries = new StandardQueries(DbContext, UserManager, null);
-            List<RoleEnum> RolesToManage = new List<RoleEnum>
+            List<RoleEnum> RolesToManage = new List<RoleEnum>  // TODO: Determine if this can be consolidated with the similar list in ClientAdminController.cs (line 40)
             {
                 RoleEnum.Admin,
                 RoleEnum.ContentAccessAdmin,
                 RoleEnum.ContentPublisher,
                 RoleEnum.ContentUser,
+                RoleEnum.FileDropAdmin,
+                RoleEnum.FileDropUser,
             };
 
             Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientEntity.Id.ToString());
