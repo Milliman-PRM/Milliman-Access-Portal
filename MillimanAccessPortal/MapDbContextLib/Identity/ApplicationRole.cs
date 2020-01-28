@@ -36,6 +36,12 @@ namespace MapDbContextLib.Identity
 
         [Display(Name = "Content User")]
         ContentUser = 5,
+
+        [Display(Name = "File Drop Admin")]
+        FileDropAdmin = 6,
+
+        [Display(Name = "File Drop User")]
+        FileDropUser = 7,
     };
 
     public class ApplicationRole : IdentityRole<Guid>
