@@ -67,7 +67,6 @@ namespace AuditLogLib
                 if (Config == null)
                 {
                     string msg = "Attempt to instantiate AuditLogger before initializing!";
-                    GlobalFunctions.TraceWriteLine($"{msg}{Environment.NewLine}{new StackTrace().ToString()}");
                     throw new ApplicationException(msg);
                 }
 

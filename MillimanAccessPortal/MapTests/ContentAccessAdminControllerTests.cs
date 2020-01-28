@@ -346,8 +346,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+            var typedView = Assert.IsType<StatusCodeResult>(view);
+            Assert.Equal(422, typedView.StatusCode);
             Assert.Equal(preCount, postCount);
             #endregion
         }
@@ -405,8 +405,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<UpdateGroupResponseModel>(result.Value);
+            JsonResult typedView = Assert.IsType<JsonResult>(view);
+            Assert.IsType<UpdateGroupResponseModel>(typedView.Value);
             #endregion
         }
 
@@ -512,8 +512,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<DeleteGroupResponseModel>(result.Value);
+            JsonResult typedView = Assert.IsType<JsonResult>(view);
+            Assert.IsType<DeleteGroupResponseModel>(typedView.Value);
             #endregion
         }
 
@@ -587,8 +587,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<SelectionsResponseModel>(result.Value);
+            JsonResult typedView = Assert.IsType<JsonResult>(view);
+            Assert.IsType<SelectionsResponseModel>(typedView.Value);
             #endregion
         }
 
@@ -639,8 +639,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+            var typedView = Assert.IsType<StatusCodeResult>(view);
+            Assert.Equal(422, typedView.StatusCode);
             Assert.Equal(tasksPreCount, tasksPostCount);
             #endregion
         }
@@ -686,7 +686,6 @@ namespace MapTests
 
         [Theory]
         [InlineData(1, null, new ReductionStatusEnum[] { })]                                // No queued tasks exist
-        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing  })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced   })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Live      })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled  })]  // "
@@ -721,8 +720,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+            var TypedView = Assert.IsType<StatusCodeResult>(view);
+            Assert.Equal(422, TypedView.StatusCode);
             Assert.Equal(tasksPreCount, tasksPostCount);
             #endregion
         }
@@ -783,8 +782,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<SingleReductionModel>(result.Value);
+            JsonResult typedView = Assert.IsType<JsonResult>(view);
+            Assert.IsType<SingleReductionModel>(typedView.Value);
             #endregion
         }
 

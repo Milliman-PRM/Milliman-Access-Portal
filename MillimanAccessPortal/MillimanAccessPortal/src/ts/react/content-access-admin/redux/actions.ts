@@ -275,6 +275,25 @@ export interface PromptStatusRefreshStopped {
 
 /**
  * GET:
+ *   Information on Content Types and Associated Content Types.
+ */
+export interface FetchGlobalData {
+  type: 'FETCH_GLOBAL_DATA';
+  request: {};
+}
+export interface FetchGlobalDataSucceeded {
+  type: 'FETCH_GLOBAL_DATA_SUCCEEDED';
+  response: {
+    contentTypes: Dict<ContentType>;
+  };
+}
+export interface FetchGlobalDataFailed {
+  type: 'FETCH_GLOBAL_DATA_FAILED';
+  error: TSError;
+}
+
+/**
+ * GET:
  *   clients the current user has access to manage;
  *   users who are content eligible in any of those clients.
  */
@@ -313,7 +332,6 @@ export interface FetchItemsSucceeded {
   type: 'FETCH_ITEMS_SUCCEEDED';
   response: {
     contentItems: Dict<RootContentItemWithStats>;
-    contentTypes: Dict<ContentType>;
     publications: Dict<ContentPublicationRequest>;
     publicationQueue: Dict<PublicationQueueDetails>;
     clientStats: ClientWithStats;
@@ -642,6 +660,7 @@ export type ScheduleAccessAction =
  * An action that makes an Ajax request.
  */
 export type RequestAccessAction =
+  | FetchGlobalData
   | FetchClients
   | FetchItems
   | FetchGroups
@@ -660,6 +679,7 @@ export type RequestAccessAction =
  * An action that marks the succesful response of an Ajax request.
  */
 export type ResponseAccessAction =
+  | FetchGlobalDataSucceeded
   | FetchClientsSucceeded
   | FetchItemsSucceeded
   | FetchGroupsSucceeded
@@ -678,6 +698,7 @@ export type ResponseAccessAction =
  * An action that marks the errored response of an Ajax request.
  */
 export type ErrorAccessAction =
+  | FetchGlobalDataFailed
   | FetchClientsFailed
   | FetchItemsFailed
   | FetchGroupsFailed

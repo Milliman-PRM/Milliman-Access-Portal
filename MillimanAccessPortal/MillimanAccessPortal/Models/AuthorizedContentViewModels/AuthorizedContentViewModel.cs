@@ -1,5 +1,7 @@
 ﻿using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
+using MillimanAccessPortal.Models.ContentPublishing;
+using MillimanAccessPortal.Controllers;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
@@ -46,7 +48,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
                 Port = Context.Request.Host.Port ?? -1,
-                Path = "/AuthorizedContent/ContentWrapper",
+                Path = $"/{nameof(AuthorizedContentController).Replace("Controller", "")}/{nameof(AuthorizedContentController.ContentWrapper)}",
                 Query = $"selectionGroupId=",
             };
 
@@ -55,8 +57,8 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
                 Port = Context.Request.Host.Port ?? -1,
-                Path = "/AuthorizedContent/Thumbnail",
-                Query = $"selectionGroupId=",
+                Path = $"/{nameof(AuthorizedContentController).Replace("Controller","")}/{nameof(AuthorizedContentController.Thumbnail)}",
+                Query = $"rootContentItemId=",
             };
 
             UriBuilder userGuideUrlBuilder = new UriBuilder
@@ -64,7 +66,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
                 Port = Context.Request.Host.Port ?? -1,
-                Path = "/AuthorizedContent/RelatedPdf",
+                Path = $"/{nameof(AuthorizedContentController).Replace("Controller", "")}/{nameof(AuthorizedContentController.RelatedPdf)}",
                 Query = $"purpose=userguide&selectionGroupId=",
             };
 
@@ -73,7 +75,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
                 Port = Context.Request.Host.Port ?? -1,
-                Path = "/AuthorizedContent/RelatedPdf",
+                Path = $"/{nameof(AuthorizedContentController).Replace("Controller", "")}/{nameof(AuthorizedContentController.RelatedPdf)}",
                 Query = $"purpose=releasenotes&selectionGroupId=",
             };
 
@@ -90,7 +92,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                         Description = sg.RootContentItem.Description,
                         ContentTypeEnum = sg.RootContentItem.ContentType.TypeEnum,
                         ImageURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "thumbnail"))
-                            ? $"{thumbnailUrlBuilder.Uri.AbsoluteUri}{sg.Id}"
+                            ? $"{thumbnailUrlBuilder.Uri.AbsoluteUri}{sg.RootContentItemId}"
                             : null,
                         // must be absolute because it is used in iframe element
                         ContentURL = $"{contentUrlBuilder.Uri.AbsoluteUri}{sg.Id}",
@@ -100,6 +102,20 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                         ReleaseNotesURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "releasenotes"))
                             ? $"{releaseNotesUrlBuilder.Uri.AbsoluteUri}{sg.Id}"
                             : null,
+                        AssociatedFiles = sg.RootContentItem.AssociatedFilesList.Select(af =>
+                        {
+                            AssociatedFilePreviewSummary summary = new AssociatedFilePreviewSummary(af);
+                            UriBuilder uri = new UriBuilder
+                            {
+                                Scheme = Context.Request.Scheme,
+                                Host = Context.Request.Host.Host,
+                                Port = Context.Request.Host.Port ?? -1,
+                                Path = $"/{nameof(AuthorizedContentController).Replace("Controller", "")}/{nameof(AuthorizedContentController.AssociatedFile)}",
+                                Query = $"selectionGroupId={sg.Id}&fileId={af.Id}",
+                            };
+                            summary.Link = uri.Uri.AbsoluteUri;
+                            return summary;
+                        }).OrderBy(f => f.SortOrder).ToList(),
                     }).OrderBy(contentItem => contentItem.Name).ToList(),
                 }).OrderBy(group => group.Name).ToList(),
             };
@@ -125,5 +141,6 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
         public string ContentURL { get; set; }
         public string UserguideURL { get; set; }
         public string ReleaseNotesURL { get; set; }
+        public List<AssociatedFilePreviewSummary> AssociatedFiles { get; set; }
     }
 }

@@ -28,25 +28,20 @@ namespace MapDbContextLib.Context
         Reduced = 30,       // The reduction server has completed the reduction task, but no user has pushed the reduced document
         Live = 40,          // The reduced document is published and is currently being served to users
         Replaced = 50,      // The reduced document was previously live, but a more recent document has since gone live
+        Warning = 80,       // The reduction completed with a notable issue that results in the selection group becoming inactive
         Error = 90,         // An error has occured
     }
 
     public static class ReductionStatusExtensions
     {
-        public static bool IsCancelable(this ReductionStatusEnum status)
-        {
-            var blockingStatuses = new List<ReductionStatusEnum>
+        public static List<ReductionStatusEnum> cancelableStatusList = new List<ReductionStatusEnum>
             {
                 ReductionStatusEnum.Validating,
                 ReductionStatusEnum.Queued,
+                ReductionStatusEnum.Reducing,
             };
 
-            return blockingStatuses.Contains(status);
-        }
-
-        public static bool IsActive(this ReductionStatusEnum status)
-        {
-            var blockingStatuses = new List<ReductionStatusEnum>
+        public static List<ReductionStatusEnum> activeStatusList = new List<ReductionStatusEnum>
             {
                 ReductionStatusEnum.Validating,
                 ReductionStatusEnum.Queued,
@@ -54,7 +49,24 @@ namespace MapDbContextLib.Context
                 ReductionStatusEnum.Reduced,
             };
 
-            return blockingStatuses.Contains(status);
+        public static List<ReductionStatusEnum> accessAdminStatusList = new List<ReductionStatusEnum>
+            {
+                ReductionStatusEnum.Validating,
+                ReductionStatusEnum.Queued,
+                ReductionStatusEnum.Reducing,
+                ReductionStatusEnum.Reduced,
+                ReductionStatusEnum.Live,
+                ReductionStatusEnum.Error,
+            };
+
+        public static bool IsCancelable(this ReductionStatusEnum status)
+        {
+            return cancelableStatusList.Contains(status);
+        }
+
+        public static bool IsActive(this ReductionStatusEnum status)
+        {
+            return activeStatusList.Contains(status);
         }
     }
 
@@ -102,8 +114,12 @@ namespace MapDbContextLib.Context
         public SelectionGroup SelectionGroup { get; set; }
 
         [Required]
-        // Default value is enforced in ApplicationDbContext.OnModelCreating()
         public DateTime CreateDateTimeUtc { get; set; }
+
+        /// <summary>
+        /// Will be set by ContentPublishingServer when the task starts
+        /// </summary>
+        public DateTime ProcessingStartDateTimeUtc { get; set; }
 
         [Required]
         public ReductionStatusEnum ReductionStatus { get; set; }
@@ -204,7 +220,7 @@ namespace MapDbContextLib.Context
             set
             {
                 OutcomeMetadata = value != null
-                    ? JsonConvert.SerializeObject(value)
+                    ? JsonConvert.SerializeObject(value, new JsonSerializerSettings { })
                     : "{}";
             }
         }

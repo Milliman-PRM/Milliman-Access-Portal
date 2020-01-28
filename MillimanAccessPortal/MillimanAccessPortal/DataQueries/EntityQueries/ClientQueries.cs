@@ -98,9 +98,11 @@ namespace MillimanAccessPortal.DataQueries
         /// <summary>
         /// Add card stats for each client in a list
         /// </summary>
-        /// <param name="clients">List of clients</param>
-        /// <returns>List of clients with card stats</returns>
-        private List<BasicClientWithCardStats> WithCardStats(List<BasicClient> clients)
+        /// <param name="clients"></param>
+        /// <param name="role"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        private List<BasicClientWithCardStats> AddCardStats(List<BasicClient> clients, RoleEnum? role = null, Guid? userId = null)
         {
             var clientsWith = new List<BasicClientWithCardStats> { };
             foreach (var client in clients)
@@ -113,9 +115,12 @@ namespace MillimanAccessPortal.DataQueries
                     Code = client.Code,
                 };
 
+                if (role.HasValue && userId.HasValue)
+                {
+                    clientWith.CanManage = _dbContext.UserRoleInClient.Any(r => r.ClientId == client.Id && r.Role.RoleEnum == role.Value && r.UserId == userId.Value);
+                }
                 clientWith.ContentItemCount = _dbContext.RootContentItem
-                    .Where(i => i.ClientId == client.Id)
-                    .Count();
+                    .Count(i => i.ClientId == client.Id);
                 clientWith.UserCount = _dbContext.UserRoleInClient
                     .Where(r => r.ClientId == client.Id)
                     .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
@@ -172,7 +177,7 @@ namespace MillimanAccessPortal.DataQueries
             }
 
             var clients = SelectClientWhereRole(user, role);
-            var clientsWithStats = WithCardStats(clients);
+            var clientsWithStats = AddCardStats(clients);
             var clientsWithEligibleUsers = WithEligibleUsers(clientsWithStats);
 
             return clientsWithEligibleUsers;
@@ -191,7 +196,7 @@ namespace MillimanAccessPortal.DataQueries
             }
 
             var clients = SelectParents(children);
-            var clientsWithStats = WithCardStats(clients);
+            var clientsWithStats = AddCardStats(clients);
 
             return clientsWithStats;
         }
@@ -201,11 +206,39 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="clientId"></param>
         /// <returns>Client with card stats</returns>
-        internal BasicClientWithCardStats SelectClientWithCardStats(Guid clientId)
+        internal BasicClientWithCardStats SelectClientWithCardStats(Guid clientId, RoleEnum? role = null, Guid? userId = null)
         {
             var client = FindClient(clientId);
-            var clientWithStats = WithCardStats(new List<BasicClient> { client })
+            var clientWithStats = AddCardStats(new List<BasicClient> { client }, role, userId)
                 .SingleOrDefault();
+
+            return clientWithStats;
+        }
+
+        /// <summary>
+        /// Generate a single client model with card stats for publishing view client tree
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <returns>Client with card stats</returns>
+        internal BasicClientWithCardStats SelectClientWithPublishingCardStats(Client client, RoleEnum? role = null, Guid? userId = null)
+        {
+            var clientWithStats = (BasicClientWithCardStats)client;
+
+            if (role.HasValue && userId.HasValue)
+            {
+                clientWithStats.CanManage = _dbContext.UserRoleInClient.Any(r => r.ClientId == client.Id &&
+                                                                                 r.Role.RoleEnum == role.Value &&
+                                                                                 r.UserId == userId.Value);
+            }
+
+            clientWithStats.ContentItemCount = _dbContext.RootContentItem.Count(i => i.ClientId == client.Id);
+
+            // In publishing admin view client users include everyone who is assigned to a selection group of any content in the client
+            clientWithStats.UserCount = _dbContext.UserInSelectionGroup
+                                                  .Where(g => g.SelectionGroup.RootContentItem.ClientId == client.Id)
+                                                  .Select(r => r.UserId)
+                                                  .Distinct()
+                                                  .Count();
 
             return clientWithStats;
         }

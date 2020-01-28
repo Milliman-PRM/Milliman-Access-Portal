@@ -129,6 +129,7 @@ $runTests = $env:RunTests -ne "False"
 mkdir -p ${rootPath}\_test_results
 #endregion
 
+rm ${rootPath}\MillimanAccessPortal\MillimanAccessPortal\.yarnrc
 
 #region Exit if only notes have changed within the current branch (comparing against develop)
 # if we're not building in "Release" mode
@@ -272,7 +273,7 @@ if($runTests) {
 
     $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
 
-    $command = "yarn test --ci --testResultsProcessor='jest-junit'"
+    $command = "yarn test --ci --reporters='jest-junit'"
     invoke-expression "&$command"
 
     if ($LASTEXITCODE -ne 0) {

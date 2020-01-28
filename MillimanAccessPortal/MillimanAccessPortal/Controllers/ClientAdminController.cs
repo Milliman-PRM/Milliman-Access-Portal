@@ -481,6 +481,20 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", $"The requested role was not found");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
+            // Don't remove the last client admin
+            if (AssignedRoleInfoArg.RoleEnum == RoleEnum.Admin && !AssignedRoleInfoArg.IsAssigned)
+            {
+                bool OtherAdminExists = DbContext.UserRoleInClient.Where(r => r.ClientId == ClientUserModel.ClientId)
+                                                                  .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
+                                                                  .Any(r => r.UserId != ClientUserModel.UserId);
+                if (!OtherAdminExists)
+                {
+                    Log.Debug($"In ClientAdminController.RemoveUserFromClient action: unable to remove requested user {ClientUserModel.UserId} from client {ClientUserModel.ClientId}.  User is the sole client administrator");
+                    Response.Headers.Add("Warning", "Cannot remove the last client admin user role from the client");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
             #endregion
 
             IQueryable<UserRoleInClient> ExistingRecordsForUserAndClientQuery = DbContext.UserRoleInClient
@@ -582,7 +596,7 @@ namespace MillimanAccessPortal.Controllers
                 ReturnModel.Add(new AssignedRoleInfo
                 {
                     RoleEnum = x,
-                    RoleDisplayValue = ApplicationRole.RoleDisplayNames[x],
+                    RoleDisplayValue = x.GetDisplayNameString(),
                     IsAssigned = ExistingRecordsForRequestedRole.Any(urc => urc.RoleId == ApplicationRole.RoleIds[x]),
                 });
             }

@@ -4,27 +4,51 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace MapDbContextLib.Models
 {
     public enum MapDbReductionTaskOutcomeReason
     {
+        [Display(Description = "")]
         Default = 0,
 
+        [Display(Description = "This reduction completed successfully")]
         Success = 10,
+
+        [Display(Description = "This selection group will be granted unrestricted access upon approval")]
         MasterHierarchyAssigned = 11,
 
+        [Display(Description = "This reduction was canceled")]
         Canceled = 20,
+
+        [Display(Description = "An internal reduction processing error occurred")]
         BadRequest = 21,
 
+        [Display(Description = "An unspecified error has occurred")]
         UnspecifiedError = 100,
+
+        [Display(Description = "No field values were selected for this reduction")]
         NoSelectedFieldValues = 101,
+
+        [Display(Description = "None of the selected values for this selection group exist in the new file")]
         NoSelectedFieldValueExistsInNewContent = 102,
+
+        [Display(Description = "A value was selected for an invalid field")]
         SelectionForInvalidFieldName = 103,
+
+        [Display(Description = "A reduced file was not created")]
         NoReducedFileCreated = 104,
+
+        [Display(Description = "This reduction timed out")]
         ReductionTimeout = 105,
+
+        [Display(Description = "The content reduction failed or could not be interpreted")]
+        HierarchyExtractionFailed = 106,
     }
     public static class MapDbReductionTaskOutcomeReasonExtensions
     {
@@ -56,7 +80,18 @@ namespace MapDbContextLib.Models
     public class ReductionTaskOutcomeMetadata
     {
         public Guid ReductionTaskId { get; set; }
+
         public TimeSpan ElapsedTime { get; set; } = TimeSpan.Zero;
+
+        public DateTime? ProcessingStartedUtc { get; set; } = null;
+
+        [JsonConverter(typeof(StringEnumConverter))]
         public MapDbReductionTaskOutcomeReason OutcomeReason { get; set; } = MapDbReductionTaskOutcomeReason.Default;
+
+        public string SelectionGroupName { get; set; } = default;
+
+        public string UserMessage { get; set; } = default;
+
+        public string SupportMessage { get; set; } = default;
     }
 }

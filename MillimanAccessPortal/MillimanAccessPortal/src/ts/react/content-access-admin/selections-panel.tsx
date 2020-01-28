@@ -1,10 +1,12 @@
 import * as React from 'react';
 
-import { isReductionActive, ReductionStatus } from '../../view-models/content-publishing';
+import {
+  isPublicationActive, isReductionActive, PublicationStatus, ReductionStatus,
+} from '../../view-models/content-publishing';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { PanelSectionContainer } from '../shared-components/card-panel/panel-sections';
 import { ColumnSpinner } from '../shared-components/column-spinner';
-import { Toggle } from '../shared-components/toggle';
+import { Toggle } from '../shared-components/form/toggle';
 import { Fieldset, FieldsetData } from './fieldset';
 
 export interface SelectionsPanelProps {
@@ -16,10 +18,12 @@ export interface SelectionsPanelProps {
   isModified: boolean;
   isValuesModified: boolean;
   isMaster: boolean;
+  isSubmitting: boolean;
   onIsMasterChange: (value: boolean) => void;
   title: string;
   subtitle: string;
   status: ReductionStatus;
+  itemStatus: PublicationStatus;
   onBeginReduction: () => void;
   onCancelReduction: () => void;
   loading?: boolean;
@@ -43,7 +47,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderFormSection() {
-    const { title, subtitle, isSuspended, loading } = this.props;
+    const { isMaster, title, subtitle, isSuspended, loading } = this.props;
     return loading
       ? <ColumnSpinner />
       : (
@@ -55,7 +59,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
                 display: 'flex',
                 flexDirection: 'column',
                 flex: 'auto',
-                height: 'calc(100% - 1.5em)',
+                height: (!isMaster) ? 'calc(100% - 1.5em)' : null,
               }}
             >
               <h2
@@ -85,7 +89,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderDoesReduceSection() {
-    const { doesReduce, isMaster, onIsMasterChange, status } = this.props;
+    const { doesReduce, isMaster, onIsMasterChange, status, itemStatus } = this.props;
     return doesReduce
       ? (
         <div
@@ -99,7 +103,16 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
           <Toggle
             label={'Unrestricted Access'}
             checked={isMaster}
-            onClick={() => !isReductionActive(status) && onIsMasterChange(!isMaster)}
+            readOnly={
+              itemStatus === PublicationStatus.Error
+              || isPublicationActive(itemStatus)
+              || isReductionActive(status)
+            }
+            onClick={() => !isReductionActive(status)
+              && !isPublicationActive(itemStatus)
+              && itemStatus !== PublicationStatus.Error
+              && onIsMasterChange(!isMaster)
+            }
           />
           {this.renderReductionSection()}
           {this.renderButtonSection()}
@@ -109,13 +122,17 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderReductionSection() {
-    const { status } = this.props;
+    const { status, itemStatus } = this.props;
     return this.props.isMaster
       ? null
       : (
         <div className="fieldset-container" style={{ flex: '1 1 1px', overflowY: 'auto' }}>
           <h4>Reduction Values</h4>
-          {!isReductionActive(status) && (
+          {
+            !isReductionActive(status)
+            && !isPublicationActive(itemStatus)
+            && itemStatus !== PublicationStatus.Error
+            && (
             <div className="fieldset-options-container">
               <div
                 className={`fieldset-option${this.props.isAllValuesSelected ? ' disabled' : ''}`}
@@ -143,58 +160,68 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderReductionFields() {
-    const { fieldsets, status } = this.props;
+    const { fieldsets, status, isSubmitting, itemStatus } = this.props;
     return fieldsets.map((fieldset) => (
       <Fieldset
         key={fieldset.name}
-        readOnly={isReductionActive(status)}
+        readOnly={
+          isSubmitting
+          || isReductionActive(status)
+          || isPublicationActive(itemStatus)
+          || itemStatus === PublicationStatus.Error
+        }
         {...fieldset}
       />
     ));
   }
 
   private renderButtonSection() {
-    switch (this.props.status) {
-      case ReductionStatus.Unspecified:
-      case ReductionStatus.Canceled:
-      case ReductionStatus.Rejected:
-      case ReductionStatus.Live:
-      case ReductionStatus.Error:
-        return this.props.isModified
-          ? (
+    const { status, itemStatus, isModified, submitting } = this.props;
+    if (!isPublicationActive(itemStatus)) {
+      switch (status) {
+        case ReductionStatus.Unspecified:
+        case ReductionStatus.Canceled:
+        case ReductionStatus.Rejected:
+        case ReductionStatus.Live:
+        case ReductionStatus.Error:
+          return (isModified && itemStatus !== PublicationStatus.Error)
+            ? (
+              <button
+                type="button"
+                className="blue-button"
+                disabled={submitting}
+                onClick={this.props.onBeginReduction}
+                style={{ alignSelf: 'flex-end' }}
+              >
+                Submit
+                {submitting
+                  ? <ButtonSpinner version="circle" />
+                  : null
+                }
+              </button>
+            )
+            : null;
+        case ReductionStatus.Queued:
+          return (
             <button
               type="button"
-              className="blue-button"
-              disabled={this.props.submitting}
-              onClick={this.props.onBeginReduction}
+              className="red-button"
+              disabled={submitting}
+              onClick={this.props.onCancelReduction}
               style={{ alignSelf: 'flex-end' }}
             >
-              Submit
-              {this.props.submitting
+              Cancel
+              {submitting
                 ? <ButtonSpinner version="circle" />
                 : null
               }
             </button>
-          )
-          : null;
-      case ReductionStatus.Queued:
-        return (
-          <button
-            type="button"
-            className="red-button"
-            disabled={this.props.submitting}
-            onClick={this.props.onCancelReduction}
-            style={{ alignSelf: 'flex-end' }}
-          >
-            Cancel
-            {this.props.submitting
-              ? <ButtonSpinner version="circle" />
-              : null
-            }
-          </button>
-        );
-      default:
-        return null;
+          );
+        default:
+          return null;
+      }
+    } else {
+      return null;
     }
   }
 }

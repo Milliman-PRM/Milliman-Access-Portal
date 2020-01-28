@@ -1,6 +1,6 @@
 import { FormElement } from './form-element';
 import { DropdownInput } from './form-input/dropdown';
-import { FileUploadInput } from './form-input/file-upload';
+// import { FileUploadInput } from './form-input/file-upload';
 import { HiddenInput } from './form-input/hidden';
 import { FormInput } from './form-input/input';
 import { NullableTextareaInput } from './form-input/nullable-textarea';
@@ -41,7 +41,7 @@ export class FormInputSection extends FormElement {
       () => new DropdownInput(),
       () => new ToggleInput(),
       () => new SelectizedInput(),
-      () => new FileUploadInput(),
+//      () => new FileUploadInput(),
       () => new HiddenInput(),
     ];
 

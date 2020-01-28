@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as moment from 'moment';
 
 import {
-    isReductionActive, publicationStatusNames, reductionStatusNames,
+  isReductionActive, publicationStatusNames, ReductionStatus, reductionStatusNames,
 } from '../../../view-models/content-publishing';
 import {
     ClientWithEligibleUsers, ClientWithStats, ContentPublicationRequest, ContentReductionTask, Guid,
@@ -32,7 +32,11 @@ export function pendingReductionValues(state: AccessState) {
   const _relatedReduction = relatedReduction(state, _selectedGroup && _selectedGroup.id);
 
   if (!_selectedGroup) { return []; }
-  if (_relatedReduction && isReductionActive(_relatedReduction.taskStatus)) {
+  if (_relatedReduction
+    && _relatedReduction.selectedValues
+    && (isReductionActive(_relatedReduction.taskStatus)
+      || _relatedReduction.taskStatus === ReductionStatus.Warning)
+  ) {
     return _relatedReduction.selectedValues.map((i) => state.data.values[i]).filter((i) => i);
   }
   return _.filter(state.data.values, (v) => {
@@ -70,13 +74,15 @@ export function pendingMaster(state: AccessState) {
   const _selectedGroup = selectedGroup(state);
   const _relatedReduction = _selectedGroup && relatedReduction(state, _selectedGroup.id);
   const { isMaster } = state.pending;
-  return _selectedGroup
-    ? isMaster !== null
-      ? isMaster
-      : _relatedReduction && isReductionActive(_relatedReduction.taskStatus)
-        ? false
-        : _selectedGroup.isMaster
-    : false;
+  if (isMaster !== null) {
+    return isMaster;
+  }
+  if (_relatedReduction
+    && _relatedReduction.selectedValues !== null
+    && _relatedReduction.selectedValues.length > 0) {
+    return false;
+  }
+  return _selectedGroup && _selectedGroup.isMaster;
 }
 
 /**
@@ -217,7 +223,7 @@ export function filteredItems(state: AccessState) {
     || item.name.toLowerCase().indexOf(filterTextLower) !== -1
     || (
       state.data.contentTypes[item.contentTypeId]
-      && state.data.contentTypes[item.contentTypeId].name.toLowerCase().indexOf(filterTextLower) !== -1)
+      && state.data.contentTypes[item.contentTypeId].displayName.toLowerCase().indexOf(filterTextLower) !== -1)
   ));
 }
 
@@ -312,7 +318,6 @@ export function activeItemsWithStatus(state: AccessState) {
       ...i,
       status: {
         ...publication,
-        applicationUser: publication && state.data.users[publication.applicationUserId],
         requestStatusName: publication && publicationStatusNames[publication.requestStatus],
       },
     };
@@ -363,7 +368,6 @@ export function activeGroupsWithStatus(state: AccessState) {
       assignedUserCount: g.assignedUsers.length,
       status: {
         ...reduction,
-        applicationUser: reduction && state.data.users[reduction.applicationUserId],
         taskStatusName: reduction && reductionStatusNames[reduction.taskStatus],
       },
     };
@@ -489,7 +493,7 @@ export function itemEntities(state: AccessState) {
   return activeItemsWithStatus(state).map((i) => {
     return {
       ...i,
-      contentTypeName: state.data.contentTypes[i.contentTypeId].name,
+      contentTypeName: state.data.contentTypes[i.contentTypeId].displayName,
     };
   });
 }

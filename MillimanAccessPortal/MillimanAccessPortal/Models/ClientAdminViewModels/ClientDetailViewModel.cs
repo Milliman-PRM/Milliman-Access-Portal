@@ -29,7 +29,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             return new AssignedRoleInfo
             {
                 RoleEnum = RoleEnumArg,
-                RoleDisplayValue = ApplicationRole.RoleDisplayNames[RoleEnumArg],
+                RoleDisplayValue = RoleEnumArg.GetDisplayNameString(),
                 IsAssigned = false,  // to be assigned externally
             };
         }
@@ -179,7 +179,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                         new AssignedRoleInfo
                         {
                             RoleEnum = re,
-                            RoleDisplayValue = ApplicationRole.RoleDisplayNames[re],
+                            RoleDisplayValue = re.GetDisplayNameString(),
                             IsAssigned = false
                         }));
 
@@ -195,7 +195,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                         new AssignedRoleInfo
                         {
                             RoleEnum = re,
-                            RoleDisplayValue = ApplicationRole.RoleDisplayNames[re],
+                            RoleDisplayValue = re.GetDisplayNameString(),
                             IsAssigned = false
                         }));
 

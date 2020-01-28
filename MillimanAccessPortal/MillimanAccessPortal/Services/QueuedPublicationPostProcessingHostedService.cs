@@ -35,21 +35,26 @@ namespace MillimanAccessPortal.Services
 
         public QueuedPublicationPostProcessingHostedService(
             IServiceProvider services,
-            IPublicationPostProcessingTaskQueue taskQueue)
+            IPublicationPostProcessingTaskQueue taskQueue,
+            IConfiguration config)
         {
-            Services = services;
-            TaskQueue = taskQueue;
+            _services = services;
+            _taskQueue = taskQueue;
+            _appConfig = config;
         }
 
-        public IServiceProvider Services { get; }
-        public IPublicationPostProcessingTaskQueue TaskQueue { get; }
+        public IServiceProvider _services { get; }
+        public IPublicationPostProcessingTaskQueue _taskQueue { get; }
+        public IConfiguration _appConfig { get; }
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            AdoptOrphanPublications();
+
             while (!cancellationToken.IsCancellationRequested)
             {
                 // Retrieve the id of a new publication request to post-process
-                Guid publicationRequestId = await TaskQueue.DequeueAsync(cancellationToken, 2_000);
+                Guid publicationRequestId = await _taskQueue.DequeueAsync(cancellationToken, 2_000);
 
                 if (publicationRequestId != Guid.Empty)
                 {
@@ -63,12 +68,19 @@ namespace MillimanAccessPortal.Services
                     {
                         Log.Error(kvpWithException.Value.Exception, "QueuedPublicationPostProcessingHostedService.ExecuteAsync, Exception thrown during QueuedPublicationPostProcessingHostedService processing");
 
-                        using (var scope = Services.CreateScope())
+                        using (var scope = _services.CreateScope())
                         {
                             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                             ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == kvpWithException.Key);
 
                             thisPubRequest.RequestStatus = PublicationStatus.Error;
+
+                            var newOutcome = thisPubRequest.OutcomeMetadataObj;
+                            newOutcome.ElapsedTime = DateTime.UtcNow - newOutcome.StartDateTime;
+                            newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
+                            newOutcome.SupportMessage = kvpWithException.Value.Exception.Message;
+                            thisPubRequest.OutcomeMetadataObj = newOutcome;
+
                             thisPubRequest.StatusMessage = kvpWithException.Value.Exception.Message;
                             foreach (var reduction in dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == thisPubRequest.Id))
                             {
@@ -95,7 +107,7 @@ namespace MillimanAccessPortal.Services
         {
             await Task.Yield();
 
-            using (var scope = Services.CreateScope())
+            using (var scope = _services.CreateScope())
             {
                 var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -152,12 +164,26 @@ namespace MillimanAccessPortal.Services
                 {
                     if (!File.Exists(crf.FullPath))
                     {
-                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), file not found: {crf.FullPath}";
+                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), related file not found: {crf.FullPath}";
                         throw new ApplicationException(Msg);
                     }
                     else if (!crf.ValidateChecksum())
                     {
-                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), checksum validation failed for file {crf.FullPath}";
+                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), checksum validation failed for related file {crf.FullPath}";
+                        throw new ApplicationException(Msg);
+                    }
+                }
+                // Validate the existence and checksum of each uploaded associated file
+                foreach (ContentAssociatedFile caf in thisPubRequest.LiveReadyAssociatedFilesList)
+                {
+                    if (!File.Exists(caf.FullPath))
+                    {
+                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), associated file not found: {caf.FullPath}";
+                        throw new ApplicationException(Msg);
+                    }
+                    else if (!caf.ValidateChecksum())
+                    {
+                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), checksum validation failed for associated file {caf.FullPath}";
                         throw new ApplicationException(Msg);
                     }
                 }
@@ -175,6 +201,12 @@ namespace MillimanAccessPortal.Services
 
                 // update pub status to PostProcessing
                 thisPubRequest.RequestStatus = PublicationStatus.PostProcessing;
+
+                var newOutcome = thisPubRequest.OutcomeMetadataObj;
+                newOutcome.ElapsedTime = DateTime.UtcNow - newOutcome.StartDateTime;
+                newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
+                thisPubRequest.OutcomeMetadataObj = newOutcome;
+
                 dbContext.SaveChanges();
 
                 string tempContentDestinationFolder = Path.Combine(configuration.GetValue<string>("Storage:ContentItemRootPath"),
@@ -189,11 +221,11 @@ namespace MillimanAccessPortal.Services
                 catch (DirectoryNotFoundException) { }
                 Directory.CreateDirectory(tempContentDestinationFolder);
 
-                // Move uploaded (non-reduced) files for this publication
+                // Move uploaded (non-reduced) related files for this publication
                 List<ContentRelatedFile> newLiveReadyFilesObj = new List<ContentRelatedFile>();
                 foreach (ContentRelatedFile Crf in thisPubRequest.LiveReadyFilesObj)
                 {
-                    // This assignment defines the live file name
+                    // This assignment defines the live file name, used in the preview folder for the pub request
                     string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
                                                 Crf.FilePurpose,
                                                 Path.GetExtension(Crf.FullPath),
@@ -211,8 +243,36 @@ namespace MillimanAccessPortal.Services
                         FullPath = TargetFilePath,
                     });
                 }
+
+                // Move uploaded associated files for this publication
+                List<ContentAssociatedFile> newLiveReadyAssociatedFilesList = new List<ContentAssociatedFile>();
+                foreach (ContentAssociatedFile Caf in thisPubRequest.LiveReadyAssociatedFilesList)
+                {
+                    // This assignment defines the live file name, used in the preview folder for the pub request
+                    string TargetFileName = ContentTypeSpecificApiBase.GenerateLiveAssociatedFileName(
+                                                Caf.Id,
+                                                thisPubRequest.RootContentItemId,
+                                                Path.GetExtension(Caf.FullPath));
+                    string TargetFilePath = Path.Combine(tempContentDestinationFolder, TargetFileName);
+
+                    // Can move because destination is on same volume as source
+                    File.Move(Caf.FullPath, TargetFilePath);
+
+                    newLiveReadyAssociatedFilesList.Add(new ContentAssociatedFile
+                    {
+                        Id = Caf.Id,
+                        Checksum = Caf.Checksum,
+                        FileOriginalName = Caf.FileOriginalName,
+                        DisplayName = Caf.DisplayName,
+                        FullPath = TargetFilePath,
+                        FileType = Caf.FileType,
+                        SortOrder = Caf.SortOrder,
+                    });
+                }
+
                 // record the path change in thisPubRequest
                 thisPubRequest.LiveReadyFilesObj = newLiveReadyFilesObj;
+                thisPubRequest.LiveReadyAssociatedFilesList = newLiveReadyAssociatedFilesList;
                 dbContext.SaveChanges();
 
                 // PostProcess the output of successful reduction tasks
@@ -281,10 +341,63 @@ namespace MillimanAccessPortal.Services
 
                 // update pub status to Processed
                 thisPubRequest.RequestStatus = PublicationStatus.Processed;
+
+                newOutcome = thisPubRequest.OutcomeMetadataObj;
+                newOutcome.ElapsedTime = DateTime.UtcNow - newOutcome.StartDateTime;
+                newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
+                thisPubRequest.OutcomeMetadataObj = newOutcome;
+
                 dbContext.ContentPublicationRequest.Update(thisPubRequest);
                 dbContext.SaveChanges();
             }
         }
 
+        protected void AdoptOrphanPublications()
+        {
+            int recoveryLookbackHours = _appConfig.GetValue("TaskRecoveryLookbackHours", 24 * 7);
+            DateTime minCreateDateTimeUtc = DateTime.UtcNow - TimeSpan.FromHours(recoveryLookbackHours);
+
+            using (var scope = _services.CreateScope())
+            {
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                // 1) prepare to postprocess publication requests that publishing server could be working with or finished with
+                List<PublicationStatus> queuedOrLaterOrphanStatusList = new List<PublicationStatus>
+                {
+                    PublicationStatus.Queued,
+                    PublicationStatus.Processing,
+                    PublicationStatus.PostProcessReady,
+                };
+
+                List<ContentPublicationRequest> recentOrphanedRequests = dbContext.ContentPublicationRequest
+                    .Where(r => queuedOrLaterOrphanStatusList.Contains(r.RequestStatus))
+                    .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
+                    .ToList();
+
+                var latestOrphanedRequests = recentOrphanedRequests
+                    .GroupBy(keySelector: r => r.RootContentItemId,
+                             resultSelector: (rcid, group) => group.Aggregate(seed: group.First(), func: (prev, next) => prev.CreateDateTimeUtc > next.CreateDateTimeUtc ? prev : next))
+                    .ToList();
+                foreach (var request in latestOrphanedRequests)
+                {
+                    _taskQueue.QueuePublicationPostProcess(request.Id);
+                }
+
+                // 2) handle publication requests with Validating status
+                string CxnString = _appConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
+                string rootPath = _appConfig.GetSection("Storage")["ContentItemRootPath"];
+                string exchangePath = _appConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
+
+                List<ContentPublicationRequest> validatingRequests = dbContext.ContentPublicationRequest
+                    .Where(r => r.RequestStatus == PublicationStatus.Validating)
+                    .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
+                    .ToList();
+                foreach (ContentPublicationRequest request in validatingRequests)
+                {
+                    ContentPublishSupport.MonitorPublicationRequestForQueueing(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
+                }
+
+            }
+        }
     }
 }

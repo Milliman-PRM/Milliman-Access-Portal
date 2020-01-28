@@ -19,7 +19,7 @@ namespace MillimanAccessPortal.Migrations
                 .HasAnnotation("Npgsql:Enum:authentication_type", "default,ws_federation")
                 .HasAnnotation("Npgsql:Enum:content_type_enum", "unknown,qlikview,html,pdf,file_download,power_bi")
                 .HasAnnotation("Npgsql:Enum:publication_status", "unknown,canceled,rejected,validating,queued,processing,post_process_ready,post_processing,processed,confirming,confirmed,replaced,error")
-                .HasAnnotation("Npgsql:Enum:reduction_status_enum", "unspecified,canceled,rejected,validating,queued,reducing,reduced,live,replaced,error")
+                .HasAnnotation("Npgsql:Enum:reduction_status_enum", "unspecified,canceled,rejected,validating,queued,reducing,reduced,live,replaced,warning,error")
                 .HasAnnotation("Npgsql:PostgresExtension:citext", ",,")
                 .HasAnnotation("Npgsql:PostgresExtension:uuid-ossp", ",,")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
@@ -112,6 +112,9 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<DateTime>("CreateDateTimeUtc");
 
+                    b.Property<string>("LiveReadyAssociatedFiles")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("LiveReadyFiles")
                         .HasColumnType("jsonb");
 
@@ -122,6 +125,9 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("jsonb");
 
                     b.Property<PublicationStatus>("RequestStatus");
+
+                    b.Property<string>("RequestedAssociatedFiles")
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("ResultHierarchy")
                         .HasColumnType("jsonb");
@@ -169,6 +175,10 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("OutcomeMetadata")
                         .HasColumnType("jsonb");
+
+                    b.Property<DateTime>("ProcessingStartDateTimeUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
 
                     b.Property<string>("ReducedContentChecksum");
 
@@ -347,6 +357,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<string>("AssociatedFiles")
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("ClientId");
 

@@ -1,13 +1,14 @@
-import '../../../images/icons/add-circle.svg';
-import '../../../images/icons/remove-circle.svg';
+import '../../../../images/icons/add-circle.svg';
+import '../../../../images/icons/remove-circle.svg';
 
 import * as React from 'react';
 
 export interface CheckboxData {
   name: string;
   selected: boolean;
-  modified: boolean;
+  modified?: boolean;
   onChange: (selected: boolean) => void;
+  hoverText?: string;
 }
 export interface CheckboxProps extends CheckboxData {
   readOnly: boolean;
@@ -15,14 +16,14 @@ export interface CheckboxProps extends CheckboxData {
 
 export class Checkbox extends React.Component<CheckboxProps> {
   public render() {
-    const { name, selected, modified, readOnly } = this.props;
+    const { name, selected, modified, readOnly, hoverText } = this.props;
     const modifiedClass = modified
       ? selected
         ? ' added'
         : ' removed'
       : '';
     return (
-      <div className="selection-option-container" style={{ display: 'flex' }}>
+      <div className="selection-option-container" style={{ display: 'flex' }} title={hoverText ? hoverText : null}>
         <svg className={`selection-option-modified${modifiedClass}`}>
           <use href={`#${selected ? 'add' : 'remove'}-circle`} />
         </svg>

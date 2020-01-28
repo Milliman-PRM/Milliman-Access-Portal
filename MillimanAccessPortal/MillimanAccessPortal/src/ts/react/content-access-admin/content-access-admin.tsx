@@ -9,7 +9,7 @@ import Select from 'react-select';
 
 import { setUnloadAlert } from '../../unload-alerts';
 import {
-    isPublicationActive, isReductionActive, ReductionStatus,
+  isPublicationActive, isReductionActive, PublicationStatus, ReductionStatus,
 } from '../../view-models/content-publishing';
 import {
     Client, ClientWithEligibleUsers, ClientWithStats, ReductionFieldset, RootContentItem,
@@ -91,6 +91,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
   public componentDidMount() {
+    this.props.fetchGlobalData({});
     this.props.fetchClients({});
     this.props.scheduleStatusRefresh({ delay: 0 });
     this.props.scheduleSessionCheck({ delay: 0 });
@@ -187,7 +188,6 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         renderEntity={(entity, key) => (
           <Card
             key={key}
-            disabled={isPublicationActive(entity.status && entity.status.requestStatus)}
             selected={selected.item === entity.id}
             onSelect={() => {
               if (pending.group.id !== null) {
@@ -244,6 +244,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
       pending,
       selected,
       filters,
+      items,
       modals,
       cardAttributes,
       addableUsers: users,
@@ -252,6 +253,8 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
       groupToDelete: groupDelete,
     } = this.props;
 
+    const selectedItemStatus = item && items.filter((x) => x.id === item.id)[0].status.requestStatus;
+    const selectedItemIsPublishing = item && isPublicationActive(selectedItemStatus);
     const expandAllIcon = allExpanded
       ? null
       : (
@@ -270,13 +273,13 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
           action={() => this.props.setAllCollapsedGroup({})}
         />
       );
-    const addGroupIcon = (
-      <ActionIcon
-        label="Add group"
-        icon="add"
-        action={() => this.props.openAddGroupModal({})}
-      />
-    );
+    const addGroupIcon = !selectedItemIsPublishing ? (
+        <ActionIcon
+          label="Add group"
+          icon="add"
+          action={() => this.props.openAddGroupModal({})}
+        />
+      ) : null;
 
     return activeClient && activeItem && (
       <CardPanel
@@ -313,16 +316,25 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             )
             : (
               <>
-                {isReductionActive(entity.status.taskStatus)
-                  ? null
-                  : (
-                    <CardButton
-                      color={'red'}
-                      tooltip={'Delete selection group'}
-                      onClick={() => this.props.openDeleteGroupModal({ id: entity.id })}
-                      icon={'delete'}
-                    />
-                  )
+                {
+                  (!selectedItemIsPublishing && selectedItemStatus !== PublicationStatus.Error)
+                    ? isReductionActive(entity.status.taskStatus)
+                      ? (
+                        <CardButton
+                          color={'red'}
+                          tooltip={'Cancel Reduction Task'}
+                          onClick={() => this.props.cancelReduction({ groupId: entity.id })}
+                          icon={'cancel'}
+                        />
+                      ) : (
+                        <CardButton
+                          color={'red'}
+                          tooltip={'Delete selection group'}
+                          onClick={() => this.props.openDeleteGroupModal({ id: entity.id })}
+                          icon={'delete'}
+                        />
+                      )
+                  : null
                 }
                 {pending.group.id === null
                   ? (
@@ -498,7 +510,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
             </Card>
           );
         }}
-        renderNewEntityButton={() => (
+        renderNewEntityButton={() => !selectedItemIsPublishing && (
           <div className="card-container action-card-container" onClick={() => this.props.openAddGroupModal({})}>
             <div className="admin-panel-content">
               <div className="card-body-container card-100 action-card">
@@ -618,6 +630,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
       activeSelectedItem: activeItem,
       activeSelectedGroup: activeGroup,
       filters,
+      items,
       pending,
       modals,
       selectedValues,
@@ -647,10 +660,12 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
         isModified={formModified}
         isValuesModified={valuesModified}
         isMaster={selectedMaster}
+        isSubmitting={pending.data.updateSelections}
         onIsMasterChange={(isMaster) => this.props.setPendingIsMaster({ isMaster })}
         title={group.name}
         subtitle={item.name}
         status={group.status.taskStatus || ReductionStatus.Unspecified}
+        itemStatus={items.filter((x) => x.id === item.id)[0].status.requestStatus}
         onBeginReduction={() => selectedValues.length || selectedMaster
           ? this.props.updateSelections({
             groupId: group.id,

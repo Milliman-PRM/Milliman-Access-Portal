@@ -1,9 +1,10 @@
-﻿import '../../../images/icons/hide-password.svg';
-import '../../../images/icons/show-password.svg';
+﻿import '../../../../images/icons/hide-password.svg';
+import '../../../../images/icons/show-password.svg';
 
-import '../../../scss/react/shared-components/form-elements.scss';
+import '../../../../scss/react/shared-components/form-elements.scss';
 
 import * as React from 'react';
+import TextareaAutosize from 'react-autosize-textarea';
 
 interface BaseInputProps {
   name: string;
@@ -55,13 +56,18 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref)
   );
 });
 
-export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, BaseInputProps>((props, ref) => {
-  const { name, label, error, placeholderText, children, readOnly, hidden, value, ...rest } = props;
+interface TextareaProps extends BaseInputProps {
+  rows?: number;
+  maxRows?: number;
+}
+
+export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, TextareaProps>((props, ref) => {
+  const { name, label, error, placeholderText, children, readOnly, hidden, value, rows, maxRows, ...rest } = props;
   return (
     <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
       <div className={'form-element-textarea' + (error ? ' error' : '')}>
         <div className="form-input-container">
-          <textarea
+          <TextareaAutosize
             name={name}
             id={name}
             ref={ref}
@@ -69,7 +75,10 @@ export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, BaseInputProp
             placeholder={placeholderText || label}
             readOnly={readOnly}
             data-input-value={value}
+            value={value || ''}
             {...rest}
+            rows={rows ? rows : 5}
+            maxRows={maxRows ? maxRows : 10}
           />
           <label className="form-input-label" htmlFor={name}>{label}</label>
         </div>

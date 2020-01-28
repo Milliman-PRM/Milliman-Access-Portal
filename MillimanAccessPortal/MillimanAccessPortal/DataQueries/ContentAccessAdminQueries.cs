@@ -37,13 +37,20 @@ namespace MillimanAccessPortal.DataQueries
             _publicationQueries = publicationQueries;
             _userQueries = userQueries;
         }
+        internal ContentAccessAdminPageGlobalModel BuildAccessAdminPageGlobalModel()
+        {
+            return new ContentAccessAdminPageGlobalModel
+            {
+                ContentTypes = _contentItemQueries.GetAllContentTypes().ToDictionary(t => t.Id),
+            };
+        }
 
         /// <summary>
         /// Select all clients for which the current user can administer access.
         /// </summary>
         /// <param name="user">Current user</param>
         /// <returns>Response model</returns>
-        public ClientsResponseModel SelectClients(ApplicationUser user)
+        public ClientsResponseModel GetAuthorizedClientsModel(ApplicationUser user)
         {
             var clients = _clientQueries.SelectClientsWithEligibleUsers(user, RoleEnum.ContentAccessAdmin);
             var parentClients = _clientQueries.SelectParentClients(clients);

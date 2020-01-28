@@ -21,6 +21,7 @@ describe('progress monitor', () => {
     progressCallback.mockReturnValueOnce(0.8);
     progressCallback.mockReturnValue(1.0);
   });
+
   afterEach(() => {
     global.Date = RealDate;
 
@@ -32,25 +33,29 @@ describe('progress monitor', () => {
 
   it('reads progress from callback', () => {
     const monitor = new ProgressMonitor(
-      progressCallback, renderCallback, 1000000);
+      progressCallback, renderCallback, 'abc', 1000000);
     monitor.activate();
 
     expect(progressCallback.mock.calls.length).toBe(1);
     expect(progressCallback.mock.calls[0].length).toBe(0);
   });
+
   it('renders progress', () => {
     const monitor = new ProgressMonitor(
-      progressCallback, renderCallback, 1000000);
+      progressCallback, renderCallback, 'abc', 1000000);
     monitor.activate();
     jest.runOnlyPendingTimers();
 
+    console.log('TEST: ' + renderCallback.mock.calls[0]);
+
     expect(renderCallback.mock.calls.length).toBe(2);
-    expect(renderCallback.mock.calls[0].length).toBe(1);
+    expect(renderCallback.mock.calls[0].length).toBe(2);
     expect(renderCallback.mock.calls).toMatchSnapshot();
   });
+
   it('stops monitoring when told', () => {
     const monitor = new ProgressMonitor(
-      progressCallback, renderCallback, 1000000);
+      progressCallback, renderCallback, 'abc', 1000000);
 
     monitor.activate();
 
@@ -62,12 +67,13 @@ describe('progress monitor', () => {
 
     expect(setTimeout).toHaveBeenCalledTimes(3);
     expect(renderCallback.mock.calls.map(
-      (call) => (call[0] as ProgressSummary).percentage,
+      (call) => (call[1] as ProgressSummary).percentage,
     )).toEqual(['0%', '20%', '40%']);
   });
+
   it('stops monitoring when complete', () => {
     const monitor = new ProgressMonitor(
-      progressCallback, renderCallback, 1000000);
+      progressCallback, renderCallback, 'abc', 1000000);
     monitor.activate();
 
     jest.runOnlyPendingTimers();
@@ -80,7 +86,7 @@ describe('progress monitor', () => {
 
     expect(setTimeout).toHaveBeenCalledTimes(6);
     expect(renderCallback.mock.calls.map(
-      (call) => (call[0] as ProgressSummary).percentage,
+      (call) => (call[1] as ProgressSummary).percentage,
     )).toEqual(['0%', '20%', '40%', '60%', '80%', '100%']);
   });
 });

@@ -119,6 +119,7 @@ namespace MapTests
         public HierarchyQueries HierarchyQueriesObj { get; set; }
         public SelectionGroupQueries SelectionGroupQueriesObj { get; set; }
         public PublicationQueries PublicationQueriesObj { get; set; }
+        public ContentPublishingAdminQueries ContentPublishingAdminQueriesObj { get; set; }
         public UserQueries UserQueriesObj { get; set; }
         public ContentAccessAdminQueries ContentAccessAdminQueriesObj { get; set; }
         #endregion
@@ -237,6 +238,7 @@ namespace MapTests
             HierarchyQueriesObj = new HierarchyQueries(DbContextObject);
             SelectionGroupQueriesObj = new SelectionGroupQueries(MockAuditLogger.Object, DbContextObject);
             PublicationQueriesObj = new PublicationQueries(DbContextObject);
+            ContentPublishingAdminQueriesObj = new ContentPublishingAdminQueries(ClientQueriesObj, ContentItemQueriesObj, UserQueriesObj, DbContextObject);
             UserQueriesObj = new UserQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
             ContentAccessAdminQueriesObj = new ContentAccessAdminQueries(
                 ClientQueriesObj, ContentItemQueriesObj, HierarchyQueriesObj,

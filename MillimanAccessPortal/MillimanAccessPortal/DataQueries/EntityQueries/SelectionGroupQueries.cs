@@ -371,10 +371,13 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 .Include(g => g.RootContentItem)
                     .ThenInclude(c => c.Client)
                 .SingleOrDefault(g => g.Id == selectionGroupId);
-            _dbContext.SelectionGroup.Remove(group);
 
-            _dbContext.SaveChanges();
-            _auditLogger.Log(AuditEventType.SelectionGroupDeleted.ToEvent(group, group.RootContentItem, group.RootContentItem.Client));
+            if (group != null)
+            {
+                _dbContext.SelectionGroup.Remove(group);
+                _dbContext.SaveChanges();
+                _auditLogger.Log(AuditEventType.SelectionGroupDeleted.ToEvent(group, group.RootContentItem, group.RootContentItem.Client));
+            }
 
             return group;
         }

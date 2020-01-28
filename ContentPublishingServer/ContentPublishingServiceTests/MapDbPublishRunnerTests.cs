@@ -74,7 +74,7 @@ namespace ContentPublishingServiceTests
 
             MapDbPublishRunner TestRunner = new MapDbPublishRunner
             {
-                JobDetail = PublishJobDetail.New(DbRequest, MockContext.Object),
+                JobDetail = PublishJobDetail.New(DbRequest),
                 MockContext = MockContext,
             };
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);           
@@ -165,7 +165,7 @@ namespace ContentPublishingServiceTests
 
             MapDbPublishRunner TestRunner = new MapDbPublishRunner
             {
-                JobDetail = PublishJobDetail.New(DbRequest, MockContext.Object),
+                JobDetail = PublishJobDetail.New(DbRequest),
                 MockContext = MockContext,
             };
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
@@ -265,7 +265,7 @@ namespace ContentPublishingServiceTests
 
             MapDbPublishRunner TestRunner = new MapDbPublishRunner
             {
-                JobDetail = PublishJobDetail.New(DbRequest, MockContext.Object),
+                JobDetail = PublishJobDetail.New(DbRequest),
                 MockContext = MockContext,
             };
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);

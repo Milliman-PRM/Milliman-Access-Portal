@@ -12,7 +12,7 @@ module.exports = {
     'content-access-admin': './src/ts/react/content-access-admin/index.tsx',
     'content-disclaimer': './src/ts/content-disclaimer.ts',
     'content-wrapper': './src/ts/react/authorized-content/content-wrapper.tsx',
-    'content-publishing': './src/ts/content-publishing/index.tsx',
+    'content-publishing': './src/ts/react/content-publishing/index.tsx',
     'create-initial-user': './src/ts/create-initial-user.ts',
     'enable-account': './src/ts/enable-account.ts',
     'forgot-password': './src/ts/react/forgot-password/index.tsx',

@@ -348,6 +348,7 @@ namespace MillimanAccessPortal
             // Queries
             services.AddScoped<StandardQueries>();
             services.AddScoped<ContentAccessAdminQueries>();
+            services.AddScoped<ContentPublishingAdminQueries>();
 
             services.AddScoped<ClientQueries>();
             services.AddScoped<ContentItemQueries>();
@@ -367,6 +368,7 @@ namespace MillimanAccessPortal
             services.AddHostedService<QueuedGoLiveTaskHostedService>();
             services.AddSingleton<IGoLiveTaskQueue, GoLiveTaskQueue>();
             services.AddHostedService<QueuedPublicationPostProcessingHostedService>();
+            services.AddHostedService<QueuedReductionPostProcessingHostedService>();
             services.AddSingleton<IPublicationPostProcessingTaskQueue, PublicationPostProcessingTaskQueue>();
             services.AddScoped<FileSystemTasks>();
 

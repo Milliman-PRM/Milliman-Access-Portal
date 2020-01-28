@@ -6,7 +6,7 @@
 
   <PropertyGroup>
     <UserSecretsId>aspnet-MillimanAccessPortal-965822be-7d5a-4042-843a-d230c25706a3</UserSecretsId>
-    <Version>1.7.3</Version>
+    <Version>1.8.0</Version>
     <Authors>Milliman PRM Analytics Team</Authors>
     <Company>Milliman Inc.</Company>
     <LangVersion>latest</LangVersion>
@@ -27,7 +27,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.2.0" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="3.19.8" />
     <PackageReference Include="Moq" Version="4.10.1" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.2.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.2.4" />
   </ItemGroup>
 
   <ItemGroup>

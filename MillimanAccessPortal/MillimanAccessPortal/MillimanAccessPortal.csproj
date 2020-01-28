@@ -16,7 +16,7 @@
 
   <PropertyGroup>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
-    <Version>1.7.3</Version>
+    <Version>1.8.0</Version>
     <Company>Milliman Inc.</Company>
     <Authors>Milliman PRM Analytics Team</Authors>
     <LangVersion>latest</LangVersion>
@@ -38,8 +38,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.2.1" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.2.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.2.4" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.2.4" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.2.0" />
@@ -71,7 +71,8 @@
     <Folder Include="Migrations\" />
     <Folder Include="Properties\PublishProfiles\" />
     <Folder Include="Views\" />
-    <Folder Include="wwwroot\" /> 
+    <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\js\" /> 
   </ItemGroup>
   <ItemGroup>
     <None Include="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />
