@@ -792,6 +792,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           relatedFiles[key].uniqueUploadId === action.uploadId) {
           relatedFiles[key] = {
             ...relatedFiles[key],
+            fileUploadId: '',
             fileOriginalName: action.fileName,
           };
         }
