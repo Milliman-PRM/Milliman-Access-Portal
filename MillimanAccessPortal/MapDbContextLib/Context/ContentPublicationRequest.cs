@@ -59,6 +59,13 @@ namespace MapDbContextLib.Context
 
     public static class PublicationStatusExtensions
     {
+        public static List<PublicationStatus> CancelOnlyAfterLastOfStatusList { get; } = new List<PublicationStatus>
+        {
+            PublicationStatus.Confirming,
+            PublicationStatus.Confirmed,
+            PublicationStatus.Replaced
+        };
+
         public static List<PublicationStatus> CancelablePublicationStatusList { get; } = new List<PublicationStatus> 
         { 
             PublicationStatus.Validating, 

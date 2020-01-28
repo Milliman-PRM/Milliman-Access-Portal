@@ -1478,21 +1478,24 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Validation
-            var existingRecord = _dbContext.RootContentItem
+            var existingContentItemRecord = _dbContext.RootContentItem
                 .Include(c => c.Client)
                 .SingleOrDefault(c => c.Id == rootContentItemId);
-            if (existingRecord == null)
+
+            var activePublications = _dbContext.ContentPublicationRequest
+                .Where(pr => pr.RootContentItemId == rootContentItemId)
+                .Where(pr => PublicationStatusExtensions.ActiveStatuses.Contains(pr.RequestStatus))
+                .ToList();
+
+            #region Validation
+            if (existingContentItemRecord == null)
             {
                 Log.Debug($"In SystemAdminController.CancelPublication action: content item {rootContentItemId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified root content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
             // The root content item should have an active publication
-            var activePublications = _dbContext.ContentPublicationRequest
-                .Where(pr => pr.RootContentItemId == rootContentItemId)
-                .Where(pr => pr.RequestStatus.IsActive())
-                .ToList();
             if (!activePublications.Any())
             {
                 Log.Debug($"In SystemAdminController.CancelPublication action: no cancelable publication request for content item {rootContentItemId}, aborting");
@@ -1505,12 +1508,12 @@ namespace MillimanAccessPortal.Controllers
             {
                 activePublication.RequestStatus = PublicationStatus.Canceled;
                 activePublication.UploadedRelatedFilesObj = null;
-                _dbContext.ContentPublicationRequest.Update(activePublication);
             }
 
             try
             {
                 _dbContext.SaveChanges();
+                // See Github issue #1234
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -1522,10 +1525,10 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose("In SystemAdminController.CancelPublication action: success");
             foreach (var updatedPublication in activePublications)
             {
-                _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingRecord, existingRecord.Client, updatedPublication));
+                _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingContentItemRecord, existingContentItemRecord.Client, updatedPublication));
             }
 
-            return Json(existingRecord);
+            return Json(existingContentItemRecord);
         }
 
         /// <summary>

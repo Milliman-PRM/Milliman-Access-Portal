@@ -710,11 +710,20 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            DateTime onlyCancelRequestCreatedAfter = _dbContext.ContentPublicationRequest
+                .Where(r => r.RootContentItemId == rootContentItem.Id)
+                .Where(r => PublicationStatusExtensions.CancelOnlyAfterLastOfStatusList.Contains(r.RequestStatus))
+                .OrderByDescending(r => r.CreateDateTimeUtc)
+                .FirstOrDefault()
+                ?.CreateDateTimeUtc 
+                ?? DateTime.MinValue;
+
             var contentPublicationRequest = _dbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
                 .Where(r => PublicationStatusExtensions.CancelablePublicationStatusList.Contains(r.RequestStatus))
-                // TODO Make sure CancelablePublicationStatusList works for Error status, and maybe other added values
-                .SingleOrDefault();
+                .Where(r => r.CreateDateTimeUtc > onlyCancelRequestCreatedAfter)
+                .OrderByDescending(r => r.CreateDateTimeUtc)
+                .FirstOrDefault();
 
             #region Validation
             if (contentPublicationRequest == null)

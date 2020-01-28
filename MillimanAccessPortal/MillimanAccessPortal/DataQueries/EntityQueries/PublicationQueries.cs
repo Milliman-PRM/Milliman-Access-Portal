@@ -49,6 +49,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             var reductionTask = _dbContext.ContentReductionTask
                 .Include(t => t.ApplicationUser)
                 .Where(t => t.SelectionGroupId == selectionGroupId)
+                .Where(t => ReductionStatusExtensions.accessAdminStatusList.Contains(t.ReductionStatus))
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();
 
@@ -167,6 +168,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     var precedingReductionTaskCount = _dbContext.ContentReductionTask
                         .Where(r => r.CreateDateTimeUtc <= reduction.CreateDateTimeUtc)
                         .Where(r => ReductionStatusExtensions.cancelableStatusList.Contains(r.ReductionStatus))
+                        .Where(r => r.Id != reduction.Id)
                         .Count();
                     queueDetails.Add(new ReductionQueueDetails
                     {
