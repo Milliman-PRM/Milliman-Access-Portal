@@ -51,7 +51,7 @@ namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
                                                                              && t.SelectionGroupId != null),
                     ReductionsCompleted = dbContext.ContentReductionTask.Count(t => t.ContentPublicationRequestId == r.Id
                                                                                  && t.SelectionGroupId != null
-                                                                                 && t.ReductionStatus == ReductionStatusEnum.Reduced),  // TODO in the next branch, need to test for Warning status too
+                                                                                 && (t.ReductionStatus == ReductionStatusEnum.Reduced || t.ReductionStatus == ReductionStatusEnum.Warning)),
                 });
                 return ++i;
             });

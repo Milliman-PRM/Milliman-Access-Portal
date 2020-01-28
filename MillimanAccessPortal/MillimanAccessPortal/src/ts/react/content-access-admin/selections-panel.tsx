@@ -47,7 +47,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderFormSection() {
-    const { title, subtitle, isSuspended, loading } = this.props;
+    const { isMaster, title, subtitle, isSuspended, loading } = this.props;
     return loading
       ? <ColumnSpinner />
       : (
@@ -59,7 +59,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
                 display: 'flex',
                 flexDirection: 'column',
                 flex: 'auto',
-                height: 'calc(100% - 1.5em)',
+                height: (!isMaster) ? 'calc(100% - 1.5em)' : null,
               }}
             >
               <h2
@@ -89,7 +89,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderDoesReduceSection() {
-    const { doesReduce, isMaster, onIsMasterChange, status } = this.props;
+    const { doesReduce, isMaster, onIsMasterChange, status, itemStatus } = this.props;
     return doesReduce
       ? (
         <div
@@ -103,8 +103,14 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
           <Toggle
             label={'Unrestricted Access'}
             checked={isMaster}
+            readOnly={
+              itemStatus === PublicationStatus.Error
+              || isPublicationActive(itemStatus)
+              || isReductionActive(status)
+            }
             onClick={() => !isReductionActive(status)
-              && status !== ReductionStatus.Warning
+              && !isPublicationActive(itemStatus)
+              && itemStatus !== PublicationStatus.Error
               && onIsMasterChange(!isMaster)
             }
           />
@@ -122,7 +128,11 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
       : (
         <div className="fieldset-container" style={{ flex: '1 1 1px', overflowY: 'auto' }}>
           <h4>Reduction Values</h4>
-          {!isReductionActive(status) && !isPublicationActive(itemStatus) && (
+          {
+            !isReductionActive(status)
+            && !isPublicationActive(itemStatus)
+            && itemStatus !== PublicationStatus.Error
+            && (
             <div className="fieldset-options-container">
               <div
                 className={`fieldset-option${this.props.isAllValuesSelected ? ' disabled' : ''}`}
@@ -154,7 +164,12 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
     return fieldsets.map((fieldset) => (
       <Fieldset
         key={fieldset.name}
-        readOnly={isSubmitting || isReductionActive(status) || isPublicationActive(itemStatus)}
+        readOnly={
+          isSubmitting
+          || isReductionActive(status)
+          || isPublicationActive(itemStatus)
+          || itemStatus === PublicationStatus.Error
+        }
         {...fieldset}
       />
     ));
@@ -169,7 +184,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
         case ReductionStatus.Rejected:
         case ReductionStatus.Live:
         case ReductionStatus.Error:
-          return isModified
+          return (isModified && itemStatus !== PublicationStatus.Error)
             ? (
               <button
                 type="button"

@@ -56,9 +56,12 @@ export class CardStatus extends React.Component<CardStatusProps> {
 
   private renderStatusTitle = () => {
     const { status } = this.props;
-    const statusName = isPublicationRequest(status)
-      ? status.requestStatusName
-      : status.taskStatusName;
+    let statusName;
+    if (isPublicationRequest(status)) {
+      statusName = status.requestStatusName;
+    } else {
+      statusName = status.taskStatusName;
+    }
 
     return (
       <span className="status-name">
@@ -74,6 +77,14 @@ export class CardStatus extends React.Component<CardStatusProps> {
     const s = (count: number) => count === 1 ? '' : 's';
 
     let queueString = '';
+    if (isReductionTask(status)
+      && (
+        status.taskStatus === ReductionStatus.Reduced
+        || status.taskStatus === ReductionStatus.Warning
+      )
+      && status.contentPublicationRequestId) {
+      return '(pending approval)';
+    }
     if (!status.queueDetails) {
       return queueString;
     }
@@ -96,7 +107,9 @@ export class CardStatus extends React.Component<CardStatusProps> {
       const { taskStatus, queueDetails } = status;
       if (taskStatus === ReductionStatus.Queued) {
         const { queuePosition: position } = queueDetails;
-        queueString = `(behind ${position} other reduction${s(position)})`;
+        queueString = (position > 0)
+          ? `(behind ${position} other reduction${s(position)})`
+          : '';
       }
     }
 
@@ -114,8 +127,8 @@ export class CardStatus extends React.Component<CardStatusProps> {
       if (status.outcomeMetadata.reductionTaskFailOutcomeList.length > 0) {
         return status.outcomeMetadata.reductionTaskFailOutcomeList
           .filter((x) => x.outcomeReason !== 'Canceled')
-          .map((x) => (
-            <>
+          .map((x, i) => (
+            <div key={i}>
               <span className="task-status-message">
                 {x.selectionGroupName
                   ? <>In Selection Group <strong>{x.selectionGroupName}</strong>: </>
@@ -123,7 +136,7 @@ export class CardStatus extends React.Component<CardStatusProps> {
                 } {x.userMessage}
               </span>
               <br />
-            </>
+            </div>
           ));
       } else {
         return <span className="task-status-message">{status.outcomeMetadata.userMessage}</span>;
