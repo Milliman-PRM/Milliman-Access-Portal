@@ -6,16 +6,16 @@ import '../../../scss/map.scss';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-import { FileDrop as Root } from './filedrop';
+import { FileDrop as Root } from './file-drop';
 
-let FileDrop: typeof Root = require('./filedrop').FileDrop;
+let FileDrop: typeof Root = require('./file-drop').FileDrop;
 
 document.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(<FileDrop />, document.getElementById('content-container'));
 });
 
 if (module.hot) {
-  module.hot.accept(['./filedrop'], () => {
-    FileDrop = require('./filedrop').FileDrop;
+  module.hot.accept(['./file-drop'], () => {
+    FileDrop = require('./file-drop').FileDrop;
   });
 }
