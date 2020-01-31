@@ -2,9 +2,9 @@
 
 ## Release Notes
 
-### v1.8.1
+#### v1.8.1
 
-- Fixed a bug that inaccurately displayed error status for some content items in the Access Admin view
+- Fixed a bug that inaccurately displayed error status for some content items in the Content Access Admin view
 
 ### v1.8.0
 
