@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.8.1
+
+- Fixed a bug that inaccurately displayed error status for some content items in the Access Admin view
+
 ### v1.8.0
 
 - Redesigned the Content Publishing form to improve the user experience of creating and editing Content Items
