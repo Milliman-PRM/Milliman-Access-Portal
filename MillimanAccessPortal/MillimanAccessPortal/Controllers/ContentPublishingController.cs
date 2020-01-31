@@ -748,9 +748,14 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Delete reduction related files
-            var ReductionRelatedFiles = contentPublicationRequest.ReductionRelatedFilesObj.SelectMany(rrf => rrf.ReducedContentFileList.Select(rcf => rcf.FullPath).Append(rrf.MasterContentFile.FullPath));
+            var ReductionRelatedFiles = contentPublicationRequest.ReductionRelatedFilesObj.SelectMany(rrf => rrf.ReducedContentFileList.Select(rcf => rcf.FullPath).Append(rrf.MasterContentFile?.FullPath));
             foreach (string reductionRelatedFile in ReductionRelatedFiles)
             {
+                if (reductionRelatedFile == null)
+                {
+                    continue;
+                }
+
                 if (System.IO.File.Exists(reductionRelatedFile))
                 {
                     System.IO.File.Delete(reductionRelatedFile);
