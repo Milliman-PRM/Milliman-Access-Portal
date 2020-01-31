@@ -63,7 +63,6 @@ namespace MapDbContextLib.Context
         {
             PublicationStatus.Confirming,
             PublicationStatus.Confirmed,
-            PublicationStatus.Replaced
         };
 
         public static List<PublicationStatus> CancelablePublicationStatusList { get; } = new List<PublicationStatus> 
