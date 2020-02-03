@@ -3,14 +3,27 @@ import * as _ from 'lodash';
 import { ClientWithStats } from '../../models';
 import { FileDropState } from './store';
 
-// Utility functions
+// ~~~~~~~~~~
+// Interfaces
+// ~~~~~~~~~~
 
-/**
- * Select all clients as a tree
- *
- * This selector supports client tree structures with at most 2 layers.
- *
- * @param state Redux store
+/** Model used for populating the Client tree with sub-clients */
+// TODO: Move this to a shared location since this is shared between at least 3 different selectors.ts files
+interface ClientWithIndent extends ClientWithStats {
+  indent: 1 | 2;
+}
+
+// ~~~~~~~~~~~~~~~~~
+// Utility Functions
+// ~~~~~~~~~~~~~~~~~
+
+// ~~~~~~~~~~~~~~~~
+// Client Selectors
+// ~~~~~~~~~~~~~~~~
+
+/** 
+ *  Return all clients as a tree
+ *  This selector supports client tree structures with at most 2 layers
  */
 export function clientsTree(state: FileDropState) {
   const clients = _.toArray(state.data.clients);
@@ -27,10 +40,7 @@ export function clientsTree(state: FileDropState) {
   return clientTree;
 }
 
-/**
- * Select all clients that match the client filter.
- * @param state Redux store
- */
+/** Return all clients that match the client filter */
 export function filteredClients(state: FileDropState) {
   const filterTextLower = state.filters.client.text.toLowerCase();
   const filterFunc = (client: ClientWithStats) => (
@@ -46,22 +56,12 @@ export function filteredClients(state: FileDropState) {
   })).filter(({ parent, children }) => filterFunc(parent) || children.length);
 }
 
-/**
- * Select all clients that are visible to the user.
- * @param state Redux store
- */
+/** Return all clients that are visible to the user */
 export function activeClients(state: FileDropState) {
   return filteredClients(state);
 }
 
-interface ClientWithIndent extends ClientWithStats {
-  indent: 1 | 2;
-}
-
-/**
- * Select clients with additional rendering data.
- * @param state Redux store
- */
+/** Return clients with additional rendering data */
 export function clientEntities(state: FileDropState) {
   const entities: Array<ClientWithIndent | 'divider'> = [];
   activeClients(state).forEach(({ parent, children }) => {
@@ -81,29 +81,24 @@ export function clientEntities(state: FileDropState) {
   return entities;
 }
 
-/**
- * Select the highlighted client.
- * @param state Redux store
- */
+/** Return the highlighted client */
 export function selectedClient(state: FileDropState) {
   return state.selected.client
     ? state.data.clients[state.selected.client] as ClientWithStats
     : null;
 }
 
-/**
- * Select the highlighted client if it is visible to the user.
- * @param state Redux store
- */
+/** Return the highlighted client if it is visible to the user */
 export function activeSelectedClient(state: FileDropState) {
   return clientEntities(state)
     .filter((c) => c !== 'divider' && (c.id === state.selected.client))[0] as ClientWithIndent;
 }
 
-/**
- * Select the number of status refresh attempts remaining
- * @param state Redux store
- */
+// ~~~~~~~~~~~~~~~~~~~~~~~~
+// Status Refresh Selectors
+// ~~~~~~~~~~~~~~~~~~~~~~~~
+
+/** Return the number of status refresh attempts remaining */
 export function remainingStatusRefreshAttempts(state: FileDropState) {
   return state.pending.statusTries;
 }

@@ -1,4 +1,4 @@
-import { call, put, select, takeLatest } from 'redux-saga/effects';
+import { select, takeLatest } from 'redux-saga/effects';
 
 import * as ActionCreator from './action-creators';
 import * as Action from './actions';
@@ -9,6 +9,10 @@ import { ClientWithEligibleUsers } from '../../models';
 import {
   createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
 } from '../../shared-components/redux/sagas';
+
+// ~~~~~~~~~~~~~~~~~
+// Utility Functions
+// ~~~~~~~~~~~~~~~~~
 
 /**
  * Custom effect for handling request actions.
@@ -33,9 +37,10 @@ const takeLatestSchedule = createTakeLatestSchedule<Action.FileDropActions>();
  */
 const takeEveryToast = createTakeEveryToast<Action.FileDropActions, Action.FileDropSuccessResponseActions>();
 
-/**
- * Register all sagas for the page.
- */
+// ~~~~~~~~~~~~~~
+// Register Sagas
+// ~~~~~~~~~~~~~~
+
 export default function* rootSaga() {
   // API requests
   yield takeLatestRequest('FETCH_GLOBAL_DATA', API.fetchGlobalData);
