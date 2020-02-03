@@ -556,7 +556,9 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("(now() at time zone 'utc')");
 
-                    b.Property<DateTime>("LastActivityUtc");
+                    b.Property<DateTime>("LastActivityUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.Property<Guid>("SftpAccountId");
 

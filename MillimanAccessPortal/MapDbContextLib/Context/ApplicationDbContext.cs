@@ -182,7 +182,8 @@ namespace MapDbContextLib.Context
             builder.Entity<SftpConnection>(b =>
             {
                 b.Property(x => x.Id).IsRequired().ValueGeneratedNever();
-                b.Property(x => x.CreatedDateTimeUtc).HasDefaultValueSql("(now() at time zone 'utc')");
+                b.Property(x => x.CreatedDateTimeUtc).HasDefaultValueSql("(now() at time zone 'utc')").ValueGeneratedOnAdd();
+                b.Property(x => x.LastActivityUtc).HasDefaultValueSql("(now() at time zone 'utc')").ValueGeneratedOnAdd();
             });
             builder.Entity<FileDropDirectory>(b =>
             {

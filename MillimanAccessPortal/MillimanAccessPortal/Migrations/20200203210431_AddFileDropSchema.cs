@@ -56,7 +56,7 @@ namespace MillimanAccessPortal.Migrations
                 {
                     Id = table.Column<string>(nullable: false),
                     CreatedDateTimeUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
-                    LastActivityUtc = table.Column<DateTime>(nullable: false),
+                    LastActivityUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
                     SftpAccountId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>

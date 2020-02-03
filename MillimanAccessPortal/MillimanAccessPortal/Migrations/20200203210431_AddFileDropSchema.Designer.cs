@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200203204720_AddFileDropSchema")]
+    [Migration("20200203210431_AddFileDropSchema")]
     partial class AddFileDropSchema
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -558,7 +558,9 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("(now() at time zone 'utc')");
 
-                    b.Property<DateTime>("LastActivityUtc");
+                    b.Property<DateTime>("LastActivityUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.Property<Guid>("SftpAccountId");
 
