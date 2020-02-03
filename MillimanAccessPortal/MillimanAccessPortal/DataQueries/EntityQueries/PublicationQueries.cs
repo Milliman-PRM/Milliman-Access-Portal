@@ -29,10 +29,19 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>Most recent publication request for the content item</returns>
         private ContentPublicationRequest PublicationWhereContentItem(Guid contentItemId)
         {
+            DateTime onlyRequestsOnOrAfter = _dbContext.ContentPublicationRequest
+                .Where(r => r.RootContentItemId == contentItemId)
+                .Where(r => r.RequestStatus == PublicationStatus.Confirmed)
+                .OrderByDescending(r => r.CreateDateTimeUtc)
+                .FirstOrDefault()
+                ?.CreateDateTimeUtc
+                ?? DateTime.MinValue;
+
             var publicationRequest = _dbContext.ContentPublicationRequest
                 .Include(r => r.ApplicationUser)
                 .Where(r => r.RootContentItemId == contentItemId)
                 .Where(r => PublicationStatusExtensions.CurrentStatuses.Contains(r.RequestStatus))
+                .Where(r => r.CreateDateTimeUtc >= onlyRequestsOnOrAfter)
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();
 
