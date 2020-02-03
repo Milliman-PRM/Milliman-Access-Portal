@@ -14,7 +14,13 @@ namespace MapDbContextLib.Context
     public class SftpConnection
     {
         [Key]
-        public Guid Id { get; set; }
+        public string Id { get; set; }
+
+        [Required]
+        public DateTime CreatedDateTimeUtc { get; set; }
+
+        [Required]
+        public DateTime LastActivityUtc { get; set; }
 
         [ForeignKey("SftpAccount")]
         public Guid SftpAccountId { get; set; }
