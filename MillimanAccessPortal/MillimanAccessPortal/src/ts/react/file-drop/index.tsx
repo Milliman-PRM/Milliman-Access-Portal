@@ -5,17 +5,23 @@ import '../../../scss/map.scss';
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
 
-import { FileDrop as Root } from './file-drop';
+import { ConnectedFileDrop as Root } from './file-drop';
+import { store } from './redux/store';
 
-let FileDrop: typeof Root = require('./file-drop').FileDrop;
+let ConnectedFileDrop: typeof Root = require('./file-drop').ConnectedFileDrop;
 
 document.addEventListener('DOMContentLoaded', () => {
-  ReactDOM.render(<FileDrop />, document.getElementById('content-container'));
+  ReactDOM.render(
+    <Provider store={store}>
+      <ConnectedFileDrop />
+    </Provider>,
+    document.getElementById('content-container'));
 });
 
 if (module.hot) {
   module.hot.accept(['./file-drop'], () => {
-    FileDrop = require('./file-drop').FileDrop;
+    ConnectedFileDrop = require('./file-drop').ConnectedFileDrop;
   });
 }
