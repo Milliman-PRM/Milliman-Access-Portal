@@ -21,7 +21,7 @@ interface ClientWithIndent extends ClientWithStats {
 // Client Selectors
 // ~~~~~~~~~~~~~~~~
 
-/** 
+/**
  *  Return all clients as a tree
  *  This selector supports client tree structures with at most 2 layers
  */

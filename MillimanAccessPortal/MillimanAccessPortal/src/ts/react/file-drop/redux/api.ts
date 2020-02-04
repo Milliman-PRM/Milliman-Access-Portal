@@ -15,7 +15,7 @@ const createJsonRequestor =
 // ~~~~~~~~~~~~~~~~~~
 
 /**
- *  Function for fetching global page data 
+ *  Function for fetching global page data
  */
 export const fetchGlobalData =
   createJsonRequestor<FileDropAction.FetchGlobalData, FileDropAction.FetchGlobalDataSucceeded>
