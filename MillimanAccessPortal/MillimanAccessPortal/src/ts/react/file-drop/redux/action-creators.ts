@@ -6,7 +6,7 @@ import { createActionCreator, createRequestActionCreator } from '../../shared-co
 // Page Actions
 // ~~~~~~~~~~~~
 
-/** Select a give Client by ID */
+/** Select a given Client by ID */
 export const selectClient =
   createActionCreator<Action.SelectClient>('SELECT_CLIENT');
 
