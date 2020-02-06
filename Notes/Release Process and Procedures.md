@@ -201,3 +201,7 @@ Once the new release has been deployed, someone should log in to ensure that the
 #### Schedule Next Retrospective
 
 After the new release has been deployed, set up the next 1 hour retrospective meeting with the hosting team. Try to set up the next meeting relatively close to the release date so that the team is able to speak to the release in the retrospective.
+
+#### Schedule Next Milestone Meeting
+
+After the new releaes has been deployed (or even a little prior to deployment), set up an hour milestone meeting with the hosting team. This is so that we can clearly define the scope of the milestone at the beginning of the new version release.
