@@ -204,4 +204,4 @@ After the new release has been deployed, set up the next 1 hour retrospective me
 
 #### Schedule Next Milestone Meeting
 
-After the new releaes has been deployed (or even a little prior to deployment), set up an hour milestone meeting with the hosting team. This is so that we can clearly define the scope of the milestone at the beginning of the new version release.
+After the new release has been deployed (or even prior to deployment), set up an hour milestone meeting with the hosting team. This is so that we can clearly define the scope of the milestone at the beginning of the new version release.
