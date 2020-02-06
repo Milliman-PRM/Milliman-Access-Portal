@@ -38,13 +38,14 @@ namespace MillimanAccessPortal.Controllers
 {
     public class FileDropController : Controller
     {
-        // TODO: Set this role requirement correctly
-        // private const RoleEnum requiredRole = RoleEnum.ContentPublisher;
+        private const RoleEnum requiredRole = RoleEnum.FileDropAdmin;
 
         private readonly IAuditLogger AuditLogger;
         private readonly IConfiguration ApplicationConfig;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext _dbContext;
+        private readonly StandardQueries _standardQueries;
+        private readonly FileDropQueries _fileDropQueries;
         private readonly FileSystemTasks _fileSystemTasks;
         private readonly UserManager<ApplicationUser> _userManager;
 
@@ -61,6 +62,8 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext ContextArg,
+            StandardQueries QueriesArg,
+            FileDropQueries fileDropQueriesArg,
             FileSystemTasks fileSystemTasks,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg
@@ -69,6 +72,8 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             _dbContext = ContextArg;
+            _standardQueries = QueriesArg;
+            _fileDropQueries = fileDropQueriesArg;
             _fileSystemTasks = fileSystemTasks;
             _userManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
@@ -82,5 +87,28 @@ namespace MillimanAccessPortal.Controllers
         {
             return View();
         }
+
+        /// <summary>
+        /// GET clients authorized to the current user
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Clients()
+        {
+            #region Authorization
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole));
+            if (!roleResult.Succeeded)
+            {
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to administer File Drop access.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
+            var clients = _fileDropQueries.GetAuthorizedClientsModel(currentUser);
+
+            return Json(clients);
+        }
+
     }
 }
