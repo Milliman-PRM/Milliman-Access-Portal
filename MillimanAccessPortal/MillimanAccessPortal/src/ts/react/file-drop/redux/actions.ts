@@ -6,9 +6,9 @@ import { Dict } from '../../shared-components/redux/store';
 // Page Actions
 // ~~~~~~~~~~~~
 
-/** 
+/**
  *  Select the client card specified by id
- *  If id refers to the currently selected card, deselect it 
+ *  If id refers to the currently selected card, deselect it
  */
 export interface SelectClient {
   type: 'SELECT_CLIENT';
@@ -26,7 +26,7 @@ export interface SetFilterTextClient {
 // ~~~~~~~~~~~~~~~~~~~~
 
 /**
- * GET: 
+ * GET:
  *   Non-client/non-File Drop data used for the functioning of the page
  */
 export interface FetchGlobalData {
@@ -45,7 +45,7 @@ export interface FetchGlobalDataFailed {
 }
 
 /**
- * GET: 
+ * GET:
  *   Clients the current user has access to publish for
  *   Users who are File Drop eligible in those clients
  */
@@ -77,7 +77,7 @@ export interface ScheduleStatusRefresh {
 }
 
 /**
- * GET: 
+ * GET:
  *   Updates to the selected Client specified by clientId
  */
 export interface FetchStatusRefresh {
@@ -112,7 +112,7 @@ export interface PromptStatusRefreshStopped {
 // ~~~~~~~~~~~~~~~~~~~~~
 
 /**
- * GET: 
+ * GET:
  *   A bodiless response that serves as a session heartbeat
  */
 export interface FetchSessionCheck {
