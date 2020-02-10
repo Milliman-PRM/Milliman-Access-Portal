@@ -30,7 +30,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
     // TODO: Implement these actions properly
     // this.props.fetchGlobalData({});
-    // this.props.fetchClients({});
+    this.props.fetchClients({});
   }
 
   public render() {
