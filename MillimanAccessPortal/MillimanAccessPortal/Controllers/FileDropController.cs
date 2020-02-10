@@ -38,8 +38,6 @@ namespace MillimanAccessPortal.Controllers
 {
     public class FileDropController : Controller
     {
-        private const RoleEnum requiredRole = RoleEnum.FileDropAdmin;
-
         private readonly IAuditLogger _auditLogger;
         private readonly IConfiguration _applicationConfig;
         private readonly IAuthorizationService _authorizationService;
@@ -94,12 +92,16 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Clients()
         {
             #region Authorization
-            var roleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole));
-            if (!roleResult.Succeeded)
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
+            if (!adminRoleResult.Succeeded)
             {
-                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
-                Response.Headers.Add("Warning", "You are not authorized to administer File Drop access.");
-                return Unauthorized();
+                var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser));
+                if (!userRoleResult.Succeeded)
+                {
+                    Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                    Response.Headers.Add("Warning", "You are not authorized to File Drop access.");
+                    return Unauthorized();
+                }
             }
             #endregion
 
