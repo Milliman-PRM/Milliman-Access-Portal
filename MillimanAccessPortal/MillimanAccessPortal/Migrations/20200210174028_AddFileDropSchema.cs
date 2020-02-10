@@ -57,6 +57,7 @@ namespace MillimanAccessPortal.Migrations
                     Id = table.Column<string>(nullable: false),
                     CreatedDateTimeUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
                     LastActivityUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
+                    MetaData = table.Column<string>(type: "jsonb", nullable: true),
                     SftpAccountId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
@@ -77,6 +78,7 @@ namespace MillimanAccessPortal.Migrations
                     Id = table.Column<Guid>(nullable: false, defaultValueSql: "uuid_generate_v4()"),
                     UserName = table.Column<string>(nullable: false),
                     PasswordHash = table.Column<string>(nullable: true),
+                    PasswordResetDateTimeUtc = table.Column<DateTime>(nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)),
                     ApplicationUserId = table.Column<Guid>(nullable: true),
                     FileDropUserPermissionGroupId = table.Column<Guid>(nullable: false)
                 },

@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200203210431_AddFileDropSchema")]
+    [Migration("20200210174028_AddFileDropSchema")]
     partial class AddFileDropSchema
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -538,6 +538,10 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("PasswordHash");
 
+                    b.Property<DateTime>("PasswordResetDateTimeUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+
                     b.Property<string>("UserName")
                         .IsRequired();
 
@@ -561,6 +565,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<DateTime>("LastActivityUtc")
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<string>("MetaData")
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("SftpAccountId");
 

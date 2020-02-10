@@ -178,6 +178,7 @@ namespace MapDbContextLib.Context
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
                 b.HasOne(x => x.ApplicationUser).WithMany().OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
+                b.Property(x => x.PasswordResetDateTimeUtc).HasDefaultValue(DateTime.MinValue).ValueGeneratedOnAdd();
             });
             builder.Entity<SftpConnection>(b =>
             {

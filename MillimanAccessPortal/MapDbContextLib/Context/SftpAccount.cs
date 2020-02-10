@@ -22,6 +22,9 @@ namespace MapDbContextLib.Context
 
         public string PasswordHash { get; set; }
 
+        [Required]
+        public DateTime PasswordResetDateTimeUtc { get; set; }
+
         [ForeignKey("ApplicationUser")]
         public Guid? ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }

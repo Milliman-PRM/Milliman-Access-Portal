@@ -536,6 +536,10 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("PasswordHash");
 
+                    b.Property<DateTime>("PasswordResetDateTimeUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+
                     b.Property<string>("UserName")
                         .IsRequired();
 
@@ -559,6 +563,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<DateTime>("LastActivityUtc")
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<string>("MetaData")
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("SftpAccountId");
 
