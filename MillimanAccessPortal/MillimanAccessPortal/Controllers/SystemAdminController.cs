@@ -1755,7 +1755,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var currentUser = await _queries.GetCurrentApplicationUser(User);
+            var currentUser = await _userManager.GetUserAsync(User);
             if (user.Id == currentUser.Id && role == RoleEnum.Admin && !value)
             {
                 Log.Debug($"In SystemAdminController.SystemRole action: no user can unassign themself as system admin, aborting");
@@ -1868,7 +1868,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var currentUser = await _queries.GetCurrentApplicationUser(User);
+            var currentUser = await _userManager.GetUserAsync(User);
             if (user.Id == currentUser.Id && value)
             {
                 Log.Debug($"In SystemAdminController.UserSuspendedStatus action: no user can suspend their own account, aborting");

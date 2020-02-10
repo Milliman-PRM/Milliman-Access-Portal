@@ -42,7 +42,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.QvConfig,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig);
@@ -85,7 +84,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.QvConfig,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig);
@@ -133,7 +131,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.QvConfig,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig);
@@ -179,7 +176,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.QvConfig,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig);
@@ -246,7 +242,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.QvConfig,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig);
@@ -304,7 +299,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.QvConfig,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig);
@@ -366,7 +360,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.QvConfig,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig);
@@ -409,7 +402,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.QvConfig,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig);
@@ -455,7 +447,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.QvConfig,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig);
@@ -518,7 +509,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.QvConfig,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig);
@@ -579,7 +569,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.QvConfig,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig);
@@ -640,7 +629,6 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.QvConfig,
-                TestResources.QueriesObj,
                 TestResources.UserManagerObject,
                 TestResources.ConfigurationObject,
                 TestResources.PowerBiConfig);

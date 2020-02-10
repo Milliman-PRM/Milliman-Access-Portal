@@ -46,7 +46,6 @@ namespace MapTests
                 null,
                 _testResources.MessageQueueServicesObject,
                 _testResources.AuditLoggerObject,
-                _testResources.QueriesObj,
                 _testResources.AuthorizationService,
                 _testResources.ConfigurationObject,
                 _testResources.ServiceProviderObject,

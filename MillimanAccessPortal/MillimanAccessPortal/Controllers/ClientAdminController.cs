@@ -53,7 +53,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IMessageQueue MessageQueueService;
         private readonly RoleManager<ApplicationRole> RoleManager;
         private readonly StandardQueries Queries;
-        private readonly UserManager<ApplicationUser> UserManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration ApplicationConfig;
         private readonly AccountController _accountController;
 
@@ -75,7 +75,7 @@ namespace MillimanAccessPortal.Controllers
             MessageQueueService = MessageQueueServiceArg;
             RoleManager = RoleManagerArg;
             Queries = QueryArg;
-            UserManager = UserManagerArg;
+            _userManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
             _accountController = AccountControllerArg;
         }
@@ -121,7 +121,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await _userManager.GetUserAsync(User), _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
 
             return Json(ModelToReturn);
         }
@@ -161,7 +161,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             ClientDetailViewModel Model = new ClientDetailViewModel { ClientEntity = ThisClient };
-            await Model.GenerateSupportingProperties(DbContext, UserManager, await Queries.GetCurrentApplicationUser(User), RoleEnum.Admin, false);
+            await Model.GenerateSupportingProperties(DbContext, _userManager, await _userManager.GetUserAsync(User), RoleEnum.Admin, false);
 
             return Json(Model);
         }
@@ -178,11 +178,11 @@ namespace MillimanAccessPortal.Controllers
             #region If user already exists get the record
             if (!string.IsNullOrWhiteSpace(Model.Email))
             {
-                RequestedUser = await UserManager.FindByEmailAsync(Model.Email);
+                RequestedUser = await _userManager.FindByEmailAsync(Model.Email);
             }
             if (RequestedUser == null && !string.IsNullOrWhiteSpace(Model.UserName))
             {
-                RequestedUser = await UserManager.FindByNameAsync(Model.UserName);
+                RequestedUser = await _userManager.FindByNameAsync(Model.UserName);
             }
             #endregion
 
@@ -318,10 +318,10 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), Model.MemberOfClientId.ToString());
-                var CurrentClaimsOfRequestedUser = await UserManager.GetClaimsAsync(RequestedUser);
+                var CurrentClaimsOfRequestedUser = await _userManager.GetClaimsAsync(RequestedUser);
                 if (!CurrentClaimsOfRequestedUser.Any(c => c.Type == ThisClientMembershipClaim.Type && c.Value == ThisClientMembershipClaim.Value))
                 {
-                    await UserManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim);
+                    await _userManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim);
                     Log.Verbose($"In ClientAdminController.SaveNewUser action: UserName {RequestedUser.UserName}, added to client {ThisClientMembershipClaim.Value}");
                 }
 
@@ -411,7 +411,7 @@ namespace MillimanAccessPortal.Controllers
 
             Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), RequestedClient.Id.ToString());
 
-            IList<Claim> CurrentUserClaims = await UserManager.GetClaimsAsync(RequestedUser);
+            IList<Claim> CurrentUserClaims = await _userManager.GetClaimsAsync(RequestedUser);
             if (CurrentUserClaims.Any(claim => claim.Type == ThisClientMembershipClaim.Type && 
                                                claim.Value == ThisClientMembershipClaim.Value))
             {
@@ -420,7 +420,7 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                IdentityResult ResultOfAddClaim = await UserManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim);
+                IdentityResult ResultOfAddClaim = await _userManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim);
                 if (ResultOfAddClaim != IdentityResult.Success)
                 {
                     string ErrMsg = $"Failed to add client claim for user {RequestedUser.UserName}: claim type = {ThisClientMembershipClaim.Type}, claim value = {ThisClientMembershipClaim.Value}";
@@ -432,7 +432,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
-            await ReturnModel.GenerateSupportingProperties(DbContext, UserManager, await Queries.GetCurrentApplicationUser(User), RoleEnum.Admin, false);
+            await ReturnModel.GenerateSupportingProperties(DbContext, _userManager, await _userManager.GetUserAsync(User), RoleEnum.Admin, false);
 
             Log.Verbose($"In ClientAdminController.AssignUserToClient action: user {RequestedUserEmail} added client {RequestedClient.Id}");
             return Json(ReturnModel);
@@ -455,7 +455,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // requested user must exist
-            ApplicationUser RequestedUser = await UserManager.FindByIdAsync(ClientUserModel.UserId.ToString());
+            ApplicationUser RequestedUser = await _userManager.FindByIdAsync(ClientUserModel.UserId.ToString());
             if (RequestedUser == null)
             {
                 Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested user ID {ClientUserModel.UserId} not found");
@@ -474,7 +474,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Requested user must be member of requested client
             Claim ClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientUserModel.ClientId.ToString());
-            if (!(await UserManager.GetUsersForClaimAsync(ClientMembershipClaim)).Contains(RequestedUser))
+            if (!(await _userManager.GetUsersForClaimAsync(ClientMembershipClaim)).Contains(RequestedUser))
             {
                 Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested user ID {ClientUserModel.UserId} not a member of client ID {ClientUserModel.ClientId}");
                 Response.Headers.Add("Warning", $"The requested user is not associated with the requested client");
@@ -723,7 +723,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(RequestedClient, RequestedUser));
 
             ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
-            await ReturnModel.GenerateSupportingProperties(DbContext, UserManager, await Queries.GetCurrentApplicationUser(User), RoleEnum.Admin, false);
+            await ReturnModel.GenerateSupportingProperties(DbContext, _userManager, await _userManager.GetUserAsync(User), RoleEnum.Admin, false);
 
             return Json(ReturnModel);
         }
@@ -744,7 +744,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered ClientAdminController.SaveNewClient action with parameter {@Client}", Model);
 
-            ApplicationUser CurrentApplicationUser = await Queries.GetCurrentApplicationUser(User);
+            ApplicationUser CurrentApplicationUser = await _userManager.GetUserAsync(User);
 
             #region Preliminary Validation
             if (!ModelState.IsValid)
@@ -890,7 +890,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.ClientCreated.ToEvent(Model));
             AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, new List<RoleEnum> { RoleEnum.Admin, RoleEnum.UserCreator }));
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(CurrentApplicationUser, UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(CurrentApplicationUser, _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
             ModelToReturn.RelevantClientId = Model.Id;
 
             return Json(ModelToReturn);
@@ -1100,7 +1100,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await _userManager.GetUserAsync(User), _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
             ModelToReturn.RelevantClientId = ExistingClientRecord.Id;
 
             return Json(ModelToReturn);
@@ -1131,7 +1131,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            ApplicationUser CurrentUser = await Queries.GetCurrentApplicationUser(User);
+            ApplicationUser CurrentUser = await _userManager.GetUserAsync(User);
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
                     new RoleInClientRequirement(RoleEnum.Admin, Id),
@@ -1201,7 +1201,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ClientAdminController.DeleteClient action: deleted client {ExistingClient.Id}");
             AuditLogger.Log(AuditEventType.ClientDeleted.ToEvent(ExistingClient));
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await _userManager.GetUserAsync(User), _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
 
             return Json(ModelToReturn);
         }

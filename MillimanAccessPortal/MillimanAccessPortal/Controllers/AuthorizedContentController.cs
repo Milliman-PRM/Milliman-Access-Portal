@@ -47,7 +47,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly IMessageQueue MessageQueue;
         private readonly PowerBiConfig _powerBiConfig;
         private readonly QlikviewConfig QlikviewConfig;
-        private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly IConfiguration ApplicationConfig;
 
@@ -59,7 +58,6 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="DataContextArg"></param>
         /// <param name="LoggerFactoryArg"></param>
         /// <param name="QlikviewOptionsAccessorArg"></param>
-        /// <param name="QueryArg"></param>
         /// <param name="UserManagerArg"></param>
         /// <param name="AppConfigurationArg"></param>
         public AuthorizedContentController(
@@ -68,7 +66,6 @@ namespace MillimanAccessPortal.Controllers
             ApplicationDbContext DataContextArg,
             IMessageQueue MessageQueueArg,
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
-            StandardQueries QueryArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration AppConfigurationArg,
             IOptions<PowerBiConfig> powerBiConfigArg)
@@ -79,7 +76,6 @@ namespace MillimanAccessPortal.Controllers
             MessageQueue = MessageQueueArg;
             _powerBiConfig = powerBiConfigArg.Value;
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
-            Queries = QueryArg;
             UserManager = UserManagerArg;
             ApplicationConfig = AppConfigurationArg;
         }
@@ -99,7 +95,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
 
-            var model = AuthorizedContentViewModel.Build(DataContext, await Queries.GetCurrentApplicationUser(User), HttpContext);
+            var model = AuthorizedContentViewModel.Build(DataContext, await UserManager.GetUserAsync(User), HttpContext);
 
             return Json(model);
         }
@@ -109,7 +105,7 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         public async Task<IActionResult> ContentWrapper(Guid selectionGroupId)
         {
-            var user = await Queries.GetCurrentApplicationUser(User);
+            var user = await UserManager.GetUserAsync(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
                 .Include(u => u.SelectionGroup)
                     .ThenInclude(sg => sg.RootContentItem)
@@ -187,7 +183,7 @@ namespace MillimanAccessPortal.Controllers
 
         public async Task<IActionResult> AcceptDisclaimer(Guid selectionGroupId, Guid validationId)
         {
-            var user = await Queries.GetCurrentApplicationUser(User);
+            var user = await UserManager.GetUserAsync(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
                 .Include(u => u.SelectionGroup)
                     .ThenInclude(sg => sg.RootContentItem)
@@ -217,7 +213,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, selectionGroupId {selectionGroupId}");
 
-            var user = await Queries.GetCurrentApplicationUser(User);
+            var user = await UserManager.GetUserAsync(User);
             var userInSelectionGroup = DataContext.UserInSelectionGroup
                 .Where(u => u.UserId == user.Id)
                 .Where(u => u.SelectionGroupId == selectionGroupId)

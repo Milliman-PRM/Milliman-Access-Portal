@@ -41,7 +41,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService AuthorizationService;
         private readonly IConfiguration ApplicationConfig;
         private readonly ApplicationDbContext DbContext;
-        private readonly StandardQueries _standardQueries;
         private readonly ContentAccessAdminQueries _accessAdminQueries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly QlikviewConfig QvConfig;
@@ -50,7 +49,6 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext DbContextArg,
-            StandardQueries QueriesArg,
             ContentAccessAdminQueries accessAdminQueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
@@ -60,7 +58,6 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DbContext = DbContextArg;
-            _standardQueries = QueriesArg;
             _accessAdminQueries = accessAdminQueriesArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
@@ -124,7 +121,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
+            var currentUser = await UserManager.GetUserAsync(User);
             var clients = _accessAdminQueries.GetAuthorizedClientsModel(currentUser);
 
             return Json(clients);
@@ -147,7 +144,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
+            var currentUser = await UserManager.GetUserAsync(User);
             var contentItems = _accessAdminQueries.SelectContentItems(currentUser, clientId);
 
             return Json(contentItems);
@@ -212,7 +209,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Status(
             [EmitBeforeAfterLog] Guid clientId, [EmitBeforeAfterLog] Guid contentItemId)
         {
-            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
+            var currentUser = await UserManager.GetUserAsync(User);
             var status = _accessAdminQueries.SelectStatus(currentUser, clientId, contentItemId);
 
             return Json(status);
@@ -621,7 +618,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ApplicationUser currentUser = (await _standardQueries.GetCurrentApplicationUser(User));
+            ApplicationUser currentUser = await UserManager.GetUserAsync(User);
             Guid NewTaskGuid = Guid.NewGuid();
 
             if (isMaster)
@@ -731,7 +728,7 @@ namespace MillimanAccessPortal.Controllers
                     var contentReductionTask = new ContentReductionTask
                     {
                         Id = NewTaskGuid,
-                        ApplicationUser = await _standardQueries.GetCurrentApplicationUser(User),
+                        ApplicationUser = await UserManager.GetUserAsync(User),
                         SelectionGroupId = selectionGroup.Id,
                         MasterFilePath = MasterFileCopyTarget,
                         MasterContentChecksum = LiveMasterFile.Checksum,
