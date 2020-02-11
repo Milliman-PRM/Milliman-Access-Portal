@@ -38,40 +38,42 @@ namespace MillimanAccessPortal.Controllers
 {
     public class FileDropController : Controller
     {
-        // TODO: Set this role requirement correctly
-        // private const RoleEnum requiredRole = RoleEnum.ContentPublisher;
-
-        private readonly IAuditLogger AuditLogger;
-        private readonly IConfiguration ApplicationConfig;
-        private readonly IAuthorizationService AuthorizationService;
+        private readonly IAuditLogger _auditLogger;
+        private readonly IConfiguration _applicationConfig;
+        private readonly IAuthorizationService _authorizationService;
         private readonly ApplicationDbContext _dbContext;
+        //private readonly StandardQueries _standardQueries;
+        private readonly FileDropQueries _fileDropQueries;
         private readonly FileSystemTasks _fileSystemTasks;
         private readonly UserManager<ApplicationUser> _userManager;
 
         /// <summary>
         /// Constructor, stores local references to injected service instances
         /// </summary>
-        /// <param name="AuditLoggerArg"></param>
-        /// <param name="AuthorizationServiceArg"></param>
-        /// <param name="ContextArg"></param>
+        /// <param name="auditLoggerArg"></param>
+        /// <param name="authorizationServiceArg"></param>
+        /// <param name="contextArg"></param>
+        /// <param name="fileDropQueriesArg"></param>
         /// <param name="fileSystemTasks"></param>
-        /// <param name="UserManagerArg"></param>
-        /// <param name="ApplicationConfigArg"></param>
+        /// <param name="userManagerArg"></param>
+        /// <param name="applicationConfigArg"></param>
         public FileDropController(
-            IAuditLogger AuditLoggerArg,
-            IAuthorizationService AuthorizationServiceArg,
-            ApplicationDbContext ContextArg,
+            IAuditLogger auditLoggerArg,
+            IAuthorizationService authorizationServiceArg,
+            ApplicationDbContext contextArg,
+            FileDropQueries fileDropQueriesArg,
             FileSystemTasks fileSystemTasks,
-            UserManager<ApplicationUser> UserManagerArg,
-            IConfiguration ApplicationConfigArg
+            UserManager<ApplicationUser> userManagerArg,
+            IConfiguration applicationConfigArg
             )
         {
-            AuditLogger = AuditLoggerArg;
-            AuthorizationService = AuthorizationServiceArg;
-            _dbContext = ContextArg;
+            _auditLogger = auditLoggerArg;
+            _authorizationService = authorizationServiceArg;
+            _dbContext = contextArg;
+            _fileDropQueries = fileDropQueriesArg;
             _fileSystemTasks = fileSystemTasks;
-            _userManager = UserManagerArg;
-            ApplicationConfig = ApplicationConfigArg;
+            _userManager = userManagerArg;
+            _applicationConfig = applicationConfigArg;
         }
 
         /// <summary>
@@ -81,6 +83,34 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        /// <summary>
+        /// GET clients authorized to the current user
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Clients()
+        {
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
+            if (!adminRoleResult.Succeeded)
+            {
+                var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser));
+                if (!userRoleResult.Succeeded)
+                {
+                    Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                    Response.Headers.Add("Warning", "You are not authorized to File Drop access.");
+                    return Unauthorized();
+                }
+            }
+            #endregion
+
+            ClientsResponseModel responseModel = new ClientsResponseModel
+            {
+                Clients = _fileDropQueries.GetAuthorizedClientsModel(await _userManager.GetUserAsync(User)),
+            };
+
+            return Json(responseModel);
         }
     }
 }

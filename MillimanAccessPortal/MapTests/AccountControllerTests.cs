@@ -47,7 +47,6 @@ namespace MapTests
                 TestResources.SignInManagerObject,
                 TestResources.MessageQueueServicesObject,
                 TestResources.AuditLoggerObject,
-                TestResources.QueriesObj,
                 TestResources.AuthorizationService,
                 TestResources.ConfigurationObject,
                 TestResources.ServiceProviderObject,

@@ -66,7 +66,7 @@ namespace MillimanAccessPortal.DataQueries
                                                 .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == RoleEnum.ContentPublisher)
                                                 .Select(urc => urc.Client)
                                                 .ToList();
-            clientList = AddUniqueAncestorClientsNonInclusiveOf(clientList);
+            clientList = _clientQueries.AddUniqueAncestorClientsNonInclusiveOf(clientList);
 
             List<BasicClientWithCardStats> returnList = new List<BasicClientWithCardStats>();
 
@@ -76,29 +76,6 @@ namespace MillimanAccessPortal.DataQueries
             }
 
             return returnList.ToDictionary(c => c.Id);
-        }
-
-        internal List<Client> AddUniqueAncestorClientsNonInclusiveOf(IEnumerable<Client> children)
-        {
-            HashSet<Client> returnSet = children.ToHashSet(new IdPropertyComparer<Client>());
-
-            foreach (Client client in children)
-            {
-                FindAncestorClients(client).ForEach(c => returnSet.Add(c));
-            }
-            return returnSet.ToList();
-        }
-
-        private List<Client> FindAncestorClients(Client client)
-        {
-            List<Client> returnObject = new List<Client>();
-            if (client.ParentClientId.HasValue && client.ParentClientId.Value != default)
-            {
-                Client parent = _dbContext.Client.Find(client.ParentClientId);
-                returnObject.Add(parent);
-                returnObject.AddRange(FindAncestorClients(parent));
-            }
-            return returnObject;
         }
 
         /// <summary>
