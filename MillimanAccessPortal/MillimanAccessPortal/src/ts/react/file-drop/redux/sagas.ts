@@ -50,6 +50,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_STATUS_REFRESH', API.fetchStatusRefresh);
   yield takeLatestRequest('FETCH_SESSION_CHECK', API.fetchSessionCheck);
   yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
+  // TO DO: implement status endpoint
     const client: ClientWithEligibleUsers = yield select(Selector.selectedClient);
     return client
       ? ActionCreator.fetchStatusRefresh({
