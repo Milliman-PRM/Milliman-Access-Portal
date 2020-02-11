@@ -329,6 +329,8 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<Guid>("FileDropId");
 
+                    b.Property<bool>("IsDefaultGroup");
+
                     b.Property<string>("Name")
                         .IsRequired();
 

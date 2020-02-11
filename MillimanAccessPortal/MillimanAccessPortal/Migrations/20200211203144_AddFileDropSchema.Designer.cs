@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200210174028_AddFileDropSchema")]
+    [Migration("20200211203144_AddFileDropSchema")]
     partial class AddFileDropSchema
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -330,6 +330,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<bool>("DeleteAccess");
 
                     b.Property<Guid>("FileDropId");
+
+                    b.Property<bool>("IsDefaultGroup");
 
                     b.Property<string>("Name")
                         .IsRequired();

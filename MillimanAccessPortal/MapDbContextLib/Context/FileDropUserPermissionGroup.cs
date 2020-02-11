@@ -13,6 +13,11 @@ namespace MapDbContextLib.Context
 {
     public class FileDropUserPermissionGroup
     {
+        public FileDropUserPermissionGroup(bool isDefaultGroup)
+        {
+            IsDefaultGroup = isDefaultGroup;
+        }
+
         [Key]
         public Guid Id { get; set; }
 
@@ -27,6 +32,9 @@ namespace MapDbContextLib.Context
 
         [Required]
         public bool DeleteAccess { get; set; }
+
+        [Required]
+        public bool IsDefaultGroup { get; private set; }
 
         [ForeignKey("FileDrop")]
         public Guid FileDropId { get; set; }

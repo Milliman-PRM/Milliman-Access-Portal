@@ -37,6 +37,7 @@ namespace MillimanAccessPortal.Migrations
                     ReadAccess = table.Column<bool>(nullable: false),
                     WriteAccess = table.Column<bool>(nullable: false),
                     DeleteAccess = table.Column<bool>(nullable: false),
+                    IsDefaultGroup = table.Column<bool>(nullable: false),
                     FileDropId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
