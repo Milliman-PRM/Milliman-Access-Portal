@@ -26,6 +26,15 @@ body {
     }
 }
 
+.welcome-text {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    margin: 10vh 2vw;
+}
+
 @include for-tablet-down {
     .hide-for-tablet-down {
         display: none;

@@ -113,24 +113,41 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
         </div>
       )
       : null;
-    return (
-      <React.Fragment>
-        <NavBar currentView={this.currentView} />
-        {contentContainer}
-        <div id="authorized-content-container">
-          <div id="authorized-content-header">
-            <Filter
-              filterText={this.state.filterString}
-              setFilterText={this.setFilterString}
-              placeholderText="Filter content"
-            />
+    if (clientGroups.length < 1) {
+      return (
+        <React.Fragment>
+          <NavBar currentView={this.currentView} />
+          {contentContainer}
+          <div className="welcome-text">
+            <h1>Welcome to Milliman Access Portal!</h1>
+            <p>
+              It doesn't look like you have access to any content.
+              If you think this is a mistake, please contact
+              <a href="mailto:map.support@milliman.com"> map.support@milliman.com</a>.
+            </p>
           </div>
-          <div id="authorized-content-items">
-            {clientGroups}
+        </React.Fragment>
+      );
+    } else {
+      return (
+        <React.Fragment>
+          <NavBar currentView={this.currentView} />
+          {contentContainer}
+          <div id="authorized-content-container">
+            <div id="authorized-content-header">
+              <Filter
+                filterText={this.state.filterString}
+                setFilterText={this.setFilterString}
+                placeholderText="Filter content"
+              />
+            </div>
+            <div id="authorized-content-items">
+              {clientGroups}
+            </div>
           </div>
-        </div>
-      </React.Fragment>
-    );
+        </React.Fragment>
+      );
+    }
   }
 
   private filteredArray() {
