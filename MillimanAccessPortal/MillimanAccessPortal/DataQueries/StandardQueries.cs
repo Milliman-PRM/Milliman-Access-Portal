@@ -164,15 +164,5 @@ namespace MillimanAccessPortal.DataQueries
             return ReturnVal;
         }
 
-        /// <summary>
-        /// Returns an ApplicationUser entity associated with the provided ClaimsPrincipal, using an injected UserManager
-        /// </summary>
-        /// <param name="User"></param>
-        /// <returns></returns>
-        internal async Task<ApplicationUser> GetCurrentApplicationUser(ClaimsPrincipal User)
-        {
-            return await _userManager.GetUserAsync(User);
-        }
-
     }
 }
