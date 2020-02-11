@@ -1,4 +1,5 @@
-﻿using MapDbContextLib.Identity;
+﻿using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.ClientModels;
 using MillimanAccessPortal.Models.FileDrop;
@@ -13,15 +14,18 @@ namespace MillimanAccessPortal.DataQueries
     /// </summary>
     public class FileDropQueries
     {
+        private readonly ApplicationDbContext _dbContext;
         private readonly ClientQueries _clientQueries;
         private readonly HierarchyQueries _hierarchyQueries;
         private readonly UserQueries _userQueries;
 
         public FileDropQueries(
+            ApplicationDbContext dbContextArg,
             ClientQueries clientQueries,
             HierarchyQueries hierarchyQueries,
             UserQueries userQueries)
         {
+            _dbContext = dbContextArg;
             _clientQueries = clientQueries;
             _hierarchyQueries = hierarchyQueries;
             _userQueries = userQueries;
@@ -32,22 +36,26 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="user">Current user</param>
         /// <returns>Response model</returns>
-        public ClientsResponseModel GetAuthorizedClientsModel(ApplicationUser user)
+        internal Dictionary<Guid, BasicClientWithCardStats> GetAuthorizedClientsModel(ApplicationUser user)
         {
             // TODO: Flesh this out since this will necessarily need to be more 
             //    complicated (i.e. all FileDropAdmins, and clients where a FileDropUser has access to a FileDrop)
-            var clients = _clientQueries.SelectClientsWithEligibleUsers(user, RoleEnum.FileDropAdmin);
-            var parentClients = _clientQueries.SelectParentClients(clients);
-            var clientIds = clients.ConvertAll(c => c.Id);
+            List<Client> clientList = _dbContext.UserRoleInClient
+                                                .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == RoleEnum.FileDropAdmin)
+                                                .Select(urc => urc.Client)
+                                                .ToList();
+            clientList = _clientQueries.AddUniqueAncestorClientsNonInclusiveOf(clientList);
 
-            var users = _userQueries.SelectUsersWhereEligibleClientIn(clientIds);
+            List<BasicClientWithCardStats> returnList = new List<BasicClientWithCardStats>();
 
-            return new ClientsResponseModel
+            foreach (Client oneClient in clientList)
             {
-                Clients = clients.ToDictionary(c => c.Id),
-                ParentClients = parentClients.ToDictionary(c => c.Id),
-                Users = users.ToDictionary(u => u.Id),
-            };
+                // TODO: Create a new query specifically for File Drop to stop using the Publishing one.
+                returnList.Add(_clientQueries.SelectClientWithPublishingCardStats(oneClient, RoleEnum.FileDropAdmin, user.Id));
+            }
+
+            return returnList.ToDictionary(c => c.Id);
         }
+
     }
 }

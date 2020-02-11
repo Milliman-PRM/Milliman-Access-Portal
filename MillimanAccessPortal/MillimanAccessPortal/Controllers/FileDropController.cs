@@ -105,11 +105,12 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var currentUser = await _userManager.GetUserAsync(User);
-            var clients = _fileDropQueries.GetAuthorizedClientsModel(currentUser);
+            ClientsResponseModel responseModel = new ClientsResponseModel
+            {
+                Clients = _fileDropQueries.GetAuthorizedClientsModel(await _userManager.GetUserAsync(User)),
+            };
 
-            return Json(clients);
+            return Json(responseModel);
         }
-
     }
 }
