@@ -23,7 +23,7 @@ namespace MillimanAccessPortal.Migrations
                 .HasAnnotation("Npgsql:PostgresExtension:citext", ",,")
                 .HasAnnotation("Npgsql:PostgresExtension:uuid-ossp", ",,")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.2.1-servicing-10028")
+                .HasAnnotation("ProductVersion", "2.2.4-servicing-10062")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("MapDbContextLib.Context.AuthenticationScheme", b =>
@@ -227,7 +227,7 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("DefaultIconName")
                         .IsRequired();
 
-                    b.Property<string[]>("FileExtensions")
+                    b.Property<List<string>>("FileExtensions")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("'{}'");
@@ -238,6 +238,111 @@ namespace MillimanAccessPortal.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ContentType");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDrop", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<Guid>("ClientId");
+
+                    b.Property<string>("Description");
+
+                    b.Property<string>("Name")
+                        .IsRequired();
+
+                    b.Property<string>("RootPath")
+                        .IsRequired()
+                        .HasColumnType("citext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("RootPath")
+                        .IsUnique();
+
+                    b.ToTable("FileDrop");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropDirectory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<Guid>("CreatedByAccountId");
+
+                    b.Property<string>("Description");
+
+                    b.Property<Guid>("FileDropId");
+
+                    b.Property<string>("Name")
+                        .IsRequired();
+
+                    b.Property<Guid?>("ParentDirectoryId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByAccountId");
+
+                    b.HasIndex("FileDropId");
+
+                    b.HasIndex("ParentDirectoryId");
+
+                    b.ToTable("FileDropDirectory");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<Guid>("CreatedByAccountId");
+
+                    b.Property<string>("Description");
+
+                    b.Property<Guid>("DirectoryId");
+
+                    b.Property<string>("Name")
+                        .IsRequired();
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByAccountId");
+
+                    b.HasIndex("DirectoryId");
+
+                    b.ToTable("FileDropFile");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropUserPermissionGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<bool>("DeleteAccess");
+
+                    b.Property<Guid>("FileDropId");
+
+                    b.Property<bool>("IsDefaultGroup");
+
+                    b.Property<string>("Name")
+                        .IsRequired();
+
+                    b.Property<bool>("ReadAccess");
+
+                    b.Property<bool>("WriteAccess");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileDropId");
+
+                    b.ToTable("FileDropUserPermissionGroup");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.FileUpload", b =>
@@ -419,6 +524,58 @@ namespace MillimanAccessPortal.Migrations
                     b.HasIndex("RootContentItemId");
 
                     b.ToTable("SelectionGroup");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.SftpAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<Guid?>("ApplicationUserId");
+
+                    b.Property<Guid>("FileDropUserPermissionGroupId");
+
+                    b.Property<string>("PasswordHash");
+
+                    b.Property<DateTime>("PasswordResetDateTimeUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+
+                    b.Property<string>("UserName")
+                        .IsRequired();
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("FileDropUserPermissionGroupId");
+
+                    b.ToTable("SftpAccount");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.SftpConnection", b =>
+                {
+                    b.Property<string>("Id");
+
+                    b.Property<DateTime>("CreatedDateTimeUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<DateTime>("LastActivityUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<string>("MetaData")
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("SftpAccountId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SftpAccountId");
+
+                    b.ToTable("SftpConnection");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserInSelectionGroup", b =>
@@ -736,6 +893,53 @@ namespace MillimanAccessPortal.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("MapDbContextLib.Context.FileDrop", b =>
+                {
+                    b.HasOne("MapDbContextLib.Context.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropDirectory", b =>
+                {
+                    b.HasOne("MapDbContextLib.Context.SftpAccount", "CreatedByAccount")
+                        .WithMany("Directories")
+                        .HasForeignKey("CreatedByAccountId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("MapDbContextLib.Context.FileDrop", "FileDrop")
+                        .WithMany()
+                        .HasForeignKey("FileDropId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("MapDbContextLib.Context.FileDropDirectory", "ParentDirectoryEntry")
+                        .WithMany("ChildDirectories")
+                        .HasForeignKey("ParentDirectoryId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropFile", b =>
+                {
+                    b.HasOne("MapDbContextLib.Context.SftpAccount", "CreatedByAccount")
+                        .WithMany("Files")
+                        .HasForeignKey("CreatedByAccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MapDbContextLib.Context.FileDropDirectory", "Directory")
+                        .WithMany("Files")
+                        .HasForeignKey("DirectoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropUserPermissionGroup", b =>
+                {
+                    b.HasOne("MapDbContextLib.Context.FileDrop", "FileDrop")
+                        .WithMany()
+                        .HasForeignKey("FileDropId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("MapDbContextLib.Context.HierarchyField", b =>
                 {
                     b.HasOne("MapDbContextLib.Context.RootContentItem", "RootContentItem")
@@ -770,6 +974,27 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Context.RootContentItem", "RootContentItem")
                         .WithMany()
                         .HasForeignKey("RootContentItemId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.SftpAccount", b =>
+                {
+                    b.HasOne("MapDbContextLib.Identity.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("MapDbContextLib.Context.FileDropUserPermissionGroup", "FileDropUserPermissionGroup")
+                        .WithMany()
+                        .HasForeignKey("FileDropUserPermissionGroupId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.SftpConnection", b =>
+                {
+                    b.HasOne("MapDbContextLib.Context.FileDrop", "SftpAccount")
+                        .WithMany()
+                        .HasForeignKey("SftpAccountId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
