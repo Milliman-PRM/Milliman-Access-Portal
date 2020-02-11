@@ -1,4 +1,5 @@
-﻿using SftpServerLib;
+﻿using MapDbContextLib.Context;
+using SftpServerLib;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,6 +15,7 @@ namespace SftpCoreGui
     public partial class Form1 : Form
     {
         SftpLibApi _SftpApi = null;
+        SftpAccount sftpAccountObject;
 
         public Form1()
         {
@@ -35,6 +37,25 @@ namespace SftpCoreGui
                 Sender.Text = "Start";
                 _SftpApi.Stop();
                 _SftpApi = null;
+            }
+        }
+
+        private void buttonStorePassword_Click(object sender, EventArgs e)
+        {
+            Button Sender = sender as Button;
+
+            sftpAccountObject = new SftpAccount { Password = textPassword.Text };
+            textHash.Text = sftpAccountObject.PasswordHash;
+        }
+
+        private void buttonVerifyPassword_Click(object sender, EventArgs e)
+        {
+            if (sftpAccountObject != null)
+            {
+                Button Sender = sender as Button;
+
+                var result = sftpAccountObject.CheckPassword(textPassword.Text);
+                MessageBox.Show(result.ToString());
             }
         }
     }
