@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Services;
 using Serilog;
 using System;
@@ -23,18 +22,15 @@ namespace MillimanAccessPortal.Controllers
         private readonly IConfiguration _configuration;
         IMessageQueue _mailSender { get; set; }
         private readonly UserManager<ApplicationUser> UserManager;
-        private readonly StandardQueries Queries;
         
         public MessageController(
             IConfiguration configuration,
             IMessageQueue mailSenderArg,
-            UserManager<ApplicationUser> UserManagerArg,
-            StandardQueries QueriesArg)
+            UserManager<ApplicationUser> UserManagerArg)
         {
             _configuration = configuration;
             _mailSender = mailSenderArg;
             UserManager = UserManagerArg;
-            Queries = QueriesArg;
         }
 
         /// <summary>
@@ -100,7 +96,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered MessageController.SendSupportEmail action for subject <{subject}>");
 
-            var user = await Queries.GetCurrentApplicationUser(User);
+            var user = await UserManager.GetUserAsync(User);
             var senderAddress = user.Email;
             var senderName = $"{user.FirstName} {user.LastName}";
             var recipient = _configuration.GetValue<string>("SupportEmailAddress");
@@ -146,7 +142,7 @@ namespace MillimanAccessPortal.Controllers
 
             Console.WriteLine("Sending mail to " + recipient);
             // Get the current user's name and email address
-            var user = await Queries.GetCurrentApplicationUser(User);
+            var user = await UserManager.GetUserAsync(User); ;
             string senderAddress = user.Email;
             string senderName = $"{user.FirstName} {user.LastName}";
 

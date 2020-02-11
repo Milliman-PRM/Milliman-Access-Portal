@@ -60,45 +60,22 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        internal Dictionary<Guid, BasicClientWithCardStats> GetAuthorizedClients(ApplicationUser user, RoleEnum role)
+        internal Dictionary<Guid, BasicClientWithCardStats> GetAuthorizedClientsModel(ApplicationUser user)
         {
-            List<Client> clients = _dbContext.UserRoleInClient
-                                             .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == role)
-                                             .Select(urc => urc.Client)
-                                             .ToList();
-            clients = AddUniqueAncestorClientsNonInclusiveOf(clients);
+            List<Client> clientList = _dbContext.UserRoleInClient
+                                                .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == RoleEnum.ContentPublisher)
+                                                .Select(urc => urc.Client)
+                                                .ToList();
+            clientList = _clientQueries.AddUniqueAncestorClientsNonInclusiveOf(clientList);
 
             List<BasicClientWithCardStats> returnList = new List<BasicClientWithCardStats>();
 
-            foreach (Guid authorizedClientId in clients.Select(c => c.Id))
+            foreach (Client oneClient in clientList)
             {
-                returnList.Add(_clientQueries.SelectClientWithCardStats(authorizedClientId, role, user.Id));
+                returnList.Add(_clientQueries.SelectClientWithPublishingCardStats(oneClient, RoleEnum.ContentPublisher, user.Id));
             }
 
             return returnList.ToDictionary(c => c.Id);
-        }
-
-        internal List<Client> AddUniqueAncestorClientsNonInclusiveOf(IEnumerable<Client> children)
-        {
-            HashSet<Client> returnSet = children.ToHashSet(new IdPropertyComparer<Client>());
-
-            foreach (Client client in children)
-            {
-                FindAncestorClients(client).ForEach(c => returnSet.Add(c));
-            }
-            return returnSet.ToList();
-        }
-
-        private List<Client> FindAncestorClients(Client client)
-        {
-            List<Client> returnObject = new List<Client>();
-            if (client.ParentClientId.HasValue && client.ParentClientId.Value != default)
-            {
-                Client parent = _dbContext.Client.Find(client.ParentClientId);
-                returnObject.Add(parent);
-                returnObject.AddRange(FindAncestorClients(parent));
-            }
-            return returnObject;
         }
 
         /// <summary>
@@ -108,7 +85,7 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="user"></param>
         /// <param name="roleInRootContentItem"></param>
         /// <returns></returns>
-        internal RootContentItemsModel BuildRootContentItemsModel(Client client, ApplicationUser user, RoleEnum roleInRootContentItem)
+        internal RootContentItemsModel BuildRootContentItemsModel(Client client, ApplicationUser user)
         {
             var statusModel = SelectStatus(user, client.Id);
 
@@ -120,19 +97,19 @@ namespace MillimanAccessPortal.DataQueries
                 ClientStats = new
                 {
                     code = client.ClientCode,
-                    contentItemCount = _dbContext.UserRoleInRootContentItem
-                                            .Where(r => r.UserId == user.Id && r.Role.RoleEnum == roleInRootContentItem && r.RootContentItem.ClientId == client.Id)
-                                            .Select(r => r.RootContentItemId)
-                                            .Distinct()
-                                            .Count(),
+                    contentItemCount = _dbContext.RootContentItem
+                                                 .Where(r => r.ClientId == client.Id)
+                                                 .Select(r => r.Id)
+                                                 .Distinct()
+                                                 .Count(),
                     Id = client.Id.ToString(),
                     name = client.Name,
                     parentId = client.ParentClientId?.ToString(),
-                    userCount = _dbContext.UserRoleInClient
-                                     .Where(r => r.UserId == user.Id && r.Role.RoleEnum == RoleEnum.ContentUser && r.ClientId == client.Id)
-                                     .Select(r => r.UserId)
-                                     .Distinct()
-                                     .Count(),
+                    userCount = _dbContext.UserInSelectionGroup
+                                          .Where(g => g.SelectionGroup.RootContentItem.ClientId == client.Id)
+                                          .Select(r => r.UserId)
+                                          .Distinct()
+                                          .Count(),
                 },
             };
 

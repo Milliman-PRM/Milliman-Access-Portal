@@ -29,10 +29,19 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <returns>Most recent publication request for the content item</returns>
         private ContentPublicationRequest PublicationWhereContentItem(Guid contentItemId)
         {
+            DateTime onlyRequestsOnOrAfter = _dbContext.ContentPublicationRequest
+                .Where(r => r.RootContentItemId == contentItemId)
+                .Where(r => r.RequestStatus == PublicationStatus.Confirmed)
+                .OrderByDescending(r => r.CreateDateTimeUtc)
+                .FirstOrDefault()
+                ?.CreateDateTimeUtc
+                ?? DateTime.MinValue;
+
             var publicationRequest = _dbContext.ContentPublicationRequest
                 .Include(r => r.ApplicationUser)
                 .Where(r => r.RootContentItemId == contentItemId)
                 .Where(r => PublicationStatusExtensions.CurrentStatuses.Contains(r.RequestStatus))
+                .Where(r => r.CreateDateTimeUtc >= onlyRequestsOnOrAfter)
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();
 
@@ -49,6 +58,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             var reductionTask = _dbContext.ContentReductionTask
                 .Include(t => t.ApplicationUser)
                 .Where(t => t.SelectionGroupId == selectionGroupId)
+                .Where(t => ReductionStatusExtensions.accessAdminStatusList.Contains(t.ReductionStatus))
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefault();
 
@@ -165,8 +175,9 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 if (reduction.ReductionStatus.IsCancelable())
                 {
                     var precedingReductionTaskCount = _dbContext.ContentReductionTask
-                        .Where(r => r.CreateDateTimeUtc < reduction.CreateDateTimeUtc)
+                        .Where(r => r.CreateDateTimeUtc <= reduction.CreateDateTimeUtc)
                         .Where(r => ReductionStatusExtensions.cancelableStatusList.Contains(r.ReductionStatus))
+                        .Where(r => r.Id != reduction.Id)
                         .Count();
                     queueDetails.Add(new ReductionQueueDetails
                     {

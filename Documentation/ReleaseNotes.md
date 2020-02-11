@@ -2,16 +2,26 @@
 
 ## Release Notes
 
+#### v1.8.1
+
+- Fixed a bug that inaccurately displayed error status for some content items in the Content Access Admin view
+
 ### v1.8.0
 
-- Restructured Content Publishing to improve usability and responsiveness
 - Redesigned the Content Publishing form to improve the user experience of creating and editing Content Items
-- The content for each individual selection group can now be viewed during the publication approval process
-- Added the ability to review thumbnail changes as part of the publication approval process
-- Added the ability to cancel publications during more of the publishing process
-- Queued and processing publications and selection group updates will now resume after an intentional or unintentional MAP application termination 
-- Publication processing is more resilient after certain temporary communications interruptions with the Qlikview publishing server
-- Certain minor errors during publication processing will no longer cause the entire publication job to fail, but rather will cause the associated selection group to become inactive
+- Added the ability to preview reductions during the pre-live review and approval process
+- Added the ability to review thumbnail changes as part of the pre-live review and approval process
+- Added the ability to cancel publications during the majority of the publishing process
+- Added loading bars to content while it is loading
+- Restructured the Content Publishing process to improve general stability and robustness
+- Improved error handling in the Content Publishing process to better handle reductions that fail for a variety of reasons
+- Improved the resiliency of the Content Publishing process in handling temporary communications interruptions with the Qlikview Publishing Server
+- Added the ability for queued and processing publications and reductions to resume after the MAP application restarts
+- Improved the publication process by allowing reductions resulting in certain minor errors to become inactive when appropriate without causing a failed publication
+- Improved the publication process by failing publications immediately upon errors that cannot be resolved
+- Improved messaging for publications and reductions that result in warnings or errors
+- Fixed an issue that made it difficult to successfully republish following certain publication failures
+- Added the ability to modify Selection Group membership while a publication is actively being processed
 
 #### v1.7.3
 

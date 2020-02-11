@@ -45,13 +45,12 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-
         /// <summary>
         /// Select all clients for which the current user can administer access.
         /// </summary>
         /// <param name="user">Current user</param>
         /// <returns>Response model</returns>
-        public ClientsResponseModel SelectClients(ApplicationUser user)
+        public ClientsResponseModel GetAuthorizedClientsModel(ApplicationUser user)
         {
             var clients = _clientQueries.SelectClientsWithEligibleUsers(user, RoleEnum.ContentAccessAdmin);
             var parentClients = _clientQueries.SelectParentClients(clients);

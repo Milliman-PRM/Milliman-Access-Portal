@@ -8,6 +8,7 @@ using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -21,25 +22,21 @@ namespace MapDbContextLib.Context
         [Required]
         public string UserName { get; set; }
 
-        [Required]
         public string PasswordHash { get; set; }
 
         [Required]
-        public bool ReadAccess { get; set; } = false;
-
-        [Required]
-        public bool WriteAccess { get; set; } = false;
-
-        [Required]
-        public bool DeleteAccess { get; set; } = false;
+        public DateTime PasswordResetDateTimeUtc { get; set; }
 
         [ForeignKey("ApplicationUser")]
         public Guid? ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
 
-        [ForeignKey("FileDrop")]
-        public Guid FileDropId { get; set; }
-        public FileDrop FileDrop { get; set; }
+        [ForeignKey("FileDropUserPermissionGroup")]
+        public Guid FileDropUserPermissionGroupId { get; set; }
+        public FileDropUserPermissionGroup FileDropUserPermissionGroup { get; set; }
+
+        public virtual ICollection<FileDropFile> Files { get; set; }
+        public virtual ICollection<FileDropDirectory> Directories { get; set; }
 
         [NotMapped]
         public string Password {

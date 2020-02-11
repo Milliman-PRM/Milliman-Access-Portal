@@ -36,9 +36,13 @@ namespace MapDbContextLib.Context
         public DbSet<FileUpload> FileUpload { get; set; }
         public DbSet<AuthenticationScheme> AuthenticationScheme { get; set; }
         public DbSet<NameValueConfiguration> NameValueConfiguration { get; set; }
-        public DbSet<FileDrop> FileDrop { get; set; }
+
         public DbSet<SftpAccount> SftpAccount { get; set; }
         public DbSet<SftpConnection> SftpConnection { get; set; }
+        public DbSet<FileDrop> FileDrop { get; set; }
+        public DbSet<FileDropUserPermissionGroup> FileDropUserPermissionGroup { get; set; }
+        public DbSet<FileDropDirectory> FileDropDirectory { get; set; }
+        public DbSet<FileDropFile> FileDropFile { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
@@ -159,6 +163,40 @@ namespace MapDbContextLib.Context
             builder.Entity<NameValueConfiguration>(b =>
             {
                 b.Property(x => x.Value).HasDefaultValue("");
+            });
+
+            builder.Entity<FileDrop>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.HasIndex(x => x.RootPath).IsUnique();
+            });
+            builder.Entity<FileDropUserPermissionGroup>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
+            builder.Entity<SftpAccount>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.HasOne(x => x.ApplicationUser).WithMany().OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
+                b.Property(x => x.PasswordResetDateTimeUtc).HasDefaultValue(DateTime.MinValue).ValueGeneratedOnAdd();
+            });
+            builder.Entity<SftpConnection>(b =>
+            {
+                b.Property(x => x.Id).IsRequired().ValueGeneratedNever();
+                b.Property(x => x.CreatedDateTimeUtc).HasDefaultValueSql("(now() at time zone 'utc')").ValueGeneratedOnAdd();
+                b.Property(x => x.LastActivityUtc).HasDefaultValueSql("(now() at time zone 'utc')").ValueGeneratedOnAdd();
+            });
+            builder.Entity<FileDropDirectory>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.HasOne(x => x.ParentDirectoryEntry).WithMany(p => p.ChildDirectories).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
+                b.HasOne(x => x.CreatedByAccount).WithMany(p => p.Directories).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
+            });
+            builder.Entity<FileDropFile>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.HasOne(x => x.Directory).WithMany(p => p.Files).OnDelete(DeleteBehavior.Restrict);  // not the default when a nullable FK
+                b.HasOne(x => x.CreatedByAccount).WithMany(p => p.Files).OnDelete(DeleteBehavior.Restrict);  // not the default when a nullable FK
             });
         }
 

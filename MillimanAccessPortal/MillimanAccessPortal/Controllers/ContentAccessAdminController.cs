@@ -41,7 +41,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService AuthorizationService;
         private readonly IConfiguration ApplicationConfig;
         private readonly ApplicationDbContext DbContext;
-        private readonly StandardQueries _standardQueries;
         private readonly ContentAccessAdminQueries _accessAdminQueries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly QlikviewConfig QvConfig;
@@ -50,7 +49,6 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext DbContextArg,
-            StandardQueries QueriesArg,
             ContentAccessAdminQueries accessAdminQueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
@@ -60,7 +58,6 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DbContext = DbContextArg;
-            _standardQueries = QueriesArg;
             _accessAdminQueries = accessAdminQueriesArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
@@ -124,8 +121,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
-            var clients = _accessAdminQueries.SelectClients(currentUser);
+            var currentUser = await UserManager.GetUserAsync(User);
+            var clients = _accessAdminQueries.GetAuthorizedClientsModel(currentUser);
 
             return Json(clients);
         }
@@ -147,7 +144,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
+            var currentUser = await UserManager.GetUserAsync(User);
             var contentItems = _accessAdminQueries.SelectContentItems(currentUser, clientId);
 
             return Json(contentItems);
@@ -212,7 +209,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Status(
             [EmitBeforeAfterLog] Guid clientId, [EmitBeforeAfterLog] Guid contentItemId)
         {
-            var currentUser = await _standardQueries.GetCurrentApplicationUser(User);
+            var currentUser = await UserManager.GetUserAsync(User);
             var status = _accessAdminQueries.SelectStatus(currentUser, clientId, contentItemId);
 
             return Json(status);
@@ -517,6 +514,11 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ContentReductionTask liveTask = DbContext.ContentReductionTask
+                                                     .Where(t => t.SelectionGroup.RootContentItemId == selectionGroup.RootContentItemId)
+                                                     .Where(t => t.MasterContentHierarchyObj != null)
+                                                     .FirstOrDefault(t => t.ReductionStatus == ReductionStatusEnum.Live);
+
             #region Validation
             // reject this request if the RootContentItem has a pending publication request
             bool blockedByPendingPublication = DbContext.ContentPublicationRequest
@@ -564,10 +566,18 @@ namespace MillimanAccessPortal.Controllers
 
             if (isMaster)
             {
+                // Invalid to request update to unrestricted if the group already is unrestricted
                 if (selectionGroup.IsMaster)
                 {
                     Log.Information($"In ContentAccessAdminController.UpdateSelections: request to make selection group {selectionGroup.Id} master but it is already master, aborting");
                     Response.Headers.Add("Warning", "The specified selection group already has master content access.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+
+                // Invalid to convert a group to unrestricted if no previous task has live status and contains a master hierarchy
+                if (liveTask == default)
+                {
+                    Log.Information($"In ContentAccessAdminController.UpdateSelections: Unable to find a live reduction task record with master hierarchy information");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
             }
@@ -608,6 +618,9 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ApplicationUser currentUser = await UserManager.GetUserAsync(User);
+            Guid NewTaskGuid = Guid.NewGuid();
+
             if (isMaster)
             {
                 selectionGroup.IsMaster = true;
@@ -622,6 +635,41 @@ namespace MillimanAccessPortal.Controllers
                                             .ToList();
                 usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
 
+                DateTime taskTime = DateTime.UtcNow;
+                // Record with a new ContentReductionTask record
+                DbContext.ContentReductionTask.Add(new ContentReductionTask
+                {
+                    ApplicationUserId = currentUser.Id,
+                    CreateDateTimeUtc = taskTime,
+                    ProcessingStartDateTimeUtc = taskTime,
+                    Id = NewTaskGuid,
+                    MasterFilePath = "",
+                    OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                    {
+                        OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned,
+                        ReductionTaskId = NewTaskGuid,
+                        UserMessage = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned.GetDisplayDescriptionString(),
+                        SupportMessage = $"Selection Group {selectionGroup.Id} has been updated with unrestricted access",
+                        SelectionGroupName = selectionGroup.GroupName,
+                    },
+                    ReductionStatus = ReductionStatusEnum.Live,
+                    ReductionStatusMessage = $"Selection Group {selectionGroup.Id} has been updated with unrestricted access",
+                    SelectionGroupId = selectionGroup.Id,
+                    TaskAction = TaskActionEnum.Unspecified,
+                    MasterContentChecksum = selectionGroup.RootContentItem
+                                                          .ContentFilesList
+                                                          .Single(f => f.FilePurpose.Equals("MasterContent", StringComparison.InvariantCultureIgnoreCase))
+                                                          .Checksum,
+                    MasterContentHierarchyObj = liveTask.MasterContentHierarchyObj,
+                });
+
+                // set live reduction to replaced
+                var liveReductionTasks = DbContext.ContentReductionTask
+                    .Where(t => t.SelectionGroupId == selectionGroup.Id)
+                    .Where(t => t.ReductionStatus == ReductionStatusEnum.Live)
+                    .ToList();
+                liveReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Replaced);
+
                 DbContext.SaveChanges();
 
                 AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client));
@@ -630,14 +678,12 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                Guid NewTaskGuid = Guid.NewGuid();
-
                 if (selections.Count() == 0)
                 {
                     // Insert a new reduction task to record the unprocessable condition
                     DbContext.ContentReductionTask.Add(new ContentReductionTask
                     {
-                        ApplicationUserId = (await _standardQueries.GetCurrentApplicationUser(User)).Id,
+                        ApplicationUserId = currentUser.Id,
                         CreateDateTimeUtc = DateTime.UtcNow,
                         Id = NewTaskGuid,
                         MasterFilePath = "",  // required field - consider removing non null requirement
@@ -682,7 +728,7 @@ namespace MillimanAccessPortal.Controllers
                     var contentReductionTask = new ContentReductionTask
                     {
                         Id = NewTaskGuid,
-                        ApplicationUser = await _standardQueries.GetCurrentApplicationUser(User),
+                        ApplicationUser = await UserManager.GetUserAsync(User),
                         SelectionGroupId = selectionGroup.Id,
                         MasterFilePath = MasterFileCopyTarget,
                         MasterContentChecksum = LiveMasterFile.Checksum,

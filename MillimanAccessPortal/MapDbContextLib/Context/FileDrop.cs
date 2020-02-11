@@ -15,13 +15,18 @@ namespace MapDbContextLib.Context
         [Key]
         public Guid Id { get; set; }
 
+        [Required]
         public string Name { get; set; }
 
+        public string Description { get; set; }
+
+        [Required]
+        [Column(TypeName = "citext")]
         public string RootPath { get; set; }
 
         [ForeignKey("Client")]
         public Guid ClientId { get; set; }
-        public FileDrop Client { get; set; }
+        public Client Client { get; set; }
 
     }
 }

@@ -47,7 +47,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IMessageQueue _messageSender;
         private readonly IAuditLogger _auditLogger;
-        private readonly StandardQueries Queries;
         private readonly IAuthorizationService AuthorizationService;
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
@@ -60,7 +59,6 @@ namespace MillimanAccessPortal.Controllers
             SignInManager<ApplicationUser> signInManager,
             IMessageQueue messageSender,
             IAuditLogger AuditLoggerArg,
-            StandardQueries QueriesArg,
             IAuthorizationService AuthorizationServiceArg,
             IConfiguration ConfigArg,
             IServiceProvider serviceProviderArg,
@@ -73,7 +71,6 @@ namespace MillimanAccessPortal.Controllers
             _signInManager = signInManager;
             _messageSender = messageSender;
             _auditLogger = AuditLoggerArg;
-            Queries = QueriesArg;
             AuthorizationService = AuthorizationServiceArg;
             _configuration = ConfigArg;
             _serviceProvider = serviceProviderArg;
@@ -460,7 +457,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser appUser = null;
             try
             {
-                appUser = await Queries.GetCurrentApplicationUser(User);
+                appUser = await _userManager.GetUserAsync(User);
             }
             catch (Exception ex)
             {
@@ -1155,6 +1152,22 @@ namespace MillimanAccessPortal.Controllers
                 Icon = "content-grid",
             });
 
+            // Conditionally add the FileDrop Element
+            AuthorizationResult FileDropAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
+            // TODO: Actually check if a File Drop User is assigned to a File Drop to provide access
+            AuthorizationResult FileDropUserResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser));
+            if (FileDropAdminResult.Succeeded || FileDropUserResult.Succeeded)
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "File Drop",
+                    URL = nameof(FileDropController).Replace("Controller", ""),
+                    View = "FileDrop",
+                    Icon = "file-drop",
+                });
+            }
+
             // Conditionally add the System Admin Element
             AuthorizationResult SystemAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
             if (SystemAdminResult.Succeeded)
@@ -1356,7 +1369,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} GET action");
 
-            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+            ApplicationUser user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 Log.Warning("AccountSettings action requested for invalid user {@User}, aborting", User.Identity.Name);
@@ -1371,7 +1384,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<ActionResult> AccountSettings2()
         {
-            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+            ApplicationUser user = await _userManager.GetUserAsync(User);
 
             return Json(new UserFullModel
             {
@@ -1399,7 +1412,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (ModelState.IsValid)
             {
-                ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+                ApplicationUser user = await _userManager.GetUserAsync(User);
 
                 foreach (IPasswordValidator<ApplicationUser> passwordValidator in _userManager.PasswordValidators)
                 {
@@ -1440,7 +1453,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (ModelState.IsValid)
             {
-                ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+                ApplicationUser user = await _userManager.GetUserAsync(User);
 
                 foreach (IPasswordValidator<ApplicationUser> passwordValidator in _userManager.PasswordValidators)
                 {
@@ -1472,7 +1485,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateAccount([FromBody] UpdateAccountModel model)
         {
-            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+            ApplicationUser user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user {User.Identity.Name} not found, aborting");
