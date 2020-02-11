@@ -95,6 +95,9 @@ namespace MapTests
         public Mock<FileSystemTasks> MockFileSystemTasks { get; set; }
         public FileSystemTasks FileSystemTasksObject { get => MockFileSystemTasks.Object; }
 
+        public Mock<FileDropQueries> MockFileDropQueries { get; set; }
+        public FileDropQueries FileDropQueriesObject { get => MockFileDropQueries.Object; }
+
         public Mock<IPublicationPostProcessingTaskQueue> MockPublicationPostProcessingQueue { get; set; }
         public IPublicationPostProcessingTaskQueue PublicationPostProcessingQueueObject { get => MockPublicationPostProcessingQueue.Object; }
 
@@ -246,6 +249,7 @@ namespace MapTests
             ConfigurationObject = GenerateConfiguration();
             MockServiceProvider = GenerateServiceProvider();
             MockFileSystemTasks = new Mock<FileSystemTasks>();
+            MockFileDropQueries = new Mock<FileDropQueries>(ClientQueriesObj, HierarchyQueriesObj, UserQueriesObj);
             MockPublicationPostProcessingQueue = new Mock<IPublicationPostProcessingTaskQueue>();
             MockAuthenticationService = TestResourcesLib.MockAuthenticationService.New(DbContextObject);
             AuthenticationSchemeProviderObject = AuthenticationServiceObject.Schemes;
@@ -608,6 +612,12 @@ namespace MapTests
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(10), ClientId=TestUtil.MakeTestGuid(8), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(6) },
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(11), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(2), UserId=TestUtil.MakeTestGuid(2) }, // this record is intentionally without a respective claim
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(12), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1) },
+
+                        // FileDrop roles:
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(13), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(1) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(14), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(1) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(15), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(2) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(16), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(3) },
                     });
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
