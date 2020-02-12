@@ -113,6 +113,8 @@ namespace MillimanAccessPortal.Controllers
             return Json(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateFileDrop([Bind("Name,Description,ClientId")] FileDrop fileDropModel)
         {
             #region Authorization
