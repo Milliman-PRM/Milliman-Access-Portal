@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -28,5 +29,6 @@ namespace MapDbContextLib.Context
         public Guid ClientId { get; set; }
         public Client Client { get; set; }
 
+        public IEnumerable<SftpAccount> SftpAccounts { get; set; }
     }
 }

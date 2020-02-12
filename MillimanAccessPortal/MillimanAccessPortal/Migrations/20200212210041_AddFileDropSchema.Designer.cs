@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200211203144_AddFileDropSchema")]
+    [Migration("20200212210041_AddFileDropSchema")]
     partial class AddFileDropSchema
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -331,8 +331,6 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<Guid>("FileDropId");
 
-                    b.Property<bool>("IsDefaultGroup");
-
                     b.Property<string>("Name")
                         .IsRequired();
 
@@ -536,7 +534,9 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<Guid?>("ApplicationUserId");
 
-                    b.Property<Guid>("FileDropUserPermissionGroupId");
+                    b.Property<Guid>("FileDropId");
+
+                    b.Property<Guid?>("FileDropUserPermissionGroupId");
 
                     b.Property<string>("PasswordHash");
 
@@ -550,6 +550,8 @@ namespace MillimanAccessPortal.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("FileDropId");
 
                     b.HasIndex("FileDropUserPermissionGroupId");
 
@@ -982,14 +984,18 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("MapDbContextLib.Context.SftpAccount", b =>
                 {
                     b.HasOne("MapDbContextLib.Identity.ApplicationUser", "ApplicationUser")
-                        .WithMany()
+                        .WithMany("SftpAccounts")
                         .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("MapDbContextLib.Context.FileDrop", "FileDrop")
+                        .WithMany("SftpAccounts")
+                        .HasForeignKey("FileDropId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("MapDbContextLib.Context.FileDropUserPermissionGroup", "FileDropUserPermissionGroup")
                         .WithMany()
-                        .HasForeignKey("FileDropUserPermissionGroupId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("FileDropUserPermissionGroupId");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.SftpConnection", b =>

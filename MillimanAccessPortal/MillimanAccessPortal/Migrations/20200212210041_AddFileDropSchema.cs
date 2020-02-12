@@ -37,7 +37,6 @@ namespace MillimanAccessPortal.Migrations
                     ReadAccess = table.Column<bool>(nullable: false),
                     WriteAccess = table.Column<bool>(nullable: false),
                     DeleteAccess = table.Column<bool>(nullable: false),
-                    IsDefaultGroup = table.Column<bool>(nullable: false),
                     FileDropId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
@@ -81,7 +80,8 @@ namespace MillimanAccessPortal.Migrations
                     PasswordHash = table.Column<string>(nullable: true),
                     PasswordResetDateTimeUtc = table.Column<DateTime>(nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)),
                     ApplicationUserId = table.Column<Guid>(nullable: true),
-                    FileDropUserPermissionGroupId = table.Column<Guid>(nullable: false)
+                    FileDropUserPermissionGroupId = table.Column<Guid>(nullable: true),
+                    FileDropId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -93,11 +93,17 @@ namespace MillimanAccessPortal.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
+                        name: "FK_SftpAccount_FileDrop_FileDropId",
+                        column: x => x.FileDropId,
+                        principalTable: "FileDrop",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_SftpAccount_FileDropUserPermissionGroup_FileDropUserPermiss~",
                         column: x => x.FileDropUserPermissionGroupId,
                         principalTable: "FileDropUserPermissionGroup",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -206,6 +212,11 @@ namespace MillimanAccessPortal.Migrations
                 name: "IX_SftpAccount_ApplicationUserId",
                 table: "SftpAccount",
                 column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SftpAccount_FileDropId",
+                table: "SftpAccount",
+                column: "FileDropId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SftpAccount_FileDropUserPermissionGroupId",

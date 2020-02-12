@@ -71,7 +71,6 @@ namespace MillimanAccessPortal.DataQueries
             {
                 UserCount = _dbContext.ApplicationUser
                                       .Where(u => u.SftpAccounts
-                                                   .Where(a => !a.FileDropUserPermissionGroup.IsDefaultGroup)
                                                    .Any(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id))
                                       .ToList()
                                       .Distinct(new IdPropertyComparer<ApplicationUser>())
