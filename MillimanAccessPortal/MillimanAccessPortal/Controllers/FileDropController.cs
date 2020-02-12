@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.Binders;
 using MillimanAccessPortal.DataQueries;
-using MillimanAccessPortal.Models.ContentPublishing;
+using MillimanAccessPortal.Models.FileDrop;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
@@ -105,12 +105,12 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientsResponseModel responseModel = new ClientsResponseModel
+            ClientsModel model = new ClientsModel
             {
                 Clients = _fileDropQueries.GetAuthorizedClientsModel(await _userManager.GetUserAsync(User)),
             };
 
-            return Json(responseModel);
+            return Json(model);
         }
 
         public async Task<IActionResult> CreateFileDrop([Bind("Name,Description,ClientId")] FileDrop fileDropModel)

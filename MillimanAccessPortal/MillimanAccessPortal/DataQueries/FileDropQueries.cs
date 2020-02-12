@@ -1,7 +1,12 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: An DI injectable resource containing queries directly related to FileDrop controller actions
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries.EntityQueries;
-using MillimanAccessPortal.Models.ClientModels;
 using MillimanAccessPortal.Models.FileDrop;
 using System;
 using System.Collections.Generic;
@@ -36,26 +41,50 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="user">Current user</param>
         /// <returns>Response model</returns>
-        internal Dictionary<Guid, BasicClientWithCardStats> GetAuthorizedClientsModel(ApplicationUser user)
+        internal Dictionary<Guid, ClientCardModel> GetAuthorizedClientsModel(ApplicationUser user)
         {
-            // TODO: Flesh this out since this will necessarily need to be more 
-            //    complicated (i.e. all FileDropAdmins, and clients where a FileDropUser has access to a FileDrop)
             List<Client> clientList = _dbContext.UserRoleInClient
                                                 .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == RoleEnum.FileDropAdmin)
                                                 .Select(urc => urc.Client)
+                                                .ToList()  // force the first query to execute
+                                                .Union(
+                                                    _dbContext.ApplicationUser
+                                                              .Where(u => u.UserName.Equals(user.UserName, StringComparison.InvariantCultureIgnoreCase))
+                                                              .SelectMany(u => u.SftpAccounts.Select(a => a.FileDropUserPermissionGroup.FileDrop.Client)),
+                                                    new IdPropertyComparer<Client>()
+                                                )
                                                 .ToList();
             clientList = _clientQueries.AddUniqueAncestorClientsNonInclusiveOf(clientList);
 
-            List<BasicClientWithCardStats> returnList = new List<BasicClientWithCardStats>();
-
+            List<ClientCardModel> returnList = new List<ClientCardModel>();
             foreach (Client oneClient in clientList)
             {
-                // TODO: Create a new query specifically for File Drop to stop using the Publishing one.
-                returnList.Add(_clientQueries.SelectClientWithPublishingCardStats(oneClient, RoleEnum.FileDropAdmin, user.Id));
+                returnList.Add(GetClientCardModelAsync(oneClient, user));
             }
 
             return returnList.ToDictionary(c => c.Id);
         }
 
+        private ClientCardModel GetClientCardModelAsync(Client client, ApplicationUser user)
+        {
+            return new ClientCardModel(client)
+            {
+                UserCount = _dbContext.ApplicationUser
+                                      .Where(u => u.SftpAccounts
+                                                   .Where(a => !a.FileDropUserPermissionGroup.IsDefaultGroup)
+                                                   .Any(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id))
+                                      .ToList()
+                                      .Distinct(new IdPropertyComparer<ApplicationUser>())
+                                      .Count(),
+
+                FileDropCount = _dbContext.FileDrop
+                                          .Count(d => d.ClientId == client.Id),
+
+                CanManage = _dbContext.UserRoleInClient
+                                      .Any(ur => ur.ClientId == client.Id &&
+                                                 ur.UserId == user.Id &&
+                                                 ur.Role.RoleEnum == RoleEnum.FileDropAdmin),
+            };
+        }
     }
 }
