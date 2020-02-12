@@ -98,7 +98,7 @@ namespace MillimanAccessPortal.Controllers
                 var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser));
                 if (!userRoleResult.Succeeded)
                 {
-                    Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                    Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                     Response.Headers.Add("Warning", "You are not authorized to File Drop access.");
                     return Unauthorized();
                 }
@@ -111,6 +111,62 @@ namespace MillimanAccessPortal.Controllers
             };
 
             return Json(responseModel);
+        }
+
+        public async Task<IActionResult> CreateFileDrop([Bind("Name,Description,ClientId")] FileDrop fileDropModel)
+        {
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
+            if (!adminRoleResult.Succeeded)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to File Drop access.");
+                return Unauthorized();
+            }
+            #endregion
+
+            string fileDropGlobalRoot = _applicationConfig.GetValue("FileDropRoot", string.Empty);
+
+            #region Validation
+            if (!ModelState.IsValid)
+            {
+                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} ModelState not valid");
+                Response.Headers.Add("Warning", "The provided FileDrop information was invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (string.IsNullOrWhiteSpace(fileDropModel.Name))
+            {
+                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} new File Drop must have a name");
+                Response.Headers.Add("Warning", "The provided FileDrop name was not provided.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (string.IsNullOrWhiteSpace(fileDropGlobalRoot) || !Directory.Exists(fileDropGlobalRoot))
+            {
+                Log.Error($"In action {ControllerContext.ActionDescriptor.DisplayName} application configuration for FileDropGlobalRoot <{fileDropGlobalRoot}> is invalid or not found");
+                Response.Headers.Add("Warning", "The provided FileDrop information was invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            try
+            {
+                fileDropModel.RootPath = Guid.NewGuid().ToString();
+                string fileDropAbsoluteRootFolder = Path.Combine(fileDropGlobalRoot, fileDropModel.RootPath);
+                Directory.CreateDirectory(fileDropAbsoluteRootFolder);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"In action {ControllerContext.ActionDescriptor.DisplayName} failed to create FileDrop root folder using global root path {fileDropGlobalRoot} and subfolder name {fileDropModel.RootPath}");
+                Response.Headers.Add("Warning", "Failed to create file drop home folder.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            _dbContext.FileDrop.Add(fileDropModel);
+            _dbContext.SaveChanges();
+
+            return Json(fileDropModel);
         }
     }
 }
