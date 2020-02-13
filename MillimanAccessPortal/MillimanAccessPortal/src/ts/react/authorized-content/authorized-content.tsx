@@ -38,7 +38,12 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
 
   public componentDidMount() {
     getJsonData('/AuthorizedContent/Content')
-    .then((json: ContentItemGroupList) => this.setState(json));
+      .then((json: ContentItemGroupList) => this.setState({
+        selectedContentURL: json.selectedContentURL,
+        itemGroups: json.itemGroups,
+        selectedContentType: json.selectedContentType,
+        hasLoaded: true,
+      }));
     window.onpopstate = () => {
       if (window.history && window.history.pushState) {
         const hashName = location.hash.split('#!/')[1];
