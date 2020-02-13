@@ -5,6 +5,7 @@ import * as React from 'react';
 import { getJsonData } from '../../shared';
 import { StatusMonitor } from '../../status-monitor';
 import { ContentTypeEnum } from '../../view-models/content-publishing';
+import { ColumnSpinner } from '../shared-components/column-spinner';
 import { ContentContainer } from '../shared-components/content-container';
 import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
