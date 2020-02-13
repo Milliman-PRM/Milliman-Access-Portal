@@ -11,7 +11,9 @@ import { NavBar } from '../shared-components/navbar';
 import { ContentCard } from './content-card';
 import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
 
-interface AuthorizedContentState extends ContentItemGroupList, Filterable { }
+interface AuthorizedContentState extends ContentItemGroupList, Filterable {
+  hasLoaded: boolean;
+}
 export class AuthorizedContent extends React.Component<{}, AuthorizedContentState> {
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
@@ -26,6 +28,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       selectedContentURL: null,
       selectedContentType: null,
       filterString: '',
+      hasLoaded: false,
     };
 
     this.statusMonitor.start();
