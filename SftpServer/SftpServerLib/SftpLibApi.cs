@@ -23,10 +23,11 @@ namespace SftpServerLib
             //throw new NotImplementedException("Abstract base class SftpLibApi cannot be instantiated");
         }
 
-        public abstract void Start(string CertificateFilePath);
-        //public abstract void Start(X509Certificate2 Certificate);
+        public abstract void Start(byte[] certificateBytes);
 
         public abstract void Stop();
+
+        public abstract ServerState ReportState();
 
         public virtual bool Authenticate(string ConnectionId, string UserName, string Password)
         {
@@ -42,5 +43,10 @@ namespace SftpServerLib
             return false;
         }
 
+    }
+
+    public class ServerState
+    {
+        public string Fingerprint { get; set; }
     }
 }

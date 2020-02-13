@@ -30,12 +30,14 @@
         {
             this.btnStartStop = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.textPassword = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.textHash = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
             this.buttonStorePassword = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
             this.buttonVerifyPassword = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.textPassword = new System.Windows.Forms.TextBox();
+            this.textKeyfilePath = new System.Windows.Forms.TextBox();
+            this.buttonReportServerState = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -57,28 +59,12 @@
             this.groupBox1.Controls.Add(this.buttonVerifyPassword);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.textPassword);
-            this.groupBox1.Location = new System.Drawing.Point(318, 13);
+            this.groupBox1.Location = new System.Drawing.Point(494, 12);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(470, 236);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Password Hashing";
-            // 
-            // textPassword
-            // 
-            this.textPassword.Location = new System.Drawing.Point(6, 41);
-            this.textPassword.Name = "textPassword";
-            this.textPassword.Size = new System.Drawing.Size(458, 23);
-            this.textPassword.TabIndex = 0;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 23);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(57, 15);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "Password";
             // 
             // textHash
             // 
@@ -86,15 +72,6 @@
             this.textHash.Name = "textHash";
             this.textHash.Size = new System.Drawing.Size(458, 23);
             this.textHash.TabIndex = 0;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 67);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(34, 15);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "Hash";
             // 
             // buttonStorePassword
             // 
@@ -106,6 +83,15 @@
             this.buttonStorePassword.UseVisualStyleBackColor = true;
             this.buttonStorePassword.Click += new System.EventHandler(this.buttonStorePassword_Click);
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(6, 67);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(34, 15);
+            this.label2.TabIndex = 1;
+            this.label2.Text = "Hash";
+            // 
             // buttonVerifyPassword
             // 
             this.buttonVerifyPassword.Location = new System.Drawing.Point(252, 207);
@@ -116,18 +102,55 @@
             this.buttonVerifyPassword.UseVisualStyleBackColor = true;
             this.buttonVerifyPassword.Click += new System.EventHandler(this.buttonVerifyPassword_Click);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(6, 23);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(57, 15);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "Password";
+            // 
+            // textPassword
+            // 
+            this.textPassword.Location = new System.Drawing.Point(6, 41);
+            this.textPassword.Name = "textPassword";
+            this.textPassword.Size = new System.Drawing.Size(458, 23);
+            this.textPassword.TabIndex = 0;
+            // 
+            // textKeyfilePath
+            // 
+            this.textKeyfilePath.Location = new System.Drawing.Point(12, 42);
+            this.textKeyfilePath.Name = "textKeyfilePath";
+            this.textKeyfilePath.Size = new System.Drawing.Size(476, 23);
+            this.textKeyfilePath.TabIndex = 2;
+            this.textKeyfilePath.Text = "C:\\Users\\tom.puckett\\Desktop\\sftpPrivateKey.OpenSSH.pem";
+            // 
+            // buttonReportServerState
+            // 
+            this.buttonReportServerState.Location = new System.Drawing.Point(12, 79);
+            this.buttonReportServerState.Name = "buttonReportServerState";
+            this.buttonReportServerState.Size = new System.Drawing.Size(135, 41);
+            this.buttonReportServerState.TabIndex = 3;
+            this.buttonReportServerState.Text = "Report SSH Key Fingerprint";
+            this.buttonReportServerState.UseVisualStyleBackColor = true;
+            this.buttonReportServerState.Click += new System.EventHandler(this.buttonReportReportServerState_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(976, 450);
+            this.Controls.Add(this.buttonReportServerState);
             this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.textKeyfilePath);
             this.Controls.Add(this.btnStartStop);
             this.Name = "Form1";
             this.Text = "Form1";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -141,6 +164,9 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox textHash;
         private System.Windows.Forms.TextBox textPassword;
+        private System.Windows.Forms.TextBox textKeyfilePath;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button buttonReportServerState;
     }
 }
 

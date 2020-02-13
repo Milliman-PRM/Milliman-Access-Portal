@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,7 +30,10 @@ namespace SftpCoreGui
             {
                 _SftpApi = SftpLibApi.NewInstance();
 
-                _SftpApi.Start("C:\\Users\\tom.puckett\\Desktop\\sftpPrivateKey.OpenSSH.pem");
+                var keyStream = new BinaryReader(new FileStream(textKeyfilePath.Text, FileMode.Open));
+                byte[] keyBytes = keyStream.ReadBytes(10_000);
+
+                _SftpApi.Start(keyBytes);
                 Sender.Text = "Stop";
             }
             else
@@ -56,6 +60,16 @@ namespace SftpCoreGui
 
                 var result = sftpAccountObject.CheckPassword(textPassword.Text);
                 MessageBox.Show(result.ToString());
+            }
+        }
+
+        private void buttonReportReportServerState_Click(object sender, EventArgs e)
+        {
+            if (_SftpApi != null)
+            {
+                ServerState state = _SftpApi.ReportState();
+
+                MessageBox.Show($"Server Fingerprint is \"{state.Fingerprint}\"");
             }
         }
     }

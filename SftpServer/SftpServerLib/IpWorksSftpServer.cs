@@ -8,6 +8,7 @@ using nsoftware.IPWorksSSH;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 
 namespace SftpServerLib
 {
@@ -15,10 +16,10 @@ namespace SftpServerLib
     {
         protected Sftpserver _sftpServer = default;
 
-        public override void Start(string CertificateFilePath)
+        public override void Start(byte[] keyBytes)
         {
-            Certificate cert = new Certificate(CertificateFilePath);
-            EstablishServerInstance(cert);
+            Certificate certificate = new Certificate(keyBytes);
+            EstablishServerInstance(certificate);
 
             _sftpServer.Listening = true;
             Debug.WriteLine("Server listening");
@@ -39,5 +40,17 @@ namespace SftpServerLib
             }
         }
 
+        public override ServerState ReportState()
+        {
+            if (_sftpServer == null)
+            {
+                return null;
+            }
+
+            return new ServerState
+            {
+                Fingerprint = _sftpServer.SSHCert.Fingerprint,
+            };
+        }
     }
 }

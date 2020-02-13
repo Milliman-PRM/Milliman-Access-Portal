@@ -55,8 +55,12 @@ namespace MapDbContextLib.Context
 
         private static PasswordHasher<SftpAccount> GetPasswordHasher()
         {
-            OptionsWrapper<PasswordHasherOptions> optionsWrapper = new OptionsWrapper<PasswordHasherOptions>(new PasswordHasherOptions { IterationCount = 42_042,  });
-            return new PasswordHasher<SftpAccount>(optionsWrapper);
+            var options = new PasswordHasherOptions
+            {
+                IterationCount = 42_042,
+            };
+                
+            return new PasswordHasher<SftpAccount>(new OptionsWrapper<PasswordHasherOptions>(options));
         }
 
     }
