@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.Binders;
 using MillimanAccessPortal.DataQueries;
-using MillimanAccessPortal.Models.FileDrop;
+using MillimanAccessPortal.Models.FileDropModels;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
@@ -169,6 +169,28 @@ namespace MillimanAccessPortal.Controllers
             _dbContext.SaveChanges();
 
             return Json(fileDropModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> FileDrops(Guid clientId)
+        {
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
+            if (!adminRoleResult.Succeeded)
+            {
+                var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser));
+                if (!userRoleResult.Succeeded)
+                {
+                    Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                    Response.Headers.Add("Warning", "You are not authorized to File Drop access.");
+                    return Unauthorized();
+                }
+            }
+            #endregion
+
+            var model = _fileDropQueries.GetFileDropsModelForClient(clientId, await _userManager.GetUserAsync(User));
+
+            return Json(model);
         }
     }
 }

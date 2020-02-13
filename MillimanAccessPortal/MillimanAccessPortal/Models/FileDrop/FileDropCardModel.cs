@@ -1,0 +1,38 @@
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Context;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace MillimanAccessPortal.Models.FileDropModels
+{
+    public class FileDropsModel
+    {
+        public Dictionary<Guid,FileDropCardModel> FileDrops { get; set; }
+    }
+
+
+    public class FileDropCardModel
+    {
+        public FileDropCardModel(FileDrop fileDrop)
+        {
+            Id = fileDrop.Id;
+            Name = fileDrop.Name;
+            Description = fileDrop.Description;
+        }
+
+        public Guid Id { get; set; }
+
+        public string Name { get; set; }
+
+        public string Description { get; set; }
+
+        public int? UserCount { get; set; }
+    }
+}

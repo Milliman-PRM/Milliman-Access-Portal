@@ -7,7 +7,7 @@
 using MapDbContextLib.Context;
 using System;
 
-namespace MillimanAccessPortal.Models.FileDrop
+namespace MillimanAccessPortal.Models.FileDropModels
 {
     public class ClientCardModel
     {
@@ -40,6 +40,11 @@ namespace MillimanAccessPortal.Models.FileDrop
         /// <summary>
         /// Indication of the requesting user's authorization to administer this client based on a client role
         /// </summary>
-        public bool CanManage { get; set; }
+        public bool CanManageFileDrops { get; set; }
+
+        /// <summary>
+        /// Indication of the requesting user's assignment to a permission group of at least one FileDrop of the client
+        /// </summary>
+        public bool AuthorizedFileDropUser { get; set; }
     }
 }

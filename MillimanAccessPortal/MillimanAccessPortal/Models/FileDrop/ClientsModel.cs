@@ -9,7 +9,7 @@ using MillimanAccessPortal.Models.UserModels;
 using System;
 using System.Collections.Generic;
 
-namespace MillimanAccessPortal.Models.FileDrop
+namespace MillimanAccessPortal.Models.FileDropModels
 {
     public class ClientsModel
     {
