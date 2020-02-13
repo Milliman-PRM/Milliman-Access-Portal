@@ -135,7 +135,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
                 <div className="welcome-text">
                   <h1>Welcome to Milliman Access Portal!</h1>
                   <p>
-                    You do not currently have access to any content.
+                    You do not have access to any content.
                     If you believe that this is incorrect, please contact
                     <a href="mailto:map.support@milliman.com"> map.support@milliman.com</a>.
                   </p>
