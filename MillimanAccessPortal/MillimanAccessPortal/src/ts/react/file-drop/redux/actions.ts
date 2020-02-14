@@ -21,6 +21,11 @@ export interface SetFilterTextClient {
   text: string;
 }
 
+/** Set filter text for the client card filter */
+export interface SetFilterTextFileDrop {
+  type: 'SET_FILTER_TEXT_FILE_DROP';
+  text: string;
+}
 
 /** Open the Create File Drop Modal */
 export interface OpenCreateFileDropModal {
@@ -32,6 +37,7 @@ export interface OpenCreateFileDropModal {
 export interface CloseCreateFileDropModal {
   type: 'CLOSE_CREATE_FILE_DROP_MODAL';
 }
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -193,6 +199,7 @@ export type FileDropErrorActions =
 /** Actions that set filter text */
 export type FilterActions =
   | SetFilterTextClient
+  | SetFilterTextFileDrop
   ;
 
 /** All available File Drop Actions */
