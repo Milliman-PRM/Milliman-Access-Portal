@@ -25,6 +25,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
             Id = fileDrop.Id;
             Name = fileDrop.Name;
             Description = fileDrop.Description;
+            ClientId = fileDrop.ClientId;
         }
 
         public Guid Id { get; set; }
@@ -34,5 +35,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
         public string Description { get; set; }
 
         public int? UserCount { get; set; }
+
+        public Guid ClientId { get; set; }
     }
 }
