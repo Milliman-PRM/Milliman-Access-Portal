@@ -77,7 +77,6 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               error={pending.createFileDrop.errors.fileDropName}
               label="File Drop Name"
               name="File Drop Name"
-              onBlur={() => false}
               onChange={() => false}
               placeholderText="New File Drop Name"
               type="text"
@@ -87,7 +86,6 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               error={pending.createFileDrop.errors.fileDropDescription}
               label="File Drop Description"
               name="File Drop Description"
-              onBlur={() => false}
               onChange={() => false}
               placeholderText="File Drop Description (Optional)"
               value={pending.createFileDrop.fileDropDescription}
