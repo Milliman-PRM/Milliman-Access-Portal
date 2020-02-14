@@ -22,6 +22,9 @@ namespace MapDbContextLib.Context
         public string Description { get; set; }
 
         [Required]
+        public bool IsSuspended { get; set; } = false;
+
+        [Required]
         [Column(TypeName = "citext")]
         public string RootPath { get; set; }
 

@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200212210041_AddFileDropSchema")]
+    [Migration("20200214170103_AddFileDropSchema")]
     partial class AddFileDropSchema
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -251,6 +251,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<Guid>("ClientId");
 
                     b.Property<string>("Description");
+
+                    b.Property<bool>("IsSuspended");
 
                     b.Property<string>("Name")
                         .IsRequired();
@@ -537,6 +539,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<Guid>("FileDropId");
 
                     b.Property<Guid?>("FileDropUserPermissionGroupId");
+
+                    b.Property<bool>("IsSuspended");
 
                     b.Property<string>("PasswordHash");
 
@@ -1000,7 +1004,7 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("MapDbContextLib.Context.SftpConnection", b =>
                 {
-                    b.HasOne("MapDbContextLib.Context.FileDrop", "SftpAccount")
+                    b.HasOne("MapDbContextLib.Context.SftpAccount", "SftpAccount")
                         .WithMany()
                         .HasForeignKey("SftpAccountId")
                         .OnDelete(DeleteBehavior.Cascade);

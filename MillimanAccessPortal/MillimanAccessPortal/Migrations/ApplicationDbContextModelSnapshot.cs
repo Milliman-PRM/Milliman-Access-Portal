@@ -250,6 +250,8 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("Description");
 
+                    b.Property<bool>("IsSuspended");
+
                     b.Property<string>("Name")
                         .IsRequired();
 
@@ -535,6 +537,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<Guid>("FileDropId");
 
                     b.Property<Guid?>("FileDropUserPermissionGroupId");
+
+                    b.Property<bool>("IsSuspended");
 
                     b.Property<string>("PasswordHash");
 
@@ -998,7 +1002,7 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("MapDbContextLib.Context.SftpConnection", b =>
                 {
-                    b.HasOne("MapDbContextLib.Context.FileDrop", "SftpAccount")
+                    b.HasOne("MapDbContextLib.Context.SftpAccount", "SftpAccount")
                         .WithMany()
                         .HasForeignKey("SftpAccountId")
                         .OnDelete(DeleteBehavior.Cascade);

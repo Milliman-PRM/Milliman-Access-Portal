@@ -30,6 +30,9 @@ namespace MapDbContextLib.Context
         [Required]
         public DateTime PasswordResetDateTimeUtc { get; set; }
 
+        [Required]
+        public bool IsSuspended { get; set; } = false;
+
         [ForeignKey("ApplicationUser")]
         public Guid? ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
