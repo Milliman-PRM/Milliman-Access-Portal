@@ -14,6 +14,15 @@ export const selectClient =
 export const setFilterTextClient =
   createActionCreator<Action.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');
 
+
+/** Open the Create File Drop modal */
+export const openCreateFileDropModal =
+  createActionCreator<Action.OpenCreateFileDropModal>('OPEN_CREATE_FILE_DROP_MODAL');
+
+/** Close the Create File Drop modal */
+export const closeCreateFileDropModal =
+  createActionCreator<Action.CloseCreateFileDropModal>('CLOSE_CREATE_FILE_DROP_MODAL');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~

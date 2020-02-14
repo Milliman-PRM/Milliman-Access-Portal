@@ -8,7 +8,7 @@ import * as State from './store';
 import { Guid } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
-import { Dict, FilterState } from '../../shared-components/redux/store';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 
 // ~~~~~~~~~~~~~~~~~
 // Utility Functions
@@ -135,6 +135,41 @@ const createFilterReducer = (actionType: Action.FilterActions['type']) =>
 /** Reducer that combines the filters reducers */
 const filters = combineReducers({
   client: createFilterReducer('SET_FILTER_TEXT_CLIENT'),
+
+// ~~~~~~~~~~~~~~
+// Modal Reducers
+// ~~~~~~~~~~~~~~
+
+/**
+ * Create a reducer for a modal
+ * @param openActions Actions that cause the modal to open
+ * @param closeActions Actions that cause the modal to close
+ */
+const createModalReducer = (
+  openActions: Array<Action.OpenModalAction['type']>,
+  closeActions: Array<Action.FileDropActions['type']>,
+) => {
+  const handlers: Handlers<ModalState, any> = {};
+  openActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: true,
+    });
+  });
+  closeActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: false,
+    });
+  });
+  return createReducer<ModalState>({ isOpen: false }, handlers);
+};
+
+const modals = combineReducers({
+  createFileDrop: createModalReducer(['OPEN_CREATE_FILE_DROP_MODAL'], [
+    'CLOSE_CREATE_FILE_DROP_MODAL',
+    'CREATE_FILE_DROP_SUCCEEDED',
+  ]),
 });
 
 // ~~~~~~~~~~~~~
@@ -165,5 +200,6 @@ export const fileDropReducerState = combineReducers({
   cardAttributes,
   pending,
   filters,
+  modals,
   toastr: toastrReducer,
 });

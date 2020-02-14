@@ -21,6 +21,17 @@ export interface SetFilterTextClient {
   text: string;
 }
 
+
+/** Open the Create File Drop Modal */
+export interface OpenCreateFileDropModal {
+  type: 'OPEN_CREATE_FILE_DROP_MODAL';
+  clientId: Guid;
+}
+
+/** Close the Create File Drop Modal */
+export interface CloseCreateFileDropModal {
+  type: 'CLOSE_CREATE_FILE_DROP_MODAL';
+}
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -145,6 +156,8 @@ export type FileDropPageActions =
   | SelectClient
   | PromptStatusRefreshStopped
   | DecrementStatusRefreshAttempts
+  | OpenCreateFileDropModal
+  | CloseCreateFileDropModal
   ;
 
 /** Actions that schedule another action */
@@ -190,4 +203,9 @@ export type FileDropActions =
   | FileDropSuccessResponseActions
   | FileDropErrorActions
   | FilterActions
+  ;
+
+/** An action that opens a modal */
+export type OpenModalAction =
+  | OpenCreateFileDropModal
   ;
