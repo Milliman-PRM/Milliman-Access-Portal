@@ -30,10 +30,14 @@ namespace SftpCoreGui
             {
                 _SftpApi = SftpLibApi.NewInstance();
 
-                var keyStream = new BinaryReader(new FileStream(textKeyfilePath.Text, FileMode.Open));
-                byte[] keyBytes = keyStream.ReadBytes(10_000);
+                using (var fileStream = new FileStream(textKeyfilePath.Text, FileMode.Open))
+                {
+                    using (BinaryReader keyStream = new BinaryReader(fileStream)) {
+                        byte[] keyBytes = keyStream.ReadBytes(10_000);
+                        _SftpApi.Start(keyBytes);
+                    }
+                }
 
-                _SftpApi.Start(keyBytes);
                 Sender.Text = "Stop";
             }
             else
