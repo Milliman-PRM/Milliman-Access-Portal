@@ -5,6 +5,8 @@
  */
 
 using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -52,8 +54,25 @@ namespace MapDbContextLib.Context
         public string Password {
             set
             {
-                // TODO Use hashing, perhaps from Microsoft.AspNetCore.Identity.PasswordHasher<TUser>
+                PasswordHash = GetPasswordHasher().HashPassword(this, value);
             }
+        }
+
+        public PasswordVerificationResult CheckPassword(string proposedPassword)
+        {
+            var verificationResult = GetPasswordHasher().VerifyHashedPassword(this, PasswordHash, proposedPassword);
+
+            return verificationResult;
+        }
+
+        private static PasswordHasher<SftpAccount> GetPasswordHasher()
+        {
+            var options = new PasswordHasherOptions
+            {
+                IterationCount = 42_042,
+            };
+                
+            return new PasswordHasher<SftpAccount>(new OptionsWrapper<PasswordHasherOptions>(options));
         }
 
     }
