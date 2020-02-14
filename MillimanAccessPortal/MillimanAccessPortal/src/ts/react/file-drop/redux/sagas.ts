@@ -77,7 +77,7 @@ export default function* rootSaga() {
 
   // Toasts
   yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',
-    'Please refresh the page to update reduction status.', 'warning');
+    'Please refresh the page to update Client status.', 'warning');
   yield takeEveryToast<Action.FileDropErrorActions>([
     'FETCH_GLOBAL_DATA_FAILED',
     'FETCH_CLIENTS_FAILED',
