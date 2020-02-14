@@ -3,9 +3,9 @@ import { applyMiddleware, createStore } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
 
-import { ClientWithStats, Guid } from '../../models';
+import { FileDropClientWithStats, FileDropWithStats, Guid } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
-import { Dict, FilterState } from '../../shared-components/redux/store';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { fileDropReducerState } from './reducers';
 import sagas from './sagas';
 
@@ -17,22 +17,38 @@ import sagas from './sagas';
 export interface FileDropPendingReturnState {
   globalData: boolean;
   clients: boolean;
+  fileDrops: boolean;
+  createFileDrop: boolean;
+}
+
+/** Data used in the Create File Drop modal form */
+export interface CreateFileDropModalFormData {
+  clientId: Guid;
+  fileDropName: string;
+  fileDropDescription: string;
+  errors: {
+    fileDropName: string;
+    fileDropDescription: string;
+  };
 }
 
 /** All state that represents the user interactions with the page */
 export interface FileDropPendingState {
   async: FileDropPendingReturnState;
   statusTries: number;
+  createFileDrop: CreateFileDropModalFormData;
 }
 
 /** State representing user-selected entities */
 export interface FileDropSelectedState {
   client: Guid;
+  fileDrop: Guid | 'NEW FILE DROP';
 }
 
 /** State representing raw (unaltered) data returned from the server */
 export interface FileDropDataState {
-  clients: Dict<ClientWithStats>;
+  clients: Dict<FileDropClientWithStats>;
+  fileDrops: Dict<FileDropWithStats>;
 }
 
 /** State representing entity Card attribute collections */
@@ -43,6 +59,12 @@ export interface FileDropCardAttributesState {
 /** State representing filter strings */
 export interface FileDropFilterState {
   client: FilterState;
+  fileDrop: FilterState;
+}
+
+/** State representing modals */
+export interface FileDropModals {
+  createFileDrop: ModalState;
 }
 
 /** Top-Level File Drop state */
@@ -51,6 +73,7 @@ export interface FileDropState {
   selected: FileDropSelectedState;
   cardAttributes: FileDropCardAttributesState;
   filters: FileDropFilterState;
+  modals: FileDropModals;
   data: FileDropDataState;
   toastr: toastr.ToastrState;
 }
