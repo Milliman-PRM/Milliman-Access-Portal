@@ -118,6 +118,10 @@ const pendingCreateFileDropForm = createReducer<State.CreateFileDropModalFormDat
       fileDropDescription: null,
     },
   }),
+  UPDATE_CREATE_FILE_DROP_MODAL_FORM_VALUES: (state, action: Action.UpdateCreateFileDropModalFormValues) => ({
+    ...state,
+    [action.field]: action.value,
+  }),
 });
 
 /** Reducer that combines the pending reducers */
