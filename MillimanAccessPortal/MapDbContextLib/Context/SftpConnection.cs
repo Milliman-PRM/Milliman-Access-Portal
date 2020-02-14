@@ -28,7 +28,7 @@ namespace MapDbContextLib.Context
 
         [ForeignKey("SftpAccount")]
         public Guid SftpAccountId { get; set; }
-        public FileDrop SftpAccount { get; set; }
+        public SftpAccount SftpAccount { get; set; }
 
         [NotMapped]
         public ConnectionMetaData MetaDataObj
