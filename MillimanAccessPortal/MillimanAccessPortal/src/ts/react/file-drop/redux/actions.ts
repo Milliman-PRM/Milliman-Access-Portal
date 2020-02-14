@@ -1,4 +1,4 @@
-import { ClientWithStats, Guid } from '../../models';
+import { FileDrop, FileDropClientWithStats, FileDropWithStats, Guid } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
 
@@ -57,7 +57,7 @@ export interface FetchClients {
 export interface FetchClientsSucceeded {
   type: 'FETCH_CLIENTS_SUCCEEDED';
   response: {
-    clients: Dict<ClientWithStats>;
+    clients: Dict<FileDropClientWithStats>;
   };
 }
 /** Action called upon return of an error from the FetchClients API call */

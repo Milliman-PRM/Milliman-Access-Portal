@@ -6,7 +6,7 @@ import * as FileDropActionCreator from './redux/action-creators';
 import * as Selector from './redux/selectors';
 import * as State from './redux/store';
 
-import { Client, ClientWithStats } from '../models';
+import { Client, FileDropClientWithStats, FileDropWithStats } from '../models';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
@@ -15,7 +15,7 @@ import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
 
-type ClientEntity = (ClientWithStats & { indent: 1 | 2 }) | 'divider';
+type ClientEntity = (FileDropClientWithStats & { indent: 1 | 2 }) | 'divider';
 
 interface FileDropProps {
   clients: ClientEntity[];
