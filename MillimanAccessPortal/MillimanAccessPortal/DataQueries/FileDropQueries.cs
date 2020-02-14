@@ -55,9 +55,13 @@ namespace MillimanAccessPortal.DataQueries
                                                      )
                                                      .ToList();
             List<Guid> clientIds = clientsWithRole.ConvertAll(c => c.Id);
+            List<Guid> parentClientIds = clientsWithRole
+                                            .Where(c => c.ParentClientId.HasValue)
+                                            .ToList()
+                                            .ConvertAll(c => c.ParentClientId.Value);
 
             var unlistedParentClients = _dbContext.Client
-                                                  .Where(c => clientIds.Contains(c.ParentClientId.Value))
+                                                  .Where(c => parentClientIds.Contains(c.Id))
                                                   .Where(c => !clientIds.Contains(c.Id))
                                                   .ToList();
             List<Guid> unlistedParentClientIds = unlistedParentClients.ConvertAll(c => c.Id);
