@@ -1,4 +1,4 @@
-import { ClientWithStats, Guid } from '../../models';
+import { FileDrop, FileDropClientWithStats, FileDropWithStats, Guid } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
 
@@ -19,6 +19,23 @@ export interface SelectClient {
 export interface SetFilterTextClient {
   type: 'SET_FILTER_TEXT_CLIENT';
   text: string;
+}
+
+/** Set filter text for the client card filter */
+export interface SetFilterTextFileDrop {
+  type: 'SET_FILTER_TEXT_FILE_DROP';
+  text: string;
+}
+
+/** Open the Create File Drop Modal */
+export interface OpenCreateFileDropModal {
+  type: 'OPEN_CREATE_FILE_DROP_MODAL';
+  clientId: Guid;
+}
+
+/** Close the Create File Drop Modal */
+export interface CloseCreateFileDropModal {
+  type: 'CLOSE_CREATE_FILE_DROP_MODAL';
 }
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -57,12 +74,52 @@ export interface FetchClients {
 export interface FetchClientsSucceeded {
   type: 'FETCH_CLIENTS_SUCCEEDED';
   response: {
-    clients: Dict<ClientWithStats>;
+    clients: Dict<FileDropClientWithStats>;
   };
 }
 /** Action called upon return of an error from the FetchClients API call */
 export interface FetchClientsFailed {
   type: 'FETCH_CLIENTS_FAILED';
+  error: TSError;
+}
+
+/**
+ * GET:
+ *   File Drops the current user has access to
+ */
+export interface FetchFileDrops {
+  type: 'FETCH_FILE_DROPS';
+  request: {};
+}
+/** Action called upon successful return of the FetchFileDrops API call */
+export interface FetchFileDropsSucceeded {
+  type: 'FETCH_FILE_DROPS_SUCCEEDED';
+  response: {
+    fileDrops: Dict<FileDropWithStats>;
+  };
+}
+/** Action called upon return of an error from the FetchFileDrops API call */
+export interface FetchFileDropsFailed {
+  type: 'FETCH_FILE_DROPS_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Create a new File Drop
+ */
+export interface CreateFileDrop {
+  type: 'CREATE_FILE_DROP';
+  request: FileDrop;
+}
+/** Action called upon successful return of the CreateFileDrop API call */
+export interface CreateFileDropSucceeded {
+  type: 'CREATE_FILE_DROP_SUCCEEDED';
+  response: FileDropWithStats;
+}
+/** Action called upon return of an error from the CreateFileDrop API call */
+export interface CreateFileDropFailed {
+  type: 'CREATE_FILE_DROP_FAILED';
   error: TSError;
 }
 
@@ -145,6 +202,8 @@ export type FileDropPageActions =
   | SelectClient
   | PromptStatusRefreshStopped
   | DecrementStatusRefreshAttempts
+  | OpenCreateFileDropModal
+  | CloseCreateFileDropModal
   ;
 
 /** Actions that schedule another action */
@@ -157,6 +216,8 @@ export type FileDropScheduleActions =
 export type FileDropRequestActions =
   | FetchGlobalData
   | FetchClients
+  | FetchFileDrops
+  | CreateFileDrop
   | FetchStatusRefresh
   | FetchSessionCheck
   ;
@@ -165,6 +226,8 @@ export type FileDropRequestActions =
 export type FileDropSuccessResponseActions =
   | FetchGlobalDataSucceeded
   | FetchClientsSucceeded
+  | FetchFileDropsSucceeded
+  | CreateFileDropSucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   ;
@@ -173,6 +236,8 @@ export type FileDropSuccessResponseActions =
 export type FileDropErrorActions =
   | FetchGlobalDataFailed
   | FetchClientsFailed
+  | FetchFileDropsFailed
+  | CreateFileDropFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   ;
@@ -180,6 +245,7 @@ export type FileDropErrorActions =
 /** Actions that set filter text */
 export type FilterActions =
   | SetFilterTextClient
+  | SetFilterTextFileDrop
   ;
 
 /** All available File Drop Actions */
@@ -190,4 +256,9 @@ export type FileDropActions =
   | FileDropSuccessResponseActions
   | FileDropErrorActions
   | FilterActions
+  ;
+
+/** An action that opens a modal */
+export type OpenModalAction =
+  | OpenCreateFileDropModal
   ;

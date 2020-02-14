@@ -7,8 +7,8 @@ import * as State from './store';
 
 import { Guid } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
-import { createReducerCreator } from '../../shared-components/redux/reducers';
-import { Dict, FilterState } from '../../shared-components/redux/store';
+import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 
 // ~~~~~~~~~~~~~~~~~
 // Utility Functions
@@ -31,11 +31,24 @@ const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
 
 const _initialData: State.FileDropDataState = {
   clients: {},
+  fileDrops: {},
 };
 
 const _initialPendingData: State.FileDropPendingReturnState = {
   globalData: false,
   clients: false,
+  fileDrops: false,
+  createFileDrop: false,
+};
+
+const _initialCreateFileDropData: State.CreateFileDropModalFormData = {
+  clientId: null,
+  fileDropName: null,
+  fileDropDescription: null,
+  errors: {
+    fileDropName: null,
+    fileDropDescription: null,
+  },
 };
 
 // ~~~~~~~~~~~~~~~~
@@ -76,10 +89,42 @@ const pendingStatusTries = createReducer<number>(5, {
   FETCH_STATUS_REFRESH_SUCCEEDED: () => 5,
 });
 
+/** Reducer for the Create File Drop modal form */
+const pendingCreateFileDropForm = createReducer<State.CreateFileDropModalFormData>(_initialCreateFileDropData, {
+  OPEN_CREATE_FILE_DROP_MODAL: (_state, action: Action.OpenCreateFileDropModal) => ({
+    clientId: action.clientId,
+    fileDropName: null,
+    fileDropDescription: null,
+    errors: {
+      fileDropName: null,
+      fileDropDescription: null,
+    },
+  }),
+  CLOSE_CREATE_FILE_DROP_MODAL: () => ({
+    clientId: null,
+    fileDropName: null,
+    fileDropDescription: null,
+    errors: {
+      fileDropName: null,
+      fileDropDescription: null,
+    },
+  }),
+  CREATE_FILE_DROP_SUCCEEDED: () => ({
+    clientId: null,
+    fileDropName: null,
+    fileDropDescription: null,
+    errors: {
+      fileDropName: null,
+      fileDropDescription: null,
+    },
+  }),
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
   statusTries: pendingStatusTries,
+  createFileDrop: pendingCreateFileDropForm,
 });
 
 // ~~~~~~~~~~~~~~~~
@@ -90,10 +135,12 @@ const pending = combineReducers({
 const selected = createReducer<State.FileDropSelectedState>(
   {
     client: null,
+    fileDrop: null,
   },
   {
     SELECT_CLIENT: (state, action: Action.SelectClient) => ({
       client: action.id === state.client ? null : action.id,
+      fileDrop: null,
     }),
   },
 );
@@ -106,7 +153,7 @@ const selected = createReducer<State.FileDropSelectedState>(
 const clientCardAttributes = createReducer<Dict<CardAttributes>>({},
   {
     FETCH_CLIENTS_SUCCEEDED: (__, { response }: Action.FetchClientsSucceeded) => ({
-      ..._.mapValues(response.clients, (client) => ({ disabled: !client.canManage })),
+      ..._.mapValues(response.clients, (client) => ({ disabled: !client.canManageFileDrops })),
     }),
   },
 );
@@ -135,6 +182,43 @@ const createFilterReducer = (actionType: Action.FilterActions['type']) =>
 /** Reducer that combines the filters reducers */
 const filters = combineReducers({
   client: createFilterReducer('SET_FILTER_TEXT_CLIENT'),
+  fileDrop: createFilterReducer('SET_FILTER_TEXT_FILE_DROP'),
+});
+
+// ~~~~~~~~~~~~~~
+// Modal Reducers
+// ~~~~~~~~~~~~~~
+
+/**
+ * Create a reducer for a modal
+ * @param openActions Actions that cause the modal to open
+ * @param closeActions Actions that cause the modal to close
+ */
+const createModalReducer = (
+  openActions: Array<Action.OpenModalAction['type']>,
+  closeActions: Array<Action.FileDropActions['type']>,
+) => {
+  const handlers: Handlers<ModalState, any> = {};
+  openActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: true,
+    });
+  });
+  closeActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: false,
+    });
+  });
+  return createReducer<ModalState>({ isOpen: false }, handlers);
+};
+
+const modals = combineReducers({
+  createFileDrop: createModalReducer(['OPEN_CREATE_FILE_DROP_MODAL'], [
+    'CLOSE_CREATE_FILE_DROP_MODAL',
+    'CREATE_FILE_DROP_SUCCEEDED',
+  ]),
 });
 
 // ~~~~~~~~~~~~~
@@ -165,5 +249,6 @@ export const fileDropReducerState = combineReducers({
   cardAttributes,
   pending,
   filters,
+  modals,
   toastr: toastrReducer,
 });

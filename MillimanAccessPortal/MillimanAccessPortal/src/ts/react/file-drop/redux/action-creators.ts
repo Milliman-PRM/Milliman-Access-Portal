@@ -14,6 +14,18 @@ export const selectClient =
 export const setFilterTextClient =
   createActionCreator<Action.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');
 
+/** Set the File Drop filter */
+export const setFilterTextFileDrop =
+  createActionCreator<Action.SetFilterTextFileDrop>('SET_FILTER_TEXT_FILE_DROP');
+
+/** Open the Create File Drop modal */
+export const openCreateFileDropModal =
+  createActionCreator<Action.OpenCreateFileDropModal>('OPEN_CREATE_FILE_DROP_MODAL');
+
+/** Close the Create File Drop modal */
+export const closeCreateFileDropModal =
+  createActionCreator<Action.CloseCreateFileDropModal>('CLOSE_CREATE_FILE_DROP_MODAL');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -25,6 +37,14 @@ export const fetchGlobalData =
 /** Fetch all authorized Clients from the server */
 export const fetchClients =
   createRequestActionCreator<Action.FetchClients>('FETCH_CLIENTS');
+
+/** Fetch all authorized Clients from the server */
+export const fetchFileDrops =
+  createRequestActionCreator<Action.FetchFileDrops>('FETCH_FILE_DROPS');
+
+/** Create a File Drop */
+export const createFileDrop =
+  createRequestActionCreator<Action.CreateFileDrop>('CREATE_FILE_DROP');
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions

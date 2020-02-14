@@ -14,6 +14,7 @@ namespace MillimanAccessPortal.Migrations
                     Id = table.Column<Guid>(nullable: false, defaultValueSql: "uuid_generate_v4()"),
                     Name = table.Column<string>(nullable: false),
                     Description = table.Column<string>(nullable: true),
+                    IsSuspended = table.Column<bool>(nullable: false),
                     RootPath = table.Column<string>(type: "citext", nullable: false),
                     ClientId = table.Column<Guid>(nullable: false)
                 },
@@ -37,7 +38,6 @@ namespace MillimanAccessPortal.Migrations
                     ReadAccess = table.Column<bool>(nullable: false),
                     WriteAccess = table.Column<bool>(nullable: false),
                     DeleteAccess = table.Column<bool>(nullable: false),
-                    IsDefaultGroup = table.Column<bool>(nullable: false),
                     FileDropId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
@@ -52,27 +52,6 @@ namespace MillimanAccessPortal.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SftpConnection",
-                columns: table => new
-                {
-                    Id = table.Column<string>(nullable: false),
-                    CreatedDateTimeUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
-                    LastActivityUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
-                    MetaData = table.Column<string>(type: "jsonb", nullable: true),
-                    SftpAccountId = table.Column<Guid>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SftpConnection", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_SftpConnection_FileDrop_SftpAccountId",
-                        column: x => x.SftpAccountId,
-                        principalTable: "FileDrop",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "SftpAccount",
                 columns: table => new
                 {
@@ -80,8 +59,10 @@ namespace MillimanAccessPortal.Migrations
                     UserName = table.Column<string>(nullable: false),
                     PasswordHash = table.Column<string>(nullable: true),
                     PasswordResetDateTimeUtc = table.Column<DateTime>(nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)),
+                    IsSuspended = table.Column<bool>(nullable: false),
                     ApplicationUserId = table.Column<Guid>(nullable: true),
-                    FileDropUserPermissionGroupId = table.Column<Guid>(nullable: false)
+                    FileDropUserPermissionGroupId = table.Column<Guid>(nullable: true),
+                    FileDropId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -93,11 +74,17 @@ namespace MillimanAccessPortal.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
+                        name: "FK_SftpAccount_FileDrop_FileDropId",
+                        column: x => x.FileDropId,
+                        principalTable: "FileDrop",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_SftpAccount_FileDropUserPermissionGroup_FileDropUserPermiss~",
                         column: x => x.FileDropUserPermissionGroupId,
                         principalTable: "FileDropUserPermissionGroup",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -130,6 +117,27 @@ namespace MillimanAccessPortal.Migrations
                         name: "FK_FileDropDirectory_FileDropDirectory_ParentDirectoryId",
                         column: x => x.ParentDirectoryId,
                         principalTable: "FileDropDirectory",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SftpConnection",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    CreatedDateTimeUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
+                    LastActivityUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
+                    MetaData = table.Column<string>(type: "jsonb", nullable: true),
+                    SftpAccountId = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SftpConnection", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SftpConnection_SftpAccount_SftpAccountId",
+                        column: x => x.SftpAccountId,
+                        principalTable: "SftpAccount",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -206,6 +214,11 @@ namespace MillimanAccessPortal.Migrations
                 name: "IX_SftpAccount_ApplicationUserId",
                 table: "SftpAccount",
                 column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SftpAccount_FileDropId",
+                table: "SftpAccount",
+                column: "FileDropId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SftpAccount_FileDropUserPermissionGroupId",
