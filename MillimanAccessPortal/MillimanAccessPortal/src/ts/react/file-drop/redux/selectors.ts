@@ -94,6 +94,23 @@ export function activeSelectedClient(state: FileDropState) {
     .filter((c) => c !== 'divider' && (c.id === state.selected.client))[0] as ClientWithIndent;
 }
 
+// ~~~~~~~~~~~~~~~~~~~
+// File Drop Selectors
+// ~~~~~~~~~~~~~~~~~~~
+
+/** Select all content items that match the content item filter */
+export function fileDropEntities(state: FileDropState) {
+  const filterTextLower = state.filters.fileDrop.text.toLowerCase();
+  const filteredFileDrops = _.filter(state.data.fileDrops, (fileDrop: FileDropWithStats) => (
+    fileDrop.clientId === state.selected.client && (
+      filterTextLower === ''
+      || fileDrop.name.toLowerCase().indexOf(filterTextLower) !== -1
+      || fileDrop.description.toLowerCase().indexOf(filterTextLower) !== -1
+    )
+  ));
+  return _.sortBy(filteredFileDrops, ['name']);
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Selectors
 // ~~~~~~~~~~~~~~~~~~~~~~~~
