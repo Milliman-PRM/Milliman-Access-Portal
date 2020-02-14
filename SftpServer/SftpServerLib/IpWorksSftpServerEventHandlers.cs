@@ -1,7 +1,18 @@
-﻿using nsoftware.IPWorksSSH;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
+using nsoftware.IPWorksSSH;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 
@@ -9,6 +20,26 @@ namespace SftpServerLib
 {
     internal partial class IpWorksSftpServer : SftpLibApi
     {
+        public static string ConnectionString
+        {
+            set
+            {
+                DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+                ContextBuilder.UseNpgsql(value);
+                ContextOptions = ContextBuilder.Options;
+            }
+        }
+        private static DbContextOptions<ApplicationDbContext> ContextOptions = null;
+        private static ApplicationDbContext GetDbContext()
+        {
+            if (ContextOptions == null)
+            {
+                throw new ApplicationException("Attempt to create an instance of ApplicationDbContext before setting a connection string");
+            }
+
+            return new ApplicationDbContext(ContextOptions);
+        }
+
         protected JsonSerializerOptions prettyJsonOptions = new JsonSerializerOptions { WriteIndented = true, };
 
         private protected void EstablishServerInstance(Certificate cert)
@@ -48,19 +79,28 @@ namespace SftpServerLib
             {
                 Debug.WriteLine(GenerateEventArgsLogMessage("FileClose", evtData));
             };
+
             //[Description("Fired when a connection is closed.")]
             _sftpServer.OnDisconnected += (sender, evtData) =>
             {
                 Debug.WriteLine(GenerateEventArgsLogMessage("Disconnected", evtData));
 
-                try
+                using (ApplicationDbContext db = GetDbContext())
                 {
-                    string currentConfig = _sftpServer.Config($"UserRootDirectory[{evtData.ConnectionId}]");
-                    //string removedConfig = _sftpServer.Config($"UserRootDirectory[51235992]");
-                    // TODO: The connection specific config appears to get cleared out after the disconnect.  Confirm this with /n support. 
+                    SftpConnection thisConnection = db.SftpConnection
+                                                      .Include(c => c.SftpAccount)
+                                                      .SingleOrDefault(c => c.Id == evtData.ConnectionId);
+
+                    if (thisConnection != null)
+                    {
+                        db.SftpConnection.Remove(thisConnection);
+                        db.SaveChanges();
+
+                        Log.Information($"Connection {evtData.ConnectionId} closed for account name {thisConnection.SftpAccount.UserName}");
+                    }
                 }
-                catch (Exception e) { string msg = e.Message; };
             };
+
             //[Description("Fires when a client wants to delete a directory.")]
             _sftpServer.OnDirRemove += (sender, evtData) =>
             {
@@ -154,6 +194,35 @@ namespace SftpServerLib
                 //_sftpServer.Config($"UserAuthBanner[{evtData.ConnectionId}]=Whatever");
                 if (evtData.AuthMethod.Equals("password", StringComparison.InvariantCultureIgnoreCase))
                 {
+                    using (ApplicationDbContext db = GetDbContext())
+                    {
+                        SftpAccount userAccount = db.SftpAccount
+                                                    .Include(a => a.ApplicationUser)
+                                                    .Include(a => a.FileDropUserPermissionGroup)
+                                                        .ThenInclude(g => g.FileDrop)
+                                                    .SingleOrDefault(a => a.UserName == evtData.User);
+
+                        var passwordVerification = userAccount.CheckPassword(evtData.AuthParam);
+                        if (passwordVerification == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Success || 
+                            passwordVerification == Microsoft.AspNetCore.Identity.PasswordVerificationResult.SuccessRehashNeeded)
+                        {
+                            //_sftpServer.Config($@"UserRootDirectory[{evtData.ConnectionId}]={Path.Combine("\\\\indy-syn01\\prm_test\\FileDropRoot", userAccount.FileDropUserPermissionGroup.FileDrop.RootPath)}/*c:\sftproot\child1\*/");
+
+                            SftpConnection connection = new SftpConnection
+                            {
+                                Id = evtData.ConnectionId,
+                                CreatedDateTimeUtc = DateTime.UtcNow,
+                                LastActivityUtc = DateTime.UtcNow,
+                                SftpAccountId = userAccount.Id,
+                            };
+                            db.SftpConnection.Add(connection);
+                            db.SaveChanges();
+
+                            evtData.Accept = true;
+                        }
+                    }
+
+                    /*
                     switch (evtData.User)
                     {
                         case string user when user.Equals("user1", StringComparison.InvariantCultureIgnoreCase) && evtData.AuthParam == "password1":
@@ -177,6 +246,7 @@ namespace SftpServerLib
                         default:
                             return;
                     }
+                    */
                 }
             };
 
