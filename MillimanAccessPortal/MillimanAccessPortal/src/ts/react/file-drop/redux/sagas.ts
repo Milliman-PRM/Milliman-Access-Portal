@@ -45,6 +45,8 @@ export default function* rootSaga() {
   // API requests
   yield takeLatestRequest('FETCH_GLOBAL_DATA', API.fetchGlobalData);
   yield takeLatestRequest('FETCH_CLIENTS', API.fetchClients);
+  yield takeLatestRequest('FETCH_FILE_DROPS', API.fetchFileDrops);
+  yield takeLatestRequest('CREATE_FILE_DROP', API.createFileDrop);
 
   // Session and Status Checks
   yield takeLatestRequest('FETCH_STATUS_REFRESH', API.fetchStatusRefresh);

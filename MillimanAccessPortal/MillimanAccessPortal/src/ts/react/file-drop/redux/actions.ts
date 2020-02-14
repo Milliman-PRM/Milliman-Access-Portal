@@ -83,6 +83,46 @@ export interface FetchClientsFailed {
   error: TSError;
 }
 
+/**
+ * GET:
+ *   File Drops the current user has access to
+ */
+export interface FetchFileDrops {
+  type: 'FETCH_FILE_DROPS';
+  request: {};
+}
+/** Action called upon successful return of the FetchFileDrops API call */
+export interface FetchFileDropsSucceeded {
+  type: 'FETCH_FILE_DROPS_SUCCEEDED';
+  response: {
+    fileDrops: Dict<FileDropWithStats>;
+  };
+}
+/** Action called upon return of an error from the FetchFileDrops API call */
+export interface FetchFileDropsFailed {
+  type: 'FETCH_FILE_DROPS_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Create a new File Drop
+ */
+export interface CreateFileDrop {
+  type: 'CREATE_FILE_DROP';
+  request: FileDrop;
+}
+/** Action called upon successful return of the CreateFileDrop API call */
+export interface CreateFileDropSucceeded {
+  type: 'CREATE_FILE_DROP_SUCCEEDED';
+  response: FileDropWithStats;
+}
+/** Action called upon return of an error from the CreateFileDrop API call */
+export interface CreateFileDropFailed {
+  type: 'CREATE_FILE_DROP_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -176,6 +216,8 @@ export type FileDropScheduleActions =
 export type FileDropRequestActions =
   | FetchGlobalData
   | FetchClients
+  | FetchFileDrops
+  | CreateFileDrop
   | FetchStatusRefresh
   | FetchSessionCheck
   ;
@@ -184,6 +226,8 @@ export type FileDropRequestActions =
 export type FileDropSuccessResponseActions =
   | FetchGlobalDataSucceeded
   | FetchClientsSucceeded
+  | FetchFileDropsSucceeded
+  | CreateFileDropSucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   ;
@@ -192,6 +236,8 @@ export type FileDropSuccessResponseActions =
 export type FileDropErrorActions =
   | FetchGlobalDataFailed
   | FetchClientsFailed
+  | FetchFileDropsFailed
+  | CreateFileDropFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   ;

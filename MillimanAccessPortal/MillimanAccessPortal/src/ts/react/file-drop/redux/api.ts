@@ -25,6 +25,14 @@ export const fetchClients =
   createJsonRequestor<FileDropAction.FetchClients, FileDropAction.FetchClientsSucceeded>
     ('GET', '/FileDrop/Clients');
 
+export const fetchFileDrops =
+  createJsonRequestor<FileDropAction.FetchFileDrops, FileDropAction.FetchFileDropsSucceeded>
+    ('GET', '/FileDrop/FileDrops');
+
+export const createFileDrop =
+  createJsonRequestor<FileDropAction.CreateFileDrop, FileDropAction.CreateFileDropSucceeded>
+    ('POST', '/FileDrop/CreateFileDrop');
+
 // ~~~~~~~~~~~~~~~~~~~
 // Status Refresh Call
 // ~~~~~~~~~~~~~~~~~~~
