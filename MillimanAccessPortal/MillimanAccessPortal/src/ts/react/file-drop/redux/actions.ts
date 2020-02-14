@@ -38,6 +38,13 @@ export interface CloseCreateFileDropModal {
   type: 'CLOSE_CREATE_FILE_DROP_MODAL';
 }
 
+/** Update the input values of the Create File Drop Modal form */
+export interface UpdateCreateFileDropModalFormValues {
+  type: 'UPDATE_CREATE_FILE_DROP_MODAL_FORM_VALUES';
+  field: 'fileDropName' | 'fileDropDescription';
+  value: string;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -204,6 +211,7 @@ export type FileDropPageActions =
   | DecrementStatusRefreshAttempts
   | OpenCreateFileDropModal
   | CloseCreateFileDropModal
+  | UpdateCreateFileDropModalFormValues
   ;
 
 /** Actions that schedule another action */
