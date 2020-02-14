@@ -55,11 +55,17 @@ namespace MapDbContextLib.Context
             set
             {
                 PasswordHash = GetPasswordHasher().HashPassword(this, value);
+                PasswordResetDateTimeUtc = DateTime.UtcNow;
             }
         }
 
         public PasswordVerificationResult CheckPassword(string proposedPassword)
         {
+            if (string.IsNullOrWhiteSpace(PasswordHash))
+            {
+                return PasswordVerificationResult.Failed;
+            }
+
             var verificationResult = GetPasswordHasher().VerifyHashedPassword(this, PasswordHash, proposedPassword);
 
             return verificationResult;
