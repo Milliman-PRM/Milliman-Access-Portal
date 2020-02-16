@@ -49,27 +49,27 @@ export default function* rootSaga() {
   yield takeLatestRequest('CREATE_FILE_DROP', API.createFileDrop);
 
   // Session and Status Checks
-  yield takeLatestRequest('FETCH_STATUS_REFRESH', API.fetchStatusRefresh);
+  // yield takeLatestRequest('FETCH_STATUS_REFRESH', API.fetchStatusRefresh);
   yield takeLatestRequest('FETCH_SESSION_CHECK', API.fetchSessionCheck);
-  yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
+  // yield takeLatestSchedule('SCHEDULE_STATUS_REFRESH', function*() {
   // TO DO: implement status endpoint
-    const client: ClientWithEligibleUsers = yield select(Selector.selectedClient);
-    return client
-      ? ActionCreator.fetchStatusRefresh({
-        clientId: client.id,
-      })
-      : ActionCreator.scheduleStatusRefresh({ delay: 5000 });
-  });
-  yield takeLatestSchedule('FETCH_STATUS_REFRESH_SUCCEEDED',
-    () => ActionCreator.scheduleStatusRefresh({ delay: 5000 }));
-  yield takeLatestSchedule('FETCH_STATUS_REFRESH_FAILED',
-    () => ActionCreator.decrementStatusRefreshAttempts({}));
-  yield takeLatestSchedule('DECREMENT_STATUS_REFRESH_ATTEMPTS', function*() {
-    const retriesLeft: number = yield select(Selector.remainingStatusRefreshAttempts);
-    return retriesLeft
-      ? ActionCreator.scheduleStatusRefresh({ delay: 5000 })
-      : ActionCreator.promptStatusRefreshStopped({});
-  });
+  //   const client: ClientWithEligibleUsers = yield select(Selector.selectedClient);
+  //   return client
+  //     ? ActionCreator.fetchStatusRefresh({
+  //       clientId: client.id,
+  //     })
+  //     : ActionCreator.scheduleStatusRefresh({ delay: 5000 });
+  // });
+  // yield takeLatestSchedule('FETCH_STATUS_REFRESH_SUCCEEDED',
+  //   () => ActionCreator.scheduleStatusRefresh({ delay: 5000 }));
+  // yield takeLatestSchedule('FETCH_STATUS_REFRESH_FAILED',
+  //   () => ActionCreator.decrementStatusRefreshAttempts({}));
+  // yield takeLatestSchedule('DECREMENT_STATUS_REFRESH_ATTEMPTS', function*() {
+  //   const retriesLeft: number = yield select(Selector.remainingStatusRefreshAttempts);
+  //   return retriesLeft
+  //     ? ActionCreator.scheduleStatusRefresh({ delay: 5000 })
+  //     : ActionCreator.promptStatusRefreshStopped({});
+  // });
   yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => ActionCreator.fetchSessionCheck({}));
   yield takeLatestSchedule('FETCH_SESSION_CHECK_SUCCEEDED',
     () => ActionCreator.scheduleSessionCheck({ delay: 60000 }));
