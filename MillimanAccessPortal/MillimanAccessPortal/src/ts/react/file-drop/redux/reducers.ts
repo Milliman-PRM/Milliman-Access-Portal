@@ -81,6 +81,30 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
     ...state,
     clients: false,
   }),
+  FETCH_FILE_DROPS: (state) => ({
+    ...state,
+    fileDrops: true,
+  }),
+  FETCH_FILE_DROPS_SUCCEEDED: (state) => ({
+    ...state,
+    fileDrops: false,
+  }),
+  FETCH_FILE_DROPS_FAILED: (state) => ({
+    ...state,
+    fileDrops: false,
+  }),
+  CREATE_FILE_DROP: (state) => ({
+    ...state,
+    createFileDrop: true,
+  }),
+  CREATE_FILE_DROP_SUCCEEDED: (state) => ({
+    ...state,
+    createFileDrop: false,
+  }),
+  CREATE_FILE_DROP_FAILED: (state) => ({
+    ...state,
+    createFileDrop: false,
+  }),
 });
 
 /** Reducer for the statusTries value in the pending state object */
@@ -145,6 +169,10 @@ const selected = createReducer<State.FileDropSelectedState>(
     SELECT_CLIENT: (state, action: Action.SelectClient) => ({
       client: action.id === state.client ? null : action.id,
       fileDrop: null,
+    }),
+    CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
+      ...state,
+      fileDrop: action.response.id,
     }),
   },
 );
@@ -238,6 +266,13 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     ...state,
     clients: {
       ...action.response.clients,
+    },
+  }),
+  CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
+    ...state,
+    fileDrops: {
+      ...state.fileDrops,
+      [action.response.id]: action.response,
     },
   }),
 });
