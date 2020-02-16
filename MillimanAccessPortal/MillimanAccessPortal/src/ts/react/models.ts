@@ -305,7 +305,7 @@ export interface FileDropClientWithStats extends Client {
 
 export interface FileDrop {
   clientId: Guid;
-  id: Guid;
+  id?: Guid;
   name: string;
   description: string;
 }
