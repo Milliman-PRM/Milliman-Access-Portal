@@ -1,4 +1,10 @@
-﻿using AuditLogLib.Event;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Implements MVC actions for the FileDrop view
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using AuditLogLib.Event;
 using AuditLogLib.Models;
 using AuditLogLib.Services;
 using MapCommonLib;
@@ -10,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
@@ -115,7 +122,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateFileDrop([Bind("Name,Description,ClientId")] FileDrop fileDropModel)
+        public async Task<IActionResult> CreateFileDrop([FromBody][Bind("Name,Description,ClientId")] FileDrop fileDropModel)
         {
             #region Authorization
             var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
@@ -127,10 +134,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            string fileDropGlobalRoot = _applicationConfig.GetValue("FileDropRoot", string.Empty);
+            string fileDropGlobalRoot = _applicationConfig.GetValue("Storage:FileDropRoot", string.Empty);
 
             #region Validation
-            if (!ModelState.IsValid)
+            if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && v.Key != nameof(FileDrop.RootPath)))  // RootPath can/should be invalid here
             {
                 Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} ModelState not valid");
                 Response.Headers.Add("Warning", "The provided FileDrop information was invalid.");
