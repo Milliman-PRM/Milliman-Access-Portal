@@ -81,6 +81,8 @@ export default function* rootSaga() {
   yield takeEveryToast<Action.FileDropErrorActions>([
     'FETCH_GLOBAL_DATA_FAILED',
     'FETCH_CLIENTS_FAILED',
+    'FETCH_FILE_DROPS_FAILED',
+    'CREATE_FILE_DROP_FAILED',
     'FETCH_SESSION_CHECK_FAILED',
     'FETCH_STATUS_REFRESH_FAILED',
   ], ({ message }) => message === 'sessionExpired'
