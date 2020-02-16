@@ -71,7 +71,18 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           closeTimeoutMS={100}
         >
           <h3 className="title blue">Add File Drop</h3>
-          <form>
+          <form
+            onSubmit={(e) => {
+              {
+                e.preventDefault();
+                this.props.createFileDrop({
+                  clientId: pending.createFileDrop.clientId,
+                  name: pending.createFileDrop.fileDropName,
+                  description: pending.createFileDrop.fileDropDescription,
+                });
+              }
+            }}
+          >
             <Input
               autoFocus={true}
               error={pending.createFileDrop.errors.fileDropName}
