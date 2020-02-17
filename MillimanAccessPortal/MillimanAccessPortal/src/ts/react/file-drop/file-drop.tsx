@@ -284,7 +284,6 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     />
                   </CardSectionStats>
                   <CardSectionButtons>
-                    // TODO: Implement the second value properly
                     {cardButtons(entity.id, true)}
                   </CardSectionButtons>
                 </CardSectionMain>
