@@ -14,7 +14,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
 {
     public class FileDropsModel
     {
-        public Dictionary<Guid,FileDropCardModel> FileDrops { get; set; }
+        public Dictionary<Guid, FileDropCardModel> FileDrops { get; set; } = new Dictionary<Guid, FileDropCardModel>();
     }
 
 
