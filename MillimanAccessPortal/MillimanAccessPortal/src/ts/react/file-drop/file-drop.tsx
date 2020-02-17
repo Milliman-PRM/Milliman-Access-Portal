@@ -149,22 +149,16 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               selected={selected.client === entity.id}
               disabled={card.disabled}
               onSelect={() => {
-                // TODO: Update this section once all of the necessary actions and data are available
-                // if (this.props.formChangesPending || this.props.uploadChangesPending) {
-                //   this.props.openModifiedFormModal({
-                //     afterFormModal:
-                //     {
-                //       entityToSelect: entity.id,
-                //       entityType: 'Select Client',
-                //     },
-                //   });
-                // } else {
-                //   if (selected.client !== entity.id) {
-                //     this.props.fetchItems({ clientId: entity.id });
-                //   }
-                //   this.props.selectClient({ id: entity.id });
-                // }
-                this.props.selectClient({ id: entity.id });
+                 // TODO: Update this section once all of the necessary actions and data are available
+                 if (false) {
+                   // TODO: Properly implement any modals
+                 } else {
+                   if (selected.client !== entity.id) {
+                     this.props.fetchFileDrops({ clientId: entity.id });
+                   }
+                   this.props.selectClient({ id: entity.id });
+                 }
+                 // this.props.selectClient({ id: entity.id });
               }}
               indentation={entity.indent}
             >
