@@ -223,6 +223,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   // TODO: Implement any necessary modals before performing action
                 } else {
                   // TODO: Implement this action
+                  alert('Edit File Drop');
                 }
               }}
               icon={'edit'}
@@ -235,6 +236,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   // TODO: Implement any necessary modals before performing action
                 } else {
                   // TODO: Implement this action
+                  alert('Delete File Drop');
                 }
               }}
               icon={'delete'}
@@ -314,7 +316,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     <svg className="action-card-icon">
                       <use href="#add" />
                     </svg>
-                    <span>CREATE FILE DROP</span>
+                    <span>NEW FILE DROP</span>
                   </h2>
                 </div>
               </div>
