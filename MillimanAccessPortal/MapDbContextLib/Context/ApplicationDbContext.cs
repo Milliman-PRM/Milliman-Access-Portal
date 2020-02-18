@@ -190,7 +190,7 @@ namespace MapDbContextLib.Context
             builder.Entity<FileDropDirectory>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
-                b.HasOne(x => x.ParentDirectoryEntry).WithMany(p => p.ChildDirectories).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
+                b.HasOne(x => x.ParentDirectory).WithMany(p => p.ChildDirectories).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
                 b.HasOne(x => x.CreatedByAccount).WithMany(p => p.Directories).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
             });
             builder.Entity<FileDropFile>(b =>

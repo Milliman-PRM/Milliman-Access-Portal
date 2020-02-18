@@ -6,7 +6,9 @@
 
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
+using MillimanAccessPortal.Models.FileDropModels;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using TestResourcesLib;
 using Xunit;
@@ -22,7 +24,7 @@ namespace MapTests
         public FileDropControllerTests()
         {
             TestResources = new TestInitialization();
-            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.FileDrop });
         }
 
         /// <summary>Constructs a controller with the specified active user.</summary>
@@ -57,7 +59,7 @@ namespace MapTests
         public async Task Clients_NotAuthorized()
         {
             #region Arrange
-            FileDropController controller = await GetControllerForUser("user5");
+            FileDropController controller = await GetControllerForUser("user8");
             #endregion
 
             #region Act
@@ -70,9 +72,13 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("test1")]
-        [InlineData("test2")]
-        [InlineData("ClientAdmin1")]
+        [InlineData("user1")]
+        [InlineData("user2")]
+        [InlineData("user3")]
+        [InlineData("user4")]
+        [InlineData("user5")]
+        [InlineData("user6")]
+        [InlineData("user7")]
         public async Task Clients_Authorized(string userName)
         {
             #region Arrange
@@ -84,7 +90,42 @@ namespace MapTests
             #endregion
 
             #region Assert
-            var result = Assert.IsType<JsonResult>(response);
+            Assert.IsNotType<UnauthorizedResult>(response);
+            #endregion
+        }
+
+        /// <summary>
+        /// Client1 is parent, Client2 is child
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="numClient1"></param>
+        /// <param name="numClient2"></param>
+        /// <param name="numClient3"></param>
+        /// <returns></returns>
+        [Theory]
+        [InlineData("user1", 1, 0, 0)] // 1-admin, 2-no role
+        [InlineData("user2", 1, 0, 0)] // 1-user, 2-no role
+        [InlineData("user3", 1, 1, 0)] // 1-no role, 2-admin
+        [InlineData("user4", 0, 1, 0)] // 1-no role, 2-user
+        [InlineData("user5", 1, 1, 0)] // 1-admin, 2-admin
+        [InlineData("user6", 1, 1, 0)] // 1-user, 2-user
+        [InlineData("user7", 1, 1, 0)] // 1-both, 2-both
+        public async Task Clients_CorrectResponse(string userName, int numClient1, int numClient2, int numClient3)
+        {
+            #region Arrange
+            FileDropController controller = await GetControllerForUser(userName);
+            #endregion
+
+            #region Act
+            var response = await controller.Clients();
+            #endregion
+
+            #region Assert
+            JsonResult result = Assert.IsType<JsonResult>(response);
+            ClientsModel model = Assert.IsType<ClientsModel>(result.Value);
+            Assert.Equal(numClient1, model.Clients.Values.Where(c => c.Id == TestUtil.MakeTestGuid(1)).Count());
+            Assert.Equal(numClient2, model.Clients.Values.Where(c => c.Id == TestUtil.MakeTestGuid(2)).Count());
+            Assert.Equal(numClient3, model.Clients.Values.Where(c => c.Id == TestUtil.MakeTestGuid(3)).Count());
             #endregion
         }
 

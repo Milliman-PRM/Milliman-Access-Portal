@@ -55,6 +55,7 @@ namespace MapTests
         Reduction,
         Account,
         SystemAdmin,
+        FileDrop,
     }
 
     /// <summary>
@@ -147,6 +148,7 @@ namespace MapTests
                 { DataSelection.Reduction, GenerateReductionTestData },
                 { DataSelection.Account, GenerateAccountTestData },
                 { DataSelection.SystemAdmin, GenerateSystemAdminTestData },
+                { DataSelection.FileDrop, GenerateFileDropTestData },
             };
         }
         /// <summary>
@@ -612,12 +614,6 @@ namespace MapTests
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(10), ClientId=TestUtil.MakeTestGuid(8), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(6) },
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(11), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(2), UserId=TestUtil.MakeTestGuid(2) }, // this record is intentionally without a respective claim
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(12), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1) },
-
-                        // FileDrop roles:
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(13), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(1) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(14), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(1) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(15), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(2) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(16), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(3) },
                     });
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
@@ -1305,6 +1301,140 @@ namespace MapTests
             });
             MockDbSet<ContentReductionTask>.AssignNavigationProperty(DbContextObject.ContentReductionTask, "SelectionGroupId", DbContextObject.SelectionGroup);
             #endregion
+        }
+
+        private void GenerateFileDropTestData()
+        {
+            #region Initialize Users
+            DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
+            {
+                    new ApplicationUser { Id = TestUtil.MakeTestGuid(1), UserName = "user1", Email = "user1@site.domain", },
+                    new ApplicationUser { Id = TestUtil.MakeTestGuid(2), UserName = "user2", Email = "user2@site.domain", },
+                    new ApplicationUser { Id = TestUtil.MakeTestGuid(3), UserName = "user3", Email = "user3@site.domain",  },
+                    new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "user4", Email = "user4@site.domain",  },
+                    new ApplicationUser { Id = TestUtil.MakeTestGuid(5), UserName = "user5", Email = "user5@site.domain",  },
+                    new ApplicationUser { Id = TestUtil.MakeTestGuid(6), UserName = "user6", Email = "user6@site.domain",  },
+                    new ApplicationUser { Id = TestUtil.MakeTestGuid(7), UserName = "user7", Email = "user7@site.domain",  },
+                    new ApplicationUser { Id = TestUtil.MakeTestGuid(8), UserName = "user8", Email = "user8@site.domain",  },
+            });
+            MockDbSet<ApplicationUser>.AssignNavigationProperty(DbContextObject.ApplicationUser, "AuthenticationSchemeId", DbContextObject.AuthenticationScheme);
+            #endregion
+
+            #region Initialize ProfitCenters
+            DbContextObject.ProfitCenter.AddRange(new List<ProfitCenter>
+            {
+                new ProfitCenter { Id = TestUtil.MakeTestGuid(1), Name = "Test Profit Center"},
+            });
+            #endregion
+
+            #region Initialize Clients
+            DbContextObject.Client.AddRange(new List<Client>
+            {
+                new Client { Id = TestUtil.MakeTestGuid(1), Name = "Client 1, Parent of client 2", ProfitCenterId = TestUtil.MakeTestGuid(1), ParentClientId = null, AcceptedEmailDomainList = new List<string>{"abc.com", "def.com"} },
+                new Client { Id = TestUtil.MakeTestGuid(2), Name = "Client 2", ProfitCenterId = TestUtil.MakeTestGuid(1), ParentClientId = TestUtil.MakeTestGuid(1), AcceptedEmailDomainList = new List<string>{"abc.com", "def.com"} },
+                new Client { Id = TestUtil.MakeTestGuid(3), Name = "Client 3, no parent or child", ProfitCenterId = TestUtil.MakeTestGuid(1), ParentClientId = null, AcceptedEmailDomainList = new List<string>{"abc.com", "def.com"} },
+            });
+            MockDbSet<Client>.AssignNavigationProperty(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
+            #endregion
+
+            #region Initialize User associations with Clients
+            #region Initialize UserRoleInClient
+            DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
+            {
+                // user1 admin only on parent only
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(1) },
+                // user2 user only on parent only
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(2) },
+                // user3 admin only on child only
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(3) },
+                // user4 user only on child only
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(4) },
+                // user5 admin only on parent and child
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(5) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(6), ClientId=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(5) },
+                // user6 user only on parent and child
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(7), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(6) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(8), ClientId=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(6) },
+                // user7 user and admin on both parent and child
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(9), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(7) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(10), ClientId=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(7) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(11), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(7) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(12), ClientId=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(7) },
+            });
+            MockDbSet<UserRoleInClient>.AssignNavigationProperty(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
+            MockDbSet<UserRoleInClient>.AssignNavigationProperty(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
+            MockDbSet<UserRoleInClient>.AssignNavigationProperty(DbContextObject.UserRoleInClient, "RoleId", DbContextObject.ApplicationRole);
+            #endregion
+
+            #region Initialize UserClaims
+            DbContextObject.UserClaims.AddRange(new List<IdentityUserClaim<Guid>>
+            {
+                // all users members of all clients
+                // Client 1
+                new IdentityUserClaim<Guid>{ Id = 1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(1).ToString(), UserId = TestUtil.MakeTestGuid(1) },
+                new IdentityUserClaim<Guid>{ Id = 2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(1).ToString(), UserId = TestUtil.MakeTestGuid(2) },
+                new IdentityUserClaim<Guid>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(1).ToString(), UserId = TestUtil.MakeTestGuid(3) },
+                new IdentityUserClaim<Guid>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(1).ToString(), UserId = TestUtil.MakeTestGuid(4) },
+                // Client 2
+                new IdentityUserClaim<Guid>{ Id = 1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(2).ToString(), UserId = TestUtil.MakeTestGuid(1) },
+                new IdentityUserClaim<Guid>{ Id = 2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(2).ToString(), UserId = TestUtil.MakeTestGuid(2) },
+                new IdentityUserClaim<Guid>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(2).ToString(), UserId = TestUtil.MakeTestGuid(3) },
+                new IdentityUserClaim<Guid>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(2).ToString(), UserId = TestUtil.MakeTestGuid(4) },
+                // Client 3
+                new IdentityUserClaim<Guid>{ Id = 1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(3).ToString(), UserId = TestUtil.MakeTestGuid(1) },
+                new IdentityUserClaim<Guid>{ Id = 2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(3).ToString(), UserId = TestUtil.MakeTestGuid(2) },
+                new IdentityUserClaim<Guid>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(3).ToString(), UserId = TestUtil.MakeTestGuid(3) },
+                new IdentityUserClaim<Guid>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(3).ToString(), UserId = TestUtil.MakeTestGuid(4) },
+});
+            #endregion
+            #endregion 
+
+            #region Initialize UserRoles
+            DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
+            { 
+                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
+                    new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
+            });
+            #endregion
+
+            #region Initialize FileDrops
+            DbContextObject.FileDrop.AddRange(new List<FileDrop>
+            {
+                new FileDrop { Id = TestUtil.MakeTestGuid(1), Name = "FileDrop 1", ClientId = TestUtil.MakeTestGuid(1) },
+                new FileDrop { Id = TestUtil.MakeTestGuid(2), Name = "FileDrop 2", ClientId = TestUtil.MakeTestGuid(2) },
+                new FileDrop { Id = TestUtil.MakeTestGuid(3), Name = "FileDrop 3", ClientId = TestUtil.MakeTestGuid(3) },
+            });
+            MockDbSet<FileDrop>.AssignNavigationProperty<Client>(DbContextObject.FileDrop, nameof(FileDrop.ClientId), DbContextObject.Client);
+            #endregion
+
+            #region Initialize FileDropPermissionGroups
+            DbContextObject.FileDropUserPermissionGroup.AddRange(new List<FileDropUserPermissionGroup>
+            {
+                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(1), Name = "user 2 in FileDrop 1", FileDropId = TestUtil.MakeTestGuid(1) },
+                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(2), Name = "user 4 in FileDrop 2", FileDropId = TestUtil.MakeTestGuid(2) },
+                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(3), Name = "user 6 in FileDrop 1", FileDropId = TestUtil.MakeTestGuid(1) },
+                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(4), Name = "user 6 in FileDrop 2", FileDropId = TestUtil.MakeTestGuid(2) },
+                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(5), Name = "user 7 in FileDrop 1", FileDropId = TestUtil.MakeTestGuid(1) },
+                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(6), Name = "user 7 in FileDrop 2", FileDropId = TestUtil.MakeTestGuid(2) },
+            });
+            MockDbSet<FileDropUserPermissionGroup>.AssignNavigationProperty<FileDrop>(DbContextObject.FileDropUserPermissionGroup, nameof(FileDropUserPermissionGroup.FileDropId), DbContextObject.FileDrop);
+            #endregion
+
+            #region Initialize SftpAccount
+            DbContextObject.SftpAccount.AddRange(new List<SftpAccount>
+                {
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(1), ApplicationUserId = TestUtil.MakeTestGuid(2), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(1) },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(2), ApplicationUserId = TestUtil.MakeTestGuid(4), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(2) },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(3), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(3) },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(4), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(4) },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(5), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(5) },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(6), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(6) },
+                });
+            MockDbSet<SftpAccount>.AssignNavigationProperty<ApplicationUser>(DbContextObject.SftpAccount, nameof(SftpAccount.ApplicationUserId), DbContextObject.ApplicationUser);
+            MockDbSet<SftpAccount>.AssignNavigationProperty<FileDrop>(DbContextObject.SftpAccount, nameof(SftpAccount.FileDropId), DbContextObject.FileDrop);
+            #endregion
+
+            //MockDbSet<SftpAccount>.AssignReverseNavigationProperty<ApplicationUser>(DbContextObject.SftpAccount, nameof(SftpAccount.ApplicationUserId), DbContextObject.ApplicationUser, nameof(ApplicationUser.SftpAccounts));
         }
 
         private void ConnectServicesToData()

@@ -84,7 +84,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// View page in which publication UI is presented
+        /// Return the view in which FileDrop UI is presented
         /// </summary>
         /// <returns></returns>
         public IActionResult Index()

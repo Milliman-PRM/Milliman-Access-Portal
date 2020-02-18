@@ -50,7 +50,9 @@ namespace MillimanAccessPortal.DataQueries
                                                      .Union(
                                                          _dbContext.ApplicationUser
                                                                    .Where(u => u.UserName.Equals(user.UserName, StringComparison.InvariantCultureIgnoreCase))
-                                                                   .SelectMany(u => u.SftpAccounts.Select(a => a.FileDropUserPermissionGroup.FileDrop.Client)),
+                                                                   .SelectMany(u => u.SftpAccounts
+                                                                                     .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                                                     .Select(a => a.FileDropUserPermissionGroup.FileDrop.Client)),
                                                          new IdPropertyComparer<Client>()
                                                      )
                                                      .ToList();
@@ -98,6 +100,7 @@ namespace MillimanAccessPortal.DataQueries
             {
                 UserCount = _dbContext.ApplicationUser
                                       .Where(u => u.SftpAccounts
+                                                   .Where(a => a.FileDropUserPermissionGroupId.HasValue)
                                                    .Any(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id))
                                       .ToList()
                                       .Distinct(new IdPropertyComparer<ApplicationUser>())
@@ -112,7 +115,8 @@ namespace MillimanAccessPortal.DataQueries
                                                           ur.Role.RoleEnum == RoleEnum.FileDropAdmin),
 
                 AuthorizedFileDropUser = _dbContext.SftpAccount
-                                                   .Any(a => a.ApplicationUserId == user.Id && 
+                                                   .Any(a => a.ApplicationUserId == user.Id &&
+                                                             a.FileDropUserPermissionGroupId.HasValue &&
                                                              a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id),
             };
         }
