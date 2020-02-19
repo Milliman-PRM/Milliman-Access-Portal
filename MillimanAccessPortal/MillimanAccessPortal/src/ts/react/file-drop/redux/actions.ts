@@ -45,6 +45,34 @@ export interface UpdateCreateFileDropModalFormValues {
   value: string;
 }
 
+/** Open the modal used to begin File Drop deletion */
+export interface OpenDeleteFileDropModal {
+  type: 'OPEN_DELETE_FILE_DROP_MODAL';
+  id: Guid;
+}
+
+/**
+ * Close the modal used to begin File Drop deletion.
+ */
+export interface CloseDeleteFileDropModal {
+  type: 'CLOSE_DELETE_CONTENT_ITEM_MODAL';
+}
+
+/**
+ * Open the modal used to confirm File Drop deletion.
+ */
+export interface OpenDeleteFileDropConfirmationModal {
+  type: 'OPEN_DELETE_FILE_DROP_CONFIRMATION_MODAL';
+}
+
+/**
+ * Close the modal used to confirm File Drop deletion.
+ */
+export interface CloseDeleteFileDropConfirmationModal {
+  type: 'CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL';
+}
+
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -130,6 +158,25 @@ export interface CreateFileDropFailed {
   error: TSError;
 }
 
+/**
+ * DELETE:
+ *   Delete a File Drop
+ */
+export interface DeleteFileDrop {
+  type: 'DELETE_FILE_DROP';
+  request: Guid;
+}
+/** Action called upon successful return of the DeleteFileDrop API call */
+export interface DeleteFileDropSucceeded {
+  type: 'DELETE_FILE_DROP_SUCCEEDED';
+  response: FileDrop;
+}
+/** Action called upon return of an error from the DeleteFileDrop API call */
+export interface DeleteFileDropFailed {
+  type: 'DELETE_FILE_DROP_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -212,6 +259,10 @@ export type FileDropPageActions =
   | OpenCreateFileDropModal
   | CloseCreateFileDropModal
   | UpdateCreateFileDropModalFormValues
+  | OpenDeleteFileDropModal
+  | CloseDeleteFileDropModal
+  | OpenDeleteFileDropConfirmationModal
+  | CloseDeleteFileDropConfirmationModal
   ;
 
 /** Actions that schedule another action */
@@ -226,6 +277,7 @@ export type FileDropRequestActions =
   | FetchClients
   | FetchFileDrops
   | CreateFileDrop
+  | DeleteFileDrop
   | FetchStatusRefresh
   | FetchSessionCheck
   ;
@@ -236,6 +288,7 @@ export type FileDropSuccessResponseActions =
   | FetchClientsSucceeded
   | FetchFileDropsSucceeded
   | CreateFileDropSucceeded
+  | DeleteFileDropSucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   ;
@@ -246,6 +299,7 @@ export type FileDropErrorActions =
   | FetchClientsFailed
   | FetchFileDropsFailed
   | CreateFileDropFailed
+  | DeleteFileDropFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   ;

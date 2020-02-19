@@ -65,6 +65,8 @@ export interface FileDropFilterState {
 /** State representing modals */
 export interface FileDropModals {
   createFileDrop: ModalState;
+  deleteFileDrop: ModalState;
+  confirmDeleteFileDrop: ModalState;
 }
 
 /** Top-Level File Drop state */
