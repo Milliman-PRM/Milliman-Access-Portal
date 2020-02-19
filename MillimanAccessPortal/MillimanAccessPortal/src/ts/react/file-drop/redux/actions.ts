@@ -48,7 +48,7 @@ export interface UpdateCreateFileDropModalFormValues {
 /** Open the modal used to begin File Drop deletion */
 export interface OpenDeleteFileDropModal {
   type: 'OPEN_DELETE_FILE_DROP_MODAL';
-  id: Guid;
+  fileDrop: FileDropWithStats;
 }
 
 /**
@@ -71,7 +71,6 @@ export interface OpenDeleteFileDropConfirmationModal {
 export interface CloseDeleteFileDropConfirmationModal {
   type: 'CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL';
 }
-
 
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
@@ -169,7 +168,9 @@ export interface DeleteFileDrop {
 /** Action called upon successful return of the DeleteFileDrop API call */
 export interface DeleteFileDropSucceeded {
   type: 'DELETE_FILE_DROP_SUCCEEDED';
-  response: FileDrop;
+  response: {
+    fileDrops: Dict<FileDropWithStats>;
+  };
 }
 /** Action called upon return of an error from the DeleteFileDrop API call */
 export interface DeleteFileDropFailed {
@@ -323,4 +324,6 @@ export type FileDropActions =
 /** An action that opens a modal */
 export type OpenModalAction =
   | OpenCreateFileDropModal
+  | OpenDeleteFileDropModal
+  | OpenDeleteFileDropConfirmationModal
   ;
