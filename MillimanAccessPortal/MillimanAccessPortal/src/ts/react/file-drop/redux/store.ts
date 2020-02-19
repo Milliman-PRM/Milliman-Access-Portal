@@ -19,6 +19,7 @@ export interface FileDropPendingReturnState {
   clients: boolean;
   fileDrops: boolean;
   createFileDrop: boolean;
+  deleteFileDrop: boolean;
 }
 
 /** Data used in the Create File Drop modal form */
@@ -37,6 +38,7 @@ export interface FileDropPendingState {
   async: FileDropPendingReturnState;
   statusTries: number;
   createFileDrop: CreateFileDropModalFormData;
+  fileDropToDelete: FileDropWithStats;
 }
 
 /** State representing user-selected entities */
