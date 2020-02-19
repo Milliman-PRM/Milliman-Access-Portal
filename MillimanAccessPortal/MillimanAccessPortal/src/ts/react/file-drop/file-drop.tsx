@@ -128,6 +128,89 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             </div>
           </form>
         </Modal>
+        <Modal
+          isOpen={modals.deleteFileDrop.isOpen}
+          onRequestClose={() => this.props.closeDeleteFileDropModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Delete File Drop</h3>
+          <span className="modal-text">
+            Delete <strong>{
+              (pending.fileDropToDelete.id !== null)
+                ? pending.fileDropToDelete.name
+                : ''}</strong>?
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeDeleteFileDropModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                // Add a slight pause to make it obvious that you've switched modals
+                setTimeout(() => this.props.openDeleteFileDropConfirmationModal({}), 400);
+              }}
+            >
+              Delete
+              {pending.async.deleteFileDrop
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
+        <Modal
+          isOpen={modals.confirmDeleteFileDrop.isOpen}
+          onRequestClose={() => this.props.closeDeleteFileDropConfirmationModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Confirm Deletion of File Drop</h3>
+          <span className="modal-text">
+            Delete <strong>{
+              (pending.fileDropToDelete.id !== null)
+                ? pending.fileDropToDelete.name
+                : ''}</strong>?
+            <br />
+            <br />
+            <strong>THIS ACTION WILL DELETE ALL EXISTING FILES IN THIS FILE DROP.</strong>
+            <br />
+            <br />
+            <strong>THIS ACTION CANNOT BE UNDONE.</strong>
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeDeleteFileDropConfirmationModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (!pending.async.deleteFileDrop) {
+                  this.props.deleteFileDrop(pending.fileDropToDelete.id);
+                }
+              }}
+            >
+              Confirm Deletion
+              {pending.async.deleteFileDrop
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
       </>
     );
   }
