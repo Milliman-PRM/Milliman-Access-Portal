@@ -294,7 +294,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         }}
       />
     );
-    const cardButtons = (_entityId: string, canManageFileDrops: boolean) => {
+    const cardButtons = (entity: FileDropWithStats, canManageFileDrops: boolean) => {
       return canManageFileDrops
         ? (
           <>
@@ -318,8 +318,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 if (false) {
                   // TODO: Implement any necessary modals before performing action
                 } else {
-                  // TODO: Implement this action
-                  alert('Delete File Drop');
+                  this.props.openDeleteFileDropModal({fileDrop: entity});
                 }
               }}
               icon={'delete'}
@@ -369,7 +368,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     />
                   </CardSectionStats>
                   <CardSectionButtons>
-                    {cardButtons(entity.id, true)}
+                    {cardButtons(entity, true)}
                   </CardSectionButtons>
                 </CardSectionMain>
               </Card>
