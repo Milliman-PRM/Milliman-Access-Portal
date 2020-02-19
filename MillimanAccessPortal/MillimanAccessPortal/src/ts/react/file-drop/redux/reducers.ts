@@ -5,7 +5,7 @@ import { combineReducers } from 'redux';
 import * as Action from './actions';
 import * as State from './store';
 
-import { Guid } from '../../models';
+import { FileDropWithStats, Guid } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
@@ -39,6 +39,7 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   clients: false,
   fileDrops: false,
   createFileDrop: false,
+  deleteFileDrop: false,
 };
 
 const _initialCreateFileDropData: State.CreateFileDropModalFormData = {
@@ -49,6 +50,14 @@ const _initialCreateFileDropData: State.CreateFileDropModalFormData = {
     fileDropName: null,
     fileDropDescription: null,
   },
+};
+
+const _initialFileDropWithStats: FileDropWithStats = {
+  clientId: null,
+  id: null,
+  name: null,
+  description: null,
+  userCount: null,
 };
 
 // ~~~~~~~~~~~~~~~~
@@ -105,6 +114,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
     ...state,
     createFileDrop: false,
   }),
+  DELETE_FILE_DROP: (state) => ({
+    ...state,
+    deleteFileDrop: true,
+  }),
+  DELETE_FILE_DROP_SUCCEEDED: (state) => ({
+    ...state,
+    deleteFileDrop: false,
+  }),
+  DELETE_FILE_DROP_FAILED: (state) => ({
+    ...state,
+    deleteFileDrop: false,
+  }),
 });
 
 /** Reducer for the statusTries value in the pending state object */
@@ -148,11 +169,28 @@ const pendingCreateFileDropForm = createReducer<State.CreateFileDropModalFormDat
   }),
 });
 
+/** Reducer for the Delete File Drop modal */
+const pendingFileDropToDelete = createReducer<FileDropWithStats>(_initialFileDropWithStats, {
+  OPEN_DELETE_FILE_DROP_MODAL: (_state, action: Action.OpenDeleteFileDropModal) => ({
+    ...action.fileDrop,
+  }),
+  CLOSE_DELETE_FILE_DROP_MODAL: () => ({
+    ..._initialFileDropWithStats,
+  }),
+  CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL: () => ({
+    ..._initialFileDropWithStats,
+  }),
+  DELETE_FILE_DROP: () => ({
+    ..._initialFileDropWithStats,
+  }),
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
   statusTries: pendingStatusTries,
   createFileDrop: pendingCreateFileDropForm,
+  fileDropToDelete: pendingFileDropToDelete,
 });
 
 // ~~~~~~~~~~~~~~~~
@@ -250,6 +288,16 @@ const modals = combineReducers({
   createFileDrop: createModalReducer(['OPEN_CREATE_FILE_DROP_MODAL'], [
     'CLOSE_CREATE_FILE_DROP_MODAL',
     'CREATE_FILE_DROP_SUCCEEDED',
+    'CREATE_FILE_DROP_FAILED',
+  ]),
+  deleteFileDrop: createModalReducer(['OPEN_DELETE_FILE_DROP_MODAL'], [
+    'CLOSE_DELETE_FILE_DROP_MODAL',
+    'OPEN_DELETE_FILE_DROP_CONFIRMATION_MODAL',
+  ]),
+  confirmDeleteFileDrop: createModalReducer(['OPEN_DELETE_FILE_DROP_CONFIRMATION_MODAL'], [
+    'CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL',
+    'DELETE_FILE_DROP_SUCCEEDED',
+    'DELETE_FILE_DROP_FAILED',
   ]),
 });
 
@@ -279,6 +327,12 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...state.fileDrops,
       [action.response.id]: action.response,
+    },
+  }),
+  DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
+    ...state,
+    fileDrops: {
+      ...action.response.fileDrops,
     },
   }),
 });
