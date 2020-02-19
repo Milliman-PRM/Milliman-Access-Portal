@@ -55,7 +55,7 @@ export interface OpenDeleteFileDropModal {
  * Close the modal used to begin File Drop deletion.
  */
 export interface CloseDeleteFileDropModal {
-  type: 'CLOSE_DELETE_CONTENT_ITEM_MODAL';
+  type: 'CLOSE_DELETE_FILE_DROP_MODAL';
 }
 
 /**

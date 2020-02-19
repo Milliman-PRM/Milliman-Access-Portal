@@ -36,7 +36,7 @@ export const openDeleteFileDropModal =
 
 /** Close the Delete File Drop modal */
 export const closeDeleteFileDropModal =
-  createActionCreator<Action.CloseDeleteFileDropModal>('CLOSE_DELETE_CONTENT_ITEM_MODAL');
+  createActionCreator<Action.CloseDeleteFileDropModal>('CLOSE_DELETE_FILE_DROP_MODAL');
 
 /** Open the Delete File Drop modal */
 export const openDeleteFileDropConfirmationModal =
