@@ -312,5 +312,4 @@ export interface FileDrop {
 
 export interface FileDropWithStats extends FileDrop {
   userCount: number;
-  sftAccountCount: number;
 }
