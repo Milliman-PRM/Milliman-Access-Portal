@@ -1,4 +1,11 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: GUI form to manually drive SFTP library features
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Context;
+using Microsoft.Extensions.Configuration;
 using SftpServerLib;
 using System;
 using System.Collections.Generic;
@@ -17,10 +24,15 @@ namespace SftpCoreGui
     {
         SftpLibApi _SftpApi = null;
         SftpAccount sftpAccountObject;
+        IConfigurationRoot _appConfig = null;
 
         public Form1()
         {
             InitializeComponent();
+
+            ConfigurationBuilder builder = new ConfigurationBuilder();
+            builder.AddUserSecrets<Form1>();
+            _appConfig = builder.Build();
         }
 
         private void btnStartStop_Click(object sender, EventArgs e)
@@ -28,12 +40,13 @@ namespace SftpCoreGui
             Button Sender = sender as Button;
             if (Sender.Text == "Start")
             {
-                _SftpApi = SftpLibApi.NewInstance();
+                _SftpApi = SftpLibApi.NewInstance(_appConfig);
 
                 using (var fileStream = new FileStream(textKeyfilePath.Text, FileMode.Open))
                 {
-                    using (BinaryReader keyStream = new BinaryReader(fileStream)) {
-                        byte[] keyBytes = keyStream.ReadBytes(10_000);
+                    using (BinaryReader keyStream = new BinaryReader(fileStream)) 
+                    {
+                        byte[] keyBytes = keyStream.ReadBytes((int)fileStream.Length);
                         _SftpApi.Start(keyBytes);
                     }
                 }
@@ -52,7 +65,8 @@ namespace SftpCoreGui
         {
             Button Sender = sender as Button;
 
-            sftpAccountObject = new SftpAccount { Password = textPassword.Text };
+            // TODO fix the file drop id
+            sftpAccountObject = new SftpAccount(Guid.Empty) { Password = textPassword.Text };
             textHash.Text = sftpAccountObject.PasswordHash;
         }
 

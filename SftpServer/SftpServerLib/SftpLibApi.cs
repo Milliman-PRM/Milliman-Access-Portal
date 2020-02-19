@@ -5,6 +5,8 @@
  */
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Serilog;
 using System;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -13,13 +15,32 @@ namespace SftpServerLib
 {
     public abstract class SftpLibApi
     {
-        public static SftpLibApi NewInstance()
+        protected IConfigurationRoot _applicationConfiguration = null;
+
+        public static SftpLibApi NewInstance(IConfigurationRoot configurationRoot)
         {
-            return new IpWorksSftpServer();
+            return new IpWorksSftpServer(configurationRoot);
         }
 
-        internal SftpLibApi()
+        internal SftpLibApi(IConfigurationRoot configurationRoot)
         {
+            _applicationConfiguration = configurationRoot;
+
+            // Initialize Serilog
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(_applicationConfiguration)
+                .CreateLogger();
+
+            /*
+            Assembly processAssembly = Assembly.GetEntryAssembly();
+            FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
+            Log.Information($"Process launched:{Environment.NewLine}" +
+                            $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
+                            $"\tAssembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
+                            $"\tAssembly location <{processAssembly.Location}>{Environment.NewLine}" +
+                            $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");
+            */
+
             //throw new NotImplementedException("Abstract base class SftpLibApi cannot be instantiated");
         }
 

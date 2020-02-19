@@ -4,6 +4,8 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using AuditLogLib;
+using AuditLogLib.Event;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using nsoftware.IPWorksSSH;
@@ -20,24 +22,24 @@ namespace SftpServerLib
 {
     internal partial class IpWorksSftpServer : SftpLibApi
     {
-        public static string ConnectionString
+        internal static string MapDbConnectionString
         {
             set
             {
                 DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
                 ContextBuilder.UseNpgsql(value);
-                ContextOptions = ContextBuilder.Options;
+                MapDbContextOptions = ContextBuilder.Options;
             }
         }
-        private static DbContextOptions<ApplicationDbContext> ContextOptions = null;
-        private static ApplicationDbContext GetDbContext()
+        private static DbContextOptions<ApplicationDbContext> MapDbContextOptions = null;
+        private static ApplicationDbContext GetMapDbContext()
         {
-            if (ContextOptions == null)
+            if (MapDbContextOptions == null)
             {
                 throw new ApplicationException("Attempt to create an instance of ApplicationDbContext before setting a connection string");
             }
 
-            return new ApplicationDbContext(ContextOptions);
+            return new ApplicationDbContext(MapDbContextOptions);
         }
 
         protected JsonSerializerOptions prettyJsonOptions = new JsonSerializerOptions { WriteIndented = true, };
@@ -85,7 +87,7 @@ namespace SftpServerLib
             {
                 Debug.WriteLine(GenerateEventArgsLogMessage("Disconnected", evtData));
 
-                using (ApplicationDbContext db = GetDbContext())
+                using (ApplicationDbContext db = GetMapDbContext())
                 {
                     SftpConnection thisConnection = db.SftpConnection
                                                       .Include(c => c.SftpAccount)
@@ -194,7 +196,7 @@ namespace SftpServerLib
                 //_sftpServer.Config($"UserAuthBanner[{evtData.ConnectionId}]=Whatever");
                 if (evtData.AuthMethod.Equals("password", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    using (ApplicationDbContext db = GetDbContext())
+                    using (ApplicationDbContext db = GetMapDbContext())
                     {
                         SftpAccount userAccount = db.SftpAccount
                                                     .Include(a => a.ApplicationUser)
@@ -203,7 +205,7 @@ namespace SftpServerLib
                                                     .SingleOrDefault(a => a.UserName == evtData.User);
 
                         var passwordVerification = userAccount.CheckPassword(evtData.AuthParam);
-                        if (passwordVerification == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Success || 
+                        if (passwordVerification == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Success ||
                             passwordVerification == Microsoft.AspNetCore.Identity.PasswordVerificationResult.SuccessRehashNeeded)
                         {
                             //_sftpServer.Config($@"UserRootDirectory[{evtData.ConnectionId}]={Path.Combine("\\\\indy-syn01\\prm_test\\FileDropRoot", userAccount.FileDropUserPermissionGroup.FileDrop.RootPath)}/*c:\sftproot\child1\*/");
@@ -219,6 +221,13 @@ namespace SftpServerLib
                             db.SaveChanges();
 
                             evtData.Accept = true;
+
+                            Log.Information($"Sftp acount <{userAccount.UserName}> authenticated, FileDrop is <{userAccount.FileDrop.Name}>, access is: " +
+                                            (userAccount.FileDropUserPermissionGroupId.HasValue
+                                            ? "read: " + userAccount.FileDropUserPermissionGroup.ReadAccess.ToString() +
+                                              ", write: " + userAccount.FileDropUserPermissionGroup.WriteAccess.ToString() +
+                                              ", delete: " + userAccount.FileDropUserPermissionGroup.DeleteAccess.ToString()
+                                            : "no permission group assigned"));
                         }
                     }
 

@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: This class is partial.  Implementation is contained in multiple source code files
  */
 
+using Microsoft.Extensions.Configuration;
 using nsoftware.IPWorksSSH;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,18 @@ namespace SftpServerLib
 {
     internal partial class IpWorksSftpServer : SftpLibApi
     {
+        internal IpWorksSftpServer(IConfigurationRoot configurationRoot) 
+            : base(configurationRoot)
+        {
+            MapDbConnectionString = _applicationConfiguration.GetConnectionString("DefaultConnection");
+
+            AuditLogLib.AuditLogger.Config = new AuditLogLib.AuditLoggerConfiguration
+            {
+                AuditLogConnectionString = _applicationConfiguration.GetConnectionString("AuditLogConnectionString"),
+                ErrorLogRootFolder = "",  // TODO need to deal with this?
+            };
+        }
+
         protected Sftpserver _sftpServer = default;
 
         public override void Start(byte[] keyBytes)
