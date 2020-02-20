@@ -116,8 +116,8 @@ const pendingStatusTries = createReducer<number>(5, {
 /** Reducer for the Create File Drop modal form */
 const pendingCreateFileDropForm = createReducer<State.CreateFileDropModalFormData>(_initialCreateFileDropData, {
   OPEN_CREATE_FILE_DROP_MODAL: (_state, action: Action.OpenCreateFileDropModal) => ({
-    clientId: action.clientId,
     ..._initialCreateFileDropData,
+    clientId: action.clientId,
   }),
   CLOSE_CREATE_FILE_DROP_MODAL: () => ({
     ..._initialCreateFileDropData,
