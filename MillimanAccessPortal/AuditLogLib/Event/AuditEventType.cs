@@ -974,6 +974,15 @@ namespace AuditLogLib.Event
                         }),
             });
 
+        public static readonly AuditEventType<FileDrop, FileDrop, Guid, string> FileDropUpdated = new AuditEventType<FileDrop, FileDrop, Guid, string>(
+            8003, "File Drop Updated", (oldFileDrop, newFileDrop, clientId, clientName) => new
+            {
+                OldFileDrop = (FileDropLogModel)oldFileDrop,
+                NewFileDrop = (FileDropLogModel)newFileDrop,
+                ClientId = clientId,
+                ClientName = clientName
+            });
+
         #endregion
         #endregion
 

@@ -142,11 +142,11 @@ namespace MillimanAccessPortal.DataQueries
                                                    .ToList();
 
             Client client = _dbContext.Client.Find(clientId);
-
             FileDropsModel FileDropsModel = new FileDropsModel
             {
                 ClientCard = GetClientCardModel(client, user),
             };
+
             foreach (FileDrop eachDrop in fileDrops)
             {
                 FileDropsModel.FileDrops.Add(eachDrop.Id, new FileDropCardModel(eachDrop)

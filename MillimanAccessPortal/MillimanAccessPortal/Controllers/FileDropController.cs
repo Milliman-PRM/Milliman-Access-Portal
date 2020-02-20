@@ -186,7 +186,55 @@ namespace MillimanAccessPortal.Controllers
 
             _auditLogger.Log(AuditEventType.FileDropCreated.ToEvent(fileDropModel, fileDropModel.ClientId, fileDropModel.Client.Name));
 
-            return Json(fileDropModel);
+            var model = _fileDropQueries.GetFileDropsModelForClient(fileDropModel.ClientId, await _userManager.GetUserAsync(User));
+
+            return Json(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateFileDrop([FromBody][Bind("Id,Name,Description")] FileDrop fileDropModel)
+        {
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
+            if (!adminRoleResult.Succeeded)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to File Drop access.");
+                return Unauthorized();
+            }
+            #endregion
+
+            FileDrop fileDropRecord = _dbContext.FileDrop
+                                                .Include(d => fileDropModel.Client)
+                                                .Single(d => d.Id == fileDropModel.Id);
+            FileDrop oldFileDrop = fileDropRecord;
+
+            #region Validation
+            if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && v.Key != nameof(FileDrop.RootPath)))  // RootPath can/should be invalid here
+            {
+                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} ModelState not valid");
+                Response.Headers.Add("Warning", "The provided FileDrop information was invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (string.IsNullOrWhiteSpace(fileDropModel.Name))
+            {
+                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} new File Drop must have a name");
+                Response.Headers.Add("Warning", "The provided FileDrop name was not provided.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            fileDropRecord.Name = fileDropModel.Name;
+            fileDropRecord.Description = fileDropModel.Description;
+            _dbContext.SaveChanges();
+
+            _auditLogger.Log(AuditEventType.FileDropUpdated.ToEvent(oldFileDrop, fileDropRecord, fileDropModel.ClientId, fileDropModel.Client.Name));
+
+            var model = _fileDropQueries.GetFileDropsModelForClient(fileDropModel.ClientId, await _userManager.GetUserAsync(User));
+
+            return Json(model);
         }
 
         [HttpGet]
