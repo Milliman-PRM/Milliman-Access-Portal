@@ -293,3 +293,23 @@ export interface PasswordValidation {
   valid: boolean;
   messages?: string[];
 }
+
+// File Drop models
+
+export interface FileDropClientWithStats extends Client {
+  fileDropCount: number;
+  userCount: number;
+  canManageFileDrops: boolean;
+  authorizedFileDropUser: boolean;
+}
+
+export interface FileDrop {
+  clientId: Guid;
+  id?: Guid;
+  name: string;
+  description: string;
+}
+
+export interface FileDropWithStats extends FileDrop {
+  userCount: number;
+}

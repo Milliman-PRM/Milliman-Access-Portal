@@ -16,6 +16,11 @@ namespace MapDbContextLib.Context
 {
     public class SftpAccount
     {
+        public SftpAccount(Guid fileDropId)
+        {
+            FileDropId = fileDropId;
+        }
+
         [Key]
         public Guid Id { get; set; }
 
@@ -27,13 +32,20 @@ namespace MapDbContextLib.Context
         [Required]
         public DateTime PasswordResetDateTimeUtc { get; set; }
 
+        [Required]
+        public bool IsSuspended { get; set; } = false;
+
         [ForeignKey("ApplicationUser")]
         public Guid? ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
 
         [ForeignKey("FileDropUserPermissionGroup")]
-        public Guid FileDropUserPermissionGroupId { get; set; }
+        public Guid? FileDropUserPermissionGroupId { get; set; }
         public FileDropUserPermissionGroup FileDropUserPermissionGroup { get; set; }
+
+        [ForeignKey("FileDrop")]
+        public Guid FileDropId { get; private set; }
+        public FileDrop FileDrop { get; set; }
 
         public virtual ICollection<FileDropFile> Files { get; set; }
         public virtual ICollection<FileDropDirectory> Directories { get; set; }

@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { ClientWithStats } from '../../models';
+import { FileDropClientWithStats, FileDropWithStats } from '../../models';
 import { FileDropState } from './store';
 
 // ~~~~~~~~~~
@@ -9,7 +9,7 @@ import { FileDropState } from './store';
 
 /** Model used for populating the Client tree with sub-clients */
 // TODO: Move this to a shared location since this is shared between at least 3 different selectors.ts files
-interface ClientWithIndent extends ClientWithStats {
+interface ClientWithIndent extends FileDropClientWithStats {
   indent: 1 | 2;
 }
 
@@ -27,11 +27,11 @@ interface ClientWithIndent extends ClientWithStats {
  */
 export function clientsTree(state: FileDropState) {
   const clients = _.toArray(state.data.clients);
-  const parentGroups: { [id: string]: ClientWithStats[] } = clients.reduce((groups, cur) =>
+  const parentGroups: { [id: string]: FileDropClientWithStats[] } = clients.reduce((groups, cur) =>
     groups[cur.parentId]
       ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
       : { ...groups, [cur.parentId]: [ cur ] },
-    {} as { [id: string]: ClientWithStats[] });
+    {} as { [id: string]: FileDropClientWithStats[] });
   const iteratees = ['name', 'code'];
   const clientTree = _.sortBy(parentGroups.null, iteratees).map((c) => ({
     parent: c,
@@ -43,7 +43,7 @@ export function clientsTree(state: FileDropState) {
 /** Return all clients that match the client filter */
 export function filteredClients(state: FileDropState) {
   const filterTextLower = state.filters.client.text.toLowerCase();
-  const filterFunc = (client: ClientWithStats) => (
+  const filterFunc = (client: FileDropClientWithStats) => (
     filterTextLower === ''
     || (client.name && client.name.toLowerCase().indexOf(filterTextLower) !== -1)
     || (client.code && client.code.toLowerCase().indexOf(filterTextLower) !== -1)
@@ -84,7 +84,7 @@ export function clientEntities(state: FileDropState) {
 /** Return the highlighted client */
 export function selectedClient(state: FileDropState) {
   return state.selected.client
-    ? state.data.clients[state.selected.client] as ClientWithStats
+    ? state.data.clients[state.selected.client] as FileDropClientWithStats
     : null;
 }
 
@@ -92,6 +92,23 @@ export function selectedClient(state: FileDropState) {
 export function activeSelectedClient(state: FileDropState) {
   return clientEntities(state)
     .filter((c) => c !== 'divider' && (c.id === state.selected.client))[0] as ClientWithIndent;
+}
+
+// ~~~~~~~~~~~~~~~~~~~
+// File Drop Selectors
+// ~~~~~~~~~~~~~~~~~~~
+
+/** Select all content items that match the content item filter */
+export function fileDropEntities(state: FileDropState) {
+  const filterTextLower = state.filters.fileDrop.text.toLowerCase();
+  const filteredFileDrops = _.filter(state.data.fileDrops, (fileDrop: FileDropWithStats) => (
+    fileDrop.clientId === state.selected.client && (
+      filterTextLower === ''
+      || fileDrop.name.toLowerCase().indexOf(filterTextLower) !== -1
+      || fileDrop.description.toLowerCase().indexOf(filterTextLower) !== -1
+    )
+  ));
+  return _.sortBy(filteredFileDrops, ['name']);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~
