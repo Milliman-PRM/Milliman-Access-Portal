@@ -329,7 +329,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <h3 className="admin-panel-header">File Drops</h3>
           <PanelSectionToolbar>
             <Filter
-              placeholderText={'Filter content items...'}
+              placeholderText={'Filter file drops...'}
               setFilterText={(text) => this.props.setFilterTextFileDrop({ text })}
               filterText={filters.fileDrop.text}
             />
