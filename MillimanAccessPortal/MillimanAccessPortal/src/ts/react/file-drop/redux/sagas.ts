@@ -48,6 +48,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_FILE_DROPS', API.fetchFileDrops);
   yield takeLatestRequest('CREATE_FILE_DROP', API.createFileDrop);
   yield takeLatestRequest('DELETE_FILE_DROP', API.deleteFileDrop);
+  yield takeLatestRequest('UPDATE_FILE_DROP', API.updateFileDrop);
 
   // Session and Status Checks
   // yield takeLatestRequest('FETCH_STATUS_REFRESH', API.fetchStatusRefresh);
@@ -85,6 +86,7 @@ export default function* rootSaga() {
     'FETCH_FILE_DROPS_FAILED',
     'CREATE_FILE_DROP_FAILED',
     'DELETE_FILE_DROP_FAILED',
+    'UPDATE_FILE_DROP_FAILED',
     'FETCH_SESSION_CHECK_FAILED',
     'FETCH_STATUS_REFRESH_FAILED',
   ], ({ message }) => message === 'sessionExpired'

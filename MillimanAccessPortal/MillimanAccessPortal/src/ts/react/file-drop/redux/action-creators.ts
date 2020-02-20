@@ -46,6 +46,10 @@ export const openDeleteFileDropConfirmationModal =
 export const closeDeleteFileDropConfirmationModal =
   createActionCreator<Action.CloseDeleteFileDropConfirmationModal>('CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL');
 
+/** Put a File Drop in edit mode */
+export const editFileDrop =
+  createActionCreator<Action.EditFilDrop>('EDIT_FILE_DROP');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -69,6 +73,10 @@ export const createFileDrop =
 /** Delete a File Drop */
 export const deleteFileDrop =
   createRequestActionCreator<Action.DeleteFileDrop>('DELETE_FILE_DROP');
+
+/** Update a File Drop */
+export const updateFileDrop =
+  createRequestActionCreator<Action.UpdateFileDrop>('UPDATE_FILE_DROP');
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions

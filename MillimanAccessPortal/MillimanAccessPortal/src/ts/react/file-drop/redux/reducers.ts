@@ -40,6 +40,7 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   fileDrops: false,
   createFileDrop: false,
   deleteFileDrop: false,
+  updateFileDrop: false,
 };
 
 const _initialCreateFileDropData: State.CreateFileDropModalFormData = {
