@@ -125,7 +125,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> CreateFileDrop([FromBody][Bind("Name,Description,ClientId")] FileDrop fileDropModel)
         {
             #region Authorization
-            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDropModel.ClientId));
             if (!adminRoleResult.Succeeded)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -196,7 +196,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> UpdateFileDrop([FromBody][Bind("Id,Name,Description")] FileDrop fileDropModel)
         {
             #region Authorization
-            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDropModel.ClientId));
             if (!adminRoleResult.Succeeded)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
