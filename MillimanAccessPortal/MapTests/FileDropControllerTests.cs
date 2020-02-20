@@ -174,14 +174,14 @@ namespace MapTests
 
             #region Assert
             JsonResult jsonResult = Assert.IsType<JsonResult>(result);
-            FileDrop returnModel = Assert.IsType<FileDrop>(jsonResult.Value);
-            Assert.Equal(model.ClientId, returnModel.ClientId);
-            Assert.Equal(model.Description, returnModel.Description);
-            Assert.Equal(model.Name, returnModel.Name);
+            FileDropsModel returnModel = Assert.IsType<FileDropsModel>(jsonResult.Value);
+            Assert.Equal(model.ClientId, returnModel.ClientCard.Id);
 
-            Assert.NotEqual(Guid.Empty, returnModel.ClientId);
-            Assert.False(string.IsNullOrWhiteSpace(returnModel.RootPath));
-            Assert.Null(returnModel.SftpAccounts);
+            FileDropCardModel insertedFileDrop = returnModel.FileDrops.Single(d => d.Value.Name == model.Name).Value;
+
+            Assert.Equal(model.Description, insertedFileDrop.Description);
+            Assert.Equal(model.ClientId, returnModel.ClientCard.Id);
+            Assert.Equal(model.ClientId, insertedFileDrop.ClientId);
             #endregion
         }
 
@@ -223,6 +223,69 @@ namespace MapTests
             bool ExistsAtEnd = TestResources.DbContextObject.FileDrop.Any(d => d.Id == fileDropIdToDelete);
             Assert.True(ExistsAtStart);
             Assert.False(ExistsAtEnd);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("user8")] // no role
+        [InlineData("user2")] // user only
+        public async Task Update_Unauthorized(string userName)
+        {
+            #region Arrange
+            FileDropController controller = await GetControllerForUser(userName);
+            FileDrop fileDrop = TestResources.DbContextObject.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
+            FileDrop newFileDrop = new FileDrop
+            {
+                Id = fileDrop.Id,
+                Name = "This name is modified",
+                Description = "This description is modified",
+                RootPath = fileDrop.RootPath,
+                IsSuspended = fileDrop.IsSuspended,
+                SftpAccounts = fileDrop.SftpAccounts,
+                ClientId = fileDrop.ClientId,
+                Client = fileDrop.Client,
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.UpdateFileDrop(newFileDrop);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(result);
+            #endregion
+        }
+
+        [Fact]
+        public async Task Update_Success()
+        {
+            #region Arrange
+            FileDropController controller = await GetControllerForUser("user1");
+            FileDrop fileDrop = TestResources.DbContextObject.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
+            FileDrop newFileDrop = new FileDrop
+            {
+                Id = fileDrop.Id,
+                Name = "This name is modified",
+                Description = "This description is modified",
+                RootPath = fileDrop.RootPath,
+                IsSuspended = fileDrop.IsSuspended,
+                SftpAccounts = fileDrop.SftpAccounts,
+                ClientId = fileDrop.ClientId,
+                Client = fileDrop.Client,
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.UpdateFileDrop(newFileDrop);
+            #endregion
+
+            #region Assert
+            JsonResult jsonResult = Assert.IsType<JsonResult>(result);
+            FileDropsModel returnModel = Assert.IsType<FileDropsModel>(jsonResult.Value);
+            Assert.Equal("This name is modified", returnModel.FileDrops[fileDrop.Id].Name);
+            Assert.Equal("This description is modified", returnModel.FileDrops[fileDrop.Id].Description);
+            Assert.Equal(TestUtil.MakeTestGuid(1), returnModel.ClientCard.Id);
+            Assert.Equal(1, returnModel.ClientCard.FileDropCount);
             #endregion
         }
     }
