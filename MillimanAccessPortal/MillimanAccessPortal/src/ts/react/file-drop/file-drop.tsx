@@ -118,7 +118,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 Cancel
               </button>
               <button
-                className={`blue-button${pending.createFileDrop.fileDropName ? '' : ' disabled'}`}
+                className={'blue-button'}
+                disabled={!pending.createFileDrop.fileDropName}
                 type="submit"
               >
                 Add
