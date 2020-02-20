@@ -75,11 +75,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             onSubmit={(e) => {
               {
                 e.preventDefault();
-                this.props.createFileDrop({
-                  clientId: pending.createFileDrop.clientId,
-                  name: pending.createFileDrop.fileDropName,
-                  description: pending.createFileDrop.fileDropDescription,
-                });
+                if (pending.createFileDrop.fileDropName) {
+                  this.props.createFileDrop({
+                    clientId: pending.createFileDrop.clientId,
+                    name: pending.createFileDrop.fileDropName,
+                    description: pending.createFileDrop.fileDropDescription,
+                  });
+                }
               }
             }}
           >
@@ -94,7 +96,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   value: target.value,
                 });
               }}
-              placeholderText="New File Drop Name"
+              placeholderText="New File Drop Name *"
               type="text"
               value={pending.createFileDrop.fileDropName}
             />
@@ -108,7 +110,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   value: target.value,
                 });
               }}
-              placeholderText="File Drop Description (Optional)"
+              placeholderText="File Drop Description"
               value={pending.createFileDrop.fileDropDescription}
             />
             <div className="button-container">
@@ -116,7 +118,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 Cancel
               </button>
               <button
-                className={`blue-button${pending.createFileDrop.fileDropName ? '' : ' disabled'}`}
+                className={'blue-button'}
+                disabled={!pending.createFileDrop.fileDropName}
                 type="submit"
               >
                 Add
@@ -408,7 +411,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <h3 className="admin-panel-header">File Drops</h3>
           <PanelSectionToolbar>
             <Filter
-              placeholderText={'Filter content items...'}
+              placeholderText={'Filter file drops...'}
               setFilterText={(text) => this.props.setFilterTextFileDrop({ text })}
               filterText={filters.fileDrop.text}
             />
