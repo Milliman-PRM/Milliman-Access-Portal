@@ -51,25 +51,25 @@ export interface OpenDeleteFileDropModal {
   fileDrop: FileDropWithStats;
 }
 
-/**
- * Close the modal used to begin File Drop deletion.
- */
+/** Close the modal used to begin File Drop deletion */
 export interface CloseDeleteFileDropModal {
   type: 'CLOSE_DELETE_FILE_DROP_MODAL';
 }
 
-/**
- * Open the modal used to confirm File Drop deletion.
- */
+/** Open the modal used to confirm File Drop deletion */
 export interface OpenDeleteFileDropConfirmationModal {
   type: 'OPEN_DELETE_FILE_DROP_CONFIRMATION_MODAL';
 }
 
-/**
- * Close the modal used to confirm File Drop deletion.
- */
+/** Close the modal used to confirm File Drop deletion */
 export interface CloseDeleteFileDropConfirmationModal {
   type: 'CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL';
+}
+
+/** Put the File Drop in edit mode */
+export interface EditFilDrop {
+  type: 'EDIT_FILE_DROP';
+  fileDrop: FileDropWithStats;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -178,6 +178,27 @@ export interface DeleteFileDropFailed {
   error: TSError;
 }
 
+/**
+ * POST:
+ *   Update a File Drop
+ */
+export interface UpdateFileDrop {
+  type: 'UPDATE_FILE_DROP';
+  request: FileDrop;
+}
+/** Action called upon successful return of the DeleteFileDrop API call */
+export interface UpdateFileDropSucceeded {
+  type: 'UPDATE_FILE_DROP_SUCCEEDED';
+  response: {
+    fileDrops: Dict<FileDropWithStats>;
+  };
+}
+/** Action called upon return of an error from the DeleteFileDrop API call */
+export interface UpdateFileDropFailed {
+  type: 'UPDATE_FILE_DROP_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -264,6 +285,7 @@ export type FileDropPageActions =
   | CloseDeleteFileDropModal
   | OpenDeleteFileDropConfirmationModal
   | CloseDeleteFileDropConfirmationModal
+  | EditFilDrop
   ;
 
 /** Actions that schedule another action */
@@ -279,6 +301,7 @@ export type FileDropRequestActions =
   | FetchFileDrops
   | CreateFileDrop
   | DeleteFileDrop
+  | UpdateFileDrop
   | FetchStatusRefresh
   | FetchSessionCheck
   ;
@@ -290,6 +313,7 @@ export type FileDropSuccessResponseActions =
   | FetchFileDropsSucceeded
   | CreateFileDropSucceeded
   | DeleteFileDropSucceeded
+  | UpdateFileDropSucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   ;
@@ -301,6 +325,7 @@ export type FileDropErrorActions =
   | FetchFileDropsFailed
   | CreateFileDropFailed
   | DeleteFileDropFailed
+  | UpdateFileDropFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   ;

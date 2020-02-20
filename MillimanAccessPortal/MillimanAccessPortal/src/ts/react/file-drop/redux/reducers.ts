@@ -40,12 +40,13 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   fileDrops: false,
   createFileDrop: false,
   deleteFileDrop: false,
+  updateFileDrop: false,
 };
 
 const _initialCreateFileDropData: State.CreateFileDropModalFormData = {
-  clientId: null,
-  fileDropName: null,
-  fileDropDescription: null,
+  clientId: '',
+  fileDropName: '',
+  fileDropDescription: '',
   errors: {
     fileDropName: null,
     fileDropDescription: null,
@@ -137,31 +138,14 @@ const pendingStatusTries = createReducer<number>(5, {
 /** Reducer for the Create File Drop modal form */
 const pendingCreateFileDropForm = createReducer<State.CreateFileDropModalFormData>(_initialCreateFileDropData, {
   OPEN_CREATE_FILE_DROP_MODAL: (_state, action: Action.OpenCreateFileDropModal) => ({
+    ..._initialCreateFileDropData,
     clientId: action.clientId,
-    fileDropName: null,
-    fileDropDescription: null,
-    errors: {
-      fileDropName: null,
-      fileDropDescription: null,
-    },
   }),
   CLOSE_CREATE_FILE_DROP_MODAL: () => ({
-    clientId: null,
-    fileDropName: null,
-    fileDropDescription: null,
-    errors: {
-      fileDropName: null,
-      fileDropDescription: null,
-    },
+    ..._initialCreateFileDropData,
   }),
   CREATE_FILE_DROP_SUCCEEDED: () => ({
-    clientId: null,
-    fileDropName: null,
-    fileDropDescription: null,
-    errors: {
-      fileDropName: null,
-      fileDropDescription: null,
-    },
+    ..._initialCreateFileDropData,
   }),
   UPDATE_CREATE_FILE_DROP_MODAL_FORM_VALUES: (state, action: Action.UpdateCreateFileDropModalFormValues) => ({
     ...state,
@@ -324,6 +308,13 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
   }),
   CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
     ...state,
+    clients: {
+      ...state.clients,
+      [action.response.clientId]: {
+        ...state.clients[action.response.clientId],
+        fileDropCount: state.clients[action.response.clientId].fileDropCount + 1,
+      },
+    },
     fileDrops: {
       ...state.fileDrops,
       [action.response.id]: action.response,
