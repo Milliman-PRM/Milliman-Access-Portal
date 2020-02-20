@@ -75,11 +75,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             onSubmit={(e) => {
               {
                 e.preventDefault();
-                this.props.createFileDrop({
-                  clientId: pending.createFileDrop.clientId,
-                  name: pending.createFileDrop.fileDropName,
-                  description: pending.createFileDrop.fileDropDescription,
-                });
+                if (pending.createFileDrop.fileDropName) {
+                  this.props.createFileDrop({
+                    clientId: pending.createFileDrop.clientId,
+                    name: pending.createFileDrop.fileDropName,
+                    description: pending.createFileDrop.fileDropDescription,
+                  });
+                }
               }
             }}
           >
