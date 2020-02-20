@@ -954,18 +954,18 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<FileDrop, Guid, string> FileDropCreated = new AuditEventType<FileDrop, Guid, string>(
             8001, "File Drop Created", (fileDrop, clientId, clientName) => new
             {
-                FileDrop = fileDrop,
+                FileDrop = (FileDropLogModel)fileDrop,
                 ClientId = clientId,
                 ClientName = clientName
             });
 
         /// <summary>
-        /// sftpAccounts must have navigation property ApplicationUser populated
+        /// sftpAccounts expected to have navigation property ApplicationUser populated
         /// </summary>
         public static readonly AuditEventType<FileDrop, Client, IEnumerable<SftpAccount>> FileDropDeleted = new AuditEventType<FileDrop, Client, IEnumerable<SftpAccount>>(
             8002, "File Drop Deleted", (fileDrop, client, sftpAccounts) => new
             {
-                FileDrop = new { fileDrop.Id, fileDrop.Name, fileDrop.RootPath},
+                FileDrop = (FileDropLogModel)fileDrop,
                 Client = new { client.Id, client.Name, },
                 AffectedSftpAccounts = sftpAccounts.Select(a => 
                     new { SftpAccount = a,
