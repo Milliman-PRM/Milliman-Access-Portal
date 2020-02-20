@@ -948,6 +948,33 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<string> UserAgreementUpdated = new AuditEventType<string>(
             7401, "User agreement updated", NewText => NewText);
         #endregion
+
+        #region File Drop [8000 - 8999]
+        // 80xx - FileDrop admin events
+        public static readonly AuditEventType<FileDrop, Guid, string> FileDropCreated = new AuditEventType<FileDrop, Guid, string>(
+            8001, "File Drop Created", (fileDrop, clientId, clientName) => new
+            {
+                FileDrop = fileDrop,
+                ClientId = clientId,
+                ClientName = clientName
+            });
+
+        /// <summary>
+        /// sftpAccounts must have navigation property ApplicationUser populated
+        /// </summary>
+        public static readonly AuditEventType<FileDrop, Client, IEnumerable<SftpAccount>> FileDropDeleted = new AuditEventType<FileDrop, Client, IEnumerable<SftpAccount>>(
+            8002, "File Drop Deleted", (fileDrop, client, sftpAccounts) => new
+            {
+                FileDrop = new { fileDrop.Id, fileDrop.Name, fileDrop.RootPath},
+                Client = new { client.Id, client.Name, },
+                AffectedSftpAccounts = sftpAccounts.Select(a => 
+                    new { SftpAccount = a,
+                          MapUser = a.ApplicationUserId.HasValue ? new { Id = a.ApplicationUserId.Value, a?.ApplicationUser?.UserName } 
+                                                                 : null
+                        }),
+            });
+
+        #endregion
         #endregion
 
         private readonly Func<object> logObjectTransform;

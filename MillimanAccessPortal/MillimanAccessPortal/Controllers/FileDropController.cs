@@ -135,6 +135,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             string fileDropGlobalRoot = _applicationConfig.GetValue("Storage:FileDropRoot", string.Empty);
+            Client referencedClient = _dbContext.Client.Find(fileDropModel.ClientId);
 
             #region Validation
             if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && v.Key != nameof(FileDrop.RootPath)))  // RootPath can/should be invalid here
@@ -157,13 +158,24 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The provided FileDrop information was invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
+            if (referencedClient == null)
+            {
+                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} referenced client with Id {fileDropModel.ClientId} not found");
+                Response.Headers.Add("Warning", "The referenced client was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             try
             {
                 fileDropModel.RootPath = Guid.NewGuid().ToString();
                 string fileDropAbsoluteRootFolder = Path.Combine(fileDropGlobalRoot, fileDropModel.RootPath);
+
+                _dbContext.FileDrop.Add(fileDropModel);
                 Directory.CreateDirectory(fileDropAbsoluteRootFolder);
+
+                _dbContext.SaveChanges();
             }
             catch (Exception ex)
             {
@@ -172,8 +184,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            _dbContext.FileDrop.Add(fileDropModel);
-            _dbContext.SaveChanges();
+            _auditLogger.Log(AuditEventType.FileDropCreated.ToEvent(fileDropModel, fileDropModel.ClientId, fileDropModel.Client.Name));
 
             return Json(fileDropModel);
         }
@@ -204,7 +215,11 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteFileDrop([FromBody] Guid id)
         {
-            FileDrop fileDrop = _dbContext.FileDrop.Find(id);
+            FileDrop fileDrop = _dbContext.FileDrop
+                                          .Include(d => d.Client)
+                                          .Include(d => d.SftpAccounts)
+                                              .ThenInclude(a => a.ApplicationUser)
+                                          .SingleOrDefault(d => d.Id == id);
 
             #region Authorization
             var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDrop.ClientId));
@@ -232,6 +247,7 @@ namespace MillimanAccessPortal.Controllers
                 _dbContext.FileDrop.Remove(fileDrop);
                 _dbContext.SaveChanges();
                 Directory.Delete(fullRootPath, true);
+                _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, fileDrop.SftpAccounts));
             }
             catch (Exception ex)
             {
