@@ -131,11 +131,13 @@ namespace MapTests
             #endregion
         }
 
-        [Fact]
-        public async Task Create_Unauthorized()
+        [Theory]
+        [InlineData("user8")] // no role
+        [InlineData("user2")] // user only
+        public async Task Create_Unauthorized(string userName)
         {
             #region Arrange
-            FileDropController controller = await GetControllerForUser("user8");
+            FileDropController controller = await GetControllerForUser(userName);
             FileDrop model = new FileDrop
             {
                 ClientId = TestUtil.MakeTestGuid(1),
