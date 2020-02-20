@@ -199,5 +199,50 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(model);
         }
+
+        [HttpDelete]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteFileDrop([FromBody] Guid id)
+        {
+            FileDrop fileDrop = _dbContext.FileDrop.Find(id);
+
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDrop.ClientId));
+            if (!adminRoleResult.Succeeded)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to File Drop access.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            // the file drop must exist
+            if (fileDrop == null)
+            {
+                Log.Error($"In action {ControllerContext.ActionDescriptor.DisplayName} requested FileDrop {id} not found");
+                Response.Headers.Add("Warning", "the requested File Drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            try
+            {
+                string fullRootPath = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), fileDrop.RootPath);
+                _dbContext.FileDrop.Remove(fileDrop);
+                _dbContext.SaveChanges();
+                Directory.Delete(fullRootPath, true);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to complete the request");
+                Response.Headers.Add("Warning", "Failed to complete the request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var model = _fileDropQueries.GetFileDropsModelForClient(fileDrop.ClientId, await _userManager.GetUserAsync(User));
+
+            return Json(model);
+        }
     }
 }
