@@ -4,9 +4,11 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.FileDropModels;
+using Newtonsoft.Json;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -129,5 +131,97 @@ namespace MapTests
             #endregion
         }
 
+        [Fact]
+        public async Task Create_Unauthorized()
+        {
+            #region Arrange
+            FileDropController controller = await GetControllerForUser("user8");
+            FileDrop model = new FileDrop
+            {
+                ClientId = TestUtil.MakeTestGuid(1),
+                Name = "Test FileDrop",
+                Description = null,
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.CreateFileDrop(model);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(result);
+            #endregion
+        }
+
+        [Fact]
+        public async Task Create_Success()
+        {
+            #region Arrange
+            FileDropController controller = await GetControllerForUser("user1");
+            FileDrop model = new FileDrop
+            {
+                ClientId = TestUtil.MakeTestGuid(1),
+                Name = "Test FileDrop",
+                Description = null,
+            };
+            #endregion
+
+            #region Act
+            var result = await controller.CreateFileDrop(model);
+            #endregion
+
+            #region Assert
+            JsonResult jsonResult = Assert.IsType<JsonResult>(result);
+            FileDrop returnModel = Assert.IsType<FileDrop>(jsonResult.Value);
+            Assert.Equal(model.ClientId, returnModel.ClientId);
+            Assert.Equal(model.Description, returnModel.Description);
+            Assert.Equal(model.Name, returnModel.Name);
+
+            Assert.NotEqual(Guid.Empty, returnModel.ClientId);
+            Assert.False(string.IsNullOrWhiteSpace(returnModel.RootPath));
+            Assert.Null(returnModel.SftpAccounts);
+            #endregion
+        }
+
+        [Fact]
+        public async Task Delete_Unauthorized()
+        {
+            #region Arrange
+            FileDropController controller = await GetControllerForUser("user8");
+            Guid fileDropIdToDelete = TestUtil.MakeTestGuid(3);
+            bool ExistsAtStart = TestResources.DbContextObject.FileDrop.Any(d => d.Id == fileDropIdToDelete);
+            #endregion
+
+            #region Act
+            var result = await controller.DeleteFileDrop(fileDropIdToDelete);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(result);
+            #endregion
+        }
+
+        [Fact]
+        public async Task Delete_Success()
+        {
+            #region Arrange
+            FileDropController controller = await GetControllerForUser("user1");
+            Guid fileDropIdToDelete = TestUtil.MakeTestGuid(1);
+            bool ExistsAtStart = TestResources.DbContextObject.FileDrop.Any(d => d.Id == fileDropIdToDelete);
+            #endregion
+
+            #region Act
+            var result = await controller.DeleteFileDrop(fileDropIdToDelete);
+            #endregion
+
+            #region Assert
+            JsonResult jsonResult = Assert.IsType<JsonResult>(result);
+            FileDropsModel returnModel = Assert.IsType<FileDropsModel>(jsonResult.Value);
+            Assert.Empty(returnModel.FileDrops.Where(d => d.Key == fileDropIdToDelete));
+            bool ExistsAtEnd = TestResources.DbContextObject.FileDrop.Any(d => d.Id == fileDropIdToDelete);
+            Assert.True(ExistsAtStart);
+            Assert.False(ExistsAtEnd);
+            #endregion
+        }
     }
 }

@@ -256,7 +256,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var model = _fileDropQueries.GetFileDropsModelForClient(fileDrop.ClientId, await _userManager.GetUserAsync(User));
+            FileDropsModel model = _fileDropQueries.GetFileDropsModelForClient(fileDrop.ClientId, await _userManager.GetUserAsync(User));
 
             return Json(model);
         }

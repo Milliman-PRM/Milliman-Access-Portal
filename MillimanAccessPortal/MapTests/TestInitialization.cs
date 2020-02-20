@@ -1400,10 +1400,16 @@ namespace MapTests
             #region Initialize FileDrops
             DbContextObject.FileDrop.AddRange(new List<FileDrop>
             {
-                new FileDrop { Id = TestUtil.MakeTestGuid(1), Name = "FileDrop 1", ClientId = TestUtil.MakeTestGuid(1) },
-                new FileDrop { Id = TestUtil.MakeTestGuid(2), Name = "FileDrop 2", ClientId = TestUtil.MakeTestGuid(2) },
-                new FileDrop { Id = TestUtil.MakeTestGuid(3), Name = "FileDrop 3", ClientId = TestUtil.MakeTestGuid(3) },
+                new FileDrop { Id = TestUtil.MakeTestGuid(1), Name = "FileDrop 1", ClientId = TestUtil.MakeTestGuid(1), RootPath = TestUtil.MakeTestGuid(1).ToString(), SftpAccounts = new List<SftpAccount>() },
+                new FileDrop { Id = TestUtil.MakeTestGuid(2), Name = "FileDrop 2", ClientId = TestUtil.MakeTestGuid(2), RootPath = TestUtil.MakeTestGuid(2).ToString(), SftpAccounts = new List<SftpAccount>() },
+                new FileDrop { Id = TestUtil.MakeTestGuid(3), Name = "FileDrop 3", ClientId = TestUtil.MakeTestGuid(3), RootPath = TestUtil.MakeTestGuid(3).ToString(), SftpAccounts = new List<SftpAccount>() },
             });
+            foreach (FileDrop d in DbContextObject.FileDrop)
+            {
+                string fileDropRootFolder = Path.Combine(ConfigurationObject.GetValue<string>("Storage:FileDropRoot"), d.RootPath);
+                Directory.CreateDirectory(fileDropRootFolder);
+            }
+
             MockDbSet<FileDrop>.AssignNavigationProperty<Client>(DbContextObject.FileDrop, nameof(FileDrop.ClientId), DbContextObject.Client);
             #endregion
 
