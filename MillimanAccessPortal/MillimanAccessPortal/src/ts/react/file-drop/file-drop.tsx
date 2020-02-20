@@ -96,7 +96,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   value: target.value,
                 });
               }}
-              placeholderText="New File Drop Name"
+              placeholderText="New File Drop Name *"
               type="text"
               value={pending.createFileDrop.fileDropName}
             />
@@ -110,7 +110,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   value: target.value,
                 });
               }}
-              placeholderText="File Drop Description (Optional)"
+              placeholderText="File Drop Description"
               value={pending.createFileDrop.fileDropDescription}
             />
             <div className="button-container">
