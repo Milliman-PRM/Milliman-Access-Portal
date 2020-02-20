@@ -182,6 +182,8 @@ namespace MapTests
             Assert.Equal(model.Description, insertedFileDrop.Description);
             Assert.Equal(model.ClientId, returnModel.ClientCard.Id);
             Assert.Equal(model.ClientId, insertedFileDrop.ClientId);
+            Assert.NotNull(returnModel.currentFileDropId);
+            Assert.Equal(insertedFileDrop.Id, returnModel.currentFileDropId);
             #endregion
         }
 
@@ -223,6 +225,7 @@ namespace MapTests
             bool ExistsAtEnd = TestResources.DbContextObject.FileDrop.Any(d => d.Id == fileDropIdToDelete);
             Assert.True(ExistsAtStart);
             Assert.False(ExistsAtEnd);
+            Assert.Null(returnModel.currentFileDropId);
             #endregion
         }
 
@@ -286,6 +289,8 @@ namespace MapTests
             Assert.Equal("This description is modified", returnModel.FileDrops[fileDrop.Id].Description);
             Assert.Equal(TestUtil.MakeTestGuid(1), returnModel.ClientCard.Id);
             Assert.Equal(1, returnModel.ClientCard.FileDropCount);
+            Assert.NotNull(returnModel.currentFileDropId);
+            Assert.Equal(newFileDrop.Id, returnModel.currentFileDropId);
             #endregion
         }
     }
