@@ -42,9 +42,9 @@ const _initialPendingData: State.FileDropPendingReturnState = {
 };
 
 const _initialCreateFileDropData: State.CreateFileDropModalFormData = {
-  clientId: null,
-  fileDropName: null,
-  fileDropDescription: null,
+  clientId: '',
+  fileDropName: '',
+  fileDropDescription: '',
   errors: {
     fileDropName: null,
     fileDropDescription: null,
@@ -117,30 +117,13 @@ const pendingStatusTries = createReducer<number>(5, {
 const pendingCreateFileDropForm = createReducer<State.CreateFileDropModalFormData>(_initialCreateFileDropData, {
   OPEN_CREATE_FILE_DROP_MODAL: (_state, action: Action.OpenCreateFileDropModal) => ({
     clientId: action.clientId,
-    fileDropName: null,
-    fileDropDescription: null,
-    errors: {
-      fileDropName: null,
-      fileDropDescription: null,
-    },
+    ..._initialCreateFileDropData,
   }),
   CLOSE_CREATE_FILE_DROP_MODAL: () => ({
-    clientId: null,
-    fileDropName: null,
-    fileDropDescription: null,
-    errors: {
-      fileDropName: null,
-      fileDropDescription: null,
-    },
+    ..._initialCreateFileDropData,
   }),
   CREATE_FILE_DROP_SUCCEEDED: () => ({
-    clientId: null,
-    fileDropName: null,
-    fileDropDescription: null,
-    errors: {
-      fileDropName: null,
-      fileDropDescription: null,
-    },
+    ..._initialCreateFileDropData,
   }),
   UPDATE_CREATE_FILE_DROP_MODAL_FORM_VALUES: (state, action: Action.UpdateCreateFileDropModalFormValues) => ({
     ...state,
