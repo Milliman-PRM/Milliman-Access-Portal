@@ -259,6 +259,13 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
   }),
   CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
     ...state,
+    clients: {
+      ...state.clients,
+      [action.response.clientId]: {
+        ...state.clients[action.response.clientId],
+        fileDropCount: state.clients[action.response.clientId].fileDropCount + 1,
+      },
+    },
     fileDrops: {
       ...state.fileDrops,
       [action.response.id]: action.response,
