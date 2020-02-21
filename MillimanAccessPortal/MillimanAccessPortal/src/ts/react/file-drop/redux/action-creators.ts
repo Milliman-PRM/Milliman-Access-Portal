@@ -48,7 +48,7 @@ export const closeDeleteFileDropConfirmationModal =
 
 /** Put a File Drop in edit mode */
 export const editFileDrop =
-  createActionCreator<Action.EditFilDrop>('EDIT_FILE_DROP');
+  createActionCreator<Action.EditFileDrop>('EDIT_FILE_DROP');
 
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions

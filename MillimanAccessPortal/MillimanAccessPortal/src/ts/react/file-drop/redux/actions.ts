@@ -67,7 +67,7 @@ export interface CloseDeleteFileDropConfirmationModal {
 }
 
 /** Put the File Drop in edit mode */
-export interface EditFilDrop {
+export interface EditFileDrop {
   type: 'EDIT_FILE_DROP';
   fileDrop: FileDropWithStats;
 }
@@ -285,7 +285,7 @@ export type FileDropPageActions =
   | CloseDeleteFileDropModal
   | OpenDeleteFileDropConfirmationModal
   | CloseDeleteFileDropConfirmationModal
-  | EditFilDrop
+  | EditFileDrop
   ;
 
 /** Actions that schedule another action */
