@@ -232,7 +232,8 @@ const fileDropCardAttributes = createReducer<Dict<CardAttributes>>({},
 
 /** Reducer that combines the cardAttributes reducers */
 const cardAttributes = combineReducers({
-  client: clientCardAttributes,
+  clients: clientCardAttributes,
+  fileDrops: fileDropCardAttributes,
 });
 
 // ~~~~~~~~~~~~~~~

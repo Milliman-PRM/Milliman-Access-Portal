@@ -57,7 +57,7 @@ export interface FileDropDataState {
 
 /** State representing entity Card attribute collections */
 export interface FileDropCardAttributesState {
-  client: Dict<CardAttributes>;
+  clients: Dict<CardAttributes>;
   fileDrops: Dict<CardAttributes>;
 }
 

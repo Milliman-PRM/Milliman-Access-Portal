@@ -228,7 +228,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           if (entity === 'divider') {
             return <div className="hr" key={key} />;
           }
-          const card = cardAttributes.client[entity.id];
+          const card = cardAttributes.clients[entity.id];
           return (
             <Card
               key={key}
