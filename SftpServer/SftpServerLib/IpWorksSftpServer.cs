@@ -10,20 +10,28 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace SftpServerLib
 {
     internal partial class IpWorksSftpServer : SftpLibApi
     {
-        internal IpWorksSftpServer(IConfigurationRoot configurationRoot) 
-            : base(configurationRoot)
+        internal IpWorksSftpServer() 
         {
-            MapDbConnectionString = _applicationConfiguration.GetConnectionString("DefaultConnection");
+            MapDbConnectionString = Configuration.ApplicationConfiguration.GetConnectionString("DefaultConnection");
+
+            // At launch all connection records should be dropped because the sftp library reuses connection IDs. 
+            using (var db = GetMapDbContext())
+            {
+                var allConnectionRecords = db.SftpConnection.ToList();
+                db.RemoveRange(allConnectionRecords);
+                db.SaveChanges();
+            }
 
             AuditLogLib.AuditLogger.Config = new AuditLogLib.AuditLoggerConfiguration
             {
-                AuditLogConnectionString = _applicationConfiguration.GetConnectionString("AuditLogConnectionString"),
-                ErrorLogRootFolder = "",  // TODO need to deal with this?
+                AuditLogConnectionString = Configuration.ApplicationConfiguration.GetConnectionString("AuditLogConnectionString"),
+                //ErrorLogRootFolder = "",  // TODO need to deal with this?
             };
         }
 

@@ -8,6 +8,7 @@ using AuditLogLib;
 using AuditLogLib.Event;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using nsoftware.IPWorksSSH;
 using Serilog;
 using System;
@@ -49,7 +50,7 @@ namespace SftpServerLib
             _sftpServer = new Sftpserver
             {
                 About = "Hello world `About`",
-                RootDirectory = @"C:\sftproot",
+                RootDirectory = Configuration.ApplicationConfiguration.GetValue<string>("FileDropRoot"),
                 SSHCert = cert,
             };
             Debug.WriteLine("Server instance constructed");
@@ -165,7 +166,12 @@ namespace SftpServerLib
 
             _sftpServer.ShutdownCompleted += (sender, evtData) =>
             {
-                Debug.WriteLine(GenerateEventArgsLogMessage("ShutdownCompleted", evtData));
+                using (var db = GetMapDbContext())
+                {
+                    var connections = db.SftpConnection.ToList();
+                    db.SftpConnection.RemoveRange(connections);
+                    Debug.WriteLine(GenerateEventArgsLogMessage($"ShutdownCompleted, {connections.Count} connection records dropped", evtData));
+                }
             };
 
             _sftpServer.SetFileListCompleted += (sender, evtData) =>

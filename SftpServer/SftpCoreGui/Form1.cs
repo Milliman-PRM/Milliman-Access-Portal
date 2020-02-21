@@ -24,15 +24,13 @@ namespace SftpCoreGui
     {
         SftpLibApi _SftpApi = null;
         SftpAccount sftpAccountObject;
-        IConfigurationRoot _appConfig = null;
 
         public Form1()
         {
             InitializeComponent();
 
-            ConfigurationBuilder builder = new ConfigurationBuilder();
-            builder.AddUserSecrets<Form1>();
-            _appConfig = builder.Build();
+            Configuration.LoadConfiguration();
+            Configuration.InitializeSerilog(Configuration.ApplicationConfiguration);
         }
 
         private void btnStartStop_Click(object sender, EventArgs e)
@@ -40,7 +38,7 @@ namespace SftpCoreGui
             Button Sender = sender as Button;
             if (Sender.Text == "Start")
             {
-                _SftpApi = SftpLibApi.NewInstance(_appConfig);
+                _SftpApi = SftpLibApi.NewInstance();
 
                 using (var fileStream = new FileStream(textKeyfilePath.Text, FileMode.Open))
                 {
