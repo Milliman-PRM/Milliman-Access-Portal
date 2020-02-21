@@ -194,7 +194,7 @@ const selected = createReducer<State.FileDropSelectedState>(
     }),
     CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
       ...state,
-      fileDrop: action.response.id,
+      fileDrop: (action.response.currentFileDropId) ? action.response.currentFileDropId : null,
     }),
   },
 );
@@ -302,6 +302,12 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
   }),
   FETCH_FILE_DROPS_SUCCEEDED: (state, action: Action.FetchFileDropsSucceeded) => ({
     ...state,
+    clients: {
+      ...state.clients,
+      [action.response.clientCard.id]: {
+        ...action.response.clientCard,
+      },
+    },
     fileDrops: {
       ...action.response.fileDrops,
     },
@@ -310,18 +316,34 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     ...state,
     clients: {
       ...state.clients,
-      [action.response.clientId]: {
-        ...state.clients[action.response.clientId],
-        fileDropCount: state.clients[action.response.clientId].fileDropCount + 1,
+      [action.response.clientCard.id]: {
+        ...action.response.clientCard,
       },
     },
     fileDrops: {
-      ...state.fileDrops,
-      [action.response.id]: action.response,
+      ...action.response.fileDrops,
     },
   }),
   DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
     ...state,
+    clients: {
+      ...state.clients,
+      [action.response.clientCard.id]: {
+        ...action.response.clientCard,
+      },
+    },
+    fileDrops: {
+      ...action.response.fileDrops,
+    },
+  }),
+  UPDATE_FILE_DROP_SUCCEEDED: (state, action: Action.UpdateFileDropSucceeded) => ({
+    ...state,
+    clients: {
+      ...state.clients,
+      [action.response.clientCard.id]: {
+        ...action.response.clientCard,
+      },
+    },
     fileDrops: {
       ...action.response.fileDrops,
     },

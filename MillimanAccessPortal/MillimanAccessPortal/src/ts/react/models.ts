@@ -313,3 +313,9 @@ export interface FileDrop {
 export interface FileDropWithStats extends FileDrop {
   userCount: number;
 }
+
+export interface FileDropsReturnModel {
+  clientCard: FileDropClientWithStats;
+  fileDrops: Dict<FileDropWithStats>;
+  currentFileDropId?: Guid;
+}

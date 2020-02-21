@@ -1,4 +1,6 @@
-import { FileDrop, FileDropClientWithStats, FileDropWithStats, Guid } from '../../models';
+import {
+  FileDrop, FileDropClientWithStats, FileDropsReturnModel, FileDropWithStats, Guid,
+} from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
 
@@ -128,14 +130,14 @@ export interface FetchClientsFailed {
  */
 export interface FetchFileDrops {
   type: 'FETCH_FILE_DROPS';
-  request: {};
+  request: {
+    clientId: Guid;
+  };
 }
 /** Action called upon successful return of the FetchFileDrops API call */
 export interface FetchFileDropsSucceeded {
   type: 'FETCH_FILE_DROPS_SUCCEEDED';
-  response: {
-    fileDrops: Dict<FileDropWithStats>;
-  };
+  response: FileDropsReturnModel;
 }
 /** Action called upon return of an error from the FetchFileDrops API call */
 export interface FetchFileDropsFailed {
@@ -154,7 +156,7 @@ export interface CreateFileDrop {
 /** Action called upon successful return of the CreateFileDrop API call */
 export interface CreateFileDropSucceeded {
   type: 'CREATE_FILE_DROP_SUCCEEDED';
-  response: FileDropWithStats;
+  response: FileDropsReturnModel;
 }
 /** Action called upon return of an error from the CreateFileDrop API call */
 export interface CreateFileDropFailed {
@@ -173,9 +175,7 @@ export interface DeleteFileDrop {
 /** Action called upon successful return of the DeleteFileDrop API call */
 export interface DeleteFileDropSucceeded {
   type: 'DELETE_FILE_DROP_SUCCEEDED';
-  response: {
-    fileDrops: Dict<FileDropWithStats>;
-  };
+  response: FileDropsReturnModel;
 }
 /** Action called upon return of an error from the DeleteFileDrop API call */
 export interface DeleteFileDropFailed {
@@ -194,9 +194,7 @@ export interface UpdateFileDrop {
 /** Action called upon successful return of the DeleteFileDrop API call */
 export interface UpdateFileDropSucceeded {
   type: 'UPDATE_FILE_DROP_SUCCEEDED';
-  response: {
-    fileDrops: Dict<FileDropWithStats>;
-  };
+  response: FileDropsReturnModel;
 }
 /** Action called upon return of an error from the DeleteFileDrop API call */
 export interface UpdateFileDropFailed {
