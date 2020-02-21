@@ -8,6 +8,7 @@ using AuditLogLib;
 using AuditLogLib.Event;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using nsoftware.IPWorksSSH;
 using Serilog;
@@ -207,8 +208,8 @@ namespace SftpServerLib
                     }
 
                     var passwordVerification = userAccount.CheckPassword(evtData.AuthParam);
-                    if (passwordVerification == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Success ||
-                        passwordVerification == Microsoft.AspNetCore.Identity.PasswordVerificationResult.SuccessRehashNeeded)
+                    if (passwordVerification == PasswordVerificationResult.Success ||
+                        passwordVerification == PasswordVerificationResult.SuccessRehashNeeded)
                     {
                         IpWorksSftpServer._sftpServer.Config($@"UserRootDirectory[{evtData.ConnectionId}]={Path.Combine(GlobalResources.ApplicationConfiguration.GetValue<string>("FileDropRoot"), userAccount.FileDropUserPermissionGroup.FileDrop.RootPath)}/*c:\sftproot\child1\*/");
 

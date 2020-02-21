@@ -4,13 +4,6 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Serilog;
-using System;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-
 namespace SftpServerLib
 {
     /// <summary>
@@ -33,5 +26,6 @@ namespace SftpServerLib
     public class ServerState
     {
         public string Fingerprint { get; set; }
+        public string About { get; set; }
     }
 }

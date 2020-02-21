@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: Concrete implementation of the MAP SFTP server
+ * OBJECTIVE: Concrete implementation of the MAP SFTP server (excluding event handlers)
  * DEVELOPER NOTES: This class is partial.  Implementation is contained in multiple source code files
  */
 
@@ -16,15 +16,12 @@ namespace SftpServerLib
 {
     internal partial class IpWorksSftpServer : SftpLibApi
     {
+        internal static Sftpserver _sftpServer = default;
+
         internal IpWorksSftpServer() 
         {
             // At launch all connection records should be dropped because the sftp library reuses connection IDs. 
-            using (var db = GlobalResources.NewMapDbContext)
-            {
-                var allConnectionRecords = db.SftpConnection.ToList();
-                db.RemoveRange(allConnectionRecords);
-                db.SaveChanges();
-            }
+            DropAllConnections();
 
             AuditLogLib.AuditLogger.Config = new AuditLogLib.AuditLoggerConfiguration
             {
@@ -32,11 +29,26 @@ namespace SftpServerLib
                 //ErrorLogRootFolder = "",  // TODO need to deal with this?
             };
         }
+        
+        ~IpWorksSftpServer()
+        {
+            DropAllConnections();
+        }
 
-        internal static Sftpserver _sftpServer = default;
+        internal void DropAllConnections()
+        {
+            using (var db = GlobalResources.NewMapDbContext)
+            {
+                var allConnectionRecords = db.SftpConnection.ToList();
+                db.RemoveRange(allConnectionRecords);
+                db.SaveChanges();
+            }
+        }
 
         public override void Start(byte[] keyBytes)
         {
+            // TODO get the certificate (private key) from configuration instead
+
             Certificate certificate = new Certificate(keyBytes);
             EstablishServerInstance(certificate);
 
@@ -69,6 +81,7 @@ namespace SftpServerLib
             return new ServerState
             {
                 Fingerprint = _sftpServer.SSHCert.Fingerprint,
+                About = _sftpServer.About,
             };
         }
 
@@ -76,12 +89,12 @@ namespace SftpServerLib
         {
             _sftpServer = new Sftpserver
             {
-                About = "Hello world `About`",
                 RootDirectory = GlobalResources.ApplicationConfiguration.GetValue<string>("FileDropRoot"),
                 SSHCert = cert,
             };
             Debug.WriteLine("Server instance constructed");
 
+            #region assign event handlers
             //[Description("Information about errors during data delivery.")]
             _sftpServer.OnError += IpWorksSftpServerEventHandlers.OnError;
             //[Description("Fires when a client wants to delete a file.")]
@@ -131,6 +144,7 @@ namespace SftpServerLib
             _sftpServer.OnSSHStatus += IpWorksSftpServerEventHandlers.OnSSHStatus;
 
             Debug.WriteLine("Event handlers assigned");
+            #endregion
         }
 
     }
