@@ -212,6 +212,24 @@ const clientCardAttributes = createReducer<Dict<CardAttributes>>({},
   },
 );
 
+/** Reducer for File Drops in the cardAttributes state object */
+const fileDropCardAttributes = createReducer<Dict<CardAttributes>>({},
+  {
+    FETCH_FILE_DROPS_SUCCEEDED: (_state, action: Action.FetchFileDropsSucceeded) => ({
+      ..._.mapValues(action.response.fileDrops, () => ({ editing: false })),
+    }),
+    EDIT_FILE_DROP: (state, action: Action.EditFileDrop) => ({
+      ..._.mapValues(state, () => ({ editing: false })),
+      [action.fileDrop.id]: {
+        editing: true,
+      },
+    }),
+    CANCEL_FILE_DROP_EDIT: (state) => ({
+      ..._.mapValues(state, () => ({ editing: false })),
+    }),
+  },
+);
+
 /** Reducer that combines the cardAttributes reducers */
 const cardAttributes = combineReducers({
   client: clientCardAttributes,

@@ -297,35 +297,70 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         }}
       />
     );
-    const cardButtons = (entity: FileDropWithStats, canManageFileDrops: boolean) => {
+    const cardButtons = (entity: FileDropWithStats, canManageFileDrops: boolean, isEditing: boolean) => {
       return canManageFileDrops
         ? (
           <>
-            <CardButton
-              color={'blue'}
-              tooltip={'Edit File Drop'}
-              onClick={() => {
-                if (false) {
-                  // TODO: Implement any necessary modals before performing action
-                } else {
-                  // TODO: Implement this action
-                  alert('Edit File Drop');
-                }
-              }}
-              icon={'edit'}
-            />
-            <CardButton
-              color={'red'}
-              tooltip={'Delete File Drop'}
-              onClick={() => {
-                if (false) {
-                  // TODO: Implement any necessary modals before performing action
-                } else {
-                  this.props.openDeleteFileDropModal({fileDrop: entity});
-                }
-              }}
-              icon={'delete'}
-            />
+            {
+              !isEditing &&
+              <>
+                <CardButton
+                  color={'blue'}
+                  tooltip={'Edit File Drop'}
+                  onClick={() => {
+                    if (false) {
+                      // TODO: Implement any necessary modals before performing action
+                    } else {
+                      // TODO: Implement this action
+                      this.props.editFileDrop({ fileDrop: entity });
+                    }
+                  }}
+                  icon={'edit'}
+                />
+                <CardButton
+                  color={'red'}
+                  tooltip={'Delete File Drop'}
+                  onClick={() => {
+                    if (false) {
+                      // TODO: Implement any necessary modals before performing action
+                    } else {
+                      this.props.openDeleteFileDropModal({fileDrop: entity});
+                    }
+                  }}
+                  icon={'delete'}
+                />
+              </>
+            }
+            {
+              isEditing &&
+              <>
+                <CardButton
+                  color={'green'}
+                  tooltip={'Update File Drop'}
+                  onClick={() => {
+                    if (false) {
+                      // TODO: Implement any necessary modals before performing action
+                    } else {
+                      // TODO: Implement this action
+                      alert('Update File Drop');
+                    }
+                  }}
+                  icon={'checkmark'}
+                />
+                <CardButton
+                  color={'red'}
+                  tooltip={'Cancel Edit'}
+                  onClick={() => {
+                    if (false) {
+                      // TODO: Implement any necessary modals before performing action
+                    } else {
+                      this.props.cancelFileDropEdit({});
+                    }
+                  }}
+                  icon={'cancel'}
+                />
+              </>
+            }
           </>
         ) : (
           null
@@ -338,6 +373,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           entities={fileDrops}
           loading={pending.async.fileDrops}
           renderEntity={(entity, key) => {
+            const cardEditing = (
+              cardAttributes.fileDrops
+              && cardAttributes.fileDrops[entity.id]
+              && cardAttributes.fileDrops[entity.id].editing
+              )
+              ? cardAttributes.fileDrops[entity.id].editing
+              : false;
             return (
               <Card
                 key={key}
@@ -371,7 +413,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     />
                   </CardSectionStats>
                   <CardSectionButtons>
-                    {cardButtons(entity, true)}
+                    {cardButtons(entity, true, cardEditing)}
                   </CardSectionButtons>
                 </CardSectionMain>
               </Card>
