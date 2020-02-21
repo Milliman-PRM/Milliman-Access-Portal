@@ -201,8 +201,8 @@ namespace SftpServerLib
 
                     if (userAccount == null)
                     {
-                        evtData.Accept = true;
-                        Log.Information($"SftpConnection request denied.  An account with permission to a FileDrop was not found");
+                        evtData.Accept = false;
+                        Log.Information($"SftpConnection request denied.  An account with permission to a FileDrop was not found, requested account name is <{evtData.User}>");
                         // TODO is an audit log called for here?
                         return;
                     }
@@ -211,7 +211,7 @@ namespace SftpServerLib
                     if (passwordVerification == PasswordVerificationResult.Success ||
                         passwordVerification == PasswordVerificationResult.SuccessRehashNeeded)
                     {
-                        IpWorksSftpServer._sftpServer.Config($@"UserRootDirectory[{evtData.ConnectionId}]={Path.Combine(GlobalResources.ApplicationConfiguration.GetValue<string>("FileDropRoot"), userAccount.FileDropUserPermissionGroup.FileDrop.RootPath)}/*c:\sftproot\child1\*/");
+                        IpWorksSftpServer._sftpServer.Config($@"UserRootDirectory[{evtData.ConnectionId}]={userAccount.FileDropUserPermissionGroup.FileDrop.RootPath}");
 
                         SftpConnection connection = new SftpConnection
                         {
