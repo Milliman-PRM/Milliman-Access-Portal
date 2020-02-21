@@ -1,24 +1,42 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett,
- * OBJECTIVE: Provides get/set access to configuration information for use throughout the application
+ * OBJECTIVE: Provides access to resources that may be used throughout the application
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System;
 using System.Reflection;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
-using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 
 namespace SftpServerLib
 {
-    public static class Configuration
+    public static class GlobalResources
     {
+        private static DbContextOptions<ApplicationDbContext> MapDbContextOptions = null;
+
+        public static ConfigurationRoot ApplicationConfiguration { get; private set; } = null;
+
         /// <summary>
-        /// Intended to be invoked at the application project level using json managed by the application
+        /// Sets the connection string to be used when constructing instances of ApplicationDbContext
+        /// </summary>
+        public static string MapDbConnectionString
+        {
+            set
+            {
+                DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+                ContextBuilder.UseNpgsql(value);
+                MapDbContextOptions = ContextBuilder.Options;
+            }
+        }
+
+        /// <summary>
+        /// Intended to be invoked from the application project
         /// </summary>
         public static void LoadConfiguration()
         {
@@ -71,6 +89,10 @@ namespace SftpServerLib
             ApplicationConfiguration = CfgBuilder.Build() as ConfigurationRoot;
         }
 
+        /// <summary>
+        /// Initializes the global Serilog Log object based on configuration provided by the caller
+        /// </summary>
+        /// <param name="configuration"></param>
         public static void InitializeSerilog(IConfiguration configuration)
         {
             // Initialize Serilog
@@ -86,6 +108,21 @@ namespace SftpServerLib
                             $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");
         }
 
-        public static ConfigurationRoot ApplicationConfiguration { get; set; } = null;
+        /// <summary>
+        /// Provides a newly constructed instance of ApplicationDbContext based on a previously assigned connection string
+        /// </summary>
+        public static ApplicationDbContext NewMapDbContext
+        {
+            get
+            {
+                if (MapDbContextOptions == null)
+                {
+                    throw new ApplicationException("Attempt to create an instance of ApplicationDbContext without assigning a connection string");
+                }
+
+                return new ApplicationDbContext(MapDbContextOptions);
+            }
+        }
+
     }
 }

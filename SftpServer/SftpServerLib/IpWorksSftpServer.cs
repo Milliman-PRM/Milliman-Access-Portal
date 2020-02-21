@@ -18,10 +18,8 @@ namespace SftpServerLib
     {
         internal IpWorksSftpServer() 
         {
-            MapDbConnectionString = Configuration.ApplicationConfiguration.GetConnectionString("DefaultConnection");
-
             // At launch all connection records should be dropped because the sftp library reuses connection IDs. 
-            using (var db = GetMapDbContext())
+            using (var db = GlobalResources.NewMapDbContext)
             {
                 var allConnectionRecords = db.SftpConnection.ToList();
                 db.RemoveRange(allConnectionRecords);
@@ -30,12 +28,12 @@ namespace SftpServerLib
 
             AuditLogLib.AuditLogger.Config = new AuditLogLib.AuditLoggerConfiguration
             {
-                AuditLogConnectionString = Configuration.ApplicationConfiguration.GetConnectionString("AuditLogConnectionString"),
+                AuditLogConnectionString = GlobalResources.ApplicationConfiguration.GetConnectionString("AuditLogConnectionString"),
                 //ErrorLogRootFolder = "",  // TODO need to deal with this?
             };
         }
 
-        protected Sftpserver _sftpServer = default;
+        internal static Sftpserver _sftpServer = default;
 
         public override void Start(byte[] keyBytes)
         {
@@ -73,5 +71,67 @@ namespace SftpServerLib
                 Fingerprint = _sftpServer.SSHCert.Fingerprint,
             };
         }
+
+        private protected void EstablishServerInstance(Certificate cert)
+        {
+            _sftpServer = new Sftpserver
+            {
+                About = "Hello world `About`",
+                RootDirectory = GlobalResources.ApplicationConfiguration.GetValue<string>("FileDropRoot"),
+                SSHCert = cert,
+            };
+            Debug.WriteLine("Server instance constructed");
+
+            //[Description("Information about errors during data delivery.")]
+            _sftpServer.OnError += IpWorksSftpServerEventHandlers.OnError;
+            //[Description("Fires when a client wants to delete a file.")]
+            _sftpServer.OnFileRemove += IpWorksSftpServerEventHandlers.OnFileRemove;
+            //[Description("Fires when a client wants to read from an open file.")]
+            _sftpServer.OnFileRead += IpWorksSftpServerEventHandlers.OnFileRead;
+            //[Description("Fires when a client wants to open or create a file.")]
+            _sftpServer.OnFileOpen += IpWorksSftpServerEventHandlers.OnFileOpen;
+            //[Description("Fires when a client attempts to close an open file or directory handle.")]
+            _sftpServer.OnFileClose += IpWorksSftpServerEventHandlers.OnFileClose;
+            //[Description("Fired when a connection is closed.")]
+            _sftpServer.OnDisconnected += IpWorksSftpServerEventHandlers.OnDisconnected;
+            //[Description("Fires when a client wants to delete a directory.")]
+            _sftpServer.OnDirRemove += IpWorksSftpServerEventHandlers.OnDirRemove;
+            //[Description("Fires when a client attempts to open a directory for listing.")]
+            _sftpServer.OnDirList += IpWorksSftpServerEventHandlers.OnDirList;
+            //[Description("Fires when a client wants to create a new directory.")]
+            _sftpServer.OnDirCreate += IpWorksSftpServerEventHandlers.OnDirCreate;
+            //[Description("Fired when a request for connection comes from a remote host.")]
+            _sftpServer.OnConnectionRequest += IpWorksSftpServerEventHandlers.OnConnectionRequest;
+            //[Description("Fired immediately after a connection completes (or fails).")]
+            _sftpServer.OnConnected += IpWorksSftpServerEventHandlers.OnConnected;
+            //[Description("Fires when a client needs to get file information.")]
+            _sftpServer.OnGetAttributes += IpWorksSftpServerEventHandlers.OnGetAttributes;
+            //[Description("Fires once for each log message.")]
+            //_sftpServer.OnLog += IpWorksSftpServerEventHandlers.OnLog;
+            //[Description("Fires when a client attempts to canonicalize a path.")]
+            _sftpServer.OnResolvePath += IpWorksSftpServerEventHandlers.OnResolvePath;
+            //[Description("Fires when a client wants to rename a file.")]
+            _sftpServer.OnFileRename += IpWorksSftpServerEventHandlers.OnFileRename;
+            //[Description("Fires when a client wants to write to an open file.")]
+            _sftpServer.OnFileWrite += IpWorksSftpServerEventHandlers.OnFileWrite;
+
+            _sftpServer.ShutdownCompleted += IpWorksSftpServerEventHandlers.ShutdownCompleted;
+            _sftpServer.SetFileListCompleted += IpWorksSftpServerEventHandlers.SetFileListCompleted;
+
+            //[Description("Fires when a client attempts to set file or directory attributes.")]
+            _sftpServer.OnSetAttributes += IpWorksSftpServerEventHandlers.OnSetAttributes;
+
+            _sftpServer.ExchangeKeysCompleted += IpWorksSftpServerEventHandlers.ExchangeKeysCompleted;
+            _sftpServer.DisconnectCompleted += IpWorksSftpServerEventHandlers.DisconnectCompleted;
+
+            //[Description("Fires when a client attempts to authenticate a connection.")]
+            _sftpServer.OnSSHUserAuthRequest += IpWorksSftpServerEventHandlers.OnSSHUserAuthRequest;
+
+            //[Description("Shows the progress of the secure connection.")]
+            _sftpServer.OnSSHStatus += IpWorksSftpServerEventHandlers.OnSSHStatus;
+
+            Debug.WriteLine("Event handlers assigned");
+        }
+
     }
 }

@@ -165,7 +165,6 @@
         private System.Windows.Forms.TextBox textHash;
         private System.Windows.Forms.TextBox textPassword;
         private System.Windows.Forms.TextBox textKeyfilePath;
-        private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button buttonReportServerState;
     }
 }

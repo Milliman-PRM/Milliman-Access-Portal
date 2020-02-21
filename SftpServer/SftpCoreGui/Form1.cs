@@ -29,8 +29,10 @@ namespace SftpCoreGui
         {
             InitializeComponent();
 
-            Configuration.LoadConfiguration();
-            Configuration.InitializeSerilog(Configuration.ApplicationConfiguration);
+            GlobalResources.LoadConfiguration();
+            GlobalResources.InitializeSerilog(GlobalResources.ApplicationConfiguration);
+
+            GlobalResources.MapDbConnectionString = GlobalResources.ApplicationConfiguration.GetConnectionString("DefaultConnection");
         }
 
         private void btnStartStop_Click(object sender, EventArgs e)
