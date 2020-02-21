@@ -72,6 +72,11 @@ export interface EditFileDrop {
   fileDrop: FileDropWithStats;
 }
 
+/** Take the File Drop out of edit mode */
+export interface CancelFileDropEdit {
+  type: 'CANCEL_FILE_DROP_EDIT';
+}
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -286,6 +291,7 @@ export type FileDropPageActions =
   | OpenDeleteFileDropConfirmationModal
   | CloseDeleteFileDropConfirmationModal
   | EditFileDrop
+  | CancelFileDropEdit
   ;
 
 /** Actions that schedule another action */
