@@ -39,7 +39,7 @@ export const deleteFileDrop =
 
 export const updateFileDrop =
   createJsonRequestor<FileDropAction.UpdateFileDrop, FileDropAction.UpdateFileDropSucceeded>
-    ('POST', '/FileDrop/DeleteFileDrop');
+    ('POST', '/FileDrop/UpdateFileDrop');
 
 // ~~~~~~~~~~~~~~~~~~~
 // Status Refresh Call

@@ -43,8 +43,9 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   updateFileDrop: false,
 };
 
-const _initialCreateFileDropData: State.CreateFileDropModalFormData = {
+const _initialCreateFileDropData: State.FileDropFormStateData = {
   clientId: '',
+  id: '',
   fileDropName: '',
   fileDropDescription: '',
   errors: {
@@ -136,7 +137,7 @@ const pendingStatusTries = createReducer<number>(5, {
 });
 
 /** Reducer for the Create File Drop modal form */
-const pendingCreateFileDropForm = createReducer<State.CreateFileDropModalFormData>(_initialCreateFileDropData, {
+const pendingCreateFileDropForm = createReducer<State.FileDropFormStateData>(_initialCreateFileDropData, {
   OPEN_CREATE_FILE_DROP_MODAL: (_state, action: Action.OpenCreateFileDropModal) => ({
     ..._initialCreateFileDropData,
     clientId: action.clientId,
@@ -147,10 +148,47 @@ const pendingCreateFileDropForm = createReducer<State.CreateFileDropModalFormDat
   CREATE_FILE_DROP_SUCCEEDED: () => ({
     ..._initialCreateFileDropData,
   }),
-  UPDATE_CREATE_FILE_DROP_MODAL_FORM_VALUES: (state, action: Action.UpdateCreateFileDropModalFormValues) => ({
-    ...state,
-    [action.field]: action.value,
+  UPDATE_FILE_DROP_FORM_DATA: (state, action: Action.UpdateFileDropFormData) => {
+    if (action.updateType === 'create') {
+      return {
+        ...state,
+        [action.field]: action.value,
+      };
+    } else {
+      return {
+        ...state,
+      };
+    }
+  },
+});
+
+/** Reducer for editing the File Drop information */
+const pendingEditFileDropData = createReducer<State.FileDropFormStateData>(_initialCreateFileDropData, {
+  EDIT_FILE_DROP: (_state, action: Action.EditFileDrop) => ({
+    ..._initialCreateFileDropData,
+    clientId: action.fileDrop.clientId,
+    id: action.fileDrop.id,
+    fileDropName: action.fileDrop.name,
+    fileDropDescription: action.fileDrop.description,
   }),
+  CANCEL_FILE_DROP_EDIT: () => ({
+    ..._initialCreateFileDropData,
+  }),
+  UPDATE_FILE_DROP_SUCCEEDED: () => ({
+    ..._initialCreateFileDropData,
+  }),
+  UPDATE_FILE_DROP_FORM_DATA: (state, action: Action.UpdateFileDropFormData) => {
+    if (action.updateType === 'edit') {
+      return {
+        ...state,
+        [action.field]: action.value,
+      };
+    } else {
+      return {
+        ...state,
+      };
+    }
+  },
 });
 
 /** Reducer for the Delete File Drop modal */
@@ -174,6 +212,7 @@ const pending = combineReducers({
   async: pendingData,
   statusTries: pendingStatusTries,
   createFileDrop: pendingCreateFileDropForm,
+  editFileDrop: pendingEditFileDropData,
   fileDropToDelete: pendingFileDropToDelete,
 });
 

@@ -91,7 +91,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               label="File Drop Name"
               name="File Drop Name"
               onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-                this.props.updateCreateFileDropModalFormValues({
+                this.props.updateFileDropFormData({
+                  updateType: 'create',
                   field: 'fileDropName',
                   value: target.value,
                 });
@@ -105,7 +106,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               label="File Drop Description"
               name="File Drop Description"
               onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
-                this.props.updateCreateFileDropModalFormValues({
+                this.props.updateFileDropFormData({
+                  updateType: 'create',
                   field: 'fileDropDescription',
                   value: target.value,
                 });
@@ -342,7 +344,12 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       // TODO: Implement any necessary modals before performing action
                     } else {
                       // TODO: Implement this action
-                      alert('Update File Drop');
+                      this.props.updateFileDrop({
+                        clientId: pending.editFileDrop.clientId,
+                        id: pending.editFileDrop.id,
+                        name: pending.editFileDrop.fileDropName,
+                        description: pending.editFileDrop.fileDropDescription,
+                      });
                     }
                   }}
                   icon={'checkmark'}
@@ -397,21 +404,62 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 // suspended={entity.isSuspended}
               >
                 <CardSectionMain>
-                  <CardText
-                    text={entity.name}
-                    // TODO: Implement this when isSuspended is available
-                    // textSuffix={entity.isSuspended ? '[Suspended]' : ''}
-                    subtext={entity.description}
-                  />
-                  <CardSectionStats
-                    // TODO: Make this dynamic when canManage is available
-                  >
-                    <CardStat
-                      name={'Authorized Users'}
-                      value={entity.userCount}
-                      icon={'user'}
-                    />
-                  </CardSectionStats>
+                  {
+                    !cardEditing &&
+                      <CardText
+                        text={entity.name}
+                        // TODO: Implement this when isSuspended is available
+                        // textSuffix={entity.isSuspended ? '[Suspended]' : ''}
+                        subtext={entity.description}
+                      />
+                  }
+                  {
+                    cardEditing &&
+                    <div className="card-body-primary-container">
+                      <Input
+                        autoFocus={true}
+                        error={pending.editFileDrop.errors.fileDropName}
+                        label="File Drop Name"
+                        name="File Drop Name"
+                        onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                          this.props.updateFileDropFormData({
+                            updateType: 'edit',
+                            field: 'fileDropName',
+                            value: target.value,
+                          });
+                        }}
+                        placeholderText="File Drop Name *"
+                        type="text"
+                        value={pending.editFileDrop.fileDropName}
+                      />
+                      <TextAreaInput
+                        error={pending.editFileDrop.errors.fileDropDescription}
+                        label="File Drop Name"
+                        name="File Drop Name"
+                        onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                          this.props.updateFileDropFormData({
+                            updateType: 'edit',
+                            field: 'fileDropDescription',
+                            value: target.value,
+                          });
+                        }}
+                        placeholderText="File Drop Name *"
+                        value={pending.editFileDrop.fileDropDescription}
+                      />
+                    </div>
+                  }
+                  {
+                    !cardEditing &&
+                    <CardSectionStats
+                      // TODO: Make this dynamic when canManage is available
+                    >
+                      <CardStat
+                        name={'Authorized Users'}
+                        value={entity.userCount}
+                        icon={'user'}
+                      />
+                    </CardSectionStats>
+                  }
                   <CardSectionButtons>
                     {cardButtons(entity, true, cardEditing)}
                   </CardSectionButtons>

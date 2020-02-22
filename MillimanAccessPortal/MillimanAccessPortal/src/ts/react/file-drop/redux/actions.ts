@@ -41,8 +41,9 @@ export interface CloseCreateFileDropModal {
 }
 
 /** Update the input values of the Create File Drop Modal form */
-export interface UpdateCreateFileDropModalFormValues {
-  type: 'UPDATE_CREATE_FILE_DROP_MODAL_FORM_VALUES';
+export interface UpdateFileDropFormData {
+  type: 'UPDATE_FILE_DROP_FORM_DATA';
+  updateType: 'create' | 'edit';
   field: 'fileDropName' | 'fileDropDescription';
   value: string;
 }
@@ -283,7 +284,7 @@ export type FileDropPageActions =
   | DecrementStatusRefreshAttempts
   | OpenCreateFileDropModal
   | CloseCreateFileDropModal
-  | UpdateCreateFileDropModalFormValues
+  | UpdateFileDropFormData
   | OpenDeleteFileDropModal
   | CloseDeleteFileDropModal
   | OpenDeleteFileDropConfirmationModal

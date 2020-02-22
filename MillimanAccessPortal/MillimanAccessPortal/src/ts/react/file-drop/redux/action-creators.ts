@@ -27,8 +27,8 @@ export const closeCreateFileDropModal =
   createActionCreator<Action.CloseCreateFileDropModal>('CLOSE_CREATE_FILE_DROP_MODAL');
 
 /** Update the Create File Drop modal form input values */
-export const updateCreateFileDropModalFormValues =
-  createActionCreator<Action.UpdateCreateFileDropModalFormValues>('UPDATE_CREATE_FILE_DROP_MODAL_FORM_VALUES');
+export const updateFileDropFormData =
+  createActionCreator<Action.UpdateFileDropFormData>('UPDATE_FILE_DROP_FORM_DATA');
 
 /** Open the Delete File Drop modal */
 export const openDeleteFileDropModal =
