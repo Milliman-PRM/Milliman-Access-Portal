@@ -211,7 +211,7 @@ namespace SftpServerLib
                     if (passwordVerification == PasswordVerificationResult.Success ||
                         passwordVerification == PasswordVerificationResult.SuccessRehashNeeded)
                     {
-                        IpWorksSftpServer._sftpServer.Config($@"UserRootDirectory[{evtData.ConnectionId}]={userAccount.FileDropUserPermissionGroup.FileDrop.RootPath}");
+                        IpWorksSftpServer._sftpServer.Config($@"UserRootDirectory[{evtData.ConnectionId}]={Path.Combine(GlobalResources.ApplicationConfiguration.GetValue<string>("FileDropRoot"), userAccount.FileDropUserPermissionGroup.FileDrop.RootPath)}");
 
                         SftpConnection connection = new SftpConnection
                         {
