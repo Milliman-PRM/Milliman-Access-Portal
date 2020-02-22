@@ -24,8 +24,9 @@ export interface FileDropPendingReturnState {
 }
 
 /** Data used in the Create File Drop modal form */
-export interface CreateFileDropModalFormData {
+export interface FileDropFormStateData {
   clientId: Guid;
+  id?: Guid;
   fileDropName: string;
   fileDropDescription: string;
   errors: {
@@ -38,7 +39,8 @@ export interface CreateFileDropModalFormData {
 export interface FileDropPendingState {
   async: FileDropPendingReturnState;
   statusTries: number;
-  createFileDrop: CreateFileDropModalFormData;
+  createFileDrop: FileDropFormStateData;
+  editFileDrop: FileDropFormStateData;
   fileDropToDelete: FileDropWithStats;
   fileDropToEdit: FileDropWithStats;
 }
