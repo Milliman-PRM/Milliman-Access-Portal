@@ -207,9 +207,13 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             FileDrop fileDropRecord = _dbContext.FileDrop
-                                                .Include(d => fileDropModel.Client)
+                                                .Include(d => d.Client)
                                                 .Single(d => d.Id == fileDropModel.Id);
-            FileDrop oldFileDrop = fileDropRecord;
+            FileDrop oldFileDrop = new FileDrop { Id = fileDropRecord.Id,
+                                                  Name = fileDropRecord.Name,
+                                                  Description = fileDropRecord.Description,
+                                                  RootPath = fileDropRecord.RootPath,
+            };
 
             #region Validation
             if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && v.Key != nameof(FileDrop.RootPath)))  // RootPath can/should be invalid here
@@ -231,7 +235,7 @@ namespace MillimanAccessPortal.Controllers
             fileDropRecord.Description = fileDropModel.Description;
             _dbContext.SaveChanges();
 
-            _auditLogger.Log(AuditEventType.FileDropUpdated.ToEvent(oldFileDrop, fileDropRecord, fileDropModel.ClientId, fileDropModel.Client.Name));
+            _auditLogger.Log(AuditEventType.FileDropUpdated.ToEvent(oldFileDrop, fileDropRecord, fileDropRecord.ClientId, fileDropRecord.Client.Name));
 
             var model = _fileDropQueries.GetFileDropsModelForClient(fileDropModel.ClientId, await _userManager.GetUserAsync(User));
             model.currentFileDropId = fileDropRecord.Id;
