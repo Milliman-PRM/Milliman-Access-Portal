@@ -10,6 +10,10 @@ import { createActionCreator, createRequestActionCreator } from '../../shared-co
 export const selectClient =
   createActionCreator<Action.SelectClient>('SELECT_CLIENT');
 
+/** Select a given File Drop by ID */
+export const selectFileDrop =
+  createActionCreator<Action.SelectFileDrop>('SELECT_FILE_DROP');
+
 /** Set the Client filter */
 export const setFilterTextClient =
   createActionCreator<Action.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');

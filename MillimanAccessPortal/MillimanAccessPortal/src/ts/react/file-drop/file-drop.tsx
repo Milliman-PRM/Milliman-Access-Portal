@@ -294,6 +294,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           if (false) {
             // TODO: implement any modals necessary before opening this modal
           } else {
+            this.props.selectFileDrop({ id: 'NEW FILE DROP' });
             this.props.openCreateFileDropModal({ clientId: selected.client });
           }
         }}
@@ -398,7 +399,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     if (selected.fileDrop !== entity.id) {
                       // this.props.fetchFileDropDetail({ FileDropId: entity.id });
                     }
-                    // this.props.selectFileDrop({ id: entity.id });
+                    this.props.selectFileDrop({ id: entity.id });
                   }
                 }}
                 // suspended={entity.isSuspended}
@@ -474,6 +475,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 if (false) {
                   // TODO Implement any necessary modals
                 } else {
+                  this.props.selectFileDrop({ id: 'NEW FILE DROP' });
                   this.props.openCreateFileDropModal({ clientId: selected.client });
                 }
               }}

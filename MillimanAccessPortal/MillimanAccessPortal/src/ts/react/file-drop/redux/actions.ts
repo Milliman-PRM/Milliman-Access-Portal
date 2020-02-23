@@ -17,6 +17,15 @@ export interface SelectClient {
   id: Guid;
 }
 
+/**
+ *  Select the File Drop card specified by id
+ *  If id refers to the currently selected card, deselect it
+ */
+export interface SelectFileDrop {
+  type: 'SELECT_FILE_DROP';
+  id: Guid | 'NEW FILE DROP';
+}
+
 /** Set filter text for the client card filter */
 export interface SetFilterTextClient {
   type: 'SET_FILTER_TEXT_CLIENT';
@@ -280,6 +289,7 @@ export interface ScheduleSessionCheck {
 /** Actions that change the state of the page */
 export type FileDropPageActions =
   | SelectClient
+  | SelectFileDrop
   | PromptStatusRefreshStopped
   | DecrementStatusRefreshAttempts
   | OpenCreateFileDropModal

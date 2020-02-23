@@ -231,9 +231,17 @@ const selected = createReducer<State.FileDropSelectedState>(
       client: action.id === state.client ? null : action.id,
       fileDrop: null,
     }),
+    SELECT_FILE_DROP: (state, action: Action.SelectFileDrop) => ({
+      ...state,
+      fileDrop: action.id === state.fileDrop ? null : action.id,
+    }),
     CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
       ...state,
       fileDrop: (action.response.currentFileDropId) ? action.response.currentFileDropId : null,
+    }),
+    CLOSE_CREATE_FILE_DROP_MODAL: (state) => ({
+      ...state,
+      fileDrop: null,
     }),
   },
 );
