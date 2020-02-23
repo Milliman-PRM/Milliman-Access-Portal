@@ -266,6 +266,9 @@ const fileDropCardAttributes = createReducer<Dict<CardAttributes>>({},
     CANCEL_FILE_DROP_EDIT: (state) => ({
       ..._.mapValues(state, () => ({ editing: false })),
     }),
+    UPDATE_FILE_DROP_SUCCEEDED: (state) => ({
+      ..._.mapValues(state, () => ({ editing: false })),
+    }),
   },
 );
 
