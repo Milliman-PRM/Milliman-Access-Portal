@@ -42,7 +42,7 @@ namespace SftpServerLib
 
         public override void Stop()
         {
-            if (_sftpServer == null)
+            if (_sftpServer != null)
             {
                 try
                 {
