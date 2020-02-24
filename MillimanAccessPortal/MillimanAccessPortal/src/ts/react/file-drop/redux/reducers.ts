@@ -202,7 +202,7 @@ const pendingFileDropToDelete = createReducer<FileDropWithStats>(_initialFileDro
   CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL: () => ({
     ..._initialFileDropWithStats,
   }),
-  DELETE_FILE_DROP: () => ({
+  DELETE_FILE_DROP_SUCCEEDED: () => ({
     ..._initialFileDropWithStats,
   }),
 });
