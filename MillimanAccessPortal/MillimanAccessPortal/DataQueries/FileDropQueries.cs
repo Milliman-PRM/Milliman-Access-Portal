@@ -71,7 +71,7 @@ namespace MillimanAccessPortal.DataQueries
             List<ClientCardModel> returnList = new List<ClientCardModel>();
             foreach (Client eachClient in clientsWithRole)
             {
-                ClientCardModel eachClientCardModel = GetClientCardModelAsync(eachClient, user);
+                ClientCardModel eachClientCardModel = GetClientCardModel(eachClient, user);
 
                 // Only include information about a client's otherwise unlisted parent in the model if the user can manage the (child) client
                 if (eachClientCardModel.ParentId.HasValue && 
@@ -79,7 +79,7 @@ namespace MillimanAccessPortal.DataQueries
                 {
                     if (eachClientCardModel.CanManageFileDrops)
                     {
-                        ClientCardModel parentCardModel = GetClientCardModelAsync(unlistedParentClients.Single(p => p.Id == eachClientCardModel.ParentId.Value), user);
+                        ClientCardModel parentCardModel = GetClientCardModel(unlistedParentClients.Single(p => p.Id == eachClientCardModel.ParentId.Value), user);
                         returnList.Add(parentCardModel);
                     }
                     else
@@ -94,7 +94,7 @@ namespace MillimanAccessPortal.DataQueries
             return returnList.ToDictionary(c => c.Id);
         }
 
-        private ClientCardModel GetClientCardModelAsync(Client client, ApplicationUser user)
+        private ClientCardModel GetClientCardModel(Client client, ApplicationUser user)
         {
             return new ClientCardModel(client)
             {
@@ -141,7 +141,11 @@ namespace MillimanAccessPortal.DataQueries
                                                    .Distinct(new IdPropertyComparer<FileDrop>())
                                                    .ToList();
 
-            FileDropsModel FileDropsModel = new FileDropsModel();
+            Client client = _dbContext.Client.Find(clientId);
+            FileDropsModel FileDropsModel = new FileDropsModel
+            {
+                ClientCard = GetClientCardModel(client, user),
+            };
 
             foreach (FileDrop eachDrop in fileDrops)
             {

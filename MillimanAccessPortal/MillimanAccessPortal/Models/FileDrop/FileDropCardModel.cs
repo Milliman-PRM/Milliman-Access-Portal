@@ -14,6 +14,10 @@ namespace MillimanAccessPortal.Models.FileDropModels
 {
     public class FileDropsModel
     {
+        public ClientCardModel ClientCard { get; set; }
+
+        public Guid? currentFileDropId { get; set; } = null;
+
         public Dictionary<Guid, FileDropCardModel> FileDrops { get; set; } = new Dictionary<Guid, FileDropCardModel>();
     }
 
