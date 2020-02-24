@@ -23,9 +23,9 @@ namespace MapCommonLib
         /// <param name="path">Path to the directory to be deleted</param>
         /// <param name="attempts">Times to try deleting the directory before giving up</param>
         /// <param name="baseIntervalMs">Time to wait after initial attempt</param>
-        public static void DeleteDirectoryWithRetry(string path, int attempts = 5, int baseIntervalMs = 200)
+        public static void DeleteDirectoryWithRetry(string path, bool recursive = true, int attempts = 5, int baseIntervalMs = 200)
         {
-            StaticUtil.ApplyRetryOperation<IOException, string>(p => Directory.Delete(p, true), attempts, baseIntervalMs, path);
+            StaticUtil.ApplyRetryOperation<IOException, string>(p => Directory.Delete(p, recursive), attempts, baseIntervalMs, path);
         }
 
         /// <summary>

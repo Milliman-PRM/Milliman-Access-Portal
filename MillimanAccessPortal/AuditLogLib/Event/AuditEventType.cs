@@ -955,8 +955,11 @@ namespace AuditLogLib.Event
             8001, "File Drop Created", (fileDrop, clientId, clientName) => new
             {
                 FileDrop = (FileDropLogModel)fileDrop,
-                ClientId = clientId,
-                ClientName = clientName
+                Client = new
+                {
+                    clientId,
+                    clientName,
+                },
             });
 
         /// <summary>
@@ -979,8 +982,11 @@ namespace AuditLogLib.Event
             {
                 OldFileDrop = (FileDropLogModel)oldFileDrop,
                 NewFileDrop = (FileDropLogModel)newFileDrop,
-                ClientId = clientId,
-                ClientName = clientName
+                Client = new
+                {
+                    clientId,
+                    clientName,
+                },
             });
 
         #endregion

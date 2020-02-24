@@ -186,7 +186,7 @@ namespace MillimanAccessPortal.Controllers
 
             _auditLogger.Log(AuditEventType.FileDropCreated.ToEvent(fileDropModel, fileDropModel.ClientId, fileDropModel.Client.Name));
 
-            var model = _fileDropQueries.GetFileDropsModelForClient(fileDropModel.ClientId, await _userManager.GetUserAsync(User));
+            FileDropsModel model = _fileDropQueries.GetFileDropsModelForClient(fileDropModel.ClientId, await _userManager.GetUserAsync(User));
             model.currentFileDropId = fileDropModel.Id;
 
             return Json(model);
@@ -201,7 +201,7 @@ namespace MillimanAccessPortal.Controllers
             if (!adminRoleResult.Succeeded)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
-                Response.Headers.Add("Warning", "You are not authorized to File Drop access.");
+                Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
                 return Unauthorized();
             }
             #endregion
@@ -280,7 +280,7 @@ namespace MillimanAccessPortal.Controllers
             if (!adminRoleResult.Succeeded)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
-                Response.Headers.Add("Warning", "You are not authorized to File Drop access.");
+                Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
                 return Unauthorized();
             }
             #endregion
@@ -290,17 +290,15 @@ namespace MillimanAccessPortal.Controllers
             if (fileDrop == null)
             {
                 Log.Error($"In action {ControllerContext.ActionDescriptor.DisplayName} requested FileDrop {id} not found");
-                Response.Headers.Add("Warning", "the requested File Drop was not found.");
+                Response.Headers.Add("Warning", "The requested File Drop was not found.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
             try
             {
-                string fullRootPath = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), fileDrop.RootPath);
                 _dbContext.FileDrop.Remove(fileDrop);
                 _dbContext.SaveChanges();
-                Directory.Delete(fullRootPath, true);
                 _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, fileDrop.SftpAccounts));
             }
             catch (Exception ex)
@@ -308,6 +306,17 @@ namespace MillimanAccessPortal.Controllers
                 Log.Error(ex, "Failed to complete the request");
                 Response.Headers.Add("Warning", "Failed to complete the request.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            string fullRootPath = default;
+            try
+            {
+                fullRootPath = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), fileDrop.RootPath);
+                FileSystemUtil.DeleteDirectoryWithRetry(fullRootPath, attempts: 4,  baseIntervalMs: 1000);
+            } 
+            catch(Exception ex)
+            {
+                Log.Warning(ex, $"Failed to delete root folder {fullRootPath} associated with File Drop with Id {fileDrop.Id}, named {fileDrop.Name}");
             }
 
             FileDropsModel model = _fileDropQueries.GetFileDropsModelForClient(fileDrop.ClientId, await _userManager.GetUserAsync(User));
