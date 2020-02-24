@@ -435,8 +435,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       />
                       <TextAreaInput
                         error={pending.editFileDrop.errors.fileDropDescription}
-                        label="File Drop Name"
-                        name="File Drop Name"
+                        label="File Drop Description"
+                        name="File Drop Description"
                         onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
                           this.props.updateFileDropFormData({
                             updateType: 'edit',
@@ -444,7 +444,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                             value: target.value,
                           });
                         }}
-                        placeholderText="File Drop Name *"
+                        placeholderText="File Drop Description"
                         value={pending.editFileDrop.fileDropDescription}
                       />
                     </div>
