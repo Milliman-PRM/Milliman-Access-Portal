@@ -19,11 +19,14 @@ export interface FileDropPendingReturnState {
   clients: boolean;
   fileDrops: boolean;
   createFileDrop: boolean;
+  deleteFileDrop: boolean;
+  updateFileDrop: boolean;
 }
 
 /** Data used in the Create File Drop modal form */
-export interface CreateFileDropModalFormData {
+export interface FileDropFormStateData {
   clientId: Guid;
+  id?: Guid;
   fileDropName: string;
   fileDropDescription: string;
   errors: {
@@ -36,7 +39,10 @@ export interface CreateFileDropModalFormData {
 export interface FileDropPendingState {
   async: FileDropPendingReturnState;
   statusTries: number;
-  createFileDrop: CreateFileDropModalFormData;
+  createFileDrop: FileDropFormStateData;
+  editFileDrop: FileDropFormStateData;
+  fileDropToDelete: FileDropWithStats;
+  fileDropToEdit: FileDropWithStats;
 }
 
 /** State representing user-selected entities */
@@ -53,7 +59,8 @@ export interface FileDropDataState {
 
 /** State representing entity Card attribute collections */
 export interface FileDropCardAttributesState {
-  client: Dict<CardAttributes>;
+  clients: Dict<CardAttributes>;
+  fileDrops: Dict<CardAttributes>;
 }
 
 /** State representing filter strings */
@@ -65,6 +72,8 @@ export interface FileDropFilterState {
 /** State representing modals */
 export interface FileDropModals {
   createFileDrop: ModalState;
+  deleteFileDrop: ModalState;
+  confirmDeleteFileDrop: ModalState;
 }
 
 /** Top-Level File Drop state */

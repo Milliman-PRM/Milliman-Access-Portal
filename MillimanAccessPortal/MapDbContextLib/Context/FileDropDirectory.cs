@@ -23,7 +23,7 @@ namespace MapDbContextLib.Context
 
         [ForeignKey("ParentDirectoryEntry")]
         public Guid? ParentDirectoryId { get; set; }
-        public FileDropDirectory ParentDirectoryEntry { get; set; }
+        public FileDropDirectory ParentDirectory { get; set; }
 
         [ForeignKey("CreatedByAccount")]
         public Guid CreatedByAccountId { get; set; }

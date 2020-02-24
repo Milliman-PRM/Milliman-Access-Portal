@@ -1,4 +1,6 @@
-import { FileDrop, FileDropClientWithStats, FileDropWithStats, Guid } from '../../models';
+import {
+  FileDrop, FileDropClientWithStats, FileDropsReturnModel, FileDropWithStats, Guid,
+} from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
 
@@ -13,6 +15,15 @@ import { Dict } from '../../shared-components/redux/store';
 export interface SelectClient {
   type: 'SELECT_CLIENT';
   id: Guid;
+}
+
+/**
+ *  Select the File Drop card specified by id
+ *  If id refers to the currently selected card, deselect it
+ */
+export interface SelectFileDrop {
+  type: 'SELECT_FILE_DROP';
+  id: Guid | 'NEW FILE DROP';
 }
 
 /** Set filter text for the client card filter */
@@ -36,6 +47,46 @@ export interface OpenCreateFileDropModal {
 /** Close the Create File Drop Modal */
 export interface CloseCreateFileDropModal {
   type: 'CLOSE_CREATE_FILE_DROP_MODAL';
+}
+
+/** Update the input values of the Create File Drop Modal form */
+export interface UpdateFileDropFormData {
+  type: 'UPDATE_FILE_DROP_FORM_DATA';
+  updateType: 'create' | 'edit';
+  field: 'fileDropName' | 'fileDropDescription';
+  value: string;
+}
+
+/** Open the modal used to begin File Drop deletion */
+export interface OpenDeleteFileDropModal {
+  type: 'OPEN_DELETE_FILE_DROP_MODAL';
+  fileDrop: FileDropWithStats;
+}
+
+/** Close the modal used to begin File Drop deletion */
+export interface CloseDeleteFileDropModal {
+  type: 'CLOSE_DELETE_FILE_DROP_MODAL';
+}
+
+/** Open the modal used to confirm File Drop deletion */
+export interface OpenDeleteFileDropConfirmationModal {
+  type: 'OPEN_DELETE_FILE_DROP_CONFIRMATION_MODAL';
+}
+
+/** Close the modal used to confirm File Drop deletion */
+export interface CloseDeleteFileDropConfirmationModal {
+  type: 'CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL';
+}
+
+/** Put the File Drop in edit mode */
+export interface EditFileDrop {
+  type: 'EDIT_FILE_DROP';
+  fileDrop: FileDropWithStats;
+}
+
+/** Take the File Drop out of edit mode */
+export interface CancelFileDropEdit {
+  type: 'CANCEL_FILE_DROP_EDIT';
 }
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -89,14 +140,14 @@ export interface FetchClientsFailed {
  */
 export interface FetchFileDrops {
   type: 'FETCH_FILE_DROPS';
-  request: {};
+  request: {
+    clientId: Guid;
+  };
 }
 /** Action called upon successful return of the FetchFileDrops API call */
 export interface FetchFileDropsSucceeded {
   type: 'FETCH_FILE_DROPS_SUCCEEDED';
-  response: {
-    fileDrops: Dict<FileDropWithStats>;
-  };
+  response: FileDropsReturnModel;
 }
 /** Action called upon return of an error from the FetchFileDrops API call */
 export interface FetchFileDropsFailed {
@@ -115,11 +166,49 @@ export interface CreateFileDrop {
 /** Action called upon successful return of the CreateFileDrop API call */
 export interface CreateFileDropSucceeded {
   type: 'CREATE_FILE_DROP_SUCCEEDED';
-  response: FileDropWithStats;
+  response: FileDropsReturnModel;
 }
 /** Action called upon return of an error from the CreateFileDrop API call */
 export interface CreateFileDropFailed {
   type: 'CREATE_FILE_DROP_FAILED';
+  error: TSError;
+}
+
+/**
+ * DELETE:
+ *   Delete a File Drop
+ */
+export interface DeleteFileDrop {
+  type: 'DELETE_FILE_DROP';
+  request: Guid;
+}
+/** Action called upon successful return of the DeleteFileDrop API call */
+export interface DeleteFileDropSucceeded {
+  type: 'DELETE_FILE_DROP_SUCCEEDED';
+  response: FileDropsReturnModel;
+}
+/** Action called upon return of an error from the DeleteFileDrop API call */
+export interface DeleteFileDropFailed {
+  type: 'DELETE_FILE_DROP_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Update a File Drop
+ */
+export interface UpdateFileDrop {
+  type: 'UPDATE_FILE_DROP';
+  request: FileDrop;
+}
+/** Action called upon successful return of the DeleteFileDrop API call */
+export interface UpdateFileDropSucceeded {
+  type: 'UPDATE_FILE_DROP_SUCCEEDED';
+  response: FileDropsReturnModel;
+}
+/** Action called upon return of an error from the DeleteFileDrop API call */
+export interface UpdateFileDropFailed {
+  type: 'UPDATE_FILE_DROP_FAILED';
   error: TSError;
 }
 
@@ -200,10 +289,18 @@ export interface ScheduleSessionCheck {
 /** Actions that change the state of the page */
 export type FileDropPageActions =
   | SelectClient
+  | SelectFileDrop
   | PromptStatusRefreshStopped
   | DecrementStatusRefreshAttempts
   | OpenCreateFileDropModal
   | CloseCreateFileDropModal
+  | UpdateFileDropFormData
+  | OpenDeleteFileDropModal
+  | CloseDeleteFileDropModal
+  | OpenDeleteFileDropConfirmationModal
+  | CloseDeleteFileDropConfirmationModal
+  | EditFileDrop
+  | CancelFileDropEdit
   ;
 
 /** Actions that schedule another action */
@@ -218,6 +315,8 @@ export type FileDropRequestActions =
   | FetchClients
   | FetchFileDrops
   | CreateFileDrop
+  | DeleteFileDrop
+  | UpdateFileDrop
   | FetchStatusRefresh
   | FetchSessionCheck
   ;
@@ -228,6 +327,8 @@ export type FileDropSuccessResponseActions =
   | FetchClientsSucceeded
   | FetchFileDropsSucceeded
   | CreateFileDropSucceeded
+  | DeleteFileDropSucceeded
+  | UpdateFileDropSucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   ;
@@ -238,6 +339,8 @@ export type FileDropErrorActions =
   | FetchClientsFailed
   | FetchFileDropsFailed
   | CreateFileDropFailed
+  | DeleteFileDropFailed
+  | UpdateFileDropFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   ;
@@ -261,4 +364,6 @@ export type FileDropActions =
 /** An action that opens a modal */
 export type OpenModalAction =
   | OpenCreateFileDropModal
+  | OpenDeleteFileDropModal
+  | OpenDeleteFileDropConfirmationModal
   ;

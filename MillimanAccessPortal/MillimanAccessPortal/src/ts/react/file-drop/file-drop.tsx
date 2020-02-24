@@ -71,15 +71,33 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           closeTimeoutMS={100}
         >
           <h3 className="title blue">Add File Drop</h3>
-          <form>
+          <form
+            onSubmit={(e) => {
+              {
+                e.preventDefault();
+                if (pending.createFileDrop.fileDropName) {
+                  this.props.createFileDrop({
+                    clientId: pending.createFileDrop.clientId,
+                    name: pending.createFileDrop.fileDropName,
+                    description: pending.createFileDrop.fileDropDescription,
+                  });
+                }
+              }
+            }}
+          >
             <Input
               autoFocus={true}
               error={pending.createFileDrop.errors.fileDropName}
               label="File Drop Name"
               name="File Drop Name"
-              onBlur={() => false}
-              onChange={() => false}
-              placeholderText="New File Drop Name"
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                this.props.updateFileDropFormData({
+                  updateType: 'create',
+                  field: 'fileDropName',
+                  value: target.value,
+                });
+              }}
+              placeholderText="New File Drop Name *"
               type="text"
               value={pending.createFileDrop.fileDropName}
             />
@@ -87,9 +105,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               error={pending.createFileDrop.errors.fileDropDescription}
               label="File Drop Description"
               name="File Drop Description"
-              onBlur={() => false}
-              onChange={() => false}
-              placeholderText="File Drop Description (Optional)"
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                this.props.updateFileDropFormData({
+                  updateType: 'create',
+                  field: 'fileDropDescription',
+                  value: target.value,
+                });
+              }}
+              placeholderText="File Drop Description"
               value={pending.createFileDrop.fileDropDescription}
             />
             <div className="button-container">
@@ -97,7 +120,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 Cancel
               </button>
               <button
-                className={`blue-button${pending.createFileDrop.fileDropName ? '' : ' disabled'}`}
+                className={'blue-button'}
+                disabled={!pending.createFileDrop.fileDropName}
                 type="submit"
               >
                 Add
@@ -108,6 +132,89 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               </button>
             </div>
           </form>
+        </Modal>
+        <Modal
+          isOpen={modals.deleteFileDrop.isOpen}
+          onRequestClose={() => this.props.closeDeleteFileDropModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Delete File Drop</h3>
+          <span className="modal-text">
+            Delete <strong>{
+              (pending.fileDropToDelete.id !== null)
+                ? pending.fileDropToDelete.name
+                : ''}</strong>?
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeDeleteFileDropModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                // Add a slight pause to make it obvious that you've switched modals
+                setTimeout(() => this.props.openDeleteFileDropConfirmationModal({}), 400);
+              }}
+            >
+              Delete
+              {pending.async.deleteFileDrop
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
+        <Modal
+          isOpen={modals.confirmDeleteFileDrop.isOpen}
+          onRequestClose={() => this.props.closeDeleteFileDropConfirmationModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Confirm Deletion of File Drop</h3>
+          <span className="modal-text">
+            Delete <strong>{
+              (pending.fileDropToDelete.id !== null)
+                ? pending.fileDropToDelete.name
+                : ''}</strong>?
+            <br />
+            <br />
+            <strong>THIS ACTION WILL DELETE ALL EXISTING FILES IN THIS FILE DROP.</strong>
+            <br />
+            <br />
+            <strong>THIS ACTION CANNOT BE UNDONE.</strong>
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeDeleteFileDropConfirmationModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (!pending.async.deleteFileDrop) {
+                  this.props.deleteFileDrop(pending.fileDropToDelete.id);
+                }
+              }}
+            >
+              Confirm Deletion
+              {pending.async.deleteFileDrop
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
         </Modal>
       </>
     );
@@ -123,29 +230,23 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           if (entity === 'divider') {
             return <div className="hr" key={key} />;
           }
-          const card = cardAttributes.client[entity.id];
+          const card = cardAttributes.clients[entity.id];
           return (
             <Card
               key={key}
               selected={selected.client === entity.id}
               disabled={card.disabled}
               onSelect={() => {
-                // TODO: Update this section once all of the necessary actions and data are available
-                // if (this.props.formChangesPending || this.props.uploadChangesPending) {
-                //   this.props.openModifiedFormModal({
-                //     afterFormModal:
-                //     {
-                //       entityToSelect: entity.id,
-                //       entityType: 'Select Client',
-                //     },
-                //   });
-                // } else {
-                //   if (selected.client !== entity.id) {
-                //     this.props.fetchItems({ clientId: entity.id });
-                //   }
-                //   this.props.selectClient({ id: entity.id });
-                // }
-                this.props.selectClient({ id: entity.id });
+                 // TODO: Update this section once all of the necessary actions and data are available
+                 if (false) {
+                   // TODO: Properly implement any modals
+                 } else {
+                   if (selected.client !== entity.id) {
+                     this.props.fetchFileDrops({ clientId: entity.id });
+                   }
+                   this.props.selectClient({ id: entity.id });
+                 }
+                 // this.props.selectClient({ id: entity.id });
               }}
               indentation={entity.indent}
             >
@@ -193,39 +294,81 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           if (false) {
             // TODO: implement any modals necessary before opening this modal
           } else {
+            this.props.selectFileDrop({ id: 'NEW FILE DROP' });
             this.props.openCreateFileDropModal({ clientId: selected.client });
           }
         }}
       />
     );
-    const cardButtons = (_entityId: string, canManageFileDrops: boolean) => {
+    const cardButtons = (entity: FileDropWithStats, canManageFileDrops: boolean, isEditing: boolean) => {
       return canManageFileDrops
         ? (
           <>
-            <CardButton
-              color={'blue'}
-              tooltip={'Edit File Drop'}
-              onClick={() => {
-                if (false) {
-                  // TODO: Implement any necessary modals before performing action
-                } else {
-                  // TODO: Implement this action
-                }
-              }}
-              icon={'edit'}
-            />
-            <CardButton
-              color={'red'}
-              tooltip={'Delete File Drop'}
-              onClick={() => {
-                if (false) {
-                  // TODO: Implement any necessary modals before performing action
-                } else {
-                  // TODO: Implement this action
-                }
-              }}
-              icon={'delete'}
-            />
+            {
+              !isEditing &&
+              <>
+                <CardButton
+                  color={'blue'}
+                  tooltip={'Edit File Drop'}
+                  onClick={() => {
+                    if (false) {
+                      // TODO: Implement any necessary modals before performing action
+                    } else {
+                      // TODO: Implement this action
+                      this.props.editFileDrop({ fileDrop: entity });
+                    }
+                  }}
+                  icon={'edit'}
+                />
+                <CardButton
+                  color={'red'}
+                  tooltip={'Delete File Drop'}
+                  onClick={() => {
+                    if (false) {
+                      // TODO: Implement any necessary modals before performing action
+                    } else {
+                      this.props.openDeleteFileDropModal({fileDrop: entity});
+                    }
+                  }}
+                  icon={'delete'}
+                />
+              </>
+            }
+            {
+              isEditing &&
+              <>
+                <CardButton
+                  color={'green'}
+                  tooltip={'Update File Drop'}
+                  onClick={() => {
+                    if (false) {
+                      // TODO: Implement any necessary modals before performing action
+                    } else {
+                      // TODO: Implement this action
+                      this.props.updateFileDrop({
+                        clientId: pending.editFileDrop.clientId,
+                        id: pending.editFileDrop.id,
+                        name: pending.editFileDrop.fileDropName,
+                        description: pending.editFileDrop.fileDropDescription,
+                      });
+                    }
+                  }}
+                  icon={'checkmark'}
+                />
+                <CardButton
+                  color={'red'}
+                  tooltip={'Cancel Edit'}
+                  onClick={() => {
+                    if (false) {
+                      // TODO: Implement any necessary modals before performing action
+                    } else {
+                      this.props.cancelFileDropEdit({});
+                    }
+                  }}
+                  icon={'cancel'}
+                />
+              </>
+            }
           </>
         ) : (
           null
@@ -238,6 +381,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           entities={fileDrops}
           loading={pending.async.fileDrops}
           renderEntity={(entity, key) => {
+            const cardEditing = (
+              cardAttributes.fileDrops
+              && cardAttributes.fileDrops[entity.id]
+              && cardAttributes.fileDrops[entity.id].editing
+              )
+              ? cardAttributes.fileDrops[entity.id].editing
+              : false;
             return (
               <Card
                 key={key}
@@ -249,30 +399,70 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     if (selected.fileDrop !== entity.id) {
                       // this.props.fetchFileDropDetail({ FileDropId: entity.id });
                     }
-                    // this.props.selectFileDrop({ id: entity.id });
+                    this.props.selectFileDrop({ id: entity.id });
                   }
                 }}
                 // suspended={entity.isSuspended}
               >
                 <CardSectionMain>
-                  <CardText
-                    text={entity.name}
-                    // TODO: Implement this when isSuspended is available
-                    // textSuffix={entity.isSuspended ? '[Suspended]' : ''}
-                    subtext={entity.description}
-                  />
-                  <CardSectionStats
-                    // TODO: Make this dynamic when canManage is available
-                  >
-                    <CardStat
-                      name={'Authorized Users'}
-                      value={entity.userCount}
-                      icon={'user'}
-                    />
-                  </CardSectionStats>
+                  {
+                    !cardEditing &&
+                      <CardText
+                        text={entity.name}
+                        // TODO: Implement this when isSuspended is available
+                        // textSuffix={entity.isSuspended ? '[Suspended]' : ''}
+                        subtext={entity.description}
+                      />
+                  }
+                  {
+                    cardEditing &&
+                    <div className="card-body-primary-container">
+                      <Input
+                        autoFocus={true}
+                        error={pending.editFileDrop.errors.fileDropName}
+                        label="File Drop Name"
+                        name="File Drop Name"
+                        onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                          this.props.updateFileDropFormData({
+                            updateType: 'edit',
+                            field: 'fileDropName',
+                            value: target.value,
+                          });
+                        }}
+                        placeholderText="File Drop Name *"
+                        type="text"
+                        value={pending.editFileDrop.fileDropName}
+                      />
+                      <TextAreaInput
+                        error={pending.editFileDrop.errors.fileDropDescription}
+                        label="File Drop Description"
+                        name="File Drop Description"
+                        onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                          this.props.updateFileDropFormData({
+                            updateType: 'edit',
+                            field: 'fileDropDescription',
+                            value: target.value,
+                          });
+                        }}
+                        placeholderText="File Drop Description"
+                        value={pending.editFileDrop.fileDropDescription}
+                      />
+                    </div>
+                  }
+                  {
+                    !cardEditing &&
+                    <CardSectionStats
+                      // TODO: Make this dynamic when canManage is available
+                    >
+                      <CardStat
+                        name={'Authorized Users'}
+                        value={entity.userCount}
+                        icon={'user'}
+                      />
+                    </CardSectionStats>
+                  }
                   <CardSectionButtons>
-                    // TODO: Implement the second value properly
-                    {cardButtons(entity.id, true)}
+                    {cardButtons(entity, true, cardEditing)}
                   </CardSectionButtons>
                 </CardSectionMain>
               </Card>
@@ -285,6 +475,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 if (false) {
                   // TODO Implement any necessary modals
                 } else {
+                  this.props.selectFileDrop({ id: 'NEW FILE DROP' });
                   this.props.openCreateFileDropModal({ clientId: selected.client });
                 }
               }}
@@ -302,7 +493,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     <svg className="action-card-icon">
                       <use href="#add" />
                     </svg>
-                    <span>CREATE FILE DROP</span>
+                    <span>NEW FILE DROP</span>
                   </h2>
                 </div>
               </div>
@@ -312,7 +503,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <h3 className="admin-panel-header">File Drops</h3>
           <PanelSectionToolbar>
             <Filter
-              placeholderText={'Filter content items...'}
+              placeholderText={'Filter file drops...'}
               setFilterText={(text) => this.props.setFilterTextFileDrop({ text })}
               filterText={filters.fileDrop.text}
             />

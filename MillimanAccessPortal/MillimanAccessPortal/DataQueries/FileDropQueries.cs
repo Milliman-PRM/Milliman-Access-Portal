@@ -50,14 +50,20 @@ namespace MillimanAccessPortal.DataQueries
                                                      .Union(
                                                          _dbContext.ApplicationUser
                                                                    .Where(u => u.UserName.Equals(user.UserName, StringComparison.InvariantCultureIgnoreCase))
-                                                                   .SelectMany(u => u.SftpAccounts.Select(a => a.FileDropUserPermissionGroup.FileDrop.Client)),
+                                                                   .SelectMany(u => u.SftpAccounts
+                                                                                     .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                                                     .Select(a => a.FileDropUserPermissionGroup.FileDrop.Client)),
                                                          new IdPropertyComparer<Client>()
                                                      )
                                                      .ToList();
             List<Guid> clientIds = clientsWithRole.ConvertAll(c => c.Id);
+            List<Guid> parentClientIds = clientsWithRole
+                                            .Where(c => c.ParentClientId.HasValue)
+                                            .ToList()
+                                            .ConvertAll(c => c.ParentClientId.Value);
 
             var unlistedParentClients = _dbContext.Client
-                                                  .Where(c => clientIds.Contains(c.ParentClientId.Value))
+                                                  .Where(c => parentClientIds.Contains(c.Id))
                                                   .Where(c => !clientIds.Contains(c.Id))
                                                   .ToList();
             List<Guid> unlistedParentClientIds = unlistedParentClients.ConvertAll(c => c.Id);
@@ -65,7 +71,7 @@ namespace MillimanAccessPortal.DataQueries
             List<ClientCardModel> returnList = new List<ClientCardModel>();
             foreach (Client eachClient in clientsWithRole)
             {
-                ClientCardModel eachClientCardModel = GetClientCardModelAsync(eachClient, user);
+                ClientCardModel eachClientCardModel = GetClientCardModel(eachClient, user);
 
                 // Only include information about a client's otherwise unlisted parent in the model if the user can manage the (child) client
                 if (eachClientCardModel.ParentId.HasValue && 
@@ -73,7 +79,7 @@ namespace MillimanAccessPortal.DataQueries
                 {
                     if (eachClientCardModel.CanManageFileDrops)
                     {
-                        ClientCardModel parentCardModel = GetClientCardModelAsync(unlistedParentClients.Single(p => p.Id == eachClientCardModel.ParentId.Value), user);
+                        ClientCardModel parentCardModel = GetClientCardModel(unlistedParentClients.Single(p => p.Id == eachClientCardModel.ParentId.Value), user);
                         returnList.Add(parentCardModel);
                     }
                     else
@@ -88,12 +94,13 @@ namespace MillimanAccessPortal.DataQueries
             return returnList.ToDictionary(c => c.Id);
         }
 
-        private ClientCardModel GetClientCardModelAsync(Client client, ApplicationUser user)
+        private ClientCardModel GetClientCardModel(Client client, ApplicationUser user)
         {
             return new ClientCardModel(client)
             {
                 UserCount = _dbContext.ApplicationUser
                                       .Where(u => u.SftpAccounts
+                                                   .Where(a => a.FileDropUserPermissionGroupId.HasValue)
                                                    .Any(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id))
                                       .ToList()
                                       .Distinct(new IdPropertyComparer<ApplicationUser>())
@@ -108,7 +115,8 @@ namespace MillimanAccessPortal.DataQueries
                                                           ur.Role.RoleEnum == RoleEnum.FileDropAdmin),
 
                 AuthorizedFileDropUser = _dbContext.SftpAccount
-                                                   .Any(a => a.ApplicationUserId == user.Id && 
+                                                   .Any(a => a.ApplicationUserId == user.Id &&
+                                                             a.FileDropUserPermissionGroupId.HasValue &&
                                                              a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id),
             };
         }
@@ -133,7 +141,11 @@ namespace MillimanAccessPortal.DataQueries
                                                    .Distinct(new IdPropertyComparer<FileDrop>())
                                                    .ToList();
 
-            FileDropsModel FileDropsModel = new FileDropsModel();
+            Client client = _dbContext.Client.Find(clientId);
+            FileDropsModel FileDropsModel = new FileDropsModel
+            {
+                ClientCard = GetClientCardModel(client, user),
+            };
 
             foreach (FileDrop eachDrop in fileDrops)
             {

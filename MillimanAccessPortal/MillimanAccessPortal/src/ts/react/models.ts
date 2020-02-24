@@ -305,12 +305,17 @@ export interface FileDropClientWithStats extends Client {
 
 export interface FileDrop {
   clientId: Guid;
-  id: Guid;
+  id?: Guid;
   name: string;
   description: string;
 }
 
 export interface FileDropWithStats extends FileDrop {
   userCount: number;
-  sftAccountCount: number;
+}
+
+export interface FileDropsReturnModel {
+  clientCard: FileDropClientWithStats;
+  fileDrops: Dict<FileDropWithStats>;
+  currentFileDropId?: Guid;
 }
