@@ -77,7 +77,12 @@ export default function* rootSaga() {
     () => ActionCreator.scheduleSessionCheck({ delay: 60000 }));
   yield takeLatest('FETCH_SESSION_CHECK_FAILED', function*() { yield window.location.reload(); });
 
-  // Toasts
+  // Toasts (Success)  // Toasts
+  yield takeEveryToast('CREATE_FILE_DROP_SUCCEEDED', 'New File Drop created successfully.');
+  yield takeEveryToast('UPDATE_FILE_DROP_SUCCEEDED', 'File Drop updated successfully.');
+  yield takeEveryToast('DELETE_FILE_DROP_SUCCEEDED', 'File Drop successfully deleted.');
+
+  // Toasts (Errors/Warnings)
   yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',
     'Please refresh the page to update Client status.', 'warning');
   yield takeEveryToast<Action.FileDropErrorActions>([
