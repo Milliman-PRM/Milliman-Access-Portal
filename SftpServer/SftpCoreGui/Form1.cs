@@ -55,9 +55,13 @@ namespace SftpCoreGui
             }
             else
             {
+                if (_SftpApi != null)
+                {
+                    _SftpApi.Stop();
+                    _SftpApi = null;
+                }
+
                 Sender.Text = "Start";
-                _SftpApi.Stop();
-                _SftpApi = null;
             }
         }
 
@@ -89,6 +93,16 @@ namespace SftpCoreGui
 
                 MessageBox.Show($"Server Fingerprint is \"{state.Fingerprint}\"");
             }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (_SftpApi != null)
+            {
+                _SftpApi.Stop();
+            }
+
+            //base.OnFormClosing(e);
         }
     }
 }

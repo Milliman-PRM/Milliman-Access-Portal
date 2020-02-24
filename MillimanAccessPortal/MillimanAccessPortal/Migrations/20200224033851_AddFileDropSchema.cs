@@ -122,27 +122,6 @@ namespace MillimanAccessPortal.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SftpConnection",
-                columns: table => new
-                {
-                    Id = table.Column<string>(nullable: false),
-                    CreatedDateTimeUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
-                    LastActivityUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
-                    MetaData = table.Column<string>(type: "jsonb", nullable: true),
-                    SftpAccountId = table.Column<Guid>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SftpConnection", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_SftpConnection_SftpAccount_SftpAccountId",
-                        column: x => x.SftpAccountId,
-                        principalTable: "SftpAccount",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "FileDropFile",
                 columns: table => new
                 {
@@ -224,20 +203,12 @@ namespace MillimanAccessPortal.Migrations
                 name: "IX_SftpAccount_FileDropUserPermissionGroupId",
                 table: "SftpAccount",
                 column: "FileDropUserPermissionGroupId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SftpConnection_SftpAccountId",
-                table: "SftpConnection",
-                column: "SftpAccountId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
                 name: "FileDropFile");
-
-            migrationBuilder.DropTable(
-                name: "SftpConnection");
 
             migrationBuilder.DropTable(
                 name: "FileDropDirectory");

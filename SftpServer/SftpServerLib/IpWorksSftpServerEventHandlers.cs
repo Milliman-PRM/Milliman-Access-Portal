@@ -62,22 +62,11 @@ namespace SftpServerLib
         //[Description("Fired when a connection is closed.")]
         internal static void OnDisconnected(object sender, SftpserverDisconnectedEventArgs evtData)
         {
-            Debug.WriteLine(GenerateEventArgsLogMessage("Disconnected", evtData));
+            var connectionProperties = IpWorksSftpServer._connections[evtData.ConnectionId];
 
-            using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
-            {
-                SftpConnection thisConnection = db.SftpConnection
-                                                    .Include(c => c.SftpAccount)
-                                                    .SingleOrDefault(c => c.Id == evtData.ConnectionId);
+            Log.Information($"Connection {evtData.ConnectionId} closed for account name {connectionProperties.SftpAccountName}");
 
-                if (thisConnection != null)
-                {
-                    db.SftpConnection.Remove(thisConnection);
-                    db.SaveChanges();
-
-                    Log.Information($"Connection {evtData.ConnectionId} closed for account name {thisConnection.SftpAccount.UserName}");
-                }
-            }
+            IpWorksSftpServer._connections.Remove(evtData.ConnectionId);
         }
 
         //[Description("Fires when a client wants to delete a directory.")]
@@ -151,35 +140,10 @@ namespace SftpServerLib
             Debug.WriteLine(GenerateEventArgsLogMessage("FileWrite", evtData));
         }
 
-        internal static void ShutdownCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
-        {
-            using (var db = GlobalResources.NewMapDbContext)
-            {
-                var connections = db.SftpConnection.ToList();
-                db.SftpConnection.RemoveRange(connections);
-                Debug.WriteLine(GenerateEventArgsLogMessage($"ShutdownCompleted, {connections.Count} connection records dropped", evtData));
-            }
-        }
-
-        internal static void SetFileListCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
-        {
-            Debug.WriteLine(GenerateEventArgsLogMessage("SetFileListCompleted", evtData));
-        }
-
         //[Description("Fires when a client attempts to set file or directory attributes.")]
         internal static void OnSetAttributes(object sender, SftpserverSetAttributesEventArgs evtData)
         {
             Debug.WriteLine(GenerateEventArgsLogMessage("SetAttributes", evtData));
-        }
-
-        internal static void ExchangeKeysCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
-        {
-            Debug.WriteLine(GenerateEventArgsLogMessage("ExchangeKeysCompleted", evtData));
-        }
-
-        internal static void DisconnectCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
-        {
-            Debug.WriteLine(GenerateEventArgsLogMessage("DisconnectCompleted", evtData));
         }
 
         //[Description("Fires when a client attempts to authenticate a connection.")]
@@ -194,6 +158,8 @@ namespace SftpServerLib
                 {
                     SftpAccount userAccount = db.SftpAccount
                                                 .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                .Where(a => !a.IsSuspended)
+                                                .Where(a => !a.FileDrop.IsSuspended)
                                                 .Include(a => a.ApplicationUser)
                                                 .Include(a => a.FileDropUserPermissionGroup)
                                                     .ThenInclude(g => g.FileDrop)
@@ -207,21 +173,33 @@ namespace SftpServerLib
                         return;
                     }
 
-                    var passwordVerification = userAccount.CheckPassword(evtData.AuthParam);
-                    if (passwordVerification == PasswordVerificationResult.Success ||
-                        passwordVerification == PasswordVerificationResult.SuccessRehashNeeded)
-                    {
-                        IpWorksSftpServer._sftpServer.Config($@"UserRootDirectory[{evtData.ConnectionId}]={Path.Combine(GlobalResources.ApplicationConfiguration.GetValue<string>("FileDropRoot"), userAccount.FileDropUserPermissionGroup.FileDrop.RootPath)}");
+                    var passwordResult = userAccount.CheckPassword(evtData.AuthParam);
 
-                        SftpConnection connection = new SftpConnection
+                    if (passwordResult == PasswordVerificationResult.Success ||
+                        passwordResult == PasswordVerificationResult.SuccessRehashNeeded)
+                    {
+                        string absoluteFileDropRootPath = Path.Combine(GlobalResources.ApplicationConfiguration.GetValue<string>("Storage:FileDropRoot"), userAccount.FileDropUserPermissionGroup.FileDrop.RootPath);
+
+                        // set this connection's root path
+                        IpWorksSftpServer._sftpServer.Config($@"UserRootDirectory[{evtData.ConnectionId}]={absoluteFileDropRootPath}");
+
+                        SftpConnectionProperties newConnection = new SftpConnectionProperties
                         {
                             Id = evtData.ConnectionId,
-                            CreatedDateTimeUtc = DateTime.UtcNow,
+                            OpenedDateTimeUtc = DateTime.UtcNow,
                             LastActivityUtc = DateTime.UtcNow,
+                            MapUserId = userAccount.ApplicationUserId,
+                            MapUserName = userAccount.ApplicationUser.UserName,
                             SftpAccountId = userAccount.Id,
+                            SftpAccountName = userAccount.UserName,
+                            FileDropId = userAccount.FileDropId,
+                            FileDropName = userAccount.FileDropUserPermissionGroup.FileDrop.Name,
+                            FileDropRootPathAbsolute = absoluteFileDropRootPath,
+                            ReadAccess = userAccount.FileDropUserPermissionGroup.ReadAccess,
+                            WriteAccess = userAccount.FileDropUserPermissionGroup.WriteAccess,
+                            DeleteAccess = userAccount.FileDropUserPermissionGroup.DeleteAccess,
                         };
-                        db.SftpConnection.Add(connection);
-                        db.SaveChanges();
+                        IpWorksSftpServer._connections.Add(newConnection.Id, newConnection);
 
                         evtData.Accept = true;
 
@@ -241,6 +219,27 @@ namespace SftpServerLib
         {
             //Debug.WriteLine(GenerateEventArgsLogMessage("SSHStatus", evtData));
         }
+
+        #region Async event completion handlers
+        internal static void ShutdownCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
+        {
+            Debug.WriteLine(GenerateEventArgsLogMessage($"ShutdownCompleted, {IpWorksSftpServer._connections.Count} connections will be deleted", evtData));
+            IpWorksSftpServer._connections.Clear();
+        }
+
+        internal static void SetFileListCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
+        {
+            Debug.WriteLine(GenerateEventArgsLogMessage("SetFileListCompleted", evtData));
+        }
+        internal static void ExchangeKeysCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
+        {
+            Debug.WriteLine(GenerateEventArgsLogMessage("ExchangeKeysCompleted", evtData));
+        }
+        internal static void DisconnectCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
+        {
+            Debug.WriteLine(GenerateEventArgsLogMessage("DisconnectCompleted", evtData));
+        }
+        #endregion
 
         #endregion
 

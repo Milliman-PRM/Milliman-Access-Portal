@@ -17,12 +17,11 @@ namespace SftpServerLib
     internal partial class IpWorksSftpServer : SftpLibApi
     {
         internal static Sftpserver _sftpServer = default;
+        internal static Dictionary<string, SftpConnectionProperties> _connections = new Dictionary<string, SftpConnectionProperties>();
 
         internal IpWorksSftpServer() 
         {
             // At launch all connection records should be dropped because the sftp library reuses connection IDs. 
-            DropAllConnections();
-
             AuditLogLib.AuditLogger.Config = new AuditLogLib.AuditLoggerConfiguration
             {
                 AuditLogConnectionString = GlobalResources.ApplicationConfiguration.GetConnectionString("AuditLogConnectionString"),
@@ -30,21 +29,6 @@ namespace SftpServerLib
             };
         }
         
-        ~IpWorksSftpServer()
-        {
-            DropAllConnections();
-        }
-
-        internal void DropAllConnections()
-        {
-            using (var db = GlobalResources.NewMapDbContext)
-            {
-                var allConnectionRecords = db.SftpConnection.ToList();
-                db.RemoveRange(allConnectionRecords);
-                db.SaveChanges();
-            }
-        }
-
         public override void Start(byte[] keyBytes)
         {
             // TODO get the certificate (private key) from configuration instead
@@ -56,18 +40,21 @@ namespace SftpServerLib
             Debug.WriteLine("Server listening");
         }
 
-        public async override void Stop()
+        public override void Stop()
         {
-            try
+            if (_sftpServer == null)
             {
-                await _sftpServer.ShutdownAsync();
-                _sftpServer = null;
-                Debug.WriteLine("Server instance destroyed");
-            }
-            catch (Exception e)
-            {
-                var ex = e;
-                Debug.WriteLine("Exception while stopping server");
+                try
+                {
+                    _sftpServer.Shutdown();
+                    _sftpServer = null;
+                    Debug.WriteLine("Server instance destroyed");
+                }
+                catch (Exception e)
+                {
+                    var ex = e;
+                    Debug.WriteLine("Exception while stopping server");
+                }
             }
         }
 
@@ -127,21 +114,17 @@ namespace SftpServerLib
             _sftpServer.OnFileRename += IpWorksSftpServerEventHandlers.OnFileRename;
             //[Description("Fires when a client wants to write to an open file.")]
             _sftpServer.OnFileWrite += IpWorksSftpServerEventHandlers.OnFileWrite;
+            //[Description("Fires when a client attempts to set file or directory attributes.")]
+            _sftpServer.OnSetAttributes += IpWorksSftpServerEventHandlers.OnSetAttributes;
+            //[Description("Fires when a client attempts to authenticate a connection.")]
+            _sftpServer.OnSSHUserAuthRequest += IpWorksSftpServerEventHandlers.OnSSHUserAuthRequest;
+            //[Description("Shows the progress of the secure connection.")]
+            _sftpServer.OnSSHStatus += IpWorksSftpServerEventHandlers.OnSSHStatus;
 
             _sftpServer.ShutdownCompleted += IpWorksSftpServerEventHandlers.ShutdownCompleted;
             _sftpServer.SetFileListCompleted += IpWorksSftpServerEventHandlers.SetFileListCompleted;
-
-            //[Description("Fires when a client attempts to set file or directory attributes.")]
-            _sftpServer.OnSetAttributes += IpWorksSftpServerEventHandlers.OnSetAttributes;
-
             _sftpServer.ExchangeKeysCompleted += IpWorksSftpServerEventHandlers.ExchangeKeysCompleted;
             _sftpServer.DisconnectCompleted += IpWorksSftpServerEventHandlers.DisconnectCompleted;
-
-            //[Description("Fires when a client attempts to authenticate a connection.")]
-            _sftpServer.OnSSHUserAuthRequest += IpWorksSftpServerEventHandlers.OnSSHUserAuthRequest;
-
-            //[Description("Shows the progress of the secure connection.")]
-            _sftpServer.OnSSHStatus += IpWorksSftpServerEventHandlers.OnSSHStatus;
 
             Debug.WriteLine("Event handlers assigned");
             #endregion

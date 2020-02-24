@@ -560,30 +560,6 @@ namespace MillimanAccessPortal.Migrations
                     b.ToTable("SftpAccount");
                 });
 
-            modelBuilder.Entity("MapDbContextLib.Context.SftpConnection", b =>
-                {
-                    b.Property<string>("Id");
-
-                    b.Property<DateTime>("CreatedDateTimeUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasDefaultValueSql("(now() at time zone 'utc')");
-
-                    b.Property<DateTime>("LastActivityUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasDefaultValueSql("(now() at time zone 'utc')");
-
-                    b.Property<string>("MetaData")
-                        .HasColumnType("jsonb");
-
-                    b.Property<Guid>("SftpAccountId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SftpAccountId");
-
-                    b.ToTable("SftpConnection");
-                });
-
             modelBuilder.Entity("MapDbContextLib.Context.UserInSelectionGroup", b =>
                 {
                     b.Property<Guid>("Id")
@@ -998,14 +974,6 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Context.FileDropUserPermissionGroup", "FileDropUserPermissionGroup")
                         .WithMany()
                         .HasForeignKey("FileDropUserPermissionGroupId");
-                });
-
-            modelBuilder.Entity("MapDbContextLib.Context.SftpConnection", b =>
-                {
-                    b.HasOne("MapDbContextLib.Context.SftpAccount", "SftpAccount")
-                        .WithMany()
-                        .HasForeignKey("SftpAccountId")
-                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserInSelectionGroup", b =>
