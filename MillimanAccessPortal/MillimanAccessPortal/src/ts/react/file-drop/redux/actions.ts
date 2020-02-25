@@ -3,6 +3,7 @@ import {
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
+import { AvailableFileDropTabs } from './store';
 
 // ~~~~~~~~~~~~
 // Page Actions
@@ -87,6 +88,12 @@ export interface EditFileDrop {
 /** Take the File Drop out of edit mode */
 export interface CancelFileDropEdit {
   type: 'CANCEL_FILE_DROP_EDIT';
+}
+
+/** Activate a File Drop tab */
+export interface SelectFileDropTab {
+  type: 'SELECT_FILE_DROP_TAB';
+  tab: AvailableFileDropTabs;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -301,6 +308,7 @@ export type FileDropPageActions =
   | CloseDeleteFileDropConfirmationModal
   | EditFileDrop
   | CancelFileDropEdit
+  | SelectFileDropTab
   ;
 
 /** Actions that schedule another action */
