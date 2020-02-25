@@ -35,6 +35,9 @@ export interface FileDropFormStateData {
   };
 }
 
+/** Available File Drop tabs */
+export type AvailableFileDropTabs = 'files' | 'permissions' | 'activityLog' | 'settings';
+
 /** All state that represents the user interactions with the page */
 export interface FileDropPendingState {
   async: FileDropPendingReturnState;
