@@ -46,6 +46,7 @@ export interface FileDropPendingState {
   editFileDrop: FileDropFormStateData;
   fileDropToDelete: FileDropWithStats;
   fileDropToEdit: FileDropWithStats;
+  selectedFileDropTab: AvailableFileDropTabs;
 }
 
 /** State representing user-selected entities */
