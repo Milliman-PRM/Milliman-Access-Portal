@@ -1,4 +1,11 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: GUI form to manually drive SFTP library features
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Context;
+using Microsoft.Extensions.Configuration;
 using SftpServerLib;
 using System;
 using System.Collections.Generic;
@@ -21,6 +28,11 @@ namespace SftpCoreGui
         public Form1()
         {
             InitializeComponent();
+
+            GlobalResources.LoadConfiguration();
+            GlobalResources.InitializeSerilog(GlobalResources.ApplicationConfiguration);
+
+            GlobalResources.MapDbConnectionString = GlobalResources.ApplicationConfiguration.GetConnectionString("DefaultConnection");
         }
 
         private void btnStartStop_Click(object sender, EventArgs e)
@@ -30,17 +42,26 @@ namespace SftpCoreGui
             {
                 _SftpApi = SftpLibApi.NewInstance();
 
-                var keyStream = new BinaryReader(new FileStream(textKeyfilePath.Text, FileMode.Open));
-                byte[] keyBytes = keyStream.ReadBytes(10_000);
+                using (var fileStream = new FileStream(textKeyfilePath.Text, FileMode.Open))
+                {
+                    using (BinaryReader keyStream = new BinaryReader(fileStream)) 
+                    {
+                        byte[] keyBytes = keyStream.ReadBytes((int)fileStream.Length);
+                        _SftpApi.Start(keyBytes);
+                    }
+                }
 
-                _SftpApi.Start(keyBytes);
                 Sender.Text = "Stop";
             }
             else
             {
+                if (_SftpApi != null)
+                {
+                    _SftpApi.Stop();
+                    _SftpApi = null;
+                }
+
                 Sender.Text = "Start";
-                _SftpApi.Stop();
-                _SftpApi = null;
             }
         }
 
@@ -48,7 +69,8 @@ namespace SftpCoreGui
         {
             Button Sender = sender as Button;
 
-            sftpAccountObject = new SftpAccount { Password = textPassword.Text };
+            // TODO fix the file drop id
+            sftpAccountObject = new SftpAccount(Guid.Empty) { Password = textPassword.Text };
             textHash.Text = sftpAccountObject.PasswordHash;
         }
 
@@ -71,6 +93,16 @@ namespace SftpCoreGui
 
                 MessageBox.Show($"Server Fingerprint is \"{state.Fingerprint}\"");
             }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (_SftpApi != null)
+            {
+                _SftpApi.Stop();
+            }
+
+            //base.OnFormClosing(e);
         }
     }
 }

@@ -38,7 +38,6 @@ namespace MapDbContextLib.Context
         public DbSet<NameValueConfiguration> NameValueConfiguration { get; set; }
 
         public DbSet<SftpAccount> SftpAccount { get; set; }
-        public DbSet<SftpConnection> SftpConnection { get; set; }
         public DbSet<FileDrop> FileDrop { get; set; }
         public DbSet<FileDropUserPermissionGroup> FileDropUserPermissionGroup { get; set; }
         public DbSet<FileDropDirectory> FileDropDirectory { get; set; }
@@ -180,12 +179,6 @@ namespace MapDbContextLib.Context
                 b.HasOne(x => x.ApplicationUser).WithMany(u => u.SftpAccounts).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
                 b.Property(x => x.PasswordResetDateTimeUtc).HasDefaultValue(DateTime.MinValue).ValueGeneratedOnAdd();
                 b.HasOne(x => x.FileDrop).WithMany(fd => fd.SftpAccounts).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
-            });
-            builder.Entity<SftpConnection>(b =>
-            {
-                b.Property(x => x.Id).IsRequired().ValueGeneratedNever();
-                b.Property(x => x.CreatedDateTimeUtc).HasDefaultValueSql("(now() at time zone 'utc')").ValueGeneratedOnAdd();
-                b.Property(x => x.LastActivityUtc).HasDefaultValueSql("(now() at time zone 'utc')").ValueGeneratedOnAdd();
             });
             builder.Entity<FileDropDirectory>(b =>
             {
