@@ -44,7 +44,6 @@ namespace TestResourcesLib
             ReturnMockContext.Object.FileUpload = MockDbSet<FileUpload>.New(new List<FileUpload>()).Object;
             ReturnMockContext.Object.AuthenticationScheme = MockDbSet<AuthenticationScheme>.New(new List<AuthenticationScheme>()).Object;
             ReturnMockContext.Object.SftpAccount = MockDbSet<SftpAccount>.New(new List<SftpAccount>()).Object;
-            ReturnMockContext.Object.SftpConnection = MockDbSet<SftpConnection>.New(new List<SftpConnection>()).Object;
             ReturnMockContext.Object.FileDrop = MockDbSet<FileDrop>.New(new List<FileDrop>()).Object;
             ReturnMockContext.Object.FileDropUserPermissionGroup = MockDbSet<FileDropUserPermissionGroup>.New(new List<FileDropUserPermissionGroup>()).Object;
             ReturnMockContext.Object.FileDropDirectory = MockDbSet<FileDropDirectory>.New(new List<FileDropDirectory>()).Object;
@@ -240,22 +239,6 @@ namespace TestResourcesLib
                 }
             });
             ReturnMockContext.Object.SftpAccount = MockSftpAccount.Object;
-
-            List<SftpConnection> SftpConnectionData = new List<SftpConnection>();
-            Mock<DbSet<SftpConnection>> MockSftpConnection = MockDbSet<SftpConnection>.New(SftpConnectionData);
-            MockSftpConnection.Setup(d => d.Add(It.IsAny<SftpConnection>())).Callback<SftpConnection>(s =>
-            {
-                SftpConnectionData.Add(s);
-                MockDbSet<SftpConnection>.AssignNavigationProperty<SftpAccount>(MockSftpConnection.Object, nameof(SftpConnection.SftpAccountId), ReturnMockContext.Object.SftpAccount);
-            });
-            MockSftpConnection.Setup(d => d.AddRange(It.IsAny<IEnumerable<SftpConnection>>())).Callback<IEnumerable<SftpConnection>>(s =>
-            {
-                foreach (var instance in s)
-                {
-                    ReturnMockContext.Object.SftpConnection.Add(instance);
-                }
-            });
-            ReturnMockContext.Object.SftpConnection = MockSftpConnection.Object;
 
             List<FileDropUserPermissionGroup> FileDropUserPermissionGroupData = new List<FileDropUserPermissionGroup>();
             Mock<DbSet<FileDropUserPermissionGroup>> MockFileDropUserPermissionGroup = MockDbSet<FileDropUserPermissionGroup>.New(FileDropUserPermissionGroupData);

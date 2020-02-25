@@ -4,13 +4,11 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using Microsoft.AspNetCore.Identity;
-using System;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-
 namespace SftpServerLib
 {
+    /// <summary>
+    /// An API definition class to hide the inheriting implementation.  Also contains some universal code
+    /// </summary>
     public abstract class SftpLibApi
     {
         public static SftpLibApi NewInstance()
@@ -18,35 +16,16 @@ namespace SftpServerLib
             return new IpWorksSftpServer();
         }
 
-        internal SftpLibApi()
-        {
-            //throw new NotImplementedException("Abstract base class SftpLibApi cannot be instantiated");
-        }
-
         public abstract void Start(byte[] certificateBytes);
 
         public abstract void Stop();
 
         public abstract ServerState ReportState();
-
-        public virtual bool Authenticate(string ConnectionId, string UserName, string Password)
-        {
-            if (UserName.Equals("anonymous", StringComparison.InvariantCultureIgnoreCase))
-            {
-                return true;
-            }
-            else
-            {
-                // authenticate, return true for success, false for fail
-            }
-
-            return false;
-        }
-
     }
 
     public class ServerState
     {
         public string Fingerprint { get; set; }
+        public string About { get; set; }
     }
 }
