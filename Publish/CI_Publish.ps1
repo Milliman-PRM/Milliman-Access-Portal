@@ -258,11 +258,11 @@ Set-Location "$rootPath\SftpServer"
 
 log_statement "Building SFTP Server"
 
-dotnet publish --configuration=$buildType /p:Platform=x64
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
 
 if ($LASTEXITCODE -ne 0)
 {
-    log_statement "ERROR: Build failed for MAP User Stats Loader project"
+    log_statement "ERROR: Build failed for MAP SFTP Server project"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
