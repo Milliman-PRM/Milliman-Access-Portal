@@ -32,7 +32,7 @@ interface FileDropProps {
   pending: State.FileDropPendingState;
   filters: State.FileDropFilterState;
   modals: State.FileDropModals;
-  activeSelectedClient: Client;
+  activeSelectedClient: FileDropClientWithStats;
 }
 
 class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCreator> {
