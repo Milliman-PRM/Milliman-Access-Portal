@@ -6,6 +6,7 @@
 
 using Microsoft.Extensions.Configuration;
 using nsoftware.IPWorksSSH;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,6 +17,7 @@ namespace SftpServerLib
 {
     internal partial class IpWorksSftpServer : SftpLibApi
     {
+        internal static System.Timers.Timer _maintenanceTimer = default;
         internal static Sftpserver _sftpServer = default;
         internal static Dictionary<string, SftpConnectionProperties> _connections = new Dictionary<string, SftpConnectionProperties>();
 
@@ -27,6 +29,14 @@ namespace SftpServerLib
                 AuditLogConnectionString = GlobalResources.ApplicationConfiguration.GetConnectionString("AuditLogConnectionString"),
                 //ErrorLogRootFolder = "",  // TODO need to deal with this?
             };
+
+            _maintenanceTimer = new System.Timers.Timer
+            {
+                Interval = GlobalResources.ApplicationConfiguration.GetValue<double>("SftpMaintenanceIntervalMs", 15_000),
+                AutoReset = true,
+                Enabled = true,
+            };
+            _maintenanceTimer.Elapsed += IpWorksSftpServerEventHandlers.OnMaintenanceTimerElapsed;
         }
         
         public override void Start(byte[] keyBytes)
@@ -37,7 +47,7 @@ namespace SftpServerLib
             EstablishServerInstance(certificate);
 
             _sftpServer.Listening = true;
-            Debug.WriteLine("Server listening");
+            Log.Information("SFTP server listening");
         }
 
         public override void Stop()
@@ -48,12 +58,12 @@ namespace SftpServerLib
                 {
                     _sftpServer.Shutdown();
                     _sftpServer = null;
-                    Debug.WriteLine("Server instance destroyed");
+                    Log.Information("SFTP server shut down");
                 }
                 catch (Exception e)
                 {
                     var ex = e;
-                    Debug.WriteLine("Exception while stopping server");
+                    Log.Error("Exception during SFTP server shutdown");
                 }
             }
         }
@@ -79,7 +89,7 @@ namespace SftpServerLib
                 RootDirectory = GlobalResources.ApplicationConfiguration.GetValue<string>("FileDropRoot"),
                 SSHCert = cert,
             };
-            Debug.WriteLine("Server instance constructed");
+            Log.Information("SFTP Server instance constructed");
 
             #region assign event handlers
             //[Description("Information about errors during data delivery.")]
@@ -126,7 +136,7 @@ namespace SftpServerLib
             _sftpServer.ExchangeKeysCompleted += IpWorksSftpServerEventHandlers.ExchangeKeysCompleted;
             _sftpServer.DisconnectCompleted += IpWorksSftpServerEventHandlers.DisconnectCompleted;
 
-            Debug.WriteLine("Event handlers assigned");
+            Log.Information("SFTP Server event handlers assigned");
             #endregion
         }
 
