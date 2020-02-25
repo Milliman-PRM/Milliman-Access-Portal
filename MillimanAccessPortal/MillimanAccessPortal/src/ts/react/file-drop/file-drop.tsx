@@ -400,6 +400,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       // this.props.fetchFileDropDetail({ FileDropId: entity.id });
                     }
                     this.props.selectFileDrop({ id: entity.id });
+                    if (activeSelectedClient.canManageFileDrops) {
+                      this.props.selectFileDropTab({ tab: 'permissions' });
+                    } else {
+                      this.props.selectFileDropTab({ tab: 'settings' });
+                    }
                   }
                 }}
                 // suspended={entity.isSuspended}
