@@ -18,9 +18,11 @@ import {
   CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
+import { ContentPanel, ContentPanelSectionContent } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { NavBar } from '../shared-components/navbar';
+import { TabRow } from '../shared-components/tab-row';
 
 type ClientEntity = (FileDropClientWithStats & { indent: 1 | 2 }) | 'divider';
 
@@ -62,6 +64,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
         {selected.client && this.renderFileDropPanel()}
+        {selected.fileDrop && this.renderFileDropManagementPanel()}
         <Modal
           isOpen={modals.createFileDrop.isOpen}
           onRequestClose={() => this.props.closeCreateFileDropModal({})}
@@ -521,6 +524,93 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
     );
   }
 
+  private renderFileDropManagementPanel() {
+    const { activeSelectedClient, pending } = this.props;
+    const tabList: Array<{
+      id: State.AvailableFileDropTabs;
+      label: string;
+    }> = (activeSelectedClient.canManageFileDrops)
+      ? [
+        // { id: 'files', label: 'Files' },
+        { id: 'permissions', label: 'User Permissions' },
+        { id: 'activityLog', label: 'Activity Log' },
+        { id: 'settings', label: 'My Settings' },
+      ] : [
+        { id: 'settings', label: 'My Settings' },
+      ];
+
+    return (
+      <ContentPanel loading={false}>
+        <h3 className="admin-panel-header">Content Item</h3>
+        <TabRow
+          tabs={tabList}
+          selectedTab={pending.selectedFileDropTab}
+          onTabSelect={(tab: State.AvailableFileDropTabs) => this.props.selectFileDropTab({ tab })}
+          fullWidth={true}
+        />
+        {(() => {
+          switch (pending.selectedFileDropTab) {
+            case 'files':
+              return null;
+            case 'permissions':
+              return this.renderPermissionsTab();
+            case 'activityLog':
+              return this.renderActivityLogTab();
+            case 'settings':
+              return this.renderSettingsTab();
+            default:
+              return null;
+          }
+        })()}
+      </ContentPanel>
+    );
+  }
+
+  private renderPermissionsTab() {
+    return (
+      <>
+        <PanelSectionToolbar>
+          <Filter
+            placeholderText={'Filter Permission Groups/Users...'}
+            setFilterText={() => false}
+            filterText={''}
+          />
+          <PanelSectionToolbarButtons />
+        </PanelSectionToolbar>
+        <ContentPanelSectionContent>
+          <div>Content Here...</div>
+        </ContentPanelSectionContent>
+      </>
+    );
+  }
+
+  private renderActivityLogTab() {
+    return (
+      <>
+        <PanelSectionToolbar>
+          <Filter
+            placeholderText={'Filter events...'}
+            setFilterText={() => false}
+            filterText={''}
+          />
+          <PanelSectionToolbarButtons />
+        </PanelSectionToolbar>
+        <ContentPanelSectionContent>
+          <div>Content Here...</div>
+        </ContentPanelSectionContent>
+      </>
+    );
+  }
+
+  private renderSettingsTab() {
+    return (
+      <>
+        <ContentPanelSectionContent>
+          <div>Content Here...</div>
+        </ContentPanelSectionContent>
+      </>
+    );
+  }
 }
 
 function mapStateToProps(state: State.FileDropState): FileDropProps {
