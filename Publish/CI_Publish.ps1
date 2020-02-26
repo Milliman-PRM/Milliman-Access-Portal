@@ -274,6 +274,9 @@ if ($LASTEXITCODE -ne 0)
     exit $LASTEXITCODE
 }
 
+# Set SDK path back to core 2.2
+$env:MSBuildSDKsPath=$core2
+
 if($runTests) {
     log_statement "Performing MAP unit tests"
 
