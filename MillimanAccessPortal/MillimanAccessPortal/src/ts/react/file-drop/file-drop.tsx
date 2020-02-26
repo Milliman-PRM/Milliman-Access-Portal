@@ -571,7 +571,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
       <>
         <PanelSectionToolbar>
           <Filter
-            placeholderText={'Filter Permission Groups/Users...'}
+            placeholderText={'Filter permission groups/users...'}
             setFilterText={() => false}
             filterText={''}
           />
