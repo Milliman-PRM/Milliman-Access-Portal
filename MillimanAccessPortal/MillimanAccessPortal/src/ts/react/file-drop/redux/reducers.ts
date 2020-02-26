@@ -207,6 +207,11 @@ const pendingFileDropToDelete = createReducer<FileDropWithStats>(_initialFileDro
   }),
 });
 
+/** Reducer for swiching the active File Drop tab */
+const selectedFileDropTab = createReducer<State.AvailableFileDropTabs>(null, {
+  SELECT_FILE_DROP_TAB: (_state, action: Action.SelectFileDropTab) => action.tab,
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
@@ -214,6 +219,7 @@ const pending = combineReducers({
   createFileDrop: pendingCreateFileDropForm,
   editFileDrop: pendingEditFileDropData,
   fileDropToDelete: pendingFileDropToDelete,
+  selectedFileDropTab,
 });
 
 // ~~~~~~~~~~~~~~~~
