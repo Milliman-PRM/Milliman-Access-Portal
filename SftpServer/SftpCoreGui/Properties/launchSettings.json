@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "SftpCoreGui": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "nativeDebugging": false
+    }
+  }
+}

@@ -10,9 +10,53 @@ import { createActionCreator, createRequestActionCreator } from '../../shared-co
 export const selectClient =
   createActionCreator<Action.SelectClient>('SELECT_CLIENT');
 
+/** Select a given File Drop by ID */
+export const selectFileDrop =
+  createActionCreator<Action.SelectFileDrop>('SELECT_FILE_DROP');
+
 /** Set the Client filter */
 export const setFilterTextClient =
   createActionCreator<Action.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');
+
+/** Set the File Drop filter */
+export const setFilterTextFileDrop =
+  createActionCreator<Action.SetFilterTextFileDrop>('SET_FILTER_TEXT_FILE_DROP');
+
+/** Open the Create File Drop modal */
+export const openCreateFileDropModal =
+  createActionCreator<Action.OpenCreateFileDropModal>('OPEN_CREATE_FILE_DROP_MODAL');
+
+/** Close the Create File Drop modal */
+export const closeCreateFileDropModal =
+  createActionCreator<Action.CloseCreateFileDropModal>('CLOSE_CREATE_FILE_DROP_MODAL');
+
+/** Update the Create File Drop modal form input values */
+export const updateFileDropFormData =
+  createActionCreator<Action.UpdateFileDropFormData>('UPDATE_FILE_DROP_FORM_DATA');
+
+/** Open the Delete File Drop modal */
+export const openDeleteFileDropModal =
+  createActionCreator<Action.OpenDeleteFileDropModal>('OPEN_DELETE_FILE_DROP_MODAL');
+
+/** Close the Delete File Drop modal */
+export const closeDeleteFileDropModal =
+  createActionCreator<Action.CloseDeleteFileDropModal>('CLOSE_DELETE_FILE_DROP_MODAL');
+
+/** Open the Delete File Drop modal */
+export const openDeleteFileDropConfirmationModal =
+  createActionCreator<Action.OpenDeleteFileDropConfirmationModal>('OPEN_DELETE_FILE_DROP_CONFIRMATION_MODAL');
+
+/** Close the Delete File Drop modal */
+export const closeDeleteFileDropConfirmationModal =
+  createActionCreator<Action.CloseDeleteFileDropConfirmationModal>('CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL');
+
+/** Put a File Drop in edit mode */
+export const editFileDrop =
+  createActionCreator<Action.EditFileDrop>('EDIT_FILE_DROP');
+
+/** Take a File Drop out of edit mode */
+export const cancelFileDropEdit =
+  createActionCreator<Action.CancelFileDropEdit>('CANCEL_FILE_DROP_EDIT');
 
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
@@ -25,6 +69,22 @@ export const fetchGlobalData =
 /** Fetch all authorized Clients from the server */
 export const fetchClients =
   createRequestActionCreator<Action.FetchClients>('FETCH_CLIENTS');
+
+/** Fetch all authorized Clients from the server */
+export const fetchFileDrops =
+  createRequestActionCreator<Action.FetchFileDrops>('FETCH_FILE_DROPS');
+
+/** Create a File Drop */
+export const createFileDrop =
+  createRequestActionCreator<Action.CreateFileDrop>('CREATE_FILE_DROP');
+
+/** Delete a File Drop */
+export const deleteFileDrop =
+  createRequestActionCreator<Action.DeleteFileDrop>('DELETE_FILE_DROP');
+
+/** Update a File Drop */
+export const updateFileDrop =
+  createRequestActionCreator<Action.UpdateFileDrop>('UPDATE_FILE_DROP');
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions

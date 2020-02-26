@@ -948,6 +948,48 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<string> UserAgreementUpdated = new AuditEventType<string>(
             7401, "User agreement updated", NewText => NewText);
         #endregion
+
+        #region File Drop [8000 - 8999]
+        // 80xx - FileDrop admin events
+        public static readonly AuditEventType<FileDrop, Guid, string> FileDropCreated = new AuditEventType<FileDrop, Guid, string>(
+            8001, "File Drop Created", (fileDrop, clientId, clientName) => new
+            {
+                FileDrop = (FileDropLogModel)fileDrop,
+                Client = new
+                {
+                    clientId,
+                    clientName,
+                },
+            });
+
+        /// <summary>
+        /// sftpAccounts expected to have navigation property ApplicationUser populated
+        /// </summary>
+        public static readonly AuditEventType<FileDrop, Client, IEnumerable<SftpAccount>> FileDropDeleted = new AuditEventType<FileDrop, Client, IEnumerable<SftpAccount>>(
+            8002, "File Drop Deleted", (fileDrop, client, sftpAccounts) => new
+            {
+                FileDrop = (FileDropLogModel)fileDrop,
+                Client = new { client.Id, client.Name, },
+                AffectedSftpAccounts = sftpAccounts.Select(a => 
+                    new { SftpAccount = a,
+                          MapUser = a.ApplicationUserId.HasValue ? new { Id = a.ApplicationUserId.Value, a?.ApplicationUser?.UserName } 
+                                                                 : null
+                        }),
+            });
+
+        public static readonly AuditEventType<FileDrop, FileDrop, Guid, string> FileDropUpdated = new AuditEventType<FileDrop, FileDrop, Guid, string>(
+            8003, "File Drop Updated", (oldFileDrop, newFileDrop, clientId, clientName) => new
+            {
+                OldFileDrop = (FileDropLogModel)oldFileDrop,
+                NewFileDrop = (FileDropLogModel)newFileDrop,
+                Client = new
+                {
+                    clientId,
+                    clientName,
+                },
+            });
+
+        #endregion
         #endregion
 
         private readonly Func<object> logObjectTransform;

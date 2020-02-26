@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200211203144_AddFileDropSchema")]
+    [Migration("20200224033851_AddFileDropSchema")]
     partial class AddFileDropSchema
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -252,6 +252,8 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("Description");
 
+                    b.Property<bool>("IsSuspended");
+
                     b.Property<string>("Name")
                         .IsRequired();
 
@@ -330,8 +332,6 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<bool>("DeleteAccess");
 
                     b.Property<Guid>("FileDropId");
-
-                    b.Property<bool>("IsDefaultGroup");
 
                     b.Property<string>("Name")
                         .IsRequired();
@@ -536,7 +536,11 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<Guid?>("ApplicationUserId");
 
-                    b.Property<Guid>("FileDropUserPermissionGroupId");
+                    b.Property<Guid>("FileDropId");
+
+                    b.Property<Guid?>("FileDropUserPermissionGroupId");
+
+                    b.Property<bool>("IsSuspended");
 
                     b.Property<string>("PasswordHash");
 
@@ -551,33 +555,11 @@ namespace MillimanAccessPortal.Migrations
 
                     b.HasIndex("ApplicationUserId");
 
+                    b.HasIndex("FileDropId");
+
                     b.HasIndex("FileDropUserPermissionGroupId");
 
                     b.ToTable("SftpAccount");
-                });
-
-            modelBuilder.Entity("MapDbContextLib.Context.SftpConnection", b =>
-                {
-                    b.Property<string>("Id");
-
-                    b.Property<DateTime>("CreatedDateTimeUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasDefaultValueSql("(now() at time zone 'utc')");
-
-                    b.Property<DateTime>("LastActivityUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasDefaultValueSql("(now() at time zone 'utc')");
-
-                    b.Property<string>("MetaData")
-                        .HasColumnType("jsonb");
-
-                    b.Property<Guid>("SftpAccountId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SftpAccountId");
-
-                    b.ToTable("SftpConnection");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserInSelectionGroup", b =>
@@ -982,22 +964,18 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("MapDbContextLib.Context.SftpAccount", b =>
                 {
                     b.HasOne("MapDbContextLib.Identity.ApplicationUser", "ApplicationUser")
-                        .WithMany()
+                        .WithMany("SftpAccounts")
                         .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("MapDbContextLib.Context.FileDrop", "FileDrop")
+                        .WithMany("SftpAccounts")
+                        .HasForeignKey("FileDropId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("MapDbContextLib.Context.FileDropUserPermissionGroup", "FileDropUserPermissionGroup")
                         .WithMany()
-                        .HasForeignKey("FileDropUserPermissionGroupId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("MapDbContextLib.Context.SftpConnection", b =>
-                {
-                    b.HasOne("MapDbContextLib.Context.FileDrop", "SftpAccount")
-                        .WithMany()
-                        .HasForeignKey("SftpAccountId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("FileDropUserPermissionGroupId");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserInSelectionGroup", b =>

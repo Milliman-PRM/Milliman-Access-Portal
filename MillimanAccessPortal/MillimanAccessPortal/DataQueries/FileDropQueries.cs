@@ -1,8 +1,13 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: An DI injectable resource containing queries directly related to FileDrop controller actions
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries.EntityQueries;
-using MillimanAccessPortal.Models.ClientModels;
-using MillimanAccessPortal.Models.FileDrop;
+using MillimanAccessPortal.Models.FileDropModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,30 +37,132 @@ namespace MillimanAccessPortal.DataQueries
         }
 
         /// <summary>
-        /// Select all clients for which the current user can administer access.
+        /// Return a model representing all clients that the current user should see in the FileDrop view clients column
         /// </summary>
         /// <param name="user">Current user</param>
         /// <returns>Response model</returns>
-        internal Dictionary<Guid, BasicClientWithCardStats> GetAuthorizedClientsModel(ApplicationUser user)
+        internal Dictionary<Guid, ClientCardModel> GetAuthorizedClientsModel(ApplicationUser user)
         {
-            // TODO: Flesh this out since this will necessarily need to be more 
-            //    complicated (i.e. all FileDropAdmins, and clients where a FileDropUser has access to a FileDrop)
-            List<Client> clientList = _dbContext.UserRoleInClient
-                                                .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == RoleEnum.FileDropAdmin)
-                                                .Select(urc => urc.Client)
-                                                .ToList();
-            clientList = _clientQueries.AddUniqueAncestorClientsNonInclusiveOf(clientList);
+            List<Client> clientsWithRole = _dbContext.UserRoleInClient
+                                                     .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == RoleEnum.FileDropAdmin)
+                                                     .Select(urc => urc.Client)
+                                                     .ToList()  // force the first query to execute
+                                                     .Union(
+                                                         _dbContext.ApplicationUser
+                                                                   .Where(u => u.UserName.Equals(user.UserName, StringComparison.InvariantCultureIgnoreCase))
+                                                                   .SelectMany(u => u.SftpAccounts
+                                                                                     .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                                                     .Select(a => a.FileDropUserPermissionGroup.FileDrop.Client)),
+                                                         new IdPropertyComparer<Client>()
+                                                     )
+                                                     .ToList();
+            List<Guid> clientIds = clientsWithRole.ConvertAll(c => c.Id);
+            List<Guid> parentClientIds = clientsWithRole
+                                            .Where(c => c.ParentClientId.HasValue)
+                                            .ToList()
+                                            .ConvertAll(c => c.ParentClientId.Value);
 
-            List<BasicClientWithCardStats> returnList = new List<BasicClientWithCardStats>();
+            var unlistedParentClients = _dbContext.Client
+                                                  .Where(c => parentClientIds.Contains(c.Id))
+                                                  .Where(c => !clientIds.Contains(c.Id))
+                                                  .ToList();
+            List<Guid> unlistedParentClientIds = unlistedParentClients.ConvertAll(c => c.Id);
 
-            foreach (Client oneClient in clientList)
+            List<ClientCardModel> returnList = new List<ClientCardModel>();
+            foreach (Client eachClient in clientsWithRole)
             {
-                // TODO: Create a new query specifically for File Drop to stop using the Publishing one.
-                returnList.Add(_clientQueries.SelectClientWithPublishingCardStats(oneClient, RoleEnum.FileDropAdmin, user.Id));
+                ClientCardModel eachClientCardModel = GetClientCardModel(eachClient, user);
+
+                // Only include information about a client's otherwise unlisted parent in the model if the user can manage the (child) client
+                if (eachClientCardModel.ParentId.HasValue && 
+                    unlistedParentClientIds.Contains(eachClientCardModel.ParentId.Value))
+                {
+                    if (eachClientCardModel.CanManageFileDrops)
+                    {
+                        ClientCardModel parentCardModel = GetClientCardModel(unlistedParentClients.Single(p => p.Id == eachClientCardModel.ParentId.Value), user);
+                        returnList.Add(parentCardModel);
+                    }
+                    else
+                    {
+                        eachClientCardModel.ParentId = null;
+                    }
+                }
+
+                returnList.Add(eachClientCardModel);
             }
 
             return returnList.ToDictionary(c => c.Id);
         }
 
+        private ClientCardModel GetClientCardModel(Client client, ApplicationUser user)
+        {
+            return new ClientCardModel(client)
+            {
+                UserCount = _dbContext.ApplicationUser
+                                      .Where(u => u.SftpAccounts
+                                                   .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                   .Any(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id))
+                                      .ToList()
+                                      .Distinct(new IdPropertyComparer<ApplicationUser>())
+                                      .Count(),
+
+                FileDropCount = _dbContext.FileDrop
+                                          .Count(d => d.ClientId == client.Id),
+
+                CanManageFileDrops = _dbContext.UserRoleInClient
+                                               .Any(ur => ur.ClientId == client.Id &&
+                                                          ur.UserId == user.Id &&
+                                                          ur.Role.RoleEnum == RoleEnum.FileDropAdmin),
+
+                AuthorizedFileDropUser = _dbContext.SftpAccount
+                                                   .Any(a => a.ApplicationUserId == user.Id &&
+                                                             a.FileDropUserPermissionGroupId.HasValue &&
+                                                             a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id),
+            };
+        }
+
+        internal FileDropsModel GetFileDropsModelForClient(Guid clientId, ApplicationUser user)
+        {
+            bool userIsAdmin = _dbContext.UserRoleInClient
+                                         .Any(urc => urc.UserId == user.Id &&
+                                                     urc.Role.RoleEnum == RoleEnum.FileDropAdmin &&
+                                                     urc.ClientId == clientId);
+
+            List<FileDrop> fileDrops = userIsAdmin
+                                       ? _dbContext.FileDrop
+                                                   .Where(d => d.ClientId == clientId)
+                                                   .ToList()
+                                       : _dbContext.SftpAccount
+                                                   .Where(a => a.ApplicationUser.Id == user.Id)
+                                                   //.Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                   .Where(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == clientId)
+                                                   .Select(a => a.FileDropUserPermissionGroup.FileDrop)
+                                                   .ToList()
+                                                   .Distinct(new IdPropertyComparer<FileDrop>())
+                                                   .ToList();
+
+            Client client = _dbContext.Client.Find(clientId);
+            FileDropsModel FileDropsModel = new FileDropsModel
+            {
+                ClientCard = GetClientCardModel(client, user),
+            };
+
+            foreach (FileDrop eachDrop in fileDrops)
+            {
+                FileDropsModel.FileDrops.Add(eachDrop.Id, new FileDropCardModel(eachDrop)
+                {
+                    UserCount = userIsAdmin
+                                ? _dbContext.SftpAccount
+                                            .Where(a => a.ApplicationUserId.HasValue)
+                                            .Where(a => a.FileDropUserPermissionGroup.FileDropId == eachDrop.Id)
+                                            .Select(a => a.ApplicationUserId.Value)
+                                            .Distinct()
+                                            .Count()
+                                : (int?)null,
+                });
+            }
+
+            return FileDropsModel;
+        }
     }
 }

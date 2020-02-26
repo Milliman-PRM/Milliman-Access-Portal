@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -21,6 +22,9 @@ namespace MapDbContextLib.Context
         public string Description { get; set; }
 
         [Required]
+        public bool IsSuspended { get; set; } = false;
+
+        [Required]
         [Column(TypeName = "citext")]
         public string RootPath { get; set; }
 
@@ -28,5 +32,6 @@ namespace MapDbContextLib.Context
         public Guid ClientId { get; set; }
         public Client Client { get; set; }
 
+        public IEnumerable<SftpAccount> SftpAccounts { get; set; }
     }
 }

@@ -147,6 +147,7 @@
             this.Controls.Add(this.btnStartStop);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
@@ -165,7 +166,6 @@
         private System.Windows.Forms.TextBox textHash;
         private System.Windows.Forms.TextBox textPassword;
         private System.Windows.Forms.TextBox textKeyfilePath;
-        private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button buttonReportServerState;
     }
 }
