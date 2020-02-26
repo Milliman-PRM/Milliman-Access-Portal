@@ -541,7 +541,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
     return (
       <ContentPanel loading={false}>
-        <h3 className="admin-panel-header">Content Item</h3>
+        <h3 className="admin-panel-header">File Drop</h3>
         <TabRow
           tabs={tabList}
           selectedTab={pending.selectedFileDropTab}
