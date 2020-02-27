@@ -320,6 +320,17 @@ export interface FileDropsReturnModel {
   currentFileDropId?: Guid;
 }
 
+export interface PermissionGroupModel {
+  id: Guid;
+  name: string;
+  isPersonalGroup: boolean;
+  assignedSftpAccountIds: Guid[];
+  assignedMapUserIds: Guid[];
+  readAccess: boolean;
+  writeAccess: boolean;
+  deleteAccess: boolean;
+}
+
 export interface PermissionGroupsReturnModel {
   fileDropId: Guid;
   eligibleUsers: [{
@@ -328,15 +339,5 @@ export interface PermissionGroupsReturnModel {
     lastName: string;
     username: string;
   }];
-  permissionGroups: Dict<{
-    id: Guid;
-    name: string;
-    isGroup: boolean;
-    members: Guid[];
-    permissions: {
-      download: boolean;
-      upload: boolean;
-      delete: boolean;
-    };
-  }>;
+  permissionGroups: Dict<PermissionGroupModel>;
 }
