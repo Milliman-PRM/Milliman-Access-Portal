@@ -44,6 +44,13 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   updateFileDrop: false,
 };
 
+const _initialFilterValues: State.FileDropFilterState = {
+  client: { text: '' },
+  fileDrop: { text: '' },
+  permissions: { text: '' },
+  activityLog: { text: '' },
+};
+
 const _initialCreateFileDropData: State.FileDropFormStateData = {
   clientId: '',
   id: '',
@@ -297,23 +304,25 @@ const cardAttributes = combineReducers({
 // Filter Reducers
 // ~~~~~~~~~~~~~~~
 
-/**
- * Create a reducer for a filter
- * @param actionType Single filter action
- */
-const createFilterReducer = (actionType: Action.FilterActions['type']) =>
-  createReducer({ text: '' }, {
-    [actionType]: (state: FilterState, action: Action.FilterActions) => ({
+/** Create a reducer for the filters */
+const filters = createReducer<State.FileDropFilterState>(_initialFilterValues,
+  {
+    SET_FILTER_TEXT: (state, action: Action.SetFilterText) => ({
       ...state,
-      text: action.text,
+      [action.filter]: {
+        text: action.text,
+      },
     }),
-  });
-
-/** Reducer that combines the filters reducers */
-const filters = combineReducers({
-  client: createFilterReducer('SET_FILTER_TEXT_CLIENT'),
-  fileDrop: createFilterReducer('SET_FILTER_TEXT_FILE_DROP'),
-});
+    SELECT_CLIENT: () => ({
+      ..._initialFilterValues,
+    }),
+    SELECT_FILE_DROP: (state) => ({
+      ...state,
+      permissions: _initialFilterValues.permissions,
+      activityLog: _initialFilterValues.activityLog,
+    }),
+  },
+);
 
 // ~~~~~~~~~~~~~~
 // Modal Reducers

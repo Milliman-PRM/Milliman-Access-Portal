@@ -276,7 +276,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter clients...'}
-            setFilterText={(text) => this.props.setFilterTextClient({ text })}
+            setFilterText={(text) => this.props.setFilterText({ filter: 'client', text })}
             filterText={filters.client.text}
           />
           <PanelSectionToolbarButtons>
@@ -512,7 +512,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <PanelSectionToolbar>
             <Filter
               placeholderText={'Filter file drops...'}
-              setFilterText={(text) => this.props.setFilterTextFileDrop({ text })}
+              setFilterText={(text) => this.props.setFilterText({ filter: 'fileDrop', text })}
               filterText={filters.fileDrop.text}
             />
             <PanelSectionToolbarButtons>
@@ -567,13 +567,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderPermissionsTab() {
+    const { filters } = this.props;
     return (
       <>
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter permission groups/users...'}
-            setFilterText={() => false}
-            filterText={''}
+            setFilterText={(text) => this.props.setFilterText({ filter: 'permissions', text })}
+            filterText={filters.permissions.text}
           />
           <PanelSectionToolbarButtons />
         </PanelSectionToolbar>
@@ -585,13 +586,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderActivityLogTab() {
+    const { filters } = this.props;
     return (
       <>
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter events...'}
-            setFilterText={() => false}
-            filterText={''}
+            setFilterText={(text) => this.props.setFilterText({ filter: 'activityLog', text })}
+            filterText={filters.activityLog.text}
           />
           <PanelSectionToolbarButtons />
         </PanelSectionToolbar>
