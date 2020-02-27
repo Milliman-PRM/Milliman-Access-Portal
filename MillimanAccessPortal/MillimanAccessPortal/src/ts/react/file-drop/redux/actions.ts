@@ -28,15 +28,10 @@ export interface SelectFileDrop {
   id: Guid | 'NEW FILE DROP';
 }
 
-/** Set filter text for the client card filter */
-export interface SetFilterTextClient {
-  type: 'SET_FILTER_TEXT_CLIENT';
-  text: string;
-}
-
-/** Set filter text for the client card filter */
-export interface SetFilterTextFileDrop {
-  type: 'SET_FILTER_TEXT_FILE_DROP';
+/** Set filter text for the filter inputs */
+export interface SetFilterText {
+  type: 'SET_FILTER_TEXT';
+  filter: 'client' | 'fileDrop' | 'permissions' | 'activityLog';
   text: string;
 }
 
@@ -380,8 +375,7 @@ export type FileDropErrorActions =
 
 /** Actions that set filter text */
 export type FilterActions =
-  | SetFilterTextClient
-  | SetFilterTextFileDrop
+  | SetFilterText
   ;
 
 /** All available File Drop Actions */

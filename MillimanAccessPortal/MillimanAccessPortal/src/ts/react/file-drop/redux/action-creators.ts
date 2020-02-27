@@ -14,13 +14,9 @@ export const selectClient =
 export const selectFileDrop =
   createActionCreator<Action.SelectFileDrop>('SELECT_FILE_DROP');
 
-/** Set the Client filter */
-export const setFilterTextClient =
-  createActionCreator<Action.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');
-
-/** Set the File Drop filter */
-export const setFilterTextFileDrop =
-  createActionCreator<Action.SetFilterTextFileDrop>('SET_FILTER_TEXT_FILE_DROP');
+/** Set filter input(s) text */
+export const setFilterText =
+  createActionCreator<Action.SetFilterText>('SET_FILTER_TEXT');
 
 /** Open the Create File Drop modal */
 export const openCreateFileDropModal =

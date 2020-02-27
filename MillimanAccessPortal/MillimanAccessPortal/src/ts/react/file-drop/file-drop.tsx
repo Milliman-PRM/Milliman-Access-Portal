@@ -276,7 +276,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter clients...'}
-            setFilterText={(text) => this.props.setFilterTextClient({ text })}
+            setFilterText={(text) => this.props.setFilterText({ filter: 'client', text })}
             filterText={filters.client.text}
           />
           <PanelSectionToolbarButtons>
@@ -512,7 +512,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <PanelSectionToolbar>
             <Filter
               placeholderText={'Filter file drops...'}
-              setFilterText={(text) => this.props.setFilterTextFileDrop({ text })}
+              setFilterText={(text) => this.props.setFilterText({ filter: 'fileDrop', text })}
               filterText={filters.fileDrop.text}
             />
             <PanelSectionToolbarButtons>
