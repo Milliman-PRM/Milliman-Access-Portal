@@ -319,3 +319,24 @@ export interface FileDropsReturnModel {
   fileDrops: Dict<FileDropWithStats>;
   currentFileDropId?: Guid;
 }
+
+export interface PermissionGroupsReturnModel {
+  fileDropId: Guid;
+  eligibleUsers: [{
+    id: Guid;
+    firstName: string;
+    lastName: string;
+    username: string;
+  }];
+  permissionGroups: Dict<{
+    id: Guid;
+    name: string;
+    isGroup: boolean;
+    members: Guid[];
+    permissions: {
+      download: boolean;
+      upload: boolean;
+      delete: boolean;
+    };
+  }>;
+}
