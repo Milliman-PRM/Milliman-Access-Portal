@@ -309,6 +309,7 @@ namespace MapTests
             #region Assert
             JsonResult jsonResult = Assert.IsType<JsonResult>(result);
             PermissionGroupsModel returnModel = Assert.IsType<PermissionGroupsModel>(jsonResult.Value);
+            Assert.Equal(fileDrop.Id, returnModel.FileDropId);
             Assert.Equal(3, returnModel.EligibleUsers.Count);
             Assert.Contains(TestUtil.MakeTestGuid(2), returnModel.EligibleUsers.Keys);
             Assert.Contains(TestUtil.MakeTestGuid(6), returnModel.EligibleUsers.Keys);

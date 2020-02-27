@@ -169,6 +169,7 @@ namespace MillimanAccessPortal.DataQueries
         {
             var returnModel = new PermissionGroupsModel
             {
+                FileDropId = FileDropId,
                 EligibleUsers = _dbContext.UserRoleInClient
                                           .Where(urc => urc.ClientId == ClientId)
                                           .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
@@ -194,7 +195,7 @@ namespace MillimanAccessPortal.DataQueries
                                                  {
                                                      Id = g.Id,
                                                      Name = g.Name,
-                                                     // g.IsPersonalGroup is not available until schema change is merged to this branch 
+                                                     // TODO g.IsPersonalGroup is not available until schema change is merged to this branch 
                                                      // IsPersonalGroup = g.IsPersonalGroup,
                                                      ReadAccess = g.ReadAccess,
                                                      WriteAccess = g.WriteAccess,
@@ -204,6 +205,7 @@ namespace MillimanAccessPortal.DataQueries
                                                  };
                                              })
                                              .ToDictionary(m => m.Id),
+
             };
 
             return returnModel;

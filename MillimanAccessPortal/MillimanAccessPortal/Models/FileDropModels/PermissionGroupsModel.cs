@@ -15,6 +15,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
 {
     public class PermissionGroupsModel
     {
+        public Guid FileDropId { get; set; }
         public Dictionary<Guid, EligibleUserModel> EligibleUsers { get; set; } = new Dictionary<Guid, EligibleUserModel>();
         public Dictionary<Guid, PermissionGroupModel> PermissionGroups { get; set; } = new Dictionary<Guid, PermissionGroupModel>();
     }
