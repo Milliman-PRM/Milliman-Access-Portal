@@ -32,6 +32,7 @@ const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
 const _initialData: State.FileDropDataState = {
   clients: {},
   fileDrops: {},
+  permissionGroups: null,
 };
 
 const _initialPendingData: State.FileDropPendingReturnState = {
@@ -374,6 +375,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     clients: {
       ...action.response.clients,
     },
+    permissionGroups: null,
   }),
   FETCH_FILE_DROPS_SUCCEEDED: (state, action: Action.FetchFileDropsSucceeded) => ({
     ...state,
@@ -386,6 +388,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...action.response.fileDrops,
     },
+    permissionGroups: null,
   }),
   CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
     ...state,
@@ -398,6 +401,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...action.response.fileDrops,
     },
+    permissionGroups: null,
   }),
   DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
     ...state,
@@ -410,6 +414,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...action.response.fileDrops,
     },
+    permissionGroups: null,
   }),
   UPDATE_FILE_DROP_SUCCEEDED: (state, action: Action.UpdateFileDropSucceeded) => ({
     ...state,
@@ -421,6 +426,12 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     },
     fileDrops: {
       ...action.response.fileDrops,
+    },
+  }),
+  FETCH_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
+    ...state,
+    permissionGroups: {
+      ...action.response,
     },
   }),
 });
