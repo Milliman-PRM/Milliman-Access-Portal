@@ -568,6 +568,21 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
   private renderPermissionsTab() {
     const { filters } = this.props;
+    const addUserButton = (
+      <ActionIcon
+        label="Add User"
+        icon="add-user"
+        action={() => alert('Add User')}
+      />
+    );
+    const addGroupButton = (
+      <ActionIcon
+        label="Add Group"
+        icon="add-group"
+        action={() => alert('Add Group')}
+      />
+    );
+
     return (
       <>
         <PanelSectionToolbar>
@@ -576,7 +591,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             setFilterText={(text) => this.props.setFilterText({ filter: 'permissions', text })}
             filterText={filters.permissions.text}
           />
-          <PanelSectionToolbarButtons />
+          <PanelSectionToolbarButtons>
+            {addUserButton}
+            {addGroupButton}
+          </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
           <div>Content Here...</div>
