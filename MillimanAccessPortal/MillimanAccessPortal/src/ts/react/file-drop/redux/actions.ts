@@ -1,5 +1,6 @@
 import {
-  FileDrop, FileDropClientWithStats, FileDropsReturnModel, FileDropWithStats, Guid,
+  FileDrop, FileDropClientWithStats, FileDropsReturnModel,
+  FileDropWithStats, Guid, PermissionGroupsReturnModel,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -219,6 +220,27 @@ export interface UpdateFileDropFailed {
   error: TSError;
 }
 
+/**
+ * GET:
+ *   All elibile users and permission groups (including membership and permissions)
+ */
+export interface FetchPermissionGroups {
+  type: 'FETCH_PERMISSION_GROUPS';
+  request: {
+    fileDropId: Guid;
+  };
+}
+/** Action called upon successful return of the FetchFileDrops API call */
+export interface FetchPermissionGroupsSucceeded {
+  type: 'FETCH_PERMISSION_GROUPS_SUCCEEDED';
+  response: PermissionGroupsReturnModel;
+}
+/** Action called upon return of an error from the FetchFileDrops API call */
+export interface FetchPermissionGroupsFailed {
+  type: 'FETCH_PERMISSION_GROUPS_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -325,6 +347,7 @@ export type FileDropRequestActions =
   | CreateFileDrop
   | DeleteFileDrop
   | UpdateFileDrop
+  | FetchPermissionGroups
   | FetchStatusRefresh
   | FetchSessionCheck
   ;
@@ -337,6 +360,7 @@ export type FileDropSuccessResponseActions =
   | CreateFileDropSucceeded
   | DeleteFileDropSucceeded
   | UpdateFileDropSucceeded
+  | FetchPermissionGroupsSucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   ;
@@ -349,6 +373,7 @@ export type FileDropErrorActions =
   | CreateFileDropFailed
   | DeleteFileDropFailed
   | UpdateFileDropFailed
+  | FetchPermissionGroupsFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   ;

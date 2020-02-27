@@ -90,6 +90,10 @@ export const deleteFileDrop =
 export const updateFileDrop =
   createRequestActionCreator<Action.UpdateFileDrop>('UPDATE_FILE_DROP');
 
+/** Get the permission group information */
+export const fetchPermissionGroups =
+  createRequestActionCreator<Action.FetchPermissionGroups>('FETCH_PERMISSION_GROUPS');
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
