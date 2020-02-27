@@ -338,6 +338,7 @@ export interface PermissionGroupsReturnModel {
     firstName: string;
     lastName: string;
     username: string;
+    isFileDropAdmin: boolean;
   }];
   permissionGroups: Dict<PermissionGroupModel>;
 }
