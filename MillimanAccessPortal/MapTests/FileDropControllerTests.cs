@@ -293,5 +293,48 @@ namespace MapTests
             Assert.Equal(newFileDrop.Id, returnModel.currentFileDropId);
             #endregion
         }
+
+        [Fact]
+        public async Task PermissionGroups_Success()
+        {
+            #region Arrange
+            FileDropController controller = await GetControllerForUser("user1");
+            FileDrop fileDrop = TestResources.DbContextObject.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
+            #endregion
+
+            #region Act
+            var result = await controller.PermissionGroups(fileDrop.Id, fileDrop.ClientId);
+            #endregion
+
+            #region Assert
+            JsonResult jsonResult = Assert.IsType<JsonResult>(result);
+            PermissionGroupsModel returnModel = Assert.IsType<PermissionGroupsModel>(jsonResult.Value);
+            Assert.Equal(3, returnModel.EligibleUsers.Count);
+            Assert.Contains(TestUtil.MakeTestGuid(2), returnModel.EligibleUsers.Keys);
+            Assert.Contains(TestUtil.MakeTestGuid(6), returnModel.EligibleUsers.Keys);
+            Assert.Contains(TestUtil.MakeTestGuid(7), returnModel.EligibleUsers.Keys);
+            Assert.Equal(3, returnModel.PermissionGroups.Count);
+            Assert.Contains(TestUtil.MakeTestGuid(1), returnModel.PermissionGroups.Keys);
+            Assert.Contains(TestUtil.MakeTestGuid(3), returnModel.PermissionGroups.Keys);
+            Assert.Contains(TestUtil.MakeTestGuid(5), returnModel.PermissionGroups.Keys);
+            #endregion
+        }
+
+        [Fact]
+        public async Task PermissionGroups_Unauthorized()
+        {
+            #region Arrange
+            FileDropController controller = await GetControllerForUser("user8");
+            FileDrop fileDrop = TestResources.DbContextObject.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
+            #endregion
+
+            #region Act
+            var result = await controller.PermissionGroups(fileDrop.Id, fileDrop.ClientId);
+            #endregion
+
+            #region Assert
+            UnauthorizedResult jsonResult = Assert.IsType<UnauthorizedResult>(result);
+            #endregion
+        }
     }
 }
