@@ -173,13 +173,18 @@ namespace MillimanAccessPortal.DataQueries
                 EligibleUsers = _dbContext.UserRoleInClient
                                           .Where(urc => urc.ClientId == ClientId)
                                           .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
+                                          .ToList()
                                           .Select(urc => new EligibleUserModel
-                                          {
-                                              Id = urc.User.Id,
-                                              UserName = urc.User.UserName,
-                                              FirstName = urc.User.FirstName,
-                                              LastName = urc.User.LastName,
-                                          })
+                                              {
+                                                  Id = urc.User.Id,
+                                                  UserName = urc.User.UserName,
+                                                  FirstName = urc.User.FirstName,
+                                                  LastName = urc.User.LastName,
+                                                  IsAdmin = _dbContext.UserRoleInClient
+                                                                      .Any(rc => rc.UserId == urc.UserId 
+                                                                              && rc.ClientId == urc.ClientId 
+                                                                              && rc.Role.RoleEnum == RoleEnum.FileDropAdmin),
+                                              })
                                           .ToDictionary(m => m.Id),
 
                 PermissionGroups = _dbContext.FileDropUserPermissionGroup
