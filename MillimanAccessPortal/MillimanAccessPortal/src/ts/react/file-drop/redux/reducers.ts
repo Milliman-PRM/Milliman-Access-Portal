@@ -47,6 +47,8 @@ const _initialPendingData: State.FileDropPendingReturnState = {
 const _initialFilterValues: State.FileDropFilterState = {
   client: { text: '' },
   fileDrop: { text: '' },
+  permissions: { text: '' },
+  activityLog: { text: '' },
 };
 
 const _initialCreateFileDropData: State.FileDropFormStateData = {
@@ -316,6 +318,8 @@ const filters = createReducer<State.FileDropFilterState>(_initialFilterValues,
     }),
     SELECT_FILE_DROP: (state) => ({
       ...state,
+      permissions: _initialFilterValues.permissions,
+      activityLog: _initialFilterValues.activityLog,
     }),
   },
 );

@@ -72,6 +72,8 @@ export interface FileDropCardAttributesState {
 export interface FileDropFilterState {
   client: FilterState;
   fileDrop: FilterState;
+  permissions: FilterState;
+  activityLog: FilterState;
 }
 
 /** State representing modals */
