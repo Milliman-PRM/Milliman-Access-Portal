@@ -20,9 +20,11 @@ import {
 import { CardStat } from '../shared-components/card/card-stat';
 import { ContentPanel, ContentPanelSectionContent } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
+import { ContentPanelForm } from '../shared-components/form/form-elements';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { NavBar } from '../shared-components/navbar';
 import { TabRow } from '../shared-components/tab-row';
+import { PermissionsTable } from './permissions-table';
 
 type ClientEntity = (FileDropClientWithStats & { indent: 1 | 2 }) | 'divider';
 
@@ -597,7 +599,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
-          <div>Content Here...</div>
+          <ContentPanelForm
+            readOnly={false}
+          >
+            <PermissionsTable />
+          </ContentPanelForm>
         </ContentPanelSectionContent>
       </>
     );
