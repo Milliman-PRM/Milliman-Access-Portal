@@ -53,3 +53,9 @@ export class ActionIcon extends React.Component<ActionIconProps, {}> {
     this.props.action();
   }
 }
+
+export const ActionIconButtonContainer: React.SFC<{ color: 'blue' | 'green' | 'red'; }> = (props) => (
+  <div className={`action-icon-button-container ${props.color}`}>
+    {props.children}
+  </div>
+);
