@@ -42,6 +42,7 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   createFileDrop: false,
   deleteFileDrop: false,
   updateFileDrop: false,
+  permissions: false,
 };
 
 const _initialFilterValues: State.FileDropFilterState = {
@@ -111,6 +112,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
   FETCH_FILE_DROPS_FAILED: (state) => ({
     ...state,
     fileDrops: false,
+  }),
+  FETCH_PERMISSION_GROUPS: (state) => ({
+    ...state,
+    permissions: true,
+  }),
+  FETCH_PERMISSION_GROUPS_SUCCEEDED: (state) => ({
+    ...state,
+    permissions: false,
+  }),
+  FETCH_PERMISSION_GROUPS_FAILED: (state) => ({
+    ...state,
+    permissions: false,
   }),
   CREATE_FILE_DROP: (state) => ({
     ...state,
