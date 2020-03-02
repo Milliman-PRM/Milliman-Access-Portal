@@ -331,14 +331,16 @@ export interface PermissionGroupModel {
   deleteAccess: boolean;
 }
 
+export interface FileDropEligibleUser {
+  id: Guid;
+  firstName: string;
+  lastName: string;
+  username: string;
+  isFileDropAdmin: boolean;
+}
+
 export interface PermissionGroupsReturnModel {
   fileDropId: Guid;
-  eligibleUsers: [{
-    id: Guid;
-    firstName: string;
-    lastName: string;
-    username: string;
-    isFileDropAdmin: boolean;
-  }];
+  eligibleUsers: Dict<FileDropEligibleUser>;
   permissionGroups: Dict<PermissionGroupModel>;
 }
