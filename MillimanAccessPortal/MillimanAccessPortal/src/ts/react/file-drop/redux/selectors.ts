@@ -110,6 +110,16 @@ export function fileDropEntities(state: FileDropState) {
   return _.sortBy(filteredFileDrops, ['name']);
 }
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Permission Group Selectors
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+/** Return the permissions tab data with pending changes applied */
+export function pendingPermissionsData(state: FileDropState) {
+  // TODO: Bring in and apply pending changes to permission groups
+  return state.data.permissionGroups;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Selectors
 // ~~~~~~~~~~~~~~~~~~~~~~~~
