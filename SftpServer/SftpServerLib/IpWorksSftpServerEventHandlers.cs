@@ -6,7 +6,9 @@
 
 using AuditLogLib;
 using AuditLogLib.Event;
+using AuditLogLib.Models;
 using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -160,11 +162,10 @@ namespace SftpServerLib
                         db.SaveChanges();
 
                         IpWorksSftpServer._auditLogger.Log(AuditEventType.SftpDirectoryCreated.ToEvent(newDirRecord,
-                                                                                                       new KeyValuePair<Guid, string>(connection.FileDropId.Value, connection.FileDropName),
-                                                                                                       new KeyValuePair<Guid, string>(connection.SftpAccountId.Value, connection.SftpAccountName),
-                                                                                                       new KeyValuePair<Guid, string>(connection.ClientId.Value, connection.ClientName),
-                                                                                                       new KeyValuePair<Guid?, string>(connection.MapUserId, connection.MapUserName)));
-
+                                                                                                       new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
+                                                                                                       new SftpAccount(connection.FileDropId.Value) { Id = connection.SftpAccountId.Value, UserName = connection.SftpAccountName },
+                                                                                                       new Client { Id = connection.ClientId.Value, Name = connection.ClientName },
+                                                                                                       connection.MapUserId.HasValue ? new ApplicationUser { Id = connection.MapUserId.Value, UserName = connection.MapUserName } : null));
                         Log.Information(GenerateEventArgsLogMessage("DirCreate", evtData));
                         Log.Information($"Path above is relative to UserRootDirectory {IpWorksSftpServer._sftpServer.Config($"UserRootDirectory[{connection.Id}]")}");
                     }
@@ -351,12 +352,19 @@ namespace SftpServerLib
 
                 foreach (var connectedAccount in query)
                 {
+                    SftpConnectionProperties connection = IpWorksSftpServer._connections.Single(c => c.Value.SftpAccountId == connectedAccount.Id).Value;
+
                     if (!connectedAccount.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60)) ||
                         connectedAccount.FileDropUserPermissionGroup.FileDrop.IsSuspended ||
                         (connectedAccount.ApplicationUserId.HasValue && !connectedAccount.ApplicationUser.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60))))
                     {
-                        string connectionId = IpWorksSftpServer._connections.Single(c => c.Value.SftpAccountId == connectedAccount.Id).Key;
-                        IpWorksSftpServer._connections.Remove(connectionId);
+                        IpWorksSftpServer._connections.Remove(connection.Id);
+                    }
+                    else
+                    {
+                        connection.ReadAccess = connectedAccount.FileDropUserPermissionGroup.ReadAccess;
+                        connection.WriteAccess = connectedAccount.FileDropUserPermissionGroup.WriteAccess;
+                        connection.DeleteAccess = connectedAccount.FileDropUserPermissionGroup.DeleteAccess;
                     }
                 }
             }
