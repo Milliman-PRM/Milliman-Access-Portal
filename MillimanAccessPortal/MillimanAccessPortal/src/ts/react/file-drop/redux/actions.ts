@@ -222,6 +222,7 @@ export interface UpdateFileDropFailed {
 export interface FetchPermissionGroups {
   type: 'FETCH_PERMISSION_GROUPS';
   request: {
+    clientId: Guid;
     fileDropId: Guid;
   };
 }

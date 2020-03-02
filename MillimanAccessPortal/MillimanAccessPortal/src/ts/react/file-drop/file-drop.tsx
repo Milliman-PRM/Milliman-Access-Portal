@@ -7,7 +7,7 @@ import * as FileDropActionCreator from './redux/action-creators';
 import * as Selector from './redux/selectors';
 import * as State from './redux/store';
 
-import { Client, FileDropClientWithStats, FileDropWithStats } from '../models';
+import { Client, FileDropClientWithStats, FileDropWithStats, PermissionGroupsReturnModel } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
@@ -20,9 +20,11 @@ import {
 import { CardStat } from '../shared-components/card/card-stat';
 import { ContentPanel, ContentPanelSectionContent } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
+import { ContentPanelForm } from '../shared-components/form/form-elements';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { NavBar } from '../shared-components/navbar';
 import { TabRow } from '../shared-components/tab-row';
+import { PermissionsTable } from './permissions-table';
 
 type ClientEntity = (FileDropClientWithStats & { indent: 1 | 2 }) | 'divider';
 
@@ -35,6 +37,7 @@ interface FileDropProps {
   filters: State.FileDropFilterState;
   modals: State.FileDropModals;
   activeSelectedClient: FileDropClientWithStats;
+  permissionsData: PermissionGroupsReturnModel;
 }
 
 class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCreator> {
@@ -405,6 +408,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.selectFileDrop({ id: entity.id });
                     if (activeSelectedClient.canManageFileDrops) {
                       this.props.selectFileDropTab({ tab: 'permissions' });
+                      this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: entity.id });
                     } else {
                       this.props.selectFileDropTab({ tab: 'settings' });
                     }
@@ -567,7 +571,22 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderPermissionsTab() {
-    const { filters } = this.props;
+    const { filters, permissionsData } = this.props;
+    const addUserButton = (
+      <ActionIcon
+        label="Add User"
+        icon="add-user"
+        action={() => alert('Add User')}
+      />
+    );
+    const addGroupButton = (
+      <ActionIcon
+        label="Add Group"
+        icon="add-group"
+        action={() => alert('Add Group')}
+      />
+    );
+
     return (
       <>
         <PanelSectionToolbar>
@@ -576,10 +595,19 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             setFilterText={(text) => this.props.setFilterText({ filter: 'permissions', text })}
             filterText={filters.permissions.text}
           />
-          <PanelSectionToolbarButtons />
+          <PanelSectionToolbarButtons>
+            {addUserButton}
+            {addGroupButton}
+          </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
-          <div>Content Here...</div>
+          <ContentPanelForm
+            readOnly={false}
+          >
+            <PermissionsTable
+              permissions={permissionsData}
+            />
+          </ContentPanelForm>
         </ContentPanelSectionContent>
       </>
     );
@@ -627,6 +655,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     filters,
     modals,
     activeSelectedClient: Selector.activeSelectedClient(state),
+    permissionsData: Selector.pendingPermissionsData(state),
   };
 }
 
