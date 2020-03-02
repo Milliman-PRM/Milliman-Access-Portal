@@ -28,6 +28,9 @@ namespace MapDbContextLib.Context
         [Required]
         public bool DeleteAccess { get; set; }
 
+        [Required]
+        public bool IsPersonalGroup { get; set; }
+
         [ForeignKey("FileDrop")]
         public Guid FileDropId { get; set; }
         public FileDrop FileDrop { get; set; }

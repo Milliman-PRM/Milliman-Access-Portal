@@ -85,5 +85,8 @@ namespace MapDbContextLib.Identity
         public AuthenticationScheme AuthenticationScheme { get; set; }
 
         public IEnumerable<SftpAccount> SftpAccounts { get; set; }
+
+        public bool IsCurrent(int passwordExpiresDays) => !IsSuspended && DateTime.UtcNow - LastPasswordChangeDateTimeUtc < TimeSpan.FromDays(passwordExpiresDays);
+
     }
 }
