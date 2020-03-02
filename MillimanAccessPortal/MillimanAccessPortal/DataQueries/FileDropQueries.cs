@@ -200,8 +200,7 @@ namespace MillimanAccessPortal.DataQueries
                                                  {
                                                      Id = g.Id,
                                                      Name = g.Name,
-                                                     // TODO g.IsPersonalGroup is not available until schema change is merged to this branch 
-                                                     // IsPersonalGroup = g.IsPersonalGroup,
+                                                     IsPersonalGroup = g.IsPersonalGroup,
                                                      ReadAccess = g.ReadAccess,
                                                      WriteAccess = g.WriteAccess,
                                                      DeleteAccess = g.DeleteAccess,
