@@ -989,6 +989,50 @@ namespace AuditLogLib.Event
                 },
             });
 
+        public static readonly AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop> SftpAccountAuthenticated = new AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop>(
+            8010, "SFTP Account Authenticated", (account, permissionGroup, fileDrop) => new
+            {
+                PermissionGroup = new
+                {
+                    permissionGroup.Id,
+                    permissionGroup.IsPersonalGroup,
+                    permissionGroup.ReadAccess,
+                    permissionGroup.WriteAccess,
+                    permissionGroup.DeleteAccess,
+                },
+                FileDrop = new 
+                {
+                    fileDrop.Id,
+                    fileDrop.Name,
+                    fileDrop.RootPath,
+                },
+            });
+        public static readonly AuditEventType<FileDropDirectory, KeyValuePair<Guid, string>, KeyValuePair<Guid, string>, KeyValuePair<Guid, string>, KeyValuePair<Guid?, string>> SftpDirectoryCreated = new AuditEventType<FileDropDirectory, KeyValuePair<Guid, string>, KeyValuePair<Guid, string>, KeyValuePair<Guid, string>, KeyValuePair<Guid?, string>>(
+            8014, "SFTP Directory Created", (fileDropDirectory, fileDropKvp, sftpAccountKvp, clientKvp, mapUserKvp) => new
+            {
+                FileDropDirectory = (FileDropDirectoryLogModel)fileDropDirectory,
+                FileDrop = new 
+                { 
+                    Id = fileDropKvp.Key, 
+                    Name = fileDropKvp.Value, 
+                },
+                SftpAccount = new 
+                {
+                    Id = sftpAccountKvp.Key,
+                    Name = sftpAccountKvp.Value,
+                },
+                Client = new
+                {
+                    Id = clientKvp.Key,
+                    Name = clientKvp.Value,
+                },
+                MapUser = new
+                {
+                    Id = mapUserKvp.Key,
+                    UserName = mapUserKvp.Value,
+                },
+            });
+
         #endregion
         #endregion
 

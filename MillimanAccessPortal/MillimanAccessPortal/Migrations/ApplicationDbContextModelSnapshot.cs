@@ -275,22 +275,22 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("uuid_generate_v4()");
 
+                    b.Property<string>("CanonicalFileDropPath")
+                        .IsRequired();
+
                     b.Property<Guid>("CreatedByAccountId");
 
                     b.Property<string>("Description");
 
                     b.Property<Guid>("FileDropId");
 
-                    b.Property<string>("Name")
-                        .IsRequired();
-
                     b.Property<Guid?>("ParentDirectoryId");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedByAccountId");
+                    b.HasAlternateKey("FileDropId", "CanonicalFileDropPath");
 
-                    b.HasIndex("FileDropId");
+                    b.HasIndex("CreatedByAccountId");
 
                     b.HasIndex("ParentDirectoryId");
 
@@ -309,14 +309,14 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<Guid>("DirectoryId");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("FileName")
                         .IsRequired();
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedByAccountId");
+                    b.HasAlternateKey("DirectoryId", "FileName");
 
-                    b.HasIndex("DirectoryId");
+                    b.HasIndex("CreatedByAccountId");
 
                     b.ToTable("FileDropFile");
                 });
@@ -330,6 +330,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<bool>("DeleteAccess");
 
                     b.Property<Guid>("FileDropId");
+
+                    b.Property<bool>("IsPersonalGroup");
 
                     b.Property<string>("Name")
                         .IsRequired();
@@ -895,7 +897,7 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("FileDropId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("MapDbContextLib.Context.FileDropDirectory", "ParentDirectoryEntry")
+                    b.HasOne("MapDbContextLib.Context.FileDropDirectory", "ParentDirectory")
                         .WithMany("ChildDirectories")
                         .HasForeignKey("ParentDirectoryId")
                         .OnDelete(DeleteBehavior.Cascade);

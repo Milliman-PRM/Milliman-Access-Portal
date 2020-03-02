@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: This class is partial.  Implementation is contained in multiple source code files
  */
 
+using AuditLogLib;
 using Microsoft.Extensions.Configuration;
 using nsoftware.IPWorksSSH;
 using Serilog;
@@ -17,18 +18,25 @@ namespace SftpServerLib
 {
     internal partial class IpWorksSftpServer : SftpLibApi
     {
-        internal static System.Timers.Timer _maintenanceTimer = default;
-        internal static Sftpserver _sftpServer = default;
-        internal static Dictionary<string, SftpConnectionProperties> _connections = new Dictionary<string, SftpConnectionProperties>();
+        internal static System.Timers.Timer _maintenanceTimer;
+        internal static Sftpserver _sftpServer;
+        internal static Dictionary<string, SftpConnectionProperties> _connections;
+        internal static AuditLogger _auditLogger;
 
+        static IpWorksSftpServer()
+        {
+            _connections = new Dictionary<string, SftpConnectionProperties>();
+        }
         internal IpWorksSftpServer() 
         {
             // At launch all connection records should be dropped because the sftp library reuses connection IDs. 
-            AuditLogLib.AuditLogger.Config = new AuditLogLib.AuditLoggerConfiguration
+            AuditLogger.Config = new AuditLoggerConfiguration
             {
                 AuditLogConnectionString = GlobalResources.ApplicationConfiguration.GetConnectionString("AuditLogConnectionString"),
                 //ErrorLogRootFolder = "",  // TODO need to deal with this?
             };
+
+            _auditLogger = new AuditLogger();
 
             _maintenanceTimer = new System.Timers.Timer
             {
