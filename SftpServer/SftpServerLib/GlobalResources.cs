@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
+using Prm.SerilogCustomization;
 using Serilog;
 using System;
 using System.Reflection;
@@ -98,6 +99,7 @@ namespace SftpServerLib
             // Initialize Serilog
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
+                .Enrich.With<UtcTimestampEnricher>()
                 .CreateLogger();
             Assembly processAssembly = Assembly.GetEntryAssembly();
             FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);

@@ -970,11 +970,12 @@ namespace AuditLogLib.Event
             {
                 FileDrop = (FileDropLogModel)fileDrop,
                 Client = new { client.Id, client.Name, },
-                AffectedSftpAccounts = sftpAccounts.Select(a => 
-                    new { SftpAccount = a,
-                          MapUser = a.ApplicationUserId.HasValue ? new { Id = a.ApplicationUserId.Value, a?.ApplicationUser?.UserName } 
-                                                                 : null
-                        }),
+                AffectedSftpAccounts = sftpAccounts.Select(a => new
+                    { 
+                        SftpAccount = new { a.Id, a.UserName },
+                        MapUser = a.ApplicationUserId.HasValue ? new { Id = a.ApplicationUserId.Value, a?.ApplicationUser?.UserName } 
+                                                               : null
+                    }),
             });
 
         public static readonly AuditEventType<FileDrop, FileDrop, Guid, string> FileDropUpdated = new AuditEventType<FileDrop, FileDrop, Guid, string>(
@@ -987,6 +988,55 @@ namespace AuditLogLib.Event
                     clientId,
                     clientName,
                 },
+            });
+
+        /// <summary>
+        /// sftpAccounts expected to have navigation property ApplicationUser populated
+        /// </summary>
+        public static readonly AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop> SftpAccountAuthenticated = new AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop>(
+            8010, "SFTP Account Authenticated", (account, permissionGroup, fileDrop) => new
+            {
+                PermissionGroup = new
+                {
+                    permissionGroup.Id,
+                    permissionGroup.IsPersonalGroup,
+                    permissionGroup.ReadAccess,
+                    permissionGroup.WriteAccess,
+                    permissionGroup.DeleteAccess,
+                },
+                FileDrop = new 
+                {
+                    fileDrop.Id,
+                    fileDrop.Name,
+                    fileDrop.RootPath,
+                },
+                SftpAccount = new
+                {
+                    account.Id,
+                    account.UserName,
+                },
+                MapUser = account.ApplicationUserId.HasValue ? new { Id = account.ApplicationUserId.Value, account.ApplicationUser?.UserName }
+                                                             : null,
+            });
+
+        public static readonly AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser> SftpDirectoryCreated = new AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser>(
+            8014, "SFTP Directory Created", (fileDropDirectory, fileDropModel, sftpAccount, client, mapUser) => new
+            {
+                FileDropDirectory = (FileDropDirectoryLogModel)fileDropDirectory,
+                FileDrop = fileDropModel,
+                SftpAccount = new 
+                {
+                    sftpAccount.Id,
+                    sftpAccount.UserName,
+                },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
+                MapUser = mapUser != null 
+                    ? new { mapUser.Id, mapUser.UserName, }
+                    : null,
             });
 
         #endregion

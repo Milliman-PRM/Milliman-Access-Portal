@@ -185,12 +185,22 @@ namespace MapDbContextLib.Context
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
                 b.HasOne(x => x.ParentDirectory).WithMany(p => p.ChildDirectories).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
                 b.HasOne(x => x.CreatedByAccount).WithMany(p => p.Directories).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
+
+                // TODO Figure out how to create a unique constraint including a nullable FK column
+                // Reference https://github.com/npgsql/efcore.pg/issues/1289
+                //b.HasIndex(x => new { x.ParentDirectoryId, x.Name }).IsUnique();  // unique constraint, because sftp clients can make multiple requests to create the same item
+                b.HasAlternateKey(x => new { x.FileDropId, x.CanonicalFileDropPath});  // unique constraint, because sftp clients can make multiple requests to create the same item
             });
             builder.Entity<FileDropFile>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
                 b.HasOne(x => x.Directory).WithMany(p => p.Files).OnDelete(DeleteBehavior.Restrict);  // not the default when a nullable FK
                 b.HasOne(x => x.CreatedByAccount).WithMany(p => p.Files).OnDelete(DeleteBehavior.Restrict);  // not the default when a nullable FK
+
+                // TODO Figure out how to create a unique constraint including a nullable FK column
+                // Reference https://github.com/npgsql/efcore.pg/issues/1289
+                //b.HasIndex(x => new { x.DirectoryId, x.Name }).IsUnique();  // unique constraint, because sftp clients can make multiple requests to create the same item
+                b.HasAlternateKey(x => new { x.DirectoryId, x.FileName });  // unique constraint, because sftp clients can make multiple requests to create the same item
             });
         }
 
