@@ -46,19 +46,35 @@
 
     tbody {
 
-        td {
-            padding-top: .5em;
-            padding-bottom: .5em;
-            border-bottom: 1px solid $charcoal;
+        tr {
+            
+            &.last-group-row,
+            &.action-row {
+                border-bottom: 1px solid $charcoal;
+            }
 
-            .selection-option-container {
-                justify-content: center;
-                align-items: center;
-                padding: 0;
-                margin: 0;
+            &.action-row {
+                cursor: pointer;
+                
+                .action-text {
+                    color: $green;
+                    font-weight: bold;
+                }
+            }
 
-                .selection-option-label {
-                    height: 1em;
+            td {
+                padding-top: .5em;
+                padding-bottom: .5em;
+
+                .selection-option-container {
+                    justify-content: center;
+                    align-items: center;
+                    padding: 0;
+                    margin: 0;
+
+                    .selection-option-label {
+                        height: 1em;
+                    }
                 }
             }
         }
