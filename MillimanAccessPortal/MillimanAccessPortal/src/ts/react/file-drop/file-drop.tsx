@@ -7,7 +7,7 @@ import * as FileDropActionCreator from './redux/action-creators';
 import * as Selector from './redux/selectors';
 import * as State from './redux/store';
 
-import { Client, FileDropClientWithStats, FileDropWithStats } from '../models';
+import { Client, FileDropClientWithStats, FileDropWithStats, PermissionGroupsReturnModel } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
@@ -37,6 +37,7 @@ interface FileDropProps {
   filters: State.FileDropFilterState;
   modals: State.FileDropModals;
   activeSelectedClient: FileDropClientWithStats;
+  permissionsData: PermissionGroupsReturnModel;
 }
 
 class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCreator> {
@@ -407,6 +408,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.selectFileDrop({ id: entity.id });
                     if (activeSelectedClient.canManageFileDrops) {
                       this.props.selectFileDropTab({ tab: 'permissions' });
+                      this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: entity.id });
                     } else {
                       this.props.selectFileDropTab({ tab: 'settings' });
                     }
@@ -569,7 +571,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderPermissionsTab() {
-    const { filters } = this.props;
+    const { filters, permissionsData } = this.props;
     const addUserButton = (
       <ActionIcon
         label="Add User"
@@ -602,7 +604,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <ContentPanelForm
             readOnly={false}
           >
-            <PermissionsTable />
+            <PermissionsTable
+              permissions={permissionsData}
+            />
           </ContentPanelForm>
         </ContentPanelSectionContent>
       </>
@@ -651,6 +655,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     filters,
     modals,
     activeSelectedClient: Selector.activeSelectedClient(state),
+    permissionsData: Selector.pendingPermissionsData(state),
   };
 }
 
