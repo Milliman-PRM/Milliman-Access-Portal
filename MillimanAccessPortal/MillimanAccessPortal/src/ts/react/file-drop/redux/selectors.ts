@@ -90,8 +90,7 @@ export function selectedClient(state: FileDropState) {
 
 /** Return the highlighted client if it is visible to the user */
 export function activeSelectedClient(state: FileDropState) {
-  return clientEntities(state)
-    .filter((c) => c !== 'divider' && (c.id === state.selected.client))[0] as ClientWithIndent;
+  return (state.selected.client) ? state.data.clients[state.selected.client] : null;
 }
 
 // ~~~~~~~~~~~~~~~~~~~

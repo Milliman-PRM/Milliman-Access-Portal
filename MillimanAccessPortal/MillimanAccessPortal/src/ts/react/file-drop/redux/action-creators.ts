@@ -58,6 +58,10 @@ export const editFileDrop =
 export const cancelFileDropEdit =
   createActionCreator<Action.CancelFileDropEdit>('CANCEL_FILE_DROP_EDIT');
 
+/** Activate a File Drop tab */
+export const selectFileDropTab =
+  createActionCreator<Action.SelectFileDropTab>('SELECT_FILE_DROP_TAB');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
