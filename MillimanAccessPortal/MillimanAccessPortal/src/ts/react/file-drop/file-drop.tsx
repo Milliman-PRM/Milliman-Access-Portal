@@ -29,6 +29,7 @@ import { PermissionsTable } from './permissions-table';
 type ClientEntity = (FileDropClientWithStats & { indent: 1 | 2 }) | 'divider';
 
 interface FileDropProps {
+  data: State.FileDropDataState;
   clients: ClientEntity[];
   fileDrops: FileDropWithStats[];
   selected: State.FileDropSelectedState;
@@ -37,6 +38,7 @@ interface FileDropProps {
   filters: State.FileDropFilterState;
   modals: State.FileDropModals;
   activeSelectedClient: FileDropClientWithStats;
+  permissionGroupChangesPending: boolean;
 }
 
 class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCreator> {
@@ -570,7 +572,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderPermissionsTab() {
-    const { filters, pending } = this.props;
+    const { data, filters, pending } = this.props;
     const addUserButton = (
       <ActionIcon
         label="Add User"
@@ -608,6 +610,34 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               setPermissionValue={this.props.setPermissionGroupPermissionValue}
               removePermissionGroup={this.props.removePermissionGroup}
             />
+            {
+              this.props.permissionGroupChangesPending &&
+              <div className="button-container">
+                <button
+                  className="link-button"
+                  type="button"
+                  onClick={(event: any) => {
+                    event.preventDefault();
+                  }}
+                >
+                  Undo Changes
+                </button>
+                <button
+                  type="button"
+                  className="green-button"
+                  onClick={(event: React.MouseEvent) => {
+                    event.preventDefault();
+                    alert('submit');
+                  }}
+                >
+                  Save Changes
+                  {this.props.pending.async.permissionsUpdate
+                    ? <ButtonSpinner version="circle" />
+                    : null
+                  }
+                </button>
+              </div>
+            }
           </ContentPanelForm>
         </ContentPanelSectionContent>
       </>
@@ -648,6 +678,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
   const { data, selected, cardAttributes, pending, filters, modals } = state;
 
   return {
+    data,
     clients: Selector.clientEntities(state),
     fileDrops: Selector.fileDropEntities(state),
     selected,
@@ -656,6 +687,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     filters,
     modals,
     activeSelectedClient: Selector.activeSelectedClient(state),
+    permissionGroupChangesPending: Selector.permissionGroupChangesPending(state),
   };
 }
 
