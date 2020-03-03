@@ -129,6 +129,12 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   permissions: false,
 };
 
+const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
+  fileDropId: '',
+  eligibleUsers: {},
+  permissionGroups: {},
+};
+
 const _initialFilterValues: State.FileDropFilterState = {
   client: { text: '' },
   fileDrop: { text: '' },
@@ -318,7 +324,7 @@ const selectedFileDropTab = createReducer<State.AvailableFileDropTabs>(null, {
 });
 
 /** Reducer for Permission Groups form data */
-const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(null, {
+const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialPermissionGroupsTab, {
   // TODO: Change this reducer to the FetchPermissionGroupsSucceeded action
   FETCH_PERMISSION_GROUPS: () => _dummyPermissionGroupsData,
   SET_PERMISSION_GROUP_PERMISSION_VALUE: (state, action: Action.SetPermissionGroupPermissionValue) => ({
@@ -331,6 +337,14 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(null, {
       },
     },
   }),
+  REMOVE_PERMISSION_GROUP: (state, action: Action.RemovePermissionGroup) => {
+    const { permissionGroups } = state;
+    delete permissionGroups[action.pgId];
+    return {
+      ...state,
+      permissionGroups,
+    };
+  },
 });
 
 /** Reducer that combines the pending reducers */
