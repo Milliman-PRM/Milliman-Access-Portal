@@ -100,6 +100,12 @@ export interface SetPermissionGroupPermissionValue {
   value: boolean;
 }
 
+/** Remove a Permission Group */
+export interface RemovePermissionGroup {
+  type: 'REMOVE_PERMISSION_GROUP';
+  pgId: Guid;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -336,6 +342,7 @@ export type FileDropPageActions =
   | CancelFileDropEdit
   | SelectFileDropTab
   | SetPermissionGroupPermissionValue
+  | RemovePermissionGroup
   ;
 
 /** Actions that schedule another action */

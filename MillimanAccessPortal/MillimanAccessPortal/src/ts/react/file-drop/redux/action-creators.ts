@@ -62,6 +62,10 @@ export const selectFileDropTab =
 export const setPermissionGroupPermissionValue =
   createActionCreator<Action.SetPermissionGroupPermissionValue>('SET_PERMISSION_GROUP_PERMISSION_VALUE');
 
+/** Remove a Permission Group from a File Drop */
+export const removePermissionGroup =
+  createActionCreator<Action.RemovePermissionGroup>('REMOVE_PERMISSION_GROUP');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
