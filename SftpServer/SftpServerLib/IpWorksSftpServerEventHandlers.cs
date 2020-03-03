@@ -78,8 +78,6 @@ namespace SftpServerLib
         {
             // IpWorks documentation for this event at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_DirRemove.htm
 
-            //Log.Information(GenerateEventArgsLogMessage("DirRemove", evtData));
-
             (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Delete);
 
             if (result == AuthorizationResult.ConnectionNotFound)
@@ -99,7 +97,7 @@ namespace SftpServerLib
             }
 
             string requestedCanonicalPath = FileDropDirectory.ConvertPathToCanonicalPath(evtData.Path);
-            if (string.IsNullOrWhiteSpace(requestedCanonicalPath))
+            if (string.IsNullOrWhiteSpace(requestedCanonicalPath) || requestedCanonicalPath == "/")
             {
                 Log.Warning($"OnDirRemove: Invalid path requested: <{evtData.Path}>");
                 evtData.StatusCode = 8;  // SSH_FX_OP_UNSUPPORTED 8
