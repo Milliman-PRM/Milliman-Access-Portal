@@ -22,6 +22,7 @@ export interface FileDropPendingReturnState {
   deleteFileDrop: boolean;
   updateFileDrop: boolean;
   permissions: boolean;
+  permissionsUpdate: boolean;
 }
 
 /** Data used in the Create File Drop modal form */
