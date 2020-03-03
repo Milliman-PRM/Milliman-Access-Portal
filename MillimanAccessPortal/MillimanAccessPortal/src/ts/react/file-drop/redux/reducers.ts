@@ -321,6 +321,16 @@ const selectedFileDropTab = createReducer<State.AvailableFileDropTabs>(null, {
 const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(null, {
   // TODO: Change this reducer to the FetchPermissionGroupsSucceeded action
   FETCH_PERMISSION_GROUPS: () => _dummyPermissionGroupsData,
+  SET_PERMISSION_GROUP_PERMISSION_VALUE: (state, action: Action.SetPermissionGroupPermissionValue) => ({
+    ...state,
+    permissionGroups: {
+      ...state.permissionGroups,
+      [action.pgId]: {
+        ...state.permissionGroups[action.pgId],
+        [action.permission]: action.value,
+      },
+    },
+  }),
 });
 
 /** Reducer that combines the pending reducers */
