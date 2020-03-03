@@ -114,9 +114,9 @@ export function fileDropEntities(state: FileDropState) {
 // Permission Group Selectors
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-/** Return the permissions tab data with pending changes applied */
+/** Return the pending changes to the permissions tab data */
 export function pendingPermissionsData(state: FileDropState) {
-  // TODO: Bring in and apply pending changes to permission groups
+  // TODO: Return the pending changes to permission groups
   return state.data.permissionGroups;
 }
 
