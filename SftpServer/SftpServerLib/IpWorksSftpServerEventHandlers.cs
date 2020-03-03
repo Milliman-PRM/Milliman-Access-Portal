@@ -84,7 +84,7 @@ namespace SftpServerLib
 
             if (result == AuthorizationResult.ConnectionNotFound)
             {
-                Log.Warning($"OnDirRemove: Connection not found, eventdata: {{@evtData}}");
+                Log.Warning("OnDirRemove: Connection not found, eventdata: {@evtData}", evtData);
                 evtData.StatusCode = 7;  // SSH_FX_CONNECTION_LOST 7
                 return;
             }
@@ -93,7 +93,7 @@ namespace SftpServerLib
 
             if (result == AuthorizationResult.NotAuthorized)
             {
-                Log.Warning($"OnDirRemove: Permission denied, eventdata: {{@evtData}}");
+                Log.Warning("OnDirRemove: Permission denied, eventdata: {@evtData}", evtData);
                 evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
                 return;
             }
@@ -101,6 +101,7 @@ namespace SftpServerLib
             string requestedCanonicalPath = FileDropDirectory.ConvertPathToCanonicalPath(evtData.Path);
             if (string.IsNullOrWhiteSpace(requestedCanonicalPath))
             {
+                Log.Warning($"OnDirRemove: Invalid path requested: <{evtData.Path}>");
                 evtData.StatusCode = 8;  // SSH_FX_OP_UNSUPPORTED 8
                 return;
             }
@@ -115,7 +116,7 @@ namespace SftpServerLib
                 {
                     if (!Directory.Exists(requestedAbsolutePath) || requestedDirectory == null)
                     {
-                        Log.Warning("Request to delete SFTP directory failing because the directory is not found (database or file system)");
+                        Log.Warning($"OnDirRemove: Requested directory {evtData.Path} at absolute path {requestedAbsolutePath} is not found (database or file system)");
                         evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
                         return;
                     }
@@ -143,6 +144,7 @@ namespace SftpServerLib
                                                                                       connection.MapUserId.HasValue 
                                                                                           ? new ApplicationUser { Id = connection.MapUserId.Value, UserName = connection.MapUserName }
                                                                                           : null));
+                    Log.Information($"OnDirRemove: Requested directory {evtData.Path} at absolute path {requestedAbsolutePath} removed. Deleted inventory is {{@Inventory}}", deleteInventory);
                 }
             }
         }
@@ -162,6 +164,7 @@ namespace SftpServerLib
 
             if (result == AuthorizationResult.ConnectionNotFound)
             {
+                Log.Warning($"OnDirCreate event invoked but no active connection was found");
                 evtData.StatusCode = 7;  // SSH_FX_CONNECTION_LOST 7
                 return;
             }
@@ -170,6 +173,7 @@ namespace SftpServerLib
 
             if (result == AuthorizationResult.NotAuthorized)
             {
+                Log.Information($"OnDirCreate event invoked but account <{connection.SftpAccountId}, {connection.SftpAccountName}> does not have Write access");
                 evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
                 return;
             }
@@ -177,6 +181,7 @@ namespace SftpServerLib
             string requestedCanonicalPath = FileDropDirectory.ConvertPathToCanonicalPath(evtData.Path);
             if (string.IsNullOrWhiteSpace(requestedCanonicalPath))
             {
+                Log.Information($"OnDirCreate event invoked but requested path <{evtData.Path}> is invalid");
                 evtData.StatusCode = 8;  // SSH_FX_OP_UNSUPPORTED 8
                 return;
             }
@@ -193,8 +198,10 @@ namespace SftpServerLib
                     {
                         // 1. Requested directory must not already exist
                         if (Directory.Exists(requestedAbsolutePath) ||
-                            db.FileDropDirectory.Any(d => d.FileDropId == connection.FileDropId && EF.Functions.ILike(requestedCanonicalPath, d.CanonicalFileDropPath)))
+                            db.FileDropDirectory.Any(d => d.FileDropId == connection.FileDropId
+                                                       && EF.Functions.ILike(requestedCanonicalPath, d.CanonicalFileDropPath)))
                         {
+                            Log.Warning($"OnDirCreate event invoked but requested path <{evtData.Path}> already exists");
                             evtData.StatusCode = 11;  // SSH_FX_FILE_ALREADY_EXISTS 11
                             return;
                         }
@@ -203,6 +210,7 @@ namespace SftpServerLib
                         if (!Directory.Exists(parentAbsolutePath) ||
                             (!db.FileDropDirectory.Any(d => d.FileDropId == connection.FileDropId && EF.Functions.ILike(parentCanonicalPath, d.CanonicalFileDropPath))))
                         {
+                            Log.Warning($"OnDirCreate event invoked but parent of requested path <{evtData.Path}> does not exist");
                             evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
                             return;
                         }
@@ -215,6 +223,7 @@ namespace SftpServerLib
                         // Validation:
                         if (!Directory.Exists(requestedAbsolutePath))
                         {
+                            Log.Warning($"OnDirCreate event invoked, the requested directory does not appear to have been created");
                             evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
                             return;
                         }
@@ -235,8 +244,7 @@ namespace SftpServerLib
                                                                                           new SftpAccount(connection.FileDropId.Value) { Id = connection.SftpAccountId.Value, UserName = connection.SftpAccountName },
                                                                                           new Client { Id = connection.ClientId.Value, Name = connection.ClientName },
                                                                                           connection.MapUserId.HasValue ? new ApplicationUser { Id = connection.MapUserId.Value, UserName = connection.MapUserName } : null));
-                        Log.Information(GenerateEventArgsLogMessage("DirCreate", evtData));
-                        Log.Information($"Path above is relative to UserRootDirectory {IpWorksSftpServer._sftpServer.Config($"UserRootDirectory[{connection.Id}]")}");
+                        Log.Information($"DirCreate event invoked, directory {requestedCanonicalPath} created relative to UserRootDirectory { IpWorksSftpServer._sftpServer.Config($"UserRootDirectory[{connection.Id}]")}");
                     }
                 }
             }
@@ -296,6 +304,16 @@ namespace SftpServerLib
         internal static void OnFileRename(object sender, SftpserverFileRenameEventArgs evtData)
         {
             Log.Information(GenerateEventArgsLogMessage("FileRename", evtData));
+
+            Debug.WriteLine(evtData.User + " renaming\r\n  " + evtData.Path + "\r\nto\r\n  " + evtData.NewPath);
+            if (evtData.BeforeExec)
+            {
+                Directory.Move(evtData.Path, evtData.NewPath);
+            }
+            else
+            {
+                int i = 8;
+            }
         }
 
         //[Description("Fires when a client wants to write to an open file.")]

@@ -33,26 +33,25 @@ namespace MapDbContextLib.Context
         /// <summary>
         /// Imposes syntax rules to a path string to achieve repeatable encoding practices.  A canonical path follows syntax of the SFTP protocol, using '/' for root and path separator
         /// </summary>
-        /// <param name="path">Must start with '/' or '\', representing the home directory of a FileDrop.  A volume name is not supported since that is transparent to the SFTP protocol.</param>
-        /// <exception cref="ArgumentException">Thrown when the path argument does not start with a single path separator character, or contains an invalid path character</exception>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <param name="path">Must start with a single '/' or '\', representing the home directory of a FileDrop.  A volume name is not supported since that is transparent to the SFTP protocol.</param>
         /// <returns></returns>
         public static string ConvertPathToCanonicalPath(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
-                throw new ArgumentNullException("path");
+                return null;
             }
             if (path.StartsWith("\\\\") ||
+                path.StartsWith("//") ||
                 (!path.StartsWith("/") && !path.StartsWith("\\")))
             {
-                throw new ArgumentException("The value is not a root path, or may be a UNC path", "path");
+                return null;
             }
             if (path.IndexOfAny(Path.GetInvalidPathChars()) != -1)
             {
-                throw new ArgumentException("The value contains invalid path character(s)", "path");
+                return null;
             }
-            
+
             return path.Replace('\\', '/');
         }
 
