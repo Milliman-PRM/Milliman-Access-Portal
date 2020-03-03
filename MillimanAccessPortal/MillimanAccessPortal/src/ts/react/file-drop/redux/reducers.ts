@@ -345,6 +345,10 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
       permissionGroups,
     };
   },
+  DISCARD_PENDING_PERMISSION_GROUP_CHANGES: (_state, action: Action.DiscardPendingPermissionGroupChanges) => ({
+    // Convert to string and then back to json to allow these two sections of state to be independent
+    ...JSON.parse(JSON.stringify(action.originalValues)),
+  }),
 });
 
 /** Reducer that combines the pending reducers */
