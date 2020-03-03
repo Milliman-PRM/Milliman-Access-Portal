@@ -106,6 +106,12 @@ export interface RemovePermissionGroup {
   pgId: Guid;
 }
 
+/** Discard pening Permission Group changes */
+export interface DiscardPendingPermissionGroupChanges {
+  type: 'DISCARD_PENDING_PERMISSION_GROUP_CHANGES';
+  originalValues: PermissionGroupsReturnModel;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -343,6 +349,7 @@ export type FileDropPageActions =
   | SelectFileDropTab
   | SetPermissionGroupPermissionValue
   | RemovePermissionGroup
+  | DiscardPendingPermissionGroupChanges
   ;
 
 /** Actions that schedule another action */

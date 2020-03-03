@@ -66,6 +66,10 @@ export const setPermissionGroupPermissionValue =
 export const removePermissionGroup =
   createActionCreator<Action.RemovePermissionGroup>('REMOVE_PERMISSION_GROUP');
 
+/** Discard pending changes to the Permission Groups */
+export const discardPendingPermissionGroupChanges =
+  createActionCreator<Action.DiscardPendingPermissionGroupChanges>('DISCARD_PENDING_PERMISSION_GROUP_CHANGES');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
