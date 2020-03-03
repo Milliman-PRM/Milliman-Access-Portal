@@ -37,7 +37,6 @@ interface FileDropProps {
   filters: State.FileDropFilterState;
   modals: State.FileDropModals;
   activeSelectedClient: FileDropClientWithStats;
-  permissionsData: PermissionGroupsReturnModel;
 }
 
 class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCreator> {
@@ -571,7 +570,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderPermissionsTab() {
-    const { filters, permissionsData } = this.props;
+    const { filters, pending } = this.props;
     const addUserButton = (
       <ActionIcon
         label="Add User"
@@ -605,7 +604,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             readOnly={false}
           >
             <PermissionsTable
-              permissions={permissionsData}
+              permissions={pending.permissionGroupsTab}
             />
           </ContentPanelForm>
         </ContentPanelSectionContent>
@@ -655,7 +654,6 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     filters,
     modals,
     activeSelectedClient: Selector.activeSelectedClient(state),
-    permissionsData: Selector.pendingPermissionsData(state),
   };
 }
 
