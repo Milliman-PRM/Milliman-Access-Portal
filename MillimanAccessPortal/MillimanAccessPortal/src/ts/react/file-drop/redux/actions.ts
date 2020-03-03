@@ -92,6 +92,14 @@ export interface SelectFileDropTab {
   tab: AvailableFileDropTabs;
 }
 
+/** Change the value of a Permission Group permission */
+export interface SetPermissionGroupPermissionValue {
+  type: 'SET_PERMISSION_GROUP_PERMISSION_VALUE';
+  pgId: Guid;
+  permission: 'readAccess' | 'writeAccess' | 'deleteAccess';
+  value: boolean;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -327,6 +335,7 @@ export type FileDropPageActions =
   | EditFileDrop
   | CancelFileDropEdit
   | SelectFileDropTab
+  | SetPermissionGroupPermissionValue
   ;
 
 /** Actions that schedule another action */

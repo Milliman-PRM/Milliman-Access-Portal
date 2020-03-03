@@ -58,6 +58,10 @@ export const cancelFileDropEdit =
 export const selectFileDropTab =
   createActionCreator<Action.SelectFileDropTab>('SELECT_FILE_DROP_TAB');
 
+/** Set the value of a Permission Group permission */
+export const setPermissionGroupPermissionValue =
+  createActionCreator<Action.SetPermissionGroupPermissionValue>('SET_PERMISSION_GROUP_PERMISSION_VALUE');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
