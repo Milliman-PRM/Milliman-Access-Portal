@@ -19,12 +19,13 @@ interface PermissionsTableProps {
     permission: 'readAccess' | 'writeAccess' | 'deleteAccess';
     value: boolean;
   }) => void;
+  removePermissionGroup: ({ pgId }: { pgId: Guid }) => void;
 }
 
 export class PermissionsTable extends React.Component<PermissionsTableProps> {
 
   public render() {
-    const { setPermissionValue } = this.props;
+    const { setPermissionValue, removePermissionGroup } = this.props;
     const { permissionGroups, eligibleUsers } = this.props.permissions;
     const permissionGroupsMarkup = Object.keys(permissionGroups).map((pgId) => {
       const thisPG = permissionGroups[pgId];
@@ -101,7 +102,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
               }
               <ActionIconButtonContainer color="red">
                 <ActionIcon
-                  action={() => alert('delete')}
+                  action={() => removePermissionGroup({ pgId: thisPG.id })}
                   icon="delete"
                   label="Delete Permission Group"
                   inline={true}

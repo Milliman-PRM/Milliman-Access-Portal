@@ -606,6 +606,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             <PermissionsTable
               permissions={pending.permissionGroupsTab}
               setPermissionValue={this.props.setPermissionGroupPermissionValue}
+              removePermissionGroup={this.props.removePermissionGroup}
             />
           </ContentPanelForm>
         </ContentPanelSectionContent>
