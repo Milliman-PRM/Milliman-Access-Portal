@@ -30,6 +30,34 @@ namespace MillimanAccessPortal.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "FileDropDirectory",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    CanonicalFileDropPath = table.Column<string>(nullable: false),
+                    Description = table.Column<string>(nullable: true),
+                    ParentDirectoryId = table.Column<Guid>(nullable: true),
+                    FileDropId = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FileDropDirectory", x => x.Id);
+                    table.UniqueConstraint("AK_FileDropDirectory_FileDropId_CanonicalFileDropPath", x => new { x.FileDropId, x.CanonicalFileDropPath });
+                    table.ForeignKey(
+                        name: "FK_FileDropDirectory_FileDrop_FileDropId",
+                        column: x => x.FileDropId,
+                        principalTable: "FileDrop",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_FileDropDirectory_FileDropDirectory_ParentDirectoryId",
+                        column: x => x.ParentDirectoryId,
+                        principalTable: "FileDropDirectory",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "FileDropUserPermissionGroup",
                 columns: table => new
                 {
@@ -89,41 +117,6 @@ namespace MillimanAccessPortal.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FileDropDirectory",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(nullable: false, defaultValueSql: "uuid_generate_v4()"),
-                    CanonicalFileDropPath = table.Column<string>(nullable: false),
-                    Description = table.Column<string>(nullable: true),
-                    ParentDirectoryId = table.Column<Guid>(nullable: true),
-                    CreatedByAccountId = table.Column<Guid>(nullable: false),
-                    FileDropId = table.Column<Guid>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_FileDropDirectory", x => x.Id);
-                    table.UniqueConstraint("AK_FileDropDirectory_FileDropId_CanonicalFileDropPath", x => new { x.FileDropId, x.CanonicalFileDropPath });
-                    table.ForeignKey(
-                        name: "FK_FileDropDirectory_SftpAccount_CreatedByAccountId",
-                        column: x => x.CreatedByAccountId,
-                        principalTable: "SftpAccount",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_FileDropDirectory_FileDrop_FileDropId",
-                        column: x => x.FileDropId,
-                        principalTable: "FileDrop",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_FileDropDirectory_FileDropDirectory_ParentDirectoryId",
-                        column: x => x.ParentDirectoryId,
-                        principalTable: "FileDropDirectory",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "FileDropFile",
                 columns: table => new
                 {
@@ -163,11 +156,6 @@ namespace MillimanAccessPortal.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_FileDropDirectory_CreatedByAccountId",
-                table: "FileDropDirectory",
-                column: "CreatedByAccountId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_FileDropDirectory_ParentDirectoryId",
                 table: "FileDropDirectory",
                 column: "ParentDirectoryId");
@@ -204,10 +192,10 @@ namespace MillimanAccessPortal.Migrations
                 name: "FileDropFile");
 
             migrationBuilder.DropTable(
-                name: "FileDropDirectory");
+                name: "SftpAccount");
 
             migrationBuilder.DropTable(
-                name: "SftpAccount");
+                name: "FileDropDirectory");
 
             migrationBuilder.DropTable(
                 name: "FileDropUserPermissionGroup");

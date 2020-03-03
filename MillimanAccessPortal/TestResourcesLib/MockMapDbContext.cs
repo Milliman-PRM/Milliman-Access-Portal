@@ -298,7 +298,6 @@ namespace TestResourcesLib
             {
                 if (s.Id == default) s.Id = Guid.NewGuid();
                 FileDropDirectoryData.Add(s);
-                MockDbSet<FileDropDirectory>.AssignNavigationProperty<SftpAccount>(MockFileDropDirectory.Object, nameof(FileDropDirectory.CreatedByAccountId), ReturnMockContext.Object.SftpAccount);
                 MockDbSet<FileDropDirectory>.AssignNavigationProperty<FileDrop>(MockFileDropDirectory.Object, nameof(FileDropDirectory.FileDropId), ReturnMockContext.Object.FileDrop);
                 MockDbSet<FileDropDirectory>.AssignNavigationProperty<FileDropDirectory>(MockFileDropDirectory.Object, nameof(FileDropDirectory.ParentDirectoryId), ReturnMockContext.Object.FileDropDirectory);
             });
@@ -330,7 +329,7 @@ namespace TestResourcesLib
             return ReturnMockContext;
         }
 
-        static object LockObject = new object();
+        static readonly object LockObject = new object();
         private static List<ApplicationRole> GetSystemRolesList()
         {
             lock (LockObject)

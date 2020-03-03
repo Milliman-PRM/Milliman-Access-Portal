@@ -62,10 +62,6 @@ namespace MapDbContextLib.Context
         public Guid? ParentDirectoryId { get; set; }
         public FileDropDirectory ParentDirectory { get; set; }
 
-        [ForeignKey("CreatedByAccount")]
-        public Guid CreatedByAccountId { get; set; }
-        public SftpAccount CreatedByAccount { get; set; }
-
         [ForeignKey("FileDrop")]
         public Guid FileDropId { get; set; }
         public FileDrop FileDrop { get; set; }
