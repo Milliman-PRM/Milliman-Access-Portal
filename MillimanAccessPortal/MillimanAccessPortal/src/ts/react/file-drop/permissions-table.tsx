@@ -8,17 +8,23 @@ import '../../../scss/react/file-drop/permissions-table.scss';
 
 import * as React from 'react';
 
-import { PermissionGroupsReturnModel } from '../models';
+import { Guid, PermissionGroupsReturnModel } from '../models';
 import { ActionIcon, ActionIconButtonContainer } from '../shared-components/action-icon';
 import { Checkbox } from '../shared-components/form/checkbox';
 
 interface PermissionsTableProps {
   permissions: PermissionGroupsReturnModel;
+  setPermissionValue: ({ pgId, permission, value }: {
+    pgId: Guid;
+    permission: 'readAccess' | 'writeAccess' | 'deleteAccess';
+    value: boolean;
+  }) => void;
 }
 
 export class PermissionsTable extends React.Component<PermissionsTableProps> {
 
   public render() {
+    const { setPermissionValue } = this.props;
     const { permissionGroups, eligibleUsers } = this.props.permissions;
     const permissionGroupsMarkup = Object.keys(permissionGroups).map((pgId) => {
       const thisPG = permissionGroups[pgId];
@@ -44,7 +50,8 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
             <td className="content-center">
               <Checkbox
                 hoverText="Allow users to download content from this File Drop"
-                onChange={() => false}
+                onChange={(status) =>
+                  setPermissionValue({ pgId: thisPG.id, permission: 'readAccess', value: status })}
                 key={1}
                 readOnly={false}
                 selected={thisPG.readAccess}
@@ -53,7 +60,8 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
             <td className="content-center">
               <Checkbox
                 hoverText="Allow users to upload content to this File Drop"
-                onChange={() => false}
+                onChange={(status) =>
+                  setPermissionValue({ pgId: thisPG.id, permission: 'writeAccess', value: status })}
                 key={2}
                 readOnly={false}
                 selected={thisPG.writeAccess}
@@ -62,7 +70,8 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
             <td className="content-center">
               <Checkbox
                 hoverText="Allow users to delete content from this File Drop"
-                onChange={() => false}
+                onChange={(status) =>
+                  setPermissionValue({ pgId: thisPG.id, permission: 'deleteAccess', value: status })}
                 key={3}
                 readOnly={false}
                 selected={thisPG.deleteAccess}
