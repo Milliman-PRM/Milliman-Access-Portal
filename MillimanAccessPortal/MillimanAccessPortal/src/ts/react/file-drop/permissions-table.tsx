@@ -80,15 +80,15 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
             </td>
             <td className="content-right">
               {
-                !thisPG.isPersonalGroup &&
-                <ActionIconButtonContainer color="blue">
-                  <ActionIcon
-                    action={() => alert('expand')}
-                    icon="expand-card"
-                    label="Expand Permission Group"
-                    inline={true}
-                  />
-                </ActionIconButtonContainer>
+                // !thisPG.isPersonalGroup &&
+                // <ActionIconButtonContainer color="blue">
+                //   <ActionIcon
+                //     action={() => alert('expand')}
+                //     icon="expand-card"
+                //     label="Expand Permission Group"
+                //     inline={true}
+                //   />
+                // </ActionIconButtonContainer>
               }
               {
                 // <ActionIconButtonContainer color="green">
