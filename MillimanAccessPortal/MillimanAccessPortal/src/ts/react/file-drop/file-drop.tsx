@@ -618,6 +618,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   type="button"
                   onClick={(event: any) => {
                     event.preventDefault();
+                    this.props.discardPendingPermissionGroupChanges({ originalValues: data.permissionGroups });
                   }}
                 >
                   Undo Changes
