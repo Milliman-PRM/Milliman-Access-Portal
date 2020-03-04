@@ -344,3 +344,20 @@ export interface PermissionGroupsReturnModel {
   eligibleUsers: Dict<FileDropEligibleUser>;
   permissionGroups: Dict<PermissionGroupModel>;
 }
+
+export interface PGChangeModel {
+  id: Guid;
+  name: string;
+  newAssignedMapUserIds: Guid[];
+  removedMapUserIds: Guid[];
+  readAccess: boolean;
+  writeAccess: boolean;
+  deleteAccess: boolean;
+}
+
+export interface PermissionGroupsChangesModel {
+  fileDropId: Guid;
+  removedPermissionGroups: Guid[];
+  newPermissionGroups: PermissionGroupModel[];
+  updatedPermissionGroups: Dict<PGChangeModel>;
+}
