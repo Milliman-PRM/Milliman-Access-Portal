@@ -1,6 +1,10 @@
 import * as _ from 'lodash';
 
-import { FileDropClientWithStats, FileDropWithStats } from '../../models';
+import {
+  FileDropClientWithStats, FileDropWithStats, Guid, PermissionGroupModel,
+  PermissionGroupsChangesModel, PGChangeModel,
+} from '../../models';
+import { Dict } from '../../shared-components/redux/store';
 import { FileDropState } from './store';
 
 // ~~~~~~~~~~
@@ -115,9 +119,59 @@ export function fileDropEntities(state: FileDropState) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /** Return the pending changes to the permissions tab data */
-export function pendingPermissionsData(state: FileDropState) {
-  // TODO: Return the pending changes to permission groups
-  return state.data.permissionGroups;
+export function pendingPermissionsData(state: FileDropState): PermissionGroupsChangesModel {
+  if (state.data.permissionGroups && state.pending.permissionGroupsTab) {
+    const { permissionGroups: pgRaw } = state.data.permissionGroups;
+    const { permissionGroups: pgPending } = state.pending.permissionGroupsTab;
+    const fileDropId = state.data.permissionGroups.fileDropId;
+
+    const rawPGIds = Object.keys(pgRaw).sort();
+    const pendingPGIds = Object.keys(pgPending).sort();
+
+    // Removed Permission Groups
+    // const removedPermissionGroups = rawPGIds.filter((pg) => pendingPGIds.indexOf(pg) === -1);
+    const removedPermissionGroups = _.difference(rawPGIds, pendingPGIds);
+
+    // Added Permission Groups
+    const newPermissionGroups = _.difference(pendingPGIds, rawPGIds)
+      .map((pg) => ({
+        id: null,
+        name: pgPending[pg].name,
+        isPersonalGroup: pgPending[pg].isPersonalGroup,
+        assignedSftpAccountIds: pgPending[pg].assignedSftpAccountIds,
+        assignedMapUserIds: pgPending[pg].assignedMapUserIds,
+        readAccess: pgPending[pg].readAccess,
+        writeAccess: pgPending[pg].writeAccess,
+        deleteAccess: pgPending[pg].deleteAccess,
+      }));
+
+    // Updated Permission Groups
+    const updatedPermissionGroups: Dict<PGChangeModel> = {};
+    _.intersection(rawPGIds, pendingPGIds)
+      .filter((pg) => !(_.isEqual(pgRaw[pg], pgPending[pg])))
+      .forEach((pg) => {
+        const pendingPG = pgPending[pg];
+        const rawPG = pgRaw[pg];
+        updatedPermissionGroups[pg] = {
+          id: pendingPG.id,
+          name: pendingPG.name,
+          newAssignedMapUserIds: _.difference(pendingPG.assignedMapUserIds, rawPG.assignedMapUserIds),
+          removedMapUserIds: _.difference(rawPG.assignedMapUserIds, pendingPG.assignedMapUserIds),
+          readAccess: pendingPG.readAccess,
+          writeAccess: pendingPG.writeAccess,
+          deleteAccess: pendingPG.deleteAccess,
+        };
+      });
+
+    return {
+      fileDropId,
+      removedPermissionGroups,
+      newPermissionGroups,
+      updatedPermissionGroups,
+    };
+  } else {
+    return null;
+  }
 }
 
 /** Return a boolean value indicating that pending Permission Group changes exist */
