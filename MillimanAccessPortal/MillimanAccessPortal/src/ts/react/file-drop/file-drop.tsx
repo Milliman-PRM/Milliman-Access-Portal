@@ -41,7 +41,7 @@ interface FileDropProps {
   modals: State.FileDropModals;
   activeSelectedClient: FileDropClientWithStats;
   permissionGroupChangesPending: boolean;
-  pendingPermissionsData: PermissionGroupsChangesModel;
+  pendingPermissionGroupsChanges: PermissionGroupsChangesModel;
 }
 
 class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCreator> {
@@ -692,7 +692,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     modals,
     activeSelectedClient: Selector.activeSelectedClient(state),
     permissionGroupChangesPending: Selector.permissionGroupChangesPending(state),
-    pendingPermissionsData: Selector.pendingPermissionsData(state),
+    pendingPermissionGroupsChanges: Selector.pendingPermissionGroupsChanges(state),
   };
 }
 

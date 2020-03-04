@@ -119,7 +119,7 @@ export function fileDropEntities(state: FileDropState) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /** Return the pending changes to the permissions tab data */
-export function pendingPermissionsData(state: FileDropState): PermissionGroupsChangesModel {
+export function pendingPermissionGroupsChanges(state: FileDropState): PermissionGroupsChangesModel {
   if (state.data.permissionGroups && state.pending.permissionGroupsTab) {
     const { permissionGroups: pgRaw } = state.data.permissionGroups;
     const { permissionGroups: pgPending } = state.pending.permissionGroupsTab;
