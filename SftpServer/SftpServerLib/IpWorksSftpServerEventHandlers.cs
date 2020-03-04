@@ -303,15 +303,30 @@ namespace SftpServerLib
         {
             Log.Information(GenerateEventArgsLogMessage("FileRename", evtData));
 
-            Debug.WriteLine(evtData.User + " renaming\r\n  " + evtData.Path + "\r\nto\r\n  " + evtData.NewPath);
+            /*  debugging a library issue
             if (evtData.BeforeExec)
             {
-                Directory.Move(evtData.Path, evtData.NewPath);
+                FileInfo file = new FileInfo(evtData.Path);
+                try
+                {
+                    file.MoveTo(evtData.NewPath);
+                }
+                catch (Exception ex) 
+                { 
+                    Debug.WriteLine(ex.Message); 
+                }
+
+                DirectoryInfo dir = new DirectoryInfo(evtData.Path);
+                try
+                {
+                    dir.MoveTo(evtData.NewPath);
+                }
+                catch (Exception ex) 
+                { 
+                    Debug.WriteLine(ex.Message); 
+                }
             }
-            else
-            {
-                int i = 8;
-            }
+            */
         }
 
         //[Description("Fires when a client wants to write to an open file.")]
@@ -368,7 +383,7 @@ namespace SftpServerLib
                         return;
                     }
 
-                    if (userAccount.ApplicationUserId.HasValue && (!userAccount.ApplicationUser.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60)) || userAccount.ApplicationUser.IsSuspended))
+                    if (userAccount.ApplicationUserId.HasValue && (!userAccount.ApplicationUser.IsCurrent(GlobalResources.GetConfigValue("PasswordExpirationDays", 60)) || userAccount.ApplicationUser.IsSuspended))
                     {
                         evtData.Accept = false;
                         Log.Information($"SftpConnection request denied.  The MAP user <{userAccount.ApplicationUser.UserName}> associated with this SFTP account has an expired password or is suspended");
@@ -380,7 +395,7 @@ namespace SftpServerLib
                     if (passwordResult == PasswordVerificationResult.Success ||
                         passwordResult == PasswordVerificationResult.SuccessRehashNeeded)
                     {
-                        string absoluteFileDropRootPath = Path.Combine(GlobalResources.ApplicationConfiguration.GetValue<string>("Storage:FileDropRoot"), userAccount.FileDropUserPermissionGroup.FileDrop.RootPath);
+                        string absoluteFileDropRootPath = Path.Combine(GlobalResources.GetConfigValue<string>("Storage:FileDropRoot"), userAccount.FileDropUserPermissionGroup.FileDrop.RootPath);
 
                         // set this connection's root path
                         IpWorksSftpServer._sftpServer.Config($@"UserRootDirectory[{evtData.ConnectionId}]={absoluteFileDropRootPath}");
@@ -445,9 +460,9 @@ namespace SftpServerLib
                         continue;
                     }
 
-                    if (!connectedAccount.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60)) ||
+                    if (!connectedAccount.IsCurrent(GlobalResources.GetConfigValue("SftpPasswordExpirationDays", 60)) ||
                         connectedAccount.FileDropUserPermissionGroup.FileDrop.IsSuspended ||
-                        (connectedAccount.ApplicationUserId.HasValue && !connectedAccount.ApplicationUser.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60))))
+                        (connectedAccount.ApplicationUserId.HasValue && !connectedAccount.ApplicationUser.IsCurrent(GlobalResources.GetConfigValue("PasswordExpirationDays", 60))))
                     {
                         IpWorksSftpServer._connections.Remove(connection.Id);
                     }
