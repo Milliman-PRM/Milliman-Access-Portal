@@ -91,6 +91,7 @@ export interface FileDropModals {
   createFileDrop: ModalState;
   deleteFileDrop: ModalState;
   confirmDeleteFileDrop: ModalState;
+  createNewPermissionGroup: ModalState;
 }
 
 /** Top-Level File Drop state */

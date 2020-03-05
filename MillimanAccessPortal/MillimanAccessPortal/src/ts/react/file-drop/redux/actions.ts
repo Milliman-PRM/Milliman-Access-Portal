@@ -112,6 +112,16 @@ export interface DiscardPendingPermissionGroupChanges {
   originalValues: PermissionGroupsReturnModel;
 }
 
+/** Open the modal used to create new Permission Groups */
+export interface OpenCreateNewPermissionGroupModal {
+  type: 'OPEN_CREATE_NEW_PERMISSION_GROUP_MODAL';
+}
+
+/** Close the modal used to create new Permission Groups */
+export interface CloseCreateNewPermissionGroupModal {
+  type: 'CLOSE_CREATE_NEW_PERMISSION_GROUP_MODAL';
+}
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -350,6 +360,8 @@ export type FileDropPageActions =
   | SetPermissionGroupPermissionValue
   | RemovePermissionGroup
   | DiscardPendingPermissionGroupChanges
+  | OpenCreateNewPermissionGroupModal
+  | CloseCreateNewPermissionGroupModal
   ;
 
 /** Actions that schedule another action */
@@ -417,4 +429,5 @@ export type OpenModalAction =
   | OpenCreateFileDropModal
   | OpenDeleteFileDropModal
   | OpenDeleteFileDropConfirmationModal
+  | OpenCreateNewPermissionGroupModal
   ;

@@ -501,6 +501,9 @@ const modals = combineReducers({
     'DELETE_FILE_DROP_SUCCEEDED',
     'DELETE_FILE_DROP_FAILED',
   ]),
+  createNewPermissionGroup: createModalReducer(['OPEN_CREATE_NEW_PERMISSION_GROUP_MODAL'], [
+    'CLOSE_CREATE_NEW_PERMISSION_GROUP_MODAL',
+  ]),
 });
 
 // ~~~~~~~~~~~~~

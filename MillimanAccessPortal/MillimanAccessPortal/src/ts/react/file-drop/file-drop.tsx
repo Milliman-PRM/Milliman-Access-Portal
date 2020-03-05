@@ -227,6 +227,40 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             </button>
           </div>
         </Modal>
+        <Modal
+          isOpen={modals.createNewPermissionGroup.isOpen}
+          onRequestClose={() => this.props.closeCreateNewPermissionGroupModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title blue">Create New Permission Group</h3>
+          <form
+            onSubmit={(e) => {
+              {
+                e.preventDefault();
+              }
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeCreateNewPermissionGroupModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className={'blue-button'}
+                disabled={/* TODO: Update This */false}
+                type="submit"
+              >
+                Create
+              </button>
+            </div>
+          </form>
+        </Modal>
       </>
     );
   }
@@ -588,7 +622,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
       <ActionIcon
         label="Add Group"
         icon="add-group"
-        action={() => alert('Add Group')}
+        action={() => this.props.openCreateNewPermissionGroupModal({})}
       />
     );
 
@@ -613,6 +647,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               permissions={pending.permissionGroupsTab}
               setPermissionValue={this.props.setPermissionGroupPermissionValue}
               removePermissionGroup={this.props.removePermissionGroup}
+              openCreatePermissionGroupModal={this.props.openCreateNewPermissionGroupModal}
             />
             {
               this.props.permissionGroupChangesPending &&

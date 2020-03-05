@@ -70,6 +70,14 @@ export const removePermissionGroup =
 export const discardPendingPermissionGroupChanges =
   createActionCreator<Action.DiscardPendingPermissionGroupChanges>('DISCARD_PENDING_PERMISSION_GROUP_CHANGES');
 
+/** Open the modal for creating new Permission Groups */
+export const openCreateNewPermissionGroupModal =
+  createActionCreator<Action.OpenCreateNewPermissionGroupModal>('OPEN_CREATE_NEW_PERMISSION_GROUP_MODAL');
+
+/** Close the modal for creating new Permission Groups */
+export const closeCreateNewPermissionGroupModal =
+  createActionCreator<Action.CloseCreateNewPermissionGroupModal>('CLOSE_CREATE_NEW_PERMISSION_GROUP_MODAL');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
