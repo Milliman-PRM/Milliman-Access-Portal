@@ -8,7 +8,7 @@ import * as Selector from './redux/selectors';
 import * as State from './redux/store';
 
 import {
-  FileDropClientWithStats, FileDropWithStats, PermissionGroupsChangesModel,
+  AvailableEligibleUsers, FileDropClientWithStats, FileDropWithStats, PermissionGroupsChangesModel,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ButtonSpinner } from '../shared-components/button-spinner';
@@ -42,6 +42,7 @@ interface FileDropProps {
   activeSelectedClient: FileDropClientWithStats;
   permissionGroupChangesPending: boolean;
   pendingPermissionGroupsChanges: PermissionGroupsChangesModel;
+  unassignedEligibleUsers: AvailableEligibleUsers[];
 }
 
 class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCreator> {
@@ -693,6 +694,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     activeSelectedClient: Selector.activeSelectedClient(state),
     permissionGroupChangesPending: Selector.permissionGroupChangesPending(state),
     pendingPermissionGroupsChanges: Selector.pendingPermissionGroupsChanges(state),
+    unassignedEligibleUsers: Selector.unassignedEligibleUsers(state),
   };
 }
 
