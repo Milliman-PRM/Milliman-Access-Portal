@@ -11,7 +11,9 @@ import * as React from 'react';
 import { Guid, PermissionGroupsReturnModel } from '../models';
 import { ActionIcon, ActionIconButtonContainer } from '../shared-components/action-icon';
 import { Checkbox } from '../shared-components/form/checkbox';
-import { openCreateNewPermissionGroupModal } from './redux/action-creators';
+import {
+  openAddNewPermissionGroupUserModal, openCreateNewPermissionGroupModal,
+} from './redux/action-creators';
 
 interface PermissionsTableProps {
   permissions: PermissionGroupsReturnModel;
@@ -22,6 +24,7 @@ interface PermissionsTableProps {
   }) => void;
   removePermissionGroup: ({ pgId }: { pgId: Guid }) => void;
   openCreatePermissionGroupModal: ({ }) => void;
+  openAddNewPermissionGroupUserModal: ({ }) => void;
 }
 
 export class PermissionsTable extends React.Component<PermissionsTableProps> {
@@ -134,7 +137,9 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
     const addUserRow = (
       <tr className="action-row" onClick={() => alert('Add User')}>
         <td><svg className="table-icon"><use xlinkHref="#add-user" /></svg></td>
-        <td colSpan={6} className="action-text">Add User</td>
+        <td colSpan={6} className="action-text">
+          <span onClick={() => openAddNewPermissionGroupUserModal({})}>Add User</span>
+        </td>
       </tr>
     );
     const addGroupRow = (

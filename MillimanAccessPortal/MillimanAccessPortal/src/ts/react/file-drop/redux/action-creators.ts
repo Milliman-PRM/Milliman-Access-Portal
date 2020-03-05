@@ -78,6 +78,14 @@ export const openCreateNewPermissionGroupModal =
 export const closeCreateNewPermissionGroupModal =
   createActionCreator<Action.CloseCreateNewPermissionGroupModal>('CLOSE_CREATE_NEW_PERMISSION_GROUP_MODAL');
 
+/** Open the modal for adding a new Permission Group user */
+export const openAddNewPermissionGroupUserModal =
+  createActionCreator<Action.OpenAddNewPermissionGroupUserModal>('OPEN_ADD_NEW_PERMISSION_GROUP_USER_MODAL');
+
+/** Close the modal for adding a new Permission Group user */
+export const closeAddNewPermissionGroupUserModal =
+  createActionCreator<Action.CloseAddNewPermissionGroupUserModal>('CLOSE_ADD_NEW_PERMISSION_GROUP_USER_MODAL');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~

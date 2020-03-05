@@ -256,7 +256,41 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 disabled={/* TODO: Update This */false}
                 type="submit"
               >
-                Create
+                Create Group
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.addNewPermissionGroupUser.isOpen}
+          onRequestClose={() => this.props.closeAddNewPermissionGroupUserModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title blue">Add New User</h3>
+          <form
+            onSubmit={(e) => {
+              {
+                e.preventDefault();
+              }
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeAddNewPermissionGroupUserModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className={'blue-button'}
+                disabled={/* TODO: Update This */false}
+                type="submit"
+              >
+                Add User
               </button>
             </div>
           </form>
@@ -648,6 +682,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               setPermissionValue={this.props.setPermissionGroupPermissionValue}
               removePermissionGroup={this.props.removePermissionGroup}
               openCreatePermissionGroupModal={this.props.openCreateNewPermissionGroupModal}
+              openAddNewPermissionGroupUserModal={this.props.openAddNewPermissionGroupUserModal}
             />
             {
               this.props.permissionGroupChangesPending &&

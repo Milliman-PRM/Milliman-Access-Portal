@@ -122,6 +122,16 @@ export interface CloseCreateNewPermissionGroupModal {
   type: 'CLOSE_CREATE_NEW_PERMISSION_GROUP_MODAL';
 }
 
+/** Open the modal used to add a new user to a Permission Group */
+export interface OpenAddNewPermissionGroupUserModal {
+  type: 'OPEN_ADD_NEW_PERMISSION_GROUP_USER_MODAL';
+}
+
+/** Close the modal used to add a new user to a Permission Group */
+export interface CloseAddNewPermissionGroupUserModal {
+  type: 'CLOSE_ADD_NEW_PERMISSION_GROUP_USER_MODAL';
+}
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -362,6 +372,8 @@ export type FileDropPageActions =
   | DiscardPendingPermissionGroupChanges
   | OpenCreateNewPermissionGroupModal
   | CloseCreateNewPermissionGroupModal
+  | OpenAddNewPermissionGroupUserModal
+  | CloseAddNewPermissionGroupUserModal
   ;
 
 /** Actions that schedule another action */
@@ -430,4 +442,5 @@ export type OpenModalAction =
   | OpenDeleteFileDropModal
   | OpenDeleteFileDropConfirmationModal
   | OpenCreateNewPermissionGroupModal
+  | OpenAddNewPermissionGroupUserModal
   ;
