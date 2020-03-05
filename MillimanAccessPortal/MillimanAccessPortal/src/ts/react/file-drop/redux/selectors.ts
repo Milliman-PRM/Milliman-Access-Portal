@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 
 import {
-  FileDropClientWithStats, FileDropWithStats, Guid, PermissionGroupModel,
+  AvailableEligibleUsers, FileDropClientWithStats, FileDropWithStats, Guid,
   PermissionGroupsChangesModel, PGChangeModel,
 } from '../../models';
 import { Dict } from '../../shared-components/redux/store';
@@ -184,6 +184,37 @@ export function permissionGroupChangesPending(state: FileDropState) {
     !== Object.keys(pending.permissionGroupsTab.permissionGroups).length
       || !_.isEqual(data.permissionGroups.permissionGroups, pending.permissionGroupsTab.permissionGroups)
     );
+}
+
+/** Return an array of eligible users that have not yet been assigned to a Permission Group */
+export function unassignedEligibleUsers(state: FileDropState) {
+  if (state.data.permissionGroups && state.pending.permissionGroupsTab) {
+    const { eligibleUsers } = state.data.permissionGroups;
+    const { permissionGroups } = state.pending.permissionGroupsTab;
+    const assignedUserIds: Guid[] = [];
+    // Loop through all of the existing Permission Groups and add assigned users to the assignedUserIds array
+    Object.keys(permissionGroups).forEach((pg) => {
+      permissionGroups[pg].assignedMapUserIds.forEach((userId) => assignedUserIds.push(userId));
+    });
+    const availableUsers: AvailableEligibleUsers[] =
+      Object.keys(eligibleUsers)
+        .map((userId) => {
+          return {
+            id: eligibleUsers[userId].id,
+            name: [eligibleUsers[userId].firstName, eligibleUsers[userId].lastName].join(' '),
+            sortName: [eligibleUsers[userId].lastName, eligibleUsers[userId].firstName].join(' '),
+            username: eligibleUsers[userId].username,
+          };
+        })
+        .filter((user) => assignedUserIds.indexOf(user.id) === -1)
+        .sort((a, b) => {
+          const aSort = a.sortName.toLowerCase();
+          const bSort = b.sortName.toLowerCase();
+          return aSort.localeCompare(bSort);
+        });
+
+    return availableUsers;
+  }
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~
