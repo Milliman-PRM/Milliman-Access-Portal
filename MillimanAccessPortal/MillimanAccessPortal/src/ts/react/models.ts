@@ -361,3 +361,10 @@ export interface PermissionGroupsChangesModel {
   newPermissionGroups: PermissionGroupModel[];
   updatedPermissionGroups: Dict<PGChangeModel>;
 }
+
+export interface AvailableEligibleUsers {
+  id: Guid;
+  name: string;
+  username: string;
+  sortName: string;
+}
