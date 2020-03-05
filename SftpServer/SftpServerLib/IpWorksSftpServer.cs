@@ -40,7 +40,8 @@ namespace SftpServerLib
 
             _maintenanceTimer = new System.Timers.Timer
             {
-                Interval = GlobalResources.ApplicationConfiguration.GetValue<double>("SftpMaintenanceIntervalMs", 15_000),
+                //Interval = GlobalResources.ApplicationConfiguration.GetValue<double>("SftpMaintenanceIntervalMs", 15_000),
+                Interval = GlobalResources.ApplicationConfiguration.GetValue<double>("SftpMaintenanceIntervalMs", 500),
                 AutoReset = true,
                 Enabled = true,
             };

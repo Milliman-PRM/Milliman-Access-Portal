@@ -172,7 +172,16 @@ namespace MillimanAccessPortal.Controllers
                 fileDropModel.RootPath = Guid.NewGuid().ToString();
                 string fileDropAbsoluteRootFolder = Path.Combine(fileDropGlobalRoot, fileDropModel.RootPath);
 
+                FileDropDirectory rootDirectoryRecord = new FileDropDirectory
+                {
+                    FileDrop = fileDropModel,
+                    ParentDirectoryId = null,
+                    FileDropPath = "/",
+                    Description = "",
+                };
+
                 _dbContext.FileDrop.Add(fileDropModel);
+                _dbContext.FileDropDirectory.Add(rootDirectoryRecord);
                 Directory.CreateDirectory(fileDropAbsoluteRootFolder);
 
                 _dbContext.SaveChanges();

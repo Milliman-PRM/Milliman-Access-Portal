@@ -278,8 +278,6 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("CanonicalFileDropPath")
                         .IsRequired();
 
-                    b.Property<Guid>("CreatedByAccountId");
-
                     b.Property<string>("Description");
 
                     b.Property<Guid>("FileDropId");
@@ -289,8 +287,6 @@ namespace MillimanAccessPortal.Migrations
                     b.HasKey("Id");
 
                     b.HasAlternateKey("FileDropId", "CanonicalFileDropPath");
-
-                    b.HasIndex("CreatedByAccountId");
 
                     b.HasIndex("ParentDirectoryId");
 
@@ -887,11 +883,6 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("MapDbContextLib.Context.FileDropDirectory", b =>
                 {
-                    b.HasOne("MapDbContextLib.Context.SftpAccount", "CreatedByAccount")
-                        .WithMany("Directories")
-                        .HasForeignKey("CreatedByAccountId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("MapDbContextLib.Context.FileDrop", "FileDrop")
                         .WithMany()
                         .HasForeignKey("FileDropId")

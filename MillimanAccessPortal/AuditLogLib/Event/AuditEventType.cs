@@ -990,11 +990,12 @@ namespace AuditLogLib.Event
                 },
             });
 
+        // 81xx - Sftp user events
         /// <summary>
         /// sftpAccounts expected to have navigation property ApplicationUser populated
         /// </summary>
         public static readonly AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop> SftpAccountAuthenticated = new AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop>(
-            8010, "SFTP Account Authenticated", (account, permissionGroup, fileDrop) => new
+            8100, "SFTP Account Authenticated", (account, permissionGroup, fileDrop) => new
             {
                 PermissionGroup = new
                 {
@@ -1020,7 +1021,7 @@ namespace AuditLogLib.Event
             });
 
         public static readonly AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser> SftpDirectoryCreated = new AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser>(
-            8014, "SFTP Directory Created", (fileDropDirectory, fileDropModel, sftpAccount, client, mapUser) => new
+            8110, "SFTP Directory Created", (fileDropDirectory, fileDropModel, sftpAccount, client, mapUser) => new
             {
                 FileDropDirectory = (FileDropDirectoryLogModel)fileDropDirectory,
                 FileDrop = fileDropModel,
@@ -1035,6 +1036,20 @@ namespace AuditLogLib.Event
                     client.Name,
                 },
                 MapUser = mapUser != null 
+                    ? new { mapUser.Id, mapUser.UserName, }
+                    : null,
+            });
+
+        public static readonly AuditEventType<FileDropDirectoryLogModel, FileDropDirectoryInventoryModel, FileDropLogModel, SftpAccount, ApplicationUser> SftpDirectoryRemoved = new AuditEventType<FileDropDirectoryLogModel, FileDropDirectoryInventoryModel, FileDropLogModel, SftpAccount, ApplicationUser>(
+            8111, "SFTP Directory Removed", (fileDropDirectory, DeletedInventory, fileDropModel, sftpAccount, mapUser) => new
+            {
+                FileDropDirectory = fileDropDirectory,
+                DeletedInventory,
+                FileDrop = fileDropModel,
+                SftpAccount = sftpAccount != null
+                    ? new { sftpAccount.Id, sftpAccount.UserName, }
+                    : null,
+                MapUser = mapUser != null
                     ? new { mapUser.Id, mapUser.UserName, }
                     : null,
             });
