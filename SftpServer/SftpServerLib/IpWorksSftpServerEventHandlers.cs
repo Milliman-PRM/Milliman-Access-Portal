@@ -16,10 +16,8 @@ using nsoftware.IPWorksSSH;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 
 namespace SftpServerLib
@@ -301,16 +299,101 @@ namespace SftpServerLib
         //[Description("Fires when a client wants to rename a file.")]
         internal static void OnFileRename(object sender, SftpserverFileRenameEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("FileRename", evtData));
+            // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileRename.htm
 
-            Debug.WriteLine(evtData.User + " renaming\r\n  " + evtData.Path + "\r\nto\r\n  " + evtData.NewPath);
+            (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Write);
+
+            if (result == AuthorizationResult.ConnectionNotFound)
+            {
+                Log.Warning($"OnFileRename event invoked but no active connection was found");
+                evtData.StatusCode = 7;  // SSH_FX_CONNECTION_LOST 7
+                return;
+            }
+
+            connection.LastActivityUtc = DateTime.UtcNow;
+
+            if (result == AuthorizationResult.NotAuthorized)
+            {
+                Log.Information($"OnFileRename event invoked but account <{connection.SftpAccountId}, {connection.SftpAccountName}> does not have Write access");
+                evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
+                return;
+            }
+
+
             if (evtData.BeforeExec)
             {
-                Directory.Move(evtData.Path, evtData.NewPath);
+                // nothing to do?
             }
             else
             {
-                int i = 8;
+                if (evtData.StatusCode == 0)
+                {
+                    string absoluteNewPath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.NewPath.TrimStart('/', '\\'));
+                    FileAttributes attributes = File.GetAttributes(absoluteNewPath);
+
+                    using (var db = GlobalResources.NewMapDbContext)
+                    {
+                        switch (attributes)
+                        {
+                            // renamed a directory
+                            case FileAttributes a when (a & FileAttributes.Directory) == FileAttributes.Directory:
+                                FileDropDirectory directoryRecord = db.FileDropDirectory
+                                                                      .Include(d => d.ParentDirectory)
+                                                                      .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, evtData.Path));
+
+                                // Need to remove and readd the record because a field is part of a key, EF won't update that
+                                db.FileDropDirectory.Remove(directoryRecord);
+                                db.SaveChanges();
+
+                                directoryRecord.FileDropPath = evtData.NewPath;
+
+                                string newCanonicalParentPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.NewPath));
+                                if (!newCanonicalParentPath.Equals(directoryRecord.ParentDirectory.CanonicalFileDropPath, StringComparison.InvariantCultureIgnoreCase))
+                                { // This move involves a change in parent directory
+                                    FileDropDirectory newParentDirectoryRecord = db.FileDropDirectory.SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, newCanonicalParentPath));
+                                    if (newParentDirectoryRecord == null)
+                                    {
+                                        evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
+                                        return;
+                                    }
+
+                                    directoryRecord.ParentDirectoryId = newParentDirectoryRecord.Id;
+                                    db.FileDropDirectory.Add(directoryRecord);
+                                }
+                                break;
+
+                            // renamed a file
+                            case FileAttributes a when (a & FileAttributes.Normal) == FileAttributes.Normal:
+                                FileDropFile fileRecord = db.FileDropFile
+                                                            .Include(f => f.Directory)
+                                                            .SingleOrDefault(f => EF.Functions.ILike(f.FileName, Path.GetFileName(evtData.Path)));
+
+                                // Need to remove and readd the record because a field is part of a key, EF won't update that
+                                db.FileDropFile.Remove(fileRecord);
+                                db.SaveChanges();
+
+                                fileRecord.FileName = Path.GetFileName(evtData.NewPath);
+
+                                string newCanonicalDirectoryPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.NewPath));
+                                if (!newCanonicalDirectoryPath.Equals(fileRecord.Directory.CanonicalFileDropPath, StringComparison.InvariantCultureIgnoreCase))
+                                { // Thie move involves a change in containing directory
+                                    FileDropDirectory newDirectoryRecord = db.FileDropDirectory.SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, newCanonicalDirectoryPath));
+                                    if (newDirectoryRecord == null)
+                                    {
+                                        evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
+                                        return;
+                                    }
+                                    fileRecord.DirectoryId = newDirectoryRecord.Id;
+                                }
+                                break;
+
+                            default:
+                                break;
+                        }
+
+                        db.SaveChanges();
+                    }
+                }
             }
         }
 
@@ -336,7 +419,7 @@ namespace SftpServerLib
             {
                 (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.None);
 
-                // Find all IpWorks status codes for this event at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_DirCreate.htm
+                // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_DirCreate.htm
                 switch (result)
                 {
                     case AuthorizationResult.ConnectionNotFound:
