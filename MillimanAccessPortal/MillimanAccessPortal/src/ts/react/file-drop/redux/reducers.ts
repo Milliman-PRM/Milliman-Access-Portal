@@ -162,6 +162,15 @@ const _initialFileDropWithStats: FileDropWithStats = {
   userCount: null,
 };
 
+const _initialPermissionGroupsForm: State.PermissionGroupFormData = {
+  name: '',
+  isPersonalGroup: false,
+  assignedMapUserIds: [],
+  error: {
+    name: null,
+  },
+};
+
 // ~~~~~~~~~~~~~~~~
 // Pending Reducers
 // ~~~~~~~~~~~~~~~~
@@ -352,6 +361,44 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
   }),
 });
 
+/** Reducer for Permission Groups form data */
+const permissionGroupForm = createReducer<State.PermissionGroupFormData>(_initialPermissionGroupsForm, {
+  SET_PERMISSION_GROUP_NAME_TEXT: (state, action: Action.SetPermissionGroupNameText) => ({
+    ...state,
+    name: action.value,
+  }),
+  ADD_USER_TO_PERMISSION_GROUP_FORM: (state, action: Action.AddUserToPermissionGroupForm) => {
+    const { assignedMapUserIds } = state;
+
+    if (assignedMapUserIds.indexOf(action.userId) !== -1) {
+      assignedMapUserIds.push(action.userId);
+    }
+
+    return {
+      ...state,
+      assignedMapUserIds,
+    };
+  },
+  REMOVE_USER_From_PERMISSION_GROUP_FORM: (state, action: Action.RemoveUserFromPermissionGroupForm) => {
+    let { assignedMapUserIds } = state;
+
+    if (assignedMapUserIds.indexOf(action.userId) !== -1) {
+      assignedMapUserIds = _.remove(assignedMapUserIds, (id) => id === action.userId);
+    }
+
+    return {
+      ...state,
+      assignedMapUserIds,
+    };
+  },
+  OPEN_CREATE_NEW_PERMISSION_GROUP_MODAL: () => ({
+    ..._initialPermissionGroupsForm,
+  }),
+  CLOSE_CREATE_NEW_PERMISSION_GROUP_MODAL: () => ({
+    ..._initialPermissionGroupsForm,
+  }),
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
@@ -361,6 +408,7 @@ const pending = combineReducers({
   fileDropToDelete: pendingFileDropToDelete,
   selectedFileDropTab,
   permissionGroupsTab,
+  permissionGroupForm,
 });
 
 // ~~~~~~~~~~~~~~~~
