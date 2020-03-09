@@ -132,6 +132,26 @@ export interface CloseAddNewPermissionGroupUserModal {
   type: 'CLOSE_ADD_NEW_PERMISSION_GROUP_USER_MODAL';
 }
 
+/** Add user to Permission Group form */
+export interface AddUserToPermissionGroupForm {
+  type: 'ADD_USER_TO_PERMISSION_GROUP_FORM';
+  userId: Guid;
+}
+
+/** Remove user from Permission Group form */
+export interface RemoveUserFromPermissionGroupForm {
+  type: 'REMOVE_USER_From_PERMISSION_GROUP_FORM';
+  userId: Guid;
+}
+
+/** Set Permission Group name in Permission Group form */
+export interface SetPermissionGroupNameText {
+  type: 'SET_PERMISSION_GROUP_NAME_TEXT';
+  value: string;
+}
+
+/** Set Permission Group  */
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -374,6 +394,9 @@ export type FileDropPageActions =
   | CloseCreateNewPermissionGroupModal
   | OpenAddNewPermissionGroupUserModal
   | CloseAddNewPermissionGroupUserModal
+  | AddUserToPermissionGroupForm
+  | RemoveUserFromPermissionGroupForm
+  | SetPermissionGroupNameText
   ;
 
 /** Actions that schedule another action */

@@ -86,6 +86,18 @@ export const openAddNewPermissionGroupUserModal =
 export const closeAddNewPermissionGroupUserModal =
   createActionCreator<Action.CloseAddNewPermissionGroupUserModal>('CLOSE_ADD_NEW_PERMISSION_GROUP_USER_MODAL');
 
+/** Add a user to the Permission Group form */
+export const addUserToPermissionGroupForm =
+  createActionCreator<Action.AddUserToPermissionGroupForm>('ADD_USER_TO_PERMISSION_GROUP_FORM');
+
+/** Remove a user from the Permission Group form */
+export const removeUserFromPermissionGroupForm =
+  createActionCreator<Action.RemoveUserFromPermissionGroupForm>('REMOVE_USER_From_PERMISSION_GROUP_FORM');
+
+/** Update the text of the Permission Group name in the form */
+export const setPermissionGroupNameText =
+  createActionCreator<Action.SetPermissionGroupNameText>('SET_PERMISSION_GROUP_NAME_TEXT');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
