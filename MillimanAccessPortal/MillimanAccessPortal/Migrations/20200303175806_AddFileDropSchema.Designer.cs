@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200228220259_AddFileDropSchema")]
+    [Migration("20200303175806_AddFileDropSchema")]
     partial class AddFileDropSchema
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -280,8 +280,6 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("CanonicalFileDropPath")
                         .IsRequired();
 
-                    b.Property<Guid>("CreatedByAccountId");
-
                     b.Property<string>("Description");
 
                     b.Property<Guid>("FileDropId");
@@ -291,8 +289,6 @@ namespace MillimanAccessPortal.Migrations
                     b.HasKey("Id");
 
                     b.HasAlternateKey("FileDropId", "CanonicalFileDropPath");
-
-                    b.HasIndex("CreatedByAccountId");
 
                     b.HasIndex("ParentDirectoryId");
 
@@ -889,11 +885,6 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("MapDbContextLib.Context.FileDropDirectory", b =>
                 {
-                    b.HasOne("MapDbContextLib.Context.SftpAccount", "CreatedByAccount")
-                        .WithMany("Directories")
-                        .HasForeignKey("CreatedByAccountId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("MapDbContextLib.Context.FileDrop", "FileDrop")
                         .WithMany()
                         .HasForeignKey("FileDropId")

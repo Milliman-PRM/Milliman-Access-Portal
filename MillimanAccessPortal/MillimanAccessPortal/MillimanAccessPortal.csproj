@@ -57,12 +57,6 @@
     <None Include="wwwroot\**" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Migrations\20200226203805_AddFileDropSchema.cs" />
-    <Compile Remove="Migrations\20200226203805_AddFileDropSchema.Designer.cs" />
-    <Compile Remove="Migrations\20200228214311_AddFileDropSchema.cs" />
-    <Compile Remove="Migrations\20200228214311_AddFileDropSchema.Designer.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Remove="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />
   </ItemGroup>
   <ItemGroup>
