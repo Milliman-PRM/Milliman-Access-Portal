@@ -552,6 +552,9 @@ const modals = combineReducers({
   createNewPermissionGroup: createModalReducer(['OPEN_CREATE_NEW_PERMISSION_GROUP_MODAL'], [
     'CLOSE_CREATE_NEW_PERMISSION_GROUP_MODAL',
   ]),
+  addNewPermissionGroupUser: createModalReducer(['OPEN_ADD_NEW_PERMISSION_GROUP_USER_MODAL'], [
+    'CLOSE_ADD_NEW_PERMISSION_GROUP_USER_MODAL',
+  ]),
 });
 
 // ~~~~~~~~~~~~~
