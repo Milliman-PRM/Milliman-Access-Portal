@@ -45,6 +45,9 @@ export interface PermissionGroupFormData {
   name: string;
   isPersonalGroup: boolean;
   assignedMapUserIds: Guid[];
+  error: {
+    name: string;
+  };
 }
 
 /** All state that represents the user interactions with the page */
@@ -57,6 +60,7 @@ export interface FileDropPendingState {
   fileDropToEdit: FileDropWithStats;
   selectedFileDropTab: AvailableFileDropTabs;
   permissionGroupsTab: PermissionGroupsReturnModel;
+  permissionGroupForm: PermissionGroupFormData;
 }
 
 /** State representing user-selected entities */
