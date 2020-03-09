@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
+import Select from 'react-select';
 
 import * as FileDropActionCreator from './redux/action-creators';
 import * as Selector from './redux/selectors';
@@ -59,7 +60,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   public render() {
-    const { selected, modals, pending } = this.props;
+    const { selected, modals, pending, unassignedEligibleUsers } = this.props;
     return (
       <>
         <ReduxToastr
@@ -243,6 +244,61 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               }
             }}
           >
+            <Input
+              autoFocus={true}
+              label="Permission Group Name"
+              name="Permission Group Name"
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                this.props.setPermissionGroupNameText({ value: target.value });
+              }}
+              placeholderText="Permission Group Name *"
+              type="text"
+              value={pending.permissionGroupForm.name}
+              error={pending.permissionGroupForm.error.name}
+            />
+            <Select
+              className="react-select"
+              classNamePrefix="react-select"
+              options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
+                value: u.id,
+                name: u.name ? u.name : '(Unactivated)',
+                username: u.username,
+              }))}
+              styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+              menuPosition="fixed"
+              menuPortalTarget={document.body}
+              menuPlacement={'auto'}
+              formatOptionLabel={(data) => (
+                <>
+                  <div style={{ fontSize: '1em', fontWeight: 'bold' }}>
+                    {data.name}
+                  </div>
+                  <div style={{ fontSize: '0.85em' }}>
+                    {data.username}
+                  </div>
+                </>
+              )}
+              filterOption={({ data }, rawInput) => (
+                data.username.toLowerCase().match(rawInput.toLowerCase())
+                || (
+                  data.name
+                  && data.name.toLowerCase().match(rawInput.toLowerCase())
+                )
+              )}
+              onChange={(value, action) => {
+                if (action.action === 'select-option') {
+                  const singleValue = value as { value: string; };
+                  alert(singleValue.value);
+                  // this.props.setPermissionGroupUserAssigned({ id: singleValue.value });
+                }
+
+              }}
+              // onInputChange={(query) => this.props.setPendingGroupUserQuery({ query })}
+              // inputValue={entity.userQuery}
+              controlShouldRenderValue={false}
+              placeholder="Select users..."
+              autoFocus={false}
+            />
             <div className="button-container">
               <button
                 className="link-button"
