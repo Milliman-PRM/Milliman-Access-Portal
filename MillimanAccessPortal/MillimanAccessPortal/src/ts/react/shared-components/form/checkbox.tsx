@@ -4,7 +4,7 @@ import '../../../../images/icons/remove-circle.svg';
 import * as React from 'react';
 
 export interface CheckboxData {
-  name: string;
+  name?: string;
   selected: boolean;
   modified?: boolean;
   onChange: (selected: boolean) => void;
@@ -24,11 +24,13 @@ export class Checkbox extends React.Component<CheckboxProps> {
       : '';
     return (
       <div className="selection-option-container" style={{ display: 'flex' }} title={hoverText ? hoverText : null}>
-        <svg className={`selection-option-modified${modifiedClass}`}>
-          <use href={`#${selected ? 'add' : 'remove'}-circle`} />
-        </svg>
+        { modified !== undefined &&
+          <svg className={`selection-option-modified${modifiedClass}`}>
+            <use href={`#${selected ? 'add' : 'remove'}-circle`} />
+          </svg>
+        }
         <label className={`selection-option-label${readOnly ? ' readonly' : ''}`}>
-          {name}
+          {name ? name : null}
           <input
             type="checkbox"
             className="selection-option-value"

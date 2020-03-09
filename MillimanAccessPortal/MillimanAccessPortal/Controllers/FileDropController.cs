@@ -332,5 +332,24 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(model);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> PermissionGroups(Guid FileDropId, Guid ClientId)
+        {
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, ClientId));
+            if (!adminRoleResult.Succeeded)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var model = _fileDropQueries.GetPermissionGroupsModelForFileDrop(FileDropId, ClientId);
+
+            return Json(model);
+        }
     }
+
 }

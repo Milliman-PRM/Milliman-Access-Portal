@@ -164,5 +164,55 @@ namespace MillimanAccessPortal.DataQueries
 
             return FileDropsModel;
         }
+
+        internal PermissionGroupsModel GetPermissionGroupsModelForFileDrop(Guid FileDropId, Guid ClientId)
+        {
+            var returnModel = new PermissionGroupsModel
+            {
+                FileDropId = FileDropId,
+                EligibleUsers = _dbContext.UserRoleInClient
+                                          .Where(urc => urc.ClientId == ClientId)
+                                          .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
+                                          .ToList()
+                                          .Select(urc => new EligibleUserModel
+                                              {
+                                                  Id = urc.User.Id,
+                                                  UserName = urc.User.UserName,
+                                                  FirstName = urc.User.FirstName,
+                                                  LastName = urc.User.LastName,
+                                                  IsAdmin = _dbContext.UserRoleInClient
+                                                                      .Any(rc => rc.UserId == urc.UserId 
+                                                                              && rc.ClientId == urc.ClientId 
+                                                                              && rc.Role.RoleEnum == RoleEnum.FileDropAdmin),
+                                              })
+                                          .ToDictionary(m => m.Id),
+
+                PermissionGroups = _dbContext.FileDropUserPermissionGroup
+                                             .Where(g => g.FileDropId == FileDropId)
+                                             .ToList()
+                                             .Select(g =>
+                                             {
+                                                 var accounts = _dbContext.SftpAccount
+                                                                          .Where(a => a.FileDropUserPermissionGroupId == g.Id)
+                                                                          .ToList();
+
+                                                 return new PermissionGroupModel
+                                                 {
+                                                     Id = g.Id,
+                                                     Name = g.Name,
+                                                     IsPersonalGroup = g.IsPersonalGroup,
+                                                     ReadAccess = g.ReadAccess,
+                                                     WriteAccess = g.WriteAccess,
+                                                     DeleteAccess = g.DeleteAccess,
+                                                     AssignedSftpAccountIds = accounts.Select(a => a.Id).ToList(),
+                                                     AssignedMapUserIds = accounts.Where(a => a.ApplicationUserId.HasValue).Select(a => a.ApplicationUserId.Value).ToList(),
+                                                 };
+                                             })
+                                             .ToDictionary(m => m.Id),
+
+            };
+
+            return returnModel;
+        }
     }
 }

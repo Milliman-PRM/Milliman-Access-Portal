@@ -3,7 +3,7 @@ import { applyMiddleware, createStore } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
 
-import { FileDropClientWithStats, FileDropWithStats, Guid } from '../../models';
+import { FileDropClientWithStats, FileDropWithStats, Guid, PermissionGroupsReturnModel } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { fileDropReducerState } from './reducers';
@@ -21,6 +21,8 @@ export interface FileDropPendingReturnState {
   createFileDrop: boolean;
   deleteFileDrop: boolean;
   updateFileDrop: boolean;
+  permissions: boolean;
+  permissionsUpdate: boolean;
 }
 
 /** Data used in the Create File Drop modal form */
@@ -47,6 +49,7 @@ export interface FileDropPendingState {
   fileDropToDelete: FileDropWithStats;
   fileDropToEdit: FileDropWithStats;
   selectedFileDropTab: AvailableFileDropTabs;
+  permissionGroupsTab: PermissionGroupsReturnModel;
 }
 
 /** State representing user-selected entities */
@@ -59,6 +62,7 @@ export interface FileDropSelectedState {
 export interface FileDropDataState {
   clients: Dict<FileDropClientWithStats>;
   fileDrops: Dict<FileDropWithStats>;
+  permissionGroups: PermissionGroupsReturnModel;
 }
 
 /** State representing entity Card attribute collections */
@@ -71,6 +75,8 @@ export interface FileDropCardAttributesState {
 export interface FileDropFilterState {
   client: FilterState;
   fileDrop: FilterState;
+  permissions: FilterState;
+  activityLog: FilterState;
 }
 
 /** State representing modals */
