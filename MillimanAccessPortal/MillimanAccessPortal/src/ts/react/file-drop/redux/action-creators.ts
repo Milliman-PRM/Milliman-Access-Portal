@@ -70,22 +70,6 @@ export const removePermissionGroup =
 export const discardPendingPermissionGroupChanges =
   createActionCreator<Action.DiscardPendingPermissionGroupChanges>('DISCARD_PENDING_PERMISSION_GROUP_CHANGES');
 
-/** Open the modal for creating new Permission Groups */
-export const openCreateNewPermissionGroupModal =
-  createActionCreator<Action.OpenCreateNewPermissionGroupModal>('OPEN_CREATE_NEW_PERMISSION_GROUP_MODAL');
-
-/** Close the modal for creating new Permission Groups */
-export const closeCreateNewPermissionGroupModal =
-  createActionCreator<Action.CloseCreateNewPermissionGroupModal>('CLOSE_CREATE_NEW_PERMISSION_GROUP_MODAL');
-
-/** Open the modal for adding a new Permission Group user */
-export const openAddNewPermissionGroupUserModal =
-  createActionCreator<Action.OpenAddNewPermissionGroupUserModal>('OPEN_ADD_NEW_PERMISSION_GROUP_USER_MODAL');
-
-/** Close the modal for adding a new Permission Group user */
-export const closeAddNewPermissionGroupUserModal =
-  createActionCreator<Action.CloseAddNewPermissionGroupUserModal>('CLOSE_ADD_NEW_PERMISSION_GROUP_USER_MODAL');
-
 /** Add a user to the Permission Group form */
 export const addUserToPermissionGroupForm =
   createActionCreator<Action.AddUserToPermissionGroupForm>('ADD_USER_TO_PERMISSION_GROUP_FORM');

@@ -112,26 +112,6 @@ export interface DiscardPendingPermissionGroupChanges {
   originalValues: PermissionGroupsReturnModel;
 }
 
-/** Open the modal used to create new Permission Groups */
-export interface OpenCreateNewPermissionGroupModal {
-  type: 'OPEN_CREATE_NEW_PERMISSION_GROUP_MODAL';
-}
-
-/** Close the modal used to create new Permission Groups */
-export interface CloseCreateNewPermissionGroupModal {
-  type: 'CLOSE_CREATE_NEW_PERMISSION_GROUP_MODAL';
-}
-
-/** Open the modal used to add a new user to a Permission Group */
-export interface OpenAddNewPermissionGroupUserModal {
-  type: 'OPEN_ADD_NEW_PERMISSION_GROUP_USER_MODAL';
-}
-
-/** Close the modal used to add a new user to a Permission Group */
-export interface CloseAddNewPermissionGroupUserModal {
-  type: 'CLOSE_ADD_NEW_PERMISSION_GROUP_USER_MODAL';
-}
-
 /** Add user to Permission Group form */
 export interface AddUserToPermissionGroupForm {
   type: 'ADD_USER_TO_PERMISSION_GROUP_FORM';
@@ -390,10 +370,6 @@ export type FileDropPageActions =
   | SetPermissionGroupPermissionValue
   | RemovePermissionGroup
   | DiscardPendingPermissionGroupChanges
-  | OpenCreateNewPermissionGroupModal
-  | CloseCreateNewPermissionGroupModal
-  | OpenAddNewPermissionGroupUserModal
-  | CloseAddNewPermissionGroupUserModal
   | AddUserToPermissionGroupForm
   | RemoveUserFromPermissionGroupForm
   | SetPermissionGroupNameText
@@ -464,6 +440,4 @@ export type OpenModalAction =
   | OpenCreateFileDropModal
   | OpenDeleteFileDropModal
   | OpenDeleteFileDropConfirmationModal
-  | OpenCreateNewPermissionGroupModal
-  | OpenAddNewPermissionGroupUserModal
   ;

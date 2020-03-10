@@ -40,16 +40,6 @@ export interface FileDropFormStateData {
 /** Available File Drop tabs */
 export type AvailableFileDropTabs = 'files' | 'permissions' | 'activityLog' | 'settings';
 
-/** Permission Group form data for modal */
-export interface PermissionGroupFormData {
-  name: string;
-  isPersonalGroup: boolean;
-  assignedMapUserIds: Guid[];
-  error: {
-    name: string;
-  };
-}
-
 /** All state that represents the user interactions with the page */
 export interface FileDropPendingState {
   async: FileDropPendingReturnState;
@@ -60,7 +50,6 @@ export interface FileDropPendingState {
   fileDropToEdit: FileDropWithStats;
   selectedFileDropTab: AvailableFileDropTabs;
   permissionGroupsTab: PermissionGroupsReturnModel;
-  permissionGroupForm: PermissionGroupFormData;
 }
 
 /** State representing user-selected entities */
@@ -95,8 +84,6 @@ export interface FileDropModals {
   createFileDrop: ModalState;
   deleteFileDrop: ModalState;
   confirmDeleteFileDrop: ModalState;
-  createNewPermissionGroup: ModalState;
-  addNewPermissionGroupUser: ModalState;
 }
 
 /** Top-Level File Drop state */
