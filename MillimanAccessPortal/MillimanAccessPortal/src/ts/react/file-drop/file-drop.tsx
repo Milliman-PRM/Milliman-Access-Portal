@@ -621,7 +621,30 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderPermissionsTab() {
-    const { data, filters, pending, pendingPermissionGroupsChanges } = this.props;
+    const {
+      data, filters, pending, pendingPermissionGroupsChanges, permissionGroupChangesPending,
+    } = this.props;
+    const editPermissionGroupsButton = (
+      <ActionIcon
+        label="Edit Permission Groups"
+        icon="edit"
+        action={() => this.props.setEditModeForPermissionGroups({ editModeEnabled: true })}
+      />
+    );
+    const cancelEditPermissionGroupsButton = (
+      <ActionIcon
+        label="Discard Changes"
+        icon="cancel"
+        action={() => {
+          if (!permissionGroupChangesPending) {
+            this.props.setEditModeForPermissionGroups({ editModeEnabled: false });
+          } else {
+            // TODO: Implement a modal to confirm discarding changes
+            alert('Undo changes first');
+          }
+        }}
+      />
+    );
     const addUserButton = (
       <ActionIcon
         label="Add User"
@@ -646,8 +669,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             filterText={filters.permissions.text}
           />
           <PanelSectionToolbarButtons>
-            {addUserButton}
-            {addGroupButton}
+            {!pending.permissionGroupsEditMode && editPermissionGroupsButton}
+            {pending.permissionGroupsEditMode && addUserButton}
+            {pending.permissionGroupsEditMode && addGroupButton}
+            {pending.permissionGroupsEditMode && cancelEditPermissionGroupsButton}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
@@ -656,11 +681,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           >
             <PermissionsTable
               permissions={pending.permissionGroupsTab}
+              readOnly={!pending.permissionGroupsEditMode}
               setPermissionValue={this.props.setPermissionGroupPermissionValue}
               removePermissionGroup={this.props.removePermissionGroup}
             />
             {
-              this.props.permissionGroupChangesPending &&
+              pending.permissionGroupsEditMode &&
+              permissionGroupChangesPending &&
               <div className="button-container">
                 <button
                   className="link-button"
