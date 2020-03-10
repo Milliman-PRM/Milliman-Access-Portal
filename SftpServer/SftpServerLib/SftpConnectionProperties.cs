@@ -19,11 +19,9 @@ namespace SftpServerLib
         public DateTime OpenedDateTimeUtc { get; set; }
         public DateTime LastActivityUtc { get; set; }
 
-        public Guid? SftpAccountId { get; set; } = null;
-        public string SftpAccountName { get; set; } = null;
+        public SftpAccount Account { get; set; }
 
-        public Guid? MapUserId { get; set; } = null;
-        public string MapUserName { get; set; } = null;
+        public ApplicationUser MapUser { get; set; }
 
         public Guid? FileDropId { get; set; } = null;
         public string FileDropName { get; set; } = null;
