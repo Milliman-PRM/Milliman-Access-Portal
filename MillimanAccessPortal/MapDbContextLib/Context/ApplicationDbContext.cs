@@ -179,6 +179,7 @@ namespace MapDbContextLib.Context
                 b.HasOne(x => x.ApplicationUser).WithMany(u => u.SftpAccounts).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
                 b.Property(x => x.PasswordResetDateTimeUtc).HasDefaultValue(DateTime.MinValue).ValueGeneratedOnAdd();
                 b.HasOne(x => x.FileDrop).WithMany(fd => fd.SftpAccounts).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
+                b.HasOne(x => x.FileDropUserPermissionGroup).WithMany(g => g.SftpAccounts).OnDelete(DeleteBehavior.SetNull);  // Keep account to sustain credentials
             });
             builder.Entity<FileDropDirectory>(b =>
             {

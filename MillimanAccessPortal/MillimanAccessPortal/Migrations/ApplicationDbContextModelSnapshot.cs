@@ -967,8 +967,9 @@ namespace MillimanAccessPortal.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("MapDbContextLib.Context.FileDropUserPermissionGroup", "FileDropUserPermissionGroup")
-                        .WithMany()
-                        .HasForeignKey("FileDropUserPermissionGroupId");
+                        .WithMany("SftpAccounts")
+                        .HasForeignKey("FileDropUserPermissionGroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserInSelectionGroup", b =>

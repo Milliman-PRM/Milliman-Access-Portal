@@ -112,7 +112,7 @@ namespace MillimanAccessPortal.Migrations
                         column: x => x.FileDropUserPermissionGroupId,
                         principalTable: "FileDropUserPermissionGroup",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
