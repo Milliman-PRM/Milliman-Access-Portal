@@ -34,7 +34,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
         <>
           <tr
             key={thisPG.id}
-            className={thisPG.isPersonalGroup || thisPG.assignedMapUserIds.length === 0 ? 'last-group-row' : null}
+            className={thisPG.isPersonalGroup || thisPG.authorizedMapUsers.length === 0 ? 'last-group-row' : null}
           >
             <td><svg className="table-icon"><use xlinkHref={pgIcon} /></svg></td>
             {
@@ -42,7 +42,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                 (
                   <>
                     <td><strong>{thisPG.name}</strong></td>
-                    <td>{eligibleUsers[thisPG.assignedMapUserIds[0]].username}</td>
+                    <td>{eligibleUsers[thisPG.authorizedMapUsers[0]].username}</td>
                   </>
                 ) : (
                   <td colSpan={2}><strong>{thisPG.name}</strong></td>
@@ -112,12 +112,12 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
           </tr>
           {
             !thisPG.isPersonalGroup &&
-            thisPG.assignedMapUserIds.map((userId, index) => {
+            thisPG.authorizedMapUsers.map((userId, index) => {
               const thisUser = eligibleUsers[userId];
               return (
                 <tr
                   key={thisUser.id}
-                  className={index === (thisPG.assignedMapUserIds.length - 1) ? 'last-group-row' : null}
+                  className={index === (thisPG.authorizedMapUsers.length - 1) ? 'last-group-row' : null}
                 >
                   <td><svg className="table-icon"><use xlinkHref="#remove-cirlce" /></svg></td>
                   <td>{thisUser.firstName + ' ' + thisUser.lastName}</td>
