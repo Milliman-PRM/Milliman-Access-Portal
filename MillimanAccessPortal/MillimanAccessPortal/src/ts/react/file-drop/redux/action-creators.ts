@@ -70,22 +70,6 @@ export const removePermissionGroup =
 export const discardPendingPermissionGroupChanges =
   createActionCreator<Action.DiscardPendingPermissionGroupChanges>('DISCARD_PENDING_PERMISSION_GROUP_CHANGES');
 
-/** Open the modal for creating new Permission Groups */
-export const openCreateNewPermissionGroupModal =
-  createActionCreator<Action.OpenCreateNewPermissionGroupModal>('OPEN_CREATE_NEW_PERMISSION_GROUP_MODAL');
-
-/** Close the modal for creating new Permission Groups */
-export const closeCreateNewPermissionGroupModal =
-  createActionCreator<Action.CloseCreateNewPermissionGroupModal>('CLOSE_CREATE_NEW_PERMISSION_GROUP_MODAL');
-
-/** Open the modal for adding a new Permission Group user */
-export const openAddNewPermissionGroupUserModal =
-  createActionCreator<Action.OpenAddNewPermissionGroupUserModal>('OPEN_ADD_NEW_PERMISSION_GROUP_USER_MODAL');
-
-/** Close the modal for adding a new Permission Group user */
-export const closeAddNewPermissionGroupUserModal =
-  createActionCreator<Action.CloseAddNewPermissionGroupUserModal>('CLOSE_ADD_NEW_PERMISSION_GROUP_USER_MODAL');
-
 /** Add a user to the Permission Group form */
 export const addUserToPermissionGroupForm =
   createActionCreator<Action.AddUserToPermissionGroupForm>('ADD_USER_TO_PERMISSION_GROUP_FORM');
@@ -97,6 +81,10 @@ export const removeUserFromPermissionGroupForm =
 /** Update the text of the Permission Group name in the form */
 export const setPermissionGroupNameText =
   createActionCreator<Action.SetPermissionGroupNameText>('SET_PERMISSION_GROUP_NAME_TEXT');
+
+/** Set edit mode state for Permission Groups tab */
+export const setEditModeForPermissionGroups =
+  createActionCreator<Action.SetEditModeForPermissionGroups>('SET_EDIT_MODE_FOR_PERMISSION_GROUPS');
 
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
@@ -129,6 +117,10 @@ export const updateFileDrop =
 /** Get the permission group information */
 export const fetchPermissionGroups =
   createRequestActionCreator<Action.FetchPermissionGroups>('FETCH_PERMISSION_GROUPS');
+
+/** Update the permission group information */
+export const updatePermissionGroups =
+  createRequestActionCreator<Action.UpdatePermissionGroups>('UPDATE_PERMISSION_GROUPS');
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions

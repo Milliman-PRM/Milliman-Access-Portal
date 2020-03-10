@@ -25,6 +25,10 @@
                 padding: .25em 0;
                 border-bottom: 1px solid $charcoal;
             }
+
+            &.col-actions {
+                width: 4em;
+            }
         }
     }
 
@@ -44,10 +48,25 @@
         width: 1.5em;
     }
 
+    td.remove-user {
+        
+        svg {
+            color: $red;
+
+            &:hover {
+                color: lighten($red, .5);
+            }
+        }
+
+        .action-icon-container-inline {
+            margin: 0 !important;
+        }
+    }
+
     tbody {
 
         tr {
-            
+
             &.last-group-row,
             &.action-row {
                 border-bottom: 1px solid $charcoal;
@@ -55,7 +74,7 @@
 
             &.action-row {
                 cursor: pointer;
-                
+
                 .action-text {
                     color: $green;
                     font-weight: bold;

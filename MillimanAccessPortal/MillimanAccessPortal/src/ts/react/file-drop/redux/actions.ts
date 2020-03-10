@@ -1,6 +1,6 @@
 import {
   FileDrop, FileDropClientWithStats, FileDropsReturnModel,
-  FileDropWithStats, Guid, PermissionGroupsReturnModel,
+  FileDropWithStats, Guid, PermissionGroupsChangesModel, PermissionGroupsReturnModel,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -112,42 +112,31 @@ export interface DiscardPendingPermissionGroupChanges {
   originalValues: PermissionGroupsReturnModel;
 }
 
-/** Open the modal used to create new Permission Groups */
-export interface OpenCreateNewPermissionGroupModal {
-  type: 'OPEN_CREATE_NEW_PERMISSION_GROUP_MODAL';
-}
-
-/** Close the modal used to create new Permission Groups */
-export interface CloseCreateNewPermissionGroupModal {
-  type: 'CLOSE_CREATE_NEW_PERMISSION_GROUP_MODAL';
-}
-
-/** Open the modal used to add a new user to a Permission Group */
-export interface OpenAddNewPermissionGroupUserModal {
-  type: 'OPEN_ADD_NEW_PERMISSION_GROUP_USER_MODAL';
-}
-
-/** Close the modal used to add a new user to a Permission Group */
-export interface CloseAddNewPermissionGroupUserModal {
-  type: 'CLOSE_ADD_NEW_PERMISSION_GROUP_USER_MODAL';
-}
-
-/** Add user to Permission Group form */
+/** Add user to Permission Group */
 export interface AddUserToPermissionGroupForm {
   type: 'ADD_USER_TO_PERMISSION_GROUP_FORM';
+  pgId: Guid;
   userId: Guid;
 }
 
-/** Remove user from Permission Group form */
+/** Remove user from Permission Group */
 export interface RemoveUserFromPermissionGroupForm {
   type: 'REMOVE_USER_From_PERMISSION_GROUP_FORM';
+  pgId: Guid;
   userId: Guid;
 }
 
-/** Set Permission Group name in Permission Group form */
+/** Set Permission Group name in Permission Group */
 export interface SetPermissionGroupNameText {
   type: 'SET_PERMISSION_GROUP_NAME_TEXT';
+  pgId: Guid;
   value: string;
+}
+
+/** Set Edit Mode for Permission Group tab */
+export interface SetEditModeForPermissionGroups {
+  type: 'SET_EDIT_MODE_FOR_PERMISSION_GROUPS';
+  editModeEnabled: boolean;
 }
 
 /** Set Permission Group  */
@@ -297,6 +286,25 @@ export interface FetchPermissionGroupsFailed {
   error: TSError;
 }
 
+/**
+ * POST:
+ *   Update all permission groups (including membership and permissions)
+ */
+export interface UpdatePermissionGroups {
+  type: 'UPDATE_PERMISSION_GROUPS';
+  request: PermissionGroupsChangesModel;
+}
+/** Action called upon successful return of the FetchFileDrops API call */
+export interface UpdatePermissionGroupsSucceeded {
+  type: 'UPDATE_PERMISSION_GROUPS_SUCCEEDED';
+  response: PermissionGroupsReturnModel;
+}
+/** Action called upon return of an error from the FetchFileDrops API call */
+export interface UpdatePermissionGroupsFailed {
+  type: 'UPDATE_PERMISSION_GROUPS_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -390,13 +398,10 @@ export type FileDropPageActions =
   | SetPermissionGroupPermissionValue
   | RemovePermissionGroup
   | DiscardPendingPermissionGroupChanges
-  | OpenCreateNewPermissionGroupModal
-  | CloseCreateNewPermissionGroupModal
-  | OpenAddNewPermissionGroupUserModal
-  | CloseAddNewPermissionGroupUserModal
   | AddUserToPermissionGroupForm
   | RemoveUserFromPermissionGroupForm
   | SetPermissionGroupNameText
+  | SetEditModeForPermissionGroups
   ;
 
 /** Actions that schedule another action */
@@ -416,6 +421,7 @@ export type FileDropRequestActions =
   | FetchPermissionGroups
   | FetchStatusRefresh
   | FetchSessionCheck
+  | UpdatePermissionGroups
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -429,6 +435,7 @@ export type FileDropSuccessResponseActions =
   | FetchPermissionGroupsSucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
+  | UpdatePermissionGroupsSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -442,6 +449,7 @@ export type FileDropErrorActions =
   | FetchPermissionGroupsFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
+  | UpdatePermissionGroupsFailed
   ;
 
 /** Actions that set filter text */
@@ -464,6 +472,4 @@ export type OpenModalAction =
   | OpenCreateFileDropModal
   | OpenDeleteFileDropModal
   | OpenDeleteFileDropConfirmationModal
-  | OpenCreateNewPermissionGroupModal
-  | OpenAddNewPermissionGroupUserModal
   ;

@@ -130,7 +130,7 @@ export function pendingPermissionGroupsChanges(state: FileDropState): Permission
 
     // Removed Permission Groups
     // const removedPermissionGroups = rawPGIds.filter((pg) => pendingPGIds.indexOf(pg) === -1);
-    const removedPermissionGroups = _.difference(rawPGIds, pendingPGIds);
+    const removedPermissionGroupIds = _.difference(rawPGIds, pendingPGIds);
 
     // Added Permission Groups
     const newPermissionGroups = _.difference(pendingPGIds, rawPGIds)
@@ -138,8 +138,8 @@ export function pendingPermissionGroupsChanges(state: FileDropState): Permission
         id: null,
         name: pgPending[pg].name,
         isPersonalGroup: pgPending[pg].isPersonalGroup,
-        assignedSftpAccountIds: pgPending[pg].assignedSftpAccountIds,
-        assignedMapUserIds: pgPending[pg].assignedMapUserIds,
+        authorizedMapUsers: pgPending[pg].authorizedMapUsers,
+        authorizedSftpAccounts: pgPending[pg].authorizedSftpAccounts,
         readAccess: pgPending[pg].readAccess,
         writeAccess: pgPending[pg].writeAccess,
         deleteAccess: pgPending[pg].deleteAccess,
@@ -155,8 +155,8 @@ export function pendingPermissionGroupsChanges(state: FileDropState): Permission
         updatedPermissionGroups[pg] = {
           id: pendingPG.id,
           name: pendingPG.name,
-          newAssignedMapUserIds: _.difference(pendingPG.assignedMapUserIds, rawPG.assignedMapUserIds),
-          removedMapUserIds: _.difference(rawPG.assignedMapUserIds, pendingPG.assignedMapUserIds),
+          usersAdded: _.difference(pendingPG.authorizedMapUsers, rawPG.authorizedMapUsers),
+          usersRemoved: _.difference(rawPG.authorizedMapUsers, pendingPG.authorizedMapUsers),
           readAccess: pendingPG.readAccess,
           writeAccess: pendingPG.writeAccess,
           deleteAccess: pendingPG.deleteAccess,
@@ -165,7 +165,7 @@ export function pendingPermissionGroupsChanges(state: FileDropState): Permission
 
     return {
       fileDropId,
-      removedPermissionGroups,
+      removedPermissionGroupIds,
       newPermissionGroups,
       updatedPermissionGroups,
     };
@@ -194,7 +194,7 @@ export function unassignedEligibleUsers(state: FileDropState) {
     const assignedUserIds: Guid[] = [];
     // Loop through all of the existing Permission Groups and add assigned users to the assignedUserIds array
     Object.keys(permissionGroups).forEach((pg) => {
-      permissionGroups[pg].assignedMapUserIds.forEach((userId) => assignedUserIds.push(userId));
+      permissionGroups[pg].authorizedMapUsers.forEach((userId) => assignedUserIds.push(userId));
     });
     const availableUsers: AvailableEligibleUsers[] =
       Object.keys(eligibleUsers)

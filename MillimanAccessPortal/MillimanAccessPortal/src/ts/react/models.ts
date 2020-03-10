@@ -321,11 +321,11 @@ export interface FileDropsReturnModel {
 }
 
 export interface PermissionGroupModel {
-  id: Guid;
+  id?: Guid;
   name: string;
+  authorizedMapUsers: Guid[];
+  authorizedSftpAccounts: Guid[];
   isPersonalGroup: boolean;
-  assignedSftpAccountIds: Guid[];
-  assignedMapUserIds: Guid[];
   readAccess: boolean;
   writeAccess: boolean;
   deleteAccess: boolean;
@@ -348,8 +348,8 @@ export interface PermissionGroupsReturnModel {
 export interface PGChangeModel {
   id: Guid;
   name: string;
-  newAssignedMapUserIds: Guid[];
-  removedMapUserIds: Guid[];
+  usersAdded: Guid[];
+  usersRemoved: Guid[];
   readAccess: boolean;
   writeAccess: boolean;
   deleteAccess: boolean;
@@ -357,7 +357,7 @@ export interface PGChangeModel {
 
 export interface PermissionGroupsChangesModel {
   fileDropId: Guid;
-  removedPermissionGroups: Guid[];
+  removedPermissionGroupIds: Guid[];
   newPermissionGroups: PermissionGroupModel[];
   updatedPermissionGroups: Dict<PGChangeModel>;
 }

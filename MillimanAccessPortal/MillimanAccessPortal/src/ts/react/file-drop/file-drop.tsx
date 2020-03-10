@@ -228,129 +228,50 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             </button>
           </div>
         </Modal>
-        <Modal
-          isOpen={modals.createNewPermissionGroup.isOpen}
-          onRequestClose={() => this.props.closeCreateNewPermissionGroupModal({})}
-          ariaHideApp={false}
-          className="modal"
-          overlayClassName="modal-overlay"
-          closeTimeoutMS={100}
-        >
-          <h3 className="title blue">Create New Permission Group</h3>
-          <form
-            onSubmit={(e) => {
-              {
-                e.preventDefault();
-              }
-            }}
-          >
-            <Input
-              autoFocus={true}
-              label="Permission Group Name"
-              name="Permission Group Name"
-              onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-                this.props.setPermissionGroupNameText({ value: target.value });
-              }}
-              placeholderText="Permission Group Name *"
-              type="text"
-              value={pending.permissionGroupForm.name}
-              error={pending.permissionGroupForm.error.name}
-            />
-            <Select
-              className="react-select"
-              classNamePrefix="react-select"
-              options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
-                value: u.id,
-                name: u.name ? u.name : '(Unactivated)',
-                username: u.username,
-              }))}
-              styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-              menuPosition="fixed"
-              menuPortalTarget={document.body}
-              menuPlacement={'auto'}
-              formatOptionLabel={(data) => (
-                <>
-                  <div style={{ fontSize: '1em', fontWeight: 'bold' }}>
-                    {data.name}
-                  </div>
-                  <div style={{ fontSize: '0.85em' }}>
-                    {data.username}
-                  </div>
-                </>
-              )}
-              filterOption={({ data }, rawInput) => (
-                data.username.toLowerCase().match(rawInput.toLowerCase())
-                || (
-                  data.name
-                  && data.name.toLowerCase().match(rawInput.toLowerCase())
-                )
-              )}
-              onChange={(value, action) => {
-                if (action.action === 'select-option') {
-                  const singleValue = value as { value: string; };
-                  alert(singleValue.value);
-                  // this.props.setPermissionGroupUserAssigned({ id: singleValue.value });
-                }
-
-              }}
-              // onInputChange={(query) => this.props.setPendingGroupUserQuery({ query })}
-              // inputValue={entity.userQuery}
-              controlShouldRenderValue={false}
-              placeholder="Select users..."
-              autoFocus={false}
-            />
-            <div className="button-container">
-              <button
-                className="link-button"
-                type="button"
-                onClick={() => this.props.closeCreateNewPermissionGroupModal({})}
-              >
-                Cancel
-              </button>
-              <button
-                className={'blue-button'}
-                disabled={/* TODO: Update This */false}
-                type="submit"
-              >
-                Create Group
-              </button>
-            </div>
-          </form>
-        </Modal>
-        <Modal
-          isOpen={modals.addNewPermissionGroupUser.isOpen}
-          onRequestClose={() => this.props.closeAddNewPermissionGroupUserModal({})}
-          ariaHideApp={false}
-          className="modal"
-          overlayClassName="modal-overlay"
-          closeTimeoutMS={100}
-        >
-          <h3 className="title blue">Add New User</h3>
-          <form
-            onSubmit={(e) => {
-              {
-                e.preventDefault();
-              }
-            }}
-          >
-            <div className="button-container">
-              <button
-                className="link-button"
-                type="button"
-                onClick={() => this.props.closeAddNewPermissionGroupUserModal({})}
-              >
-                Cancel
-              </button>
-              <button
-                className={'blue-button'}
-                disabled={/* TODO: Update This */false}
-                type="submit"
-              >
-                Add User
-              </button>
-            </div>
-          </form>
-        </Modal>
+        { // TODO: DELETE THIS
+          //     <Select
+          //       className="react-select"
+          //       classNamePrefix="react-select"
+          //       options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
+          //         value: u.id,
+          //         name: u.name ? u.name : '(Unactivated)',
+          //         username: u.username,
+          //       }))}
+          //       styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+          //       menuPosition="fixed"
+          //       menuPortalTarget={document.body}
+          //       menuPlacement={'auto'}
+          //       formatOptionLabel={(data) => (
+          //         <>
+          //           <div style={{ fontSize: '1em', fontWeight: 'bold' }}>
+          //             {data.name}
+          //           </div>
+          //           <div style={{ fontSize: '0.85em' }}>
+          //             {data.username}
+          //           </div>
+          //         </>
+          //       )}
+          //       filterOption={({ data }, rawInput) => (
+          //         data.username.toLowerCase().match(rawInput.toLowerCase())
+          //         || (
+          //           data.name
+          //           && data.name.toLowerCase().match(rawInput.toLowerCase())
+          //         )
+          //       )}
+          //       onChange={(value, action) => {
+          //         if (action.action === 'select-option') {
+          //           const singleValue = value as { value: string; };
+          //           alert(singleValue.value);
+          //           this.props.addUserToPermissionGroupForm({ userId: singleValue.value });
+          //         }
+          //       }}
+          //       // onInputChange={(query) => this.props.setPendingGroupUserQuery({ query })}
+          //       // inputValue={entity.userQuery}
+          //       controlShouldRenderValue={false}
+          //       placeholder="Select users..."
+          //       autoFocus={false}
+          //     />
+        }
       </>
     );
   }
@@ -700,7 +621,30 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderPermissionsTab() {
-    const { data, filters, pending } = this.props;
+    const {
+      data, filters, pending, pendingPermissionGroupsChanges, permissionGroupChangesPending,
+    } = this.props;
+    const editPermissionGroupsButton = (
+      <ActionIcon
+        label="Edit Permission Groups"
+        icon="edit"
+        action={() => this.props.setEditModeForPermissionGroups({ editModeEnabled: true })}
+      />
+    );
+    const cancelEditPermissionGroupsButton = (
+      <ActionIcon
+        label="Discard Changes"
+        icon="cancel"
+        action={() => {
+          if (!permissionGroupChangesPending) {
+            this.props.setEditModeForPermissionGroups({ editModeEnabled: false });
+          } else {
+            // TODO: Implement a modal to confirm discarding changes
+            alert('Undo changes first');
+          }
+        }}
+      />
+    );
     const addUserButton = (
       <ActionIcon
         label="Add User"
@@ -712,7 +656,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
       <ActionIcon
         label="Add Group"
         icon="add-group"
-        action={() => this.props.openCreateNewPermissionGroupModal({})}
+        action={() => alert('Add Group')}
       />
     );
 
@@ -725,8 +669,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             filterText={filters.permissions.text}
           />
           <PanelSectionToolbarButtons>
-            {addUserButton}
-            {addGroupButton}
+            {!pending.permissionGroupsEditMode && editPermissionGroupsButton}
+            {pending.permissionGroupsEditMode && addUserButton}
+            {pending.permissionGroupsEditMode && addGroupButton}
+            {pending.permissionGroupsEditMode && cancelEditPermissionGroupsButton}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
@@ -735,13 +681,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           >
             <PermissionsTable
               permissions={pending.permissionGroupsTab}
+              readOnly={!pending.permissionGroupsEditMode}
               setPermissionValue={this.props.setPermissionGroupPermissionValue}
               removePermissionGroup={this.props.removePermissionGroup}
-              openCreatePermissionGroupModal={this.props.openCreateNewPermissionGroupModal}
-              openAddNewPermissionGroupUserModal={this.props.openAddNewPermissionGroupUserModal}
             />
             {
-              this.props.permissionGroupChangesPending &&
+              pending.permissionGroupsEditMode &&
+              permissionGroupChangesPending &&
               <div className="button-container">
                 <button
                   className="link-button"
@@ -758,7 +704,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   className="green-button"
                   onClick={(event: React.MouseEvent) => {
                     event.preventDefault();
-                    alert('submit');
+                    this.props.updatePermissionGroups(pendingPermissionGroupsChanges);
                   }}
                 >
                   Save Changes

@@ -1,7 +1,6 @@
 import '../../../images/icons/add-group.svg';
 import '../../../images/icons/add-user.svg';
 import '../../../images/icons/group.svg';
-import '../../../images/icons/remove-circle.svg';
 import '../../../images/icons/user.svg';
 
 import '../../../scss/react/file-drop/permissions-table.scss';
@@ -11,26 +10,22 @@ import * as React from 'react';
 import { Guid, PermissionGroupsReturnModel } from '../models';
 import { ActionIcon, ActionIconButtonContainer } from '../shared-components/action-icon';
 import { Checkbox } from '../shared-components/form/checkbox';
-import {
-  openAddNewPermissionGroupUserModal, openCreateNewPermissionGroupModal,
-} from './redux/action-creators';
 
 interface PermissionsTableProps {
   permissions: PermissionGroupsReturnModel;
+  readOnly: boolean;
   setPermissionValue: ({ pgId, permission, value }: {
     pgId: Guid;
     permission: 'readAccess' | 'writeAccess' | 'deleteAccess';
     value: boolean;
   }) => void;
   removePermissionGroup: ({ pgId }: { pgId: Guid }) => void;
-  openCreatePermissionGroupModal: ({ }) => void;
-  openAddNewPermissionGroupUserModal: ({ }) => void;
 }
 
 export class PermissionsTable extends React.Component<PermissionsTableProps> {
 
   public render() {
-    const { setPermissionValue, removePermissionGroup } = this.props;
+    const { setPermissionValue, removePermissionGroup, readOnly } = this.props;
     const { permissionGroups, eligibleUsers } = this.props.permissions;
     const permissionGroupsMarkup = Object.keys(permissionGroups).map((pgId) => {
       const thisPG = permissionGroups[pgId];
@@ -39,7 +34,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
         <>
           <tr
             key={thisPG.id}
-            className={thisPG.isPersonalGroup || thisPG.assignedMapUserIds.length === 0 ? 'last-group-row' : null}
+            className={thisPG.isPersonalGroup || thisPG.authorizedMapUsers.length === 0 ? 'last-group-row' : null}
           >
             <td><svg className="table-icon"><use xlinkHref={pgIcon} /></svg></td>
             {
@@ -47,7 +42,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                 (
                   <>
                     <td><strong>{thisPG.name}</strong></td>
-                    <td>{eligibleUsers[thisPG.assignedMapUserIds[0]].username}</td>
+                    <td>{eligibleUsers[thisPG.authorizedMapUsers[0]].username}</td>
                   </>
                 ) : (
                   <td colSpan={2}><strong>{thisPG.name}</strong></td>
@@ -59,7 +54,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                 onChange={(status) =>
                   setPermissionValue({ pgId: thisPG.id, permission: 'readAccess', value: status })}
                 key={1}
-                readOnly={false}
+                readOnly={readOnly}
                 selected={thisPG.readAccess}
               />
             </td>
@@ -69,7 +64,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                 onChange={(status) =>
                   setPermissionValue({ pgId: thisPG.id, permission: 'writeAccess', value: status })}
                 key={2}
-                readOnly={false}
+                readOnly={readOnly}
                 selected={thisPG.writeAccess}
               />
             </td>
@@ -79,52 +74,44 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                 onChange={(status) =>
                   setPermissionValue({ pgId: thisPG.id, permission: 'deleteAccess', value: status })}
                 key={3}
-                readOnly={false}
+                readOnly={readOnly}
                 selected={thisPG.deleteAccess}
               />
             </td>
-            <td className="content-right">
-              {
-                // !thisPG.isPersonalGroup &&
-                // <ActionIconButtonContainer color="blue">
-                //   <ActionIcon
-                //     action={() => alert('expand')}
-                //     icon="expand-card"
-                //     label="Expand Permission Group"
-                //     inline={true}
-                //   />
-                // </ActionIconButtonContainer>
-              }
-              {
-                // <ActionIconButtonContainer color="green">
-                //   <ActionIcon
-                //     action={() => alert('edit')}
-                //     icon="edit"
-                //     label="Edit Permission Group Name"
-                //     inline={true}
-                //   />
-                // </ActionIconButtonContainer>
-              }
-              <ActionIconButtonContainer color="red">
-                <ActionIcon
-                  action={() => removePermissionGroup({ pgId: thisPG.id })}
-                  icon="delete"
-                  label="Delete Permission Group"
-                  inline={true}
-                />
-              </ActionIconButtonContainer>
-            </td>
+            {
+              !readOnly &&
+              <td className="content-right">
+                <ActionIconButtonContainer color="red">
+                  <ActionIcon
+                    action={() => removePermissionGroup({ pgId: thisPG.id })}
+                    icon="delete"
+                    label="Delete Permission Group"
+                    inline={true}
+                  />
+                </ActionIconButtonContainer>
+              </td>
+            }
           </tr>
           {
             !thisPG.isPersonalGroup &&
-            thisPG.assignedMapUserIds.map((userId, index) => {
+            thisPG.authorizedMapUsers.map((userId, index) => {
               const thisUser = eligibleUsers[userId];
               return (
                 <tr
                   key={thisUser.id}
-                  className={index === (thisPG.assignedMapUserIds.length - 1) ? 'last-group-row' : null}
+                  className={index === (thisPG.authorizedMapUsers.length - 1) ? 'last-group-row' : null}
                 >
-                  <td><svg className="table-icon"><use xlinkHref="#remove-cirlce" /></svg></td>
+                  <td className="remove-user">
+                    {
+                      !readOnly &&
+                      <ActionIcon
+                        action={() => alert('remove user')}
+                        icon="remove-circle"
+                        label="Remove user from Permission Group"
+                        inline={true}
+                      />
+                    }
+                  </td>
                   <td>{thisUser.firstName + ' ' + thisUser.lastName}</td>
                   <td colSpan={5}>{thisUser.username}</td>
                 </tr>
@@ -138,7 +125,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
       <tr className="action-row" onClick={() => alert('Add User')}>
         <td><svg className="table-icon"><use xlinkHref="#add-user" /></svg></td>
         <td colSpan={6} className="action-text">
-          <span onClick={() => openAddNewPermissionGroupUserModal({})}>Add User</span>
+          <span onClick={() => alert('Add User')}>Add User</span>
         </td>
       </tr>
     );
@@ -146,7 +133,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
       <tr className="action-row" onClick={() => alert('Add Group')}>
         <td><svg className="table-icon"><use xlinkHref="#add-group" /></svg></td>
         <td colSpan={6} className="action-text">
-          <span onClick={() => openCreateNewPermissionGroupModal({})}>Add Group</span>
+          <span onClick={() => alert('Add Group')}>Add Group</span>
         </td>
       </tr>
     );
@@ -159,7 +146,10 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
             <th className="col-name" rowSpan={2}>Name</th>
             <th className="col-email" rowSpan={2}>Email</th>
             <th className="col-permissions content-center" colSpan={3}>Permissions</th>
-            <th className="col-actions content-right" rowSpan={2}>Actions</th>
+            {
+              !readOnly &&
+              <th className="col-actions content-right" rowSpan={2} />
+            }
           </tr>
           <tr>
             <th className="col-permission-download content-center">Download</th>
@@ -169,8 +159,8 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
         </thead>
         <tbody>
           {permissionGroupsMarkup}
-          {addUserRow}
-          {addGroupRow}
+          {!readOnly && addUserRow}
+          {!readOnly && addGroupRow}
         </tbody>
       </table>
     );
