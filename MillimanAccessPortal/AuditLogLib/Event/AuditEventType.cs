@@ -1054,6 +1054,21 @@ namespace AuditLogLib.Event
                     : null,
             });
 
+        public static readonly AuditEventType<SftpRenameLogModel> SftpRename = new AuditEventType<SftpRenameLogModel>(
+            8113, "SFTP File Or Directory Renamed", (model) => new
+            {
+                From = model.From,
+                To = model.To,
+                Type = model.IsDirectory ? "Directory" : "File",
+                FileDrop = model.FileDrop,
+                SftpAccount = model.Account != null
+                    ? new { model.Account.Id, model.Account.UserName, }
+                    : null,
+                MapUser = model.User != null
+                    ? new { model.User.Id, model.User.UserName, }
+                    : null,
+            });
+
         #endregion
         #endregion
 

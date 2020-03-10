@@ -65,7 +65,7 @@ namespace SftpServerLib
             if (IpWorksSftpServer._connections.Keys.Contains(evtData.ConnectionId))
             {
                 var connectionProperties = IpWorksSftpServer._connections[evtData.ConnectionId];
-                Log.Information($"Connection <{evtData.ConnectionId}> close requested for account name {connectionProperties.SftpAccountName}");
+                Log.Information($"Connection <{evtData.ConnectionId}> close requested for account name {connectionProperties.Account?.UserName}");
                 IpWorksSftpServer._connections.Remove(evtData.ConnectionId);
             }
             Log.Information($"Connection <{evtData.ConnectionId}> closed");
@@ -136,10 +136,8 @@ namespace SftpServerLib
                     new AuditLogger().Log(AuditEventType.SftpDirectoryRemoved.ToEvent((FileDropDirectoryLogModel)requestedDirectory, 
                                                                                       deleteInventory, 
                                                                                       new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName }, 
-                                                                                      new SftpAccount(connection.FileDropId.Value) { Id = connection.SftpAccountId.Value, UserName = connection.SftpAccountName },
-                                                                                      connection.MapUserId.HasValue 
-                                                                                          ? new ApplicationUser { Id = connection.MapUserId.Value, UserName = connection.MapUserName }
-                                                                                          : null));
+                                                                                      connection.Account,
+                                                                                      connection.MapUser));
                     Log.Information($"OnDirRemove: Requested directory {evtData.Path} at absolute path {requestedAbsolutePath} removed. Deleted inventory is {{@Inventory}}", deleteInventory);
                 }
             }
@@ -169,7 +167,7 @@ namespace SftpServerLib
 
             if (result == AuthorizationResult.NotAuthorized)
             {
-                Log.Information($"OnDirCreate event invoked but account <{connection.SftpAccountId}, {connection.SftpAccountName}> does not have Write access");
+                Log.Information($"OnDirCreate event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Write access");
                 evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
                 return;
             }
@@ -237,9 +235,9 @@ namespace SftpServerLib
 
                         new AuditLogger().Log(AuditEventType.SftpDirectoryCreated.ToEvent(newDirRecord,
                                                                                           new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
-                                                                                          new SftpAccount(connection.FileDropId.Value) { Id = connection.SftpAccountId.Value, UserName = connection.SftpAccountName },
+                                                                                          connection.Account,
                                                                                           new Client { Id = connection.ClientId.Value, Name = connection.ClientName },
-                                                                                          connection.MapUserId.HasValue ? new ApplicationUser { Id = connection.MapUserId.Value, UserName = connection.MapUserName } : null));
+                                                                                          connection.MapUser));
                         Log.Information($"DirCreate event invoked, directory {requestedCanonicalPath} created relative to UserRootDirectory { IpWorksSftpServer._sftpServer.Config($"UserRootDirectory[{connection.Id}]")}");
                     }
                 }
@@ -305,7 +303,7 @@ namespace SftpServerLib
 
             if (result == AuthorizationResult.ConnectionNotFound)
             {
-                Log.Warning($"OnFileRename event invoked but no active connection was found");
+                Log.Warning($"OnFileRename event invoked but the requested connection was not found");
                 evtData.StatusCode = 7;  // SSH_FX_CONNECTION_LOST 7
                 return;
             }
@@ -314,7 +312,7 @@ namespace SftpServerLib
 
             if (result == AuthorizationResult.NotAuthorized)
             {
-                Log.Information($"OnFileRename event invoked but account <{connection.SftpAccountId}, {connection.SftpAccountName}> does not have Write access");
+                Log.Information($"OnFileRename event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Write access");
                 evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
                 return;
             }
@@ -327,29 +325,33 @@ namespace SftpServerLib
                 using (var db = GlobalResources.NewMapDbContext)
                 {
                     bool sourceRecordFound = false;
+                    string recordNameString = string.Empty;
 
                     switch (attributes)
                     {
                         // renamed a directory
                         case FileAttributes a when (a & FileAttributes.Directory) == FileAttributes.Directory:
-                            string canonicalPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetFullPath(evtData.Path).Replace(Path.GetFullPath(connection.FileDropRootPathAbsolute), ""));
-                            if (canonicalPath == "/")
+                            recordNameString = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetFullPath(evtData.Path).Replace(Path.GetFullPath(connection.FileDropRootPathAbsolute), ""));
+                            if (recordNameString == "/")
                             {
+                                Log.Warning($"Request to rename {recordNameString} in FileDrop <{connection.FileDropName}> (Id {connection.FileDropId}) cannot be performed.  Root directory cannot be renamed.  Account {connection.Account?.UserName} (Id {connection.Account?.Id})");
                                 evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
                                 return;
                             }
 
-                            sourceRecordFound = db.FileDropDirectory.Any(d => d.FileDropId == connection.FileDropId && EF.Functions.ILike(d.CanonicalFileDropPath, canonicalPath));
+                            sourceRecordFound = db.FileDropDirectory.Any(d => d.FileDropId == connection.FileDropId && EF.Functions.ILike(d.CanonicalFileDropPath, recordNameString));
                             break;
 
                         default:
-                            sourceRecordFound = db.FileDropFile.Any(f => f.Directory.FileDropId == connection.FileDropId && EF.Functions.ILike(f.FileName, Path.GetFileName(evtData.Path)));
+                            recordNameString = Path.GetFileName(evtData.Path);
+                            sourceRecordFound = db.FileDropFile.Any(f => f.Directory.FileDropId == connection.FileDropId && EF.Functions.ILike(f.FileName, recordNameString));
                             break;
                     }
 
                     // confirm db connectivity and that the source record exists in the db
                     if (!sourceRecordFound)
                     {
+                        Log.Warning($"Request to rename {recordNameString} in FileDrop <{connection.FileDropName}> (Id {connection.FileDropId}) cannot be performed.  Corresponding database record not found.  Account {connection.Account?.UserName} (Id {connection.Account?.Id})");
                         evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
                         return;
                     }
@@ -381,7 +383,7 @@ namespace SftpServerLib
                                     return;
                                 }
 
-                                RepathDirectoryRecordAndChildren(directoryRecord, evtData.NewPath);
+                                RepathDirectoryRecord(directoryRecord, evtData.NewPath, true);
 
                                 string newCanonicalParentPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.NewPath));
                                 if (!newCanonicalParentPath.Equals(directoryRecord.ParentDirectory.CanonicalFileDropPath, StringComparison.InvariantCultureIgnoreCase))
@@ -431,6 +433,17 @@ namespace SftpServerLib
                         }
 
                         db.SaveChanges();
+
+                        Log.Information($"Renamed {evtData.Path} to {evtData.NewPath} in FileDrop <{connection.FileDropName}> (Id {connection.FileDropId}).  Account {connection.Account?.UserName} (Id {connection.Account?.Id})");
+                        new AuditLogger().Log(AuditEventType.SftpRename.ToEvent(new SftpRenameLogModel
+                        {
+                            From = evtData.Path,
+                            To = evtData.NewPath,
+                            IsDirectory = (attributes & FileAttributes.Directory) == FileAttributes.Directory,
+                            FileDrop = new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
+                            Account = connection.Account,
+                            User = connection.MapUser,
+                        }));
                     }
                 }
             }
@@ -440,16 +453,17 @@ namespace SftpServerLib
         /// 
         /// </summary>
         /// <param name="directoryRecord">Recursion only occurs on child directory records contained in the ChildDirectories navigation property</param>
-        /// <param name="toPath"></param>
-        private static void RepathDirectoryRecordAndChildren(FileDropDirectory directoryRecord, string toPath)
+        /// <param name="toPath">Must meet requirements to be converted to a canonical path as described in <see cref="FileDropDirectory.CanonicalFileDropPath"/></param>
+        private static void RepathDirectoryRecord(FileDropDirectory directoryRecord, string toPath, bool recurseOnChildren)
         {
-            toPath = FileDropDirectory.ConvertPathToCanonicalPath(toPath);
-
             directoryRecord.FileDropPath = toPath;
 
-            foreach (FileDropDirectory child in directoryRecord.ChildDirectories)
+            if (recurseOnChildren)
             {
-                RepathDirectoryRecordAndChildren(child, Path.Combine(toPath, Path.GetFileName(child.CanonicalFileDropPath)));
+                foreach (FileDropDirectory child in directoryRecord.ChildDirectories)
+                {
+                    RepathDirectoryRecord(child, Path.Combine(toPath, Path.GetFileName(child.CanonicalFileDropPath)), recurseOnChildren);
+                }
             }
         }
 
@@ -532,13 +546,8 @@ namespace SftpServerLib
                         IpWorksSftpServer._sftpServer.Config($@"UserRootDirectory[{evtData.ConnectionId}]={absoluteFileDropRootPath}");
 
                         connection.LastActivityUtc = DateTime.UtcNow;
-                        connection.MapUserId = userAccount.ApplicationUserId;
-                        if (userAccount.ApplicationUserId.HasValue)
-                        {
-                            connection.MapUserName = userAccount.ApplicationUser.UserName;
-                        }
-                        connection.SftpAccountId = userAccount.Id;
-                        connection.SftpAccountName = userAccount.UserName;
+                        connection.MapUser = userAccount.ApplicationUser != null ? new ApplicationUser { Id = userAccount.ApplicationUser.Id, UserName = userAccount.ApplicationUser.UserName} : null;
+                        connection.Account = new SftpAccount(userAccount.FileDropId) { Id = userAccount.Id, UserName = userAccount.UserName };
                         connection.FileDropId = userAccount.FileDropId;
                         connection.FileDropName = userAccount.FileDropUserPermissionGroup.FileDrop.Name;
                         connection.ClientId = userAccount.FileDropId;
@@ -576,8 +585,8 @@ namespace SftpServerLib
 
                 List<Guid> currentConnectedAccountIds = IpWorksSftpServer._connections
                                                                          .Where(c => c.Value != null)  // .Value can be null in some debugging situations
-                                                                         .Where(c => c.Value.SftpAccountId.HasValue)
-                                                                         .Select(c => c.Value.SftpAccountId.Value)
+                                                                         .Where(c => c.Value.Account != null)
+                                                                         .Select(c => c.Value.Account.Id)
                                                                          .Distinct()
                                                                          .ToList();
 
@@ -590,7 +599,7 @@ namespace SftpServerLib
                 foreach (SftpAccount connectedAccount in query)
                 {
                     // There can be multiple connections for a user
-                    foreach (SftpConnectionProperties connection in IpWorksSftpServer._connections.Values.Where(c => c.SftpAccountId == connectedAccount.Id))
+                    foreach (SftpConnectionProperties connection in IpWorksSftpServer._connections.Values.Where(c => c.Account?.Id == connectedAccount.Id))
                     {
                         if (connection == null)  // can happen during debug if a connection is closed while sitting at a breakpoint in this method
                         {
