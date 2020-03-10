@@ -350,6 +350,33 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(model);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateFileDropPermissionGroups(UpdatePermissionGroupsModel model)
+        {
+            var fileDrop = await _dbContext.FileDrop.SingleOrDefaultAsync(fd => fd.Id == model.FileDropId);
+            if (fileDrop == null)
+            {
+                Log.Warning($"Requested FileDrop Id {model.FileDropId} not found");
+                Response.Headers.Add("Warning", "Failed to complete the request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDrop.ClientId));
+            if (!adminRoleResult.Succeeded)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var returnModel = _fileDropQueries.UpdatePermissionGroups(model);
+
+            return Json(returnModel);
+        }
     }
 
 }

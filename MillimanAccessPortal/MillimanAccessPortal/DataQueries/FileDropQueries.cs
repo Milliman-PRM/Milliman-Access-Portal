@@ -6,11 +6,13 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.FileDropModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -214,5 +216,21 @@ namespace MillimanAccessPortal.DataQueries
 
             return returnModel;
         }
+
+        internal async Task<PermissionGroupsModel> UpdatePermissionGroups(UpdatePermissionGroupsModel model)
+        {
+            var fileDrop = await _dbContext.FileDrop.SingleOrDefaultAsync(fd => fd.Id == model.FileDropId);
+
+            // First need to free up all users who are in deleted 
+            foreach (var removedPermissionGroup in _dbContext.FileDropUserPermissionGroup.Where(fd => model.RemovedPermissionGroupIds.Contains(fd.Id)).ToList())
+            {
+                _dbContext.FileDropUserPermissionGroup.Remove(removedPermissionGroup);
+            }
+
+
+
+            return GetPermissionGroupsModelForFileDrop(model.FileDropId, fileDrop.ClientId);
+        }
+
     }
 }
