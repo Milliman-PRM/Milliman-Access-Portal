@@ -50,6 +50,7 @@ export interface FileDropPendingState {
   fileDropToEdit: FileDropWithStats;
   selectedFileDropTab: AvailableFileDropTabs;
   permissionGroupsTab: PermissionGroupsReturnModel;
+  permissionGroupsEditMode: boolean;
 }
 
 /** State representing user-selected entities */
