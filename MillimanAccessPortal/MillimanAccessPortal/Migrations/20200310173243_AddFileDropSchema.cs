@@ -42,7 +42,6 @@ namespace MillimanAccessPortal.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_FileDropDirectory", x => x.Id);
-                    table.UniqueConstraint("AK_FileDropDirectory_FileDropId_CanonicalFileDropPath", x => new { x.FileDropId, x.CanonicalFileDropPath });
                     table.ForeignKey(
                         name: "FK_FileDropDirectory_FileDrop_FileDropId",
                         column: x => x.FileDropId,
@@ -113,7 +112,7 @@ namespace MillimanAccessPortal.Migrations
                         column: x => x.FileDropUserPermissionGroupId,
                         principalTable: "FileDropUserPermissionGroup",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -129,7 +128,6 @@ namespace MillimanAccessPortal.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_FileDropFile", x => x.Id);
-                    table.UniqueConstraint("AK_FileDropFile_DirectoryId_FileName", x => new { x.DirectoryId, x.FileName });
                     table.ForeignKey(
                         name: "FK_FileDropFile_SftpAccount_CreatedByAccountId",
                         column: x => x.CreatedByAccountId,
@@ -161,9 +159,21 @@ namespace MillimanAccessPortal.Migrations
                 column: "ParentDirectoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_FileDropDirectory_FileDropId_CanonicalFileDropPath",
+                table: "FileDropDirectory",
+                columns: new[] { "FileDropId", "CanonicalFileDropPath" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_FileDropFile_CreatedByAccountId",
                 table: "FileDropFile",
                 column: "CreatedByAccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FileDropFile_DirectoryId_FileName",
+                table: "FileDropFile",
+                columns: new[] { "DirectoryId", "FileName" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_FileDropUserPermissionGroup_FileDropId",

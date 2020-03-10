@@ -286,9 +286,10 @@ namespace MillimanAccessPortal.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasAlternateKey("FileDropId", "CanonicalFileDropPath");
-
                     b.HasIndex("ParentDirectoryId");
+
+                    b.HasIndex("FileDropId", "CanonicalFileDropPath")
+                        .IsUnique();
 
                     b.ToTable("FileDropDirectory");
                 });
@@ -310,9 +311,10 @@ namespace MillimanAccessPortal.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasAlternateKey("DirectoryId", "FileName");
-
                     b.HasIndex("CreatedByAccountId");
+
+                    b.HasIndex("DirectoryId", "FileName")
+                        .IsUnique();
 
                     b.ToTable("FileDropFile");
                 });
@@ -965,8 +967,9 @@ namespace MillimanAccessPortal.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("MapDbContextLib.Context.FileDropUserPermissionGroup", "FileDropUserPermissionGroup")
-                        .WithMany()
-                        .HasForeignKey("FileDropUserPermissionGroupId");
+                        .WithMany("SftpAccounts")
+                        .HasForeignKey("FileDropUserPermissionGroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserInSelectionGroup", b =>
