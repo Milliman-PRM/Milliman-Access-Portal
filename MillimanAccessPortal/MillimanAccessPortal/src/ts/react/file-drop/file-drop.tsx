@@ -621,7 +621,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderPermissionsTab() {
-    const { data, filters, pending } = this.props;
+    const { data, filters, pending, pendingPermissionGroupsChanges } = this.props;
     const addUserButton = (
       <ActionIcon
         label="Add User"
@@ -677,7 +677,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   className="green-button"
                   onClick={(event: React.MouseEvent) => {
                     event.preventDefault();
-                    alert('submit');
+                    this.props.updatePermissionGroups(pendingPermissionGroupsChanges);
                   }}
                 >
                   Save Changes
