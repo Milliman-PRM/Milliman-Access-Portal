@@ -1061,9 +1061,7 @@ namespace AuditLogLib.Event
                 To = model.To,
                 Type = model.IsDirectory ? "Directory" : "File",
                 FileDrop = model.FileDrop,
-                SftpAccount = model.Account != null
-                    ? new { model.Account.Id, model.Account.UserName, }
-                    : null,
+                SftpAccount = new { model.Account.Id, model.Account.UserName, },
                 MapUser = model.User != null
                     ? new { model.User.Id, model.User.UserName, }
                     : null,
