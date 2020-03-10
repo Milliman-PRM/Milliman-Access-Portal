@@ -385,6 +385,36 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
     // Convert to string and then back to json to allow these two sections of state to be independent
     ...JSON.parse(JSON.stringify(action.originalValues)),
   }),
+  ADD_USER_TO_PERMISSION_GROUP: (state, action: Action.AddUserToPermissionGroup) => {
+    const { authorizedMapUsers } = state.permissionGroups[action.pgId];
+    if (authorizedMapUsers.indexOf(action.userId) === -1) {
+      authorizedMapUsers.push(action.userId);
+    }
+    return {
+      ...state,
+      permissionGroups: {
+        ...state.permissionGroups,
+        [action.pgId]: {
+          ...state.permissionGroups[action.pgId],
+          authorizedMapUsers,
+        },
+      },
+    };
+  },
+  REMOVE_USER_FROM_PERMISSION_GROUP: (state, action: Action.RemoveUserFromPermissionGroup) => {
+    const { authorizedMapUsers: existingAuthorizedMapUsers } = state.permissionGroups[action.pgId];
+    const authorizedMapUsers = _.remove(existingAuthorizedMapUsers, (userId) => userId === action.userId);
+    return {
+      ...state,
+      permissionGroups: {
+        ...state.permissionGroups,
+        [action.pgId]: {
+          ...state.permissionGroups[action.pgId],
+          authorizedMapUsers,
+        },
+      },
+    };
+  },
 });
 
 /** Reducer for setting the edit mode state of the Permission Groups tab */
