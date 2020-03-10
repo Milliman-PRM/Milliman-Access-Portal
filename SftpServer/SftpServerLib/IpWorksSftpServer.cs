@@ -97,6 +97,7 @@ namespace SftpServerLib
             {
                 RootDirectory = GlobalResources.ApplicationConfiguration.GetValue<string>("FileDropRoot"),
                 SSHCert = cert,
+                RuntimeLicense = "31484E4641443153554232303231303231335241454E545032444D30474B30300000000000000000345444484443435700004D594E4A59423758584E47320000,"
             };
             Log.Information("SFTP Server instance constructed");
 

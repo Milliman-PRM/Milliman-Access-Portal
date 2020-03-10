@@ -16,10 +16,8 @@ using nsoftware.IPWorksSSH;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 
 namespace SftpServerLib
@@ -67,7 +65,7 @@ namespace SftpServerLib
             if (IpWorksSftpServer._connections.Keys.Contains(evtData.ConnectionId))
             {
                 var connectionProperties = IpWorksSftpServer._connections[evtData.ConnectionId];
-                Log.Information($"Connection <{evtData.ConnectionId}> close requested for account name {connectionProperties.SftpAccountName}");
+                Log.Information($"Connection <{evtData.ConnectionId}> close requested for account name {connectionProperties.Account?.UserName}");
                 IpWorksSftpServer._connections.Remove(evtData.ConnectionId);
             }
             Log.Information($"Connection <{evtData.ConnectionId}> closed");
@@ -138,10 +136,8 @@ namespace SftpServerLib
                     new AuditLogger().Log(AuditEventType.SftpDirectoryRemoved.ToEvent((FileDropDirectoryLogModel)requestedDirectory, 
                                                                                       deleteInventory, 
                                                                                       new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName }, 
-                                                                                      new SftpAccount(connection.FileDropId.Value) { Id = connection.SftpAccountId.Value, UserName = connection.SftpAccountName },
-                                                                                      connection.MapUserId.HasValue 
-                                                                                          ? new ApplicationUser { Id = connection.MapUserId.Value, UserName = connection.MapUserName }
-                                                                                          : null));
+                                                                                      connection.Account,
+                                                                                      connection.MapUser));
                     Log.Information($"OnDirRemove: Requested directory {evtData.Path} at absolute path {requestedAbsolutePath} removed. Deleted inventory is {{@Inventory}}", deleteInventory);
                 }
             }
@@ -171,7 +167,7 @@ namespace SftpServerLib
 
             if (result == AuthorizationResult.NotAuthorized)
             {
-                Log.Information($"OnDirCreate event invoked but account <{connection.SftpAccountId}, {connection.SftpAccountName}> does not have Write access");
+                Log.Information($"OnDirCreate event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Write access");
                 evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
                 return;
             }
@@ -239,9 +235,9 @@ namespace SftpServerLib
 
                         new AuditLogger().Log(AuditEventType.SftpDirectoryCreated.ToEvent(newDirRecord,
                                                                                           new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
-                                                                                          new SftpAccount(connection.FileDropId.Value) { Id = connection.SftpAccountId.Value, UserName = connection.SftpAccountName },
+                                                                                          connection.Account,
                                                                                           new Client { Id = connection.ClientId.Value, Name = connection.ClientName },
-                                                                                          connection.MapUserId.HasValue ? new ApplicationUser { Id = connection.MapUserId.Value, UserName = connection.MapUserName } : null));
+                                                                                          connection.MapUser));
                         Log.Information($"DirCreate event invoked, directory {requestedCanonicalPath} created relative to UserRootDirectory { IpWorksSftpServer._sftpServer.Config($"UserRootDirectory[{connection.Id}]")}");
                     }
                 }
@@ -301,16 +297,173 @@ namespace SftpServerLib
         //[Description("Fires when a client wants to rename a file.")]
         internal static void OnFileRename(object sender, SftpserverFileRenameEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("FileRename", evtData));
+            // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileRename.htm
 
-            Debug.WriteLine(evtData.User + " renaming\r\n  " + evtData.Path + "\r\nto\r\n  " + evtData.NewPath);
+            (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Write);
+
+            if (result == AuthorizationResult.ConnectionNotFound)
+            {
+                Log.Warning($"OnFileRename event invoked but the requested connection was not found");
+                evtData.StatusCode = 7;  // SSH_FX_CONNECTION_LOST 7
+                return;
+            }
+
+            connection.LastActivityUtc = DateTime.UtcNow;
+
+            if (result == AuthorizationResult.NotAuthorized)
+            {
+                Log.Information($"OnFileRename event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Write access");
+                evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
+                return;
+            }
+
+
             if (evtData.BeforeExec)
             {
-                Directory.Move(evtData.Path, evtData.NewPath);
+                FileAttributes attributes = File.GetAttributes(evtData.NewPath);
+
+                using (var db = GlobalResources.NewMapDbContext)
+                {
+                    bool sourceRecordFound = false;
+                    string recordNameString = string.Empty;
+
+                    switch (attributes)
+                    {
+                        // renamed a directory
+                        case FileAttributes a when (a & FileAttributes.Directory) == FileAttributes.Directory:
+                            recordNameString = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetFullPath(evtData.Path).Replace(Path.GetFullPath(connection.FileDropRootPathAbsolute), ""));
+                            if (recordNameString == "/")
+                            {
+                                Log.Warning($"Request to rename {recordNameString} in FileDrop <{connection.FileDropName}> (Id {connection.FileDropId}) cannot be performed.  Root directory cannot be renamed.  Account {connection.Account?.UserName} (Id {connection.Account?.Id})");
+                                evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
+                                return;
+                            }
+
+                            sourceRecordFound = db.FileDropDirectory.Any(d => d.FileDropId == connection.FileDropId && EF.Functions.ILike(d.CanonicalFileDropPath, recordNameString));
+                            break;
+
+                        default:
+                            recordNameString = Path.GetFileName(evtData.Path);
+                            sourceRecordFound = db.FileDropFile.Any(f => f.Directory.FileDropId == connection.FileDropId && EF.Functions.ILike(f.FileName, recordNameString));
+                            break;
+                    }
+
+                    // confirm db connectivity and that the source record exists in the db
+                    if (!sourceRecordFound)
+                    {
+                        Log.Warning($"Request to rename {recordNameString} in FileDrop <{connection.FileDropName}> (Id {connection.FileDropId}) cannot be performed.  Corresponding database record not found.  Account {connection.Account?.UserName} (Id {connection.Account?.Id})");
+                        evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
+                        return;
+                    }
+                }
             }
             else
             {
-                int i = 8;
+                if (evtData.StatusCode == 0)
+                {
+                    string absoluteNewPath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.NewPath.TrimStart('/', '\\'));
+                    FileAttributes attributes = File.GetAttributes(absoluteNewPath);
+
+                    using (var db = GlobalResources.NewMapDbContext)
+                    {
+                        switch (attributes)
+                        {
+                            // renamed a directory
+                            case FileAttributes a when (a & FileAttributes.Directory) == FileAttributes.Directory:
+                                List<FileDropDirectory> allDirectoriesInThisFileDrop = db.FileDropDirectory
+                                                                                         .Where(d => d.FileDropId == connection.FileDropId)
+                                                                                         .Include(d => d.ParentDirectory)
+                                                                                         .Include(d => d.ChildDirectories)
+                                                                                         .ToList();
+
+                                FileDropDirectory directoryRecord = allDirectoriesInThisFileDrop.SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, evtData.Path));
+                                if (directoryRecord == null)
+                                {
+                                    evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
+                                    return;
+                                }
+
+                                RepathDirectoryRecord(directoryRecord, evtData.NewPath, true);
+
+                                string newCanonicalParentPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.NewPath));
+                                if (!newCanonicalParentPath.Equals(directoryRecord.ParentDirectory.CanonicalFileDropPath, StringComparison.InvariantCultureIgnoreCase))
+                                { // This move involves a change in parent directory
+                                    FileDropDirectory newParentDirectoryRecord = allDirectoriesInThisFileDrop
+                                                                                   .Where(d => d.FileDropId == connection.FileDropId)
+                                                                                   .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, newCanonicalParentPath));
+                                    if (newParentDirectoryRecord == null)
+                                    {
+                                        evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
+                                        return;
+                                    }
+
+                                    directoryRecord.ParentDirectoryId = newParentDirectoryRecord.Id;
+                                }
+                                break;
+
+                            // renamed a not-directory
+                            default:
+                                FileDropFile fileRecord = db.FileDropFile
+                                                            .Include(f => f.Directory)
+                                                            .Where(f => f.Directory.FileDropId == connection.FileDropId)
+                                                            .SingleOrDefault(f => EF.Functions.ILike(f.FileName, Path.GetFileName(evtData.Path)));
+                                if (fileRecord == null)
+                                {
+                                    evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
+                                    return;
+                                }
+
+                                fileRecord.FileName = Path.GetFileName(evtData.NewPath);
+
+                                string newCanonicalDirectoryPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.NewPath));
+                                if (!newCanonicalDirectoryPath.Equals(fileRecord.Directory.CanonicalFileDropPath, StringComparison.InvariantCultureIgnoreCase))
+                                { // This move involves a change in containing directory
+                                    FileDropDirectory newDirectoryRecord = db.FileDropDirectory
+                                                                             .Where(d => d.FileDropId == connection.FileDropId)
+                                                                             .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, newCanonicalDirectoryPath));
+                                    if (newDirectoryRecord == null)
+                                    {
+                                        evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
+                                        return;
+                                    }
+
+                                    fileRecord.DirectoryId = newDirectoryRecord.Id;
+                                }
+                                break;
+                        }
+
+                        db.SaveChanges();
+
+                        Log.Information($"Renamed {evtData.Path} to {evtData.NewPath} in FileDrop <{connection.FileDropName}> (Id {connection.FileDropId}).  Account {connection.Account?.UserName} (Id {connection.Account?.Id})");
+                        new AuditLogger().Log(AuditEventType.SftpRename.ToEvent(new SftpRenameLogModel
+                        {
+                            From = evtData.Path,
+                            To = evtData.NewPath,
+                            IsDirectory = (attributes & FileAttributes.Directory) == FileAttributes.Directory,
+                            FileDrop = new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
+                            Account = connection.Account,
+                            User = connection.MapUser,
+                        }));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="directoryRecord">Recursion only occurs on child directory records contained in the ChildDirectories navigation property</param>
+        /// <param name="toPath">Must meet requirements to be converted to a canonical path as described in <see cref="FileDropDirectory.CanonicalFileDropPath"/></param>
+        private static void RepathDirectoryRecord(FileDropDirectory directoryRecord, string toPath, bool recurseOnChildren)
+        {
+            directoryRecord.FileDropPath = toPath;
+
+            if (recurseOnChildren)
+            {
+                foreach (FileDropDirectory child in directoryRecord.ChildDirectories)
+                {
+                    RepathDirectoryRecord(child, Path.Combine(toPath, Path.GetFileName(child.CanonicalFileDropPath)), recurseOnChildren);
+                }
             }
         }
 
@@ -336,7 +489,7 @@ namespace SftpServerLib
             {
                 (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.None);
 
-                // Find all IpWorks status codes for this event at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_DirCreate.htm
+                // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_DirCreate.htm
                 switch (result)
                 {
                     case AuthorizationResult.ConnectionNotFound:
@@ -368,6 +521,13 @@ namespace SftpServerLib
                         return;
                     }
 
+                    if (!userAccount.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60)))
+                    {
+                        evtData.Accept = false;
+                        Log.Information($"SftpConnection request denied.  The requested account with name <{evtData.User}> has an expired password");
+                        return;
+                    }
+
                     if (userAccount.ApplicationUserId.HasValue && (!userAccount.ApplicationUser.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60)) || userAccount.ApplicationUser.IsSuspended))
                     {
                         evtData.Accept = false;
@@ -386,13 +546,8 @@ namespace SftpServerLib
                         IpWorksSftpServer._sftpServer.Config($@"UserRootDirectory[{evtData.ConnectionId}]={absoluteFileDropRootPath}");
 
                         connection.LastActivityUtc = DateTime.UtcNow;
-                        connection.MapUserId = userAccount.ApplicationUserId;
-                        if (userAccount.ApplicationUserId.HasValue)
-                        {
-                            connection.MapUserName = userAccount.ApplicationUser.UserName;
-                        }
-                        connection.SftpAccountId = userAccount.Id;
-                        connection.SftpAccountName = userAccount.UserName;
+                        connection.MapUser = userAccount.ApplicationUser != null ? new ApplicationUser { Id = userAccount.ApplicationUser.Id, UserName = userAccount.ApplicationUser.UserName} : null;
+                        connection.Account = new SftpAccount(userAccount.FileDropId) { Id = userAccount.Id, UserName = userAccount.UserName };
                         connection.FileDropId = userAccount.FileDropId;
                         connection.FileDropName = userAccount.FileDropUserPermissionGroup.FileDrop.Name;
                         connection.ClientId = userAccount.FileDropId;
@@ -425,10 +580,14 @@ namespace SftpServerLib
         {
             using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
             {
+                int passwordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60);
+                int sftpPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60);
+
                 List<Guid> currentConnectedAccountIds = IpWorksSftpServer._connections
                                                                          .Where(c => c.Value != null)  // .Value can be null in some debugging situations
-                                                                         .Where(c => c.Value.SftpAccountId.HasValue)
-                                                                         .Select(c => c.Value.SftpAccountId.Value)
+                                                                         .Where(c => c.Value.Account != null)
+                                                                         .Select(c => c.Value.Account.Id)
+                                                                         .Distinct()
                                                                          .ToList();
 
                 var query = db.SftpAccount
@@ -437,25 +596,28 @@ namespace SftpServerLib
                                   .ThenInclude(p => p.FileDrop)
                               .Where(a => currentConnectedAccountIds.Contains(a.Id));
 
-                foreach (var connectedAccount in query)
+                foreach (SftpAccount connectedAccount in query)
                 {
-                    SftpConnectionProperties connection = IpWorksSftpServer._connections.SingleOrDefault(c => c.Value.SftpAccountId == connectedAccount.Id).Value;
-                    if (connection == null)  // can happen during debug if a connection is closed while sitting at a breakpoint in this method
+                    // There can be multiple connections for a user
+                    foreach (SftpConnectionProperties connection in IpWorksSftpServer._connections.Values.Where(c => c.Account?.Id == connectedAccount.Id))
                     {
-                        continue;
-                    }
+                        if (connection == null)  // can happen during debug if a connection is closed while sitting at a breakpoint in this method
+                        {
+                            continue;
+                        }
 
-                    if (!connectedAccount.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60)) ||
-                        connectedAccount.FileDropUserPermissionGroup.FileDrop.IsSuspended ||
-                        (connectedAccount.ApplicationUserId.HasValue && !connectedAccount.ApplicationUser.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60))))
-                    {
-                        IpWorksSftpServer._connections.Remove(connection.Id);
-                    }
-                    else
-                    {
-                        connection.ReadAccess = connectedAccount.FileDropUserPermissionGroup.ReadAccess;
-                        connection.WriteAccess = connectedAccount.FileDropUserPermissionGroup.WriteAccess;
-                        connection.DeleteAccess = connectedAccount.FileDropUserPermissionGroup.DeleteAccess;
+                        if (!connectedAccount.IsCurrent(sftpPasswordExpirationDays) ||
+                            connectedAccount.FileDropUserPermissionGroup.FileDrop.IsSuspended ||
+                            (connectedAccount.ApplicationUserId.HasValue && !connectedAccount.ApplicationUser.IsCurrent(passwordExpirationDays)))
+                        {
+                            IpWorksSftpServer._connections.Remove(connection.Id);
+                        }
+                        else
+                        {
+                            connection.ReadAccess = connectedAccount.FileDropUserPermissionGroup.ReadAccess;
+                            connection.WriteAccess = connectedAccount.FileDropUserPermissionGroup.WriteAccess;
+                            connection.DeleteAccess = connectedAccount.FileDropUserPermissionGroup.DeleteAccess;
+                        }
                     }
                 }
             }
