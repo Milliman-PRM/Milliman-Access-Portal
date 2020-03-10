@@ -50,6 +50,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('DELETE_FILE_DROP', API.deleteFileDrop);
   yield takeLatestRequest('UPDATE_FILE_DROP', API.updateFileDrop);
   yield takeLatestRequest('FETCH_PERMISSION_GROUPS', API.fetchPermissionGroups);
+  yield takeLatestRequest('UPDATE_PERMISSION_GROUPS', API.updatePermissionGroups);
 
   // Session and Status Checks
   // yield takeLatestRequest('FETCH_STATUS_REFRESH', API.fetchStatusRefresh);
