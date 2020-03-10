@@ -112,21 +112,24 @@ export interface DiscardPendingPermissionGroupChanges {
   originalValues: PermissionGroupsReturnModel;
 }
 
-/** Add user to Permission Group form */
+/** Add user to Permission Group */
 export interface AddUserToPermissionGroupForm {
   type: 'ADD_USER_TO_PERMISSION_GROUP_FORM';
+  pgId: Guid;
   userId: Guid;
 }
 
-/** Remove user from Permission Group form */
+/** Remove user from Permission Group */
 export interface RemoveUserFromPermissionGroupForm {
   type: 'REMOVE_USER_From_PERMISSION_GROUP_FORM';
+  pgId: Guid;
   userId: Guid;
 }
 
-/** Set Permission Group name in Permission Group form */
+/** Set Permission Group name in Permission Group */
 export interface SetPermissionGroupNameText {
   type: 'SET_PERMISSION_GROUP_NAME_TEXT';
+  pgId: Guid;
   value: string;
 }
 
