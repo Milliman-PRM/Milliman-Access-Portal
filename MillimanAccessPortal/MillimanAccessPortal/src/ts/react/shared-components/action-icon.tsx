@@ -1,4 +1,6 @@
-﻿import '../../../images/icons/add.svg';
+﻿import '../../../images/icons/add-group.svg';
+import '../../../images/icons/add-user.svg';
+import '../../../images/icons/add.svg';
 import '../../../images/icons/cancel.svg';
 import '../../../images/icons/checkmark.svg';
 import '../../../images/icons/collapse-cards.svg';
@@ -20,7 +22,7 @@ import * as React from 'react';
 
 export interface ActionIconProps {
   label: string;
-  icon: 'add' | 'cancel' | 'checkmark' | 'collapse-cards' | 'delete' | 'edit'
+  icon: 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' | 'collapse-cards' | 'delete' | 'edit'
     | 'email' | 'expand-card' | 'expand-cards' | 'remove-circle' | 'upload' | 'user' | 'userguide';
   action: () => void;
   inline: boolean;
@@ -51,3 +53,9 @@ export class ActionIcon extends React.Component<ActionIconProps, {}> {
     this.props.action();
   }
 }
+
+export const ActionIconButtonContainer: React.SFC<{ color: 'blue' | 'green' | 'red'; }> = (props) => (
+  <div className={`action-icon-button-container ${props.color}`}>
+    {props.children}
+  </div>
+);

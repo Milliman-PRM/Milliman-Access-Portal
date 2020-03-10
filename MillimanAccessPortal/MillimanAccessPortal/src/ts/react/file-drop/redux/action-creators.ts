@@ -14,13 +14,9 @@ export const selectClient =
 export const selectFileDrop =
   createActionCreator<Action.SelectFileDrop>('SELECT_FILE_DROP');
 
-/** Set the Client filter */
-export const setFilterTextClient =
-  createActionCreator<Action.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');
-
-/** Set the File Drop filter */
-export const setFilterTextFileDrop =
-  createActionCreator<Action.SetFilterTextFileDrop>('SET_FILTER_TEXT_FILE_DROP');
+/** Set filter input(s) text */
+export const setFilterText =
+  createActionCreator<Action.SetFilterText>('SET_FILTER_TEXT');
 
 /** Open the Create File Drop modal */
 export const openCreateFileDropModal =
@@ -62,6 +58,18 @@ export const cancelFileDropEdit =
 export const selectFileDropTab =
   createActionCreator<Action.SelectFileDropTab>('SELECT_FILE_DROP_TAB');
 
+/** Set the value of a Permission Group permission */
+export const setPermissionGroupPermissionValue =
+  createActionCreator<Action.SetPermissionGroupPermissionValue>('SET_PERMISSION_GROUP_PERMISSION_VALUE');
+
+/** Remove a Permission Group from a File Drop */
+export const removePermissionGroup =
+  createActionCreator<Action.RemovePermissionGroup>('REMOVE_PERMISSION_GROUP');
+
+/** Discard pending changes to the Permission Groups */
+export const discardPendingPermissionGroupChanges =
+  createActionCreator<Action.DiscardPendingPermissionGroupChanges>('DISCARD_PENDING_PERMISSION_GROUP_CHANGES');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -89,6 +97,10 @@ export const deleteFileDrop =
 /** Update a File Drop */
 export const updateFileDrop =
   createRequestActionCreator<Action.UpdateFileDrop>('UPDATE_FILE_DROP');
+
+/** Get the permission group information */
+export const fetchPermissionGroups =
+  createRequestActionCreator<Action.FetchPermissionGroups>('FETCH_PERMISSION_GROUPS');
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions

@@ -24,3 +24,31 @@
 .action-icon-container-inline {
     display: inline;
 }
+
+.action-icon-button-container {
+    display: inline;
+    padding: .42em;
+    border-radius: 50%;
+    margin-left: .5em;
+    cursor: pointer;
+
+    .action-icon-container-inline {
+        margin: 0 !important;
+    } 
+    
+    svg {
+        color: $white;
+    }
+
+    &.green {
+        background-color: $green;
+    }
+
+    &.blue {
+        background-color: $blue;
+    }
+
+    &.red {
+        background-color: $red;
+    }
+}

@@ -36,7 +36,7 @@ export class TabRow extends React.Component<TabRowProps> {
           }
         }}
       >
-        {tab.label}
+        {tab.label.toUpperCase()}
       </div>
     ));
   }

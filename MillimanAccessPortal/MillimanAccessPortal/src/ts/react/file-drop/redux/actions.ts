@@ -1,5 +1,6 @@
 import {
-  FileDrop, FileDropClientWithStats, FileDropsReturnModel, FileDropWithStats, Guid,
+  FileDrop, FileDropClientWithStats, FileDropsReturnModel,
+  FileDropWithStats, Guid, PermissionGroupsReturnModel,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -27,15 +28,10 @@ export interface SelectFileDrop {
   id: Guid | 'NEW FILE DROP';
 }
 
-/** Set filter text for the client card filter */
-export interface SetFilterTextClient {
-  type: 'SET_FILTER_TEXT_CLIENT';
-  text: string;
-}
-
-/** Set filter text for the client card filter */
-export interface SetFilterTextFileDrop {
-  type: 'SET_FILTER_TEXT_FILE_DROP';
+/** Set filter text for the filter inputs */
+export interface SetFilterText {
+  type: 'SET_FILTER_TEXT';
+  filter: 'client' | 'fileDrop' | 'permissions' | 'activityLog';
   text: string;
 }
 
@@ -94,6 +90,26 @@ export interface CancelFileDropEdit {
 export interface SelectFileDropTab {
   type: 'SELECT_FILE_DROP_TAB';
   tab: AvailableFileDropTabs;
+}
+
+/** Change the value of a Permission Group permission */
+export interface SetPermissionGroupPermissionValue {
+  type: 'SET_PERMISSION_GROUP_PERMISSION_VALUE';
+  pgId: Guid;
+  permission: 'readAccess' | 'writeAccess' | 'deleteAccess';
+  value: boolean;
+}
+
+/** Remove a Permission Group */
+export interface RemovePermissionGroup {
+  type: 'REMOVE_PERMISSION_GROUP';
+  pgId: Guid;
+}
+
+/** Discard pening Permission Group changes */
+export interface DiscardPendingPermissionGroupChanges {
+  type: 'DISCARD_PENDING_PERMISSION_GROUP_CHANGES';
+  originalValues: PermissionGroupsReturnModel;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -219,6 +235,28 @@ export interface UpdateFileDropFailed {
   error: TSError;
 }
 
+/**
+ * GET:
+ *   All elibile users and permission groups (including membership and permissions)
+ */
+export interface FetchPermissionGroups {
+  type: 'FETCH_PERMISSION_GROUPS';
+  request: {
+    clientId: Guid;
+    fileDropId: Guid;
+  };
+}
+/** Action called upon successful return of the FetchFileDrops API call */
+export interface FetchPermissionGroupsSucceeded {
+  type: 'FETCH_PERMISSION_GROUPS_SUCCEEDED';
+  response: PermissionGroupsReturnModel;
+}
+/** Action called upon return of an error from the FetchFileDrops API call */
+export interface FetchPermissionGroupsFailed {
+  type: 'FETCH_PERMISSION_GROUPS_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -309,6 +347,9 @@ export type FileDropPageActions =
   | EditFileDrop
   | CancelFileDropEdit
   | SelectFileDropTab
+  | SetPermissionGroupPermissionValue
+  | RemovePermissionGroup
+  | DiscardPendingPermissionGroupChanges
   ;
 
 /** Actions that schedule another action */
@@ -325,6 +366,7 @@ export type FileDropRequestActions =
   | CreateFileDrop
   | DeleteFileDrop
   | UpdateFileDrop
+  | FetchPermissionGroups
   | FetchStatusRefresh
   | FetchSessionCheck
   ;
@@ -337,6 +379,7 @@ export type FileDropSuccessResponseActions =
   | CreateFileDropSucceeded
   | DeleteFileDropSucceeded
   | UpdateFileDropSucceeded
+  | FetchPermissionGroupsSucceeded
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   ;
@@ -349,14 +392,14 @@ export type FileDropErrorActions =
   | CreateFileDropFailed
   | DeleteFileDropFailed
   | UpdateFileDropFailed
+  | FetchPermissionGroupsFailed
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   ;
 
 /** Actions that set filter text */
 export type FilterActions =
-  | SetFilterTextClient
-  | SetFilterTextFileDrop
+  | SetFilterText
   ;
 
 /** All available File Drop Actions */

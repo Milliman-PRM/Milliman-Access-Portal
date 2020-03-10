@@ -1,0 +1,82 @@
+﻿@import "../../map_modules/variables";
+@import "../../map_modules/mixins";
+
+.permission-group-table {
+    width: 100%;
+
+    thead {
+        border-bottom: 2px solid $charcoal;
+
+        tr th {
+            padding-bottom: .5em;
+
+            &.col-group-user-icon {
+                width: 2em;
+            }
+
+            &.col-permission-download,
+            &.col-permission-upload,
+            &.col-permission-delete {
+                width: 6em;
+                padding: .25em 0;
+            }
+
+            &.col-permissions {
+                padding: .25em 0;
+                border-bottom: 1px solid $charcoal;
+            }
+        }
+    }
+
+    th.content-center,
+    td.content-center {
+        text-align: center;
+        padding: 0;
+    }
+
+    th.content-right,
+    td.content-right {
+        text-align: right;
+    }
+
+    .table-icon {
+        height: 1.5em;
+        width: 1.5em;
+    }
+
+    tbody {
+
+        tr {
+            
+            &.last-group-row,
+            &.action-row {
+                border-bottom: 1px solid $charcoal;
+            }
+
+            &.action-row {
+                cursor: pointer;
+                
+                .action-text {
+                    color: $green;
+                    font-weight: bold;
+                }
+            }
+
+            td {
+                padding-top: .5em;
+                padding-bottom: .5em;
+
+                .selection-option-container {
+                    justify-content: center;
+                    align-items: center;
+                    padding: 0;
+                    margin: 0;
+
+                    .selection-option-label {
+                        height: 1em;
+                    }
+                }
+            }
+        }
+    }
+}
