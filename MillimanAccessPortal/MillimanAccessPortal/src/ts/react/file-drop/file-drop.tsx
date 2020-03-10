@@ -684,6 +684,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               readOnly={!pending.permissionGroupsEditMode}
               setPermissionValue={this.props.setPermissionGroupPermissionValue}
               removePermissionGroup={this.props.removePermissionGroup}
+              addUserToPermissionGroup={this.props.addUserToPermissionGroup}
+              removeUserFromPermissionGroup={this.props.removeUserFromPermissionGroup}
             />
             {
               pending.permissionGroupsEditMode &&

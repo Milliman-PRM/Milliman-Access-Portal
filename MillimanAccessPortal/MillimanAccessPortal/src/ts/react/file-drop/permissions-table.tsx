@@ -20,12 +20,16 @@ interface PermissionsTableProps {
     value: boolean;
   }) => void;
   removePermissionGroup: ({ pgId }: { pgId: Guid }) => void;
+  addUserToPermissionGroup: ({ pgId, userId }: { pgId: Guid; userId: Guid }) => void;
+  removeUserFromPermissionGroup: ({ pgId, userId }: { pgId: Guid; userId: Guid }) => void;
 }
 
 export class PermissionsTable extends React.Component<PermissionsTableProps> {
 
   public render() {
-    const { setPermissionValue, removePermissionGroup, readOnly } = this.props;
+    const {
+      setPermissionValue, removePermissionGroup, readOnly, addUserToPermissionGroup, removeUserFromPermissionGroup,
+    } = this.props;
     const { permissionGroups, eligibleUsers } = this.props.permissions;
     const permissionGroupsMarkup = Object.keys(permissionGroups).map((pgId) => {
       const thisPG = permissionGroups[pgId];
@@ -105,7 +109,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                     {
                       !readOnly &&
                       <ActionIcon
-                        action={() => alert('remove user')}
+                        action={() => removeUserFromPermissionGroup({ pgId: thisPG.id, userId: thisUser.id })}
                         icon="remove-circle"
                         label="Remove user from Permission Group"
                         inline={true}
