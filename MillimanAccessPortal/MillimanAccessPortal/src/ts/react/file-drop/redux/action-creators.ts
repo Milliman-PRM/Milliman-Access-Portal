@@ -71,12 +71,12 @@ export const discardPendingPermissionGroupChanges =
   createActionCreator<Action.DiscardPendingPermissionGroupChanges>('DISCARD_PENDING_PERMISSION_GROUP_CHANGES');
 
 /** Add a user to the Permission Group form */
-export const addUserToPermissionGroupForm =
-  createActionCreator<Action.AddUserToPermissionGroupForm>('ADD_USER_TO_PERMISSION_GROUP_FORM');
+export const addUserToPermissionGroup =
+  createActionCreator<Action.AddUserToPermissionGroup>('ADD_USER_TO_PERMISSION_GROUP');
 
 /** Remove a user from the Permission Group form */
-export const removeUserFromPermissionGroupForm =
-  createActionCreator<Action.RemoveUserFromPermissionGroupForm>('REMOVE_USER_From_PERMISSION_GROUP_FORM');
+export const removeUserFromPermissionGroup =
+  createActionCreator<Action.RemoveUserFromPermissionGroup>('REMOVE_USER_FROM_PERMISSION_GROUP');
 
 /** Update the text of the Permission Group name in the form */
 export const setPermissionGroupNameText =

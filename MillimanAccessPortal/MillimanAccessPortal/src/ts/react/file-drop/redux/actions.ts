@@ -113,15 +113,15 @@ export interface DiscardPendingPermissionGroupChanges {
 }
 
 /** Add user to Permission Group */
-export interface AddUserToPermissionGroupForm {
-  type: 'ADD_USER_TO_PERMISSION_GROUP_FORM';
+export interface AddUserToPermissionGroup {
+  type: 'ADD_USER_TO_PERMISSION_GROUP';
   pgId: Guid;
   userId: Guid;
 }
 
 /** Remove user from Permission Group */
-export interface RemoveUserFromPermissionGroupForm {
-  type: 'REMOVE_USER_From_PERMISSION_GROUP_FORM';
+export interface RemoveUserFromPermissionGroup {
+  type: 'REMOVE_USER_FROM_PERMISSION_GROUP';
   pgId: Guid;
   userId: Guid;
 }
@@ -398,8 +398,8 @@ export type FileDropPageActions =
   | SetPermissionGroupPermissionValue
   | RemovePermissionGroup
   | DiscardPendingPermissionGroupChanges
-  | AddUserToPermissionGroupForm
-  | RemoveUserFromPermissionGroupForm
+  | AddUserToPermissionGroup
+  | RemoveUserFromPermissionGroup
   | SetPermissionGroupNameText
   | SetEditModeForPermissionGroups
   ;
