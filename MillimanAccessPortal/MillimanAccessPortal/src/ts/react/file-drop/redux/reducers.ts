@@ -387,6 +387,12 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
   }),
 });
 
+/** Reducer for setting the edit mode state of the Permission Groups tab */
+const permissionGroupsEditMode = createReducer<boolean>(false, {
+  SET_EDIT_MODE_FOR_PERMISSION_GROUPS:
+    (_state, action: Action.SetEditModeForPermissionGroups) => action.editModeEnabled,
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
@@ -396,6 +402,7 @@ const pending = combineReducers({
   fileDropToDelete: pendingFileDropToDelete,
   selectedFileDropTab,
   permissionGroupsTab,
+  permissionGroupsEditMode,
 });
 
 // ~~~~~~~~~~~~~~~~
