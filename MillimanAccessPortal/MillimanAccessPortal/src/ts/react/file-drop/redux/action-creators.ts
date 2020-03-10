@@ -82,6 +82,10 @@ export const removeUserFromPermissionGroupForm =
 export const setPermissionGroupNameText =
   createActionCreator<Action.SetPermissionGroupNameText>('SET_PERMISSION_GROUP_NAME_TEXT');
 
+/** Set edit mode state for Permission Groups tab */
+export const setEditModeForPermissionGroups =
+  createActionCreator<Action.SetEditModeForPermissionGroups>('SET_EDIT_MODE_FOR_PERMISSION_GROUPS');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~

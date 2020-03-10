@@ -133,6 +133,12 @@ export interface SetPermissionGroupNameText {
   value: string;
 }
 
+/** Set Edit Mode for Permission Group tab */
+export interface SetEditModeForPermissionGroups {
+  type: 'SET_EDIT_MODE_FOR_PERMISSION_GROUPS';
+  editModeEnabled: boolean;
+}
+
 /** Set Permission Group  */
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -395,6 +401,7 @@ export type FileDropPageActions =
   | AddUserToPermissionGroupForm
   | RemoveUserFromPermissionGroupForm
   | SetPermissionGroupNameText
+  | SetEditModeForPermissionGroups
   ;
 
 /** Actions that schedule another action */
