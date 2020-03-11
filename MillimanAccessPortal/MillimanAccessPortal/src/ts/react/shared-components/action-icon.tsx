@@ -1,4 +1,5 @@
-﻿import '../../../images/icons/add-group.svg';
+﻿import '../../../images/icons/add-circle.svg';
+import '../../../images/icons/add-group.svg';
 import '../../../images/icons/add-user.svg';
 import '../../../images/icons/add.svg';
 import '../../../images/icons/cancel.svg';
@@ -22,8 +23,9 @@ import * as React from 'react';
 
 export interface ActionIconProps {
   label: string;
-  icon: 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' | 'collapse-cards' | 'delete' | 'edit'
-    | 'email' | 'expand-card' | 'expand-cards' | 'remove-circle' | 'upload' | 'user' | 'userguide';
+  icon: 'add-circle' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' | 'collapse-cards' |
+    'delete' | 'edit' | 'email' | 'expand-card' | 'expand-cards' | 'remove-circle' | 'upload' | 'user' |
+    'userguide';
   action: () => void;
   inline: boolean;
 }
