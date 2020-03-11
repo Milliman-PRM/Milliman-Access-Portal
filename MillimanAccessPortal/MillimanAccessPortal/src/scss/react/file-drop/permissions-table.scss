@@ -48,8 +48,18 @@
         width: 1.5em;
     }
 
+    td.add-user {
+        svg {
+            color: $green;
+        }
+
+        .action-icon-container-inline {
+            margin: 0 !important;
+        }
+    }
+
     td.remove-user {
-        
+
         svg {
             color: $red;
 
