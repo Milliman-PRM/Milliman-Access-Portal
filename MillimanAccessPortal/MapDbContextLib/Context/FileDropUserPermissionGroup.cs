@@ -36,6 +36,6 @@ namespace MapDbContextLib.Context
         public Guid FileDropId { get; set; }
         public FileDrop FileDrop { get; set; }
 
-        public ICollection<SftpAccount> SftpAccounts { get; set; }
+        public ICollection<SftpAccount> SftpAccounts { get; set; } = new List<SftpAccount>();
     }
 }

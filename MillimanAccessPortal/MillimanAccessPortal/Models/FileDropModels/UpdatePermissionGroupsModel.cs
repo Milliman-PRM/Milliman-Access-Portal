@@ -12,23 +12,24 @@ namespace MillimanAccessPortal.Models.FileDropModels
     public class UpdatePermissionGroupsModel
     {
         public Guid FileDropId { get; set; }
-
-        public List<Guid> RemovedPermissionGroupIds { get; set; }
-
-        public List<NewPermissionGroup> NewPermissionGroups { get; set; }
-
-        public Dictionary<Guid,UpdatedPermissionGroup> UpdatedPermissionGroups { get; set; }
+        public List<Guid> RemovedPermissionGroupIds { get; set; } = new List<Guid>();
+        public List<NewPermissionGroup> NewPermissionGroups { get; set; } = new List<NewPermissionGroup>();
+        public Dictionary<Guid, UpdatedPermissionGroup> UpdatedPermissionGroups { get; set; } = new Dictionary<Guid, UpdatedPermissionGroup>();
     }
 
     public class NewPermissionGroup
     {
         public string Name { get; set; }
         public List<Guid> AuthorizedMapUsers { get; set; } = new List<Guid>();
-        public List<Guid> AuthorizedSftpAccounts { get; set; } = new List<Guid>();
         public bool IsPersonalGroup { get; set; }
         public bool ReadAccess { get; set; }
         public bool WriteAccess { get; set; }
         public bool DeleteAccess { get; set; }
+
+        /// <summary>
+        /// For accounts not associated with MAP users
+        /// </summary>
+        public List<Guid> AuthorizedSftpAccounts { get; set; } = new List<Guid>();
     }
 
     public class UpdatedPermissionGroup
@@ -40,5 +41,14 @@ namespace MillimanAccessPortal.Models.FileDropModels
         public bool ReadAccess { get; set; }
         public bool WriteAccess { get; set; }
         public bool DeleteAccess { get; set; }
+
+        /// <summary>
+        /// For accounts not associated with MAP users
+        /// </summary>
+        public List<Guid> SftpAccountsAdded { get; set; } = new List<Guid>();
+        /// <summary>
+        /// For accounts not associated with MAP users
+        /// </summary>
+        public List<Guid> SftpAccountsRemoved { get; set; } = new List<Guid>();
     }
 }
