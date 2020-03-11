@@ -110,6 +110,28 @@ export function fileDropEntities(state: FileDropState) {
   return _.sortBy(filteredFileDrops, ['name']);
 }
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Permission Group Selectors
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+/** Return the pending changes to the permissions tab data */
+export function pendingPermissionsData(state: FileDropState) {
+  // TODO: Return the pending changes to permission groups
+  return state.data.permissionGroups;
+}
+
+/** Return a boolean value indicating that pending Permission Group changes exist */
+export function permissionGroupChangesPending(state: FileDropState) {
+  const { data, pending } = state;
+  return data.permissionGroups
+    && pending.permissionGroupsTab
+    && (
+    Object.keys(data.permissionGroups.permissionGroups).length
+    !== Object.keys(pending.permissionGroupsTab.permissionGroups).length
+      || !_.isEqual(data.permissionGroups.permissionGroups, pending.permissionGroupsTab.permissionGroups)
+    );
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Selectors
 // ~~~~~~~~~~~~~~~~~~~~~~~~

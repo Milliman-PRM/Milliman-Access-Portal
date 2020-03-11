@@ -7,7 +7,7 @@ import * as FileDropActionCreator from './redux/action-creators';
 import * as Selector from './redux/selectors';
 import * as State from './redux/store';
 
-import { Client, FileDropClientWithStats, FileDropWithStats } from '../models';
+import { Client, FileDropClientWithStats, FileDropWithStats, PermissionGroupsReturnModel } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
@@ -20,13 +20,16 @@ import {
 import { CardStat } from '../shared-components/card/card-stat';
 import { ContentPanel, ContentPanelSectionContent } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
+import { ContentPanelForm } from '../shared-components/form/form-elements';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { NavBar } from '../shared-components/navbar';
 import { TabRow } from '../shared-components/tab-row';
+import { PermissionsTable } from './permissions-table';
 
 type ClientEntity = (FileDropClientWithStats & { indent: 1 | 2 }) | 'divider';
 
 interface FileDropProps {
+  data: State.FileDropDataState;
   clients: ClientEntity[];
   fileDrops: FileDropWithStats[];
   selected: State.FileDropSelectedState;
@@ -35,6 +38,7 @@ interface FileDropProps {
   filters: State.FileDropFilterState;
   modals: State.FileDropModals;
   activeSelectedClient: FileDropClientWithStats;
+  permissionGroupChangesPending: boolean;
 }
 
 class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCreator> {
@@ -276,7 +280,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter clients...'}
-            setFilterText={(text) => this.props.setFilterTextClient({ text })}
+            setFilterText={(text) => this.props.setFilterText({ filter: 'client', text })}
             filterText={filters.client.text}
           />
           <PanelSectionToolbarButtons>
@@ -405,6 +409,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.selectFileDrop({ id: entity.id });
                     if (activeSelectedClient.canManageFileDrops) {
                       this.props.selectFileDropTab({ tab: 'permissions' });
+                      this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: entity.id });
                     } else {
                       this.props.selectFileDropTab({ tab: 'settings' });
                     }
@@ -512,7 +517,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <PanelSectionToolbar>
             <Filter
               placeholderText={'Filter file drops...'}
-              setFilterText={(text) => this.props.setFilterTextFileDrop({ text })}
+              setFilterText={(text) => this.props.setFilterText({ filter: 'fileDrop', text })}
               filterText={filters.fileDrop.text}
             />
             <PanelSectionToolbarButtons>
@@ -567,31 +572,88 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderPermissionsTab() {
+    const { data, filters, pending } = this.props;
+    const addUserButton = (
+      <ActionIcon
+        label="Add User"
+        icon="add-user"
+        action={() => alert('Add User')}
+      />
+    );
+    const addGroupButton = (
+      <ActionIcon
+        label="Add Group"
+        icon="add-group"
+        action={() => alert('Add Group')}
+      />
+    );
+
     return (
       <>
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter permission groups/users...'}
-            setFilterText={() => false}
-            filterText={''}
+            setFilterText={(text) => this.props.setFilterText({ filter: 'permissions', text })}
+            filterText={filters.permissions.text}
           />
-          <PanelSectionToolbarButtons />
+          <PanelSectionToolbarButtons>
+            {addUserButton}
+            {addGroupButton}
+          </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
-          <div>Content Here...</div>
+          <ContentPanelForm
+            readOnly={false}
+          >
+            <PermissionsTable
+              permissions={pending.permissionGroupsTab}
+              setPermissionValue={this.props.setPermissionGroupPermissionValue}
+              removePermissionGroup={this.props.removePermissionGroup}
+            />
+            {
+              this.props.permissionGroupChangesPending &&
+              <div className="button-container">
+                <button
+                  className="link-button"
+                  type="button"
+                  onClick={(event: any) => {
+                    event.preventDefault();
+                    this.props.discardPendingPermissionGroupChanges({ originalValues: data.permissionGroups });
+                  }}
+                >
+                  Undo Changes
+                </button>
+                <button
+                  type="button"
+                  className="green-button"
+                  onClick={(event: React.MouseEvent) => {
+                    event.preventDefault();
+                    alert('submit');
+                  }}
+                >
+                  Save Changes
+                  {this.props.pending.async.permissionsUpdate
+                    ? <ButtonSpinner version="circle" />
+                    : null
+                  }
+                </button>
+              </div>
+            }
+          </ContentPanelForm>
         </ContentPanelSectionContent>
       </>
     );
   }
 
   private renderActivityLogTab() {
+    const { filters } = this.props;
     return (
       <>
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter events...'}
-            setFilterText={() => false}
-            filterText={''}
+            setFilterText={(text) => this.props.setFilterText({ filter: 'activityLog', text })}
+            filterText={filters.activityLog.text}
           />
           <PanelSectionToolbarButtons />
         </PanelSectionToolbar>
@@ -617,6 +679,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
   const { data, selected, cardAttributes, pending, filters, modals } = state;
 
   return {
+    data,
     clients: Selector.clientEntities(state),
     fileDrops: Selector.fileDropEntities(state),
     selected,
@@ -625,6 +688,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     filters,
     modals,
     activeSelectedClient: Selector.activeSelectedClient(state),
+    permissionGroupChangesPending: Selector.permissionGroupChangesPending(state),
   };
 }
 

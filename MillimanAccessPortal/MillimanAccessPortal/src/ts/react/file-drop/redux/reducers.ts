@@ -5,7 +5,7 @@ import { combineReducers } from 'redux';
 import * as Action from './actions';
 import * as State from './store';
 
-import { FileDropWithStats, Guid } from '../../models';
+import { FileDropWithStats, Guid, PermissionGroupsReturnModel } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
@@ -29,9 +29,94 @@ const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
 // Default Objects
 // ~~~~~~~~~~~~~~~
 
+// TODO: Remove this once the calls are hooked up
+const _dummyPermissionGroupsData: PermissionGroupsReturnModel = {
+  eligibleUsers: {
+    'user-1': {
+      id: 'user-1',
+      firstName: 'User',
+      lastName: 'One',
+      username: 'user.1@domain.com',
+      isFileDropAdmin: true,
+    },
+    'user-2': {
+      id: 'user-2',
+      firstName: 'User',
+      lastName: 'Two',
+      username: 'user.2@domain.com',
+      isFileDropAdmin: false,
+    },
+    'user-3': {
+      id: 'user-3',
+      firstName: 'User',
+      lastName: 'Three',
+      username: 'user.3@domain.com',
+      isFileDropAdmin: false,
+    },
+    'user-4': {
+      id: 'user-4',
+      firstName: 'User',
+      lastName: 'Four',
+      username: 'user.4@domain.com',
+      isFileDropAdmin: false,
+    },
+    'user-5': {
+      id: 'user-5',
+      firstName: 'User',
+      lastName: 'Five',
+      username: 'user.5@domain.com',
+      isFileDropAdmin: false,
+    },
+  },
+  fileDropId: '',
+  permissionGroups: {
+    'pg-1': {
+      id: 'pg-1',
+      name: 'User One',
+      isPersonalGroup: true,
+      assignedMapUserIds: ['user-1'],
+      assignedSftpAccountIds: [],
+      deleteAccess: true,
+      readAccess: true,
+      writeAccess: true,
+    },
+    'pg-4': {
+      id: 'pg-4',
+      name: 'No Users Group',
+      isPersonalGroup: false,
+      assignedMapUserIds: [],
+      assignedSftpAccountIds: [],
+      deleteAccess: true,
+      readAccess: true,
+      writeAccess: true,
+    },
+    'pg-2': {
+      id: 'pg-2',
+      name: 'Permission Group #2',
+      isPersonalGroup: false,
+      assignedMapUserIds: ['user-2', 'user-3'],
+      assignedSftpAccountIds: [],
+      deleteAccess: false,
+      readAccess: true,
+      writeAccess: false,
+    },
+    'pg-3': {
+      id: 'pg-3',
+      name: 'Permission Group #3',
+      isPersonalGroup: false,
+      assignedMapUserIds: ['user-4', 'user-5'],
+      assignedSftpAccountIds: [],
+      deleteAccess: false,
+      readAccess: true,
+      writeAccess: true,
+    },
+  },
+};
+
 const _initialData: State.FileDropDataState = {
   clients: {},
   fileDrops: {},
+  permissionGroups: null,
 };
 
 const _initialPendingData: State.FileDropPendingReturnState = {
@@ -41,6 +126,21 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   createFileDrop: false,
   deleteFileDrop: false,
   updateFileDrop: false,
+  permissions: false,
+  permissionsUpdate: false,
+};
+
+const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
+  fileDropId: '',
+  eligibleUsers: {},
+  permissionGroups: {},
+};
+
+const _initialFilterValues: State.FileDropFilterState = {
+  client: { text: '' },
+  fileDrop: { text: '' },
+  permissions: { text: '' },
+  activityLog: { text: '' },
 };
 
 const _initialCreateFileDropData: State.FileDropFormStateData = {
@@ -103,6 +203,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
   FETCH_FILE_DROPS_FAILED: (state) => ({
     ...state,
     fileDrops: false,
+  }),
+  FETCH_PERMISSION_GROUPS: (state) => ({
+    ...state,
+    permissions: true,
+  }),
+  FETCH_PERMISSION_GROUPS_SUCCEEDED: (state) => ({
+    ...state,
+    permissions: false,
+  }),
+  FETCH_PERMISSION_GROUPS_FAILED: (state) => ({
+    ...state,
+    permissions: false,
   }),
   CREATE_FILE_DROP: (state) => ({
     ...state,
@@ -212,6 +324,34 @@ const selectedFileDropTab = createReducer<State.AvailableFileDropTabs>(null, {
   SELECT_FILE_DROP_TAB: (_state, action: Action.SelectFileDropTab) => action.tab,
 });
 
+/** Reducer for Permission Groups form data */
+const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialPermissionGroupsTab, {
+  // TODO: Change this reducer to the FetchPermissionGroupsSucceeded action
+  FETCH_PERMISSION_GROUPS: () => JSON.parse(JSON.stringify(_dummyPermissionGroupsData)),
+  SET_PERMISSION_GROUP_PERMISSION_VALUE: (state, action: Action.SetPermissionGroupPermissionValue) => ({
+    ...state,
+    permissionGroups: {
+      ...state.permissionGroups,
+      [action.pgId]: {
+        ...state.permissionGroups[action.pgId],
+        [action.permission]: action.value,
+      },
+    },
+  }),
+  REMOVE_PERMISSION_GROUP: (state, action: Action.RemovePermissionGroup) => {
+    const { permissionGroups } = state;
+    delete permissionGroups[action.pgId];
+    return {
+      ...state,
+      permissionGroups,
+    };
+  },
+  DISCARD_PENDING_PERMISSION_GROUP_CHANGES: (_state, action: Action.DiscardPendingPermissionGroupChanges) => ({
+    // Convert to string and then back to json to allow these two sections of state to be independent
+    ...JSON.parse(JSON.stringify(action.originalValues)),
+  }),
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
@@ -220,6 +360,7 @@ const pending = combineReducers({
   editFileDrop: pendingEditFileDropData,
   fileDropToDelete: pendingFileDropToDelete,
   selectedFileDropTab,
+  permissionGroupsTab,
 });
 
 // ~~~~~~~~~~~~~~~~
@@ -296,23 +437,25 @@ const cardAttributes = combineReducers({
 // Filter Reducers
 // ~~~~~~~~~~~~~~~
 
-/**
- * Create a reducer for a filter
- * @param actionType Single filter action
- */
-const createFilterReducer = (actionType: Action.FilterActions['type']) =>
-  createReducer({ text: '' }, {
-    [actionType]: (state: FilterState, action: Action.FilterActions) => ({
+/** Create a reducer for the filters */
+const filters = createReducer<State.FileDropFilterState>(_initialFilterValues,
+  {
+    SET_FILTER_TEXT: (state, action: Action.SetFilterText) => ({
       ...state,
-      text: action.text,
+      [action.filter]: {
+        text: action.text,
+      },
     }),
-  });
-
-/** Reducer that combines the filters reducers */
-const filters = combineReducers({
-  client: createFilterReducer('SET_FILTER_TEXT_CLIENT'),
-  fileDrop: createFilterReducer('SET_FILTER_TEXT_FILE_DROP'),
-});
+    SELECT_CLIENT: () => ({
+      ..._initialFilterValues,
+    }),
+    SELECT_FILE_DROP: (state) => ({
+      ...state,
+      permissions: _initialFilterValues.permissions,
+      activityLog: _initialFilterValues.activityLog,
+    }),
+  },
+);
 
 // ~~~~~~~~~~~~~~
 // Modal Reducers
@@ -374,6 +517,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     clients: {
       ...action.response.clients,
     },
+    permissionGroups: null,
   }),
   FETCH_FILE_DROPS_SUCCEEDED: (state, action: Action.FetchFileDropsSucceeded) => ({
     ...state,
@@ -386,6 +530,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...action.response.fileDrops,
     },
+    permissionGroups: null,
   }),
   CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
     ...state,
@@ -398,6 +543,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...action.response.fileDrops,
     },
+    permissionGroups: null,
   }),
   DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
     ...state,
@@ -410,6 +556,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...action.response.fileDrops,
     },
+    permissionGroups: null,
   }),
   UPDATE_FILE_DROP_SUCCEEDED: (state, action: Action.UpdateFileDropSucceeded) => ({
     ...state,
@@ -422,6 +569,17 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...action.response.fileDrops,
     },
+  }),
+  // FETCH_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
+  //   ...state,
+  //   permissionGroups: {
+  //     ...action.response,
+  //   },
+  // }),
+  FETCH_PERMISSION_GROUPS: (state) => ({
+    // TODO: Remove this reducer (It's hard-coded fake data)
+    ...state,
+    permissionGroups: JSON.parse(JSON.stringify(_dummyPermissionGroupsData)),
   }),
 });
 

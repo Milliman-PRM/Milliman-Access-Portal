@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Identity;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -34,5 +35,7 @@ namespace MapDbContextLib.Context
         [ForeignKey("FileDrop")]
         public Guid FileDropId { get; set; }
         public FileDrop FileDrop { get; set; }
+
+        public ICollection<SftpAccount> SftpAccounts { get; set; }
     }
 }
