@@ -403,7 +403,7 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
   },
   REMOVE_USER_FROM_PERMISSION_GROUP: (state, action: Action.RemoveUserFromPermissionGroup) => {
     const { authorizedMapUsers: existingAuthorizedMapUsers } = state.permissionGroups[action.pgId];
-    const authorizedMapUsers = _.remove(existingAuthorizedMapUsers, (userId) => userId === action.userId);
+    const authorizedMapUsers = _.filter(existingAuthorizedMapUsers, (userId) => userId !== action.userId);
     return {
       ...state,
       permissionGroups: {
