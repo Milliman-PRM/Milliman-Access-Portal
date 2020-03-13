@@ -180,8 +180,8 @@ export function permissionGroupChangesPending(state: FileDropState) {
   return data.permissionGroups
     && pending.permissionGroupsTab
     && (
-    Object.keys(data.permissionGroups.permissionGroups).length
-    !== Object.keys(pending.permissionGroupsTab.permissionGroups).length
+      Object.keys(data.permissionGroups.permissionGroups).length
+      !== Object.keys(pending.permissionGroupsTab.permissionGroups).length
       || !_.isEqual(data.permissionGroups.permissionGroups, pending.permissionGroupsTab.permissionGroups)
     );
 }
