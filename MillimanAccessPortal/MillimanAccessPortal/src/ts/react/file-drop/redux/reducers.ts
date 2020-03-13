@@ -29,125 +29,6 @@ const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
 // Default Objects
 // ~~~~~~~~~~~~~~~
 
-// TODO: Remove this once the calls are hooked up
-const _dummyPermissionGroupsData: PermissionGroupsReturnModel = {
-  eligibleUsers: {
-    'user-1': {
-      id: 'user-1',
-      firstName: 'User',
-      lastName: 'One',
-      username: 'user.1@domain.com',
-      isFileDropAdmin: true,
-    },
-    'user-2': {
-      id: 'user-2',
-      firstName: 'User',
-      lastName: 'Two',
-      username: 'user.2@domain.com',
-      isFileDropAdmin: false,
-    },
-    'user-3': {
-      id: 'user-3',
-      firstName: 'User',
-      lastName: 'Three',
-      username: 'user.3@domain.com',
-      isFileDropAdmin: false,
-    },
-    'user-4': {
-      id: 'user-4',
-      firstName: 'User',
-      lastName: 'Four',
-      username: 'user.4@domain.com',
-      isFileDropAdmin: false,
-    },
-    'user-5': {
-      id: 'user-5',
-      firstName: 'User',
-      lastName: 'Five',
-      username: 'user.5@domain.com',
-      isFileDropAdmin: false,
-    },
-    'user-6': {
-      id: 'user-6',
-      firstName: 'User',
-      lastName: 'Six',
-      username: 'user.6@domain.com',
-      isFileDropAdmin: false,
-    },
-    'user-7': {
-      id: 'user-7',
-      firstName: 'User',
-      lastName: 'Seven',
-      username: 'user.7@domain.com',
-      isFileDropAdmin: false,
-    },
-    'user-8': {
-      id: 'user-8',
-      firstName: 'User',
-      lastName: 'Eight',
-      username: 'user.8@domain.com',
-      isFileDropAdmin: false,
-    },
-    'user-9': {
-      id: 'user-9',
-      firstName: 'User',
-      lastName: 'Nine',
-      username: 'user.9@domain.com',
-      isFileDropAdmin: false,
-    },
-    'user-10': {
-      id: 'user-10',
-      firstName: '',
-      lastName: '',
-      username: 'user.10@domain.com',
-      isFileDropAdmin: false,
-    },
-  },
-  fileDropId: '',
-  permissionGroups: {
-    'pg-1': {
-      id: 'pg-1',
-      name: '',
-      isPersonalGroup: true,
-      authorizedMapUsers: ['user-1'],
-      authorizedSftpAccounts: [],
-      deleteAccess: true,
-      readAccess: true,
-      writeAccess: true,
-    },
-    'pg-4': {
-      id: 'pg-4',
-      name: 'No Users Group',
-      isPersonalGroup: false,
-      authorizedMapUsers: [],
-      authorizedSftpAccounts: [],
-      deleteAccess: true,
-      readAccess: true,
-      writeAccess: true,
-    },
-    'pg-2': {
-      id: 'pg-2',
-      name: 'Permission Group #2',
-      isPersonalGroup: false,
-      authorizedMapUsers: ['user-2', 'user-3'],
-      authorizedSftpAccounts: [],
-      deleteAccess: false,
-      readAccess: true,
-      writeAccess: false,
-    },
-    'pg-3': {
-      id: 'pg-3',
-      name: 'Permission Group #3',
-      isPersonalGroup: false,
-      authorizedMapUsers: ['user-4', 'user-5'],
-      authorizedSftpAccounts: [],
-      deleteAccess: false,
-      readAccess: true,
-      writeAccess: true,
-    },
-  },
-};
-
 const _initialData: State.FileDropDataState = {
   clients: {},
   fileDrops: {},
@@ -362,7 +243,9 @@ const selectedFileDropTab = createReducer<State.AvailableFileDropTabs>(null, {
 /** Reducer for Permission Groups form data */
 const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialPermissionGroupsTab, {
   // TODO: Change this reducer to the FetchPermissionGroupsSucceeded action
-  FETCH_PERMISSION_GROUPS: () => JSON.parse(JSON.stringify(_dummyPermissionGroupsData)),
+  FETCH_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
+    ...action.response,
+  }),
   SET_PERMISSION_GROUP_PERMISSION_VALUE: (state, action: Action.SetPermissionGroupPermissionValue) => ({
     ...state,
     permissionGroups: {
@@ -668,16 +551,9 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
       ...action.response.fileDrops,
     },
   }),
-  // FETCH_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
-  //   ...state,
-  //   permissionGroups: {
-  //     ...action.response,
-  //   },
-  // }),
-  FETCH_PERMISSION_GROUPS: (state) => ({
-    // TODO: Remove this reducer (It's hard-coded fake data)
+  FETCH_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
     ...state,
-    permissionGroups: JSON.parse(JSON.stringify(_dummyPermissionGroupsData)),
+    permissionGroups: action.response,
   }),
 });
 
