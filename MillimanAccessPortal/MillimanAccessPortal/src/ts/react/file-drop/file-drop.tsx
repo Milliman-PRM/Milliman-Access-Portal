@@ -42,6 +42,7 @@ interface FileDropProps {
   modals: State.FileDropModals;
   activeSelectedClient: FileDropClientWithStats;
   permissionGroupChangesPending: boolean;
+  permissionGroupChangesReady: boolean;
   pendingPermissionGroupsChanges: PermissionGroupsChangesModel;
   unassignedEligibleUsers: AvailableEligibleUsers[];
 }
@@ -579,6 +580,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   private renderPermissionsTab() {
     const {
       data, filters, pending, pendingPermissionGroupsChanges, permissionGroupChangesPending,
+      permissionGroupChangesReady,
     } = this.props;
     const editPermissionGroupsButton = (
       <ActionIcon
@@ -662,6 +664,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 <button
                   type="button"
                   className="green-button"
+                  disabled={!permissionGroupChangesReady}
                   onClick={(event: React.MouseEvent) => {
                     event.preventDefault();
                     this.props.updatePermissionGroups(pendingPermissionGroupsChanges);
@@ -725,6 +728,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     modals,
     activeSelectedClient: Selector.activeSelectedClient(state),
     permissionGroupChangesPending: Selector.permissionGroupChangesPending(state),
+    permissionGroupChangesReady: Selector.permissionGroupChangesReady(state),
     pendingPermissionGroupsChanges: Selector.pendingPermissionGroupsChanges(state),
     unassignedEligibleUsers: Selector.unassignedEligibleUsers(state),
   };
