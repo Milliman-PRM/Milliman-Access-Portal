@@ -424,6 +424,22 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
       },
     },
   }),
+  ADD_NEW_PERMISSION_GROUP: (state, action: Action.AddNewPermissionGroup) => ({
+    ...state,
+    permissionGroups: {
+      ...state.permissionGroups,
+      [action.tempPGId]: {
+        id: action.tempPGId,
+        name: '',
+        isPersonalGroup: action.isSingleGroup,
+        authorizedMapUsers: [],
+        authorizedSftpAccounts: [],
+        readAccess: false,
+        writeAccess: false,
+        deleteAccess: false,
+      },
+    },
+  }),
 });
 
 /** Reducer for setting the edit mode state of the Permission Groups tab */
