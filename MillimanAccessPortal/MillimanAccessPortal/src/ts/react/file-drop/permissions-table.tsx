@@ -8,6 +8,7 @@ import '../../../scss/react/file-drop/permissions-table.scss';
 import * as React from 'react';
 import Select from 'react-select';
 
+import { generateUniqueId } from '../../generate-unique-identifier';
 import { AvailableEligibleUsers, Guid, PermissionGroupsReturnModel } from '../models';
 import { ActionIcon, ActionIconButtonContainer } from '../shared-components/action-icon';
 import { Checkbox } from '../shared-components/form/checkbox';
@@ -16,6 +17,10 @@ interface PermissionsTableProps {
   permissions: PermissionGroupsReturnModel;
   readOnly: boolean;
   unassignedEligibleUsers: AvailableEligibleUsers[];
+  addPermissionGroup: ({ tempPGId, isSingleGroup }: {
+    tempPGId: string,
+    isSingleGroup: boolean,
+  }) => void;
   setPermissionValue: ({ pgId, permission, value }: {
     pgId: Guid;
     permission: 'readAccess' | 'writeAccess' | 'deleteAccess';
@@ -31,7 +36,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
   public render() {
     const {
       setPermissionValue, removePermissionGroup, readOnly, addUserToPermissionGroup,
-      removeUserFromPermissionGroup, unassignedEligibleUsers,
+      removeUserFromPermissionGroup, unassignedEligibleUsers, addPermissionGroup,
     } = this.props;
     const { permissionGroups, eligibleUsers } = this.props.permissions;
     const permissionGroupsMarkup = Object.keys(permissionGroups).map((pgId) => {
@@ -197,18 +202,26 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
       );
     });
     const addUserRow = (
-      <tr className="action-row" onClick={() => alert('Add User')}>
+      <tr className="action-row">
         <td><svg className="table-icon"><use xlinkHref="#add-user" /></svg></td>
         <td colSpan={6} className="action-text">
-          <span onClick={() => alert('Add User')}>Add User</span>
+          <span
+            onClick={() => addPermissionGroup({ isSingleGroup: true, tempPGId: generateUniqueId('temp-pg')})}
+          >
+            Add User
+          </span>
         </td>
       </tr>
     );
     const addGroupRow = (
-      <tr className="action-row" onClick={() => alert('Add Group')}>
+      <tr className="action-row">
         <td><svg className="table-icon"><use xlinkHref="#add-group" /></svg></td>
         <td colSpan={6} className="action-text">
-          <span onClick={() => alert('Add Group')}>Add Group</span>
+          <span
+            onClick={() => addPermissionGroup({ isSingleGroup: false, tempPGId: generateUniqueId('temp-pg') })}
+          >
+            Add Group
+          </span>
         </td>
       </tr>
     );

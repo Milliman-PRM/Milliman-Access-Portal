@@ -7,6 +7,7 @@ import * as FileDropActionCreator from './redux/action-creators';
 import * as Selector from './redux/selectors';
 import * as State from './redux/store';
 
+import { generateUniqueId } from '../../generate-unique-identifier';
 import {
   AvailableEligibleUsers, FileDropClientWithStats, FileDropWithStats, PermissionGroupsChangesModel,
 } from '../models';
@@ -604,14 +605,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
       <ActionIcon
         label="Add User"
         icon="add-user"
-        action={() => alert('Add User')}
+        action={() => this.props.addNewPermissionGroup({isSingleGroup: true, tempPGId: generateUniqueId('temp-pg')})}
       />
     );
     const addGroupButton = (
       <ActionIcon
         label="Add Group"
         icon="add-group"
-        action={() => alert('Add Group')}
+        action={() => this.props.addNewPermissionGroup({ isSingleGroup: false, tempPGId: generateUniqueId('temp-pg') })}
       />
     );
 
@@ -638,6 +639,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               permissions={pending.permissionGroupsTab}
               readOnly={!pending.permissionGroupsEditMode}
               unassignedEligibleUsers={this.props.unassignedEligibleUsers}
+              addPermissionGroup={this.props.addNewPermissionGroup}
               setPermissionValue={this.props.setPermissionGroupPermissionValue}
               removePermissionGroup={this.props.removePermissionGroup}
               addUserToPermissionGroup={this.props.addUserToPermissionGroup}
