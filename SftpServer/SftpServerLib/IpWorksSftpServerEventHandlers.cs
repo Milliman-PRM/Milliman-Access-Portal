@@ -56,11 +56,8 @@ namespace SftpServerLib
             {
                 switch (evtData.Flags)
                 {
-                    case int flags when (flags & 0x00000020) != 0x00000020:  // SSH_FXF_EXCL (0x00000020)
-                        break;
-
                     case int flags when (flags & 0x00000008) == 0x00000008  // SSH_FXF_CREAT (0x00000008)
-                                     && (flags & 0x00000002) == 0x00000002: // SSH_FXF_WRITE(0x00000002)
+                                     && (flags & 0x00000002) == 0x00000002: // SSH_FXF_WRITE (0x00000002)
                         //client wants to create/write a file
 
                         (AuthorizationResult authResult, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Write);
@@ -78,6 +75,52 @@ namespace SftpServerLib
                             Log.Warning($"OnFileOpen event invoked for file write, but write access is denied");
                             evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
                             return;
+                        }
+
+                        using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+                        {
+                            string absoluteFilePath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.Path.TrimStart('/', '\\'));
+                            string dirPathToFind = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.Path));
+                            string fileName = Path.GetFileName(evtData.Path);
+
+                            FileDropDirectory containingDirectory = db.FileDropDirectory
+                                                                      .Where(d => d.FileDropId == connection.FileDropId)
+                                                                      .SingleOrDefault(d => EF.Functions.ILike(dirPathToFind, d.CanonicalFileDropPath));
+                            if (containingDirectory == null)
+                            {
+                                Log.Warning($"OnFileOpen event invoked for file write, but containing directory record was not found");
+                                evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
+                                return;
+                            }
+
+                            if ((evtData.Flags & 0x00000020) != 0x00000020 &&  // SSH_FXF_EXCL  (0x00000020)
+                                File.Exists(absoluteFilePath))
+                            {
+                                if (GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Delete).result != AuthorizationResult.Authorized)
+                                {
+                                    Log.Warning($"OnFileOpen event invoked for file write, but file already exists and delete access is denied");
+                                    evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
+                                    return;
+                                }
+
+                                var existingRecord = db.FileDropFile
+                                                       .SingleOrDefault(f => f.FileName == fileName
+                                                                          && f.DirectoryId == containingDirectory.Id);
+                                if (existingRecord != null)
+                                {
+                                    db.FileDropFile.Remove(existingRecord);
+                                    File.Delete(absoluteFilePath);
+                                    db.SaveChanges();
+                                }
+                            }
+
+                            db.FileDropFile.Add(new FileDropFile
+                            {
+                                FileName = fileName,
+                                DirectoryId = containingDirectory.Id,
+                                CreatedByAccountId = connection.Account.Id,
+                            });
+                            db.SaveChanges();
                         }
 
                         // TODO audit log
