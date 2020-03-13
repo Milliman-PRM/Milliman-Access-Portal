@@ -16,6 +16,7 @@ import { Checkbox } from '../shared-components/form/checkbox';
 interface PermissionsTableProps {
   permissions: PermissionGroupsReturnModel;
   readOnly: boolean;
+  isReadyToSubmit: boolean;
   unassignedEligibleUsers: AvailableEligibleUsers[];
   addPermissionGroup: ({ tempPGId, isSingleGroup }: {
     tempPGId: string,
@@ -29,13 +30,14 @@ interface PermissionsTableProps {
   removePermissionGroup: ({ pgId }: { pgId: Guid }) => void;
   addUserToPermissionGroup: ({ pgId, userId }: { pgId: Guid; userId: Guid }) => void;
   removeUserFromPermissionGroup: ({ pgId, userId }: { pgId: Guid; userId: Guid }) => void;
+  setPermissionGroupNameText: ({ pgId, value }: { pgId: Guid; value: string }) => void;
 }
 
 export class PermissionsTable extends React.Component<PermissionsTableProps> {
 
   public render() {
     const {
-      setPermissionValue, removePermissionGroup, readOnly, addUserToPermissionGroup,
+      setPermissionValue, removePermissionGroup, readOnly, isReadyToSubmit, addUserToPermissionGroup,
       removeUserFromPermissionGroup, unassignedEligibleUsers, addPermissionGroup,
     } = this.props;
     const { permissionGroups, eligibleUsers } = this.props.permissions;
@@ -55,15 +57,115 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
           >
             <td><svg className="table-icon"><use xlinkHref={pgIcon} /></svg></td>
             {
-              (thisPG.isPersonalGroup) ?
-                (
-                  <>
-                    <td><strong>{thisPG.name}</strong></td>
-                    <td>{eligibleUsers[thisPG.authorizedMapUsers[0]].username}</td>
-                  </>
-                ) : (
-                  <td colSpan={2}><strong>{thisPG.name}</strong></td>
-                )
+              (() => {
+                if (readOnly) {
+                  if (thisPG.isPersonalGroup) {
+                    return (
+                      <>
+                        <td>
+                          <strong>
+                            {
+                              (thisPG.authorizedMapUsers.length > 0 &&
+                                eligibleUsers[thisPG.authorizedMapUsers[0]].firstName) ?
+                                [
+                                  eligibleUsers[thisPG.authorizedMapUsers[0]].firstName,
+                                  eligibleUsers[thisPG.authorizedMapUsers[0]].lastName,
+                                ].join(' ') :
+                                '(Inactive)'
+                            }
+                          </strong>
+                        </td>
+                        <td>
+                          {
+                            thisPG.authorizedMapUsers.length > 0 &&
+                            eligibleUsers[thisPG.authorizedMapUsers[0]].username
+                          }
+                        </td>
+                      </>
+                    );
+                  } else if (!thisPG.isPersonalGroup) {
+                    return (
+                      <td colSpan={2}><strong>{thisPG.name}</strong></td>
+                    );
+                  }
+                } else {
+                  if (thisPG.isPersonalGroup) {
+                    if (thisPG.authorizedMapUsers.length === 0) {
+                      return (
+                        <td colSpan={2}>
+                          <Select
+                            className="react-select"
+                            classNamePrefix="react-select"
+                            options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
+                              value: u.id,
+                              name: u.name ? u.name : '(Unactivated)',
+                              username: u.username,
+                            }))}
+                            styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                            menuPosition="fixed"
+                            menuPortalTarget={document.body}
+                            menuPlacement={'auto'}
+                            formatOptionLabel={(data) => (
+                              <>
+                                <div style={{ fontSize: '1em', fontWeight: 'bold' }}>
+                                  {data.name}
+                                </div>
+                                <div style={{ fontSize: '0.85em' }}>
+                                  {data.username}
+                                </div>
+                              </>
+                            )}
+                            filterOption={({ data }, rawInput) => (
+                              data.username.toLowerCase().match(rawInput.toLowerCase())
+                              || (
+                                data.name
+                                && data.name.toLowerCase().match(rawInput.toLowerCase())
+                              )
+                            )}
+                            onChange={(value, action) => {
+                              if (action.action === 'select-option') {
+                                const singleValue = value as { value: string; };
+                                addUserToPermissionGroup({ pgId: thisPG.id, userId: singleValue.value });
+                              }
+                            }}
+                            controlShouldRenderValue={false}
+                            placeholder="Add user"
+                            autoFocus={false}
+                          />
+                        </td>
+                      );
+                    } else {
+                      return (
+                        <>
+                          <td>
+                            <strong>
+                              {
+                                (thisPG.authorizedMapUsers.length > 0 &&
+                                  eligibleUsers[thisPG.authorizedMapUsers[0]].firstName) ?
+                                  [
+                                    eligibleUsers[thisPG.authorizedMapUsers[0]].firstName,
+                                    eligibleUsers[thisPG.authorizedMapUsers[0]].lastName,
+                                  ].join(' ') :
+                                  '(Inactive)'
+                              }
+                            </strong>
+                          </td>
+                          <td>
+                            {
+                              thisPG.authorizedMapUsers.length > 0 &&
+                              eligibleUsers[thisPG.authorizedMapUsers[0]].username
+                            }
+                          </td>
+                        </>
+                      );
+                    }
+                  } else if (!thisPG.isPersonalGroup) {
+                    return (
+                      <td colSpan={2}><strong>{thisPG.name}</strong></td>
+                    );
+                  }
+                }
+              })()
             }
             <td className="content-center">
               <Checkbox
@@ -71,7 +173,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                 onChange={(status) =>
                   setPermissionValue({ pgId: thisPG.id, permission: 'readAccess', value: status })}
                 key={1}
-                readOnly={readOnly}
+                readOnly={readOnly || !isReadyToSubmit}
                 selected={thisPG.readAccess}
               />
             </td>
@@ -81,7 +183,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                 onChange={(status) =>
                   setPermissionValue({ pgId: thisPG.id, permission: 'writeAccess', value: status })}
                 key={2}
-                readOnly={readOnly}
+                readOnly={readOnly || !isReadyToSubmit}
                 selected={thisPG.writeAccess}
               />
             </td>
@@ -91,7 +193,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                 onChange={(status) =>
                   setPermissionValue({ pgId: thisPG.id, permission: 'deleteAccess', value: status })}
                 key={3}
-                readOnly={readOnly}
+                readOnly={readOnly || !isReadyToSubmit}
                 selected={thisPG.deleteAccess}
               />
             </td>

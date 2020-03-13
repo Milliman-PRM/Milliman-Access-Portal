@@ -639,12 +639,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             <PermissionsTable
               permissions={pending.permissionGroupsTab}
               readOnly={!pending.permissionGroupsEditMode}
+              isReadyToSubmit={permissionGroupChangesReady}
               unassignedEligibleUsers={this.props.unassignedEligibleUsers}
               addPermissionGroup={this.props.addNewPermissionGroup}
               setPermissionValue={this.props.setPermissionGroupPermissionValue}
               removePermissionGroup={this.props.removePermissionGroup}
               addUserToPermissionGroup={this.props.addUserToPermissionGroup}
               removeUserFromPermissionGroup={this.props.removeUserFromPermissionGroup}
+              setPermissionGroupNameText={this.props.setPermissionGroupNameText}
             />
             {
               pending.permissionGroupsEditMode &&
