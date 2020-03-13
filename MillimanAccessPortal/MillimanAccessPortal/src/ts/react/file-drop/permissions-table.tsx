@@ -38,7 +38,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
   public render() {
     const {
       setPermissionValue, removePermissionGroup, readOnly, isReadyToSubmit, addUserToPermissionGroup,
-      removeUserFromPermissionGroup, unassignedEligibleUsers, addPermissionGroup,
+      removeUserFromPermissionGroup, unassignedEligibleUsers, addPermissionGroup, setPermissionGroupNameText,
     } = this.props;
     const { permissionGroups, eligibleUsers } = this.props.permissions;
     const permissionGroupsMarkup = Object.keys(permissionGroups).map((pgId) => {
@@ -161,7 +161,17 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                     }
                   } else if (!thisPG.isPersonalGroup) {
                     return (
-                      <td colSpan={2}><strong>{thisPG.name}</strong></td>
+                      <td colSpan={2}>
+                        <input
+                          type="text"
+                          autoFocus={thisPG.name.length === 0}
+                          onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                            setPermissionGroupNameText({ pgId: thisPG.id, value: target.value });
+                          }}
+                          readOnly={false}
+                          value={thisPG.name}
+                        />
+                      </td>
                     );
                   }
                 }
