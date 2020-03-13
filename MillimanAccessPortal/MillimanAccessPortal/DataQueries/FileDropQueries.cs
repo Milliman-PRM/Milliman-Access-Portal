@@ -173,6 +173,7 @@ namespace MillimanAccessPortal.DataQueries
             {
                 FileDropId = FileDropId,
                 EligibleUsers = _dbContext.UserRoleInClient
+                                          .Include(urc => urc.User)
                                           .Where(urc => urc.ClientId == ClientId)
                                           .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
                                           .ToList()
