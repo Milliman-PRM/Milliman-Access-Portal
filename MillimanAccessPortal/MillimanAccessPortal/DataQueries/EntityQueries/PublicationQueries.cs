@@ -94,7 +94,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="publicationIds">List of publication IDs</param>
         /// <returns>List of queue detail objects</returns>
-        internal async Task<List<PublicationQueueDetails>> SelectQueueDetailsWherePublicationInAsync(List<Guid> publicationIds)
+        internal async Task<List<PublicationQueueDetails>> SelectQueueDetailsWherePublicationInAsync(IEnumerable<Guid> publicationIds)
         {
             var queueDetails = new List<PublicationQueueDetails> { };
             foreach (var publicationId in publicationIds)
