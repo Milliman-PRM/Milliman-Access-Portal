@@ -418,6 +418,7 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
   SET_PERMISSION_GROUP_NAME_TEXT: (state, action: Action.SetPermissionGroupNameText) => ({
     ...state,
     permissionGroups: {
+      ...state.permissionGroups,
       [action.pgId]: {
         ...state.permissionGroups[action.pgId],
         name: action.value,
