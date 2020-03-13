@@ -93,7 +93,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="publicationIds">List of publication IDs</param>
         /// <returns>List of queue detail objects</returns>
-        internal List<PublicationQueueDetails> SelectQueueDetailsWherePublicationIn(List<Guid> publicationIds)
+        internal List<PublicationQueueDetails> SelectQueueDetailsWherePublicationIn(IEnumerable<Guid> publicationIds)
         {
             var queueDetails = new List<PublicationQueueDetails> { };
             foreach (var publicationId in publicationIds)

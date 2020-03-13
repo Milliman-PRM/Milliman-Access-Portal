@@ -9,7 +9,7 @@ using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Http;
 using MillimanAccessPortal.Controllers;
-using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.ClientModels;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
@@ -31,18 +31,21 @@ namespace MillimanAccessPortal.DataQueries
         private readonly ClientQueries _clientQueries;
         private readonly ContentItemQueries _contentItemQueries;
         private readonly UserQueries _userQueries;
+        private readonly PublicationQueries _publicationQueries;
 
         public ContentPublishingAdminQueries(
             ClientQueries clientQueries,
             ContentItemQueries contentItemQueries,
             UserQueries userQueries,
-            ApplicationDbContext dbContextArg
+            ApplicationDbContext dbContextArg,
+            PublicationQueries publicationQueriesArg
             )
         {
             _clientQueries = clientQueries;
             _contentItemQueries = contentItemQueries;
             _userQueries = userQueries;
             _dbContext = dbContextArg;
+            _publicationQueries = publicationQueriesArg;
         }
 
         internal PublishingPageGlobalModel BuildPublishingPageGlobalModel()
@@ -244,8 +247,6 @@ namespace MillimanAccessPortal.DataQueries
                 model.ContentItems.Add(rootContentItem.Id, summary);
             }
 
-            model.PublicationQueue = PublicationQueueDetails.BuildQueueForClient(_dbContext, client);
-
             var publications = _dbContext.ContentPublicationRequest
                                           .Where(r => contentItemIds.Contains(r.RootContentItemId))
                                           .Where(r => PublicationStatusExtensions.CurrentStatuses.Contains(r.RequestStatus))
@@ -267,6 +268,9 @@ namespace MillimanAccessPortal.DataQueries
                     model.Publications.Add(pub.Id, (BasicPublication)pub);
                 }
             }
+
+            List<PublicationQueueDetails> publicationQueueModel = _publicationQueries.SelectQueueDetailsWherePublicationIn(model.Publications.Keys);
+            model.PublicationQueue = publicationQueueModel.ToDictionary(p => p.PublicationId);
 
             return model;
         }
