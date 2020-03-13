@@ -97,8 +97,8 @@ const _dummyPermissionGroupsData: PermissionGroupsReturnModel = {
     },
     'user-10': {
       id: 'user-10',
-      firstName: 'User',
-      lastName: 'Ten',
+      firstName: '',
+      lastName: '',
       username: 'user.10@domain.com',
       isFileDropAdmin: false,
     },
@@ -107,7 +107,7 @@ const _dummyPermissionGroupsData: PermissionGroupsReturnModel = {
   permissionGroups: {
     'pg-1': {
       id: 'pg-1',
-      name: 'User One',
+      name: '',
       isPersonalGroup: true,
       authorizedMapUsers: ['user-1'],
       authorizedSftpAccounts: [],
