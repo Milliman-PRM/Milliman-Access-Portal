@@ -410,12 +410,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     // TODO: Implement necessary modals
                   } else {
                     if (selected.fileDrop !== entity.id) {
-                      // this.props.fetchFileDropDetail({ FileDropId: entity.id });
+                      this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: entity.id });
                     }
                     this.props.selectFileDrop({ id: entity.id });
                     if (activeSelectedClient.canManageFileDrops) {
                       this.props.selectFileDropTab({ tab: 'permissions' });
-                      this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: entity.id });
                     } else {
                       this.props.selectFileDropTab({ tab: 'settings' });
                     }
