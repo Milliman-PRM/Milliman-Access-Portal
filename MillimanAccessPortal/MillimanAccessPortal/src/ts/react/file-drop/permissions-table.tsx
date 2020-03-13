@@ -154,7 +154,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   />
                 }
               </td>
-              <td colSpan={3}>
+              <td colSpan={2}>
                 <Select
                   className="react-select"
                   classNamePrefix="react-select"
@@ -191,11 +191,11 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                     }
                   }}
                   controlShouldRenderValue={false}
-                  placeholder="Add user to Permission Group"
+                  placeholder="Add user"
                   autoFocus={false}
                 />
               </td>
-              <td colSpan={3} />
+              <td colSpan={4} />
             </tr>
           }
         </>
