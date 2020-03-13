@@ -335,7 +335,7 @@ export interface FileDropEligibleUser {
   id: Guid;
   firstName: string;
   lastName: string;
-  username: string;
+  userName: string;
   isFileDropAdmin: boolean;
 }
 
@@ -365,6 +365,6 @@ export interface PermissionGroupsChangesModel {
 export interface AvailableEligibleUsers {
   id: Guid;
   name: string;
-  username: string;
+  userName: string;
   sortName: string;
 }

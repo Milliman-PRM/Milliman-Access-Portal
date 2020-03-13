@@ -213,7 +213,7 @@ export function unassignedEligibleUsers(state: FileDropState) {
             id: eligibleUsers[userId].id,
             name: [eligibleUsers[userId].firstName, eligibleUsers[userId].lastName].join(' '),
             sortName: [eligibleUsers[userId].lastName, eligibleUsers[userId].firstName].join(' '),
-            username: eligibleUsers[userId].username,
+            userName: eligibleUsers[userId].userName,
           };
         })
         .filter((user) => assignedUserIds.indexOf(user.id) === -1)

@@ -78,7 +78,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                         <td>
                           {
                             thisPG.authorizedMapUsers.length > 0 &&
-                            eligibleUsers[thisPG.authorizedMapUsers[0]].username
+                            eligibleUsers[thisPG.authorizedMapUsers[0]].userName
                           }
                         </td>
                       </>
@@ -99,7 +99,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                             options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
                               value: u.id,
                               name: u.name ? u.name : '(Unactivated)',
-                              username: u.username,
+                              userName: u.userName,
                             }))}
                             styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
                             menuPosition="fixed"
@@ -111,15 +111,17 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                                   {data.name}
                                 </div>
                                 <div style={{ fontSize: '0.85em' }}>
-                                  {data.username}
+                                  {data.userName}
                                 </div>
                               </>
                             )}
                             filterOption={({ data }, rawInput) => (
-                              data.username.toLowerCase().match(rawInput.toLowerCase())
-                              || (
-                                data.name
-                                && data.name.toLowerCase().match(rawInput.toLowerCase())
+                              (
+                                data.userName &&
+                                data.userName.toLowerCase().match(rawInput.toLowerCase())
+                              ) || (
+                                data.name &&
+                                data.name.toLowerCase().match(rawInput.toLowerCase())
                               )
                             )}
                             onChange={(value, action) => {
@@ -153,7 +155,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                           <td>
                             {
                               thisPG.authorizedMapUsers.length > 0 &&
-                              eligibleUsers[thisPG.authorizedMapUsers[0]].username
+                              eligibleUsers[thisPG.authorizedMapUsers[0]].userName
                             }
                           </td>
                         </>
@@ -246,7 +248,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                     }
                   </td>
                   <td>{thisUser.firstName + ' ' + thisUser.lastName}</td>
-                  <td colSpan={5}>{thisUser.username}</td>
+                  <td colSpan={5}>{thisUser.userName}</td>
                 </tr>
               );
             })
@@ -273,7 +275,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
                     value: u.id,
                     name: u.name ? u.name : '(Unactivated)',
-                    username: u.username,
+                    userName: u.userName,
                   }))}
                   styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
                   menuPosition="fixed"
@@ -285,15 +287,17 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                         {data.name}
                       </div>
                       <div style={{ fontSize: '0.85em' }}>
-                        {data.username}
+                        {data.userName}
                       </div>
                     </>
                   )}
                   filterOption={({ data }, rawInput) => (
-                    data.username.toLowerCase().match(rawInput.toLowerCase())
-                    || (
-                      data.name
-                      && data.name.toLowerCase().match(rawInput.toLowerCase())
+                    (
+                      data.userName &&
+                      data.userName.toLowerCase().match(rawInput.toLowerCase())
+                    ) || (
+                      data.name &&
+                      data.name.toLowerCase().match(rawInput.toLowerCase())
                     )
                   )}
                   onChange={(value, action) => {
