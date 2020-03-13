@@ -48,9 +48,47 @@ namespace SftpServerLib
         //[Description("Fires when a client wants to open or create a file.")]
         internal static void OnFileOpen(object sender, SftpserverFileOpenEventArgs evtData)
         {
-            //evtData.StatusCode = 3;  // to block the action, set a status
-
             Log.Information(GenerateEventArgsLogMessage("FileOpen", evtData));
+
+            // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileOpen.htm
+
+            if (evtData.BeforeExec)
+            {
+                switch (evtData.Flags)
+                {
+                    case int flags when (flags & 0x00000020) != 0x00000020:  // SSH_FXF_EXCL (0x00000020)
+                        break;
+
+                    case int flags when (flags & 0x00000008) == 0x00000008  // SSH_FXF_CREAT (0x00000008)
+                                     && (flags & 0x00000002) == 0x00000002: // SSH_FXF_WRITE(0x00000002)
+                        //client wants to create/write a file
+
+                        (AuthorizationResult authResult, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Write);
+                        if (authResult == AuthorizationResult.ConnectionNotFound)
+                        {
+                            Log.Warning($"OnFileOpen event invoked but no active connection was found");
+                            evtData.StatusCode = 7;  // SSH_FX_CONNECTION_LOST 7
+                            return;
+                        }
+
+                        connection.LastActivityUtc = DateTime.UtcNow;
+
+                        if (authResult == AuthorizationResult.NotAuthorized)
+                        {
+                            Log.Warning($"OnFileOpen event invoked for file write, but write access is denied");
+                            evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
+                            return;
+                        }
+
+                        // TODO audit log
+                        Log.Information($"File {evtData.Path} authorized for writing, user {evtData.User}");
+                        break;
+
+                    default:
+                        evtData.StatusCode = 3;
+                        return;
+                }
+            }
         }
 
         //[Description("Fires when a client attempts to close an open file or directory handle.")]
