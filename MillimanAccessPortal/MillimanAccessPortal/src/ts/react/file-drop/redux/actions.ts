@@ -139,6 +139,13 @@ export interface SetEditModeForPermissionGroups {
   editModeEnabled: boolean;
 }
 
+/** Add a new Permission Group */
+export interface AddNewPermissionGroup {
+  type: 'ADD_NEW_PERMISSION_GROUP';
+  tempPGId: string;
+  isSingleGroup: boolean;
+}
+
 /** Set Permission Group  */
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -402,6 +409,7 @@ export type FileDropPageActions =
   | RemoveUserFromPermissionGroup
   | SetPermissionGroupNameText
   | SetEditModeForPermissionGroups
+  | AddNewPermissionGroup
   ;
 
 /** Actions that schedule another action */

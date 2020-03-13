@@ -86,6 +86,10 @@ export const setPermissionGroupNameText =
 export const setEditModeForPermissionGroups =
   createActionCreator<Action.SetEditModeForPermissionGroups>('SET_EDIT_MODE_FOR_PERMISSION_GROUPS');
 
+/** Add a new Permission Group */
+export const addNewPermissionGroup =
+  createActionCreator<Action.AddNewPermissionGroup>('ADD_NEW_PERMISSION_GROUP');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
