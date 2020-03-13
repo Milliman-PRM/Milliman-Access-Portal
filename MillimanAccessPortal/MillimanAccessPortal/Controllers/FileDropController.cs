@@ -353,7 +353,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateFileDropPermissionGroups(UpdatePermissionGroupsModel model)
+        public async Task<IActionResult> UpdateFileDropPermissionGroups([FromBody] UpdatePermissionGroupsModel model)
         {
             var fileDrop = await _dbContext.FileDrop.SingleOrDefaultAsync(fd => fd.Id == model.FileDropId);
             if (fileDrop == null)
@@ -373,7 +373,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var returnModel = _fileDropQueries.UpdatePermissionGroups(model);
+            var returnModel = await _fileDropQueries.UpdatePermissionGroups(model);
 
             return Json(returnModel);
         }
