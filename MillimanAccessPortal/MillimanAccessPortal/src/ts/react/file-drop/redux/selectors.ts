@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 
 import {
   AvailableEligibleUsers, FileDropClientWithStats, FileDropWithStats, Guid,
-  PermissionGroupsChangesModel, PGChangeModel,
+  PermissionGroupModel, PermissionGroupsChangesModel, PGChangeModel,
 } from '../../models';
 import { Dict } from '../../shared-components/redux/store';
 import { FileDropState } from './store';
@@ -184,6 +184,17 @@ export function permissionGroupChangesPending(state: FileDropState) {
       !== Object.keys(pending.permissionGroupsTab.permissionGroups).length
       || !_.isEqual(data.permissionGroups.permissionGroups, pending.permissionGroupsTab.permissionGroups)
     );
+}
+
+/** Return a boolean value indicating that the Permission Group changes are ready to be submitted */
+export function permissionGroupChangesReady(state: FileDropState) {
+  const { pending } = state;
+  return permissionGroupChangesPending(state)
+    && _.every(_.toPairs(pending.permissionGroupsTab.permissionGroups),
+      ([_key, value]: [string, PermissionGroupModel]) => {
+        return (value.isPersonalGroup && value.authorizedMapUsers.length === 1) ||
+          (!value.isPersonalGroup && value.name.length > 0);
+      });
 }
 
 /** Return an array of eligible users that have not yet been assigned to a Permission Group */
