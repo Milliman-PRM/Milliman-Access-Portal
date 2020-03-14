@@ -1054,6 +1054,18 @@ namespace AuditLogLib.Event
                     : null,
             });
 
+        public static readonly AuditEventType<SftpFileWriteLogModel> SftpFileWriteAuthorized = new AuditEventType<SftpFileWriteLogModel>(
+            8112, "SFTP File Write Authorized", (model) => new
+            {
+                model.FileName,
+                model.FileDrop,
+                model.FileDropDirectory,
+                SftpAccount = new { model.Account.Id, model.Account.UserName, },
+                MapUser = model.User != null
+                    ? new { model.User.Id, model.User.UserName, }
+                    : null,
+            });
+
         public static readonly AuditEventType<SftpRenameLogModel> SftpRename = new AuditEventType<SftpRenameLogModel>(
             8113, "SFTP File Or Directory Renamed", (model) => new
             {

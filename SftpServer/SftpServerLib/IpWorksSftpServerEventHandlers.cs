@@ -121,10 +121,19 @@ namespace SftpServerLib
                                 CreatedByAccountId = connection.Account.Id,
                             });
                             db.SaveChanges();
-                        }
 
-                        // TODO audit log
-                        Log.Information($"File {evtData.Path} authorized for writing, user {evtData.User}");
+                            new AuditLogger().Log(AuditEventType.SftpFileWriteAuthorized.ToEvent(
+                                new SftpFileWriteLogModel
+                                {
+                                    FileName = fileName,
+                                    FileDropDirectory = (FileDropDirectoryLogModel)containingDirectory,
+                                    FileDrop = new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName, RootPath = connection.FileDropRootPathAbsolute },
+                                    Account = connection.Account,
+                                    User = connection.MapUser,
+                                }
+                            ), connection.MapUser?.UserName);
+                            Log.Information($"File {evtData.Path} authorized for writing, user {evtData.User}");
+                        }
                         break;
 
                     default:
