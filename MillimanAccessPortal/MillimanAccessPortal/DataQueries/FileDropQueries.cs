@@ -287,7 +287,7 @@ namespace MillimanAccessPortal.DataQueries
             {
                 List<SftpAccount> existingAccountsOfGroupUsers = _dbContext.SftpAccount
                                                                            //.Where(a => a.ApplicationUserId.HasValue)
-                                                                           .Where(a => newGroup.AuthorizedMapUsers.Contains(a.ApplicationUserId.Value))
+                                                                           .Where(a => newGroup.AssignedMapUserIds.Contains(a.ApplicationUserId.Value))
                                                                            .Where(a => a.FileDropId == model.FileDropId)
                                                                            .ToList();
 

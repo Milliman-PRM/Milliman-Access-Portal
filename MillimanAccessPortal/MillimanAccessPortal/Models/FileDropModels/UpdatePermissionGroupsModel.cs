@@ -20,8 +20,9 @@ namespace MillimanAccessPortal.Models.FileDropModels
     public class NewPermissionGroup
     {
         public string Name { get; set; }
-        public List<Guid> AuthorizedMapUsers { get; set; } = new List<Guid>();
         public bool IsPersonalGroup { get; set; }
+        public List<Guid> AssignedSftpAccountIds { get; set; }
+        public List<Guid> AssignedMapUserIds { get; set; } = new List<Guid>();
         public bool ReadAccess { get; set; }
         public bool WriteAccess { get; set; }
         public bool DeleteAccess { get; set; }
