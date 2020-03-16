@@ -243,10 +243,10 @@ const selectedFileDropTab = createReducer<State.AvailableFileDropTabs>(null, {
 /** Reducer for Permission Groups form data */
 const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialPermissionGroupsTab, {
   FETCH_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
-    ...action.response,
+    ...JSON.parse(JSON.stringify(action.response)),
   }),
   UPDATE_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
-    ...action.response,
+    ...JSON.parse(JSON.stringify(action.response)),
   }),
   SET_PERMISSION_GROUP_PERMISSION_VALUE: (state, action: Action.SetPermissionGroupPermissionValue) => ({
     ...state,
@@ -267,7 +267,6 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
     };
   },
   DISCARD_PENDING_PERMISSION_GROUP_CHANGES: (_state, action: Action.DiscardPendingPermissionGroupChanges) => ({
-    // Convert to string and then back to json to allow these two sections of state to be independent
     ...JSON.parse(JSON.stringify(action.originalValues)),
   }),
   ADD_USER_TO_PERMISSION_GROUP: (state, action: Action.AddUserToPermissionGroup) => {
