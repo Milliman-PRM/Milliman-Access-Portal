@@ -50,7 +50,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
             key={thisPG.id}
             className={
               thisPG.isPersonalGroup
-              || (thisPG.authorizedMapUsers.length === 0 && readOnly)
+              || (thisPG.assignedMapUserIds.length === 0 && readOnly)
                 ? 'last-group-row'
                 : null
             }
@@ -65,11 +65,11 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                         <td>
                           <strong>
                             {
-                              (thisPG.authorizedMapUsers.length > 0 &&
-                                eligibleUsers[thisPG.authorizedMapUsers[0]].firstName) ?
+                              (thisPG.assignedMapUserIds.length > 0 &&
+                                eligibleUsers[thisPG.assignedMapUserIds[0]].firstName) ?
                                 [
-                                  eligibleUsers[thisPG.authorizedMapUsers[0]].firstName,
-                                  eligibleUsers[thisPG.authorizedMapUsers[0]].lastName,
+                                  eligibleUsers[thisPG.assignedMapUserIds[0]].firstName,
+                                  eligibleUsers[thisPG.assignedMapUserIds[0]].lastName,
                                 ].join(' ') :
                                 '(Inactive)'
                             }
@@ -77,8 +77,8 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                         </td>
                         <td>
                           {
-                            thisPG.authorizedMapUsers.length > 0 &&
-                            eligibleUsers[thisPG.authorizedMapUsers[0]].userName
+                            thisPG.assignedMapUserIds.length > 0 &&
+                            eligibleUsers[thisPG.assignedMapUserIds[0]].userName
                           }
                         </td>
                       </>
@@ -90,7 +90,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   }
                 } else {
                   if (thisPG.isPersonalGroup) {
-                    if (thisPG.authorizedMapUsers.length === 0) {
+                    if (thisPG.assignedMapUserIds.length === 0) {
                       return (
                         <td colSpan={2}>
                           <Select
@@ -142,11 +142,11 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                           <td>
                             <strong>
                               {
-                                (thisPG.authorizedMapUsers.length > 0 &&
-                                  eligibleUsers[thisPG.authorizedMapUsers[0]].firstName) ?
+                                (thisPG.assignedMapUserIds.length > 0 &&
+                                  eligibleUsers[thisPG.assignedMapUserIds[0]].firstName) ?
                                   [
-                                    eligibleUsers[thisPG.authorizedMapUsers[0]].firstName,
-                                    eligibleUsers[thisPG.authorizedMapUsers[0]].lastName,
+                                    eligibleUsers[thisPG.assignedMapUserIds[0]].firstName,
+                                    eligibleUsers[thisPG.assignedMapUserIds[0]].lastName,
                                   ].join(' ') :
                                   '(Inactive)'
                               }
@@ -154,8 +154,8 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                           </td>
                           <td>
                             {
-                              thisPG.authorizedMapUsers.length > 0 &&
-                              eligibleUsers[thisPG.authorizedMapUsers[0]].userName
+                              thisPG.assignedMapUserIds.length > 0 &&
+                              eligibleUsers[thisPG.assignedMapUserIds[0]].userName
                             }
                           </td>
                         </>
@@ -225,13 +225,13 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
           </tr>
           {
             !thisPG.isPersonalGroup &&
-            thisPG.authorizedMapUsers.map((userId, index) => {
+            thisPG.assignedMapUserIds.map((userId, index) => {
               const thisUser = eligibleUsers[userId];
               return (
                 <tr
                   key={thisUser.id}
                   className={
-                    readOnly && (index === thisPG.authorizedMapUsers.length - 1)
+                    readOnly && (index === thisPG.assignedMapUserIds.length - 1)
                       ? 'last-group-row'
                       : null
                   }

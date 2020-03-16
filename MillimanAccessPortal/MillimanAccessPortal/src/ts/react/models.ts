@@ -323,8 +323,8 @@ export interface FileDropsReturnModel {
 export interface PermissionGroupModel {
   id?: Guid;
   name: string;
-  authorizedMapUsers: Guid[];
-  authorizedSftpAccounts: Guid[];
+  assignedMapUserIds: Guid[];
+  assignedSftpAccountIds: Guid[];
   isPersonalGroup: boolean;
   readAccess: boolean;
   writeAccess: boolean;

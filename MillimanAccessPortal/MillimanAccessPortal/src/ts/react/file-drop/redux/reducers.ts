@@ -271,9 +271,9 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
     ...JSON.parse(JSON.stringify(action.originalValues)),
   }),
   ADD_USER_TO_PERMISSION_GROUP: (state, action: Action.AddUserToPermissionGroup) => {
-    const { authorizedMapUsers } = state.permissionGroups[action.pgId];
-    if (authorizedMapUsers.indexOf(action.userId) === -1) {
-      authorizedMapUsers.push(action.userId);
+    const { assignedMapUserIds } = state.permissionGroups[action.pgId];
+    if (assignedMapUserIds.indexOf(action.userId) === -1) {
+      assignedMapUserIds.push(action.userId);
     }
     return {
       ...state,
@@ -281,21 +281,21 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
         ...state.permissionGroups,
         [action.pgId]: {
           ...state.permissionGroups[action.pgId],
-          authorizedMapUsers,
+          assignedMapUserIds,
         },
       },
     };
   },
   REMOVE_USER_FROM_PERMISSION_GROUP: (state, action: Action.RemoveUserFromPermissionGroup) => {
-    const { authorizedMapUsers: existingAuthorizedMapUsers } = state.permissionGroups[action.pgId];
-    const authorizedMapUsers = _.filter(existingAuthorizedMapUsers, (userId) => userId !== action.userId);
+    const { assignedMapUserIds: existingAssignedMapUsers } = state.permissionGroups[action.pgId];
+    const assignedMapUserIds = _.filter(existingAssignedMapUsers, (userId) => userId !== action.userId);
     return {
       ...state,
       permissionGroups: {
         ...state.permissionGroups,
         [action.pgId]: {
           ...state.permissionGroups[action.pgId],
-          authorizedMapUsers,
+          assignedMapUserIds,
         },
       },
     };
@@ -318,8 +318,8 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
         id: action.tempPGId,
         name: '',
         isPersonalGroup: action.isSingleGroup,
-        authorizedMapUsers: [],
-        authorizedSftpAccounts: [],
+        assignedMapUserIds: [],
+        assignedSftpAccountIds: [],
         readAccess: false,
         writeAccess: false,
         deleteAccess: false,
@@ -555,11 +555,15 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
   }),
   FETCH_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
     ...state,
-    permissionGroups: action.response,
+    permissionGroups: {
+      ...action.response,
+    },
   }),
   UPDATE_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
     ...state,
-    permissionGroups: action.response,
+    permissionGroups: {
+      ...action.response,
+    },
   }),
 });
 
