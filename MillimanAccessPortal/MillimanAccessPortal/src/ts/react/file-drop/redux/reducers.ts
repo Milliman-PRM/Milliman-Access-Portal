@@ -130,6 +130,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
   }),
   FETCH_PERMISSION_GROUPS_FAILED: (state) => ({
     ...state,
+    permissionsUpdate: false,
+  }),
+  UPDATE_PERMISSION_GROUPS: (state) => ({
+    ...state,
+    permissionsUpdate: true,
+  }),
+  UPDATE_PERMISSION_GROUPS_SUCCEEDED: (state) => ({
+    ...state,
+    permissionsUpdate: false,
+  }),
+  UPDATE_PERMISSION_GROUPS_FAILED: (state) => ({
+    ...state,
     permissions: false,
   }),
   CREATE_FILE_DROP: (state) => ({
@@ -325,12 +337,19 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
       },
     },
   }),
+  CREATE_FILE_DROP_SUCCEEDED: () => ({
+    ..._initialPermissionGroupsTab,
+  }),
 });
 
 /** Reducer for setting the edit mode state of the Permission Groups tab */
 const permissionGroupsEditMode = createReducer<boolean>(false, {
   SET_EDIT_MODE_FOR_PERMISSION_GROUPS:
     (_state, action: Action.SetEditModeForPermissionGroups) => action.editModeEnabled,
+  UPDATE_PERMISSION_GROUPS_SUCCEEDED: () => false,
+  SELECT_CLIENT: () => false,
+  SELECT_FILE_DROP: () => false,
+  SELECT_FILE_DROP_TAB: () => false,
 });
 
 /** Reducer that combines the pending reducers */
@@ -525,7 +544,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...action.response.fileDrops,
     },
-    permissionGroups: null,
+    permissionGroups: _initialPermissionGroupsTab,
   }),
   DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
     ...state,
