@@ -21,16 +21,11 @@ namespace MillimanAccessPortal.Models.FileDropModels
     {
         public string Name { get; set; }
         public bool IsPersonalGroup { get; set; }
-        public List<Guid> AssignedSftpAccountIds { get; set; }
+        public List<NonUserSftpAccount> AssignedSftpAccounts { get; set; }
         public List<Guid> AssignedMapUserIds { get; set; } = new List<Guid>();
         public bool ReadAccess { get; set; }
         public bool WriteAccess { get; set; }
         public bool DeleteAccess { get; set; }
-
-        /// <summary>
-        /// For accounts not associated with MAP users
-        /// </summary>
-        public List<Guid> AuthorizedSftpAccounts { get; set; } = new List<Guid>();
     }
 
     public class UpdatedPermissionGroup
@@ -46,10 +41,22 @@ namespace MillimanAccessPortal.Models.FileDropModels
         /// <summary>
         /// For accounts not associated with MAP users
         /// </summary>
-        public List<Guid> SftpAccountsAdded { get; set; } = new List<Guid>();
+        public List<NonUserSftpAccount> SftpAccountsAdded { get; set; } = new List<NonUserSftpAccount>();
+
         /// <summary>
         /// For accounts not associated with MAP users
         /// </summary>
         public List<Guid> SftpAccountsRemoved { get; set; } = new List<Guid>();
+    }
+
+    public class NonUserSftpAccount
+    {
+        /// <summary>
+        /// Use null for a newly created account or an existing account ID to reference an existing record
+        /// </summary>
+        public Guid? Id { get; set; } = null;
+
+        public string AccountName { get; set; }
+        public bool IsSuspended { get; set; }
     }
 }

@@ -324,7 +324,34 @@ namespace MillimanAccessPortal.DataQueries
                     updatedGroupRecord.SftpAccounts.Add(accountToAdd);
                 }
 
-                // TODO later. Handle non-user accounts added to this group.  We'll need a richer request model to support that. 
+                // Handle non-user Sftp accounts added to this group
+                List<Guid> existingNonUserAccountIdsToAdd = model.UpdatedPermissionGroups[updatedGroupRecord.Id]
+                                                                 .SftpAccountsAdded
+                                                                 .Where(a => a.Id.HasValue && a.Id.Value != Guid.Empty)
+                                                                 .Select(a => a.Id.Value)
+                                                                 .ToList();
+                List<SftpAccount> existingNonUserAccountsToAdd = _dbContext.SftpAccount
+                                                                           .Where(a => existingNonUserAccountIdsToAdd.Contains(a.Id))
+                                                                           .ToList();
+
+                foreach (var accountToAdd in model.UpdatedPermissionGroups[updatedGroupRecord.Id].SftpAccountsAdded)
+                {
+                    SftpAccount sftpAccountToAdd = default;
+                    if (accountToAdd.Id.HasValue)
+                    {
+                        sftpAccountToAdd = existingNonUserAccountsToAdd.Single(a => a.Id == accountToAdd.Id.Value);
+                    }
+                    else
+                    {
+                        sftpAccountToAdd = new SftpAccount(model.FileDropId)
+                        {
+                            IsSuspended = accountToAdd.IsSuspended,
+                            UserName = accountToAdd.AccountName,
+                        };
+
+                    }
+                    updatedGroupRecord.SftpAccounts.Add(sftpAccountToAdd);
+                }
             }
             _dbContext.SaveChanges();
 
@@ -361,8 +388,21 @@ namespace MillimanAccessPortal.DataQueries
                     }
 
                     newFileDropUserPermissionGroup.SftpAccounts.Add(userSftpAccount);
-                    _dbContext.FileDropUserPermissionGroup.Add(newFileDropUserPermissionGroup);
                 }
+
+                foreach (NonUserSftpAccount newAccount in newGroup.AssignedSftpAccounts)
+                {
+                    SftpAccount newSftpAccount = new SftpAccount(model.FileDropId)
+                    {
+                        ApplicationUserId = null,
+                        IsSuspended = newAccount.IsSuspended,
+                        UserName = newAccount.AccountName,
+                    };
+
+                    newFileDropUserPermissionGroup.SftpAccounts.Add(newSftpAccount);
+                }
+
+                _dbContext.FileDropUserPermissionGroup.Add(newFileDropUserPermissionGroup);
             }
 
             _dbContext.SaveChanges();
