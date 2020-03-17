@@ -306,6 +306,11 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
+                List<FileDropFile> files = await _dbContext.FileDropDirectory
+                                                           .Where(d => d.FileDropId == fileDrop.Id)
+                                                           .SelectMany(d => d.Files)
+                                                           .ToListAsync();
+                _dbContext.FileDropFile.RemoveRange(files);
                 _dbContext.FileDrop.Remove(fileDrop);
                 _dbContext.SaveChanges();
                 _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, fileDrop.SftpAccounts));
