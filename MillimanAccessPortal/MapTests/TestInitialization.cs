@@ -127,8 +127,8 @@ namespace MapTests
         /// <summary>
         /// Associates each DataSelection enum value with the function that implements it
         /// </summary>
-        private Dictionary<DataSelection, Action> DataGenFunctionDict;
-        private string TestDataPath = Path.GetFullPath("../../../TestData");
+        private readonly Dictionary<DataSelection, Action> DataGenFunctionDict;
+        private readonly string TestDataPath = Path.GetFullPath("../../../TestData");
 
         /// <summary>
         /// Constructor, initiates construction of functional but empty dependencies
@@ -238,7 +238,7 @@ namespace MapTests
             HierarchyQueriesObj = new HierarchyQueries(DbContextObject);
             SelectionGroupQueriesObj = new SelectionGroupQueries(MockAuditLogger.Object, DbContextObject);
             PublicationQueriesObj = new PublicationQueries(DbContextObject);
-            ContentPublishingAdminQueriesObj = new ContentPublishingAdminQueries(ClientQueriesObj, ContentItemQueriesObj, UserQueriesObj, DbContextObject);
+            ContentPublishingAdminQueriesObj = new ContentPublishingAdminQueries(ClientQueriesObj, ContentItemQueriesObj, UserQueriesObj, DbContextObject, PublicationQueriesObj);
             UserQueriesObj = new UserQueries(MockAuditLogger.Object, DbContextObject, UserManagerObject);
             ContentAccessAdminQueriesObj = new ContentAccessAdminQueries(
                 ClientQueriesObj, ContentItemQueriesObj, HierarchyQueriesObj,
@@ -411,9 +411,11 @@ namespace MapTests
         private DefaultAuthorizationService GenerateAuthorizationService(ApplicationDbContext ContextArg, UserManager<ApplicationUser> UserMgrArg, ILoggerFactory LoggerFactoryArg)
         {
             IAuthorizationPolicyProvider PolicyProvider = new DefaultAuthorizationPolicyProvider(Options.Create(new AuthorizationOptions()));
-            AuthorizationOptions AuthOptions = new AuthorizationOptions();
-            AuthOptions.InvokeHandlersAfterFailure = true;
-            AuthOptions.DefaultPolicy = new AuthorizationPolicy(new IAuthorizationRequirement[] { new DenyAnonymousAuthorizationRequirement() }, new string[0]);
+            AuthorizationOptions AuthOptions = new AuthorizationOptions
+            {
+                InvokeHandlersAfterFailure = true,
+                DefaultPolicy = new AuthorizationPolicy(new IAuthorizationRequirement[] { new DenyAnonymousAuthorizationRequirement() }, new string[0])
+            };
 
             AuthorizationHandler<MapAuthorizationRequirementBase> Handler = new MapAuthorizationHandler(ContextArg, UserMgrArg);
             I​Authorization​Handler​Provider Authorization​Handler​Provider = new Default​Authorization​Handler​Provider(new IAuthorizationHandler[] { Handler });
