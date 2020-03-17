@@ -49,10 +49,13 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
           <tr
             key={thisPG.id}
             className={
-              thisPG.isPersonalGroup
-              || (thisPG.assignedMapUserIds.length === 0 && readOnly)
-                ? 'last-group-row'
-                : null
+              [
+                (thisPG.isPersonalGroup
+                  || (thisPG.assignedMapUserIds.length === 0 && readOnly)
+                  ? 'last-group-row'
+                  : null),
+                'first-group-row',
+              ].join(' ')
             }
           >
             <td><svg className="table-icon"><use xlinkHref={pgIcon} /></svg></td>
@@ -98,7 +101,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                             classNamePrefix="react-select"
                             options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
                               value: u.id,
-                              name: u.name ? u.name : '(Unactivated)',
+                              name: u.name.trim() ? u.name : '(Inactivate)',
                               userName: u.userName,
                             }))}
                             styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
@@ -166,6 +169,8 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                       <td colSpan={2}>
                         <input
                           type="text"
+                          className="group-name-input"
+                          placeholder="Permission Group Name *"
                           autoFocus={thisPG.name.length === 0}
                           onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
                             setPermissionGroupNameText({ pgId: thisPG.id, value: target.value });
@@ -247,7 +252,13 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                       />
                     }
                   </td>
-                  <td>{thisUser.firstName + ' ' + thisUser.lastName}</td>
+                  <td>
+                    {
+                      (thisUser.firstName || thisUser.lastName)
+                        ? [thisUser.firstName, thisUser.lastName].join(' ')
+                        : '(Inactive)'
+                    }
+                  </td>
                   <td colSpan={5}>{thisUser.userName}</td>
                 </tr>
               );
@@ -274,7 +285,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   classNamePrefix="react-select"
                   options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
                     value: u.id,
-                    name: u.name ? u.name : '(Unactivated)',
+                    name: u.name.trim() ? u.name : '(Inactivate)',
                     userName: u.userName,
                   }))}
                   styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}

@@ -32,10 +32,14 @@
         }
     }
 
-    th.content-center,
-    td.content-center {
-        text-align: center;
+    .group-name-input {
+        font-weight: bold;
+        color: $charcoal;
         padding: 0;
+    }
+        
+    th.content-center, td.content-center {
+        text-align: center;
     }
 
     th.content-right,
@@ -80,6 +84,14 @@
             &.last-group-row,
             &.action-row {
                 border-bottom: 1px solid $charcoal;
+            }
+
+            &.last-group-row td {
+                padding-bottom: 1.5em;
+            }
+
+            &.first-group-row td {
+                padding-top: 1.5em;
             }
 
             &.action-row {
