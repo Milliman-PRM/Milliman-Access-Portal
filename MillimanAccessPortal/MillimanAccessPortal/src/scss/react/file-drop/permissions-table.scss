@@ -32,9 +32,9 @@
         }
     }
 
-    th.content-center,
-    td.content-center {
-        text-align: center;
+    .group-name-input {
+        font-weight: bold;
+        color: $charcoal;
         padding: 0;
     }
 
