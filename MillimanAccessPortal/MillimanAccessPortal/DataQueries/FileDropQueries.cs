@@ -207,7 +207,7 @@ namespace MillimanAccessPortal.DataQueries
                                                      ReadAccess = g.ReadAccess,
                                                      WriteAccess = g.WriteAccess,
                                                      DeleteAccess = g.DeleteAccess,
-                                                     AssignedSftpAccountIds = accounts.Select(a => a.Id).ToList(),
+                                                     AssignedSftpAccountIds = accounts.Where(a => !a.ApplicationUserId.HasValue).Select(a => a.Id).ToList(),
                                                      AssignedMapUserIds = accounts.Where(a => a.ApplicationUserId.HasValue).Select(a => a.ApplicationUserId.Value).ToList(),
                                                  };
                                              })
@@ -277,13 +277,22 @@ namespace MillimanAccessPortal.DataQueries
                 updatedGroupRecord.DeleteAccess = modelForUpdatedGroup.DeleteAccess;
 
                 // Unassign accounts of users who are being removed from existing groups
-                List<SftpAccount> accountsToRemove = updatedGroupRecord.SftpAccounts
+                List<SftpAccount> userAccountsToRemove = updatedGroupRecord.SftpAccounts
                                                                  .Where(a => modelForUpdatedGroup.UsersRemoved.Contains(a.ApplicationUserId.Value))
                                                                  .ToList();
-                foreach (SftpAccount removedAccount in accountsToRemove)
+                foreach (SftpAccount removedAccount in userAccountsToRemove)
                 {
                     updatedGroupRecord.SftpAccounts.Remove(removedAccount);
                     //or removedAccount.FileDropUserPermissionGroupId = null;
+                }
+
+                // Remove non-user accounts
+                List<SftpAccount> nonUserAccountsToRemove = updatedGroupRecord.SftpAccounts
+                                                                 .Where(a => modelForUpdatedGroup.SftpAccountsRemoved.Contains(a.Id))
+                                                                 .ToList();
+                foreach (SftpAccount removedAccount in nonUserAccountsToRemove)
+                {
+                    updatedGroupRecord.SftpAccounts.Remove(removedAccount);
                 }
             }
             _dbContext.SaveChanges();
@@ -291,17 +300,31 @@ namespace MillimanAccessPortal.DataQueries
             foreach (var updatedGroupRecord in groupsToUpdate)
             {
                 List<Guid> userIdList = model.UpdatedPermissionGroups[updatedGroupRecord.Id].UsersAdded;
-                //UpdatedPermissionGroup modelForUpdatedGroup = model.UpdatedPermissionGroups[updatedGroupRecord.Id];
 
-                List<SftpAccount> accountsToAdd = _dbContext.SftpAccount
+                List<SftpAccount> existinguserAccountsToAdd = _dbContext.SftpAccount
                                                             .Where(a => userIdList.Contains(a.ApplicationUserId.Value))
                                                             .ToList();
 
-                foreach (SftpAccount addedAccount in accountsToAdd)
+                List<Guid> userIdsRequiringNewAccount = userIdList.Except(existinguserAccountsToAdd.Select(a => a.ApplicationUserId.Value)).ToList();
+                List<ApplicationUser> usersRequiringNewAccount = _dbContext.ApplicationUser
+                                                                           .Where(u => userIdsRequiringNewAccount.Contains(u.Id))
+                                                                           .ToList();
+
+                foreach (Guid userIdToAdd in userIdList)
                 {
-                    updatedGroupRecord.SftpAccounts.Add(addedAccount);
-                    //or addedAccount.FileDropUserPermissionGroupId = updatedGroupRecord.Id;
+                    SftpAccount accountToAdd = userIdsRequiringNewAccount.Contains(userIdToAdd)
+                        ? new SftpAccount(model.FileDropId)
+                            {
+                                ApplicationUserId = userIdToAdd,
+                                IsSuspended = false,
+                                UserName = usersRequiringNewAccount.Single(u => u.Id == userIdToAdd).UserName
+                            }
+                        : existinguserAccountsToAdd.SingleOrDefault(a => userIdsRequiringNewAccount.Contains(a.ApplicationUserId.Value));
+
+                    updatedGroupRecord.SftpAccounts.Add(accountToAdd);
                 }
+
+                // TODO later. Handle non-user accounts added to this group.  We'll need a richer request model to support that. 
             }
             _dbContext.SaveChanges();
 
