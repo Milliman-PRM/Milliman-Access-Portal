@@ -169,6 +169,8 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                       <td colSpan={2}>
                         <input
                           type="text"
+                          className="group-name-input"
+                          placeholder="Permission Group Name *"
                           autoFocus={thisPG.name.length === 0}
                           onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
                             setPermissionGroupNameText({ pgId: thisPG.id, value: target.value });
