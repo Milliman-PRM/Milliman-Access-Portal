@@ -101,7 +101,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                             classNamePrefix="react-select"
                             options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
                               value: u.id,
-                              name: u.name ? u.name : '(Unactivated)',
+                              name: u.name.trim() ? u.name : '(Inactivate)',
                               userName: u.userName,
                             }))}
                             styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
@@ -252,7 +252,13 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                       />
                     }
                   </td>
-                  <td>{thisUser.firstName + ' ' + thisUser.lastName}</td>
+                  <td>
+                    {
+                      (thisUser.firstName || thisUser.lastName)
+                        ? [thisUser.firstName, thisUser.lastName].join(' ')
+                        : '(Inactive)'
+                    }
+                  </td>
                   <td colSpan={5}>{thisUser.userName}</td>
                 </tr>
               );
@@ -279,7 +285,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   classNamePrefix="react-select"
                   options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
                     value: u.id,
-                    name: u.name ? u.name : '(Unactivated)',
+                    name: u.name.trim() ? u.name : '(Inactivate)',
                     userName: u.userName,
                   }))}
                   styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
