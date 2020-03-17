@@ -37,6 +37,10 @@
         color: $charcoal;
         padding: 0;
     }
+        
+    th.content-center, td.content-center {
+        text-align: center;
+    }
 
     th.content-right,
     td.content-right {
