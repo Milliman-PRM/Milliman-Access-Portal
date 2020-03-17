@@ -254,11 +254,15 @@ const selectedFileDropTab = createReducer<State.AvailableFileDropTabs>(null, {
 
 /** Reducer for Permission Groups form data */
 const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialPermissionGroupsTab, {
+  FETCH_PERMISSION_GROUPS: () => ({
+    ..._.cloneDeep(_initialPermissionGroupsTab),
+  }),
   FETCH_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
-    ...JSON.parse(JSON.stringify(action.response)),
+    // ...JSON.parse(JSON.stringify(action.response)),
+    ..._.cloneDeep(action.response),
   }),
   UPDATE_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
-    ...JSON.parse(JSON.stringify(action.response)),
+    ..._.cloneDeep(action.response),
   }),
   SET_PERMISSION_GROUP_PERMISSION_VALUE: (state, action: Action.SetPermissionGroupPermissionValue) => ({
     ...state,
@@ -338,7 +342,7 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
     },
   }),
   CREATE_FILE_DROP_SUCCEEDED: () => ({
-    ..._initialPermissionGroupsTab,
+    ..._.cloneDeep(_initialPermissionGroupsTab),
   }),
 });
 
@@ -544,7 +548,9 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...action.response.fileDrops,
     },
-    permissionGroups: _initialPermissionGroupsTab,
+    permissionGroups: {
+      ..._.cloneDeep(_initialPermissionGroupsTab),
+    },
   }),
   DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
     ...state,
@@ -569,6 +575,12 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     },
     fileDrops: {
       ...action.response.fileDrops,
+    },
+  }),
+  FETCH_PERMISSION_GROUPS: (state) => ({
+    ...state,
+    permissionGroups: {
+      ..._.cloneDeep(_initialPermissionGroupsTab),
     },
   }),
   FETCH_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
