@@ -49,10 +49,13 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
           <tr
             key={thisPG.id}
             className={
-              thisPG.isPersonalGroup
-              || (thisPG.assignedMapUserIds.length === 0 && readOnly)
-                ? 'last-group-row'
-                : null
+              [
+                (thisPG.isPersonalGroup
+                  || (thisPG.assignedMapUserIds.length === 0 && readOnly)
+                  ? 'last-group-row'
+                  : null),
+                'first-group-row',
+              ].join(' ')
             }
           >
             <td><svg className="table-icon"><use xlinkHref={pgIcon} /></svg></td>

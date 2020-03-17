@@ -82,6 +82,14 @@
                 border-bottom: 1px solid $charcoal;
             }
 
+            &.last-group-row td {
+                padding-bottom: 1.5em;
+            }
+
+            &.first-group-row td {
+                padding-top: 1.5em;
+            }
+
             &.action-row {
                 cursor: pointer;
 
